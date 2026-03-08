@@ -42,8 +42,8 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     content = results_file.read_text()
     assert content.startswith("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")
     assert "Search Term(s) ==> hello\n" in content
-    assert 'Document: sample.docx, Line: 1, Match: "**Hello** world"\n\n' in content
-    assert 'Document: sample.docx, Line: 3, Match: "**Hello** again"\n\n' in content
+    assert 'Document: sample.docx, Paragraph: 1, Line: 1, Match:\n"**Hello** world"\n\n' in content
+    assert 'Document: sample.docx, Paragraph: 3, Line: 3, Match:\n"**Hello** again"\n\n' in content
 
 
 def test_search_no_matches(tmp_path, monkeypatch, capsys):
@@ -74,7 +74,7 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     main(["PYTHON"])
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert 'Document: test.docx, Line: 1, Match: "**Python** is great"' in content
+    assert 'Document: test.docx, Paragraph: 1, Line: 1, Match:\n"**Python** is great"' in content
 
 
 def test_search_multi_word_query(tmp_path, monkeypatch, capsys):
@@ -91,7 +91,7 @@ def test_search_multi_word_query(tmp_path, monkeypatch, capsys):
     assert "1 match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert 'Document: sample.docx, Line: 1, Match: "**Hello world**"' in content
+    assert 'Document: sample.docx, Paragraph: 1, Line: 1, Match:\n"**Hello world**"' in content
 
 
 def test_banner_always_printed(capsys):

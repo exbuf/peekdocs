@@ -4,6 +4,7 @@ import glob
 import os
 import re
 import sys
+import textwrap
 from datetime import datetime
 
 from docx import Document
@@ -22,10 +23,11 @@ def main(argv=None):
         args = list(argv)
 
     print(BANNER)
+    print()
 
     if not args or args[0] == "help":
         if args and args[0] == "help":
-            print("docsearch help...lists all available commands")
+            print("docsearch help...lists all available commands\n")
         return 0
 
     query = " ".join(args)
@@ -49,7 +51,8 @@ def main(argv=None):
         f.write(f"Search Term(s) ==> {query}\n\n")
         for filename, line_num, text in matches:
             highlighted = re.sub(re.escape(query), lambda m: f"**{m.group()}**", text, flags=re.IGNORECASE)
-            f.write(f'Document: {filename}, Line: {line_num}, Match: "{highlighted}"\n\n')
+            wrapped = textwrap.fill(highlighted, width=80)
+            f.write(f'Document: {filename}, Paragraph: {line_num}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
 
     print()
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt")
