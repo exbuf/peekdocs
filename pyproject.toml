@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claude-docsearch"
+version = "0.1.0"
+description = "A CLI tool for searching and retrieving content from documents"
+requires-python = ">=3.10"
+dependencies = ["python-docx"]
+
+[project.scripts]
+docsearch = "docsearch.cli:main"
