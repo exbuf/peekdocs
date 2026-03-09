@@ -8,6 +8,7 @@ import textwrap
 from datetime import datetime
 
 from docx import Document
+from docx.enum.text import WD_COLOR_INDEX
 
 
 BANNER = (
@@ -32,7 +33,10 @@ def main(argv=None):
 
     query = " ".join(args)
     cwd = os.getcwd()
-    docx_files = sorted(glob.glob(os.path.join(cwd, "*.docx")))
+    docx_files = sorted(
+        f for f in glob.glob(os.path.join(cwd, "*.docx"))
+        if os.path.basename(f) != "docsearch_results.docx"
+    )
 
     matches = []
     for filepath in docx_files:
@@ -46,7 +50,6 @@ def main(argv=None):
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w") as f:
-        f.write("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")
         f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Search Term(s) ==> {query}\n\n")
         for filename, line_num, text in matches:
@@ -54,8 +57,26 @@ def main(argv=None):
             wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Paragraph: {line_num}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
 
+    # Create docsearch_results.docx with yellow-highlighted matches
+    docx_output_path = os.path.join(cwd, "docsearch_results.docx")
+    if os.path.exists(docx_output_path):
+        os.remove(docx_output_path)
+    result_doc = Document()
+    with open(output_path, "r") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            para = result_doc.add_paragraph()
+            parts = re.split(r"(\*\*.*?\*\*)", line)
+            for part in parts:
+                if part.startswith("**") and part.endswith("**"):
+                    run = para.add_run(part[2:-2])
+                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                else:
+                    para.add_run(part)
+    result_doc.save(docx_output_path)
+
     print()
-    print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt")
+    print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt and docsearch_results.docx")
     return 0
 
 

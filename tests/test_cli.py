@@ -4,6 +4,7 @@ import os
 import re
 
 from docx import Document
+from docx.enum.text import WD_COLOR_INDEX
 
 from docsearch.cli import BANNER, main
 
@@ -40,10 +41,21 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     results_file = tmp_path / "docsearch_results.txt"
     assert results_file.exists()
     content = results_file.read_text()
-    assert content.startswith("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")
     assert "Search Term(s) ==> hello\n" in content
     assert 'Document: sample.docx, Paragraph: 1, Line: 1, Match:\n"**Hello** world"\n\n' in content
     assert 'Document: sample.docx, Paragraph: 3, Line: 3, Match:\n"**Hello** again"\n\n' in content
+
+    # Check docsearch_results.docx was created with yellow highlighting
+    docx_results = tmp_path / "docsearch_results.docx"
+    assert docx_results.exists()
+    result_doc = Document(str(docx_results))
+    highlighted_runs = [
+        run for para in result_doc.paragraphs for run in para.runs
+        if run.font.highlight_color == WD_COLOR_INDEX.YELLOW
+    ]
+    assert len(highlighted_runs) == 2
+    assert highlighted_runs[0].text == "Hello"
+    assert highlighted_runs[1].text == "Hello"
 
 
 def test_search_no_matches(tmp_path, monkeypatch, capsys):
@@ -61,7 +73,6 @@ def test_search_no_matches(tmp_path, monkeypatch, capsys):
     results_file = tmp_path / "docsearch_results.txt"
     assert results_file.exists()
     content = results_file.read_text()
-    assert content.startswith("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")
     assert "Search Term(s) ==> zzzzz\n" in content
 
 
