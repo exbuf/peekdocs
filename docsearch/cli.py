@@ -50,7 +50,7 @@ def main(argv=None):
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w") as f:
-        f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Search Term(s) ==> {query}\n\n")
         for filename, line_num, text in matches:
             highlighted = re.sub(re.escape(query), lambda m: f"**{m.group()}**", text, flags=re.IGNORECASE)
