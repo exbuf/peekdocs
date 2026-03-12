@@ -31,6 +31,8 @@ def main(argv=None):
             print("docsearch help...lists all available commands\n")
         return 0
 
+    print("Searching...")
+
     query = " ".join(args)
     cwd = os.getcwd()
     docx_files = sorted(
@@ -51,7 +53,8 @@ def main(argv=None):
         os.remove(output_path)
     with open(output_path, "w") as f:
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Search Term(s) ==> {query}\n\n")
+        f.write(f"Search Term(s) ==> {query}\n")
+        f.write(f"Hits ==> {len(matches)}\n\n")
         for filename, line_num, text in matches:
             highlighted = re.sub(re.escape(query), lambda m: f"**{m.group()}**", text, flags=re.IGNORECASE)
             wrapped = textwrap.fill(highlighted, width=80)
@@ -66,13 +69,18 @@ def main(argv=None):
         for line in f:
             line = line.rstrip("\n")
             para = result_doc.add_paragraph()
+            is_doc_line = line.startswith("Document:")
             parts = re.split(r"(\*\*.*?\*\*)", line)
             for part in parts:
                 if part.startswith("**") and part.endswith("**"):
                     run = para.add_run(part[2:-2])
                     run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                    if is_doc_line:
+                        run.bold = True
                 else:
-                    para.add_run(part)
+                    run = para.add_run(part)
+                    if is_doc_line:
+                        run.bold = True
     result_doc.save(docx_output_path)
 
     print()

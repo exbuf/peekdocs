@@ -1,6 +1,6 @@
 # Claude-DocSearch
 
-A Python CLI tool that searches through `.docx` files in the current directory for a given search term and outputs the results to `docsearch_results.txt`.
+A Python CLI tool that searches through `.docx` files in the current directory for a given search term and outputs the results to `docsearch_results.txt` and `docsearch_results.docx`.
 
 ## Features
 
