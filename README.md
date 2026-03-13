@@ -1,10 +1,10 @@
 # Claude-DocSearch
 
-A Python CLI tool that searches through `.docx` files in the current directory for a given search term and outputs the results to `docsearch_results.txt` and `docsearch_results.docx`.
+A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, and `.txt` files in the current directory for a given search term and outputs the results to `docsearch_results.txt` and `docsearch_results.docx`.
 
 ## Features
 
-- Searches all `.docx` files in the current working directory
+- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, and `.txt` files in the current working directory
 - Case-insensitive matching
 - Supports multi-word search terms (with or without quotes)
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
@@ -73,7 +73,7 @@ cd \path\to\Claude-DocSearch
 venv\Scripts\Activate.ps1
 ```
 
-Then navigate to the directory containing your `.docx` files and run:
+Then navigate to the directory containing your document files and run:
 
 ### Search for a single word
 ```bash

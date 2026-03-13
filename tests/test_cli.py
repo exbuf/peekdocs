@@ -5,6 +5,7 @@ import re
 
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
+from fpdf import FPDF
 
 from docsearch.cli import BANNER, main
 
@@ -103,6 +104,84 @@ def test_search_multi_word_query(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert 'Document: sample.docx, Paragraph: 1, Line: 1, Match:\n"**Hello world**"' in content
+
+
+def test_search_pdf(tmp_path, monkeypatch, capsys):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+    pdf.cell(text="Budget report for Q1")
+    pdf.ln()
+    pdf.cell(text="No match here")
+    pdf.ln()
+    pdf.cell(text="Revised budget plan")
+    pdf.output(str(tmp_path / "report.pdf"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "report.pdf" in content
+    assert "**budget**" in content or "**Budget**" in content
+
+
+def test_search_csv(tmp_path, monkeypatch, capsys):
+    csv_file = tmp_path / "data.csv"
+    csv_file.write_text("Name,Amount\nAlice,500\nBob,budget review\nCharlie,300\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "data.csv" in content
+    assert "**budget**" in content
+
+
+def test_search_odt(tmp_path, monkeypatch, capsys):
+    from odf.opendocument import OpenDocumentText
+    from odf.text import P as OdtP
+
+    odt_doc = OpenDocumentText()
+    p1 = OdtP(text="Hello from ODT")
+    odt_doc.text.addElement(p1)
+    p2 = OdtP(text="Nothing here")
+    odt_doc.text.addElement(p2)
+    odt_doc.save(str(tmp_path / "test.odt"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["hello"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "test.odt" in content
+    assert "**Hello**" in content
+
+
+def test_search_txt(tmp_path, monkeypatch, capsys):
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("First line\nBudget overview\nThird line\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "**Budget**" in content
 
 
 def test_banner_always_printed(capsys):
