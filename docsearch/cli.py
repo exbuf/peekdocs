@@ -105,6 +105,9 @@ def main(argv=None):
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w") as f:
+        f.write("Program name: docsearch\n")
+        f.write("Source: https://github.com/exbuf\n")
+        f.write("File types supported: .docx, .pdf, .csv, .odt, .txt\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Search Term(s) ==> {query}\n")
         f.write(f"Hits ==> {len(matches)}\n")
