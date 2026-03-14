@@ -28,8 +28,12 @@ from importlib.metadata import version as pkg_version
 VERSION = pkg_version("claude-docsearch")
 
 BANNER = (
-    '\nEnter your search terms. Example: docsearch term1 term2 term3\n'
-    'Option flags: -a for AND searches, -h for help, -v for version.'
+    '\nEnter your search terms. Example: docsearch term1 term2 term3    // this is an OR search\n'
+    'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
+    'OR search — finds paragraphs containing any of the search terms\n'
+    'AND search — finds paragraphs containing all of the search terms\n'
+    'Use option flag -h for help. Example: docsearch -h\n'
+    'Use option flag -v for version. Example: docsearch -v'
 )
 
 
@@ -48,7 +52,7 @@ def main(argv=None):
 
     if not args or args[0] in ("help", "-h", "--help"):
         if args and args[0] in ("help", "-h", "--help"):
-            print("docsearch -h...lists all available commands\n")
+            print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     match_all = "-a" in args or "--all" in args

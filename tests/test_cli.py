@@ -21,7 +21,7 @@ def test_help(capsys):
     result = main(["help"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "docsearch -h...lists all available commands" in captured.out
+    assert "Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md" in captured.out
     assert BANNER in captured.out
 
 
