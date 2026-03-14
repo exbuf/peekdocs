@@ -242,6 +242,27 @@ def test_search_html(tmp_path, monkeypatch, capsys):
     assert "**Budget**" in content
 
 
+def test_search_xlsx(tmp_path, monkeypatch, capsys):
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Name", "Amount"])
+    ws.append(["Alice", "500"])
+    ws.append(["Bob", "budget review"])
+    wb.save(str(tmp_path / "data.xlsx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "data.xlsx" in content
+    assert "**budget**" in content
+
+
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()
