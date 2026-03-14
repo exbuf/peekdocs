@@ -7,7 +7,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER, main
+from docsearch.cli import BANNER, VERSION, main
 
 
 def test_no_args(capsys):
@@ -21,7 +21,7 @@ def test_help(capsys):
     result = main(["help"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "docsearch help...lists all available commands" in captured.out
+    assert "docsearch -h...lists all available commands" in captured.out
     assert BANNER in captured.out
 
 
@@ -261,6 +261,20 @@ def test_search_xlsx(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.xlsx" in content
     assert "**budget**" in content
+
+
+def test_version_flag(capsys):
+    result = main(["-v"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"docsearch {VERSION}" in captured.out
+
+
+def test_version_flag_long(capsys):
+    result = main(["--version"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"docsearch {VERSION}" in captured.out
 
 
 def test_banner_always_printed(capsys):

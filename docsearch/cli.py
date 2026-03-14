@@ -22,11 +22,14 @@ from odf.text import P as OdtParagraph
 from odf import teletype
 from docx.enum.text import WD_COLOR_INDEX
 from openpyxl import load_workbook
+from importlib.metadata import version as pkg_version
 
+
+VERSION = pkg_version("claude-docsearch")
 
 BANNER = (
-    'docsearch searches through .docx, .pdf, .csv, .odt, .txt, .html, and .xlsx files for one or more search terms\n'
-    'Type "docsearch help" to see a list of available commands.'
+    '\nEnter your search terms. Example: docsearch term1 term2 term3\n'
+    'Option flags: -a for AND searches, -h for help, -v for version.'
 )
 
 
@@ -39,16 +42,20 @@ def main(argv=None):
     print(BANNER)
     print()
 
-    if not args or args[0] == "help":
-        if args and args[0] == "help":
-            print("docsearch help...lists all available commands\n")
+    if args and args[0] in ("-v", "--version"):
+        print(f"docsearch {VERSION}\n")
+        return 0
+
+    if not args or args[0] in ("help", "-h", "--help"):
+        if args and args[0] in ("help", "-h", "--help"):
+            print("docsearch -h...lists all available commands\n")
         return 0
 
     match_all = "-a" in args or "--all" in args
     search_terms = [a for a in args if a not in ("-a", "--all")]
 
     if not search_terms:
-        print("No search terms provided.")
+        print("No search terms provided.\n")
         return 1
 
     print("Searching...")

@@ -107,6 +107,11 @@ docsearch -a budget revenue expenses
 ```
 Finds only paragraphs containing "budget" AND "revenue" AND "expenses".
 
+### Show version
+```bash
+docsearch --version
+```
+
 ### Show help
 ```bash
 docsearch help
