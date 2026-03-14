@@ -42,10 +42,15 @@ def main(argv=None):
             print("docsearch help...lists all available commands\n")
         return 0
 
+    match_all = "-a" in args or "--all" in args
+    search_terms = [a for a in args if a not in ("-a", "--all")]
+
+    if not search_terms:
+        print("No search terms provided.")
+        return 1
+
     print("Searching...")
     start_time = time.time()
-
-    search_terms = args
     cwd = os.getcwd()
 
     docx_files = sorted(
@@ -62,9 +67,10 @@ def main(argv=None):
     all_files = sorted(docx_files + pdf_files + csv_files + odt_files + txt_files)
 
     def text_matches(text):
-        """Return True if any search term is found in text."""
+        """Return True if search terms are found in text (ANY or ALL based on mode)."""
         text_lower = text.lower()
-        return any(term.lower() in text_lower for term in search_terms)
+        check = all if match_all else any
+        return check(term.lower() in text_lower for term in search_terms)
 
     matches = []
     for filepath in all_files:
@@ -120,7 +126,8 @@ def main(argv=None):
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Search Term(s) ==> {', '.join(search_terms)}\n")
+        mode = "ALL" if match_all else "ANY"
+        f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n\n")
         for filename, line_num, text in matches:

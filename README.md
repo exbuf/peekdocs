@@ -6,7 +6,8 @@ A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, and `.t
 
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, and `.txt` files in the current working directory
 - Case-insensitive matching
-- Supports multiple search terms with OR logic (finds any match)
+- Supports multiple search terms with OR logic (finds any match) by default
+- Use `-a` flag for AND logic (all terms must appear in the same paragraph)
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
@@ -98,6 +99,12 @@ docsearch "annual report"
 docsearch "computer analysis" energy generation
 ```
 Finds paragraphs containing "computer analysis" OR "energy" OR "generation".
+
+### Require ALL terms (AND logic)
+```bash
+docsearch -a budget revenue expenses
+```
+Finds only paragraphs containing "budget" AND "revenue" AND "expenses".
 
 ### Show help
 ```bash
