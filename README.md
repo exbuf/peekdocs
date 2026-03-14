@@ -8,6 +8,7 @@ A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, and `.t
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match)
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
+- Don't separate search terms with commas unless they're part of the search term itself
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
 - Results include document name, paragraph number, line number, and matched text
 - Timestamped output file
