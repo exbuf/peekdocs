@@ -2,6 +2,7 @@
 
 import csv
 import glob
+import logging
 import os
 import re
 import sys
@@ -9,8 +10,12 @@ import textwrap
 import time
 from datetime import datetime
 
+logging.getLogger("pdfminer").setLevel(logging.ERROR)
+
 import pdfplumber
 from docx import Document
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 from odf.opendocument import load as load_odt
 from odf.text import P as OdtParagraph
 from odf import teletype
@@ -107,7 +112,8 @@ def main(argv=None):
     with open(output_path, "w") as f:
         f.write("Program name: docsearch\n")
         f.write("Source: https://github.com/exbuf\n")
-        f.write("File types supported: .docx, .pdf, .csv, .odt, .txt\n")
+        f.write("Overview: Searches all supported file types in current directory for search terms.\n")
+        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Search Term(s) ==> {query}\n")
         f.write(f"Hits ==> {len(matches)}\n")
@@ -126,6 +132,32 @@ def main(argv=None):
         for line in f:
             line = line.rstrip("\n")
             para = result_doc.add_paragraph()
+
+            # Make URL a clickable hyperlink
+            if line.startswith("Source: "):
+                prefix, url = line.split(" ", 1)
+                para.add_run(prefix + " ")
+                r_id = result_doc.part.relate_to(
+                    url, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", is_external=True
+                )
+                hyperlink = OxmlElement("w:hyperlink")
+                hyperlink.set(qn("r:id"), r_id)
+                run_elem = OxmlElement("w:r")
+                rPr = OxmlElement("w:rPr")
+                color = OxmlElement("w:color")
+                color.set(qn("w:val"), "0000FF")
+                rPr.append(color)
+                u = OxmlElement("w:u")
+                u.set(qn("w:val"), "single")
+                rPr.append(u)
+                run_elem.append(rPr)
+                text_elem = OxmlElement("w:t")
+                text_elem.text = url
+                run_elem.append(text_elem)
+                hyperlink.append(run_elem)
+                para._p.append(hyperlink)
+                continue
+
             is_doc_line = line.startswith("Document:")
             parts = re.split(r"(\*\*.*?\*\*)", line)
             for part in parts:
@@ -145,6 +177,7 @@ def main(argv=None):
     print(f"Files searched: {len(all_files)}")
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt and docsearch_results.docx")
     print(f"Elapsed time: {elapsed:.2f} seconds")
+    print()
     return 0
 
 
