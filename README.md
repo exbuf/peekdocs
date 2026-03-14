@@ -7,7 +7,7 @@ A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`,
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, and `.xlsx` files in the current working directory
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
-- Use the `-a` flag for AND logic (where all terms must appear in the same paragraph)
+- Use the `-a` flag for AND logic (where all search terms must appear in the same paragraph)
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
