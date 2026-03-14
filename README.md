@@ -6,7 +6,8 @@ A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, and `.t
 
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, and `.txt` files in the current working directory
 - Case-insensitive matching
-- Supports multi-word search terms (with or without quotes)
+- Supports multiple search terms with OR logic (finds any match)
+- Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
 - Results include document name, paragraph number, line number, and matched text
 - Timestamped output file
@@ -80,15 +81,22 @@ Then navigate to the directory containing your document files and run:
 docsearch budget
 ```
 
+### Search for multiple terms (OR logic)
+```bash
+docsearch budget revenue expenses
+```
+Finds paragraphs containing "budget" OR "revenue" OR "expenses".
+
 ### Search for a multi-word phrase
 ```bash
 docsearch "annual report"
 ```
 
-Or without quotes:
+### Combine phrases and single terms
 ```bash
-docsearch annual report
+docsearch "computer analysis" energy generation
 ```
+Finds paragraphs containing "computer analysis" OR "energy" OR "generation".
 
 ### Show help
 ```bash
@@ -111,7 +119,7 @@ Text file format:
 ```
 
 2026-03-07 14:30:45
-Search Term(s) ==> budget
+Search Term(s) ==> budget, revenue
 
 Document: report.docx, Paragraph: 12, Line: 12, Match:
 "The **budget** for this quarter exceeded expectations"

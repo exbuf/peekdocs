@@ -23,7 +23,7 @@ from docx.enum.text import WD_COLOR_INDEX
 
 
 BANNER = (
-    'docsearch searches through .docx, .pdf, .csv, .odt, and .txt files for a string that is entered as a command line argument\n'
+    'docsearch searches through .docx, .pdf, .csv, .odt, and .txt files for one or more search terms\n'
     'Type "docsearch help" to see a list of available commands.'
 )
 
@@ -45,7 +45,7 @@ def main(argv=None):
     print("Searching...")
     start_time = time.time()
 
-    query = " ".join(args)
+    search_terms = args
     cwd = os.getcwd()
 
     docx_files = sorted(
@@ -61,6 +61,11 @@ def main(argv=None):
     )
     all_files = sorted(docx_files + pdf_files + csv_files + odt_files + txt_files)
 
+    def text_matches(text):
+        """Return True if any search term is found in text."""
+        text_lower = text.lower()
+        return any(term.lower() in text_lower for term in search_terms)
+
     matches = []
     for filepath in all_files:
         filename = os.path.basename(filepath)
@@ -69,7 +74,7 @@ def main(argv=None):
         if ext == ".docx":
             doc = Document(filepath)
             for i, para in enumerate(doc.paragraphs, start=1):
-                if query.lower() in para.text.lower():
+                if text_matches(para.text):
                     matches.append((filename, i, para.text))
 
         elif ext == ".pdf":
@@ -79,7 +84,7 @@ def main(argv=None):
                     if not text:
                         continue
                     for line_num, line in enumerate(text.split("\n"), start=1):
-                        if query.lower() in line.lower():
+                        if text_matches(line):
                             matches.append((filename, page_num, line))
 
         elif ext == ".csv":
@@ -87,21 +92,21 @@ def main(argv=None):
                 reader = csv.reader(csvfile)
                 for row_num, row in enumerate(reader, start=1):
                     row_text = ", ".join(row)
-                    if query.lower() in row_text.lower():
+                    if text_matches(row_text):
                         matches.append((filename, row_num, row_text))
 
         elif ext == ".odt":
             odt_doc = load_odt(filepath)
             for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1):
                 para_text = teletype.extractText(para)
-                if query.lower() in para_text.lower():
+                if text_matches(para_text):
                     matches.append((filename, i, para_text))
 
         elif ext == ".txt":
             with open(filepath, encoding="utf-8", errors="replace") as txtfile:
                 for line_num, line in enumerate(txtfile, start=1):
                     line = line.rstrip("\n")
-                    if query.lower() in line.lower():
+                    if text_matches(line):
                         matches.append((filename, line_num, line))
 
     search_elapsed = time.time() - start_time
@@ -115,11 +120,13 @@ def main(argv=None):
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Search Term(s) ==> {query}\n")
+        f.write(f"Search Term(s) ==> {', '.join(search_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n\n")
         for filename, line_num, text in matches:
-            highlighted = re.sub(re.escape(query), lambda m: f"**{m.group()}**", text, flags=re.IGNORECASE)
+            highlighted = text
+            for term in search_terms:
+                highlighted = re.sub(re.escape(term), lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
             wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Paragraph: {line_num}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
 

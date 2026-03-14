@@ -89,21 +89,43 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     assert 'Document: test.docx, Paragraph: 1, Line: 1, Match:\n"**Python** is great"' in content
 
 
-def test_search_multi_word_query(tmp_path, monkeypatch, capsys):
+def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
+    """Quoted multi-word phrase is a single search term."""
     doc = Document()
     doc.add_paragraph("Hello world")
     doc.add_paragraph("Hello again")
     doc.save(str(tmp_path / "sample.docx"))
 
     monkeypatch.chdir(tmp_path)
-    result = main(["Hello", "world"])
+    result = main(["Hello world"])
     captured = capsys.readouterr()
 
     assert result == 0
     assert "1 match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert 'Document: sample.docx, Paragraph: 1, Line: 1, Match:\n"**Hello world**"' in content
+    assert "**Hello world**" in content
+
+
+def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
+    """Multiple args are separate search terms (OR logic)."""
+    doc = Document()
+    doc.add_paragraph("Hello world")
+    doc.add_paragraph("Nothing here")
+    doc.add_paragraph("Goodbye world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["Hello", "Goodbye"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Search Term(s) ==> Hello, Goodbye" in content
+    assert "**Hello**" in content
+    assert "**Goodbye**" in content
 
 
 def test_search_pdf(tmp_path, monkeypatch, capsys):
