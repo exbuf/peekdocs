@@ -2,6 +2,7 @@
 
 import csv
 import glob
+from html.parser import HTMLParser
 import logging
 import os
 import re
@@ -23,7 +24,7 @@ from docx.enum.text import WD_COLOR_INDEX
 
 
 BANNER = (
-    'docsearch searches through .docx, .pdf, .csv, .odt, and .txt files for one or more search terms\n'
+    'docsearch searches through .docx, .pdf, .csv, .odt, .txt, and .html files for one or more search terms\n'
     'Type "docsearch help" to see a list of available commands.'
 )
 
@@ -64,7 +65,8 @@ def main(argv=None):
         f for f in glob.glob(os.path.join(cwd, "*.txt"))
         if os.path.basename(f) != "docsearch_results.txt"
     )
-    all_files = sorted(docx_files + pdf_files + csv_files + odt_files + txt_files)
+    html_files = sorted(glob.glob(os.path.join(cwd, "*.html")))
+    all_files = sorted(docx_files + pdf_files + csv_files + odt_files + txt_files + html_files)
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
@@ -115,6 +117,22 @@ def main(argv=None):
                     if text_matches(line):
                         matches.append((filename, line_num, line))
 
+        elif ext == ".html":
+            class _HTMLTextExtractor(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.text_parts = []
+                def handle_data(self, data):
+                    self.text_parts.append(data)
+            with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
+                parser = _HTMLTextExtractor()
+                parser.feed(htmlfile.read())
+            lines = "".join(parser.text_parts).split("\n")
+            for line_num, line in enumerate(lines, start=1):
+                line = line.strip()
+                if line and text_matches(line):
+                    matches.append((filename, line_num, line))
+
     search_elapsed = time.time() - start_time
 
     output_path = os.path.join(cwd, "docsearch_results.txt")
@@ -124,7 +142,7 @@ def main(argv=None):
         f.write("Program name: docsearch\n")
         f.write("Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt\n")
+        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         mode = "ALL" if match_all else "ANY"
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {mode})\n")

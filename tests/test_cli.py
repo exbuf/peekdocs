@@ -226,6 +226,22 @@ def test_search_txt(tmp_path, monkeypatch, capsys):
     assert "**Budget**" in content
 
 
+def test_search_html(tmp_path, monkeypatch, capsys):
+    html_file = tmp_path / "page.html"
+    html_file.write_text("<html><body><p>Budget report</p><p>No match</p></body></html>")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "page.html" in content
+    assert "**Budget**" in content
+
+
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()
