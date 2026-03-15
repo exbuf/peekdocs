@@ -4,7 +4,7 @@
 
 **Motivation:** I built docsearch to help me locate information stored within hundreds of Google Docs and Sheets. This was the procedure for converting Google Docs: File / Download / Microsoft Word (.docx) to create .docx files. Google Sheets uses same procedure to create .xsls files. While I was at it, I included other popular file formats to future proof it. All supported file types can reside in the same directory. Microsoft Word documents from 2007 and before (.doc documents) aren't covered because an external tool is required to convert them.
 
-**Programming process:** docsearch was written entirely by Claude Code. It's my second app, the first being my personal website.
+**Programming process:** docsearch was written entirely by Claude Code. It's my second Claude Code app, the first being my personal website.
 
 ## Features
 
