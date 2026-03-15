@@ -177,7 +177,15 @@ def main(argv=None):
             size_str = f"{total_bytes / 1_000:.2f} KB"
         else:
             size_str = f"{total_bytes} bytes"
-        f.write(f"Files searched ==> {len(all_files)} ({size_str})\n\n")
+        f.write(f"Files searched ==> {len(all_files)} ({size_str})\n")
+        ext_counts = {}
+        for fp in all_files:
+            ext = os.path.splitext(fp)[1].lower()
+            ext_counts[ext] = ext_counts.get(ext, 0) + 1
+        if ext_counts:
+            tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
+            f.write(f"File Types Searched ==> {tally}\n")
+        f.write("\n")
         for filename, line_num, text in matches:
             highlighted = text
             for term in search_terms:
