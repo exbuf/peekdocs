@@ -177,7 +177,7 @@ def main(argv=None):
             size_str = f"{total_bytes / 1_000:.2f} KB"
         else:
             size_str = f"{total_bytes} bytes"
-        f.write(f"Total Size of Files Searched ==> {size_str}\n\n")
+        f.write(f"Files searched ==> {len(all_files)} ({size_str})\n\n")
         for filename, line_num, text in matches:
             highlighted = text
             for term in search_terms:
@@ -197,8 +197,9 @@ def main(argv=None):
 
             # Make URL a clickable hyperlink
             if line.startswith("Program Source: "):
-                prefix, url = line.split(" ", 1)
-                para.add_run(prefix + " ")
+                prefix = "Program Source: "
+                url = line[len(prefix):]
+                para.add_run(prefix)
                 r_id = result_doc.part.relate_to(
                     url, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", is_external=True
                 )
