@@ -1,0 +1,33 @@
+Program name: docsearch
+Program Source: https://github.com/exbuf
+Overview: Searches all supported file types in current directory for search terms.
+Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx
+
+Report Generated On ==> 2026-03-15 12:54:00
+Search Term(s) ==> splendid, indeed (match: ALL)
+Hits ==> 7
+Search Time ==> 33.50 seconds
+Files searched ==> 106 (1822.45 MB)
+File Types Searched ==> .docx: 98, .pdf: 2, .xlsx: 2, .csv: 1, .html: 1, .odt: 1, .txt: 1
+
+Document: test_file.csv, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.docx, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.html, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.odt, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.pdf, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.txt, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
+Document: test_file.xlsx, Paragraph: 1, Line: 1, Match:
+"A **splendid** test file **indeed**."
+
