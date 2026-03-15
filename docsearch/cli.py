@@ -162,14 +162,22 @@ def main(argv=None):
         os.remove(output_path)
     with open(output_path, "w") as f:
         f.write("Program name: docsearch\n")
-        f.write("Source: https://github.com/exbuf\n")
+        f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         mode = "ALL" if match_all else "ANY"
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
-        f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n\n")
+        f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n")
+        total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
+        if total_bytes >= 1_000_000:
+            size_str = f"{total_bytes / 1_000_000:.2f} MB"
+        elif total_bytes >= 1_000:
+            size_str = f"{total_bytes / 1_000:.2f} KB"
+        else:
+            size_str = f"{total_bytes} bytes"
+        f.write(f"Total Size of Files Searched ==> {size_str}\n\n")
         for filename, line_num, text in matches:
             highlighted = text
             for term in search_terms:
@@ -188,7 +196,7 @@ def main(argv=None):
             para = result_doc.add_paragraph()
 
             # Make URL a clickable hyperlink
-            if line.startswith("Source: "):
+            if line.startswith("Program Source: "):
                 prefix, url = line.split(" ", 1)
                 para.add_run(prefix + " ")
                 r_id = result_doc.part.relate_to(
