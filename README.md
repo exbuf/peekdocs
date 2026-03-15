@@ -2,7 +2,7 @@
 
 A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, and `.xlsx` files in the current directory for a given search term and outputs the results to `docsearch_results.txt` and `docsearch_results.docx`. Results show the full text surrounding each match, so you can understand the context without opening the original document.
 
-Motivation: I built docsearch to help me locate information stored within hundreds of Google Docs and Sheets. This was the procedure for Google Docs: File / Download / Microsoft Word (.xsls) to create .docx files. Google Sheets uses same procedure to create .xsls files. While I was at it, I included other popular file formats to future proof it. All supported file types can reside in the same directory.
+Motivation: I built docsearch to help me locate information stored within hundreds of Google Docs and Sheets. This was the procedure for Google Docs: File / Download / Microsoft Word (.docx) to create .docx files. Google Sheets uses same procedure to create .xsls files. While I was at it, I included other popular file formats to future proof it. All supported file types can reside in the same directory.
 
 ## Features
 
