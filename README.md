@@ -131,7 +131,7 @@ Finds paragraphs containing "computer analysis" OR "energy" OR "generation".
 ```bash
 docsearch -a budget revenue expenses
 ```
-Finds only paragraphs containing "budget" AND "revenue" AND "expenses".
+Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Requires -a flag)
 
 ### Show version
 ```bash
