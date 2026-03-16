@@ -71,8 +71,8 @@ def main(argv=None):
         cwd = os.getcwd()
         src_docx = os.path.join(cwd, "docsearch_results.docx")
         src_txt = os.path.join(cwd, "docsearch_results.txt")
-        dest_docx = os.path.join(cwd, f"Do_Not_Search_{name}.docx")
-        dest_txt = os.path.join(cwd, f"Do_Not_Search_{name}.txt")
+        dest_docx = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.docx")
+        dest_txt = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
             print("No search results found. Run a search first.\n")
             return 1
@@ -96,7 +96,7 @@ def main(argv=None):
     docx_files = sorted(
         f for f in glob.glob(os.path.join(cwd, "*.docx"))
         if os.path.basename(f) != "docsearch_results.docx"
-        and not os.path.basename(f).startswith("Do_Not_Search_")
+        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     pdf_files = sorted(glob.glob(os.path.join(cwd, "*.pdf")))
     csv_files = sorted(glob.glob(os.path.join(cwd, "*.csv")))
@@ -104,13 +104,13 @@ def main(argv=None):
     txt_files = sorted(
         f for f in glob.glob(os.path.join(cwd, "*.txt"))
         if os.path.basename(f) != "docsearch_results.txt"
-        and not os.path.basename(f).startswith("Do_Not_Search_")
+        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     html_files = sorted(glob.glob(os.path.join(cwd, "*.html")))
     xlsx_files = sorted(glob.glob(os.path.join(cwd, "*.xlsx")))
     all_files = sorted(
         f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files
-        if not os.path.basename(f).startswith("Do_Not_Search")
+        if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
     def text_matches(text):

@@ -39,8 +39,8 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Generates both `docsearch_results.txt` and `docsearch_results.docx`
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
-- Save search results with `-s` flag — copies results to named files prefixed with `Do_Not_Search_` so they won't be included in future searches
-- Files with `Do_Not_Search` in the name are automatically skipped during searches
+- Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
+- Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
 
 ## Installation
 
@@ -138,7 +138,7 @@ Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Require
 
 ### Save search results
 ```bash
-docsearch -s name_of_your_file  // Saves results to Do_Not_Search_name_of_your_file.docx (and .txt)
+docsearch -s name_of_your_file  // Saves results to DO_NOT_SEARCH_name_of_your_file.docx (and .txt)
 ```
 
 ### Show version
