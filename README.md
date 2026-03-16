@@ -58,7 +58,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 2. Create and activate a virtual environment:
 
-   **macOS/Linux:**
+   **macOS/Linux (Terminal):**
    ```bash
    python3 -m venv venv
    source venv/bin/activate
@@ -85,7 +85,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 First, activate the virtual environment:
 
-**macOS/Linux:**
+**macOS/Linux (Terminal):**
 ```bash
 cd /path/to/Claude-DocSearch
 source venv/bin/activate
