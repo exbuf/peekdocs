@@ -55,6 +55,7 @@ def main(argv=None):
         return 0
 
     if not args:
+        print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     match_all = "-a" in args or "--all" in args

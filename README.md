@@ -143,7 +143,7 @@ docsearch -v
 docsearch -h
 ```
 
-### Show description
+### Show help (method 2)
 ```bash
 docsearch
 ```

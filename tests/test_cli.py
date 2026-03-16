@@ -15,6 +15,7 @@ def test_no_args(capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert BANNER in captured.out
+    assert "Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md" in captured.out
 
 
 def test_help(capsys):
