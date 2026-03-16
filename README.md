@@ -28,6 +28,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, and `.xlsx` files in the current working directory
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
+- Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
 - Use the `-a` flag for AND logic (where all search terms must appear in the same paragraph)
 - Example: `docsearch -a term1 term2 term3`   // all terms must appear in the paragraph
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
