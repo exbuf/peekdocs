@@ -6,7 +6,8 @@
 - Supports **AND** and **OR** search logic with any number of search terms.
   - **OR**: Show paragraph if it contains term1 OR term2 OR term3, etc.
   - **AND**: Show paragraph if it contains term1 AND term2 AND term3, etc.
-- A simple search example can be found in the `docsearch_results.docx` and `docsearch_results.txt` files on GitHub. (GitHub can't render .docx files directly in the browser, so you'll have to download it. Open with Word, Pages, LibreOffice, or Google Docs.)
+- A simple search example can be found in the `docsearch_results.docx` and `docsearch_results.txt` files on GitHub.
+  (NOTE: GitHub can't render .docx, .odt, and .xlsx files directly in the browser, so to view these files you'll have to download and open them on your local machine. Open .docx with Word, Pages, LibreOffice, or Google Docs. Open .odt files with LibreOffice, Google Docs, Word, or Apple Pages. Open .xlsx files with Excel, Google Sheets, LibreOffice Calc, or Apple Numbers.)
 
 **Motivation:** I built docsearch to help me locate information stored within hundreds of Google Docs and Sheets. This was the procedure for converting Google Docs: File / Download / Microsoft Word (.docx) to create .docx files. Google Sheets uses same procedure to create .xsls files. While I was at it, I included other popular file formats to make it more general purpose. All supported file types can reside in the same directory. Microsoft Word documents from 2007 and before (.doc documents) aren't covered because an external tool is required to convert them.
 
@@ -25,12 +26,16 @@
 - Results include document name, paragraph number, line number, and matched text
 - Timestamped output file
 - Generates both `docsearch_results.txt` and `docsearch_results.docx`
+- Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.10 or higher — check by running `python3 --version` (macOS/Linux) or `python --version` (Windows)
+  - **macOS:** Install from [python.org](https://www.python.org/downloads/) or via Homebrew: `brew install python`
+  - **Windows:** Install from [python.org](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
+  - **Linux:** Usually pre-installed. If not: `sudo apt install python3` (Ubuntu/Debian) or `sudo dnf install python3` (Fedora)
 
 ### Steps
 
