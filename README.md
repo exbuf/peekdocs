@@ -140,6 +140,7 @@ Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Require
 ```bash
 docsearch -s name_of_your_file  // Saves results to DO_NOT_SEARCH_name_of_your_file.docx (and .txt)
 ```
+Your file name could describe the contents or simply list the search terms used.
 
 ### Show version
 ```bash
