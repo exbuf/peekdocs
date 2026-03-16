@@ -3,31 +3,43 @@ Program Source: https://github.com/exbuf
 Overview: Searches all supported file types in current directory for search terms.
 Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx
 
-Report Generated On ==> 2026-03-15 12:54:00
-Search Term(s) ==> splendid, indeed (match: ALL)
-Hits ==> 7
-Search Time ==> 33.50 seconds
-Files searched ==> 106 (1822.45 MB)
-File Types Searched ==> .docx: 98, .pdf: 2, .xlsx: 2, .csv: 1, .html: 1, .odt: 1, .txt: 1
+Report Generated On ==> 2026-03-15 21:06:20
+Search Term(s) ==> budget (match: ANY)
+Hits ==> 10
+Search Time ==> 0.01 seconds
+Files searched ==> 8 (45.16 KB)
+File Types Searched ==> .html: 1, .csv: 1, .pdf: 1, .odt: 1, .txt: 2, .docx: 1, .xlsx: 1
 
-Document: test_file.csv, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: dashboard.html, Paragraph: 5, Line: 5, Match:
+"The department **budget** utilization rate was 92%, within acceptable range."
 
-Document: test_file.docx, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: employee_data.csv, Paragraph: 3, Line: 3, Match:
+"Bob Martinez, Finance, Preparing the annual **budget** review"
 
-Document: test_file.html, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: financial_summary.pdf, Paragraph: 1, Line: 1, Match:
+"Annual expenses totaled $2.4M, under the approved **budget** by 8%."
 
-Document: test_file.odt, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: financial_summary.pdf, Paragraph: 1, Line: 1, Match:
+"The revised **budget** framework will be presented at the board meeting."
 
-Document: test_file.pdf, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: meeting_notes.odt, Paragraph: 2, Line: 2, Match:
+"The committee reviewed the proposed **budget** for fiscal year 2027."
 
-Document: test_file.txt, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: meeting_notes.odt, Paragraph: 3, Line: 3, Match:
+"After discussion, the **budget** was approved unanimously."
 
-Document: test_file.xlsx, Paragraph: 1, Line: 1, Match:
-"A **splendid** test file **indeed**."
+Document: project_log.txt, Paragraph: 3, Line: 3, Match:
+"2026-03-01: **Budget** review requested by finance department."
+
+Document: quarterly_report.docx, Paragraph: 1, Line: 1, Match:
+"The Q1 **budget** allocation exceeded initial projections by 12%. Revenue from
+the northeast region contributed significantly to the overall **budget**
+surplus. Management recommends reallocating the remaining **budget** to R&D
+initiatives."
+
+Document: sales_data.xlsx, Paragraph: 3, Line: 3, Match:
+"Southeast, 800000, 900000, Under **budget** allocation"
+
+Document: sales_data.xlsx, Paragraph: 5, Line: 5, Match:
+"West, 1100000, 1050000, Slight **budget** surplus"
 
