@@ -13,6 +13,9 @@ from datetime import datetime
 
 logging.getLogger("pdfminer").setLevel(logging.ERROR)
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+
 import pdfplumber
 from docx import Document
 from docx.oxml.ns import qn

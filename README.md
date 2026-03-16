@@ -134,6 +134,11 @@ docsearch -a budget revenue expenses
 ```
 Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Requires -a flag)
 
+### Save search results
+```bash
+docsearch -s name_of_your_file  // Saves results of the last search to file Do_Not_Search_name_of_your_file.docx, and Do_Not_Search_name_of_your_file.txt
+```
+
 ### Show version
 ```bash
 docsearch -v
