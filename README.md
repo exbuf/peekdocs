@@ -7,7 +7,7 @@
   - **OR**: Show paragraph if it contains term1 OR term2 OR term3, etc.
   - **AND**: Show paragraph if it contains term1 AND term2 AND term3, etc.
 - A simple search example can be found in the `docsearch_results.docx` and `docsearch_results.txt` files on GitHub.
-  (NOTE: GitHub can't render .docx, .odt, and .xlsx files directly in the browser, so to view these files you'll have to download and open them on your local machine. Open .docx with Word, Pages, LibreOffice, or Google Docs. Open .odt files with LibreOffice, Google Docs, Word, or Apple Pages. Open .xlsx files with Excel, Google Sheets, LibreOffice Calc, or Apple Numbers.)
+  (NOTE: You can view docsearch_results.txt by clicking on it now, but GitHub can't render .docx, .odt, and .xlsx files directly in the browser. So to view the yellow highlighted .docx file and the others, you'll have to download and open them on your local machine. Here's how: .docx opens with Word, Pages, LibreOffice, or Google Docs. Open .odt files with LibreOffice, Google Docs, Word, or Apple Pages. .xlsx files open with Excel, Google Sheets, LibreOffice Calc, or Apple Numbers.)
 
 **Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper articles I've saved, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
 But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
