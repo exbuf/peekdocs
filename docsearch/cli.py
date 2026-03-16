@@ -32,11 +32,12 @@ from importlib.metadata import version as pkg_version
 VERSION = pkg_version("claude-docsearch")
 
 BANNER = (
-    '\nEnter your search terms. Example: docsearch term1 term2 term3    // this is an OR search\n'
+    '\n OR search — finds paragraphs containing ANY of the search terms\n'
+    'AND search — finds paragraphs containing ALL of the search terms\n'
+    'Enter your search terms. Example: docsearch term1 term2 term3    // this is an OR search\n'
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
-    'OR search — finds paragraphs containing any of the search terms\n'
-    'AND search — finds paragraphs containing all of the search terms\n'
     'Use option flag -h for help. Example: docsearch -h\n'
+    'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes'
 )
@@ -56,11 +57,11 @@ def main(argv=None):
         return 0
 
     if args and args[0] in ("-h", "-help", "--help"):
-        print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+        print("See README.md here for details: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if not args:
-        print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+        print("See README.md here for details: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if args and args[0] in ("-s", "-save"):
