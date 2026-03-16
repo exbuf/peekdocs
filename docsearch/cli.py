@@ -88,72 +88,78 @@ def main(argv=None):
         return check(term.lower() in text_lower for term in search_terms)
 
     matches = []
+    skipped_files = []
     for filepath in all_files:
         filename = os.path.basename(filepath)
         ext = os.path.splitext(filename)[1].lower()
 
-        if ext == ".docx":
-            doc = Document(filepath)
-            for i, para in enumerate(doc.paragraphs, start=1):
-                if text_matches(para.text):
-                    matches.append((filename, i, para.text))
+        try:
+            if ext == ".docx":
+                doc = Document(filepath)
+                for i, para in enumerate(doc.paragraphs, start=1):
+                    if text_matches(para.text):
+                        matches.append((filename, i, para.text))
 
-        elif ext == ".pdf":
-            with pdfplumber.open(filepath) as pdf:
-                for page_num, page in enumerate(pdf.pages, start=1):
-                    text = page.extract_text()
-                    if not text:
-                        continue
-                    for line_num, line in enumerate(text.split("\n"), start=1):
+            elif ext == ".pdf":
+                with pdfplumber.open(filepath) as pdf:
+                    for page_num, page in enumerate(pdf.pages, start=1):
+                        text = page.extract_text()
+                        if not text:
+                            continue
+                        for line_num, line in enumerate(text.split("\n"), start=1):
+                            if text_matches(line):
+                                matches.append((filename, page_num, line))
+
+            elif ext == ".csv":
+                with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
+                    reader = csv.reader(csvfile)
+                    for row_num, row in enumerate(reader, start=1):
+                        row_text = ", ".join(row)
+                        if text_matches(row_text):
+                            matches.append((filename, row_num, row_text))
+
+            elif ext == ".odt":
+                odt_doc = load_odt(filepath)
+                for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1):
+                    para_text = teletype.extractText(para)
+                    if text_matches(para_text):
+                        matches.append((filename, i, para_text))
+
+            elif ext == ".txt":
+                with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+                    for line_num, line in enumerate(txtfile, start=1):
+                        line = line.rstrip("\n")
                         if text_matches(line):
-                            matches.append((filename, page_num, line))
+                            matches.append((filename, line_num, line))
 
-        elif ext == ".csv":
-            with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
-                reader = csv.reader(csvfile)
-                for row_num, row in enumerate(reader, start=1):
-                    row_text = ", ".join(row)
-                    if text_matches(row_text):
-                        matches.append((filename, row_num, row_text))
-
-        elif ext == ".odt":
-            odt_doc = load_odt(filepath)
-            for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1):
-                para_text = teletype.extractText(para)
-                if text_matches(para_text):
-                    matches.append((filename, i, para_text))
-
-        elif ext == ".txt":
-            with open(filepath, encoding="utf-8", errors="replace") as txtfile:
-                for line_num, line in enumerate(txtfile, start=1):
-                    line = line.rstrip("\n")
-                    if text_matches(line):
+            elif ext == ".html":
+                class _HTMLTextExtractor(HTMLParser):
+                    def __init__(self):
+                        super().__init__()
+                        self.text_parts = []
+                    def handle_data(self, data):
+                        self.text_parts.append(data)
+                with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
+                    parser = _HTMLTextExtractor()
+                    parser.feed(htmlfile.read())
+                lines = "".join(parser.text_parts).split("\n")
+                for line_num, line in enumerate(lines, start=1):
+                    line = line.strip()
+                    if line and text_matches(line):
                         matches.append((filename, line_num, line))
 
-        elif ext == ".html":
-            class _HTMLTextExtractor(HTMLParser):
-                def __init__(self):
-                    super().__init__()
-                    self.text_parts = []
-                def handle_data(self, data):
-                    self.text_parts.append(data)
-            with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
-                parser = _HTMLTextExtractor()
-                parser.feed(htmlfile.read())
-            lines = "".join(parser.text_parts).split("\n")
-            for line_num, line in enumerate(lines, start=1):
-                line = line.strip()
-                if line and text_matches(line):
-                    matches.append((filename, line_num, line))
+            elif ext == ".xlsx":
+                wb = load_workbook(filepath, read_only=True, data_only=True)
+                for sheet in wb.worksheets:
+                    for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
+                        row_text = ", ".join(str(cell) for cell in row if cell is not None)
+                        if row_text and text_matches(row_text):
+                            matches.append((filename, row_num, row_text))
+                wb.close()
 
-        elif ext == ".xlsx":
-            wb = load_workbook(filepath, read_only=True, data_only=True)
-            for sheet in wb.worksheets:
-                for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
-                    row_text = ", ".join(str(cell) for cell in row if cell is not None)
-                    if row_text and text_matches(row_text):
-                        matches.append((filename, row_num, row_text))
-            wb.close()
+        except Exception as e:
+            print(f"Warning: Could not read {filename} ({e})")
+            skipped_files.append(filename)
 
     search_elapsed = time.time() - start_time
 
