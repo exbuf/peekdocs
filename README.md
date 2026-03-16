@@ -12,12 +12,12 @@
 **Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper articles I've saved, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
 But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
 
-Keep sensitive documents private — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
-Work offline — search your files without an internet connection, useful for travel or unreliable connectivity
-Search across formats — find information across PDFs, Word docs, spreadsheets, and text files in one place
-Build a personal knowledge base — writers, students, and researchers can search years of notes, clippings, and drafts instantly
-Preserve family and personal records — genealogy notes, old letters, scanned documents, decades of personal history made searchable
-Support professional work — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
+- Keep sensitive documents private — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
+- Work offline — search your files without an internet connection, useful for travel or unreliable connectivity
+- Search across formats — find information across PDFs, Word docs, spreadsheets, and text files in one place
+- Build a personal knowledge base — writers, students, and researchers can search years of notes, clippings, and drafts instantly
+- Preserve family and personal records — genealogy notes, old letters, scanned documents, decades of personal history made searchable
+- Support professional work — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
 
 Local search is also fast, with no rate limits, usage caps, or waiting on cloud services.
 
