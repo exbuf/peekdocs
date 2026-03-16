@@ -32,6 +32,7 @@ BANNER = (
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
     'OR search — finds paragraphs containing any of the search terms\n'
     'AND search — finds paragraphs containing all of the search terms\n'
+    'Use quotes around special characters: docsearch "<" "[test]" "$amount"\n'
     'Use option flag -h for help. Example: docsearch -h\n'
     'Use option flag -v for version. Example: docsearch -v'
 )

@@ -38,6 +38,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Timestamped output file
 - Generates both `docsearch_results.txt` and `docsearch_results.docx`
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
+- Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
 
 ## Installation
 
