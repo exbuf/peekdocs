@@ -46,7 +46,7 @@ def main(argv=None):
     print(BANNER)
     print()
 
-    if args and args[0] in ("-v", "--version"):
+    if args and args[0] in ("-v", "-version"):
         print(f"docsearch {VERSION}\n")
         return 0
 

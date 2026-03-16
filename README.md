@@ -135,7 +135,7 @@ Finds only paragraphs containing "budget" AND "revenue" AND "expenses".
 
 ### Show version
 ```bash
-docsearch --version
+docsearch -v
 ```
 
 ### Show help

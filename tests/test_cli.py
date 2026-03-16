@@ -271,7 +271,7 @@ def test_version_flag(capsys):
 
 
 def test_version_flag_long(capsys):
-    result = main(["--version"])
+    result = main(["-version"])
     captured = capsys.readouterr()
     assert result == 0
     assert f"docsearch {VERSION}" in captured.out
