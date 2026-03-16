@@ -18,7 +18,7 @@ def test_no_args(capsys):
 
 
 def test_help(capsys):
-    result = main(["help"])
+    result = main(["-h"])
     captured = capsys.readouterr()
     assert result == 0
     assert "Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md" in captured.out

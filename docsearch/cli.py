@@ -50,9 +50,11 @@ def main(argv=None):
         print(f"docsearch {VERSION}\n")
         return 0
 
-    if not args or args[0] in ("help", "-h", "--help"):
-        if args and args[0] in ("help", "-h", "--help"):
-            print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+    if args and args[0] in ("-h", "--help"):
+        print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+        return 0
+
+    if not args:
         return 0
 
     match_all = "-a" in args or "--all" in args

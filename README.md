@@ -140,7 +140,7 @@ docsearch --version
 
 ### Show help
 ```bash
-docsearch help
+docsearch -h
 ```
 
 ### Show description
