@@ -43,7 +43,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 ### Prerequisites
 
-- Python 3.10 or higher — check by running `python3 --version` (macOS/Linux) or `python --version` (Windows)
+- Python 3.10 or higher — check if it's already installed by running `python3 --version` (macOS/Linux) or `python --version` (Windows)
   - **macOS:** Install from [python.org](https://www.python.org/downloads/) or via Homebrew: `brew install python`
   - **Windows:** Install from [python.org](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
   - **Linux:** Usually pre-installed. If not: `sudo apt install python3` (Ubuntu/Debian) or `sudo dnf install python3` (Fedora)
