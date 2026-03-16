@@ -50,7 +50,7 @@ def main(argv=None):
         print(f"docsearch {VERSION}\n")
         return 0
 
-    if args and args[0] in ("-h", "--help"):
+    if args and args[0] in ("-h", "-help", "--help"):
         print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
