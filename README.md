@@ -34,7 +34,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
-- Results include document name, paragraph number, line number, and matched text
+- Results include document name, line number, and matched text
 - Timestamped output file
 - Generates both `docsearch_results.txt` and `docsearch_results.docx`
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
@@ -169,10 +169,10 @@ Text file format:
 2026-03-07 14:30:45
 Search Term(s) ==> budget, revenue
 
-Document: report.docx, Paragraph: 12, Line: 12, Match:
+Document: report.docx, Line: 12, Match:
 "The **budget** for this quarter exceeded expectations"
 
-Document: summary.docx, Paragraph: 3, Line: 3, Match:
+Document: summary.docx, Line: 3, Match:
 "Revised **budget** proposal attached"
 ```
 

@@ -229,7 +229,7 @@ def main(argv=None):
             for term in search_terms:
                 highlighted = re.sub(re.escape(term), lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
             wrapped = textwrap.fill(highlighted, width=80)
-            f.write(f'Document: {filename}, Paragraph: {line_num}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
+            f.write(f'Document: {filename}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
 
     # Create docsearch_results.docx with yellow-highlighted matches
     docx_output_path = os.path.join(cwd, "docsearch_results.docx")
