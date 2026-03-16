@@ -6,6 +6,7 @@ from html.parser import HTMLParser
 import logging
 import os
 import re
+import shutil
 import sys
 import textwrap
 import time
@@ -62,6 +63,24 @@ def main(argv=None):
         print("Please refer to README.md here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
+    if args and args[0] in ("-s", "-save"):
+        if len(args) < 2:
+            print("No filename provided. Usage: docsearch -s name_of_your_file\n")
+            return 1
+        name = "_".join(args[1:]).replace(" ", "_")
+        cwd = os.getcwd()
+        src_docx = os.path.join(cwd, "docsearch_results.docx")
+        src_txt = os.path.join(cwd, "docsearch_results.txt")
+        dest_docx = os.path.join(cwd, f"Do_Not_Search_{name}.docx")
+        dest_txt = os.path.join(cwd, f"Do_Not_Search_{name}.txt")
+        if not os.path.exists(src_docx) or not os.path.exists(src_txt):
+            print("No search results found. Run a search first.\n")
+            return 1
+        shutil.copy2(src_docx, dest_docx)
+        shutil.copy2(src_txt, dest_txt)
+        print(f"Results saved to {os.path.basename(dest_docx)} and {os.path.basename(dest_txt)}\n")
+        return 0
+
     match_all = "-a" in args or "--all" in args
     search_terms = [a for a in args if a not in ("-a", "--all")]
 
@@ -69,13 +88,15 @@ def main(argv=None):
         print("No search terms provided.\n")
         return 1
 
-    print("Searching...")
+    mode = "AND" if match_all else "OR"
+    print(f"Searching ({mode}) on [{', '.join(search_terms)}] ...")
     start_time = time.time()
     cwd = os.getcwd()
 
     docx_files = sorted(
         f for f in glob.glob(os.path.join(cwd, "*.docx"))
         if os.path.basename(f) != "docsearch_results.docx"
+        and not os.path.basename(f).startswith("Do_Not_Search_")
     )
     pdf_files = sorted(glob.glob(os.path.join(cwd, "*.pdf")))
     csv_files = sorted(glob.glob(os.path.join(cwd, "*.csv")))
@@ -83,10 +104,14 @@ def main(argv=None):
     txt_files = sorted(
         f for f in glob.glob(os.path.join(cwd, "*.txt"))
         if os.path.basename(f) != "docsearch_results.txt"
+        and not os.path.basename(f).startswith("Do_Not_Search_")
     )
     html_files = sorted(glob.glob(os.path.join(cwd, "*.html")))
     xlsx_files = sorted(glob.glob(os.path.join(cwd, "*.xlsx")))
-    all_files = sorted(docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files)
+    all_files = sorted(
+        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files
+        if not os.path.basename(f).startswith("Do_Not_Search")
+    )
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
