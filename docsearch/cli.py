@@ -41,6 +41,7 @@ BANNER = (
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
+    'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
@@ -86,6 +87,7 @@ def main(argv=None):
 
     match_all = "-a" in args or "--all" in args
     recursive = "-r" in args
+    use_regex = "-x" in args
 
     file_types = None
     if "-t" in args:
@@ -103,13 +105,28 @@ def main(argv=None):
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
 
-    search_terms = [a for a in args if a not in ("-a", "--all", "-r")]
+    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x")]
 
     if not search_terms:
         print("No search terms provided.\n")
         return 1
 
-    mode = "AND" if match_all else "OR"
+    if use_regex:
+        for term in search_terms:
+            try:
+                re.compile(term)
+            except re.error as e:
+                print(f"Invalid regex pattern '{term}': {e}\n")
+                return 1
+
+    if use_regex and match_all:
+        mode = "REGEX+AND"
+    elif use_regex:
+        mode = "REGEX"
+    elif match_all:
+        mode = "AND"
+    else:
+        mode = "OR"
     print(f"Searching ({mode}) on [{', '.join(search_terms)}] ...")
     start_time = time.time()
     cwd = os.getcwd()
@@ -146,8 +163,10 @@ def main(argv=None):
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
-        text_lower = text.lower()
         check = all if match_all else any
+        if use_regex:
+            return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
+        text_lower = text.lower()
         return check(term.lower() in text_lower for term in search_terms)
 
     matches = []
@@ -236,8 +255,15 @@ def main(argv=None):
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        mode = "ALL" if match_all else "ANY"
-        f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {mode})\n")
+        if use_regex and match_all:
+            report_mode = "REGEX+AND"
+        elif use_regex:
+            report_mode = "REGEX"
+        elif match_all:
+            report_mode = "ALL"
+        else:
+            report_mode = "ANY"
+        f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
@@ -259,7 +285,8 @@ def main(argv=None):
         for file_dir, filename, line_num, text in matches:
             highlighted = text
             for term in search_terms:
-                highlighted = re.sub(re.escape(term), lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
+                pattern = term if use_regex else re.escape(term)
+                highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
             wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 

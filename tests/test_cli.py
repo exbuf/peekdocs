@@ -384,6 +384,50 @@ def test_search_md(tmp_path, monkeypatch, capsys):
     assert "**Budget**" in content
 
 
+def test_search_regex(tmp_path, monkeypatch, capsys):
+    """With -x flag, search terms are treated as regex patterns."""
+    txt_file = tmp_path / "contacts.txt"
+    txt_file.write_text("Call 555-123-4567\nNo phone here\nReach out at 555-987-6543\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-x", r"\d{3}-\d{3}-\d{4}"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "contacts.txt" in content
+    assert "**555-123-4567**" in content
+    assert "**555-987-6543**" in content
+
+
+def test_search_regex_with_and(tmp_path, monkeypatch, capsys):
+    """Combine -x and -a for regex AND logic."""
+    txt_file = tmp_path / "data.txt"
+    txt_file.write_text("Order 123 costs $45.99\nOrder 456 no price\nJust $99.99 here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-x", "-a", r"\d{3}", r"\$\d+\.\d{2}"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "REGEX+AND" in content
+
+
+def test_search_invalid_regex(tmp_path, monkeypatch, capsys):
+    """With -x flag and invalid regex, return error."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-x", "[invalid"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "Invalid regex pattern" in captured.out
+
+
 def test_search_json(tmp_path, monkeypatch, capsys):
     json_file = tmp_path / "data.json"
     json_file.write_text('{\n  "title": "Budget report",\n  "amount": 500\n}\n')

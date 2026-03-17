@@ -14,6 +14,7 @@
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current working directory
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
+- Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
 - Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
@@ -177,6 +178,28 @@ docsearch -r -a -t txt budget revenue expenses
 ```
 Recursively searches subdirectories, only in `.txt` files, for paragraphs containing ALL three terms.
 
+### Regex search
+```bash
+docsearch -x "\d{3}-\d{3}-\d{4}"
+```
+Searches using a regex pattern — in this case, US phone numbers like 555-123-4567.
+
+```bash
+docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"
+```
+Finds email addresses. Regex search is case-insensitive by default.
+
+The `-x` flag can be combined with other flags:
+```bash
+docsearch -x -a "\d{3}" "\$\d+\.\d{2}"
+```
+Finds lines containing both a 3-digit number AND a dollar amount (regex AND logic).
+
+```bash
+docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"
+```
+Recursively searches only `.txt` and `.csv` files for dates in 2026.
+
 ### Save search results
 ```bash
 docsearch -s name_of_your_file  // Saves results to DO_NOT_SEARCH_name_of_your_file.docx (and .txt)
@@ -207,6 +230,7 @@ docsearch has four flags that can be mixed and matched:
 | `-a` | AND logic (all terms must appear in the same paragraph) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `-x` | Regex pattern search (case-insensitive) |
 | `-s` | Save results to a named file |
 
 ### No flags (default)
@@ -238,6 +262,7 @@ Recursively searches subdirectories, only in `.txt` and `.md` files, for paragra
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
 - `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
+- `-x` treats search terms as regex patterns instead of literal strings
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
 
 ## Output
