@@ -230,8 +230,8 @@ docsearch has four flags that can be mixed and matched:
 | `-a` | AND logic (all terms must appear in the same paragraph) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
-| `-x` | Regex pattern search (case-insensitive) |
 | `-s` | Save results to a named file |
+| `-x` | Regex pattern search (case-insensitive) |
 
 ### No flags (default)
 ```bash
