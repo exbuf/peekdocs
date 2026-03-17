@@ -223,7 +223,7 @@ docsearch
 
 ## Flag Use Summary
 
-docsearch has four flags that can be mixed and matched:
+docsearch has five flags that can be mixed and matched:
 
 | Flag | Purpose |
 |------|---------|
@@ -244,6 +244,7 @@ OR search across all 9 file types in the current directory.
 docsearch -a budget revenue          # AND search
 docsearch -r budget                  # recursive search
 docsearch -t pdf,md budget           # only search .pdf and .md files
+docsearch -x "\d{3}-\d{4}"          # regex search
 ```
 
 ### Two-flag combinations
@@ -251,13 +252,20 @@ docsearch -t pdf,md budget           # only search .pdf and .md files
 docsearch -a -t csv,xlsx budget revenue     # AND search, only in .csv and .xlsx
 docsearch -r -a budget revenue              # recursive AND search
 docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
+docsearch -x -a "\d{3}" "\$\d+\.\d{2}"     # regex AND search
+docsearch -x -t txt,csv "\b2026-\d{2}\b"   # regex, only .txt and .csv
 ```
 
-### All three together
+### Three or more flags
 ```bash
 docsearch -r -a -t txt,md budget revenue expenses
 ```
 Recursively searches subdirectories, only in `.txt` and `.md` files, for paragraphs containing ALL three terms.
+
+```bash
+docsearch -x -r -t txt,csv "\d{3}-\d{3}-\d{4}"
+```
+Regex search recursively, only in `.txt` and `.csv` files.
 
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
