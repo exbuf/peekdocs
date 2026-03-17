@@ -39,8 +39,8 @@ BANNER = (
     'Enter your search terms. Example: docsearch term1 term2 term3    // this is an OR search\n'
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
     'Use option flag -h for help. Example: docsearch -h\n'
-    'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
+    'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes'
@@ -155,10 +155,8 @@ def main(argv=None):
     matches = []
     skipped_files = []
     for filepath in all_files:
-        if recursive:
-            filename = os.path.relpath(filepath, cwd)
-        else:
-            filename = os.path.basename(filepath)
+        file_dir = os.path.dirname(filepath)
+        filename = os.path.basename(filepath)
         ext = os.path.splitext(filename)[1].lower()
 
         try:
@@ -166,7 +164,7 @@ def main(argv=None):
                 doc = Document(filepath)
                 for i, para in enumerate(doc.paragraphs, start=1):
                     if text_matches(para.text):
-                        matches.append((filename, i, para.text))
+                        matches.append((file_dir, filename, i, para.text))
 
             elif ext == ".pdf":
                 with pdfplumber.open(filepath) as pdf:
@@ -176,7 +174,7 @@ def main(argv=None):
                             continue
                         for line_num, line in enumerate(text.split("\n"), start=1):
                             if text_matches(line):
-                                matches.append((filename, page_num, line))
+                                matches.append((file_dir, filename, page_num, line))
 
             elif ext == ".csv":
                 with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
@@ -184,21 +182,21 @@ def main(argv=None):
                     for row_num, row in enumerate(reader, start=1):
                         row_text = ", ".join(row)
                         if text_matches(row_text):
-                            matches.append((filename, row_num, row_text))
+                            matches.append((file_dir, filename, row_num, row_text))
 
             elif ext == ".odt":
                 odt_doc = load_odt(filepath)
                 for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1):
                     para_text = teletype.extractText(para)
                     if text_matches(para_text):
-                        matches.append((filename, i, para_text))
+                        matches.append((file_dir, filename, i, para_text))
 
             elif ext in (".txt", ".md", ".json"):
                 with open(filepath, encoding="utf-8", errors="replace") as txtfile:
                     for line_num, line in enumerate(txtfile, start=1):
                         line = line.rstrip("\n")
                         if text_matches(line):
-                            matches.append((filename, line_num, line))
+                            matches.append((file_dir, filename, line_num, line))
 
             elif ext == ".html":
                 class _HTMLTextExtractor(HTMLParser):
@@ -214,7 +212,7 @@ def main(argv=None):
                 for line_num, line in enumerate(lines, start=1):
                     line = line.strip()
                     if line and text_matches(line):
-                        matches.append((filename, line_num, line))
+                        matches.append((file_dir, filename, line_num, line))
 
             elif ext == ".xlsx":
                 wb = load_workbook(filepath, read_only=True, data_only=True)
@@ -222,7 +220,7 @@ def main(argv=None):
                     for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
                         row_text = ", ".join(str(cell) for cell in row if cell is not None)
                         if row_text and text_matches(row_text):
-                            matches.append((filename, row_num, row_text))
+                            matches.append((file_dir, filename, row_num, row_text))
                 wb.close()
 
         except Exception as e:
@@ -260,12 +258,12 @@ def main(argv=None):
             tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
             f.write(f"File Types Searched ==> {tally}\n")
         f.write("\n")
-        for filename, line_num, text in matches:
+        for file_dir, filename, line_num, text in matches:
             highlighted = text
             for term in search_terms:
                 highlighted = re.sub(re.escape(term), lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
             wrapped = textwrap.fill(highlighted, width=80)
-            f.write(f'Document: {filename}, Line: {line_num}, Match:\n"{wrapped}"\n\n')
+            f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     # Create docsearch_results.docx with yellow-highlighted matches
     docx_output_path = os.path.join(cwd, "docsearch_results.docx")
@@ -301,6 +299,21 @@ def main(argv=None):
                 run_elem.append(text_elem)
                 hyperlink.append(run_elem)
                 para._p.append(hyperlink)
+                continue
+
+            if line.startswith("Search Term(s) ==> "):
+                prefix = "Search Term(s) ==> "
+                rest = line[len(prefix):]
+                # rest looks like "budget, revenue (match: ANY)"
+                match = re.match(r"(.+?)( \(match: \w+\))$", rest)
+                if match:
+                    terms_str, mode_str = match.group(1), match.group(2)
+                    para.add_run(prefix)
+                    run = para.add_run(terms_str)
+                    run.font.highlight_color = WD_COLOR_INDEX.BRIGHT_GREEN
+                    para.add_run(mode_str)
+                else:
+                    para.add_run(line)
                 continue
 
             is_doc_line = line.startswith("Document:")

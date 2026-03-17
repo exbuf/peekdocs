@@ -44,8 +44,8 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     assert results_file.exists()
     content = results_file.read_text()
     assert "Search Term(s) ==> hello (match: ANY)" in content
-    assert 'Document: sample.docx, Line: 1, Match:\n"**Hello** world"\n\n' in content
-    assert 'Document: sample.docx, Line: 3, Match:\n"**Hello** again"\n\n' in content
+    assert f'Document: sample.docx, Line: 1, Match:\n({tmp_path})\n"**Hello** world"\n\n' in content
+    assert f'Document: sample.docx, Line: 3, Match:\n({tmp_path})\n"**Hello** again"\n\n' in content
 
     # Check docsearch_results.docx was created with yellow highlighting
     docx_results = tmp_path / "docsearch_results.docx"
@@ -87,7 +87,7 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     main(["PYTHON"])
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert 'Document: test.docx, Line: 1, Match:\n"**Python** is great"' in content
+    assert f'Document: test.docx, Line: 1, Match:\n({tmp_path})\n"**Python** is great"' in content
 
 
 def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
@@ -299,7 +299,8 @@ def test_search_recursive(tmp_path, monkeypatch, capsys):
     assert "1 match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert os.path.join("sub", "deep", "nested.txt") in content
+    assert str(tmp_path / "sub" / "deep") in content
+    assert "nested.txt" in content
     assert "**Budget**" in content
 
 

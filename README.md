@@ -35,8 +35,8 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Example: `docsearch -a term1 term2 term3`   // all terms must appear in the paragraph
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
-- Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output
-- Results include document name, line number, and matched text
+- Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output, with search terms highlighted in green in the `.docx` header
+- Results include document name, file directory path, line number, and matched text
 - Timestamped output file
 - Generates both `docsearch_results.txt` and `docsearch_results.docx`
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
@@ -148,7 +148,7 @@ Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported ty
 ```bash
 docsearch -r budget
 ```
-Searches all supported files in the current directory and all subdirectories. Results show relative paths (e.g., `subfolder/report.pdf`).
+Searches all supported files in the current directory and all subdirectories.
 
 The `-r` flag can be combined with other flags:
 ```bash
@@ -245,7 +245,7 @@ Recursively searches subdirectories, only in `.txt` and `.md` files, for paragra
 Search results are written to two files in the current directory:
 
 - **`docsearch_results.txt`** — Plain text with `**` markers around matched terms
-- **`docsearch_results.docx`** — Word document with matched terms highlighted in yellow
+- **`docsearch_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
 
 Text file format:
 ```
@@ -254,9 +254,11 @@ Text file format:
 Search Term(s) ==> budget, revenue
 
 Document: report.docx, Line: 12, Match:
+(/Users/bob/GoogleDocs)
 "The **budget** for this quarter exceeded expectations"
 
 Document: summary.docx, Line: 3, Match:
+(/Users/bob/GoogleDocs)
 "Revised **budget** proposal attached"
 ```
 
