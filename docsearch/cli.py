@@ -54,18 +54,17 @@ def main(argv=None):
         args = list(argv)
 
     print(BANNER)
-    print()
 
     if args and args[0] in ("-v", "-version"):
         print(f"docsearch {VERSION}\n")
         return 0
 
     if args and args[0] in ("-h", "-help", "--help"):
-        print("See README.md here for details: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+        print("More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if not args:
-        print("See README.md here for details: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
+        print("More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if args and args[0] in ("-s", "-save"):
