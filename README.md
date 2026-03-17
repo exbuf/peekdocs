@@ -198,6 +198,48 @@ docsearch -h
 docsearch
 ```
 
+## Flag Use Summary
+
+docsearch has four flags that can be mixed and matched:
+
+| Flag | Purpose |
+|------|---------|
+| `-a` | AND logic (all terms must appear in the same paragraph) |
+| `-r` | Search subdirectories recursively |
+| `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `-s` | Save results to a named file |
+
+### No flags (default)
+```bash
+docsearch budget revenue
+```
+OR search across all 9 file types in the current directory.
+
+### Single flags
+```bash
+docsearch -a budget revenue          # AND search
+docsearch -r budget                  # recursive search
+docsearch -t pdf,md budget           # only search .pdf and .md files
+```
+
+### Two-flag combinations
+```bash
+docsearch -a -t csv,xlsx budget revenue     # AND search, only in .csv and .xlsx
+docsearch -r -a budget revenue              # recursive AND search
+docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
+```
+
+### All three together
+```bash
+docsearch -r -a -t txt,md budget revenue expenses
+```
+Recursively searches subdirectories, only in `.txt` and `.md` files, for paragraphs containing ALL three terms.
+
+### Notes
+- Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
+- `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
+- `-s` is used separately after a search to save results: `docsearch -s my_report`
+
 ## Output
 
 Search results are written to two files in the current directory:
