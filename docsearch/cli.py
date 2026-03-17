@@ -37,7 +37,7 @@ BANNER = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
     'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3\n'
-    'Use option flag -h for help. Example: docsearch -h\n'
+    'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
