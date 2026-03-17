@@ -47,6 +47,23 @@ BANNER = (
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
 )
 
+REGEX_PATTERNS = (
+    '\nCommon Regex Search Patterns:\n'
+    '  \\d{3}-\\d{3}-\\d{4}                              US phone numbers (555-123-4567)\n'
+    '  [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}    Email addresses (jane@example.com)\n'
+    '  \\d{4}-\\d{2}-\\d{2}                              Dates, YYYY-MM-DD (2026-03-17)\n'
+    '  \\$\\d+(\\.\\d{2})?                                 Dollar amounts ($45.99)\n'
+    '  \\d{3}-\\d{2}-\\d{4}                              SSN format (123-45-6789)\n'
+    '  \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}              IP addresses (192.168.1.1)\n'
+    '  https?://\\S+                                    URLs (https://example.com)\n'
+    '  \\b[A-Z]{2,}\\b                                   Acronyms, all caps (NASA, FBI)\n'
+    '  \\b\\d{5}(-\\d{4})?\\b                              US ZIP codes (12345 or 12345-6789)\n'
+    '  \\(\\d{3}\\)\\s?\\d{3}-\\d{4}                         Phone with area code parens ((555) 123-4567)\n'
+    '  \\b[A-Z][a-z]+\\s[A-Z][a-z]+\\b                    Proper names (John Smith)\n'
+    '  \\b\\d+%                                          Percentages (92%)\n'
+    '  Q[1-4]\\s?\\d{4}                                  Fiscal quarters (Q1 2026)\n'
+)
+
 
 def main(argv=None):
     if argv is None:
@@ -62,6 +79,7 @@ def main(argv=None):
         return 0
 
     if args and args[0] in ("-h", "-help", "--help"):
+        print(REGEX_PATTERNS)
         return 0
 
     if not args:
