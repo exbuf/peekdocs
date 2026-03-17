@@ -1,6 +1,6 @@
 # Claude-DocSearch
 
-**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current directory for a given search term or terms. Use the `-t` flag to limit searches to specific file types, and the `-r` flag to search all subdirectories recursively. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
+**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
 
 - Results show the full text surrounding each match, so you can understand the context without opening the original document.
 - Supports **AND** and **OR** search logic with any number of search terms.
