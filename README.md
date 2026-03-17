@@ -9,20 +9,6 @@
 - A simple search example can be found in the `docsearch_results.docx` and `docsearch_results.txt` files on GitHub.
   (NOTE: You can view docsearch_results.txt by clicking on it now, but GitHub can't render .docx, .odt, and .xlsx files directly in the browser. So to view the yellow highlighted .docx file and the others, you'll have to download and open them on your local machine. Here's how: .docx opens with Word, Pages, LibreOffice, or Google Docs. Open .odt files with LibreOffice, Google Docs, Word, or Apple Pages. .xlsx files open with Excel, Google Sheets, LibreOffice Calc, or Apple Numbers.)
 
-**Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper and magazine articles, research papers,, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
-But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
-
-- **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
-- **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
-- **Search across formats** — find information across PDFs, Word docs, spreadsheets, Markdown, JSON, and text files in one place
-- **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
-- **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
-- **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
-
-Local search is also fast, with no rate limits, usage caps, or waiting on cloud services.
-
-**Programming process:** DocSearch was developed using Claude Code. It's my second Claude Code app, the first being my personal website.
-
 ## Features
 
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current working directory
@@ -43,6 +29,20 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
 - Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
 - Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
+
+**Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper and magazine articles, research papers,, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
+But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
+
+- **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
+- **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
+- **Search across formats** — find information across PDFs, Word docs, spreadsheets, Markdown, JSON, and text files in one place
+- **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
+- **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
+- **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
+
+Local search is also fast, with no rate limits, usage caps, or waiting on cloud services.
+
+**Programming process:** DocSearch was developed using Claude Code. It's my second Claude Code app, the first being my personal website.
 
 ## Installation
 
