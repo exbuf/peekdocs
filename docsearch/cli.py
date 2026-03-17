@@ -284,7 +284,7 @@ def main(argv=None):
 
     elapsed = time.time() - start_time
     print()
-    print(f"Files searched: {len(all_files)}")
+    print(f"Files searched: {len(all_files)} ({size_str})")
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt and docsearch_results.docx")
     print(f"Elapsed time: {elapsed:.2f} seconds")
     print()
