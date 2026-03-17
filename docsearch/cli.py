@@ -43,7 +43,8 @@ BANNER = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -v for version. Example: docsearch -v\n'
-    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes'
+    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
+    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
 )
 
 
@@ -54,17 +55,16 @@ def main(argv=None):
         args = list(argv)
 
     print(BANNER)
+    print()
 
     if args and args[0] in ("-v", "-version"):
         print(f"docsearch {VERSION}\n")
         return 0
 
     if args and args[0] in ("-h", "-help", "--help"):
-        print("More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if not args:
-        print("More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n")
         return 0
 
     if args and args[0] in ("-s", "-save"):
