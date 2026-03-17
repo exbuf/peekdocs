@@ -48,7 +48,7 @@ BANNER = (
 )
 
 REGEX_PATTERNS = (
-    '\nCommon Regex Search Patterns:\n'
+    '\nCommon Regex Search Patterns (enclose in quotes):\n'
     '  \\d{3}-\\d{3}-\\d{4}                              US phone numbers (555-123-4567)\n'
     '  [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}    Email addresses (jane@example.com)\n'
     '  \\d{4}-\\d{2}-\\d{2}                              Dates, YYYY-MM-DD (2026-03-17)\n'
