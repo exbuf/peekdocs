@@ -205,6 +205,8 @@ Regex is powerful but can look intimidating at first. See the table below for co
 | `\b\d+%` | Percentages | 92% |
 | `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 |
 
+**Examples:**
+
 ```bash
 docsearch -x "\d{3}-\d{3}-\d{4}"
 ```
