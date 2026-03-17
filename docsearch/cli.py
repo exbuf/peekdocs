@@ -34,10 +34,9 @@ VERSION = pkg_version("claude-docsearch")
 SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json"}
 
 BANNER = (
-    '\n OR search — finds paragraphs containing ANY of the search terms\n'
-    'AND search — finds paragraphs containing ALL of the search terms\n'
-    'Enter your search terms. Example: docsearch term1 term2 term3    // this is an OR search\n'
-    'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
+    '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
+    'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
+    'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3\n'
     'Use option flag -h for help. Example: docsearch -h\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
