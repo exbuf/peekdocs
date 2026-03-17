@@ -179,6 +179,14 @@ docsearch -r -a -t txt budget revenue expenses
 Recursively searches subdirectories, only in `.txt` files, for paragraphs containing ALL three terms.
 
 ### Regex search
+
+**What are Regex searches?**
+Regex (short for "regular expression") lets you search for patterns rather than exact text. Instead of searching for a specific phone number, you can search for any phone number. Instead of one date, you can find all dates in any format.
+
+Think of it as a wildcard search on steroids. For example, `\d{3}-\d{3}-\d{4}` finds any phone number like 555-123-4567, while `\$\d+` finds any dollar amount.
+
+Regex is powerful but can look intimidating at first. See the table below for common patterns you can copy and use.
+
 ```bash
 docsearch -x "\d{3}-\d{3}-\d{4}"
 ```
