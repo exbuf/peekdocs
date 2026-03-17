@@ -1,6 +1,6 @@
 # Claude-DocSearch
 
-**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, and `.xlsx` files in the current directory for a given search term or terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
+**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current directory for a given search term or terms. Use the `-t` flag to limit searches to specific file types, and the `-r` flag to search all subdirectories recursively. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
 
 - Results show the full text surrounding each match, so you can understand the context without opening the original document.
 - Supports **AND** and **OR** search logic with any number of search terms.
@@ -14,7 +14,7 @@ But the usefulness extends beyond my own situation. docsearch can help anyone wh
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
 - **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
-- **Search across formats** — find information across PDFs, Word docs, spreadsheets, and text files in one place
+- **Search across formats** — find information across PDFs, Word docs, spreadsheets, Markdown, JSON, and text files in one place
 - **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
 - **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
 - **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
@@ -25,7 +25,9 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 ## Features
 
-- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, and `.xlsx` files in the current working directory
+- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current working directory
+- Use `-r` flag to search all subdirectories recursively
+- Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
 - Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
@@ -135,6 +137,45 @@ Finds paragraphs containing "computer analysis" OR "energy" OR "generation".
 docsearch -a budget revenue expenses
 ```
 Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Requires -a flag)
+
+### Filter by file type
+```bash
+docsearch -t pdf,docx budget
+```
+Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json.
+
+### Search subdirectories
+```bash
+docsearch -r budget
+```
+Searches all supported files in the current directory and all subdirectories. Results show relative paths (e.g., `subfolder/report.pdf`).
+
+The `-r` flag can be combined with other flags:
+```bash
+docsearch -r -a budget revenue expenses
+```
+Recursively searches subdirectories for paragraphs containing ALL three terms.
+
+The `-t` flag can also be combined with other flags:
+```bash
+docsearch -t pdf,docx budget revenue
+```
+Searches only `.pdf` and `.docx` files for "budget" OR "revenue".
+
+```bash
+docsearch -a -t csv,xlsx budget revenue
+```
+Searches only `.csv` and `.xlsx` files for paragraphs containing "budget" AND "revenue".
+
+```bash
+docsearch -r -t pdf,docx budget
+```
+Recursively searches subdirectories but only in `.pdf` and `.docx` files.
+
+```bash
+docsearch -r -a -t txt budget revenue expenses
+```
+Recursively searches subdirectories, only in `.txt` files, for paragraphs containing ALL three terms.
 
 ### Save search results
 ```bash

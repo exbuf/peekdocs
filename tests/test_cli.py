@@ -7,7 +7,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER, VERSION, main
+from docsearch.cli import BANNER, SUPPORTED_TYPES, VERSION, main
 
 
 def test_no_args(capsys):
@@ -282,3 +282,118 @@ def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()
     assert BANNER in captured.out
+
+
+def test_search_recursive(tmp_path, monkeypatch, capsys):
+    """With -r flag, files in subdirectories are found and shown with relative paths."""
+    subdir = tmp_path / "sub" / "deep"
+    subdir.mkdir(parents=True)
+    txt_file = subdir / "nested.txt"
+    txt_file.write_text("Budget overview in nested file\nNo match here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-r", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert os.path.join("sub", "deep", "nested.txt") in content
+    assert "**Budget**" in content
+
+
+def test_search_no_recursive_skips_subdirs(tmp_path, monkeypatch, capsys):
+    """Without -r flag, files in subdirectories are NOT searched."""
+    subdir = tmp_path / "sub"
+    subdir.mkdir()
+    txt_file = subdir / "nested.txt"
+    txt_file.write_text("Budget overview in nested file\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "0 match(es)" in captured.out
+
+
+def test_search_with_type_filter(tmp_path, monkeypatch, capsys):
+    """With -t flag, only specified file types are searched."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    csv_file = tmp_path / "data.csv"
+    csv_file.write_text("Name,Amount\nBob,budget review\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-t", "txt", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "data.csv" not in content
+
+
+def test_search_with_multiple_type_filters(tmp_path, monkeypatch, capsys):
+    """With -t flag and comma-separated types, multiple types are searched."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    csv_file = tmp_path / "data.csv"
+    csv_file.write_text("Name,Amount\nBob,budget review\n")
+    html_file = tmp_path / "page.html"
+    html_file.write_text("<html><body><p>Budget report</p></body></html>")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-t", "txt,csv", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "data.csv" in content
+    assert "page.html" not in content
+
+
+def test_search_invalid_type_filter(tmp_path, monkeypatch, capsys):
+    """With -t flag and unsupported type, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-t", "xyz", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "Unsupported file type: xyz" in captured.out
+
+
+def test_search_md(tmp_path, monkeypatch, capsys):
+    md_file = tmp_path / "notes.md"
+    md_file.write_text("# Heading\nBudget overview for Q1\nNo match here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.md" in content
+    assert "**Budget**" in content
+
+
+def test_search_json(tmp_path, monkeypatch, capsys):
+    json_file = tmp_path / "data.json"
+    json_file.write_text('{\n  "title": "Budget report",\n  "amount": 500\n}\n')
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "data.json" in content
+    assert "**Budget**" in content

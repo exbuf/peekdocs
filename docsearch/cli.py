@@ -31,6 +31,8 @@ from importlib.metadata import version as pkg_version
 
 VERSION = pkg_version("claude-docsearch")
 
+SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json"}
+
 BANNER = (
     '\n OR search — finds paragraphs containing ANY of the search terms\n'
     'AND search — finds paragraphs containing ALL of the search terms\n'
@@ -38,6 +40,8 @@ BANNER = (
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3   // this is an AND search\n'
     'Use option flag -h for help. Example: docsearch -h\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
+    'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
+    'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes'
 )
@@ -83,7 +87,25 @@ def main(argv=None):
         return 0
 
     match_all = "-a" in args or "--all" in args
-    search_terms = [a for a in args if a not in ("-a", "--all")]
+    recursive = "-r" in args
+
+    file_types = None
+    if "-t" in args:
+        idx = args.index("-t")
+        if idx + 1 >= len(args):
+            print("No file types provided. Usage: docsearch -t pdf,docx search_term\n")
+            return 1
+        raw_types = args[idx + 1].split(",")
+        file_types = set()
+        for t in raw_types:
+            ext = "." + t.strip().lower().lstrip(".")
+            if ext not in SUPPORTED_TYPES:
+                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json\n")
+                return 1
+            file_types.add(ext)
+        args = args[:idx] + args[idx + 2:]
+
+    search_terms = [a for a in args if a not in ("-a", "--all", "-r")]
 
     if not search_terms:
         print("No search terms provided.\n")
@@ -94,25 +116,35 @@ def main(argv=None):
     start_time = time.time()
     cwd = os.getcwd()
 
+    if recursive:
+        glob_prefix = os.path.join(cwd, "**", "*")
+    else:
+        glob_prefix = os.path.join(cwd, "*")
+
     docx_files = sorted(
-        f for f in glob.glob(os.path.join(cwd, "*.docx"))
+        f for f in glob.glob(glob_prefix + ".docx", recursive=recursive)
         if os.path.basename(f) != "docsearch_results.docx"
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
-    pdf_files = sorted(glob.glob(os.path.join(cwd, "*.pdf")))
-    csv_files = sorted(glob.glob(os.path.join(cwd, "*.csv")))
-    odt_files = sorted(glob.glob(os.path.join(cwd, "*.odt")))
+    pdf_files = sorted(glob.glob(glob_prefix + ".pdf", recursive=recursive))
+    csv_files = sorted(glob.glob(glob_prefix + ".csv", recursive=recursive))
+    odt_files = sorted(glob.glob(glob_prefix + ".odt", recursive=recursive))
     txt_files = sorted(
-        f for f in glob.glob(os.path.join(cwd, "*.txt"))
+        f for f in glob.glob(glob_prefix + ".txt", recursive=recursive)
         if os.path.basename(f) != "docsearch_results.txt"
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
-    html_files = sorted(glob.glob(os.path.join(cwd, "*.html")))
-    xlsx_files = sorted(glob.glob(os.path.join(cwd, "*.xlsx")))
+    html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
+    xlsx_files = sorted(glob.glob(glob_prefix + ".xlsx", recursive=recursive))
+    md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
+    json_files = sorted(glob.glob(glob_prefix + ".json", recursive=recursive))
     all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files
+        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
+
+    if file_types is not None:
+        all_files = [f for f in all_files if os.path.splitext(f)[1].lower() in file_types]
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
@@ -123,7 +155,10 @@ def main(argv=None):
     matches = []
     skipped_files = []
     for filepath in all_files:
-        filename = os.path.basename(filepath)
+        if recursive:
+            filename = os.path.relpath(filepath, cwd)
+        else:
+            filename = os.path.basename(filepath)
         ext = os.path.splitext(filename)[1].lower()
 
         try:
@@ -158,7 +193,7 @@ def main(argv=None):
                     if text_matches(para_text):
                         matches.append((filename, i, para_text))
 
-            elif ext == ".txt":
+            elif ext in (".txt", ".md", ".json"):
                 with open(filepath, encoding="utf-8", errors="replace") as txtfile:
                     for line_num, line in enumerate(txtfile, start=1):
                         line = line.rstrip("\n")
@@ -203,7 +238,7 @@ def main(argv=None):
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx\n")
+        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         mode = "ALL" if match_all else "ANY"
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {mode})\n")
