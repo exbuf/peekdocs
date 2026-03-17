@@ -187,6 +187,24 @@ Think of it as a wildcard search on steroids. For example, `\d{3}-\d{3}-\d{4}` f
 
 Regex is powerful but can look intimidating at first. See the table below for common patterns you can copy and use.
 
+#### Common Regex Search Patterns
+
+| Pattern | Matches | Example |
+|---------|---------|---------|
+| `\d{3}-\d{3}-\d{4}` | US phone numbers | 555-123-4567 |
+| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | Email addresses | jane@example.com |
+| `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 |
+| `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 |
+| `\d{3}-\d{2}-\d{4}` | SSN format | 123-45-6789 |
+| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 |
+| `https?://\S+` | URLs | https://example.com |
+| `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI |
+| `\b\d{5}(-\d{4})?\b` | US ZIP codes | 12345 or 12345-6789 |
+| `\(\d{3}\)\s?\d{3}-\d{4}` | Phone numbers with area code parens | (555) 123-4567 |
+| `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith |
+| `\b\d+%` | Percentages | 92% |
+| `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 |
+
 ```bash
 docsearch -x "\d{3}-\d{3}-\d{4}"
 ```
@@ -207,24 +225,6 @@ Finds lines containing both a 3-digit number AND a dollar amount (regex AND logi
 docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"
 ```
 Recursively searches only `.txt` and `.csv` files for dates in 2026.
-
-#### Common Regex Search Patterns
-
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `\d{3}-\d{3}-\d{4}` | US phone numbers | 555-123-4567 |
-| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | Email addresses | jane@example.com |
-| `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 |
-| `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 |
-| `\d{3}-\d{2}-\d{4}` | SSN format | 123-45-6789 |
-| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 |
-| `https?://\S+` | URLs | https://example.com |
-| `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI |
-| `\b\d{5}(-\d{4})?\b` | US ZIP codes | 12345 or 12345-6789 |
-| `\(\d{3}\)\s?\d{3}-\d{4}` | Phone numbers with area code parens | (555) 123-4567 |
-| `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith |
-| `\b\d+%` | Percentages | 92% |
-| `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 |
 
 ### Save search results
 ```bash
