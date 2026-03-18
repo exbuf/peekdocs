@@ -204,7 +204,7 @@ docsearch has nine flags that can be mixed and matched:
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
-| `-s` | Save results to a named file |
+| `-s` | Archives the search_results.docx and search_results.txt files to files named DO_NOT_SEARCH_your_file_name.docx (and .txt). Example: The search command `docsearch -s your_file_name` will copy the contents of the two search_results files to the two DO_NOT_SEARCH files. This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be the actual search terms you used to generate the search results. |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
 | `-B N` | Show N lines before each match |
@@ -221,6 +221,7 @@ docsearch -a budget revenue          # AND search
 docsearch -f report.pdf budget       # search only report.pdf
 docsearch -p 5 budget revenue        # terms within 5 words of each other
 docsearch -r budget                  # recursive search
+docsearch -s my_report               # save results to named file
 docsearch -t pdf,md budget           # only search .pdf and .md files
 docsearch -x "\d{3}-\d{4}"          # regex search
 docsearch -A 5 budget                # show 5 lines after each match
@@ -268,6 +269,7 @@ Proximity search recursively, only in `.pdf` files, for terms within 5 words of 
 - Use `-f` flag to search specific files (e.g., `docsearch -f report.pdf,notes.txt budget`)
 - Use `-p N` flag for proximity search (e.g., `docsearch -p 5 budget revenue`)
 - Use `-r` flag to search all subdirectories recursively
+- Use `-s` flag to save results to a named file (e.g., `docsearch -s my_report`)
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
