@@ -42,6 +42,8 @@ BANNER = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
+    'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
+    'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
@@ -63,6 +65,37 @@ REGEX_PATTERNS = (
     '  \\b\\d+%                                          Percentages (92%)\n'
     '  Q[1-4]\\s?\\d{4}                                  Fiscal quarters (Q1 2026)\n'
 )
+
+
+def apply_context(all_lines, match_indices, before, after):
+    """Expand match indices with before/after context and return merged groups."""
+    if not match_indices:
+        return []
+
+    total = len(all_lines)
+    ranges = []
+    for idx in sorted(match_indices):
+        start = max(0, idx - before)
+        end = min(total - 1, idx + after)
+        ranges.append((start, end))
+
+    merged = []
+    for start, end in ranges:
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append([start, end])
+
+    groups = []
+    for start, end in merged:
+        group = []
+        for i in range(start, end + 1):
+            line_num, text = all_lines[i]
+            is_match = i in match_indices
+            group.append((line_num, text, is_match))
+        groups.append(group)
+
+    return groups
 
 
 def main(argv=None):
@@ -122,6 +155,38 @@ def main(argv=None):
                 return 1
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
+
+    context_before = 0
+    if "-B" in args:
+        idx = args.index("-B")
+        if idx + 1 >= len(args):
+            print("No count provided. Usage: docsearch -B 5 search_term\n")
+            return 1
+        try:
+            context_before = int(args[idx + 1])
+            if context_before < 0:
+                raise ValueError
+        except ValueError:
+            print(f"Invalid count for -B: {args[idx + 1]}. Must be a positive integer.\n")
+            return 1
+        args = args[:idx] + args[idx + 2:]
+
+    context_after = 0
+    if "-A" in args:
+        idx = args.index("-A")
+        if idx + 1 >= len(args):
+            print("No count provided. Usage: docsearch -A 5 search_term\n")
+            return 1
+        try:
+            context_after = int(args[idx + 1])
+            if context_after < 0:
+                raise ValueError
+        except ValueError:
+            print(f"Invalid count for -A: {args[idx + 1]}. Must be a positive integer.\n")
+            return 1
+        args = args[:idx] + args[idx + 2:]
+
+    use_context = context_before > 0 or context_after > 0
 
     search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x")]
 
@@ -187,6 +252,39 @@ def main(argv=None):
         text_lower = text.lower()
         return check(term.lower() in text_lower for term in search_terms)
 
+    def highlight_text(text):
+        """Apply ** highlighting around matched search terms."""
+        highlighted = text
+        for term in search_terms:
+            pattern = term if use_regex else re.escape(term)
+            highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
+        return highlighted
+
+    def context_group_to_match(group, file_dir, filename, line_num_override=None):
+        """Convert a context group to a match tuple with pre-highlighted text."""
+        first_match_num = line_num_override or next(ln for ln, _, is_match in group if is_match)
+        parts = []
+        for ln, text, is_match in group:
+            if is_match:
+                parts.append(highlight_text(text))
+            else:
+                parts.append(text)
+        return (file_dir, filename, first_match_num, "\n".join(parts))
+
+    def collect_matches(all_lines, file_dir, filename):
+        """Find matches in all_lines and append to matches list, with context if active."""
+        if use_context:
+            match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
+            if not match_indices:
+                return
+            groups = apply_context(all_lines, match_indices, context_before, context_after)
+            for group in groups:
+                matches.append(context_group_to_match(group, file_dir, filename))
+        else:
+            for line_num, text in all_lines:
+                if text_matches(text):
+                    matches.append((file_dir, filename, line_num, text))
+
     matches = []
     skipped_files = []
     for filepath in all_files:
@@ -197,9 +295,8 @@ def main(argv=None):
         try:
             if ext == ".docx":
                 doc = Document(filepath)
-                for i, para in enumerate(doc.paragraphs, start=1):
-                    if text_matches(para.text):
-                        matches.append((file_dir, filename, i, para.text))
+                all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
+                collect_matches(all_lines, file_dir, filename)
 
             elif ext == ".pdf":
                 with pdfplumber.open(filepath) as pdf:
@@ -207,31 +304,33 @@ def main(argv=None):
                         text = page.extract_text()
                         if not text:
                             continue
-                        for line_num, line in enumerate(text.split("\n"), start=1):
-                            if text_matches(line):
-                                matches.append((file_dir, filename, page_num, line))
+                        page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
+                        if use_context:
+                            match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
+                            if match_indices:
+                                groups = apply_context(page_lines, match_indices, context_before, context_after)
+                                for group in groups:
+                                    matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
+                        else:
+                            for line_num, line in page_lines:
+                                if text_matches(line):
+                                    matches.append((file_dir, filename, page_num, line))
 
             elif ext == ".csv":
                 with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
                     reader = csv.reader(csvfile)
-                    for row_num, row in enumerate(reader, start=1):
-                        row_text = ", ".join(row)
-                        if text_matches(row_text):
-                            matches.append((file_dir, filename, row_num, row_text))
+                    all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
+                collect_matches(all_lines, file_dir, filename)
 
             elif ext == ".odt":
                 odt_doc = load_odt(filepath)
-                for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1):
-                    para_text = teletype.extractText(para)
-                    if text_matches(para_text):
-                        matches.append((file_dir, filename, i, para_text))
+                all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
+                collect_matches(all_lines, file_dir, filename)
 
             elif ext in (".txt", ".md", ".json"):
                 with open(filepath, encoding="utf-8", errors="replace") as txtfile:
-                    for line_num, line in enumerate(txtfile, start=1):
-                        line = line.rstrip("\n")
-                        if text_matches(line):
-                            matches.append((file_dir, filename, line_num, line))
+                    all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
+                collect_matches(all_lines, file_dir, filename)
 
             elif ext == ".html":
                 class _HTMLTextExtractor(HTMLParser):
@@ -244,18 +343,31 @@ def main(argv=None):
                     parser = _HTMLTextExtractor()
                     parser.feed(htmlfile.read())
                 lines = "".join(parser.text_parts).split("\n")
-                for line_num, line in enumerate(lines, start=1):
-                    line = line.strip()
-                    if line and text_matches(line):
-                        matches.append((file_dir, filename, line_num, line))
+                all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
+                if use_context:
+                    collect_matches(all_lines, file_dir, filename)
+                else:
+                    for line_num, text in all_lines:
+                        if text and text_matches(text):
+                            matches.append((file_dir, filename, line_num, text))
 
             elif ext == ".xlsx":
                 wb = load_workbook(filepath, read_only=True, data_only=True)
                 for sheet in wb.worksheets:
+                    sheet_lines = []
                     for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
                         row_text = ", ".join(str(cell) for cell in row if cell is not None)
-                        if row_text and text_matches(row_text):
-                            matches.append((file_dir, filename, row_num, row_text))
+                        sheet_lines.append((row_num, row_text))
+                    if use_context:
+                        match_indices = {i for i, (_, text) in enumerate(sheet_lines) if text and text_matches(text)}
+                        if match_indices:
+                            groups = apply_context(sheet_lines, match_indices, context_before, context_after)
+                            for group in groups:
+                                matches.append(context_group_to_match(group, file_dir, filename))
+                    else:
+                        for row_num, row_text in sheet_lines:
+                            if row_text and text_matches(row_text):
+                                matches.append((file_dir, filename, row_num, row_text))
                 wb.close()
 
         except Exception as e:
@@ -300,12 +412,22 @@ def main(argv=None):
             tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
             f.write(f"File Types Searched ==> {tally}\n")
         f.write("\n")
+        prev_file = None
         for file_dir, filename, line_num, text in matches:
-            highlighted = text
-            for term in search_terms:
-                pattern = term if use_regex else re.escape(term)
-                highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-            wrapped = textwrap.fill(highlighted, width=80)
+            current_file = os.path.join(file_dir, filename)
+            if use_context and prev_file == current_file:
+                f.write("---\n\n")
+            prev_file = current_file
+            if use_context:
+                lines = text.split("\n")
+                wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
+                wrapped = "\n".join(wrapped_lines)
+            else:
+                highlighted = text
+                for term in search_terms:
+                    pattern = term if use_regex else re.escape(term)
+                    highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
+                wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     # Create docsearch_results.docx with yellow-highlighted matches

@@ -14,6 +14,8 @@
 - Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current working directory
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
+- Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
+- Use `-B N` flag to show N lines before each match (e.g., `docsearch -B 5 budget`)
 - Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
@@ -228,6 +230,38 @@ docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"
 ```
 Recursively searches only `.txt` and `.csv` files for dates in 2026.
 
+### Context lines
+
+Show surrounding lines for each match, similar to `grep -B` and `grep -A`. Useful when you want to see the full context around a match (e.g., an author's name appears on one line but the article text is on surrounding lines).
+
+**Note:** These flags use uppercase letters. Don't confuse `-A` (lines after) with lowercase `-a` (AND logic).
+
+```bash
+docsearch -A 5 "John Smith"
+```
+Shows each matching line plus the 5 lines after it.
+
+```bash
+docsearch -B 3 budget
+```
+Shows 3 lines before each match.
+
+```bash
+docsearch -B 2 -A 2 budget
+```
+Shows 2 lines before and 2 lines after each match. When context regions overlap (e.g., two matches close together), they are merged into a single block with no duplicate lines.
+
+The `-A` and `-B` flags can be combined with other flags:
+```bash
+docsearch -B 3 -A 3 -a budget revenue
+```
+AND search with 3 lines of context before and after.
+
+```bash
+docsearch -B 5 -A 5 -r -t docx "John Smith"
+```
+Recursively search only `.docx` files with 5 lines of context before and after.
+
 ### Save search results
 ```bash
 docsearch -s name_of_your_file  // Saves results to DO_NOT_SEARCH_name_of_your_file.docx (and .txt)
@@ -251,7 +285,7 @@ docsearch
 
 ## Flag Use Summary
 
-docsearch has five flags that can be mixed and matched:
+docsearch has seven flags that can be mixed and matched:
 
 | Flag | Purpose |
 |------|---------|
@@ -260,6 +294,8 @@ docsearch has five flags that can be mixed and matched:
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-s` | Save results to a named file |
 | `-x` | Regex pattern search (case-insensitive) |
+| `-A N` | Show N lines after each match |
+| `-B N` | Show N lines before each match |
 
 ### No flags (default)
 ```bash
@@ -273,6 +309,8 @@ docsearch -a budget revenue          # AND search
 docsearch -r budget                  # recursive search
 docsearch -t pdf,md budget           # only search .pdf and .md files
 docsearch -x "\d{3}-\d{4}"          # regex search
+docsearch -A 5 budget                # show 5 lines after each match
+docsearch -B 3 budget                # show 3 lines before each match
 ```
 
 ### Two-flag combinations
@@ -282,6 +320,8 @@ docsearch -r -a budget revenue              # recursive AND search
 docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
 docsearch -x -a "\d{3}" "\$\d+\.\d{2}"     # regex AND search
 docsearch -x -t txt,csv "\b2026-\d{2}\b"   # regex, only .txt and .csv
+docsearch -B 3 -A 3 budget                 # 3 lines before and after each match
+docsearch -A 5 -t docx budget              # 5 lines after, only .docx files
 ```
 
 ### Three or more flags
@@ -300,6 +340,8 @@ Regex search recursively, only in `.txt` and `.csv` files.
 - `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
 - `-x` treats search terms as regex patterns instead of literal strings
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
+- `-A` and `-B` are uppercase — don't confuse `-A` (lines after) with `-a` (AND logic)
+- `-A` and `-B` always need their count immediately after them (e.g., `-A 5`, `-B 3`)
 
 ## Output
 

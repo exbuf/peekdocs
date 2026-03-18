@@ -442,3 +442,96 @@ def test_search_json(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.json" in content
     assert "**Budget**" in content
+
+
+def test_search_context_after(tmp_path, monkeypatch, capsys):
+    """With -A flag, lines after each match are included."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("\n".join(f"Line {i}" for i in range(1, 11)) + "\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-A", "2", "Line 3"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "**Line 3**" in content
+    assert "Line 4" in content
+    assert "Line 5" in content
+    assert "Line 6" not in content
+
+
+def test_search_context_before(tmp_path, monkeypatch, capsys):
+    """With -B flag, lines before each match are included."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("\n".join(f"Line {i}" for i in range(1, 11)) + "\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-B", "2", "Line 3"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Line 1" in content
+    assert "Line 2" in content
+    assert "**Line 3**" in content
+    assert "Line 4" not in content
+
+
+def test_search_context_both(tmp_path, monkeypatch, capsys):
+    """With -B and -A flags combined, lines before and after are included."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("\n".join(f"Line {i}" for i in range(1, 11)) + "\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-B", "1", "-A", "1", "Line 3"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Line 1" not in content
+    assert "Line 2" in content
+    assert "**Line 3**" in content
+    assert "Line 4" in content
+    assert "Line 5" not in content
+
+
+def test_search_context_merge(tmp_path, monkeypatch, capsys):
+    """When context regions overlap, they merge without duplicate lines."""
+    txt_file = tmp_path / "notes.txt"
+    lines = ["alpha", "beta", "MATCH_ONE", "gamma", "MATCH_TWO", "delta", "epsilon"]
+    txt_file.write_text("\n".join(lines) + "\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-B", "1", "-A", "1", "MATCH"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    # Overlapping context should merge into one group
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "beta" in content
+    assert "**MATCH**_ONE" in content
+    assert "gamma" in content
+    assert "**MATCH**_TWO" in content
+    assert "delta" in content
+    # gamma should appear exactly once (no duplicates from overlap)
+    match_text = content.split('"')[1]  # get the quoted match text
+    assert match_text.count("gamma") == 1
+
+
+def test_search_context_invalid(tmp_path, monkeypatch, capsys):
+    """With -A and invalid count, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-A", "abc", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "Invalid count for -A" in captured.out
