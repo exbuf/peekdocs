@@ -204,7 +204,7 @@ docsearch has nine flags that can be mixed and matched:
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
-| `-s` | Archives the docsearch_results.docx and docsearch_results.txt files to new files named DO_NOT_SEARCH_your_file_name.docx (and .txt). It does not erase the two original docsearch_results files.<br><br>Example: The search command `docsearch -s your_file_name` will copy the contents of the two search_results files to the two DO_NOT_SEARCH files. This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be the actual search terms you used to generate the search results. |
+| `-s` | The -s flag is not for searching. It is used to archive the docsearch_results.docx and docsearch_results.txt files to new files named DO_NOT_SEARCH_your_file_name.docx (and .txt). The archived files are in the same directory folder as the two docsearch_results files. It does not erase the two original docsearch_results files.<br><br>Example: The search command `docsearch -s your_file_name` will copy the contents of the two search_results files to the two DO_NOT_SEARCH files. This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be the actual search terms you used to generate the search results. |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
 | `-B N` | Show N lines before each match |
