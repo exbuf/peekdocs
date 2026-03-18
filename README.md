@@ -13,11 +13,7 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 ## Features
 
 - Searches all files in the active directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest. See table for supported file types.
-- Use `-r` flag to search all subdirectories recursively
-- Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
-- Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
-- Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
-- Use `-B N` flag to show N lines before each match (e.g., `docsearch -B 5 budget`)
+- Rich set of flags for controlling docsearch behavior. See Flag summary table below.
 - Case-insensitive matching
 - Supports multiple search terms with OR logic (finds any match) by default
 - Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
@@ -366,6 +362,12 @@ Recursively searches subdirectories, only in `.txt` and `.md` files, for paragra
 docsearch -x -r -t txt,csv "\d{3}-\d{3}-\d{4}"
 ```
 Regex search recursively, only in `.txt` and `.csv` files.
+
+- Use `-r` flag to search all subdirectories recursively
+- Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
+- Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
+- Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
+- Use `-B N` flag to show N lines before each match (e.g., `docsearch -B 5 budget`)
 
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
