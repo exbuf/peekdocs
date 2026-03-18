@@ -23,17 +23,20 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from odf.opendocument import load as load_odt
 from odf.text import P as OdtParagraph
+from odf.table import Table as OdfTable, TableRow as OdfTableRow, TableCell as OdfTableCell
 from odf import teletype
 from docx.enum.text import WD_COLOR_INDEX
 from openpyxl import load_workbook
 from striprtf.striprtf import rtf_to_text
 from pptx import Presentation as PptxPresentation
+import ebooklib
+from ebooklib import epub
 from importlib.metadata import version as pkg_version
 
 
 VERSION = pkg_version("claude-docsearch")
 
-SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log"}
+SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"}
 
 BANNER = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
@@ -155,7 +158,7 @@ def main(argv=None):
         for t in raw_types:
             ext = "." + t.strip().lower().lstrip(".")
             if ext not in SUPPORTED_TYPES:
-                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log\n")
+                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
                 return 1
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
@@ -246,8 +249,20 @@ def main(argv=None):
     pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
     xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
     log_files = sorted(glob.glob(glob_prefix + ".log", recursive=recursive))
+    yaml_files = sorted(glob.glob(glob_prefix + ".yaml", recursive=recursive))
+    yml_files = sorted(glob.glob(glob_prefix + ".yml", recursive=recursive))
+    tsv_files = sorted(glob.glob(glob_prefix + ".tsv", recursive=recursive))
+    epub_files = sorted(glob.glob(glob_prefix + ".epub", recursive=recursive))
+    ods_files = sorted(glob.glob(glob_prefix + ".ods", recursive=recursive))
+    odp_files = sorted(glob.glob(glob_prefix + ".odp", recursive=recursive))
+    toml_files = sorted(glob.glob(glob_prefix + ".toml", recursive=recursive))
+    rst_files = sorted(glob.glob(glob_prefix + ".rst", recursive=recursive))
+    tex_files = sorted(glob.glob(glob_prefix + ".tex", recursive=recursive))
+    ini_files = sorted(glob.glob(glob_prefix + ".ini", recursive=recursive))
+    cfg_files = sorted(glob.glob(glob_prefix + ".cfg", recursive=recursive))
+    sql_files = sorted(glob.glob(glob_prefix + ".sql", recursive=recursive))
     all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files
+        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
@@ -332,12 +347,60 @@ def main(argv=None):
                     all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
                 collect_matches(all_lines, file_dir, filename)
 
+            elif ext == ".tsv":
+                with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
+                    reader = csv.reader(tsvfile, delimiter="\t")
+                    all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
+                collect_matches(all_lines, file_dir, filename)
+
+            elif ext == ".epub":
+                book = epub.read_epub(filepath)
+                all_lines = []
+                line_num = 0
+                for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+                    html_content = item.get_content().decode("utf-8", errors="replace")
+                    class _EpubTextExtractor(HTMLParser):
+                        def __init__(self):
+                            super().__init__()
+                            self.text_parts = []
+                        def handle_data(self, data):
+                            self.text_parts.append(data)
+                    parser = _EpubTextExtractor()
+                    parser.feed(html_content)
+                    for line in "".join(parser.text_parts).split("\n"):
+                        stripped = line.strip()
+                        if stripped:
+                            line_num += 1
+                            all_lines.append((line_num, stripped))
+                collect_matches(all_lines, file_dir, filename)
+
             elif ext == ".odt":
                 odt_doc = load_odt(filepath)
                 all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
                 collect_matches(all_lines, file_dir, filename)
 
-            elif ext in (".txt", ".md", ".json", ".xml", ".log"):
+            elif ext == ".odp":
+                odp_doc = load_odt(filepath)
+                all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
+                collect_matches(all_lines, file_dir, filename)
+
+            elif ext == ".ods":
+                ods_doc = load_odt(filepath)
+                all_lines = []
+                row_num = 0
+                for table in ods_doc.getElementsByType(OdfTable):
+                    for row in table.getElementsByType(OdfTableRow):
+                        row_num += 1
+                        cells = []
+                        for cell in row.getElementsByType(OdfTableCell):
+                            cell_text = teletype.extractText(cell)
+                            if cell_text:
+                                cells.append(cell_text)
+                        row_text = ", ".join(cells)
+                        all_lines.append((row_num, row_text))
+                collect_matches(all_lines, file_dir, filename)
+
+            elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
                 with open(filepath, encoding="utf-8", errors="replace") as txtfile:
                     all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
                 collect_matches(all_lines, file_dir, filename)
@@ -412,7 +475,7 @@ def main(argv=None):
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json, .rtf, .pptx, .xml, .log\n")
+        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json, .rtf, .pptx, .xml, .log, .yaml, .yml, .tsv, .epub, .ods, .odp, .toml, .rst, .tex, .ini, .cfg, .sql\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         if use_regex and match_all:
             report_mode = "REGEX+AND"

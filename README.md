@@ -1,6 +1,6 @@
 # Claude-DocSearch
 
-**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, and `.log` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
+**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, `.log`, `.yaml`, `.yml`, `.tsv`, `.epub`, `.ods`, `.odp`, `.toml`, `.rst`, `.tex`, `.ini`, `.cfg`, and `.sql` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
 
 - Results show the full text surrounding each match, so you can understand the context without opening the original document.
 - Supports **AND** and **OR** search logic with any number of search terms.
@@ -11,7 +11,7 @@
 
 ## Features
 
-- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, and `.log` files in the current working directory
+- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the current working directory
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
@@ -33,12 +33,42 @@
 - Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
 - Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
 
+### Supported File Types
+
+| File Type | Description |
+|-----------|-------------|
+| `.cfg` | Configuration file |
+| `.csv` | Comma-separated values |
+| `.docx` | Microsoft Word document |
+| `.epub` | E-book (EPUB format) |
+| `.html` | HTML web page |
+| `.ini` | INI configuration file |
+| `.json` | JSON data file |
+| `.log` | Log file |
+| `.md` | Markdown document |
+| `.odp` | OpenDocument Presentation (LibreOffice Impress) |
+| `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
+| `.odt` | OpenDocument Text (LibreOffice Writer) |
+| `.pdf` | PDF document |
+| `.pptx` | Microsoft PowerPoint presentation |
+| `.rst` | reStructuredText document |
+| `.rtf` | Rich Text Format document |
+| `.sql` | SQL script |
+| `.tex` | LaTeX document |
+| `.toml` | TOML configuration file |
+| `.tsv` | Tab-separated values |
+| `.txt` | Plain text file |
+| `.xlsx` | Microsoft Excel spreadsheet |
+| `.xml` | XML data file |
+| `.yaml` | YAML configuration file |
+| `.yml` | YAML configuration file |
+
 **Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper and magazine articles, research papers,, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
 But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
 - **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
-- **Search across formats** — find information across PDFs, Word docs, presentations, spreadsheets, RTF, Markdown, JSON, XML, log files, and text files in one place
+- **Search across formats** — find information across PDFs, Word docs, presentations, spreadsheets, e-books, RTF, Markdown, JSON, XML, YAML, TOML, LaTeX, reStructuredText, SQL, config files, log files, and text files in one place
 - **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
 - **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
 - **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
@@ -145,7 +175,7 @@ Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Require
 ```bash
 docsearch -t pdf,docx budget
 ```
-Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log.
+Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql.
 
 ### Search subdirectories
 ```bash
@@ -301,7 +331,7 @@ docsearch has seven flags that can be mixed and matched:
 ```bash
 docsearch budget revenue
 ```
-OR search across all 13 file types in the current directory.
+OR search across all 25 file types in the current directory.
 
 ### Single flags
 ```bash

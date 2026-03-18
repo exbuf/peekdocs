@@ -527,6 +527,235 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
     assert match_text.count("gamma") == 1
 
 
+def test_search_ods(tmp_path, monkeypatch, capsys):
+    from odf.opendocument import OpenDocumentSpreadsheet
+    from odf.table import Table, TableRow, TableCell
+    from odf.text import P as OdtP
+
+    ods_doc = OpenDocumentSpreadsheet()
+    table = Table(name="Sheet1")
+    row1 = TableRow()
+    cell1 = TableCell()
+    cell1.addElement(OdtP(text="Budget report"))
+    row1.addElement(cell1)
+    table.addElement(row1)
+    row2 = TableRow()
+    cell2 = TableCell()
+    cell2.addElement(OdtP(text="No match"))
+    row2.addElement(cell2)
+    table.addElement(row2)
+    ods_doc.spreadsheet.addElement(table)
+    ods_doc.save(str(tmp_path / "data.ods"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "data.ods" in content
+    assert "**Budget**" in content
+
+
+def test_search_odp(tmp_path, monkeypatch, capsys):
+    from odf.opendocument import OpenDocumentPresentation
+    from odf.text import P as OdtP
+    from odf.draw import Page, Frame, TextBox
+
+    odp_doc = OpenDocumentPresentation()
+    page = Page(masterpagename="Default")
+    frame = Frame()
+    textbox = TextBox()
+    textbox.addElement(OdtP(text="Budget presentation"))
+    frame.addElement(textbox)
+    page.addElement(frame)
+    odp_doc.presentation.addElement(page)
+    odp_doc.save(str(tmp_path / "slides.odp"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "slides.odp" in content
+    assert "**Budget**" in content
+
+
+def test_search_toml(tmp_path, monkeypatch, capsys):
+    toml_file = tmp_path / "config.toml"
+    toml_file.write_text('[project]\nname = "budget-tracker"\nversion = "1.0"\n')
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "config.toml" in content
+    assert "**budget**" in content
+
+
+def test_search_rst(tmp_path, monkeypatch, capsys):
+    rst_file = tmp_path / "docs.rst"
+    rst_file.write_text("Title\n=====\n\nBudget overview for Q1\n\nNo match here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "docs.rst" in content
+    assert "**Budget**" in content
+
+
+def test_search_tex(tmp_path, monkeypatch, capsys):
+    tex_file = tmp_path / "paper.tex"
+    tex_file.write_text("\\documentclass{article}\n\\begin{document}\nBudget analysis results\n\\end{document}\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "paper.tex" in content
+    assert "**Budget**" in content
+
+
+def test_search_ini(tmp_path, monkeypatch, capsys):
+    ini_file = tmp_path / "settings.ini"
+    ini_file.write_text("[general]\nproject = budget_app\nversion = 1.0\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "settings.ini" in content
+    assert "**budget**" in content
+
+
+def test_search_cfg(tmp_path, monkeypatch, capsys):
+    cfg_file = tmp_path / "app.cfg"
+    cfg_file.write_text("[settings]\nbudget_limit = 5000\nactive = true\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "app.cfg" in content
+    assert "**budget**" in content
+
+
+def test_search_sql(tmp_path, monkeypatch, capsys):
+    sql_file = tmp_path / "queries.sql"
+    sql_file.write_text("SELECT * FROM expenses;\nSELECT * FROM budget WHERE year = 2026;\nDROP TABLE temp;\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "queries.sql" in content
+    assert "**budget**" in content
+
+
+def test_search_tsv(tmp_path, monkeypatch, capsys):
+    tsv_file = tmp_path / "data.tsv"
+    tsv_file.write_text("Name\tAmount\nAlice\t500\nBob\tbudget review\nCharlie\t300\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "data.tsv" in content
+    assert "**budget**" in content
+
+
+def test_search_epub(tmp_path, monkeypatch, capsys):
+    from ebooklib import epub as epub_mod
+    book = epub_mod.EpubBook()
+    book.set_identifier("test123")
+    book.set_title("Test Book")
+    book.set_language("en")
+    ch = epub_mod.EpubHtml(title="Chapter 1", file_name="ch1.xhtml", lang="en")
+    ch.content = b"<html><body><p>Budget report for Q1</p><p>No match here</p></body></html>"
+    book.add_item(ch)
+    book.spine = ["nav", ch]
+    book.add_item(epub_mod.EpubNcx())
+    book.add_item(epub_mod.EpubNav())
+    epub_mod.write_epub(str(tmp_path / "book.epub"), book)
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "book.epub" in content
+    assert "**Budget**" in content
+
+
+def test_search_yaml(tmp_path, monkeypatch, capsys):
+    yaml_file = tmp_path / "config.yaml"
+    yaml_file.write_text("title: Budget report\namount: 500\ndescription: No match here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "config.yaml" in content
+    assert "**Budget**" in content
+
+
+def test_search_yml(tmp_path, monkeypatch, capsys):
+    yml_file = tmp_path / "settings.yml"
+    yml_file.write_text("name: test\nbudget_limit: 1000\nstatus: active\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "settings.yml" in content
+    assert "**budget**" in content
+
+
 def test_search_xml(tmp_path, monkeypatch, capsys):
     xml_file = tmp_path / "config.xml"
     xml_file.write_text('<?xml version="1.0"?>\n<root>\n  <title>Budget report</title>\n  <value>No match</value>\n</root>\n')

@@ -4,3 +4,4 @@ odfpy
 openpyxl
 striprtf
 python-pptx
+EbookLib
