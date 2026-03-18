@@ -960,3 +960,49 @@ def test_search_file_filter_recursive(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
+
+
+def test_search_proximity(tmp_path, monkeypatch, capsys):
+    """With -p flag, terms within N words of each other match."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget for revenue growth was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-p", "3", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+
+def test_search_proximity_no_match(tmp_path, monkeypatch, capsys):
+    """With -p flag, terms too far apart don't match."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was set and later the team discussed revenue\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-p", "2", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "0 match(es)" in captured.out
+
+
+def test_search_proximity_requires_two_terms(tmp_path, monkeypatch, capsys):
+    """With -p flag and only one term, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-p", "5", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "requires at least 2 search terms" in captured.out
+
+
+def test_search_proximity_invalid(tmp_path, monkeypatch, capsys):
+    """With -p flag and invalid count, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-p", "abc", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "Invalid count for -p" in captured.out

@@ -22,7 +22,7 @@
 
 ## Introduction
 
-If you've ever downloaded years of documents to your local machine and then realized you have no way to search through them — that's exactly why docsearch exists. It searches across 25 file types — including PDFs, Word docs, spreadsheets, presentations, and e-books — using plain text or regex patterns, with AND/OR logic, context lines before and after each match, and results highlighted and saved to both `.txt` and `.docx` files, all entirely offline.
+If you've ever downloaded years of documents to your local machine and then realized you have no way to search through them — that's exactly why docsearch exists. It searches across 25 file types — including PDFs, Word docs, spreadsheets, presentations, and e-books — using plain text or regex patterns, with AND/OR logic, proximity search to find terms near each other, context lines before and after each match, and results highlighted and saved to both `.txt` and `.docx` files, all entirely offline.
 
 I'm a 77-year-old retired electrical engineer, programmer, and software patent holder who recently discovered Claude Code and used it to build my new website. For years I'd been meaning to back up my Google Docs and Sheets to my local machine — hundreds of files accumulated over a decade — but I kept putting it off because I knew that once they were saved locally, I'd have no easy way to search through them. I also had plenty of other documents that were never in Google to begin with — old Word files, PDFs, text files scattered across folders.
 
@@ -41,6 +41,8 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 - Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
 - For AND logic (where all search terms must appear in the same paragraph) use the `-a` flag
 - Example: `docsearch -a term1 term2 term3`   // all terms must appear in the paragraph
+- Proximity search with `-p` flag finds terms within N words of each other
+- Example: `docsearch -p 5 budget revenue`   // terms must appear within 5 words
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
 - Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output, with search terms highlighted in green in the `.docx` header
@@ -193,7 +195,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has eight flags that can be mixed and matched:
+docsearch has nine flags that can be mixed and matched:
 
 | Flag | Purpose |
 |------|---------|
@@ -201,6 +203,7 @@ docsearch has eight flags that can be mixed and matched:
 | `-f` | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `-p N` | Proximity search — find terms within N words of each other |
 | `-s` | Save results to a named file |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
@@ -216,6 +219,7 @@ OR search across all 25 file types in the current directory.
 ```bash
 docsearch -a budget revenue          # AND search
 docsearch -f report.pdf budget       # search only report.pdf
+docsearch -p 5 budget revenue        # terms within 5 words of each other
 docsearch -r budget                  # recursive search
 docsearch -t pdf,md budget           # only search .pdf and .md files
 docsearch -x "\d{3}-\d{4}"          # regex search
@@ -230,6 +234,8 @@ docsearch -f report.pdf,data.csv -a budget revenue  # specific files, AND search
 docsearch -f report.pdf -r budget           # specific file, recursive
 docsearch -f report.pdf -x "\d{3}-\d{4}"   # specific file, regex
 docsearch -f report.pdf -B 3 -A 3 budget   # specific file, context lines
+docsearch -p 5 -r budget revenue            # proximity, recursive
+docsearch -p 5 -t pdf,docx budget revenue  # proximity, file type filter
 docsearch -r -a budget revenue              # recursive AND search
 docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
 docsearch -x -a "\d{3}" "\$\d+\.\d{2}"     # regex AND search
@@ -254,7 +260,13 @@ docsearch -f report.pdf -r -a budget revenue
 ```
 Search only `report.pdf`, recursively, for paragraphs containing ALL terms.
 
+```bash
+docsearch -p 5 -r -t pdf budget revenue
+```
+Proximity search recursively, only in `.pdf` files, for terms within 5 words of each other.
+
 - Use `-f` flag to search specific files (e.g., `docsearch -f report.pdf,notes.txt budget`)
+- Use `-p N` flag for proximity search (e.g., `docsearch -p 5 budget revenue`)
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
@@ -267,6 +279,9 @@ Search only `report.pdf`, recursively, for paragraphs containing ALL terms.
 - `-f` has no limit on the number of files — list as many as you need, comma-separated
 - `-f` requires each file to have a supported extension and to exist in the search directory
 - `-f` and `-t` cannot be used together
+- `-p` always needs its word count immediately after it (e.g., `-p 5`)
+- `-p` requires at least 2 search terms
+- `-p` implies AND logic — all terms must appear within N words of each other
 - `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
 - `-x` treats search terms as regex patterns instead of literal strings
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
@@ -295,34 +310,39 @@ Search only `report.pdf`, recursively, for paragraphs containing ALL terms.
 | 13 | Search only specific file types | `docsearch -t pdf,docx budget` |
 | 14 | File type filter with OR search | `docsearch -t pdf,docx budget revenue` |
 | 15 | File type filter with AND search | `docsearch -a -t csv,xlsx budget revenue` |
+| | **Proximity Searches** | |
+| 16 | Terms within 5 words of each other | `docsearch -p 5 budget revenue` |
+| 17 | Proximity with file type filter | `docsearch -p 5 -t pdf,docx budget revenue` |
+| 18 | Proximity with recursive search | `docsearch -p 5 -r budget revenue` |
+| 19 | Proximity with specific file | `docsearch -p 5 -f report.pdf budget revenue` |
 | | **Recursive (Subdirectory) Searches** | |
-| 16 | Search all subdirectories | `docsearch -r budget` |
-| 17 | Recursive with AND logic | `docsearch -r -a budget revenue expenses` |
-| 18 | Recursive with file type filter | `docsearch -r -t pdf,docx budget` |
-| 19 | Recursive, AND, and file type filter | `docsearch -r -a -t txt budget revenue expenses` |
+| 20 | Search all subdirectories | `docsearch -r budget` |
+| 21 | Recursive with AND logic | `docsearch -r -a budget revenue expenses` |
+| 22 | Recursive with file type filter | `docsearch -r -t pdf,docx budget` |
+| 23 | Recursive, AND, and file type filter | `docsearch -r -a -t txt budget revenue expenses` |
 | | **Regex Pattern Searches** | |
-| 20 | Search for phone numbers | `docsearch -x "\d{3}-\d{3}-\d{4}"` |
-| 21 | Search for email addresses | `docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
-| 22 | Regex with AND logic | `docsearch -x -a "\d{3}" "\$\d+\.\d{2}"` |
-| 23 | Regex with file type filter | `docsearch -x -t pdf,docx "\$\d+(\.\d{2})?"` |
-| 24 | Regex recursive | `docsearch -x -r "\d{3}-\d{3}-\d{4}"` |
-| 25 | Regex, recursive, file type filter | `docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
-| 26 | Regex, AND, recursive, file type filter | `docsearch -x -a -r -t pdf "\d{3}" "\$\d+"` |
+| 24 | Search for phone numbers | `docsearch -x "\d{3}-\d{3}-\d{4}"` |
+| 25 | Search for email addresses | `docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
+| 26 | Regex with AND logic | `docsearch -x -a "\d{3}" "\$\d+\.\d{2}"` |
+| 27 | Regex with file type filter | `docsearch -x -t pdf,docx "\$\d+(\.\d{2})?"` |
+| 28 | Regex recursive | `docsearch -x -r "\d{3}-\d{3}-\d{4}"` |
+| 29 | Regex, recursive, file type filter | `docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
+| 30 | Regex, AND, recursive, file type filter | `docsearch -x -a -r -t pdf "\d{3}" "\$\d+"` |
 | | **Context Lines (Before/After)** | |
-| 27 | Show 5 lines after each match | `docsearch -A 5 "John Smith"` |
-| 28 | Show 3 lines before each match | `docsearch -B 3 budget` |
-| 29 | Show lines before and after | `docsearch -B 2 -A 2 budget` |
-| 30 | Context lines with AND logic | `docsearch -B 3 -A 3 -a budget revenue` |
-| 31 | Context with file type filter | `docsearch -A 5 -t docx,pdf budget` |
-| 32 | Context with recursive search | `docsearch -B 3 -A 3 -r budget` |
-| 33 | Context with regex | `docsearch -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
-| 34 | Context, recursive, file type filter | `docsearch -B 5 -A 5 -r -t docx "John Smith"` |
-| 35 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
+| 31 | Show 5 lines after each match | `docsearch -A 5 "John Smith"` |
+| 32 | Show 3 lines before each match | `docsearch -B 3 budget` |
+| 33 | Show lines before and after | `docsearch -B 2 -A 2 budget` |
+| 34 | Context lines with AND logic | `docsearch -B 3 -A 3 -a budget revenue` |
+| 35 | Context with file type filter | `docsearch -A 5 -t docx,pdf budget` |
+| 36 | Context with recursive search | `docsearch -B 3 -A 3 -r budget` |
+| 37 | Context with regex | `docsearch -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
+| 38 | Context, recursive, file type filter | `docsearch -B 5 -A 5 -r -t docx "John Smith"` |
+| 39 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
 | | **Save, Version, and Help** | |
-| 36 | Save results to a named file | `docsearch -s name_of_your_file` |
-| 37 | Show version | `docsearch -v` |
-| 38 | Show help | `docsearch -h` |
-| 39 | Show help (no arguments) | `docsearch` |
+| 40 | Save results to a named file | `docsearch -s name_of_your_file` |
+| 41 | Show version | `docsearch -v` |
+| 42 | Show help | `docsearch -h` |
+| 43 | Show help (no arguments) | `docsearch` |
 
 ## Output
 

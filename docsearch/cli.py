@@ -3,6 +3,7 @@
 import csv
 import glob
 from html.parser import HTMLParser
+from itertools import product
 import logging
 import os
 import re
@@ -47,6 +48,7 @@ BANNER = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
+    'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
@@ -212,12 +214,35 @@ def main(argv=None):
             return 1
         args = args[:idx] + args[idx + 2:]
 
+    proximity = 0
+    if "-p" in args:
+        idx = args.index("-p")
+        if idx + 1 >= len(args):
+            print("No count provided. Usage: docsearch -p 5 budget revenue\n")
+            return 1
+        try:
+            proximity = int(args[idx + 1])
+            if proximity < 1:
+                raise ValueError
+        except ValueError:
+            print(f"Invalid count for -p: {args[idx + 1]}. Must be a positive integer.\n")
+            return 1
+        args = args[:idx] + args[idx + 2:]
+
+    use_proximity = proximity > 0
+    if use_proximity:
+        match_all = True
+
     use_context = context_before > 0 or context_after > 0
 
     search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x")]
 
     if not search_terms:
         print("No search terms provided.\n")
+        return 1
+
+    if use_proximity and len(search_terms) < 2:
+        print("Proximity search (-p) requires at least 2 search terms.\n")
         return 1
 
     if use_regex:
@@ -298,13 +323,42 @@ def main(argv=None):
             print()
             return 1
 
+    def _proximity_match(text):
+        """Return True if all search terms appear within 'proximity' words of each other."""
+        words = re.findall(r'\S+', text.lower())
+        term_positions = {}
+        for term in search_terms:
+            term_lower = term.lower()
+            positions = []
+            if use_regex:
+                for i, word in enumerate(words):
+                    if re.search(term, word, re.IGNORECASE):
+                        positions.append(i)
+            else:
+                for i, word in enumerate(words):
+                    if term_lower in word:
+                        positions.append(i)
+            if not positions:
+                return False
+            term_positions[term] = positions
+        for combo in product(*term_positions.values()):
+            if max(combo) - min(combo) <= proximity:
+                return True
+        return False
+
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
         check = all if match_all else any
         if use_regex:
+            if use_proximity:
+                return _proximity_match(text)
             return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
         text_lower = text.lower()
-        return check(term.lower() in text_lower for term in search_terms)
+        if not check(term.lower() in text_lower for term in search_terms):
+            return False
+        if use_proximity:
+            return _proximity_match(text)
+        return True
 
     def highlight_text(text):
         """Apply ** highlighting around matched search terms."""
