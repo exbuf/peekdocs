@@ -4,7 +4,7 @@ If you've ever downloaded years of documents to your local machine and then real
 
 I'm a 77-year-old retired electrical engineer who recently discovered Claude Code and used it to build my new website. For years I'd been meaning to back up my Google Docs and Sheets to my local machine — hundreds of files accumulated over a decade — but I kept putting it off because I knew that once they were saved locally, I'd have no easy way to search through them. I also had plenty of other documents that were never in Google to begin with — old Word files, PDFs, text files scattered across folders.
 
-Then it hit me: I could build the search tool myself.
+Then it hit me: with Claude Code, I could build the search tool myself.
 
 What began as a weekend project took on a life of its own. I kept thinking "what if it could also do this?" and before long, docsearch had grown into something far more capable than I originally imagined. It searches across PDFs, Word docs, spreadsheets, and text files. It supports regex patterns. It works entirely offline, keeping your data private.
 
