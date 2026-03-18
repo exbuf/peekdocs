@@ -139,73 +139,6 @@ venv\Scripts\Activate.ps1
 
 Then navigate to the directory containing your document files and run:
 
-### Search for a single word
-```bash
-docsearch budget
-```
-
-### Search for multiple terms (OR logic)
-```bash
-docsearch budget revenue expenses
-```
-Finds paragraphs containing "budget" OR "revenue" OR "expenses".
-
-### Search for a multi-word phrase
-```bash
-docsearch "annual report"
-```
-
-### Combine phrases and single terms
-```bash
-docsearch "computer analysis" energy generation
-```
-Finds paragraphs containing "computer analysis" OR "energy" OR "generation".
-
-### Require ALL terms (AND logic)
-```bash
-docsearch -a budget revenue expenses
-```
-Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Requires -a flag)
-
-### Filter by file type
-```bash
-docsearch -t pdf,docx budget
-```
-Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql.
-
-### Search subdirectories
-```bash
-docsearch -r budget
-```
-Searches all supported files in the current directory and all subdirectories.
-
-The `-r` flag can be combined with other flags:
-```bash
-docsearch -r -a budget revenue expenses
-```
-Recursively searches subdirectories for paragraphs containing ALL three terms.
-
-The `-t` flag can also be combined with other flags:
-```bash
-docsearch -t pdf,docx budget revenue
-```
-Searches only `.pdf` and `.docx` files for "budget" OR "revenue".
-
-```bash
-docsearch -a -t csv,xlsx budget revenue
-```
-Searches only `.csv` and `.xlsx` files for paragraphs containing "budget" AND "revenue".
-
-```bash
-docsearch -r -t pdf,docx budget
-```
-Recursively searches subdirectories but only in `.pdf` and `.docx` files.
-
-```bash
-docsearch -r -a -t txt budget revenue expenses
-```
-Recursively searches subdirectories, only in `.txt` files, for paragraphs containing ALL three terms.
-
 ### Regex search
 
 **What are Regex searches?**
@@ -234,82 +167,6 @@ Below is a list of common regex patterns you can copy and paste into your search
 | `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith |
 | `\b\d+%` | Percentages | 92% |
 | `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 |
-
-**Examples:**
-
-```bash
-docsearch -x "\d{3}-\d{3}-\d{4}"
-```
-Searches using a regex pattern — in this case, US phone numbers like 555-123-4567.
-
-```bash
-docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"
-```
-Finds email addresses. Regex search is case-insensitive by default.
-
-The `-x` flag can be combined with other flags:
-```bash
-docsearch -x -a "\d{3}" "\$\d+\.\d{2}"
-```
-Finds lines containing both a 3-digit number AND a dollar amount (regex AND logic).
-
-```bash
-docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"
-```
-Recursively searches only `.txt` and `.csv` files for dates in 2026.
-
-### Context lines
-
-Show surrounding lines for each match, similar to `grep -B` and `grep -A`. Useful when you want to see the full context around a match (e.g., an author's name appears on one line but the article text is on surrounding lines).
-
-**Note:** These flags use uppercase letters. Don't confuse `-A` (lines after) with lowercase `-a` (AND logic).
-
-```bash
-docsearch -A 5 "John Smith"
-```
-Shows each matching line plus the 5 lines after it.
-
-```bash
-docsearch -B 3 budget
-```
-Shows 3 lines before each match.
-
-```bash
-docsearch -B 2 -A 2 budget
-```
-Shows 2 lines before and 2 lines after each match. When context regions overlap (e.g., two matches close together), they are merged into a single block with no duplicate lines.
-
-The `-A` and `-B` flags can be combined with other flags:
-```bash
-docsearch -B 3 -A 3 -a budget revenue
-```
-AND search with 3 lines of context before and after.
-
-```bash
-docsearch -B 5 -A 5 -r -t docx "John Smith"
-```
-Recursively search only `.docx` files with 5 lines of context before and after.
-
-### Save search results
-```bash
-docsearch -s name_of_your_file  // Saves results to DO_NOT_SEARCH_name_of_your_file.docx (and .txt)
-```
-Your file name could describe the contents or simply list the search terms used.
-
-### Show version
-```bash
-docsearch -v
-```
-
-### Show help
-```bash
-docsearch -h
-```
-
-### Show help (method 2)
-```bash
-docsearch
-```
 
 ## Flag Use Summary
 
@@ -376,6 +233,49 @@ Regex search recursively, only in `.txt` and `.csv` files.
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
 - `-A` and `-B` are uppercase — don't confuse `-A` (lines after) with `-a` (AND logic)
 - `-A` and `-B` always need their count immediately after them (e.g., `-A 5`, `-B 3`)
+
+### Command Examples
+
+| # | Search Type | Command |
+|---|-------------|---------|
+| | **Basic Searches** | |
+| 1 | Single word | `docsearch budget` |
+| 2 | Multiple terms (OR logic) | `docsearch budget revenue expenses` |
+| 3 | Multi-word phrase | `docsearch "annual report"` |
+| 4 | Combine phrases and single terms | `docsearch "computer analysis" energy generation` |
+| 5 | Require ALL terms (AND logic) | `docsearch -a budget revenue expenses` |
+| | **Filter by File Type** | |
+| 6 | Search only specific file types | `docsearch -t pdf,docx budget` |
+| 7 | File type filter with OR search | `docsearch -t pdf,docx budget revenue` |
+| 8 | File type filter with AND search | `docsearch -a -t csv,xlsx budget revenue` |
+| | **Recursive (Subdirectory) Searches** | |
+| 9 | Search all subdirectories | `docsearch -r budget` |
+| 10 | Recursive with AND logic | `docsearch -r -a budget revenue expenses` |
+| 11 | Recursive with file type filter | `docsearch -r -t pdf,docx budget` |
+| 12 | Recursive, AND, and file type filter | `docsearch -r -a -t txt budget revenue expenses` |
+| | **Regex Pattern Searches** | |
+| 13 | Search for phone numbers | `docsearch -x "\d{3}-\d{3}-\d{4}"` |
+| 14 | Search for email addresses | `docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
+| 15 | Regex with AND logic | `docsearch -x -a "\d{3}" "\$\d+\.\d{2}"` |
+| 16 | Regex with file type filter | `docsearch -x -t pdf,docx "\$\d+(\.\d{2})?"` |
+| 17 | Regex recursive | `docsearch -x -r "\d{3}-\d{3}-\d{4}"` |
+| 18 | Regex, recursive, file type filter | `docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
+| 19 | Regex, AND, recursive, file type filter | `docsearch -x -a -r -t pdf "\d{3}" "\$\d+"` |
+| | **Context Lines (Before/After)** | |
+| 20 | Show 5 lines after each match | `docsearch -A 5 "John Smith"` |
+| 21 | Show 3 lines before each match | `docsearch -B 3 budget` |
+| 22 | Show lines before and after | `docsearch -B 2 -A 2 budget` |
+| 23 | Context lines with AND logic | `docsearch -B 3 -A 3 -a budget revenue` |
+| 24 | Context with file type filter | `docsearch -A 5 -t docx,pdf budget` |
+| 25 | Context with recursive search | `docsearch -B 3 -A 3 -r budget` |
+| 26 | Context with regex | `docsearch -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
+| 27 | Context, recursive, file type filter | `docsearch -B 5 -A 5 -r -t docx "John Smith"` |
+| 28 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
+| | **Save, Version, and Help** | |
+| 29 | Save results to a named file | `docsearch -s name_of_your_file` |
+| 30 | Show version | `docsearch -v` |
+| 31 | Show help | `docsearch -h` |
+| 32 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
