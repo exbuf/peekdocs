@@ -527,6 +527,78 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
     assert match_text.count("gamma") == 1
 
 
+def test_search_xml(tmp_path, monkeypatch, capsys):
+    xml_file = tmp_path / "config.xml"
+    xml_file.write_text('<?xml version="1.0"?>\n<root>\n  <title>Budget report</title>\n  <value>No match</value>\n</root>\n')
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "config.xml" in content
+    assert "**Budget**" in content
+
+
+def test_search_log(tmp_path, monkeypatch, capsys):
+    log_file = tmp_path / "app.log"
+    log_file.write_text("2026-03-18 INFO Starting up\n2026-03-18 ERROR Budget exceeded limit\n2026-03-18 INFO Shutting down\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "app.log" in content
+    assert "**Budget**" in content
+
+
+def test_search_pptx(tmp_path, monkeypatch, capsys):
+    from pptx import Presentation as PptxPresentation
+    from pptx.util import Inches
+    prs = PptxPresentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank layout
+    txBox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(5), Inches(1))
+    txBox.text_frame.text = "Budget report for Q1"
+    txBox2 = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(5), Inches(1))
+    txBox2.text_frame.text = "No match here"
+    prs.save(str(tmp_path / "report.pptx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "report.pptx" in content
+    assert "**Budget**" in content
+
+
+def test_search_rtf(tmp_path, monkeypatch, capsys):
+    rtf_file = tmp_path / "report.rtf"
+    rtf_content = r'{\rtf1\ansi{\fonttbl\f0 Times New Roman;}\f0 Budget report for Q1\par No match here\par}'
+    rtf_file.write_text(rtf_content)
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "report.rtf" in content
+    assert "**Budget**" in content
+
+
 def test_search_context_invalid(tmp_path, monkeypatch, capsys):
     """With -A and invalid count, an error is returned."""
     monkeypatch.chdir(tmp_path)

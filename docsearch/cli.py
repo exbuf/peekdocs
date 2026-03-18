@@ -26,12 +26,14 @@ from odf.text import P as OdtParagraph
 from odf import teletype
 from docx.enum.text import WD_COLOR_INDEX
 from openpyxl import load_workbook
+from striprtf.striprtf import rtf_to_text
+from pptx import Presentation as PptxPresentation
 from importlib.metadata import version as pkg_version
 
 
 VERSION = pkg_version("claude-docsearch")
 
-SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json"}
+SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log"}
 
 BANNER = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
@@ -153,7 +155,7 @@ def main(argv=None):
         for t in raw_types:
             ext = "." + t.strip().lower().lstrip(".")
             if ext not in SUPPORTED_TYPES:
-                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json\n")
+                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log\n")
                 return 1
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
@@ -240,8 +242,12 @@ def main(argv=None):
     xlsx_files = sorted(glob.glob(glob_prefix + ".xlsx", recursive=recursive))
     md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
     json_files = sorted(glob.glob(glob_prefix + ".json", recursive=recursive))
+    rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
+    pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
+    xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
+    log_files = sorted(glob.glob(glob_prefix + ".log", recursive=recursive))
     all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files
+        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
@@ -331,7 +337,7 @@ def main(argv=None):
                 all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
                 collect_matches(all_lines, file_dir, filename)
 
-            elif ext in (".txt", ".md", ".json"):
+            elif ext in (".txt", ".md", ".json", ".xml", ".log"):
                 with open(filepath, encoding="utf-8", errors="replace") as txtfile:
                     all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
                 collect_matches(all_lines, file_dir, filename)
@@ -354,6 +360,25 @@ def main(argv=None):
                     for line_num, text in all_lines:
                         if text and text_matches(text):
                             matches.append((file_dir, filename, line_num, text))
+
+            elif ext == ".pptx":
+                prs = PptxPresentation(filepath)
+                all_lines = []
+                para_num = 0
+                for slide in prs.slides:
+                    for shape in slide.shapes:
+                        if shape.has_text_frame:
+                            for para in shape.text_frame.paragraphs:
+                                para_num += 1
+                                all_lines.append((para_num, para.text))
+                collect_matches(all_lines, file_dir, filename)
+
+            elif ext == ".rtf":
+                with open(filepath, encoding="utf-8", errors="replace") as rtffile:
+                    raw = rtffile.read()
+                plain = rtf_to_text(raw)
+                all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
+                collect_matches(all_lines, file_dir, filename)
 
             elif ext == ".xlsx":
                 wb = load_workbook(filepath, read_only=True, data_only=True)
@@ -387,7 +412,7 @@ def main(argv=None):
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json\n")
+        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json, .rtf, .pptx, .xml, .log\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         if use_regex and match_all:
             report_mode = "REGEX+AND"

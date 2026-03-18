@@ -1,6 +1,6 @@
 # Claude-DocSearch
 
-**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
+**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, and `.log` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
 
 - Results show the full text surrounding each match, so you can understand the context without opening the original document.
 - Supports **AND** and **OR** search logic with any number of search terms.
@@ -11,7 +11,7 @@
 
 ## Features
 
-- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, and `.json` files in the current working directory
+- Searches all `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, and `.log` files in the current working directory
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
@@ -38,7 +38,7 @@ But the usefulness extends beyond my own situation. docsearch can help anyone wh
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
 - **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
-- **Search across formats** — find information across PDFs, Word docs, spreadsheets, Markdown, JSON, and text files in one place
+- **Search across formats** — find information across PDFs, Word docs, presentations, spreadsheets, RTF, Markdown, JSON, XML, log files, and text files in one place
 - **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
 - **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
 - **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
@@ -145,7 +145,7 @@ Finds only paragraphs containing "budget" AND "revenue" AND "expenses". (Require
 ```bash
 docsearch -t pdf,docx budget
 ```
-Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json.
+Searches only `.pdf` and `.docx` files. Comma-separated, no spaces. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log.
 
 ### Search subdirectories
 ```bash
@@ -301,7 +301,7 @@ docsearch has seven flags that can be mixed and matched:
 ```bash
 docsearch budget revenue
 ```
-OR search across all 9 file types in the current directory.
+OR search across all 13 file types in the current directory.
 
 ### Single flags
 ```bash
