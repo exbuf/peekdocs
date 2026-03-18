@@ -42,9 +42,9 @@ BANNER = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
+    'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
     'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
-    'Use option flag -v for version. Example: docsearch -v\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
 )
