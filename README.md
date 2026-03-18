@@ -10,18 +10,9 @@ What began as a weekend project took on a life of its own. I kept thinking "what
 
 I built docsearch for myself, but I'm sharing it because I suspect I'm not the only one drowning in years of documents. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**Overview:** A Python CLI tool that searches through `.docx`, `.pdf`, `.csv`, `.odt`, `.txt`, `.html`, `.xlsx`, `.md`, `.json`, `.rtf`, `.pptx`, `.xml`, `.log`, `.yaml`, `.yml`, `.tsv`, `.epub`, `.ods`, `.odp`, `.toml`, `.rst`, `.tex`, `.ini`, `.cfg`, and `.sql` files in the current directory for one or more search terms. Results are written to `docsearch_results.txt` and `docsearch_results.docx`.
-
-- Results show the full text surrounding each match, so you can understand the context without opening the original document.
-- Supports **AND** and **OR** search logic with any number of search terms.
-  - **OR**: Show paragraph if it contains term1 OR term2 OR term3, etc.
-  - **AND**: Show paragraph if it contains term1 AND term2 AND term3, etc.
-- A simple search example can be found in the `docsearch_results.docx` and `docsearch_results.txt` files on GitHub.
-  (NOTE: You can view docsearch_results.txt by clicking on it now, but GitHub can't render .docx, .odt, and .xlsx files directly in the browser. So to view the yellow highlighted .docx file and the others, you'll have to download and open them on your local machine. Here's how: .docx opens with Word, Pages, LibreOffice, or Google Docs. Open .odt files with LibreOffice, Google Docs, Word, or Apple Pages. .xlsx files open with Excel, Google Sheets, LibreOffice Calc, or Apple Numbers.)
-
 ## Features
 
-- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the directory/subdirectories. Or, with the -t flag, you can restrict your search to specific file types while ignoring the rest.
+- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest.
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
