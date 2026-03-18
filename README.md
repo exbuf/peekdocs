@@ -12,7 +12,7 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 
 ## Features
 
-- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest.
+- Searches all files in the active directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest. See table for supported file types.
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
@@ -220,6 +220,8 @@ Think of it as a wildcard search on steroids. For example, `\d{3}-\d{3}-\d{4}` f
 Regex is powerful but can look intimidating at first. See the table below for common patterns you can copy and use.
 
 #### Common Regex Search Patterns
+
+Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes.
 
 | Pattern | Matches | Example |
 |---------|---------|---------|
