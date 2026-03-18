@@ -1,5 +1,24 @@
 # Claude-DocSearch
 
+## Table of Contents
+
+- [Features](#features)
+  - [Supported File Types](#supported-file-types)
+- [Benefits and Applications](#benefits-and-applications)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Steps](#steps)
+- [Usage](#usage)
+  - [Regex Search](#regex-search)
+    - [Common Regex Search Patterns](#common-regex-search-patterns)
+- [Flag Use Summary](#flag-use-summary)
+  - [Command Examples](#command-examples)
+  - [Notes](#notes)
+- [Output](#output)
+- [Running Tests](#running-tests)
+- [Project Structure](#project-structure)
+- [License](#license)
+
 If you've ever downloaded years of documents to your local machine and then realized you have no way to search through them — that's exactly why docsearch exists. It searches across 25 file types — including PDFs, Word docs, spreadsheets, presentations, and e-books — using plain text or regex patterns, with AND/OR logic, context lines before and after each match, and results highlighted and saved to both `.txt` and `.docx` files, all entirely offline.
 
 I'm a 77-year-old retired electrical engineer, programmer, and software patent holder who recently discovered Claude Code and used it to build my new website. For years I'd been meaning to back up my Google Docs and Sheets to my local machine — hundreds of files accumulated over a decade — but I kept putting it off because I knew that once they were saved locally, I'd have no easy way to search through them. I also had plenty of other documents that were never in Google to begin with — old Word files, PDFs, text files scattered across folders.
