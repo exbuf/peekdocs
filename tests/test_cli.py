@@ -836,3 +836,127 @@ def test_search_context_invalid(tmp_path, monkeypatch, capsys):
 
     assert result == 1
     assert "Invalid count for -A" in captured.out
+
+
+def test_search_with_file_filter(tmp_path, monkeypatch, capsys):
+    """With -f flag, only specified files are searched."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    txt_file2 = tmp_path / "other.txt"
+    txt_file2.write_text("Budget details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "other.txt" not in content
+
+
+def test_search_with_multiple_file_filters(tmp_path, monkeypatch, capsys):
+    """With -f flag and comma-separated files, multiple files are searched."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    csv_file = tmp_path / "data.csv"
+    csv_file.write_text("Name,Amount\nBob,budget review\n")
+    html_file = tmp_path / "page.html"
+    html_file.write_text("<html><body><p>Budget report</p></body></html>")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt,data.csv", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "data.csv" in content
+    assert "page.html" not in content
+
+
+def test_search_file_filter_not_found(tmp_path, monkeypatch, capsys):
+    """With -f flag and nonexistent file, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "missing.txt", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "File not found: missing.txt" in captured.out
+
+
+def test_search_file_filter_with_and(tmp_path, monkeypatch, capsys):
+    """With -f and -a flags, AND logic applies to specified files."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget and revenue overview\n")
+    txt_file2 = tmp_path / "other.txt"
+    txt_file2.write_text("Budget and revenue details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt", "-a", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "other.txt" not in content
+
+
+def test_search_file_filter_with_regex(tmp_path, monkeypatch, capsys):
+    """With -f and -x flags, regex search applies to specified files."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Call 555-123-4567 for details\n")
+    txt_file2 = tmp_path / "other.txt"
+    txt_file2.write_text("Call 555-987-6543 for info\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt", "-x", r"\d{3}-\d{3}-\d{4}"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "other.txt" not in content
+
+
+def test_search_file_filter_with_context(tmp_path, monkeypatch, capsys):
+    """With -f, -A, and -B flags, context lines apply to specified files."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Line one\nBudget overview\nLine three\n")
+    txt_file2 = tmp_path / "other.txt"
+    txt_file2.write_text("Budget details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt", "-B", "1", "-A", "1", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "other.txt" not in content
+    assert "Line one" in content
+    assert "Line three" in content
+
+
+def test_search_file_filter_recursive(tmp_path, monkeypatch, capsys):
+    """With -f and -r flags, specific file is found in subdirectories."""
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    txt_file = subdir / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    txt_file2 = tmp_path / "other.txt"
+    txt_file2.write_text("Budget details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-f", "notes.txt", "-r", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "other.txt" not in content

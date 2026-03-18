@@ -45,6 +45,7 @@ BANNER = (
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
+    'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -v for version. Example: docsearch -v\n'
@@ -163,6 +164,24 @@ def main(argv=None):
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
 
+    file_names = None
+    if "-f" in args:
+        idx = args.index("-f")
+        if idx + 1 >= len(args):
+            print("No file names provided. Usage: docsearch -f report.pdf,notes.txt search_term\n")
+            return 1
+        file_names = [n.strip() for n in args[idx + 1].split(",")]
+        for n in file_names:
+            ext = os.path.splitext(n)[1].lower()
+            if ext not in SUPPORTED_TYPES:
+                print(f"Unsupported file type in '{n}'. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
+                return 1
+        args = args[:idx] + args[idx + 2:]
+
+    if file_types is not None and file_names is not None:
+        print("Cannot use -f and -t together. Use -f to search specific files or -t to filter by file type.\n")
+        return 1
+
     context_before = 0
     if "-B" in args:
         idx = args.index("-B")
@@ -268,6 +287,16 @@ def main(argv=None):
 
     if file_types is not None:
         all_files = [f for f in all_files if os.path.splitext(f)[1].lower() in file_types]
+
+    if file_names is not None:
+        name_set = {n.lower() for n in file_names}
+        all_files = [f for f in all_files if os.path.basename(f).lower() in name_set]
+        missing = name_set - {os.path.basename(f).lower() for f in all_files}
+        if missing:
+            for m in sorted(missing):
+                print(f"File not found: {m}")
+            print()
+            return 1
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
