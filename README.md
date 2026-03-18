@@ -73,8 +73,7 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 | `.yaml` | YAML configuration file |
 | `.yml` | YAML configuration file |
 
-**Motivation:** Over the years I've accumulated more than a hundred files in Google Docs and Sheets — daily journal entries, newspaper and magazine articles, research papers,, family medical histories, jogging logs, and more. Searching through them one by one became impractical. I also wanted local copies as a backup in case access to Google is ever interrupted. docsearch lets me search all of these files at once with a single query.
-But the usefulness extends beyond my own situation. docsearch can help anyone who wants to:
+## Benefits and Applications
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
 - **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
