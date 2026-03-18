@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [Introduction](#introduction)
 - [Features](#features)
   - [Supported File Types](#supported-file-types)
 - [Benefits and Applications](#benefits-and-applications)
@@ -18,6 +19,8 @@
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [License](#license)
+
+## Introduction
 
 If you've ever downloaded years of documents to your local machine and then realized you have no way to search through them — that's exactly why docsearch exists. It searches across 25 file types — including PDFs, Word docs, spreadsheets, presentations, and e-books — using plain text or regex patterns, with AND/OR logic, context lines before and after each match, and results highlighted and saved to both `.txt` and `.docx` files, all entirely offline.
 
