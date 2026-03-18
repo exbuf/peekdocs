@@ -106,11 +106,12 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 ### Steps
 
-1. Clone the repository:
+1. Clone the repository (requires [git](https://git-scm.com/downloads)):
    ```bash
    git clone https://github.com/exbuf/Claude-DocSearch.git
    cd Claude-DocSearch
    ```
+   **Don't have git?** Click the green **Code** button on the [GitHub page](https://github.com/exbuf/Claude-DocSearch), select **Download ZIP**, extract it, and open the extracted folder in your terminal.
 
 2. Create and activate a virtual environment:
 
