@@ -11,7 +11,7 @@
 
 ## Features
 
-- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the current working directory
+- Searches all `.cfg`, `.csv`, `.docx`, `.epub`, `.html`, `.ini`, `.json`, `.log`, `.md`, `.odp`, `.ods`, `.odt`, `.pdf`, `.pptx`, `.rst`, `.rtf`, `.sql`, `.tex`, `.toml`, `.tsv`, `.txt`, `.xlsx`, `.xml`, `.yaml`, and `.yml` files in the directory/subdirectories. Or, with the -t flag, you can restrict your search to specific file types while ignoring the rest.
 - Use `-r` flag to search all subdirectories recursively
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
