@@ -104,6 +104,8 @@ def main(argv=None):
     else:
         args = list(argv)
 
+    original_args = list(args)
+
     print(BANNER)
     print()
 
@@ -210,6 +212,8 @@ def main(argv=None):
         mode = "AND"
     else:
         mode = "OR"
+    command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
+    print(command_str)
     print(f"Searching ({mode}) on [{', '.join(search_terms)}] ...")
     start_time = time.time()
     cwd = os.getcwd()
@@ -393,6 +397,7 @@ def main(argv=None):
             report_mode = "ALL"
         else:
             report_mode = "ANY"
+        f.write(f"Command ==> {command_str}\n")
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n")
@@ -495,10 +500,46 @@ def main(argv=None):
                         run.bold = True
     result_doc.save(docx_output_path)
 
+    # Insert report file sizes into both files (after timestamp, before Command)
+    def fmt_size(b):
+        if b >= 1_000_000:
+            return f"{b / 1_000_000:.2f} MB"
+        elif b >= 1_000:
+            return f"{b / 1_000:.2f} KB"
+        return f"{b} bytes"
+
+    txt_size = os.path.getsize(output_path)
+    docx_size = os.path.getsize(docx_output_path)
+    sizes_line = f"Report File Sizes ==> docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})"
+
+    # Update txt report
+    with open(output_path, "r") as f:
+        content = f.read()
+    content = content.replace(
+        "\nCommand ==>",
+        f"\n{sizes_line}\nCommand ==>",
+        1,
+    )
+    with open(output_path, "w") as f:
+        f.write(content)
+
+    # Update docx report — insert sizes paragraph after timestamp
+    for i, para in enumerate(result_doc.paragraphs):
+        if para.text.startswith("Report Generated On ==>"):
+            new_para = OxmlElement("w:p")
+            run_elem = OxmlElement("w:r")
+            text_elem = OxmlElement("w:t")
+            text_elem.text = sizes_line
+            run_elem.append(text_elem)
+            new_para.append(run_elem)
+            para._p.addnext(new_para)
+            break
+    result_doc.save(docx_output_path)
+
     elapsed = time.time() - start_time
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
-    print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt and docsearch_results.docx")
+    print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt ({fmt_size(txt_size)}) and docsearch_results.docx ({fmt_size(docx_size)})")
     print(f"Elapsed time: {elapsed:.2f} seconds")
     print()
     return 0
