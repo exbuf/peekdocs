@@ -197,14 +197,14 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 docsearch has nine flags that can be mixed and matched:
 
-| Flag | Purpose |
-|------|---------|
+| Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
+|------------|---------|
 | `-a` | AND logic (all terms must appear in the same paragraph) |
 | `-f` | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
-| `-s` | Archives the search_results.docx and search_results.txt files to files named DO_NOT_SEARCH_your_file_name.docx (and .txt). Example: The search command `docsearch -s your_file_name` will copy the contents of the two search_results files to the two DO_NOT_SEARCH files. This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be the actual search terms you used to generate the search results. |
+| `-s` | Archives the docsearch_results.docx and docsearch_results.txt files to files named DO_NOT_SEARCH_your_file_name.docx (and .txt). Example: The search command `docsearch -s your_file_name` will copy the contents of the two search_results files to the two DO_NOT_SEARCH files. This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be the actual search terms you used to generate the search results. |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
 | `-B N` | Show N lines before each match |
