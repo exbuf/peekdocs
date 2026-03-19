@@ -397,43 +397,43 @@ Found 2 match(es). Results written to docsearch_results.txt and docsearch_result
 ## FAQ (Frequently Asked Questions)
 
 **Can I search all subfolders?**
-Yes — use the `-r` flag.
+Yes — use the `-r` flag.<br>
 Example: `docsearch -r budget`
 
 **Can I search only PDFs (etc)?**
-Yes — use the `-t` flag.
+Yes — use the `-t` flag.<br>
 Example: `docsearch -t pdf budget`
 
 **Can I search a specific file?**
-Yes — use the `-f` flag.
+Yes — use the `-f` flag.<br>
 Example: `docsearch -f report.pdf budget`
 
 **Can I find terms near each other?**
-Yes — use the `-p` flag.
+Yes — use the `-p` flag.<br>
 Example: `docsearch -p 5 budget revenue`
 
 **Can I save these results?**
-Yes — use the `-s` flag.
+Yes — use the `-s` flag.<br>
 Example: `docsearch -s my_report`
 
 **Can I accumulate results from multiple searches?**
-Yes — use the `-sa` flag.
+Yes — use the `-sa` flag.<br>
 Example: `docsearch -sa my_report budget revenue`
 
 **Can I use regex patterns?**
-Yes — use the `-x` flag.
+Yes — use the `-x` flag.<br>
 Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
 
 **Can I see lines before and after each match?**
-Yes — use the `-B` and `-A` flags.
+Yes — use the `-B` and `-A` flags.<br>
 Example: `docsearch -B 3 -A 3 budget`
 
 **Can I require all terms to appear in the same paragraph?**
-Yes — use the `-a` flag.
+Yes — use the `-a` flag.<br>
 Example: `docsearch -a budget revenue expenses`
 
 **Can I use multiple flags at the same time?**
-Yes — most flags can be mixed and matched. Flag order doesn't matter.
+Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
 Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
 
 **Why is docsearch a terminal application? Why doesn't it have a GUI?**
