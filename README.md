@@ -419,7 +419,8 @@ The number 5 means the terms must appear within 5 words of each other.
 
 **Can I save these results?**
 Yes — use the `-s` flag.<br>
-Example: `docsearch -s my_report`
+Example: `docsearch -s my_report`<br>
+The saved/archived file is never re-searched because of its `DO_NOT_SEARCH` prefix.
 
 **Can I accumulate results from multiple searches?**
 Yes — use the `-sa` flag.<br>
