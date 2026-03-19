@@ -410,7 +410,8 @@ Example: `docsearch -f report.pdf budget`
 
 **Can I find terms near each other?**
 Yes — use the `-p` flag.<br>
-Example: `docsearch -p 5 budget revenue`
+Example: `docsearch -p 5 budget revenue`<br>
+The number 5 means the terms must appear within 5 words of each other.
 
 **Can I save these results?**
 Yes — use the `-s` flag.<br>
