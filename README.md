@@ -424,7 +424,7 @@ Example: `docsearch -s my_report`
 **Can I accumulate results from multiple searches?**
 Yes — use the `-sa` flag.<br>
 Example: `docsearch -sa my_report budget revenue`<br>
-Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time.
+Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time. The accumulated file is never re-searched because of its `DO_NOT_SEARCH` prefix.
 
 **Can I use regex patterns?**
 Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
