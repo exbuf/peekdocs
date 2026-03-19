@@ -52,6 +52,7 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
 - Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
+- Auto-append search results with `-sa` flag — runs the search and automatically appends results to a named `DO_NOT_SEARCH_ACCUMULATED_` file, allowing you to accumulate results from multiple searches
 - Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
 
 ### Supported File Types
@@ -195,7 +196,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has nine flags that can be mixed and matched:
+docsearch has ten flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -205,6 +206,7 @@ docsearch has nine flags that can be mixed and matched:
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
 | `-s` | The -s flag is not for searching. It is used to archive the docsearch_results.docx and docsearch_results.txt files to new files named DO_NOT_SEARCH_your_file_name.docx (and .txt). The archived files are placed in the same directory folder as the two docsearch_results files. It does not erase the two original docsearch_results files. But the docsearch_results.docx and docsearch_results.txt files ARE erased and loaded with new results the next time you do a search. The -s flag and process just lets you save the current results if you need them.<br><br>Example: The command `docsearch -s your_file_name` will copy the contents of the two docsearch_results files to the two new DO_NOT_SEARCH_your_file_name files. (Don't type 'DO_NOT_SEARCH' in the command line; it's automatically provided.) This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be a list of actual search terms you used to generate the search results. |
+| `-sa` | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically. Example: `docsearch -sa my_report budget revenue` |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
 | `-B N` | Show N lines before each match |
@@ -222,6 +224,7 @@ docsearch -f report.pdf budget       # search only report.pdf
 docsearch -p 5 budget revenue        # terms within 5 words of each other
 docsearch -r budget                  # recursive search
 docsearch -s my_report               # save results to named file
+docsearch -sa my_report budget       # search and append results to named file
 docsearch -t pdf,md budget           # only search .pdf and .md files
 docsearch -x "\d{3}-\d{4}"          # regex search
 docsearch -A 5 budget                # show 5 lines after each match
@@ -237,6 +240,9 @@ docsearch -f report.pdf -x "\d{3}-\d{4}"   # specific file, regex
 docsearch -f report.pdf -B 3 -A 3 budget   # specific file, context lines
 docsearch -p 5 -r budget revenue            # proximity, recursive
 docsearch -p 5 -t pdf,docx budget revenue  # proximity, file type filter
+docsearch -sa my_report -a budget revenue  # save-append with AND search
+docsearch -sa my_report -r budget          # save-append, recursive
+docsearch -sa my_report -t pdf budget      # save-append, file type filter
 docsearch -r -a budget revenue              # recursive AND search
 docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
 docsearch -x -a "\d{3}" "\$\d+\.\d{2}"     # regex AND search
@@ -266,10 +272,16 @@ docsearch -p 5 -r -t pdf budget revenue
 ```
 Proximity search recursively, only in `.pdf` files, for terms within 5 words of each other.
 
+```bash
+docsearch -sa my_report -r -t pdf budget revenue
+```
+Search and append results recursively, only in `.pdf` files.
+
 - Use `-f` flag to search specific files (e.g., `docsearch -f report.pdf,notes.txt budget`)
 - Use `-p N` flag for proximity search (e.g., `docsearch -p 5 budget revenue`)
 - Use `-r` flag to search all subdirectories recursively
 - Use `-s` flag to save results to a named file (e.g., `docsearch -s my_report`)
+- Use `-sa` flag to search and auto-append results to a named file (e.g., `docsearch -sa my_report budget revenue`)
 - Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
 - Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
 - Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
@@ -287,6 +299,8 @@ Proximity search recursively, only in `.pdf` files, for terms within 5 words of 
 - `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
 - `-x` treats search terms as regex patterns instead of literal strings
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
+- `-sa` always needs its filename immediately after it (e.g., `-sa my_report`)
+- `-sa` appends to existing DO_NOT_SEARCH_ACCUMULATED files, allowing you to accumulate results from multiple searches
 - `-A` and `-B` are uppercase — don't confuse `-A` (lines after) with `-a` (AND logic)
 - `-A` and `-B` always need their count immediately after them (e.g., `-A 5`, `-B 3`)
 
@@ -342,9 +356,15 @@ Proximity search recursively, only in `.pdf` files, for terms within 5 words of 
 | 39 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
 | | **Save, Version, and Help** | |
 | 40 | Save results to a named file | `docsearch -s name_of_your_file` |
-| 41 | Show version | `docsearch -v` |
-| 42 | Show help | `docsearch -h` |
-| 43 | Show help (no arguments) | `docsearch` |
+| | **Save and Append Searches** | |
+| 41 | Search and append results to a file | `docsearch -sa my_report budget` |
+| 42 | Append with AND search | `docsearch -sa my_report -a budget revenue` |
+| 43 | Append with recursive search | `docsearch -sa my_report -r budget` |
+| 44 | Append with file type filter | `docsearch -sa my_report -t pdf budget` |
+| | **Version and Help** | |
+| 45 | Show version | `docsearch -v` |
+| 46 | Show help | `docsearch -h` |
+| 47 | Show help (no arguments) | `docsearch` |
 
 ## Output
 

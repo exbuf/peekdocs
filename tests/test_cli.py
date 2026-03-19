@@ -1006,3 +1006,59 @@ def test_search_proximity_invalid(tmp_path, monkeypatch, capsys):
 
     assert result == 1
     assert "Invalid count for -p" in captured.out
+
+
+def test_search_save_append(tmp_path, monkeypatch, capsys):
+    """With -sa flag, search runs normally and results are appended to DO_NOT_SEARCH file."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview for Q1\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-sa", "my_report", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    assert "Results appended to DO_NOT_SEARCH_ACCUMULATED_my_report.txt and DO_NOT_SEARCH_ACCUMULATED_my_report.docx" in captured.out
+
+    assert (tmp_path / "docsearch_results.txt").exists()
+    assert (tmp_path / "docsearch_results.docx").exists()
+    assert (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.txt").exists()
+    assert (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.docx").exists()
+
+    content = (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.txt").read_text()
+    assert "budget" in content.lower()
+
+
+def test_search_save_append_accumulates(tmp_path, monkeypatch, capsys):
+    """With -sa flag used twice, results accumulate in the DO_NOT_SEARCH file."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview for Q1\nRevenue report for Q2\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-sa", "combined", "budget"])
+    main(["-sa", "combined", "revenue"])
+
+    append_txt = tmp_path / "DO_NOT_SEARCH_ACCUMULATED_combined.txt"
+    content = append_txt.read_text()
+    assert "budget" in content.lower()
+    assert "revenue" in content.lower()
+
+
+def test_search_save_append_no_filename(capsys):
+    """With -sa flag and no filename, an error is returned."""
+    result = main(["-sa"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "No filename provided" in captured.out
+
+
+def test_search_save_append_no_terms(tmp_path, monkeypatch, capsys):
+    """With -sa flag and filename but no search terms, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-sa", "my_report"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "No search terms provided" in captured.out

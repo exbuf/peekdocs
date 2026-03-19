@@ -1,6 +1,7 @@
 """Command-line interface for DocSearch."""
 
 import csv
+from copy import deepcopy
 import glob
 from html.parser import HTMLParser
 from itertools import product
@@ -46,6 +47,7 @@ BANNER = (
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
+    'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue\n'
@@ -232,6 +234,15 @@ def main(argv=None):
     use_proximity = proximity > 0
     if use_proximity:
         match_all = True
+
+    append_name = None
+    if "-sa" in args:
+        idx = args.index("-sa")
+        if idx + 1 >= len(args):
+            print("No filename provided. Usage: docsearch -sa my_report budget revenue\n")
+            return 1
+        append_name = args[idx + 1]
+        args = args[:idx] + args[idx + 2:]
 
     use_context = context_before > 0 or context_after > 0
 
@@ -707,10 +718,34 @@ def main(argv=None):
             break
     result_doc.save(docx_output_path)
 
+    if append_name is not None:
+        append_txt_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")
+        append_docx_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
+        with open(output_path, "r") as src:
+            results_content = src.read()
+        with open(append_txt_path, "a") as dst:
+            dst.write(results_content)
+        if os.path.exists(append_docx_path):
+            existing_doc = Document(append_docx_path)
+            new_doc = Document(docx_output_path)
+            body = existing_doc.element.body
+            sect_pr = body.find(qn('w:sectPr'))
+            for para in new_doc.paragraphs:
+                new_elem = deepcopy(para._p)
+                if sect_pr is not None:
+                    sect_pr.addprevious(new_elem)
+                else:
+                    body.append(new_elem)
+            existing_doc.save(append_docx_path)
+        else:
+            shutil.copy2(docx_output_path, append_docx_path)
+
     elapsed = time.time() - start_time
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt ({fmt_size(txt_size)}) and docsearch_results.docx ({fmt_size(docx_size)})")
+    if append_name is not None:
+        print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     print(f"Elapsed time: {elapsed:.2f} seconds")
     print()
     return 0
