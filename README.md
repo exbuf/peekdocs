@@ -446,7 +446,7 @@ docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher i
 No — docsearch searches uncompressed files only.
 
 **Does it work offline?**
-Yes — docsearch runs entirely on your local machine with no internet connection needed.
+Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
 **Does it modify my files?**
 No — docsearch only reads your files. It never changes, moves, or deletes them.
