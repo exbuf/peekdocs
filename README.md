@@ -16,6 +16,7 @@
   - [Command Examples](#command-examples)
   - [Notes](#notes)
 - [Output](#output)
+- [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [License](#license)
@@ -392,6 +393,63 @@ The terminal also displays a summary:
 ```
 Found 2 match(es). Results written to docsearch_results.txt and docsearch_results.docx
 ```
+
+## FAQ (Frequently Asked Questions)
+
+**Can I search all subfolders?**
+Yes — use the `-r` flag. Example: `docsearch -r budget`
+
+**Can I search only PDFs?**
+Yes — use the `-t` flag. Example: `docsearch -t pdf budget`
+
+**Can I search a specific file?**
+Yes — use the `-f` flag. Example: `docsearch -f report.pdf budget`
+
+**Can I find terms near each other?**
+Yes — use the `-p` flag. Example: `docsearch -p 5 budget revenue`
+
+**Can I save these results?**
+Yes — use the `-s` flag. Example: `docsearch -s my_report`
+
+**Can I accumulate results from multiple searches?**
+Yes — use the `-sa` flag. Example: `docsearch -sa my_report budget revenue`
+
+**Can I use regex patterns?**
+Yes — use the `-x` flag. Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
+
+**Can I see lines before and after each match?**
+Yes — use the `-B` and `-A` flags. Example: `docsearch -B 3 -A 3 budget`
+
+**Can I require all terms to appear in the same paragraph?**
+Yes — use the `-a` flag. Example: `docsearch -a budget revenue expenses`
+
+**Why is docsearch a terminal application? Why doesn't it have a GUI?**
+docsearch was designed as a command-line tool for speed, simplicity, and portability. Terminal apps launch instantly, run on any operating system without modification, and are easy to script or automate. A GUI would add complexity and platform-specific dependencies without improving the core search functionality.
+
+**What operating systems does docsearch run on?**
+docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is installed.
+
+**Does it search inside ZIP or RAR files?**
+No — docsearch searches uncompressed files only.
+
+**Does it work offline?**
+Yes — docsearch runs entirely on your local machine with no internet connection needed.
+
+**Does it modify my files?**
+No — docsearch only reads your files. It never changes, moves, or deletes them.
+
+**Is the search case-sensitive?**
+No — all searches are case-insensitive by default.
+
+**What happens if a file is corrupt or unreadable?**
+docsearch skips it with a warning and continues searching the remaining files.
+
+Every feature in docsearch serves the core mission of finding content in documents:
+
+- **Search flags** (`-a`, `-x`, `-p`) — control *how* to match
+- **Filter flags** (`-t`, `-f`, `-r`) — control *where* to search
+- **Context flags** (`-A`, `-B`) — control *what to show* around matches
+- **Output flags** (`-s`, `-sa`) — control *what to do* with results
 
 ## Running Tests
 
