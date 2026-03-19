@@ -423,6 +423,9 @@ Yes — use the `-B` and `-A` flags. Example: `docsearch -B 3 -A 3 budget`
 **Can I require all terms to appear in the same paragraph?**
 Yes — use the `-a` flag. Example: `docsearch -a budget revenue expenses`
 
+**Can I use multiple flags at the same time?**
+Yes — most flags can be mixed and matched. Flag order doesn't matter. Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
+
 **Why is docsearch a terminal application? Why doesn't it have a GUI?**
 docsearch was designed as a command-line tool for speed, simplicity, and portability. Terminal apps launch instantly, run on any operating system without modification, and are easy to script or automate. A GUI would add complexity and platform-specific dependencies without improving the core search functionality.
 
