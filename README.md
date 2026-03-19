@@ -406,7 +406,8 @@ Example: `docsearch -t pdf budget`
 
 **Can I search a specific file?**
 Yes — use the `-f` flag.<br>
-Example: `docsearch -f report.pdf budget`
+Example: `docsearch -f report.pdf budget`<br>
+You can focus on one file or several, comma-separated: `docsearch -f report.pdf,notes.txt budget`
 
 **Can I find terms near each other?**
 Yes — use the `-p` flag.<br>
@@ -419,7 +420,8 @@ Example: `docsearch -s my_report`
 
 **Can I accumulate results from multiple searches?**
 Yes — use the `-sa` flag.<br>
-Example: `docsearch -sa my_report budget revenue`
+Example: `docsearch -sa my_report budget revenue`<br>
+Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time.
 
 **Can I use regex patterns?**
 Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
@@ -427,7 +429,8 @@ Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
 
 **Can I see lines before and after each match?**
 Yes — use the `-B` and `-A` flags.<br>
-Example: `docsearch -B 3 -A 3 budget`
+Example: `docsearch -B 3 -A 3 budget`<br>
+This captures 3 lines before (-B) and 3 lines after (-A) each match. The numbers can be different, e.g., `-B 2 -A 5`.
 
 **Can I require all terms to appear in the same paragraph?**
 Yes — use the `-a` flag.<br>
