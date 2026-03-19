@@ -164,7 +164,7 @@ cd \path\to\Claude-DocSearch
 venv\Scripts\Activate.ps1
 ```
 
-Then navigate to the directory containing your document files and run:
+Then navigate to the directory containing your document files and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Regex search
 
@@ -206,87 +206,11 @@ docsearch has ten flags that can be mixed and matched:
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
-| `-s` | The -s flag is not for searching. It is used to archive the docsearch_results.docx and docsearch_results.txt files to new files named DO_NOT_SEARCH_your_file_name.docx (and .txt). The archived files are placed in the same directory folder as the two docsearch_results files. It does not erase the two original docsearch_results files. But the docsearch_results.docx and docsearch_results.txt files ARE erased and loaded with new results the next time you do a search. The -s flag and process just lets you save the current results if you need them.<br><br>Example: The command `docsearch -s your_file_name` will copy the contents of the two docsearch_results files to the two new DO_NOT_SEARCH_your_file_name files. (Don't type 'DO_NOT_SEARCH' in the command line; it's automatically provided.) This is to prevent re-searching these two files unnecessarily; docsearch skips any files with DO_NOT_SEARCH in the file name. The your_file_name could be something descriptive, or it could be a list of actual search terms you used to generate the search results. |
+| `-s` | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
 | `-sa` | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-x` | Regex pattern search (case-insensitive) |
 | `-A N` | Show N lines after each match |
 | `-B N` | Show N lines before each match |
-
-### No flags (default)
-```bash
-docsearch budget revenue
-```
-OR search across all 25 file types in the current directory.
-
-### Single flags
-```bash
-docsearch -a budget revenue          # AND search
-docsearch -f report.pdf budget       # search only report.pdf
-docsearch -p 5 budget revenue        # terms within 5 words of each other
-docsearch -r budget                  # recursive search
-docsearch -s my_report               # save results to named file
-docsearch -sa my_report budget       # search and append results to named file
-docsearch -t pdf,md budget           # only search .pdf and .md files
-docsearch -x "\d{3}-\d{4}"          # regex search
-docsearch -A 5 budget                # show 5 lines after each match
-docsearch -B 3 budget                # show 3 lines before each match
-```
-
-### Two-flag combinations
-```bash
-docsearch -a -t csv,xlsx budget revenue     # AND search, only in .csv and .xlsx
-docsearch -f report.pdf,data.csv -a budget revenue  # specific files, AND search
-docsearch -f report.pdf -r budget           # specific file, recursive
-docsearch -f report.pdf -x "\d{3}-\d{4}"   # specific file, regex
-docsearch -f report.pdf -B 3 -A 3 budget   # specific file, context lines
-docsearch -p 5 -r budget revenue            # proximity, recursive
-docsearch -p 5 -t pdf,docx budget revenue  # proximity, file type filter
-docsearch -sa my_report -a budget revenue  # save-append with AND search
-docsearch -sa my_report -r budget          # save-append, recursive
-docsearch -sa my_report -t pdf budget      # save-append, file type filter
-docsearch -r -a budget revenue              # recursive AND search
-docsearch -r -t pdf,docx budget             # recursive, only .pdf and .docx
-docsearch -x -a "\d{3}" "\$\d+\.\d{2}"     # regex AND search
-docsearch -x -t txt,csv "\b2026-\d{2}\b"   # regex, only .txt and .csv
-docsearch -B 3 -A 3 budget                 # 3 lines before and after each match
-docsearch -A 5 -t docx budget              # 5 lines after, only .docx files
-```
-
-### Three or more flags
-```bash
-docsearch -r -a -t txt,md budget revenue expenses
-```
-Recursively searches subdirectories, only in `.txt` and `.md` files, for paragraphs containing ALL three terms.
-
-```bash
-docsearch -x -r -t txt,csv "\d{3}-\d{3}-\d{4}"
-```
-Regex search recursively, only in `.txt` and `.csv` files.
-
-```bash
-docsearch -f report.pdf -r -a budget revenue
-```
-Search only `report.pdf`, recursively, for paragraphs containing ALL terms.
-
-```bash
-docsearch -p 5 -r -t pdf budget revenue
-```
-Proximity search recursively, only in `.pdf` files, for terms within 5 words of each other.
-
-```bash
-docsearch -sa my_report -r -t pdf budget revenue
-```
-Search and append results recursively, only in `.pdf` files.
-
-- Use `-f` flag to search specific files (e.g., `docsearch -f report.pdf,notes.txt budget`)
-- Use `-p N` flag for proximity search (e.g., `docsearch -p 5 budget revenue`)
-- Use `-r` flag to search all subdirectories recursively
-- Use `-s` flag to save results to a named file (e.g., `docsearch -s my_report`)
-- Use `-sa` flag to search and auto-append results to a named file (e.g., `docsearch -sa my_report budget revenue`)
-- Use `-t` flag to search only specific file types (e.g., `docsearch -t pdf,docx budget`)
-- Use `-x` flag for regex pattern searches (e.g., `docsearch -x "\d{3}-\d{3}-\d{4}"`)
-- Use `-A N` flag to show N lines after each match (e.g., `docsearch -A 5 budget`)
-- Use `-B N` flag to show N lines before each match (e.g., `docsearch -B 5 budget`)
 
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
