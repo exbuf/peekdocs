@@ -421,7 +421,7 @@ Yes — use the `-sa` flag.<br>
 Example: `docsearch -sa my_report budget revenue`
 
 **Can I use regex patterns?**
-Yes — use the `-x` flag.<br>
+Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
 Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
 
 **Can I see lines before and after each match?**
