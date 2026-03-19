@@ -396,6 +396,9 @@ Found 2 match(es). Results written to docsearch_results.txt and docsearch_result
 
 ## FAQ (Frequently Asked Questions)
 
+**Where are my search results saved and what information is printed on the search report?**
+Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file.
+
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>
 Example: `docsearch -r budget`
