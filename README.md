@@ -60,6 +60,8 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 
 ### Supported File Types
 
+All file types can exist in the same folder — no need to separate them into different folders. docsearch searches all supported types together in a single pass.
+
 | File Type | Description |
 |-----------|-------------|
 | `.cfg` | Configuration file |
