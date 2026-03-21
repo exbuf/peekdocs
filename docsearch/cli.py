@@ -653,7 +653,7 @@ def main(argv=None):
         f.write(f"Command ==> {command_str}\n")
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
-        f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores}\n")
+        f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores} of {cpu_count}\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
         if total_bytes >= 1_000_000:
             size_str = f"{total_bytes / 1_000_000:.2f} MB"
@@ -813,7 +813,7 @@ def main(argv=None):
 
     elapsed = time.time() - start_time
     print()
-    print(f"Files searched: {len(all_files)} ({size_str}), Cores used: {cores}")
+    print(f"Files searched: {len(all_files)} ({size_str}), Cores used: {cores} of {cpu_count}")
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt ({fmt_size(txt_size)}) and docsearch_results.docx ({fmt_size(docx_size)})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
