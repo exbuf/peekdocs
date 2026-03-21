@@ -127,7 +127,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Disk space requirements do not include user documents or search output files
 - No internet connection required — docsearch runs entirely offline
 - No database or additional software installation needed
-- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). Double-clicking `docsearch_results.docx` in your file manager will automatically open it in your default word processor. The `.txt` report can be opened on any computer with no additional software
+- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. To open it, navigate to that folder in your file manager — Finder on Mac, File Explorer on Windows, or Files on Linux — and double-click the file. It will automatically open in your default word processor. The `.txt` report can be opened on any computer with no additional software
 
 ## Installation
 
