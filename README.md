@@ -403,12 +403,12 @@ Example: `docsearch -a budget revenue expenses`
 By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
 Example: `docsearch -c 4 budget`<br>
 For small numbers of files (fewer than 10), single-threaded mode is used automatically to avoid overhead.<br>
-To check how many cores your system has:<br>
+docsearch displays your core count and default `-c` value in the banner every time it runs (also visible with `docsearch -h`). You can also check manually:<br>
 - **macOS:** Open Terminal and run `sysctl -n hw.ncpu`<br>
 - **Windows:** Open Command Prompt and run `echo %NUMBER_OF_PROCESSORS%`<br>
 - **Linux:** Open Terminal and run `nproc`
 
-Using more cores speeds up searches but uses more memory and CPU, which can slow down other applications and drain laptop batteries faster. The default (half of available cores) balances speed with keeping your machine responsive. Use `-c 1` if you want minimal resource usage, or a higher number if speed is your priority and you don't mind your machine working harder.
+You can set `-c` to any value from 1 to your maximum core count. Using more cores speeds up searches but uses more memory and CPU, which can slow down other applications and drain laptop batteries faster. The default (half of available cores) balances speed with keeping your machine responsive. Use `-c 1` for minimal resource usage, or `-c` with your full core count (e.g., `-c 8` on an 8-core machine) for maximum speed at the cost of heavier system load.
 
 **Can I use multiple flags at the same time?**
 Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>

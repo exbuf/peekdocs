@@ -367,7 +367,9 @@ def main(argv=None):
 
     original_args = list(args)
 
+    cpu_count = os.cpu_count() or 1
     print(BANNER)
+    print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
     print()
 
     if args and args[0] in ("-v", "-version"):
