@@ -823,11 +823,11 @@ def main(argv=None):
 
     elapsed = time.time() - start_time
     print()
-    print(f"Files searched: {len(all_files)} ({size_str}), Cores used: {cores} of {cpu_count}")
+    print(f"Files searched: {len(all_files)} ({size_str})")
     print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt ({fmt_size(txt_size)}) and docsearch_results.docx ({fmt_size(docx_size)})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
-    print(f"Elapsed time: {elapsed:.2f} seconds")
+    print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     print()
     return 0
 
