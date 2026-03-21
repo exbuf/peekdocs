@@ -6,6 +6,7 @@
 - [Features](#features)
   - [Supported File Types](#supported-file-types)
 - [Benefits and Applications](#benefits-and-applications)
+- [System Requirements](#system-requirements)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
@@ -98,6 +99,31 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 Local search is also fast, with no rate limits, usage caps, or waiting on cloud services.
 
 **Programming process:** DocSearch was developed using Claude Code. It's my second Claude Code app, the first being my personal website.
+
+## System Requirements
+
+### Minimum Requirements
+
+- **Operating System:** Windows 10 or later, macOS 11 (Big Sur) or later, or Ubuntu 20.04 or later
+- **Processor:** Dual-core 1.5 GHz or faster
+- **Memory:** 2 GB RAM (4 GB recommended)
+- **Storage:** 300 MB available disk space
+- **Python:** Version 3.10 or higher
+- **Display:** Terminal or command-line interface
+
+### Recommended Requirements
+
+- **Processor:** Quad-core 2.0 GHz or faster
+- **Memory:** 8 GB RAM
+- **Storage:** 500 MB available disk space
+- **Python:** Version 3.10 or higher
+
+### Additional Notes
+
+- More CPU cores improve performance when searching large numbers of files
+- Disk space requirements do not include user documents or search output files
+- No internet connection required — docsearch runs entirely offline
+- No database or additional software installation needed
 
 ## Installation
 
