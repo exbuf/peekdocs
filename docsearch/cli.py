@@ -653,7 +653,7 @@ def main(argv=None):
         f.write(f"Command ==> {command_str}\n")
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
-        f.write(f"Search Time ==> {search_elapsed:.2f} seconds\n")
+        f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores}\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
         if total_bytes >= 1_000_000:
             size_str = f"{total_bytes / 1_000_000:.2f} MB"
@@ -661,7 +661,7 @@ def main(argv=None):
             size_str = f"{total_bytes / 1_000:.2f} KB"
         else:
             size_str = f"{total_bytes} bytes"
-        f.write(f"Files searched ==> {len(all_files)} ({size_str}), Cores used ==> {cores}\n")
+        f.write(f"Files searched ==> {len(all_files)} ({size_str})\n")
         ext_counts = {}
         for fp in all_files:
             ext = os.path.splitext(fp)[1].lower()
