@@ -45,20 +45,21 @@ BANNER = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
     'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
     'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3\n'
+    'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
+    'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
+    'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
+    'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
+    'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
-    'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
-    'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue\n'
-    'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -v for version. Example: docsearch -v\n'
-    'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
-    'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
-    'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
+    'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
-    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
+    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n'
+    'Use -q to suppress this banner. Example: docsearch -q budget revenue'
 )
 
 REGEX_PATTERNS = (
@@ -367,16 +368,25 @@ def main(argv=None):
 
     original_args = list(args)
 
+    quiet = "-q" in args
+    if quiet:
+        args.remove("-q")
+
     cpu_count = os.cpu_count() or 1
-    print(BANNER)
-    print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
-    print()
+    if not quiet:
+        print(BANNER)
+        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print()
 
     if args and args[0] in ("-v", "-version"):
         print(f"docsearch {VERSION}\n")
         return 0
 
     if args and args[0] in ("-h", "-help", "--help"):
+        if quiet:
+            print(BANNER)
+            print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+            print()
         print(REGEX_PATTERNS)
         return 0
 

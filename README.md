@@ -226,7 +226,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has eleven flags that can be mixed and matched:
+docsearch has twelve flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -236,6 +236,7 @@ docsearch has eleven flags that can be mixed and matched:
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-p N` | Proximity search — find terms within N words of each other |
+| `-q` | Quiet mode — suppress the banner |
 | `-s` | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
 | `-sa` | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-x` | Regex pattern search (case-insensitive) |
@@ -323,10 +324,13 @@ docsearch has eleven flags that can be mixed and matched:
 | 45 | Append with AND search | `docsearch -sa my_report -a budget revenue` |
 | 46 | Append with recursive search | `docsearch -sa my_report -r budget` |
 | 47 | Append with file type filter | `docsearch -sa my_report -t pdf budget` |
+| | **Quiet Mode** | |
+| 48 | Suppress banner | `docsearch -q budget` |
+| 49 | Quiet with recursive search | `docsearch -q -r budget` |
 | | **Version and Help** | |
-| 48 | Show version | `docsearch -v` |
-| 49 | Show help | `docsearch -h` |
-| 50 | Show help (no arguments) | `docsearch` |
+| 50 | Show version | `docsearch -v` |
+| 51 | Show help | `docsearch -h` |
+| 52 | Show help (no arguments) | `docsearch` |
 
 ## Output
 

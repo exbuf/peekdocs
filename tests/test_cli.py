@@ -1130,3 +1130,26 @@ def test_search_cores_with_other_flags(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert "1 match(es)" in captured.out
+
+
+def test_search_quiet_mode(tmp_path, monkeypatch, capsys):
+    """With -q flag, banner is suppressed but results still print."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "1 match(es)" in captured.out
+    assert "OR search" not in captured.out
+
+
+def test_search_without_quiet_shows_banner(tmp_path, monkeypatch, capsys):
+    """Without -q flag, banner is shown."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "OR search" in captured.out
