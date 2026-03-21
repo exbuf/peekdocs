@@ -229,7 +229,7 @@ docsearch has eleven flags that can be mixed and matched:
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` | AND logic (all terms must appear in the same paragraph) |
-| `-c N` | Number of CPU cores for parallel search (default: half of available cores) |
+| `-c N` | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
 | `-f` | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
