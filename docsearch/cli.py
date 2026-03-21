@@ -375,9 +375,13 @@ def main(argv=None):
         args.remove("-q")
 
     cpu_count = os.cpu_count() or 1
+    is_help = args and args[0] in ("-h", "-help", "--help")
     if not quiet:
         print(BANNER_TOP)
-        print('Use option flag -q to suppress this output banner. Example: docsearch -q budget revenue')
+        if is_help:
+            print('Use option flag -q to suppress the output banner. Example: docsearch -q budget revenue')
+        else:
+            print('Use option flag -q to suppress this output banner. Example: docsearch -q budget revenue')
         print(BANNER_BOTTOM)
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print()
@@ -386,7 +390,7 @@ def main(argv=None):
         print(f"docsearch {VERSION}\n")
         return 0
 
-    if args and args[0] in ("-h", "-help", "--help"):
+    if is_help:
         if quiet:
             print(BANNER_TOP)
             print('Use option flag -q to suppress the output banner. Example: docsearch -q budget revenue')
