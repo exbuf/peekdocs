@@ -51,6 +51,7 @@ BANNER = (
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue\n'
+    'Use option flag -q to suppress this banner. Example: docsearch -q budget revenue\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
@@ -58,8 +59,7 @@ BANNER = (
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
-    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md\n'
-    'Use -q to suppress this banner. Example: docsearch -q budget revenue'
+    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
 )
 
 REGEX_PATTERNS = (
