@@ -7,14 +7,14 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER, SUPPORTED_TYPES, VERSION, main
+from docsearch.cli import BANNER_TOP, SUPPORTED_TYPES, VERSION, main
 
 
 def test_no_args(capsys):
     result = main([])
     captured = capsys.readouterr()
     assert result == 0
-    assert BANNER in captured.out
+    assert BANNER_TOP in captured.out
     assert "More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md" in captured.out
 
 
@@ -23,7 +23,7 @@ def test_help(capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert "More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md" in captured.out
-    assert BANNER in captured.out
+    assert BANNER_TOP in captured.out
 
 
 def test_search_finds_matches(tmp_path, monkeypatch, capsys):
@@ -281,7 +281,7 @@ def test_version_flag_long(capsys):
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()
-    assert BANNER in captured.out
+    assert BANNER_TOP in captured.out
 
 
 def test_search_recursive(tmp_path, monkeypatch, capsys):
