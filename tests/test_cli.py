@@ -1062,3 +1062,71 @@ def test_search_save_append_no_terms(tmp_path, monkeypatch, capsys):
 
     assert result == 1
     assert "No search terms provided" in captured.out
+
+
+def test_search_with_cores_flag(tmp_path, monkeypatch, capsys):
+    """With -c flag, search uses specified number of cores."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "2", "budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+
+def test_search_with_single_core(tmp_path, monkeypatch, capsys):
+    """With -c 1, search runs single-threaded."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "1", "budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+
+def test_search_cores_invalid(tmp_path, monkeypatch, capsys):
+    """With -c and invalid count, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "abc", "budget"])
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "Invalid count for -c" in captured.out
+
+
+def test_search_cores_zero(tmp_path, monkeypatch, capsys):
+    """With -c 0, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "0", "budget"])
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "Invalid count for -c" in captured.out
+
+
+def test_search_cores_no_count(capsys):
+    """With -c and no count, an error is returned."""
+    result = main(["-c"])
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "No count provided" in captured.out
+
+
+def test_search_cores_negative(tmp_path, monkeypatch, capsys):
+    """With -c and negative number, an error is returned."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "-1", "budget"])
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "Invalid count for -c" in captured.out
+
+
+def test_search_cores_with_other_flags(tmp_path, monkeypatch, capsys):
+    """With -c combined with other flags, all work together."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget and revenue overview\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["-c", "2", "-a", "budget", "revenue"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert "1 match(es)" in captured.out

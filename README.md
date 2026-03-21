@@ -56,6 +56,7 @@ I built docsearch for myself, but I'm sharing it because I suspect I'm not the o
 - Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
 - Auto-append search results with `-sa` flag — runs the search and automatically appends results to a named `DO_NOT_SEARCH_ACCUMULATED_` file, allowing you to accumulate results from multiple searches
 - Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
+- Multiprocessing with `-c N` flag — uses multiple CPU cores to search files in parallel, speeding up large searches. Defaults to half of available cores to keep your machine responsive
 
 ### Supported File Types
 
@@ -223,11 +224,12 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has ten flags that can be mixed and matched:
+docsearch has eleven flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` | AND logic (all terms must appear in the same paragraph) |
+| `-c N` | Number of CPU cores for parallel search (default: half of available cores) |
 | `-f` | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-r` | Search subdirectories recursively |
 | `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
@@ -254,6 +256,9 @@ docsearch has ten flags that can be mixed and matched:
 - `-sa` appends to existing DO_NOT_SEARCH_ACCUMULATED files, allowing you to accumulate results from multiple searches
 - `-A` and `-B` are uppercase — don't confuse `-A` (lines after) with `-a` (AND logic)
 - `-A` and `-B` always need their count immediately after them (e.g., `-A 5`, `-B 3`)
+- `-c` always needs its core count immediately after it (e.g., `-c 4`)
+- `-c` defaults to half of available CPU cores when not specified
+- For small numbers of files (fewer than 10), single-threaded mode is used automatically regardless of `-c`
 
 ### Command Examples
 
@@ -305,17 +310,21 @@ docsearch has ten flags that can be mixed and matched:
 | 37 | Context with regex | `docsearch -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
 | 38 | Context, recursive, file type filter | `docsearch -B 5 -A 5 -r -t docx "John Smith"` |
 | 39 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
+| | **Parallel Processing** | |
+| 40 | Use 4 cores for search | `docsearch -c 4 budget` |
+| 41 | Parallel with recursive search | `docsearch -c 4 -r budget` |
+| 42 | Parallel with file type filter | `docsearch -c 4 -t pdf,docx budget` |
 | | **Save, Version, and Help** | |
-| 40 | Save results to a named file | `docsearch -s name_of_your_file` |
+| 43 | Save results to a named file | `docsearch -s name_of_your_file` |
 | | **Save and Append Searches** | |
-| 41 | Search and append results to a file | `docsearch -sa my_report budget` |
-| 42 | Append with AND search | `docsearch -sa my_report -a budget revenue` |
-| 43 | Append with recursive search | `docsearch -sa my_report -r budget` |
-| 44 | Append with file type filter | `docsearch -sa my_report -t pdf budget` |
+| 44 | Search and append results to a file | `docsearch -sa my_report budget` |
+| 45 | Append with AND search | `docsearch -sa my_report -a budget revenue` |
+| 46 | Append with recursive search | `docsearch -sa my_report -r budget` |
+| 47 | Append with file type filter | `docsearch -sa my_report -t pdf budget` |
 | | **Version and Help** | |
-| 45 | Show version | `docsearch -v` |
-| 46 | Show help | `docsearch -h` |
-| 47 | Show help (no arguments) | `docsearch` |
+| 48 | Show version | `docsearch -v` |
+| 49 | Show help | `docsearch -h` |
+| 50 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -390,6 +399,17 @@ This captures 3 lines before (-B) and 3 lines after (-A) each match. The numbers
 Yes — use the `-a` flag.<br>
 Example: `docsearch -a budget revenue expenses`
 
+**How many CPU cores does docsearch use?**
+By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
+Example: `docsearch -c 4 budget`<br>
+For small numbers of files (fewer than 10), single-threaded mode is used automatically to avoid overhead.<br>
+To check how many cores your system has:<br>
+- **macOS:** Open Terminal and run `sysctl -n hw.ncpu`<br>
+- **Windows:** Open Command Prompt and run `echo %NUMBER_OF_PROCESSORS%`<br>
+- **Linux:** Open Terminal and run `nproc`
+
+Using more cores speeds up searches but uses more memory and CPU, which can slow down other applications and drain laptop batteries faster. The default (half of available cores) balances speed with keeping your machine responsive. Use `-c 1` if you want minimal resource usage, or a higher number if speed is your priority and you don't mind your machine working harder.
+
 **Can I use multiple flags at the same time?**
 Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
 Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
@@ -421,6 +441,7 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Filter flags** (`-t`, `-f`, `-r`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
+- **Performance flags** (`-c`) — control *how fast* to search
 
 ## Running Tests
 

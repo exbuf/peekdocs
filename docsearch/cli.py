@@ -6,6 +6,7 @@ import glob
 from html.parser import HTMLParser
 from itertools import product
 import logging
+import multiprocessing
 import os
 import re
 import shutil
@@ -54,6 +55,7 @@ BANNER = (
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
+    'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
     'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
@@ -106,6 +108,255 @@ def apply_context(all_lines, match_indices, before, after):
         groups.append(group)
 
     return groups
+
+
+def _default_cores():
+    """Return the default number of worker processes: half of available cores, minimum 1."""
+    cpu = os.cpu_count()
+    if cpu is None:
+        return 1
+    return max(1, cpu // 2)
+
+
+def _process_file(args_tuple):
+    """Process a single file and return (matches, skipped) for that file."""
+    filepath, config = args_tuple
+
+    search_terms = config["search_terms"]
+    use_regex = config["use_regex"]
+    match_all = config["match_all"]
+    use_proximity = config["use_proximity"]
+    proximity = config["proximity"]
+    use_context = config["use_context"]
+    context_before = config["context_before"]
+    context_after = config["context_after"]
+
+    def _proximity_match(text):
+        """Return True if all search terms appear within 'proximity' words of each other."""
+        words = re.findall(r'\S+', text.lower())
+        term_positions = {}
+        for term in search_terms:
+            term_lower = term.lower()
+            positions = []
+            if use_regex:
+                for i, word in enumerate(words):
+                    if re.search(term, word, re.IGNORECASE):
+                        positions.append(i)
+            else:
+                for i, word in enumerate(words):
+                    if term_lower in word:
+                        positions.append(i)
+            if not positions:
+                return False
+            term_positions[term] = positions
+        for combo in product(*term_positions.values()):
+            if max(combo) - min(combo) <= proximity:
+                return True
+        return False
+
+    def text_matches(text):
+        """Return True if search terms are found in text (ANY or ALL based on mode)."""
+        check = all if match_all else any
+        if use_regex:
+            if use_proximity:
+                return _proximity_match(text)
+            return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
+        text_lower = text.lower()
+        if not check(term.lower() in text_lower for term in search_terms):
+            return False
+        if use_proximity:
+            return _proximity_match(text)
+        return True
+
+    def highlight_text(text):
+        """Apply ** highlighting around matched search terms."""
+        highlighted = text
+        for term in search_terms:
+            pattern = term if use_regex else re.escape(term)
+            highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
+        return highlighted
+
+    def context_group_to_match(group, file_dir, filename, line_num_override=None):
+        """Convert a context group to a match tuple with pre-highlighted text."""
+        first_match_num = line_num_override or next(ln for ln, _, is_match in group if is_match)
+        parts = []
+        for ln, text, is_match in group:
+            if is_match:
+                parts.append(highlight_text(text))
+            else:
+                parts.append(text)
+        return (file_dir, filename, first_match_num, "\n".join(parts))
+
+    matches = []
+    skipped = []
+
+    def collect_matches(all_lines, file_dir, filename):
+        """Find matches in all_lines and append to matches list, with context if active."""
+        if use_context:
+            match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
+            if not match_indices:
+                return
+            groups = apply_context(all_lines, match_indices, context_before, context_after)
+            for group in groups:
+                matches.append(context_group_to_match(group, file_dir, filename))
+        else:
+            for line_num, text in all_lines:
+                if text_matches(text):
+                    matches.append((file_dir, filename, line_num, text))
+
+    file_dir = os.path.dirname(filepath)
+    filename = os.path.basename(filepath)
+    ext = os.path.splitext(filename)[1].lower()
+
+    try:
+        if ext == ".docx":
+            doc = Document(filepath)
+            all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".pdf":
+            with pdfplumber.open(filepath) as pdf:
+                for page_num, page in enumerate(pdf.pages, start=1):
+                    text = page.extract_text()
+                    if not text:
+                        continue
+                    page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
+                    if use_context:
+                        match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
+                        if match_indices:
+                            groups = apply_context(page_lines, match_indices, context_before, context_after)
+                            for group in groups:
+                                matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
+                    else:
+                        for line_num, line in page_lines:
+                            if text_matches(line):
+                                matches.append((file_dir, filename, page_num, line))
+
+        elif ext == ".csv":
+            with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
+                reader = csv.reader(csvfile)
+                all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".tsv":
+            with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
+                reader = csv.reader(tsvfile, delimiter="\t")
+                all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".epub":
+            book = epub.read_epub(filepath)
+            all_lines = []
+            line_num = 0
+            for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+                html_content = item.get_content().decode("utf-8", errors="replace")
+                class _EpubTextExtractor(HTMLParser):
+                    def __init__(self):
+                        super().__init__()
+                        self.text_parts = []
+                    def handle_data(self, data):
+                        self.text_parts.append(data)
+                parser = _EpubTextExtractor()
+                parser.feed(html_content)
+                for line in "".join(parser.text_parts).split("\n"):
+                    stripped = line.strip()
+                    if stripped:
+                        line_num += 1
+                        all_lines.append((line_num, stripped))
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".odt":
+            odt_doc = load_odt(filepath)
+            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".odp":
+            odp_doc = load_odt(filepath)
+            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".ods":
+            ods_doc = load_odt(filepath)
+            all_lines = []
+            row_num = 0
+            for table in ods_doc.getElementsByType(OdfTable):
+                for row in table.getElementsByType(OdfTableRow):
+                    row_num += 1
+                    cells = []
+                    for cell in row.getElementsByType(OdfTableCell):
+                        cell_text = teletype.extractText(cell)
+                        if cell_text:
+                            cells.append(cell_text)
+                    row_text = ", ".join(cells)
+                    all_lines.append((row_num, row_text))
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
+            with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+                all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".html":
+            class _HTMLTextExtractor(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.text_parts = []
+                def handle_data(self, data):
+                    self.text_parts.append(data)
+            with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
+                parser = _HTMLTextExtractor()
+                parser.feed(htmlfile.read())
+            lines = "".join(parser.text_parts).split("\n")
+            all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
+            if use_context:
+                collect_matches(all_lines, file_dir, filename)
+            else:
+                for line_num, text in all_lines:
+                    if text and text_matches(text):
+                        matches.append((file_dir, filename, line_num, text))
+
+        elif ext == ".pptx":
+            prs = PptxPresentation(filepath)
+            all_lines = []
+            para_num = 0
+            for slide in prs.slides:
+                for shape in slide.shapes:
+                    if shape.has_text_frame:
+                        for para in shape.text_frame.paragraphs:
+                            para_num += 1
+                            all_lines.append((para_num, para.text))
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".rtf":
+            with open(filepath, encoding="utf-8", errors="replace") as rtffile:
+                raw = rtffile.read()
+            plain = rtf_to_text(raw)
+            all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
+            collect_matches(all_lines, file_dir, filename)
+
+        elif ext == ".xlsx":
+            wb = load_workbook(filepath, read_only=True, data_only=True)
+            for sheet in wb.worksheets:
+                sheet_lines = []
+                for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
+                    row_text = ", ".join(str(cell) for cell in row if cell is not None)
+                    sheet_lines.append((row_num, row_text))
+                if use_context:
+                    match_indices = {i for i, (_, text) in enumerate(sheet_lines) if text and text_matches(text)}
+                    if match_indices:
+                        groups = apply_context(sheet_lines, match_indices, context_before, context_after)
+                        for group in groups:
+                            matches.append(context_group_to_match(group, file_dir, filename))
+                else:
+                    for row_num, row_text in sheet_lines:
+                        if row_text and text_matches(row_text):
+                            matches.append((file_dir, filename, row_num, row_text))
+            wb.close()
+
+    except Exception as e:
+        skipped.append((filename, str(e)))
+
+    return (matches, skipped)
 
 
 def main(argv=None):
@@ -244,6 +495,21 @@ def main(argv=None):
         append_name = args[idx + 1]
         args = args[:idx] + args[idx + 2:]
 
+    cores = _default_cores()
+    if "-c" in args:
+        idx = args.index("-c")
+        if idx + 1 >= len(args):
+            print("No count provided. Usage: docsearch -c 4 search_term\n")
+            return 1
+        try:
+            cores = int(args[idx + 1])
+            if cores < 1:
+                raise ValueError
+        except ValueError:
+            print(f"Invalid count for -c: {args[idx + 1]}. Must be a positive integer.\n")
+            return 1
+        args = args[:idx] + args[idx + 2:]
+
     use_context = context_before > 0 or context_after > 0
 
     search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x")]
@@ -334,231 +600,34 @@ def main(argv=None):
             print()
             return 1
 
-    def _proximity_match(text):
-        """Return True if all search terms appear within 'proximity' words of each other."""
-        words = re.findall(r'\S+', text.lower())
-        term_positions = {}
-        for term in search_terms:
-            term_lower = term.lower()
-            positions = []
-            if use_regex:
-                for i, word in enumerate(words):
-                    if re.search(term, word, re.IGNORECASE):
-                        positions.append(i)
-            else:
-                for i, word in enumerate(words):
-                    if term_lower in word:
-                        positions.append(i)
-            if not positions:
-                return False
-            term_positions[term] = positions
-        for combo in product(*term_positions.values()):
-            if max(combo) - min(combo) <= proximity:
-                return True
-        return False
-
-    def text_matches(text):
-        """Return True if search terms are found in text (ANY or ALL based on mode)."""
-        check = all if match_all else any
-        if use_regex:
-            if use_proximity:
-                return _proximity_match(text)
-            return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
-        text_lower = text.lower()
-        if not check(term.lower() in text_lower for term in search_terms):
-            return False
-        if use_proximity:
-            return _proximity_match(text)
-        return True
-
-    def highlight_text(text):
-        """Apply ** highlighting around matched search terms."""
-        highlighted = text
-        for term in search_terms:
-            pattern = term if use_regex else re.escape(term)
-            highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-        return highlighted
-
-    def context_group_to_match(group, file_dir, filename, line_num_override=None):
-        """Convert a context group to a match tuple with pre-highlighted text."""
-        first_match_num = line_num_override or next(ln for ln, _, is_match in group if is_match)
-        parts = []
-        for ln, text, is_match in group:
-            if is_match:
-                parts.append(highlight_text(text))
-            else:
-                parts.append(text)
-        return (file_dir, filename, first_match_num, "\n".join(parts))
-
-    def collect_matches(all_lines, file_dir, filename):
-        """Find matches in all_lines and append to matches list, with context if active."""
-        if use_context:
-            match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
-            if not match_indices:
-                return
-            groups = apply_context(all_lines, match_indices, context_before, context_after)
-            for group in groups:
-                matches.append(context_group_to_match(group, file_dir, filename))
-        else:
-            for line_num, text in all_lines:
-                if text_matches(text):
-                    matches.append((file_dir, filename, line_num, text))
+    search_config = {
+        "search_terms": search_terms,
+        "use_regex": use_regex,
+        "match_all": match_all,
+        "use_proximity": use_proximity,
+        "proximity": proximity,
+        "use_context": use_context,
+        "context_before": context_before,
+        "context_after": context_after,
+    }
 
     matches = []
     skipped_files = []
-    for filepath in all_files:
-        file_dir = os.path.dirname(filepath)
-        filename = os.path.basename(filepath)
-        ext = os.path.splitext(filename)[1].lower()
 
-        try:
-            if ext == ".docx":
-                doc = Document(filepath)
-                all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
-                collect_matches(all_lines, file_dir, filename)
+    if len(all_files) < 10 or cores == 1:
+        for filepath in all_files:
+            file_matches, file_skipped = _process_file((filepath, search_config))
+            matches.extend(file_matches)
+            skipped_files.extend(file_skipped)
+    else:
+        with multiprocessing.Pool(processes=cores) as pool:
+            results = pool.map(_process_file, [(f, search_config) for f in all_files])
+        for file_matches, file_skipped in results:
+            matches.extend(file_matches)
+            skipped_files.extend(file_skipped)
 
-            elif ext == ".pdf":
-                with pdfplumber.open(filepath) as pdf:
-                    for page_num, page in enumerate(pdf.pages, start=1):
-                        text = page.extract_text()
-                        if not text:
-                            continue
-                        page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
-                        if use_context:
-                            match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
-                            if match_indices:
-                                groups = apply_context(page_lines, match_indices, context_before, context_after)
-                                for group in groups:
-                                    matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
-                        else:
-                            for line_num, line in page_lines:
-                                if text_matches(line):
-                                    matches.append((file_dir, filename, page_num, line))
-
-            elif ext == ".csv":
-                with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
-                    reader = csv.reader(csvfile)
-                    all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".tsv":
-                with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
-                    reader = csv.reader(tsvfile, delimiter="\t")
-                    all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".epub":
-                book = epub.read_epub(filepath)
-                all_lines = []
-                line_num = 0
-                for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-                    html_content = item.get_content().decode("utf-8", errors="replace")
-                    class _EpubTextExtractor(HTMLParser):
-                        def __init__(self):
-                            super().__init__()
-                            self.text_parts = []
-                        def handle_data(self, data):
-                            self.text_parts.append(data)
-                    parser = _EpubTextExtractor()
-                    parser.feed(html_content)
-                    for line in "".join(parser.text_parts).split("\n"):
-                        stripped = line.strip()
-                        if stripped:
-                            line_num += 1
-                            all_lines.append((line_num, stripped))
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".odt":
-                odt_doc = load_odt(filepath)
-                all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".odp":
-                odp_doc = load_odt(filepath)
-                all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".ods":
-                ods_doc = load_odt(filepath)
-                all_lines = []
-                row_num = 0
-                for table in ods_doc.getElementsByType(OdfTable):
-                    for row in table.getElementsByType(OdfTableRow):
-                        row_num += 1
-                        cells = []
-                        for cell in row.getElementsByType(OdfTableCell):
-                            cell_text = teletype.extractText(cell)
-                            if cell_text:
-                                cells.append(cell_text)
-                        row_text = ", ".join(cells)
-                        all_lines.append((row_num, row_text))
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
-                with open(filepath, encoding="utf-8", errors="replace") as txtfile:
-                    all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".html":
-                class _HTMLTextExtractor(HTMLParser):
-                    def __init__(self):
-                        super().__init__()
-                        self.text_parts = []
-                    def handle_data(self, data):
-                        self.text_parts.append(data)
-                with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
-                    parser = _HTMLTextExtractor()
-                    parser.feed(htmlfile.read())
-                lines = "".join(parser.text_parts).split("\n")
-                all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
-                if use_context:
-                    collect_matches(all_lines, file_dir, filename)
-                else:
-                    for line_num, text in all_lines:
-                        if text and text_matches(text):
-                            matches.append((file_dir, filename, line_num, text))
-
-            elif ext == ".pptx":
-                prs = PptxPresentation(filepath)
-                all_lines = []
-                para_num = 0
-                for slide in prs.slides:
-                    for shape in slide.shapes:
-                        if shape.has_text_frame:
-                            for para in shape.text_frame.paragraphs:
-                                para_num += 1
-                                all_lines.append((para_num, para.text))
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".rtf":
-                with open(filepath, encoding="utf-8", errors="replace") as rtffile:
-                    raw = rtffile.read()
-                plain = rtf_to_text(raw)
-                all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
-                collect_matches(all_lines, file_dir, filename)
-
-            elif ext == ".xlsx":
-                wb = load_workbook(filepath, read_only=True, data_only=True)
-                for sheet in wb.worksheets:
-                    sheet_lines = []
-                    for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
-                        row_text = ", ".join(str(cell) for cell in row if cell is not None)
-                        sheet_lines.append((row_num, row_text))
-                    if use_context:
-                        match_indices = {i for i, (_, text) in enumerate(sheet_lines) if text and text_matches(text)}
-                        if match_indices:
-                            groups = apply_context(sheet_lines, match_indices, context_before, context_after)
-                            for group in groups:
-                                matches.append(context_group_to_match(group, file_dir, filename))
-                    else:
-                        for row_num, row_text in sheet_lines:
-                            if row_text and text_matches(row_text):
-                                matches.append((file_dir, filename, row_num, row_text))
-                wb.close()
-
-        except Exception as e:
-            print(f"Warning: Could not read {filename} ({e})")
-            skipped_files.append(filename)
+    for skipped_name, error_msg in skipped_files:
+        print(f"Warning: Could not read {skipped_name} ({error_msg})")
 
     search_elapsed = time.time() - start_time
 
