@@ -3,11 +3,18 @@
 import os
 import re
 
+import pytest
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
 from docsearch.cli import BANNER_TOP, HIGHLIGHT, RESET, SUPPORTED_TYPES, VERSION, main
+
+
+@pytest.fixture(autouse=True)
+def isolate_home(tmp_path, monkeypatch):
+    """Prevent tests from reading the user's real ~/.docsearchrc."""
+    monkeypatch.setenv("HOME", str(tmp_path))
 
 
 def test_no_args(capsys):
@@ -1184,7 +1191,6 @@ def test_config_file_defaults(tmp_path, monkeypatch, capsys):
 
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("recursive = true\n")
-    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
 
     result = main(["budget"])
@@ -1202,7 +1208,6 @@ def test_config_cli_overrides(tmp_path, monkeypatch, capsys):
 
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("cores = 2\n")
-    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
 
     result = main(["-c", "1", "budget"])
@@ -1218,7 +1223,6 @@ def test_config_missing_file(tmp_path, monkeypatch, capsys):
     doc.add_paragraph("Budget overview")
     doc.save(str(tmp_path / "report.docx"))
 
-    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
 
     result = main(["budget"])
@@ -1236,7 +1240,6 @@ def test_config_invalid_values(tmp_path, monkeypatch, capsys):
 
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("cores = abc\nrecursive = banana\nunknown_key = whatever\n")
-    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
 
     result = main(["budget"])
@@ -1268,8 +1271,6 @@ def test_config_flag_show(tmp_path, monkeypatch, capsys):
     """--config with no args displays current settings."""
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("recursive = true\ncores = 4\n")
-    monkeypatch.setenv("HOME", str(tmp_path))
-
     result = main(["--config"])
     captured = capsys.readouterr()
 
@@ -1280,8 +1281,6 @@ def test_config_flag_show(tmp_path, monkeypatch, capsys):
 
 def test_config_flag_show_empty(tmp_path, monkeypatch, capsys):
     """--config with no file prints 'No config file found.'"""
-    monkeypatch.setenv("HOME", str(tmp_path))
-
     result = main(["--config"])
     captured = capsys.readouterr()
 
@@ -1291,8 +1290,6 @@ def test_config_flag_show_empty(tmp_path, monkeypatch, capsys):
 
 def test_config_flag_set(tmp_path, monkeypatch, capsys):
     """--config key=value creates/updates the config file."""
-    monkeypatch.setenv("HOME", str(tmp_path))
-
     result = main(["--config", "recursive=true", "cores=4"])
     captured = capsys.readouterr()
 
@@ -1308,8 +1305,6 @@ def test_config_flag_remove(tmp_path, monkeypatch, capsys):
     """--config key= removes the key from the config file."""
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("recursive = true\ncores = 4\n")
-    monkeypatch.setenv("HOME", str(tmp_path))
-
     result = main(["--config", "recursive="])
     captured = capsys.readouterr()
 
@@ -1322,8 +1317,6 @@ def test_config_flag_remove(tmp_path, monkeypatch, capsys):
 
 def test_config_flag_invalid_key(tmp_path, monkeypatch, capsys):
     """--config with unknown key prints error and returns 2."""
-    monkeypatch.setenv("HOME", str(tmp_path))
-
     result = main(["--config", "badkey=true"])
     captured = capsys.readouterr()
 
