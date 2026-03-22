@@ -146,16 +146,16 @@ With this config, `docsearch budget` behaves like `docsearch -r -q -c 4 budget`.
 
 **Supported settings:**
 
-| Setting | Type | Maps to flag |
-|---------|------|-------------|
-| `recursive` | true/false | `-r` |
-| `quiet` | true/false | `-q` |
-| `match_all` | true/false | `-a` |
-| `regex` | true/false | `-x` |
-| `cores` | number | `-c N` |
-| `context_before` | number | `-B N` |
-| `context_after` | number | `-A N` |
-| `file_types` | comma-separated | `-t` |
+| Setting | Type | Maps to flag | Default |
+|---------|------|-------------|---------|
+| `recursive` | true/false | `-r` | false (current directory only) |
+| `quiet` | true/false | `-q` | false (show banner) |
+| `match_all` | true/false | `-a` | false (OR logic) |
+| `regex` | true/false | `-x` | false (plain text search) |
+| `cores` | number | `-c N` | half of available CPU cores |
+| `context_before` | number | `-B N` | 0 (no lines before match) |
+| `context_after` | number | `-A N` | 0 (no lines after match) |
+| `file_types` | comma-separated | `-t` | all 25 supported types |
 
 Lines starting with `#` are comments. If the file doesn't exist or contains invalid values, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
 
@@ -261,18 +261,18 @@ docsearch has twelve flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
-| `-a` | AND logic (all terms must appear in the same paragraph) |
-| `-c N` | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
-| `-f` | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
-| `-r` | Search subdirectories recursively |
-| `-t` | Filter by file type (comma-separated, e.g., `pdf,docx`) |
-| `-p N` | Proximity search — find terms within N words of each other |
-| `-q` | Quiet mode — suppress the banner |
-| `-s` | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
-| `-sa` | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
-| `-x` | Regex pattern search (case-insensitive) |
-| `-A N` | Show N lines after each match |
-| `-B N` | Show N lines before each match |
+| `-a` (all) | AND logic — all terms must appear in the same paragraph |
+| `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
+| `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
+| `-p N` (proximity) | Proximity search — find terms within N words of each other |
+| `-q` (quiet) | Quiet mode — suppress the banner |
+| `-r` (recursive) | Search subdirectories recursively |
+| `-s` (save) | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
+| `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
+| `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `-x` (regex) | Regex pattern search (case-insensitive) |
+| `-A N` (after) | Show N lines after each match |
+| `-B N` (before) | Show N lines before each match |
 
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
