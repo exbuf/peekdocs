@@ -406,6 +406,9 @@ Results are saved to two files in the current directory: `docsearch_results.txt`
 **What happens when a file can't be read?**
 Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, or files with unsupported encoding. When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results.
 
+**How do I cancel a search in progress?**
+Press Ctrl+C. docsearch will stop cleanly and print "Search cancelled." This works on macOS, Windows, and Linux.
+
 **How do I set default flags?**
 Create a `~/.docsearchrc` file in your home directory. See the [Config File](#config-file-optional) section for details.
 

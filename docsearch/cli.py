@@ -721,30 +721,37 @@ def main(argv=None):
     spinner = threading.Thread(target=_spinner_thread, daemon=True)
     spinner.start()
 
-    if len(all_files) < 10 or cores == 1:
-        for i, filepath in enumerate(all_files):
-            filename = os.path.relpath(filepath, cwd)
-            with spinner_lock:
-                spinner_state["done"] = i
-                spinner_state["filename"] = filename
-            _render_progress(i, total, filename)
-            file_matches, file_skipped = _process_file((filepath, search_config))
-            matches.extend(file_matches)
-            skipped_files.extend(file_skipped)
-    else:
-        with multiprocessing.Pool(processes=cores) as pool:
-            result_iter = pool.imap(_process_file, [(f, search_config) for f in all_files])
-            for i in range(total):
-                # Show the file we're about to wait on BEFORE blocking
-                filename = os.path.relpath(all_files[i], cwd)
+    try:
+        if len(all_files) < 10 or cores == 1:
+            for i, filepath in enumerate(all_files):
+                filename = os.path.relpath(filepath, cwd)
                 with spinner_lock:
                     spinner_state["done"] = i
                     spinner_state["filename"] = filename
                 _render_progress(i, total, filename)
-                # Now block waiting for this file's result
-                file_matches, file_skipped = next(result_iter)
+                file_matches, file_skipped = _process_file((filepath, search_config))
                 matches.extend(file_matches)
                 skipped_files.extend(file_skipped)
+        else:
+            with multiprocessing.Pool(processes=cores) as pool:
+                result_iter = pool.imap(_process_file, [(f, search_config) for f in all_files])
+                for i in range(total):
+                    # Show the file we're about to wait on BEFORE blocking
+                    filename = os.path.relpath(all_files[i], cwd)
+                    with spinner_lock:
+                        spinner_state["done"] = i
+                        spinner_state["filename"] = filename
+                    _render_progress(i, total, filename)
+                    # Now block waiting for this file's result
+                    file_matches, file_skipped = next(result_iter)
+                    matches.extend(file_matches)
+                    skipped_files.extend(file_skipped)
+    except KeyboardInterrupt:
+        spinner_stop.set()
+        spinner.join()
+        sys.stdout.write("\n")
+        print("\nSearch cancelled.\n")
+        return 2
 
     spinner_stop.set()
     spinner.join()

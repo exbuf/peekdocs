@@ -1244,3 +1244,21 @@ def test_config_invalid_values(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert "1 match(es)" in captured.out
+
+
+def test_keyboard_interrupt(tmp_path, monkeypatch, capsys):
+    """Ctrl+C during search prints clean message and returns exit code 2."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    import docsearch.cli as cli_module
+    def interrupt_on_process(args_tuple):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(cli_module, "_process_file", interrupt_on_process)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Search cancelled." in captured.out
