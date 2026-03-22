@@ -7,6 +7,7 @@
   - [Supported File Types](#supported-file-types)
 - [Benefits and Applications](#benefits-and-applications)
 - [System Requirements](#system-requirements)
+- [Config File (Optional)](#config-file-optional)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
@@ -128,6 +129,35 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - No internet connection required — docsearch runs entirely offline
 - No database or additional software installation needed
 - To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. To open it, navigate to that folder in your file manager — Finder on Mac, File Explorer on Windows, or Files on Linux — and double-click the file. It will automatically open in your default word processor. The `.txt` report can be opened on any computer with no additional software
+
+## Config File (Optional)
+
+If you find yourself typing the same flags every time, you can create a `~/.docsearchrc` file in your home directory to set defaults. This is entirely optional — docsearch works fine without it.
+
+**Example:** `~/.docsearchrc`
+```
+# Always search subdirectories and suppress the banner
+recursive = true
+quiet = true
+cores = 4
+```
+
+With this config, `docsearch budget` behaves like `docsearch -r -q -c 4 budget`. Command-line flags always override config settings.
+
+**Supported settings:**
+
+| Setting | Type | Maps to flag |
+|---------|------|-------------|
+| `recursive` | true/false | `-r` |
+| `quiet` | true/false | `-q` |
+| `match_all` | true/false | `-a` |
+| `regex` | true/false | `-x` |
+| `cores` | number | `-c N` |
+| `context_before` | number | `-B N` |
+| `context_after` | number | `-A N` |
+| `file_types` | comma-separated | `-t` |
+
+Lines starting with `#` are comments. If the file doesn't exist or contains invalid values, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
 
 ## Installation
 
@@ -375,6 +405,9 @@ Results are saved to two files in the current directory: `docsearch_results.txt`
 
 **What happens when a file can't be read?**
 Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, or files with unsupported encoding. When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results.
+
+**How do I set default flags?**
+Create a `~/.docsearchrc` file in your home directory. See the [Config File](#config-file-optional) section for details.
 
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>

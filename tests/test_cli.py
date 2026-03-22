@@ -1172,3 +1172,75 @@ def test_search_without_quiet_shows_banner(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert "OR search" in captured.out
+
+
+def test_config_file_defaults(tmp_path, monkeypatch, capsys):
+    """Config file sets recursive=true, search picks up subdirectory files."""
+    subdir = tmp_path / "sub"
+    subdir.mkdir()
+    doc = Document()
+    doc.add_paragraph("Budget report for Q1")
+    doc.save(str(subdir / "nested.docx"))
+
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("recursive = true\n")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+
+def test_config_cli_overrides(tmp_path, monkeypatch, capsys):
+    """CLI flags override config file settings."""
+    doc = Document()
+    doc.add_paragraph("Budget report")
+    doc.save(str(tmp_path / "report.docx"))
+
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("cores = 2\n")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["-c", "1", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Cores used: 1" in captured.out
+
+
+def test_config_missing_file(tmp_path, monkeypatch, capsys):
+    """No .docsearchrc, search works normally."""
+    doc = Document()
+    doc.add_paragraph("Budget overview")
+    doc.save(str(tmp_path / "report.docx"))
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out
+
+
+def test_config_invalid_values(tmp_path, monkeypatch, capsys):
+    """Bad values in config are silently ignored."""
+    doc = Document()
+    doc.add_paragraph("Budget overview")
+    doc.save(str(tmp_path / "report.docx"))
+
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("cores = abc\nrecursive = banana\nunknown_key = whatever\n")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1 match(es)" in captured.out

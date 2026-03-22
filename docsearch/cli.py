@@ -122,6 +122,38 @@ def _default_cores():
     return max(1, cpu // 2)
 
 
+def _load_config():
+    """Load defaults from ~/.docsearchrc if it exists."""
+    config_path = os.path.join(os.path.expanduser("~"), ".docsearchrc")
+    if not os.path.exists(config_path):
+        return {}
+    config = {}
+    bool_keys = {"recursive", "quiet", "match_all", "regex"}
+    int_keys = {"cores", "context_before", "context_after"}
+    str_keys = {"file_types"}
+    with open(config_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if key in bool_keys:
+                config[key] = value.lower() in ("true", "yes", "1")
+            elif key in int_keys:
+                try:
+                    config[key] = int(value)
+                except ValueError:
+                    pass
+            elif key in str_keys:
+                if value:
+                    config[key] = value
+    return config
+
+
 def _process_file(args_tuple):
     """Process a single file and return (matches, skipped) for that file."""
     filepath, config = args_tuple
@@ -372,8 +404,10 @@ def main(argv=None):
 
     original_args = list(args)
 
-    quiet = "-q" in args
-    if quiet:
+    config = _load_config()
+
+    quiet = "-q" in args or config.get("quiet", False)
+    if "-q" in args:
         args.remove("-q")
 
     cpu_count = os.cpu_count() or 1
@@ -423,9 +457,9 @@ def main(argv=None):
         print(f"Results saved to {os.path.basename(dest_docx)} and {os.path.basename(dest_txt)}\n")
         return 0
 
-    match_all = "-a" in args or "--all" in args
-    recursive = "-r" in args
-    use_regex = "-x" in args
+    match_all = "-a" in args or "--all" in args or config.get("match_all", False)
+    recursive = "-r" in args or config.get("recursive", False)
+    use_regex = "-x" in args or config.get("regex", False)
 
     file_types = None
     if "-t" in args:
@@ -442,6 +476,13 @@ def main(argv=None):
                 return 2
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
+    elif "file_types" in config:
+        raw_types = config["file_types"].split(",")
+        file_types = set()
+        for t in raw_types:
+            ext = "." + t.strip().lower().lstrip(".")
+            if ext in SUPPORTED_TYPES:
+                file_types.add(ext)
 
     file_names = None
     if "-f" in args:
@@ -461,7 +502,7 @@ def main(argv=None):
         print("Cannot use -f and -t together. Use -f to search specific files or -t to filter by file type.\n")
         return 2
 
-    context_before = 0
+    context_before = config.get("context_before", 0)
     if "-B" in args:
         idx = args.index("-B")
         if idx + 1 >= len(args):
@@ -476,7 +517,7 @@ def main(argv=None):
             return 2
         args = args[:idx] + args[idx + 2:]
 
-    context_after = 0
+    context_after = config.get("context_after", 0)
     if "-A" in args:
         idx = args.index("-A")
         if idx + 1 >= len(args):
@@ -519,7 +560,7 @@ def main(argv=None):
         append_name = args[idx + 1]
         args = args[:idx] + args[idx + 2:]
 
-    cores = _default_cores()
+    cores = config.get("cores", _default_cores())
     if "-c" in args:
         idx = args.index("-c")
         if idx + 1 >= len(args):
