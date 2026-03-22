@@ -132,7 +132,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 ## Config File (Optional)
 
-If you find yourself typing the same flags every time, you can create a `~/.docsearchrc` file in your home directory to set defaults. This is entirely optional — docsearch works fine without it.
+If you find yourself typing the same flags every time, you can create a `~/.docsearchrc` file in your home directory to set defaults. This is entirely optional — docsearch works fine without it. docsearch never creates this file on its own; it only reads it if you create one.
 
 **Example:** `~/.docsearchrc`
 ```
