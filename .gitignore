@@ -24,6 +24,7 @@ env/
 # Output files
 docsearch_results.txt
 docsearch_results.docx
+docsearch_errors.log
 
 # Claude Code
 .claude/

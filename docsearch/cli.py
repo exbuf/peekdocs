@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 from itertools import product
 import logging
 import multiprocessing
+import threading
 import os
 import re
 import shutil
@@ -15,12 +16,12 @@ import textwrap
 import time
 from datetime import datetime
 
-logging.getLogger("pdfminer").setLevel(logging.ERROR)
+logging.getLogger("pymupdf").setLevel(logging.ERROR)
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
-import pdfplumber
+import fitz
 from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -218,22 +219,23 @@ def _process_file(args_tuple):
             collect_matches(all_lines, file_dir, filename)
 
         elif ext == ".pdf":
-            with pdfplumber.open(filepath) as pdf:
-                for page_num, page in enumerate(pdf.pages, start=1):
-                    text = page.extract_text()
-                    if not text:
-                        continue
-                    page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
-                    if use_context:
-                        match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
-                        if match_indices:
-                            groups = apply_context(page_lines, match_indices, context_before, context_after)
-                            for group in groups:
-                                matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
-                    else:
-                        for line_num, line in page_lines:
-                            if text_matches(line):
-                                matches.append((file_dir, filename, page_num, line))
+            doc = fitz.open(filepath)
+            for page_num, page in enumerate(doc, start=1):
+                text = page.get_text()
+                if not text:
+                    continue
+                page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
+                if use_context:
+                    match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
+                    if match_indices:
+                        groups = apply_context(page_lines, match_indices, context_before, context_after)
+                        for group in groups:
+                            matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
+                else:
+                    for line_num, line in page_lines:
+                        if text_matches(line):
+                            matches.append((file_dir, filename, page_num, line))
+            doc.close()
 
         elif ext == ".csv":
             with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
@@ -591,7 +593,10 @@ def main(argv=None):
     rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
     pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
     xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
-    log_files = sorted(glob.glob(glob_prefix + ".log", recursive=recursive))
+    log_files = sorted(
+        f for f in glob.glob(glob_prefix + ".log", recursive=recursive)
+        if os.path.basename(f) != "docsearch_errors.log"
+    )
     yaml_files = sorted(glob.glob(glob_prefix + ".yaml", recursive=recursive))
     yml_files = sorted(glob.glob(glob_prefix + ".yml", recursive=recursive))
     tsv_files = sorted(glob.glob(glob_prefix + ".tsv", recursive=recursive))
@@ -635,21 +640,88 @@ def main(argv=None):
 
     matches = []
     skipped_files = []
+    total = len(all_files)
+    bar_width = 40
+    spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+
+    try:
+        term_width = os.get_terminal_size().columns
+    except OSError:
+        term_width = 80
+
+    spinner_lock = threading.Lock()
+    spinner_stop = threading.Event()
+    spinner_state = {"done": 0, "filename": ""}
+
+    def _render_progress(done, total_count, filename, spinner=""):
+        if total_count == 0:
+            return
+        pct = done / total_count
+        filled = int(bar_width * pct)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        if spinner:
+            line = f"\r  [{bar}] {done}/{total_count} {filename} {spinner}"
+        else:
+            line = f"\r  [{bar}] {done}/{total_count} {filename}"
+        line = line.ljust(term_width)[:term_width]
+        sys.stdout.write(line)
+        sys.stdout.flush()
+
+    def _spinner_thread():
+        idx = 0
+        while not spinner_stop.is_set():
+            with spinner_lock:
+                done = spinner_state["done"]
+                filename = spinner_state["filename"]
+            _render_progress(done, total, filename, spinner_chars[idx % len(spinner_chars)])
+            idx += 1
+            spinner_stop.wait(0.15)
+
+    spinner = threading.Thread(target=_spinner_thread, daemon=True)
+    spinner.start()
 
     if len(all_files) < 10 or cores == 1:
-        for filepath in all_files:
+        for i, filepath in enumerate(all_files):
+            filename = os.path.relpath(filepath, cwd)
+            with spinner_lock:
+                spinner_state["done"] = i
+                spinner_state["filename"] = filename
+            _render_progress(i, total, filename)
             file_matches, file_skipped = _process_file((filepath, search_config))
             matches.extend(file_matches)
             skipped_files.extend(file_skipped)
     else:
         with multiprocessing.Pool(processes=cores) as pool:
-            results = pool.map(_process_file, [(f, search_config) for f in all_files])
-        for file_matches, file_skipped in results:
-            matches.extend(file_matches)
-            skipped_files.extend(file_skipped)
+            result_iter = pool.imap(_process_file, [(f, search_config) for f in all_files])
+            for i in range(total):
+                # Show the file we're about to wait on BEFORE blocking
+                filename = os.path.relpath(all_files[i], cwd)
+                with spinner_lock:
+                    spinner_state["done"] = i
+                    spinner_state["filename"] = filename
+                _render_progress(i, total, filename)
+                # Now block waiting for this file's result
+                file_matches, file_skipped = next(result_iter)
+                matches.extend(file_matches)
+                skipped_files.extend(file_skipped)
+
+    spinner_stop.set()
+    spinner.join()
+
+    if total > 0:
+        _render_progress(total, total, "done")
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
     for skipped_name, error_msg in skipped_files:
         print(f"Warning: Could not read {skipped_name} ({error_msg})")
+
+    if skipped_files:
+        error_log_path = os.path.join(cwd, "docsearch_errors.log")
+        with open(error_log_path, "a") as log_f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            for skipped_name, error_msg in skipped_files:
+                log_f.write(f"{timestamp}  Could not read {skipped_name} ({error_msg})\n")
 
     search_elapsed = time.time() - start_time
 
@@ -660,7 +732,9 @@ def main(argv=None):
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types: .docx, .pdf, .csv, .odt, .txt, .html, .xlsx, .md, .json, .rtf, .pptx, .xml, .log, .yaml, .yml, .tsv, .epub, .ods, .odp, .toml, .rst, .tex, .ini, .cfg, .sql\n")
+        f.write("Supported file types:\n")
+        f.write(".cfg, .csv, .docx, .epub, .html, .ini, .json, .log, .md, .ods, .odp, .odt, .pdf, .pptx, .rst,\n")
+        f.write(".rtf, .sql, .tex, .toml, .tsv, .txt, .xlsx, .xml, .yaml, .yml\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         if use_regex and match_all:
             report_mode = "REGEX+AND"
@@ -834,10 +908,14 @@ def main(argv=None):
     elapsed = time.time() - start_time
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
-    print(f"Found {len(matches)} match(es). Results written to docsearch_results.txt ({fmt_size(txt_size)}) and docsearch_results.docx ({fmt_size(docx_size)})")
+    print(f"Found {len(matches)} match(es).")
+    print(f"Results ==> {cwd}")
+    print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
+    if skipped_files:
+        print(f"Errors logged to docsearch_errors.log ({len(skipped_files)} error(s))")
     print()
     return 0
 

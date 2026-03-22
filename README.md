@@ -355,6 +355,14 @@ Document: summary.docx, Line: 3, Match:
 "Revised **budget** proposal attached"
 ```
 
+If any files could not be read during a search, errors are logged to **`docsearch_errors.log`** in the current directory. Each entry includes a timestamp, the filename, and the reason it failed:
+```
+2026-03-22 14:05:12  Could not read report.pdf (encrypted PDF)
+2026-03-22 14:05:12  Could not read data.xlsx (file is corrupted)
+```
+
+The error log appends across searches so you can track issues over time. You can safely delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs.
+
 The terminal also displays a summary:
 ```
 Found 2 match(es). Results written to docsearch_results.txt and docsearch_results.docx
@@ -364,6 +372,9 @@ Found 2 match(es). Results written to docsearch_results.txt and docsearch_result
 
 **Where are my search results saved and what information is printed on the search report?**
 Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
+
+**What happens when a file can't be read?**
+A warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results.
 
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>

@@ -172,6 +172,25 @@ def test_search_pdf(tmp_path, monkeypatch, capsys):
     assert "**budget**" in content or "**Budget**" in content
 
 
+def test_search_docx(tmp_path, monkeypatch, capsys):
+    doc = Document()
+    doc.add_paragraph("Annual budget review for Q1")
+    doc.add_paragraph("No relevant info here")
+    doc.add_paragraph("Updated budget forecast")
+    doc.save(str(tmp_path / "report.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "report.docx" in content
+    assert "**budget**" in content
+
+
 def test_search_csv(tmp_path, monkeypatch, capsys):
     csv_file = tmp_path / "data.csv"
     csv_file.write_text("Name,Amount\nAlice,500\nBob,budget review\nCharlie,300\n")
