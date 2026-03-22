@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 from itertools import product
 import logging
 import multiprocessing
+import signal
 import threading
 import os
 import re
@@ -733,7 +734,9 @@ def main(argv=None):
                 matches.extend(file_matches)
                 skipped_files.extend(file_skipped)
         else:
-            with multiprocessing.Pool(processes=cores) as pool:
+            # Workers ignore SIGINT so only the main process handles Ctrl+C
+            pool = multiprocessing.Pool(processes=cores, initializer=signal.signal, initargs=(signal.SIGINT, signal.SIG_IGN))
+            try:
                 result_iter = pool.imap(_process_file, [(f, search_config) for f in all_files])
                 for i in range(total):
                     # Show the file we're about to wait on BEFORE blocking
@@ -746,6 +749,9 @@ def main(argv=None):
                     file_matches, file_skipped = next(result_iter)
                     matches.extend(file_matches)
                     skipped_files.extend(file_skipped)
+            finally:
+                pool.terminate()
+                pool.join()
     except KeyboardInterrupt:
         spinner_stop.set()
         spinner.join()
