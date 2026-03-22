@@ -7,7 +7,7 @@
   - [Supported File Types](#supported-file-types)
 - [Benefits and Applications](#benefits-and-applications)
 - [System Requirements](#system-requirements)
-- [Config File (Optional)](#config-file-optional)
+- [Saved Settings (Optional)](#saved-settings-optional)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
@@ -130,21 +130,22 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - No database or additional software installation needed
 - To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. To open it, navigate to that folder in your file manager — Finder on Mac, File Explorer on Windows, or Files on Linux — and double-click the file. It will automatically open in your default word processor. The `.txt` report can be opened on any computer with no additional software
 
-## Config File (Optional)
+## Saved Settings (Optional)
 
-If you find yourself typing the same flags every time, you can create a `~/.docsearchrc` file in your home directory to set defaults. This is entirely optional — docsearch works fine without it. docsearch never creates this file on its own; it only reads it if you create one.
+If you find yourself typing the same flags every time, you can save them as defaults so docsearch remembers them for you. This is entirely optional — docsearch works fine without it.
 
-**Example:** `~/.docsearchrc`
+Use the `--config` flag to manage your saved settings:
+
+```bash
+docsearch --config recursive=true       # always search subdirectories
+docsearch --config quiet=true cores=4   # save multiple settings at once
+docsearch --config                      # view your saved settings
+docsearch --config recursive=           # remove a saved setting
 ```
-# Always search subdirectories and suppress the banner
-recursive = true
-quiet = true
-cores = 4
-```
 
-With this config, `docsearch budget` behaves like `docsearch -r -q -c 4 budget`. Command-line flags always override config settings.
+Once saved, your settings apply automatically every time you run docsearch. For example, after running `docsearch --config recursive=true quiet=true cores=4`, typing `docsearch budget` behaves like `docsearch -r -q -c 4 budget`. You can always override a saved setting for a single search by typing the flag explicitly.
 
-**Supported settings:**
+**Available settings:**
 
 | Setting | Type | Maps to flag | Default |
 |---------|------|-------------|---------|
@@ -157,7 +158,9 @@ With this config, `docsearch budget` behaves like `docsearch -r -q -c 4 budget`.
 | `context_after` | number | `-A N` | 0 (no lines after match) |
 | `file_types` | comma-separated | `-t` | all 25 supported types |
 
-Lines starting with `#` are comments. If the file doesn't exist or contains invalid values, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
+If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
+
+**Advanced:** Your settings are stored in a text file called `.docsearchrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
 
 ## Installation
 
@@ -257,7 +260,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twelve flags that can be mixed and matched:
+docsearch has thirteen flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -271,6 +274,7 @@ docsearch has twelve flags that can be mixed and matched:
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
+| `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
 
@@ -358,10 +362,15 @@ docsearch has twelve flags that can be mixed and matched:
 | | **Quiet Mode** | |
 | 48 | Suppress banner | `docsearch -q budget` |
 | 49 | Quiet with recursive search | `docsearch -q -r budget` |
+| | **Saved Settings** | |
+| 50 | View saved settings | `docsearch --config` |
+| 51 | Save a setting | `docsearch --config recursive=true` |
+| 52 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 53 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Version and Help** | |
-| 50 | Show version | `docsearch -v` |
-| 51 | Show help | `docsearch -h` |
-| 52 | Show help (no arguments) | `docsearch` |
+| 54 | Show version | `docsearch -v` |
+| 55 | Show help | `docsearch -h` |
+| 56 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -412,8 +421,8 @@ Press the up arrow key in your terminal to scroll through previous commands. Thi
 **How do I cancel a search in progress?**
 Press Ctrl+C. docsearch will stop cleanly and print "Search cancelled." This works on macOS, Windows, and Linux.
 
-**How do I set default flags?**
-Create a `~/.docsearchrc` file in your home directory. See the [Config File](#config-file-optional) section for details.
+**How do I save my preferred settings?**
+Use the `--config` flag. For example, `docsearch --config recursive=true` saves that setting so it applies automatically every time. See the [Saved Settings](#saved-settings-optional) section for details.
 
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>
@@ -499,6 +508,7 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
 - **Performance flags** (`-c`) — control *how fast* to search
+- **Settings flag** (`--config`) — manage *saved settings*
 
 ## Running Tests
 

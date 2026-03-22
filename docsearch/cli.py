@@ -126,16 +126,24 @@ def _default_cores():
     return max(1, cpu // 2)
 
 
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex"}
+CONFIG_INT_KEYS = {"cores", "context_before", "context_after"}
+CONFIG_STR_KEYS = {"file_types"}
+CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
+
+
+def _config_path():
+    """Return the path to ~/.docsearchrc."""
+    return os.path.join(os.path.expanduser("~"), ".docsearchrc")
+
+
 def _load_config():
     """Load defaults from ~/.docsearchrc if it exists."""
-    config_path = os.path.join(os.path.expanduser("~"), ".docsearchrc")
-    if not os.path.exists(config_path):
+    path = _config_path()
+    if not os.path.exists(path):
         return {}
     config = {}
-    bool_keys = {"recursive", "quiet", "match_all", "regex"}
-    int_keys = {"cores", "context_before", "context_after"}
-    str_keys = {"file_types"}
-    with open(config_path) as f:
+    with open(path) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
@@ -145,17 +153,31 @@ def _load_config():
             key, _, value = line.partition("=")
             key = key.strip()
             value = value.strip()
-            if key in bool_keys:
+            if key in CONFIG_BOOL_KEYS:
                 config[key] = value.lower() in ("true", "yes", "1")
-            elif key in int_keys:
+            elif key in CONFIG_INT_KEYS:
                 try:
                     config[key] = int(value)
                 except ValueError:
                     pass
-            elif key in str_keys:
+            elif key in CONFIG_STR_KEYS:
                 if value:
                     config[key] = value
     return config
+
+
+def _save_config(settings):
+    """Write settings dict to ~/.docsearchrc."""
+    path = _config_path()
+    with open(path, "w") as f:
+        f.write("# ~/.docsearchrc - docsearch defaults\n")
+        f.write("# Command-line flags always override these settings\n\n")
+        for key in sorted(settings):
+            value = settings[key]
+            if isinstance(value, bool):
+                f.write(f"{key} = {'true' if value else 'false'}\n")
+            else:
+                f.write(f"{key} = {value}\n")
 
 
 def _process_file(args_tuple):
@@ -459,6 +481,66 @@ def main(argv=None):
         shutil.copy2(src_docx, dest_docx)
         shutil.copy2(src_txt, dest_txt)
         print(f"Results saved to {os.path.basename(dest_docx)} and {os.path.basename(dest_txt)}\n")
+        return 0
+
+    if args and args[0] == "--config":
+        config_args = args[1:]
+        if not config_args:
+            # Show current config
+            current = _load_config()
+            if not current:
+                print("No config file found.\n")
+            else:
+                print("Current settings (~/.docsearchrc):\n")
+                for key in sorted(current):
+                    print(f"  {key} = {current[key]}")
+                print()
+            return 0
+        # Set or remove values
+        current = _load_config()
+        bool_values = {"true", "false", "yes", "no", "1", "0"}
+        for pair in config_args:
+            if "=" not in pair:
+                print(f"Invalid format: {pair}. Use key=value (e.g., --config recursive=true)\n")
+                return 2
+            key, _, value = pair.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if key not in CONFIG_ALL_KEYS:
+                valid = ", ".join(sorted(CONFIG_ALL_KEYS))
+                print(f"Unknown setting: {key}. Valid settings: {valid}\n")
+                return 2
+            if not value:
+                # Remove the key
+                current.pop(key, None)
+                print(f"Removed: {key}")
+            elif key in CONFIG_BOOL_KEYS:
+                if value.lower() not in bool_values:
+                    print(f"Invalid value for {key}: {value}. Use true or false.\n")
+                    return 2
+                current[key] = value.lower() in ("true", "yes", "1")
+                print(f"Set: {key} = {current[key]}")
+            elif key in CONFIG_INT_KEYS:
+                try:
+                    int_val = int(value)
+                    if int_val < 1:
+                        raise ValueError
+                except ValueError:
+                    print(f"Invalid value for {key}: {value}. Must be a positive integer.\n")
+                    return 2
+                current[key] = int_val
+                print(f"Set: {key} = {int_val}")
+            elif key in CONFIG_STR_KEYS:
+                current[key] = value
+                print(f"Set: {key} = {value}")
+        if current:
+            _save_config(current)
+        else:
+            # All keys removed — delete the file
+            path = _config_path()
+            if os.path.exists(path):
+                os.remove(path)
+        print()
         return 0
 
     match_all = "-a" in args or "--all" in args or config.get("match_all", False)

@@ -1262,3 +1262,70 @@ def test_keyboard_interrupt(tmp_path, monkeypatch, capsys):
 
     assert result == 2
     assert "Search cancelled." in captured.out
+
+
+def test_config_flag_show(tmp_path, monkeypatch, capsys):
+    """--config with no args displays current settings."""
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("recursive = true\ncores = 4\n")
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    result = main(["--config"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "recursive = True" in captured.out
+    assert "cores = 4" in captured.out
+
+
+def test_config_flag_show_empty(tmp_path, monkeypatch, capsys):
+    """--config with no file prints 'No config file found.'"""
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    result = main(["--config"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "No config file found." in captured.out
+
+
+def test_config_flag_set(tmp_path, monkeypatch, capsys):
+    """--config key=value creates/updates the config file."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    result = main(["--config", "recursive=true", "cores=4"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Set: recursive = True" in captured.out
+    assert "Set: cores = 4" in captured.out
+    content = (tmp_path / ".docsearchrc").read_text()
+    assert "recursive = true" in content
+    assert "cores = 4" in content
+
+
+def test_config_flag_remove(tmp_path, monkeypatch, capsys):
+    """--config key= removes the key from the config file."""
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("recursive = true\ncores = 4\n")
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    result = main(["--config", "recursive="])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Removed: recursive" in captured.out
+    content = (tmp_path / ".docsearchrc").read_text()
+    assert "recursive" not in content
+    assert "cores = 4" in content
+
+
+def test_config_flag_invalid_key(tmp_path, monkeypatch, capsys):
+    """--config with unknown key prints error and returns 2."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    result = main(["--config", "badkey=true"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Unknown setting: badkey" in captured.out
