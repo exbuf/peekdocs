@@ -69,7 +69,7 @@ def test_search_no_matches(tmp_path, monkeypatch, capsys):
     result = main(["zzzzz"])
     captured = capsys.readouterr()
 
-    assert result == 0
+    assert result == 1
     assert "0 match(es)" in captured.out
 
     results_file = tmp_path / "docsearch_results.txt"
@@ -334,7 +334,7 @@ def test_search_no_recursive_skips_subdirs(tmp_path, monkeypatch, capsys):
     result = main(["budget"])
     captured = capsys.readouterr()
 
-    assert result == 0
+    assert result == 1
     assert "0 match(es)" in captured.out
 
 
@@ -383,7 +383,7 @@ def test_search_invalid_type_filter(tmp_path, monkeypatch, capsys):
     result = main(["-t", "xyz", "budget"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "Unsupported file type: xyz" in captured.out
 
 
@@ -443,7 +443,7 @@ def test_search_invalid_regex(tmp_path, monkeypatch, capsys):
     result = main(["-x", "[invalid"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "Invalid regex pattern" in captured.out
 
 
@@ -853,7 +853,7 @@ def test_search_context_invalid(tmp_path, monkeypatch, capsys):
     result = main(["-A", "abc", "budget"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "Invalid count for -A" in captured.out
 
 
@@ -902,7 +902,7 @@ def test_search_file_filter_not_found(tmp_path, monkeypatch, capsys):
     result = main(["-f", "missing.txt", "budget"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "File not found: missing.txt" in captured.out
 
 
@@ -1003,7 +1003,7 @@ def test_search_proximity_no_match(tmp_path, monkeypatch, capsys):
     result = main(["-p", "2", "budget", "revenue"])
     captured = capsys.readouterr()
 
-    assert result == 0
+    assert result == 1
     assert "0 match(es)" in captured.out
 
 
@@ -1013,7 +1013,7 @@ def test_search_proximity_requires_two_terms(tmp_path, monkeypatch, capsys):
     result = main(["-p", "5", "budget"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "requires at least 2 search terms" in captured.out
 
 
@@ -1023,7 +1023,7 @@ def test_search_proximity_invalid(tmp_path, monkeypatch, capsys):
     result = main(["-p", "abc", "budget", "revenue"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "Invalid count for -p" in captured.out
 
 
@@ -1069,7 +1069,7 @@ def test_search_save_append_no_filename(capsys):
     result = main(["-sa"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "No filename provided" in captured.out
 
 
@@ -1079,7 +1079,7 @@ def test_search_save_append_no_terms(tmp_path, monkeypatch, capsys):
     result = main(["-sa", "my_report"])
     captured = capsys.readouterr()
 
-    assert result == 1
+    assert result == 2
     assert "No search terms provided" in captured.out
 
 
@@ -1110,7 +1110,7 @@ def test_search_cores_invalid(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     result = main(["-c", "abc", "budget"])
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 2
     assert "Invalid count for -c" in captured.out
 
 
@@ -1119,7 +1119,7 @@ def test_search_cores_zero(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     result = main(["-c", "0", "budget"])
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 2
     assert "Invalid count for -c" in captured.out
 
 
@@ -1127,7 +1127,7 @@ def test_search_cores_no_count(capsys):
     """With -c and no count, an error is returned."""
     result = main(["-c"])
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 2
     assert "No count provided" in captured.out
 
 
@@ -1136,7 +1136,7 @@ def test_search_cores_negative(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     result = main(["-c", "-1", "budget"])
     captured = capsys.readouterr()
-    assert result == 1
+    assert result == 2
     assert "Invalid count for -c" in captured.out
 
 

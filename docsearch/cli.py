@@ -408,7 +408,7 @@ def main(argv=None):
     if args and args[0] in ("-s", "-save"):
         if len(args) < 2:
             print("No filename provided. Usage: docsearch -s name_of_your_file\n")
-            return 1
+            return 2
         name = "_".join(args[1:]).replace(" ", "_")
         cwd = os.getcwd()
         src_docx = os.path.join(cwd, "docsearch_results.docx")
@@ -417,7 +417,7 @@ def main(argv=None):
         dest_txt = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
             print("No search results found. Run a search first.\n")
-            return 1
+            return 2
         shutil.copy2(src_docx, dest_docx)
         shutil.copy2(src_txt, dest_txt)
         print(f"Results saved to {os.path.basename(dest_docx)} and {os.path.basename(dest_txt)}\n")
@@ -432,14 +432,14 @@ def main(argv=None):
         idx = args.index("-t")
         if idx + 1 >= len(args):
             print("No file types provided. Usage: docsearch -t pdf,docx search_term\n")
-            return 1
+            return 2
         raw_types = args[idx + 1].split(",")
         file_types = set()
         for t in raw_types:
             ext = "." + t.strip().lower().lstrip(".")
             if ext not in SUPPORTED_TYPES:
                 print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
-                return 1
+                return 2
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
 
@@ -448,32 +448,32 @@ def main(argv=None):
         idx = args.index("-f")
         if idx + 1 >= len(args):
             print("No file names provided. Usage: docsearch -f report.pdf,notes.txt search_term\n")
-            return 1
+            return 2
         file_names = [n.strip() for n in args[idx + 1].split(",")]
         for n in file_names:
             ext = os.path.splitext(n)[1].lower()
             if ext not in SUPPORTED_TYPES:
                 print(f"Unsupported file type in '{n}'. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
-                return 1
+                return 2
         args = args[:idx] + args[idx + 2:]
 
     if file_types is not None and file_names is not None:
         print("Cannot use -f and -t together. Use -f to search specific files or -t to filter by file type.\n")
-        return 1
+        return 2
 
     context_before = 0
     if "-B" in args:
         idx = args.index("-B")
         if idx + 1 >= len(args):
             print("No count provided. Usage: docsearch -B 5 search_term\n")
-            return 1
+            return 2
         try:
             context_before = int(args[idx + 1])
             if context_before < 0:
                 raise ValueError
         except ValueError:
             print(f"Invalid count for -B: {args[idx + 1]}. Must be a positive integer.\n")
-            return 1
+            return 2
         args = args[:idx] + args[idx + 2:]
 
     context_after = 0
@@ -481,14 +481,14 @@ def main(argv=None):
         idx = args.index("-A")
         if idx + 1 >= len(args):
             print("No count provided. Usage: docsearch -A 5 search_term\n")
-            return 1
+            return 2
         try:
             context_after = int(args[idx + 1])
             if context_after < 0:
                 raise ValueError
         except ValueError:
             print(f"Invalid count for -A: {args[idx + 1]}. Must be a positive integer.\n")
-            return 1
+            return 2
         args = args[:idx] + args[idx + 2:]
 
     proximity = 0
@@ -496,14 +496,14 @@ def main(argv=None):
         idx = args.index("-p")
         if idx + 1 >= len(args):
             print("No count provided. Usage: docsearch -p 5 budget revenue\n")
-            return 1
+            return 2
         try:
             proximity = int(args[idx + 1])
             if proximity < 1:
                 raise ValueError
         except ValueError:
             print(f"Invalid count for -p: {args[idx + 1]}. Must be a positive integer.\n")
-            return 1
+            return 2
         args = args[:idx] + args[idx + 2:]
 
     use_proximity = proximity > 0
@@ -515,7 +515,7 @@ def main(argv=None):
         idx = args.index("-sa")
         if idx + 1 >= len(args):
             print("No filename provided. Usage: docsearch -sa my_report budget revenue\n")
-            return 1
+            return 2
         append_name = args[idx + 1]
         args = args[:idx] + args[idx + 2:]
 
@@ -524,14 +524,14 @@ def main(argv=None):
         idx = args.index("-c")
         if idx + 1 >= len(args):
             print("No count provided. Usage: docsearch -c 4 search_term\n")
-            return 1
+            return 2
         try:
             cores = int(args[idx + 1])
             if cores < 1:
                 raise ValueError
         except ValueError:
             print(f"Invalid count for -c: {args[idx + 1]}. Must be a positive integer.\n")
-            return 1
+            return 2
         args = args[:idx] + args[idx + 2:]
 
     use_context = context_before > 0 or context_after > 0
@@ -540,11 +540,11 @@ def main(argv=None):
 
     if not search_terms:
         print("No search terms provided.\n")
-        return 1
+        return 2
 
     if use_proximity and len(search_terms) < 2:
         print("Proximity search (-p) requires at least 2 search terms.\n")
-        return 1
+        return 2
 
     if use_regex:
         for term in search_terms:
@@ -552,7 +552,7 @@ def main(argv=None):
                 re.compile(term)
             except re.error as e:
                 print(f"Invalid regex pattern '{term}': {e}\n")
-                return 1
+                return 2
 
     if use_regex and match_all:
         mode = "REGEX+AND"
@@ -625,7 +625,7 @@ def main(argv=None):
             for m in sorted(missing):
                 print(f"File not found: {m}")
             print()
-            return 1
+            return 2
 
     search_config = {
         "search_terms": search_terms,
@@ -917,7 +917,7 @@ def main(argv=None):
     if skipped_files:
         print(f"Errors logged to docsearch_errors.log ({len(skipped_files)} error(s))")
     print()
-    return 0
+    return 0 if matches else 1
 
 
 if __name__ == "__main__":
