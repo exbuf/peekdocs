@@ -41,6 +41,9 @@ from importlib.metadata import version as pkg_version
 
 VERSION = pkg_version("claude-docsearch")
 
+HIGHLIGHT = "\033[1;94m"
+RESET = "\033[0m"
+
 SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"}
 
 BANNER_TOP = (
@@ -606,7 +609,7 @@ def main(argv=None):
         mode = "OR"
     command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
     print(command_str)
-    print(f"Searching ({mode}) on [{', '.join(search_terms)}] ...")
+    print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
     start_time = time.time()
     cwd = os.getcwd()
 
@@ -962,7 +965,7 @@ def main(argv=None):
     elapsed = time.time() - start_time
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
-    print(f"Found {len(matches)} match(es).")
+    print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
     print(f"Results ==> {cwd}")
     print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
     if append_name is not None:

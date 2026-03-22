@@ -7,7 +7,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER_TOP, SUPPORTED_TYPES, VERSION, main
+from docsearch.cli import BANNER_TOP, HIGHLIGHT, RESET, SUPPORTED_TYPES, VERSION, main
 
 
 def test_no_args(capsys):
@@ -38,7 +38,7 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     results_file = tmp_path / "docsearch_results.txt"
     assert results_file.exists()
@@ -70,7 +70,7 @@ def test_search_no_matches(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 1
-    assert "0 match(es)" in captured.out
+    assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
 
     results_file = tmp_path / "docsearch_results.txt"
     assert results_file.exists()
@@ -102,7 +102,7 @@ def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "**Hello world**" in content
@@ -121,7 +121,7 @@ def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Search Term(s) ==> Hello, Goodbye (match: ANY)" in content
@@ -142,7 +142,7 @@ def test_search_all_terms(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Search Term(s) ==> Hello, Goodbye (match: ALL)" in content
@@ -165,7 +165,7 @@ def test_search_pdf(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.pdf" in content
@@ -184,7 +184,7 @@ def test_search_docx(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.docx" in content
@@ -200,7 +200,7 @@ def test_search_csv(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.csv" in content
@@ -223,7 +223,7 @@ def test_search_odt(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "test.odt" in content
@@ -239,7 +239,7 @@ def test_search_txt(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
@@ -255,7 +255,7 @@ def test_search_html(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "page.html" in content
@@ -276,7 +276,7 @@ def test_search_xlsx(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.xlsx" in content
@@ -315,7 +315,7 @@ def test_search_recursive(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert str(tmp_path / "sub" / "deep") in content
@@ -335,7 +335,7 @@ def test_search_no_recursive_skips_subdirs(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 1
-    assert "0 match(es)" in captured.out
+    assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
 
 
 def test_search_with_type_filter(tmp_path, monkeypatch, capsys):
@@ -350,7 +350,7 @@ def test_search_with_type_filter(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" not in content
@@ -370,7 +370,7 @@ def test_search_with_multiple_type_filters(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" in content
@@ -396,7 +396,7 @@ def test_search_md(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.md" in content
@@ -413,7 +413,7 @@ def test_search_regex(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "contacts.txt" in content
@@ -431,7 +431,7 @@ def test_search_regex_with_and(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "REGEX+AND" in content
@@ -456,7 +456,7 @@ def test_search_json(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.json" in content
@@ -473,7 +473,7 @@ def test_search_context_after(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "**Line 3**" in content
@@ -492,7 +492,7 @@ def test_search_context_before(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Line 1" in content
@@ -511,7 +511,7 @@ def test_search_context_both(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Line 1" not in content
@@ -533,7 +533,7 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     # Overlapping context should merge into one group
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "beta" in content
@@ -571,7 +571,7 @@ def test_search_ods(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.ods" in content
@@ -598,7 +598,7 @@ def test_search_odp(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "slides.odp" in content
@@ -614,7 +614,7 @@ def test_search_toml(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.toml" in content
@@ -630,7 +630,7 @@ def test_search_rst(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "docs.rst" in content
@@ -646,7 +646,7 @@ def test_search_tex(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "paper.tex" in content
@@ -662,7 +662,7 @@ def test_search_ini(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "settings.ini" in content
@@ -678,7 +678,7 @@ def test_search_cfg(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "app.cfg" in content
@@ -694,7 +694,7 @@ def test_search_sql(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "queries.sql" in content
@@ -710,7 +710,7 @@ def test_search_tsv(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.tsv" in content
@@ -736,7 +736,7 @@ def test_search_epub(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "book.epub" in content
@@ -752,7 +752,7 @@ def test_search_yaml(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.yaml" in content
@@ -768,7 +768,7 @@ def test_search_yml(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "settings.yml" in content
@@ -784,7 +784,7 @@ def test_search_xml(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.xml" in content
@@ -800,7 +800,7 @@ def test_search_log(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "app.log" in content
@@ -823,7 +823,7 @@ def test_search_pptx(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.pptx" in content
@@ -840,7 +840,7 @@ def test_search_rtf(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.rtf" in content
@@ -869,7 +869,7 @@ def test_search_with_file_filter(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
@@ -889,7 +889,7 @@ def test_search_with_multiple_file_filters(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "2 match(es)" in captured.out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" in content
@@ -918,7 +918,7 @@ def test_search_file_filter_with_and(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
@@ -936,7 +936,7 @@ def test_search_file_filter_with_regex(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
@@ -975,7 +975,7 @@ def test_search_file_filter_recursive(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
@@ -991,7 +991,7 @@ def test_search_proximity(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_search_proximity_no_match(tmp_path, monkeypatch, capsys):
@@ -1004,7 +1004,7 @@ def test_search_proximity_no_match(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 1
-    assert "0 match(es)" in captured.out
+    assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
 
 
 def test_search_proximity_requires_two_terms(tmp_path, monkeypatch, capsys):
@@ -1037,7 +1037,7 @@ def test_search_save_append(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     assert "Results appended to DO_NOT_SEARCH_ACCUMULATED_my_report.txt and DO_NOT_SEARCH_ACCUMULATED_my_report.docx" in captured.out
 
     assert (tmp_path / "docsearch_results.txt").exists()
@@ -1091,7 +1091,7 @@ def test_search_with_cores_flag(tmp_path, monkeypatch, capsys):
     result = main(["-c", "2", "budget"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_search_with_single_core(tmp_path, monkeypatch, capsys):
@@ -1102,7 +1102,7 @@ def test_search_with_single_core(tmp_path, monkeypatch, capsys):
     result = main(["-c", "1", "budget"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_search_cores_invalid(tmp_path, monkeypatch, capsys):
@@ -1148,7 +1148,7 @@ def test_search_cores_with_other_flags(tmp_path, monkeypatch, capsys):
     result = main(["-c", "2", "-a", "budget", "revenue"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_search_quiet_mode(tmp_path, monkeypatch, capsys):
@@ -1159,7 +1159,7 @@ def test_search_quiet_mode(tmp_path, monkeypatch, capsys):
     result = main(["-q", "budget"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     assert "OR search" not in captured.out
 
 
@@ -1191,7 +1191,7 @@ def test_config_file_defaults(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_config_cli_overrides(tmp_path, monkeypatch, capsys):
@@ -1225,7 +1225,7 @@ def test_config_missing_file(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_config_invalid_values(tmp_path, monkeypatch, capsys):
@@ -1243,7 +1243,7 @@ def test_config_invalid_values(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    assert "1 match(es)" in captured.out
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
 def test_keyboard_interrupt(tmp_path, monkeypatch, capsys):
