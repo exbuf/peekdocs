@@ -30,8 +30,6 @@ docsearch finds text across 25 file types — PDFs, Word docs, spreadsheets, pre
 
 I built it because I had hundreds of documents backed up from Google Docs and scattered across folders, with no way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**Built with [Claude Code](https://claude.ai/code).** Programming process details: I'm a 77-year-old retired electrical engineer, programmer, and software patent holder. What began as a weekend project took on a life of its own — I kept thinking "what if it could also do this?" and before long, docsearch had grown into something far more capable than I originally imagined.
-
 ## Features
 
 - Searches all files in the active directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest. See table for supported file types.
