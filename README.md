@@ -12,6 +12,7 @@
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
 - [Quick Start](#quick-start)
+- [GUI Mode](#gui-mode)
 - [Usage](#usage)
   - [Regex Search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
@@ -26,7 +27,7 @@
 
 ## Introduction
 
-docsearch is a fast, offline search tool that scans 29 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 29 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -50,6 +51,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
 - Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
 - Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
+- Optional GUI (`docsearch-gui`) — a point-and-click interface with search box, folder picker, and all advanced options, for users who prefer not to use the terminal
 
 ### Supported File Types
 
@@ -237,6 +239,31 @@ docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
 See the [Command Examples](#command-examples) table for 80 more combinations.
+
+## GUI Mode
+
+If you prefer pointing and clicking over typing commands, docsearch has a graphical interface. It works exactly like the terminal version — same search, same results, same reports — but with a familiar window instead of a command line.
+
+**How to open it:**
+
+You still need to open a terminal once to launch the GUI. Activate the workspace first (see [Installation step 2](#steps)), then type:
+
+```bash
+docsearch-gui
+```
+
+A window will appear. From here, everything is point-and-click — no more terminal commands needed.
+
+**Your first GUI search:**
+
+1. Type what you're looking for in the **Search** box
+2. Click **Browse** to pick the folder containing your documents (your home folder is selected by default)
+3. Click **Search** (or press Enter)
+4. When the search finishes, click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow
+
+**Advanced Options:**
+
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, and context lines. These are the same options available as terminal flags. You don't need any of them for a basic search.
 
 ## Usage
 
@@ -558,10 +585,10 @@ You can set `-c` to any value from 1 to your maximum core count. Using more core
 Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
 Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
 
-**Why is docsearch a terminal application? Why doesn't it have a GUI?**
-If you've never used a terminal before, it can look intimidating — a blank screen with a blinking cursor. But here's the thing: you only need to learn one pattern. Type `docsearch` followed by what you're looking for, press Enter, and you're done. That's it. There are no menus to navigate, no buttons to find, no settings buried three screens deep. You type what you want, and you get it. After your first search, the terminal won't feel scary — it'll feel fast.
+**Do I have to use the terminal, or is there a GUI?**
+Both. If you prefer a graphical interface, run `docsearch-gui` for a point-and-click window with a search box, folder picker, and all the advanced options. If you're comfortable in the terminal, `docsearch` gives you the same search power in a single command.
 
-The terminal also has practical advantages. It launches instantly (no loading screens), runs identically on Mac, Windows, and Linux, and keeps a history of your commands so you can press the up arrow to repeat or tweak a previous search. Your results are saved to files you can open in any word processor. And because there's no graphical interface to maintain, docsearch stays lightweight, simple, and focused on what matters — finding your documents.
+Never used a terminal before? It's simpler than it looks — type `docsearch` followed by what you're looking for, press Enter, and you're done. No menus, no buttons, no settings buried three screens deep. The terminal also launches instantly, runs identically on Mac, Windows, and Linux, and keeps a history of your commands so you can press the up arrow to repeat or tweak a previous search.
 
 **What operating systems does docsearch run on?**
 docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is installed.
@@ -599,9 +626,13 @@ pytest tests/ -v
 ```
 Claude-DocSearch/
 ├── docsearch/
-│   └── cli.py          # Main CLI entry point
+│   ├── __init__.py      # Package init
+│   ├── __main__.py      # Enables python -m docsearch
+│   ├── cli.py           # Main CLI entry point
+│   └── gui.py           # Optional GUI (docsearch-gui)
 ├── tests/
-│   └── test_cli.py     # Test suite
+│   ├── test_cli.py      # CLI test suite
+│   └── test_gui.py      # GUI test suite
 ├── pyproject.toml       # Project metadata and dependencies
 ├── requirements.txt     # Pip requirements
 └── README.md

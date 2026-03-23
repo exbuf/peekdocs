@@ -1,0 +1,481 @@
+"""Graphical interface for DocSearch."""
+
+import os
+import platform
+import re
+import shlex
+import subprocess
+import sys
+import threading
+import time
+
+
+def _build_command_from_values(
+    search_text,
+    folder,
+    and_mode,
+    recursive,
+    fuzzy,
+    wildcard,
+    ocr,
+    regex,
+    exclude,
+    file_types,
+    proximity,
+    context_before,
+    context_after,
+):
+    """Build a docsearch CLI command list from GUI values. Returns None on validation error."""
+    if not search_text.strip():
+        return None
+
+    if not folder or not os.path.isdir(folder):
+        return None
+
+    cmd = [sys.executable, "-m", "docsearch", "-q"]
+
+    if and_mode:
+        cmd.append("-a")
+    if recursive:
+        cmd.append("-r")
+    if fuzzy:
+        cmd.append("-z")
+    if wildcard:
+        cmd.append("-w")
+    if ocr:
+        cmd.append("-O")
+    if regex:
+        cmd.append("-x")
+
+    if exclude.strip():
+        cmd.extend(["-n", exclude.strip()])
+
+    if file_types.strip():
+        cmd.extend(["-t", file_types.strip()])
+
+    if proximity.strip():
+        if not proximity.strip().isdigit() or int(proximity.strip()) < 1:
+            return None
+        cmd.extend(["-p", proximity.strip()])
+
+    if context_before.strip():
+        if not context_before.strip().isdigit():
+            return None
+        cmd.extend(["-B", context_before.strip()])
+
+    if context_after.strip():
+        if not context_after.strip().isdigit():
+            return None
+        cmd.extend(["-A", context_after.strip()])
+
+    try:
+        terms = shlex.split(search_text.strip())
+    except ValueError:
+        terms = search_text.strip().split()
+
+    cmd.extend(terms)
+    return cmd
+
+
+def _parse_summary_text(stdout):
+    """Parse CLI summary output into a short status string."""
+    if not stdout:
+        return ""
+    clean = re.sub(r"\033\[[0-9;]*m", "", stdout)
+    files_match = re.search(r"Files searched:\s*(\d+)", clean)
+    found_match = re.search(r"Found\s+(\d+)\s+match", clean)
+    elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
+
+    parts = []
+    if found_match:
+        count = found_match.group(1)
+        parts.append(f"Found {count} match(es)")
+    if files_match:
+        parts.append(f"in {files_match.group(1)} files")
+    if elapsed_match:
+        parts.append(f"({elapsed_match.group(1)}s)")
+
+    return " ".join(parts) if parts else ""
+
+
+def _launch_gui():
+    """Import customtkinter and build the GUI. Separated to keep module importable without tkinter."""
+    try:
+        import customtkinter as ctk
+    except ImportError:
+        print("GUI mode requires customtkinter. Install it with: pip install customtkinter")
+        sys.exit(1)
+
+    from tkinter import filedialog
+    from importlib.metadata import version as pkg_version
+
+    class DocSearchApp(ctk.CTk):
+        def __init__(self):
+            super().__init__()
+
+            try:
+                version = pkg_version("claude-docsearch")
+            except Exception:
+                version = ""
+            self.title(f"docsearch {version}".strip())
+            self.geometry("700x520")
+            self.minsize(600, 400)
+            self._center_window(700, 520)
+
+            ctk.set_appearance_mode("System")
+            ctk.set_default_color_theme("blue")
+
+            self.process = None
+            self.search_thread = None
+            self.results_dir = None
+            self.advanced_visible = False
+            self.elapsed_timer_id = None
+            self.search_start_time = None
+
+            self.grid_columnconfigure(1, weight=1)
+
+            self._build_search_row()
+            self._build_folder_row()
+            self._build_advanced_toggle()
+            self._build_advanced_panel()
+            self._build_progress_area()
+            self._build_open_report()
+
+        def _center_window(self, width, height):
+            self.update_idletasks()
+            screen_w = self.winfo_screenwidth()
+            screen_h = self.winfo_screenheight()
+            x = (screen_w - width) // 2
+            y = (screen_h - height) // 2
+            self.geometry(f"{width}x{height}+{x}+{y}")
+
+        # ── Layout builders ──────────────────────────────────────
+
+        def _build_search_row(self):
+            row = 0
+            label = ctk.CTkLabel(self, text="Search:", font=ctk.CTkFont(size=14))
+            label.grid(row=row, column=0, padx=(15, 5), pady=(15, 5), sticky="w")
+
+            self.search_entry = ctk.CTkEntry(
+                self, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
+            )
+            self.search_entry.grid(row=row, column=1, padx=5, pady=(15, 5), sticky="ew")
+            self.search_entry.bind("<Return>", lambda e: self.start_search())
+
+            self.search_button = ctk.CTkButton(
+                self, text="Search", width=90, command=self.start_search,
+                font=ctk.CTkFont(size=14),
+            )
+            self.search_button.grid(row=row, column=2, padx=(5, 15), pady=(15, 5))
+
+        def _build_folder_row(self):
+            row = 1
+            label = ctk.CTkLabel(self, text="Folder:", font=ctk.CTkFont(size=14))
+            label.grid(row=row, column=0, padx=(15, 5), pady=5, sticky="w")
+
+            self.folder_entry = ctk.CTkEntry(self, font=ctk.CTkFont(size=14))
+            self.folder_entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
+            self.folder_entry.insert(0, os.path.expanduser("~"))
+
+            self.browse_button = ctk.CTkButton(
+                self, text="Browse", width=90, command=self.browse_folder,
+                font=ctk.CTkFont(size=14),
+            )
+            self.browse_button.grid(row=row, column=2, padx=(5, 15), pady=5)
+
+        def _build_advanced_toggle(self):
+            self.advanced_toggle = ctk.CTkButton(
+                self,
+                text="\u25b6 Advanced Options",
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                anchor="w",
+                command=self.toggle_advanced,
+                font=ctk.CTkFont(size=13),
+            )
+            self.advanced_toggle.grid(
+                row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="w"
+            )
+
+        def _build_advanced_panel(self):
+            self.advanced_frame = ctk.CTkFrame(self)
+            # Don't grid it yet — starts collapsed
+
+            # Row 0: checkboxes row 1
+            self.and_mode_var = ctk.StringVar(value="off")
+            self.recursive_var = ctk.StringVar(value="off")
+            self.fuzzy_var = ctk.StringVar(value="off")
+
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="AND mode", variable=self.and_mode_var,
+                onvalue="on", offvalue="off",
+            ).grid(row=0, column=0, padx=15, pady=(10, 5), sticky="w")
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="Recursive", variable=self.recursive_var,
+                onvalue="on", offvalue="off",
+            ).grid(row=0, column=1, padx=15, pady=(10, 5), sticky="w")
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="Fuzzy", variable=self.fuzzy_var,
+                onvalue="on", offvalue="off", command=self._on_fuzzy_toggle,
+            ).grid(row=0, column=2, padx=15, pady=(10, 5), sticky="w")
+
+            # Row 1: checkboxes row 2
+            self.wildcard_var = ctk.StringVar(value="off")
+            self.ocr_var = ctk.StringVar(value="off")
+            self.regex_var = ctk.StringVar(value="off")
+
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="Wildcard", variable=self.wildcard_var,
+                onvalue="on", offvalue="off", command=self._on_wildcard_toggle,
+            ).grid(row=1, column=0, padx=15, pady=5, sticky="w")
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="OCR", variable=self.ocr_var,
+                onvalue="on", offvalue="off",
+            ).grid(row=1, column=1, padx=15, pady=5, sticky="w")
+            ctk.CTkCheckBox(
+                self.advanced_frame, text="Regex", variable=self.regex_var,
+                onvalue="on", offvalue="off", command=self._on_regex_toggle,
+            ).grid(row=1, column=2, padx=15, pady=5, sticky="w")
+
+            # Row 2: exclude
+            ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
+                row=2, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
+            self.exclude_entry = ctk.CTkEntry(
+                self.advanced_frame, placeholder_text="draft,obsolete"
+            )
+            self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+            # Row 3: file types
+            ctk.CTkLabel(self.advanced_frame, text="File types:").grid(
+                row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
+            self.file_types_entry = ctk.CTkEntry(
+                self.advanced_frame, placeholder_text="pdf,docx,txt"
+            )
+            self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+            # Row 4: proximity + context
+            num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            num_frame.grid(row=4, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+
+            ctk.CTkLabel(num_frame, text="Proximity:").grid(row=0, column=0, padx=(0, 5))
+            self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
+            self.proximity_entry.grid(row=0, column=1, padx=(0, 20))
+
+            ctk.CTkLabel(num_frame, text="Context B:").grid(row=0, column=2, padx=(0, 5))
+            self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
+            self.context_before_entry.grid(row=0, column=3, padx=(0, 20))
+
+            ctk.CTkLabel(num_frame, text="A:").grid(row=0, column=4, padx=(0, 5))
+            self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
+            self.context_after_entry.grid(row=0, column=5)
+
+            self.advanced_frame.grid_columnconfigure(1, weight=1)
+
+        def _build_progress_area(self):
+            self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
+            # Starts hidden — shown only during search
+
+            self.status_label = ctk.CTkLabel(
+                self, text="", font=ctk.CTkFont(size=13), anchor="w"
+            )
+            self.status_label.grid(
+                row=5, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="ew"
+            )
+
+        def _build_open_report(self):
+            self.open_report_button = ctk.CTkButton(
+                self,
+                text="Open Report",
+                width=120,
+                command=self.open_report,
+                font=ctk.CTkFont(size=14),
+            )
+            # Starts hidden — shown after successful search
+
+        # ── Actions ──────────────────────────────────────────────
+
+        def toggle_advanced(self):
+            if self.advanced_visible:
+                self.advanced_frame.grid_remove()
+                self.advanced_toggle.configure(text="\u25b6 Advanced Options")
+            else:
+                self.advanced_frame.grid(
+                    row=3, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew"
+                )
+                self.advanced_toggle.configure(text="\u25bc Advanced Options")
+            self.advanced_visible = not self.advanced_visible
+
+        def browse_folder(self):
+            initial = self.folder_entry.get() or os.path.expanduser("~")
+            folder = filedialog.askdirectory(initialdir=initial)
+            if folder:
+                self.folder_entry.delete(0, "end")
+                self.folder_entry.insert(0, folder)
+
+        def start_search(self):
+            if self.process is not None:
+                self.process.terminate()
+                return
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder.")
+                return
+
+            search_text = self.search_entry.get().strip()
+            if not search_text:
+                self._show_error("Please enter one or more search terms.")
+                return
+
+            cmd = _build_command_from_values(
+                search_text=search_text,
+                folder=folder,
+                and_mode=self.and_mode_var.get() == "on",
+                recursive=self.recursive_var.get() == "on",
+                fuzzy=self.fuzzy_var.get() == "on",
+                wildcard=self.wildcard_var.get() == "on",
+                ocr=self.ocr_var.get() == "on",
+                regex=self.regex_var.get() == "on",
+                exclude=self.exclude_entry.get(),
+                file_types=self.file_types_entry.get(),
+                proximity=self.proximity_entry.get(),
+                context_before=self.context_before_entry.get(),
+                context_after=self.context_after_entry.get(),
+            )
+            if cmd is None:
+                self._show_error("Invalid input. Check your search terms and options.")
+                return
+
+            self.results_dir = folder
+            self.search_button.configure(text="Cancel")
+            self.search_entry.configure(state="disabled")
+            self.open_report_button.grid_remove()
+            self.progress_bar.grid(
+                row=4, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            )
+            self.progress_bar.start()
+            self.status_label.configure(text="Searching...", text_color=("gray30", "gray70"))
+            self.search_start_time = time.time()
+            self._start_elapsed_timer()
+
+            self.search_thread = threading.Thread(
+                target=self._run_search, args=(cmd, folder), daemon=True
+            )
+            self.search_thread.start()
+
+        def _start_elapsed_timer(self):
+            self._update_elapsed()
+
+        def _update_elapsed(self):
+            if self.process is None and self.search_start_time is None:
+                return
+            if self.search_start_time is not None:
+                elapsed = time.time() - self.search_start_time
+                self.status_label.configure(text=f"Searching... ({elapsed:.0f}s)")
+            self.elapsed_timer_id = self.after(1000, self._update_elapsed)
+
+        def _run_search(self, cmd, folder):
+            try:
+                self.process = subprocess.Popen(
+                    cmd,
+                    cwd=folder,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
+                stdout, _ = self.process.communicate()
+                returncode = self.process.returncode
+            except Exception:
+                stdout = ""
+                returncode = -1
+            finally:
+                self.process = None
+
+            self.after(0, self._search_finished, stdout, returncode)
+
+        def _search_finished(self, stdout, returncode):
+            self.progress_bar.stop()
+            self.progress_bar.grid_remove()
+            self.search_start_time = None
+            if self.elapsed_timer_id:
+                self.after_cancel(self.elapsed_timer_id)
+                self.elapsed_timer_id = None
+
+            self.search_button.configure(text="Search")
+            self.search_entry.configure(state="normal")
+
+            if returncode == -1:
+                self._show_error("Search process failed to start.")
+                return
+
+            summary = _parse_summary_text(stdout)
+
+            if returncode == 0:
+                self.status_label.configure(
+                    text=summary or "Search complete. Matches found.",
+                    text_color=("gray30", "gray70"),
+                )
+                docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
+                if os.path.exists(docx_path):
+                    self.open_report_button.grid(
+                        row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="e"
+                    )
+            elif returncode == 1:
+                self.status_label.configure(
+                    text=summary or "Search complete. No matches found.",
+                    text_color=("gray30", "gray70"),
+                )
+            elif returncode == 2:
+                error_msg = stdout.strip().split("\n")[-1] if stdout.strip() else "Invalid input."
+                self._show_error(error_msg)
+            else:
+                self.status_label.configure(
+                    text="Search was cancelled.", text_color=("gray30", "gray70")
+                )
+
+        def open_report(self):
+            docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
+            if not os.path.exists(docx_path):
+                self._show_error("Report file not found.")
+                return
+            system = platform.system()
+            if system == "Darwin":
+                subprocess.Popen(["open", docx_path])
+            elif system == "Windows":
+                os.startfile(docx_path)  # type: ignore[attr-defined]
+            else:
+                subprocess.Popen(["xdg-open", docx_path])
+
+        def _show_error(self, message):
+            self.status_label.configure(text=message, text_color="red")
+
+        # ── Mutual exclusion for search modes ────────────────────
+
+        def _on_fuzzy_toggle(self):
+            if self.fuzzy_var.get() == "on":
+                self.regex_var.set("off")
+                self.wildcard_var.set("off")
+
+        def _on_regex_toggle(self):
+            if self.regex_var.get() == "on":
+                self.fuzzy_var.set("off")
+                self.wildcard_var.set("off")
+
+        def _on_wildcard_toggle(self):
+            if self.wildcard_var.get() == "on":
+                self.fuzzy_var.set("off")
+                self.regex_var.set("off")
+
+    app = DocSearchApp()
+    app.mainloop()
+
+
+def main():
+    _launch_gui()
+
+
+if __name__ == "__main__":
+    main()
