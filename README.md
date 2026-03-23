@@ -10,15 +10,16 @@
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
-  - [Steps](#steps)
+  - [Option A: Quick Install with pipx (recommended)](#option-a-quick-install-with-pipx-recommended)
+  - [Option B: Manual Install](#option-b-manual-install)
 - [Quick Start](#quick-start)
 - [GUI Mode](#gui-mode)
 - [Usage](#usage)
-  - [Regex Search](#regex-search)
+  - [Regex search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
 - [Flag Use Summary](#flag-use-summary)
-  - [Command Examples](#command-examples)
   - [Notes](#notes)
+  - [Command Examples](#command-examples)
 - [Output](#output)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Running Tests](#running-tests)
@@ -171,12 +172,35 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
   - **macOS:** Install from [python.org](https://www.python.org/downloads/) or via Homebrew: `brew install python`
   - **Windows:** Install from [python.org](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
   - **Linux:** Usually pre-installed. If not: `sudo apt install python3` (Ubuntu/Debian) or `sudo dnf install python3` (Fedora)
+- **Tkinter** (optional — only needed for the GUI. Included by default on macOS and Windows)
+  - **Linux:** `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora)
 - **Tesseract OCR** (optional — only needed for the `-O` flag, which enables searching scanned PDFs and images)
   - **macOS:** `brew install tesseract`
   - **Windows:** Download installer from [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
   - **Linux:** `sudo apt install tesseract-ocr` (Ubuntu/Debian) or `sudo dnf install tesseract` (Fedora)
 
-### Steps
+### Option A: Quick Install with pipx (recommended)
+
+[pipx](https://pipx.pypa.io/) installs docsearch in its own private workspace automatically — no manual setup needed.
+
+1. Install pipx if you don't have it:
+
+   **macOS:** `brew install pipx && pipx ensurepath`<br>
+   **Windows:** `pip install pipx && pipx ensurepath`<br>
+   **Linux:** `sudo apt install pipx && pipx ensurepath` (Ubuntu/Debian) or `pip install pipx && pipx ensurepath`
+
+   Close and reopen your terminal after running `ensurepath`.
+
+2. Install docsearch:
+   ```bash
+   pipx install git+https://github.com/exbuf/Claude-DocSearch.git
+   ```
+
+That's it. `docsearch` and `docsearch-gui` are now available from any terminal — no activation step, no virtual environment to manage.
+
+### Option B: Manual Install
+
+If you prefer to manage things yourself, or if pipx is not available:
 
 1. Clone the repository (requires [git](https://git-scm.com/downloads)):
    ```bash
@@ -214,7 +238,7 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
 
 ## Quick Start
 
-Open your terminal, navigate to the folder containing your documents, and search:
+Open your terminal (if you used the manual install, activate the workspace first — see [Option B step 2](#option-b-manual-install)), navigate to the folder containing your documents, and search:
 
 ```bash
 cd /path/to/your/documents
@@ -238,7 +262,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for 80 more combinations.
+See the [Command Examples](#command-examples) table for over 80 more combinations.
 
 ## GUI Mode
 
@@ -246,7 +270,7 @@ If you prefer pointing and clicking over typing commands, docsearch has a graphi
 
 **How to open it:**
 
-You still need to open a terminal once to launch the GUI. Activate the workspace first (see [Installation step 2](#steps)), then type:
+You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the workspace first (see [Option B step 2](#option-b-manual-install)). Then type:
 
 ```bash
 docsearch-gui
@@ -267,7 +291,7 @@ Click "Advanced Options" to expand a panel with additional settings — AND mode
 
 ## Usage
 
-Each time you open a new terminal, activate docsearch first by running the activate command from [Installation step 2](#steps) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
+If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the workspace first each time you open a new terminal (see [Option B step 2](#option-b-manual-install)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Regex search
 
@@ -615,6 +639,8 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Settings flag** (`--config`) — manage *saved settings*
 
 ## Running Tests
+
+Running tests requires the cloned repository (see [Option B](#option-b-manual-install)). From the project folder:
 
 ```bash
 source venv/bin/activate
