@@ -131,7 +131,11 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - Disk space requirements do not include user documents or search output files
 - No internet connection required — docsearch runs entirely offline
 - No database required — the only optional extra software is Tesseract, needed only for OCR (the `-O` flag)
-- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. To open it, navigate to that folder in your file manager — Finder on Mac, File Explorer on Windows, or Files on Linux — and double-click the file. It will automatically open in your default word processor. The `.txt` report can be opened on any computer with no additional software
+- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. You can double-click it in your file manager (Finder on Mac, File Explorer on Windows, Files on Linux) or open it directly from the terminal:
+  - **macOS:** `open docsearch_results.docx`
+  - **Windows:** `start docsearch_results.docx`
+  - **Linux:** `xdg-open docsearch_results.docx`
+- The `.txt` report can be opened on any computer with no additional software
 
 ## Saved Settings (Optional)
 
