@@ -3,7 +3,6 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Quick Start](#quick-start)
 - [Features](#features)
   - [Supported File Types](#supported-file-types)
 - [Benefits and Applications](#benefits-and-applications)
@@ -12,6 +11,7 @@
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
+- [Quick Start](#quick-start)
 - [Usage](#usage)
   - [Regex Search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
@@ -35,28 +35,6 @@ Then it hit me: with Claude Code, I could build the search tool myself.
 So what began as a weekend project took on a life of its own. I kept thinking "what if it could also do this?" and before long, docsearch had grown into something far more capable than I originally imagined. It searches across PDFs, Word docs, spreadsheets, and text files. It supports regex patterns. It works entirely offline, keeping your data private.
 
 I built docsearch for myself, but I'm sharing it because I suspect I'm not the only one drowning in years of documents. If that sounds familiar, I hope this tool helps you as much as it's helped me.
-
-## Quick Start
-
-After [installation](#installation), open your terminal, navigate to the folder containing your documents, and search:
-
-```bash
-cd /path/to/your/documents
-docsearch budget
-```
-
-That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`.
-
-A few more examples to try:
-
-```bash
-docsearch budget revenue              # find files containing "budget" OR "revenue"
-docsearch -a budget revenue           # find files containing both terms
-docsearch -r budget                   # search subdirectories too
-docsearch -t pdf,docx budget          # search only PDFs and Word docs
-```
-
-See the [Command Examples](#command-examples) table for 56 more combinations.
 
 ## Features
 
@@ -227,6 +205,28 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
    ```bash
    pip install -e .
    ```
+
+## Quick Start
+
+Open your terminal, navigate to the folder containing your documents, and search:
+
+```bash
+cd /path/to/your/documents
+docsearch budget
+```
+
+That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`.
+
+A few more examples to try:
+
+```bash
+docsearch budget revenue              # find files containing "budget" OR "revenue"
+docsearch -a budget revenue           # find files containing both terms
+docsearch -r budget                   # search subdirectories too
+docsearch -t pdf,docx budget          # search only PDFs and Word docs
+```
+
+See the [Command Examples](#command-examples) table for 56 more combinations.
 
 ## Usage
 
