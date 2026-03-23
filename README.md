@@ -194,7 +194,7 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
    ```
    **Don't have git?** Click the green **Code** button on the [GitHub page](https://github.com/exbuf/Claude-DocSearch), select **Download ZIP**, extract it, and open the extracted folder in your terminal.
 
-2. Create and activate a virtual environment:
+2. Set up a private workspace for docsearch (called a "virtual environment" — this keeps docsearch's files separate from the rest of your computer so nothing conflicts):
 
    **macOS/Linux (Terminal):**
    ```bash
@@ -213,6 +213,8 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
    python -m venv venv
    venv\Scripts\Activate.ps1
    ```
+
+   After running the activate command, you'll notice `(venv)` appear at the beginning of your command line. This is normal — it just means docsearch is ready to use. If you close your terminal and open it later, you won't see `(venv)` anymore. Just navigate back to the Claude-DocSearch folder and run the activate command again (step 2 above) before using docsearch.
 
 3. Install the package:
    ```bash
