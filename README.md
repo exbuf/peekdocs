@@ -26,7 +26,7 @@
 
 ## Introduction
 
-docsearch finds text across 25 file types — PDFs, Word docs, spreadsheets, presentations, e-books, and more — entirely offline. It supports plain text and regex patterns, AND/OR logic, proximity search, context lines, and saves highlighted results to both `.txt` and `.docx` files.
+docsearch is a fast, offline search tool that scans 25 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), and context lines to see surrounding text for every hit. Results are highlighted in the terminal and saved to `.txt` and `.docx` files for easy review and sharing. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I built it because I had hundreds of documents backed up from Google Docs and scattered across folders, with no way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
