@@ -184,7 +184,7 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
 
 [pipx](https://pipx.pypa.io/) installs docsearch in its own private workspace automatically — no manual setup needed.
 
-1. Install pipx if you don't have it:
+1. Install pipx if you don't have it (check by running `pipx --version`):
 
    **macOS:** `brew install pipx && pipx ensurepath`<br>
    **Windows:** `pip install pipx && pipx ensurepath`<br>
