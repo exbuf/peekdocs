@@ -32,26 +32,19 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 
 ## Features
 
-- Searches all files in the active directory/subdirectories. Or, with the -t flag, you can focus your search on specific file types and ignore the rest. See table for supported file types.
+- Searches all files in the current folder (and subfolders with `-r`). Use `-t` to focus on specific file types. See table for supported file types.
 - Rich set of flags for controlling docsearch behavior. See Flag summary table below.
 - Case-insensitive matching
-- Supports multiple search terms with OR logic (finds any match) by default
-- Example: `docsearch term1 term2 term3` // any term must appear in the paragraph
-- For AND logic (where all search terms must appear in the same paragraph) use the `-a` flag
-- Example: `docsearch -a term1 term2 term3`   // all terms must appear in the paragraph
-- Proximity search with `-p` flag finds terms within N words of each other
-- Example: `docsearch -p 5 budget revenue`   // terms must appear within 5 words
+- Multiple search terms use OR logic (finds any match) by default: `docsearch term1 term2 term3`
+- For AND logic (all terms must appear in the same paragraph) use `-a`: `docsearch -a term1 term2 term3`
+- Proximity search with `-p` finds terms within N words of each other: `docsearch -p 5 budget revenue`
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
-- Highlights matched terms with `**` markers in `.txt` output and yellow highlighting in `.docx` output, with search terms highlighted in green in the `.docx` header
-- Results include document name, file directory path, line number, and matched text
-- Timestamped output file
-- Generates both `docsearch_results.txt` and `docsearch_results.docx`
+- Each match includes document name, folder path, line number, and matched text
+- Generates timestamped `docsearch_results.txt` and `docsearch_results.docx` reports
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
-- Save search results with `-s` flag — copies results to named files prefixed with `DO_NOT_SEARCH_` so they won't be included in future searches
-- Auto-append search results with `-sa` flag — runs the search and automatically appends results to a named `DO_NOT_SEARCH_ACCUMULATED_` file, allowing you to accumulate results from multiple searches
-- Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
+- Save or accumulate results with `-s` and `-sa` flags — saved files are automatically prefixed with `DO_NOT_SEARCH` so they're never re-searched
 - Multiprocessing with `-c N` flag — uses multiple CPU cores to search files in parallel, speeding up large searches. Defaults to half of available cores to keep your machine responsive
 - OCR support with `-O` flag — extracts text from scanned PDFs and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp) using Optical Character Recognition. Requires Tesseract (see [Installation](#installation))
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
@@ -129,12 +122,8 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 - More CPU cores improve performance when searching large numbers of files
 - Disk space requirements do not include user documents or search output files
-- No internet connection required — docsearch runs entirely offline
 - No database required — the only optional extra software is Tesseract, needed only for OCR (the `-O` flag)
-- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. You can double-click it in your file manager (Finder on Mac, File Explorer on Windows, Files on Linux) or open it directly from the terminal:
-  - **macOS:** `open docsearch_results.docx`
-  - **Windows:** `start docsearch_results.docx`
-  - **Linux:** `xdg-open docsearch_results.docx`
+- To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). See [Quick Start](#quick-start) for how to open it
 - The `.txt` report can be opened on any computer with no additional software
 
 ## Saved Settings (Optional)
@@ -251,27 +240,7 @@ See the [Command Examples](#command-examples) table for 80 more combinations.
 
 ## Usage
 
-First, activate the virtual environment:
-
-**macOS/Linux (Terminal):**
-```bash
-cd /path/to/Claude-DocSearch
-source venv/bin/activate
-```
-
-**Windows (Command Prompt):**
-```cmd
-cd \path\to\Claude-DocSearch
-venv\Scripts\activate
-```
-
-**Windows (PowerShell):**
-```powershell
-cd \path\to\Claude-DocSearch
-venv\Scripts\Activate.ps1
-```
-
-Then navigate to the directory containing your document files and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
+Each time you open a new terminal, activate docsearch first by running the activate command from [Installation step 2](#steps) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Regex search
 
@@ -608,9 +577,6 @@ No — docsearch only reads your files. It never changes, moves, or deletes them
 
 **Is the search case-sensitive?**
 No — all searches are case-insensitive by default.
-
-**What happens if a file is corrupt or unreadable?**
-docsearch skips it with a warning and continues searching the remaining files.
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
