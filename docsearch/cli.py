@@ -46,6 +46,8 @@ RESET = "\033[0m"
 
 SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"}
 
+OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
+
 BANNER_TOP = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
     'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
@@ -55,6 +57,7 @@ BANNER_TOP = (
     'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
+    'Use option flag -O to enable OCR for scanned PDFs and images. Example: docsearch -O budget\n'
     'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue'
 )
 
@@ -126,7 +129,7 @@ def _default_cores():
     return max(1, cpu // 2)
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after"}
 CONFIG_STR_KEYS = {"file_types"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -180,6 +183,12 @@ def _save_config(settings):
                 f.write(f"{key} = {value}\n")
 
 
+def _ocr_image(image):
+    """Run OCR on a PIL Image and return extracted text."""
+    import pytesseract
+    return pytesseract.image_to_string(image)
+
+
 def _process_file(args_tuple):
     """Process a single file and return (matches, skipped) for that file."""
     filepath, config = args_tuple
@@ -192,6 +201,7 @@ def _process_file(args_tuple):
     use_context = config["use_context"]
     context_before = config["context_before"]
     context_after = config["context_after"]
+    use_ocr = config.get("use_ocr", False)
 
     def _proximity_match(text):
         """Return True if all search terms appear within 'proximity' words of each other."""
@@ -280,7 +290,13 @@ def _process_file(args_tuple):
             doc = fitz.open(filepath)
             for page_num, page in enumerate(doc, start=1):
                 text = page.get_text()
-                if not text:
+                if use_ocr and len((text or "").strip()) < 10:
+                    import io
+                    from PIL import Image
+                    pix = page.get_pixmap(dpi=300)
+                    img = Image.open(io.BytesIO(pix.tobytes("png")))
+                    text = _ocr_image(img)
+                if not text or not text.strip():
                     continue
                 page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
                 if use_context:
@@ -416,6 +432,14 @@ def _process_file(args_tuple):
                             matches.append((file_dir, filename, row_num, row_text))
             wb.close()
 
+        elif ext in OCR_IMAGE_TYPES:
+            from PIL import Image
+            img = Image.open(filepath)
+            text = _ocr_image(img)
+            if text and text.strip():
+                all_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1) if line.strip()]
+                collect_matches(all_lines, file_dir, filename)
+
     except Exception as e:
         skipped.append((filename, str(e)))
 
@@ -547,6 +571,20 @@ def main(argv=None):
     recursive = "-r" in args or config.get("recursive", False)
     use_regex = "-x" in args or config.get("regex", False)
 
+    use_ocr = "-O" in args or "--ocr" in args or config.get("ocr", False)
+    if "-O" in args:
+        args.remove("-O")
+    if "--ocr" in args:
+        args.remove("--ocr")
+
+    if use_ocr and not shutil.which("tesseract"):
+        print("Tesseract OCR is not installed. The -O flag requires Tesseract.\n")
+        print("Install Tesseract:")
+        print("  macOS:   brew install tesseract")
+        print("  Ubuntu:  sudo apt install tesseract-ocr")
+        print("  Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki\n")
+        return 2
+
     file_types = None
     if "-t" in args:
         idx = args.index("-t")
@@ -555,19 +593,24 @@ def main(argv=None):
             return 2
         raw_types = args[idx + 1].split(",")
         file_types = set()
+        valid_types = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
         for t in raw_types:
             ext = "." + t.strip().lower().lstrip(".")
-            if ext not in SUPPORTED_TYPES:
-                print(f"Unsupported file type: {t.strip()}. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
+            if ext not in valid_types:
+                supported_list = "docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql"
+                if use_ocr:
+                    supported_list += ", jpg, jpeg, png, tiff, tif, bmp"
+                print(f"Unsupported file type: {t.strip()}. Supported types: {supported_list}\n")
                 return 2
             file_types.add(ext)
         args = args[:idx] + args[idx + 2:]
     elif "file_types" in config:
         raw_types = config["file_types"].split(",")
         file_types = set()
+        valid_types = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
         for t in raw_types:
             ext = "." + t.strip().lower().lstrip(".")
-            if ext in SUPPORTED_TYPES:
+            if ext in valid_types:
                 file_types.add(ext)
 
     file_names = None
@@ -577,10 +620,14 @@ def main(argv=None):
             print("No file names provided. Usage: docsearch -f report.pdf,notes.txt search_term\n")
             return 2
         file_names = [n.strip() for n in args[idx + 1].split(",")]
+        valid_types_f = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
         for n in file_names:
             ext = os.path.splitext(n)[1].lower()
-            if ext not in SUPPORTED_TYPES:
-                print(f"Unsupported file type in '{n}'. Supported types: docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql\n")
+            if ext not in valid_types_f:
+                supported_list = "docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql"
+                if use_ocr:
+                    supported_list += ", jpg, jpeg, png, tiff, tif, bmp"
+                print(f"Unsupported file type in '{n}'. Supported types: {supported_list}\n")
                 return 2
         args = args[:idx] + args[idx + 2:]
 
@@ -689,6 +736,8 @@ def main(argv=None):
         mode = "AND"
     else:
         mode = "OR"
+    if use_ocr:
+        mode += "+OCR"
     command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
     print(command_str)
     print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
@@ -736,8 +785,18 @@ def main(argv=None):
     ini_files = sorted(glob.glob(glob_prefix + ".ini", recursive=recursive))
     cfg_files = sorted(glob.glob(glob_prefix + ".cfg", recursive=recursive))
     sql_files = sorted(glob.glob(glob_prefix + ".sql", recursive=recursive))
+    if use_ocr:
+        jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
+        jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
+        png_files = sorted(glob.glob(glob_prefix + ".png", recursive=recursive))
+        tiff_files = sorted(glob.glob(glob_prefix + ".tiff", recursive=recursive))
+        tif_files = sorted(glob.glob(glob_prefix + ".tif", recursive=recursive))
+        bmp_files = sorted(glob.glob(glob_prefix + ".bmp", recursive=recursive))
+        image_files = jpg_files + jpeg_files + png_files + tiff_files + tif_files + bmp_files
+    else:
+        image_files = []
     all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files
+        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
@@ -763,6 +822,7 @@ def main(argv=None):
         "use_context": use_context,
         "context_before": context_before,
         "context_after": context_after,
+        "use_ocr": use_ocr,
     }
 
     matches = []
@@ -874,6 +934,8 @@ def main(argv=None):
         f.write("Supported file types:\n")
         f.write(".cfg, .csv, .docx, .epub, .html, .ini, .json, .log, .md, .ods, .odp, .odt, .pdf, .pptx, .rst,\n")
         f.write(".rtf, .sql, .tex, .toml, .tsv, .txt, .xlsx, .xml, .yaml, .yml\n")
+        if use_ocr:
+            f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         if use_regex and match_all:
             report_mode = "REGEX+AND"

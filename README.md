@@ -26,7 +26,7 @@
 
 ## Introduction
 
-docsearch is a fast, offline search tool that scans 25 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), and context lines to see surrounding text for every hit. Results are highlighted in the terminal and saved to `.txt` and `.docx` files for easy review and sharing. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 25+ file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are highlighted in the terminal and saved to `.txt` and `.docx` files for easy review and sharing. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I built it because I had hundreds of documents backed up from Google Docs and scattered across folders, with no way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -53,6 +53,7 @@ I built it because I had hundreds of documents backed up from Google Docs and sc
 - Auto-append search results with `-sa` flag — runs the search and automatically appends results to a named `DO_NOT_SEARCH_ACCUMULATED_` file, allowing you to accumulate results from multiple searches
 - Files with `DO_NOT_SEARCH` in the name are automatically skipped during searches
 - Multiprocessing with `-c N` flag — uses multiple CPU cores to search files in parallel, speeding up large searches. Defaults to half of available cores to keep your machine responsive
+- OCR support with `-O` flag — extracts text from scanned PDFs and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp) using Optical Character Recognition. Requires Tesseract (see [Installation](#installation))
 
 ### Supported File Types
 
@@ -60,24 +61,28 @@ All file types can exist in the same folder — no need to separate them into di
 
 | File Type | Description |
 |-----------|-------------|
+| `.bmp` | Bitmap image (requires `-O` flag) |
 | `.cfg` | Configuration file |
 | `.csv` | Comma-separated values |
 | `.docx` | Microsoft Word document |
 | `.epub` | E-book (EPUB format) |
 | `.html` | HTML web page |
 | `.ini` | INI configuration file |
+| `.jpg` / `.jpeg` | JPEG image (requires `-O` flag) |
 | `.json` | JSON data file |
 | `.log` | Log file |
 | `.md` | Markdown document |
 | `.odp` | OpenDocument Presentation (LibreOffice Impress) |
 | `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
 | `.odt` | OpenDocument Text (LibreOffice Writer) |
-| `.pdf` | PDF document |
+| `.pdf` | PDF document (scanned PDFs require `-O` flag) |
+| `.png` | PNG image (requires `-O` flag) |
 | `.pptx` | Microsoft PowerPoint presentation |
 | `.rst` | reStructuredText document |
 | `.rtf` | Rich Text Format document |
 | `.sql` | SQL script |
 | `.tex` | LaTeX document |
+| `.tiff` / `.tif` | TIFF image (requires `-O` flag) |
 | `.toml` | TOML configuration file |
 | `.tsv` | Tab-separated values |
 | `.txt` | Plain text file |
@@ -90,7 +95,7 @@ All file types can exist in the same folder — no need to separate them into di
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
 - **Work offline** — search your files without an internet connection, useful for travel or unreliable connectivity
-- **Search across formats** — find information across PDFs, Word docs, presentations, spreadsheets, e-books, RTF, Markdown, JSON, XML, YAML, TOML, LaTeX, reStructuredText, SQL, config files, log files, and text files in one place
+- **Search across formats** — find information across PDFs, Word docs, presentations, spreadsheets, e-books, RTF, Markdown, JSON, XML, YAML, TOML, LaTeX, reStructuredText, SQL, config files, log files, text files, and scanned images in one place
 - **Build a personal knowledge base** — writers, students, and researchers can search years of notes, clippings, and drafts instantly
 - **Preserve family and personal records** — genealogy notes, old letters, scanned documents, decades of personal history made searchable
 - **Support professional work** — lawyers, consultants, and others with years of case files or client notes can quickly find precedents or past work
@@ -122,7 +127,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 - More CPU cores improve performance when searching large numbers of files
 - Disk space requirements do not include user documents or search output files
 - No internet connection required — docsearch runs entirely offline
-- No database or additional software installation needed
+- No database required — the only optional extra software is Tesseract, needed only for OCR (the `-O` flag)
 - To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). The report file (`docsearch_results.docx`) is saved in the same folder where you ran docsearch. To open it, navigate to that folder in your file manager — Finder on Mac, File Explorer on Windows, or Files on Linux — and double-click the file. It will automatically open in your default word processor. The `.txt` report can be opened on any computer with no additional software
 
 ## Saved Settings (Optional)
@@ -151,7 +156,8 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `cores` | number | `-c N` | half of available CPU cores |
 | `context_before` | number | `-B N` | 0 (no lines before match) |
 | `context_after` | number | `-A N` | 0 (no lines after match) |
-| `file_types` | comma-separated | `-t` | all 25 supported types |
+| `ocr` | true/false | `-O` | false (no OCR) |
+| `file_types` | comma-separated | `-t` | all supported types |
 
 If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
 
@@ -165,6 +171,10 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
   - **macOS:** Install from [python.org](https://www.python.org/downloads/) or via Homebrew: `brew install python`
   - **Windows:** Install from [python.org](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
   - **Linux:** Usually pre-installed. If not: `sudo apt install python3` (Ubuntu/Debian) or `sudo dnf install python3` (Fedora)
+- **Tesseract OCR** (optional — only needed for the `-O` flag, which enables searching scanned PDFs and images)
+  - **macOS:** `brew install tesseract`
+  - **Windows:** Download installer from [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
+  - **Linux:** `sudo apt install tesseract-ocr` (Ubuntu/Debian) or `sudo dnf install tesseract` (Fedora)
 
 ### Steps
 
@@ -220,7 +230,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for 56 more combinations.
+See the [Command Examples](#command-examples) table for 62 more combinations.
 
 ## Usage
 
@@ -277,13 +287,14 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has thirteen flags that can be mixed and matched:
+docsearch has fourteen flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` (all) | AND logic — all terms must appear in the same paragraph |
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
+| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
 | `-r` (recursive) | Search subdirectories recursively |
@@ -314,6 +325,9 @@ docsearch has thirteen flags that can be mixed and matched:
 - `-c` always needs its core count immediately after it (e.g., `-c 4`)
 - `-c` defaults to half of available CPU cores when not specified
 - For small numbers of files (fewer than 10), single-threaded mode is used automatically regardless of `-c`
+- `-O` requires Tesseract to be installed on your system (see [Installation](#installation))
+- `-O` enables OCR for PDF pages that have no extractable text and adds image file types (.jpg, .jpeg, .png, .tiff, .tif, .bmp) to the search
+- `-O` makes searches slower — only use it when you need to search scanned or image-based documents
 
 ### Command Examples
 
@@ -379,15 +393,22 @@ docsearch has thirteen flags that can be mixed and matched:
 | | **Quiet Mode** | |
 | 48 | Suppress banner | `docsearch -q budget` |
 | 49 | Quiet with recursive search | `docsearch -q -r budget` |
+| | **OCR Searches** | |
+| 50 | Search scanned PDFs and images | `docsearch -O budget` |
+| 51 | OCR with file type filter | `docsearch -O -t pdf budget` |
+| 52 | Search only image files | `docsearch -O -t jpg,png budget` |
+| 53 | OCR with recursive search | `docsearch -O -r budget` |
+| 54 | OCR with AND logic | `docsearch -O -a budget revenue` |
+| 55 | OCR with context lines | `docsearch -O -B 3 -A 3 budget` |
 | | **Saved Settings** | |
-| 50 | View saved settings | `docsearch --config` |
-| 51 | Save a setting | `docsearch --config recursive=true` |
-| 52 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 53 | Remove a saved setting | `docsearch --config recursive=` |
+| 56 | View saved settings | `docsearch --config` |
+| 57 | Save a setting | `docsearch --config recursive=true` |
+| 58 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 59 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Version and Help** | |
-| 54 | Show version | `docsearch -v` |
-| 55 | Show help | `docsearch -h` |
-| 56 | Show help (no arguments) | `docsearch` |
+| 60 | Show version | `docsearch -v` |
+| 61 | Show help | `docsearch -h` |
+| 62 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -469,6 +490,10 @@ Yes — use the `-sa` flag.<br>
 Example: `docsearch -sa my_report budget revenue`<br>
 Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time. The accumulated file is never re-searched because of its `DO_NOT_SEARCH` prefix.
 
+**Can I search scanned PDFs or images?**
+Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [Installation](#installation) section for instructions. OCR is slower than regular text search, so it's opt-in.<br>
+Example: `docsearch -O budget`
+
 **Can I use regex patterns?**
 Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
 Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
@@ -520,7 +545,7 @@ docsearch skips it with a warning and continues searching the remaining files.
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
-- **Search flags** (`-a`, `-x`, `-p`) — control *how* to match
+- **Search flags** (`-a`, `-x`, `-p`, `-O`) — control *how* to match
 - **Filter flags** (`-t`, `-f`, `-r`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results

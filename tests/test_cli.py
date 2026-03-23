@@ -8,7 +8,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER_TOP, HIGHLIGHT, RESET, SUPPORTED_TYPES, VERSION, main
+from docsearch.cli import BANNER_TOP, HIGHLIGHT, OCR_IMAGE_TYPES, RESET, SUPPORTED_TYPES, VERSION, main
 
 
 @pytest.fixture(autouse=True)
@@ -1322,3 +1322,150 @@ def test_config_flag_invalid_key(tmp_path, monkeypatch, capsys):
 
     assert result == 2
     assert "Unknown setting: badkey" in captured.out
+
+
+# --- OCR tests ---
+
+
+def test_ocr_no_tesseract(tmp_path, monkeypatch, capsys):
+    """Using -O without Tesseract installed prints install instructions."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: None)
+    (tmp_path / "doc.txt").write_text("hello world")
+    result = main(["-O", "hello"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Tesseract OCR is not installed" in captured.out
+    assert "brew install tesseract" in captured.out
+
+
+def test_ocr_scanned_pdf(tmp_path, monkeypatch, capsys):
+    """Scanned PDF page (no extractable text) gets OCR'd when -O is used."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
+
+    # Create a PDF with no text (simulates a scanned page)
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.output(str(tmp_path / "scanned.pdf"))
+
+    import docsearch.cli as cli_module
+    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report for Q1\nTotal revenue increased")
+
+    result = main(["-O", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "scanned.pdf" in content
+    assert "Budget" in content
+
+
+def test_ocr_image_jpg(tmp_path, monkeypatch, capsys):
+    """JPG image file is searched via OCR when -O is used."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
+
+    from PIL import Image as PILImage
+    img = PILImage.new("RGB", (100, 100), "white")
+    img.save(str(tmp_path / "scan.jpg"))
+
+    import docsearch.cli as cli_module
+    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report for Q1")
+
+    result = main(["-O", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "scan.jpg" in content
+
+
+def test_ocr_image_png(tmp_path, monkeypatch, capsys):
+    """PNG image file is searched via OCR when -O is used."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
+
+    from PIL import Image as PILImage
+    img = PILImage.new("RGB", (100, 100), "white")
+    img.save(str(tmp_path / "scan.png"))
+
+    import docsearch.cli as cli_module
+    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Invoice total amount due")
+
+    result = main(["-O", "invoice"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "scan.png" in content
+
+
+def test_ocr_images_ignored_without_flag(tmp_path, monkeypatch, capsys):
+    """Image files are not discovered without the -O flag."""
+    monkeypatch.chdir(tmp_path)
+
+    from PIL import Image as PILImage
+    img = PILImage.new("RGB", (100, 100), "white")
+    img.save(str(tmp_path / "photo.jpg"))
+    img.save(str(tmp_path / "photo.png"))
+
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert "Files searched: 0" in captured.out
+    # Verify image files were not found in results
+    results = (tmp_path / "docsearch_results.txt").read_text()
+    assert "photo.jpg" not in results
+    assert "photo.png" not in results
+
+
+def test_ocr_normal_pdf_skips_ocr(tmp_path, monkeypatch, capsys):
+    """PDF with real text does NOT trigger OCR even with -O."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
+
+    # Create a PDF with real text
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+    pdf.cell(text="Budget report for Q1")
+    pdf.output(str(tmp_path / "normal.pdf"))
+
+    import docsearch.cli as cli_module
+
+    def fail_ocr(img):
+        raise RuntimeError("OCR should not be called for normal PDF")
+
+    monkeypatch.setattr(cli_module, "_ocr_image", fail_ocr)
+
+    result = main(["-O", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_ocr_config_setting(tmp_path, monkeypatch, capsys):
+    """ocr=true in config activates OCR without the -O flag."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
+
+    config_file = tmp_path / ".docsearchrc"
+    config_file.write_text("ocr = true\n")
+
+    from PIL import Image as PILImage
+    img = PILImage.new("RGB", (100, 100), "white")
+    img.save(str(tmp_path / "scan.png"))
+
+    import docsearch.cli as cli_module
+    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report")
+
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "scan.png" in content
