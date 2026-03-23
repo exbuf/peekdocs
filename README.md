@@ -172,7 +172,8 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
   - **macOS:** Install from [python.org](https://www.python.org/downloads/) or via Homebrew: `brew install python`
   - **Windows:** Install from [python.org](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
   - **Linux:** Usually pre-installed. If not: `sudo apt install python3` (Ubuntu/Debian) or `sudo dnf install python3` (Fedora)
-- **Tkinter** (optional — only needed for the GUI. Included by default on macOS and Windows)
+- **Tkinter** (optional — only needed for the GUI. Included by default on Windows and macOS from python.org)
+  - **macOS (Homebrew):** `brew install python-tk@3.13` (adjust version to match your Python)
   - **Linux:** `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora)
 - **Tesseract OCR** (optional — only needed for the `-O` flag, which enables searching scanned PDFs and images)
   - **macOS:** `brew install tesseract`
