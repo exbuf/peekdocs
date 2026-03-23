@@ -8,7 +8,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
 
-from docsearch.cli import BANNER_TOP, HIGHLIGHT, OCR_IMAGE_TYPES, RESET, SUPPORTED_TYPES, VERSION, main
+from docsearch.cli import BANNER_TOP, FUZZY_THRESHOLD, HIGHLIGHT, OCR_IMAGE_TYPES, RESET, SUPPORTED_TYPES, VERSION, main
 
 
 @pytest.fixture(autouse=True)
@@ -1469,3 +1469,114 @@ def test_ocr_config_setting(tmp_path, monkeypatch, capsys):
     assert result == 0
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "scan.png" in content
+
+
+# --- Fuzzy search tests ---
+
+
+def test_search_fuzzy_match(tmp_path, monkeypatch, capsys):
+    """With -z flag, approximate matches are found."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt for this quarter was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-z", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "**budgt**" in content
+
+
+def test_search_fuzzy_no_match(tmp_path, monkeypatch, capsys):
+    """With -z flag, words too dissimilar don't match."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The elephant walked slowly\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-z", "budget"])
+    captured = capsys.readouterr()
+
+    assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
+
+
+def test_search_fuzzy_exact_still_matches(tmp_path, monkeypatch, capsys):
+    """With -z flag, exact matches still work."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-z", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_fuzzy_with_and(tmp_path, monkeypatch, capsys):
+    """Fuzzy + AND: both fuzzy terms must appear in same line."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt and revnue report\nOnly budgt here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-z", "-a", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "FUZZY" in content
+
+
+def test_search_fuzzy_with_regex_error(tmp_path, monkeypatch, capsys):
+    """Fuzzy + regex is an error."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "doc.txt").write_text("hello")
+    result = main(["-z", "-x", "hello"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine fuzzy (-z) and regex (-x)" in captured.out
+
+
+def test_search_fuzzy_with_proximity(tmp_path, monkeypatch, capsys):
+    """Fuzzy + proximity: fuzzy terms within N words match."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt for revnue growth was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-z", "-p", "3", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_fuzzy_mode_string(tmp_path, monkeypatch, capsys):
+    """Mode string includes FUZZY."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-z", "budget"])
+    captured = capsys.readouterr()
+
+    assert "OR+FUZZY" in captured.out
+
+
+def test_search_fuzzy_config(tmp_path, monkeypatch, capsys):
+    """fuzzy=true in config enables fuzzy by default."""
+    rc = tmp_path / ".docsearchrc"
+    rc.write_text("fuzzy = true\n")
+
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "FUZZY" in captured.out

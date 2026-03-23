@@ -48,6 +48,8 @@ SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".
 
 OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
 
+FUZZY_THRESHOLD = 80
+
 BANNER_TOP = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
     'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
@@ -68,6 +70,7 @@ BANNER_BOTTOM = (
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
+    'Use option flag -z for fuzzy matching (approximate matches, typo-tolerant). Example: docsearch -z budgt\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
     'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
 )
@@ -129,7 +132,7 @@ def _default_cores():
     return max(1, cpu // 2)
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after"}
 CONFIG_STR_KEYS = {"file_types"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -202,6 +205,19 @@ def _process_file(args_tuple):
     context_before = config["context_before"]
     context_after = config["context_after"]
     use_ocr = config.get("use_ocr", False)
+    use_fuzzy = config.get("use_fuzzy", False)
+    if use_fuzzy:
+        from rapidfuzz import fuzz
+
+    def _fuzzy_word_match(text, term):
+        """Return the first word in text that fuzzy-matches term, or None."""
+        for word in re.findall(r'\S+', text):
+            clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
+            if not clean:
+                continue
+            if fuzz.ratio(term.lower(), clean.lower()) >= FUZZY_THRESHOLD:
+                return word
+        return None
 
     def _proximity_match(text):
         """Return True if all search terms appear within 'proximity' words of each other."""
@@ -213,6 +229,11 @@ def _process_file(args_tuple):
             if use_regex:
                 for i, word in enumerate(words):
                     if re.search(term, word, re.IGNORECASE):
+                        positions.append(i)
+            elif use_fuzzy:
+                for i, word in enumerate(words):
+                    clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
+                    if clean and fuzz.ratio(term_lower, clean) >= FUZZY_THRESHOLD:
                         positions.append(i)
             else:
                 for i, word in enumerate(words):
@@ -233,6 +254,10 @@ def _process_file(args_tuple):
             if use_proximity:
                 return _proximity_match(text)
             return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
+        if use_fuzzy:
+            if use_proximity:
+                return _proximity_match(text)
+            return check(_fuzzy_word_match(text, term) is not None for term in search_terms)
         text_lower = text.lower()
         if not check(term.lower() in text_lower for term in search_terms):
             return False
@@ -242,6 +267,18 @@ def _process_file(args_tuple):
 
     def highlight_text(text):
         """Apply ** highlighting around matched search terms."""
+        if use_fuzzy:
+            highlighted = text
+            for term in search_terms:
+                result_words = []
+                for word in highlighted.split():
+                    clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
+                    if clean and fuzz.ratio(term.lower(), clean.lower()) >= FUZZY_THRESHOLD:
+                        result_words.append(f"**{word}**")
+                    else:
+                        result_words.append(word)
+                highlighted = " ".join(result_words)
+            return highlighted
         highlighted = text
         for term in search_terms:
             pattern = term if use_regex else re.escape(term)
@@ -274,7 +311,10 @@ def _process_file(args_tuple):
         else:
             for line_num, text in all_lines:
                 if text_matches(text):
-                    matches.append((file_dir, filename, line_num, text))
+                    if use_fuzzy:
+                        matches.append((file_dir, filename, line_num, highlight_text(text)))
+                    else:
+                        matches.append((file_dir, filename, line_num, text))
 
     file_dir = os.path.dirname(filepath)
     filename = os.path.basename(filepath)
@@ -308,7 +348,10 @@ def _process_file(args_tuple):
                 else:
                     for line_num, line in page_lines:
                         if text_matches(line):
-                            matches.append((file_dir, filename, page_num, line))
+                            if use_fuzzy:
+                                matches.append((file_dir, filename, page_num, highlight_text(line)))
+                            else:
+                                matches.append((file_dir, filename, page_num, line))
             doc.close()
 
         elif ext == ".csv":
@@ -392,7 +435,10 @@ def _process_file(args_tuple):
             else:
                 for line_num, text in all_lines:
                     if text and text_matches(text):
-                        matches.append((file_dir, filename, line_num, text))
+                        if use_fuzzy:
+                            matches.append((file_dir, filename, line_num, highlight_text(text)))
+                        else:
+                            matches.append((file_dir, filename, line_num, text))
 
         elif ext == ".pptx":
             prs = PptxPresentation(filepath)
@@ -429,7 +475,10 @@ def _process_file(args_tuple):
                 else:
                     for row_num, row_text in sheet_lines:
                         if row_text and text_matches(row_text):
-                            matches.append((file_dir, filename, row_num, row_text))
+                            if use_fuzzy:
+                                matches.append((file_dir, filename, row_num, highlight_text(row_text)))
+                            else:
+                                matches.append((file_dir, filename, row_num, row_text))
             wb.close()
 
         elif ext in OCR_IMAGE_TYPES:
@@ -585,6 +634,14 @@ def main(argv=None):
         print("  Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki\n")
         return 2
 
+    use_fuzzy = "-z" in args or config.get("fuzzy", False)
+    if "-z" in args:
+        args.remove("-z")
+
+    if use_fuzzy and use_regex:
+        print("Cannot combine fuzzy (-z) and regex (-x) search modes.\n")
+        return 2
+
     file_types = None
     if "-t" in args:
         idx = args.index("-t")
@@ -710,7 +767,7 @@ def main(argv=None):
 
     use_context = context_before > 0 or context_after > 0
 
-    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x")]
+    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z")]
 
     if not search_terms:
         print("No search terms provided.\n")
@@ -736,6 +793,8 @@ def main(argv=None):
         mode = "AND"
     else:
         mode = "OR"
+    if use_fuzzy:
+        mode += "+FUZZY"
     if use_ocr:
         mode += "+OCR"
     command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
@@ -823,6 +882,7 @@ def main(argv=None):
         "context_before": context_before,
         "context_after": context_after,
         "use_ocr": use_ocr,
+        "use_fuzzy": use_fuzzy,
     }
 
     matches = []
@@ -945,6 +1005,8 @@ def main(argv=None):
             report_mode = "ALL"
         else:
             report_mode = "ANY"
+        if use_fuzzy:
+            report_mode += "+FUZZY"
         f.write(f"Command ==> {command_str}\n")
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
         f.write(f"Hits ==> {len(matches)}\n")
@@ -976,11 +1038,14 @@ def main(argv=None):
                 wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
                 wrapped = "\n".join(wrapped_lines)
             else:
-                highlighted = text
-                for term in search_terms:
-                    pattern = term if use_regex else re.escape(term)
-                    highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-                wrapped = textwrap.fill(highlighted, width=80)
+                if use_fuzzy:
+                    wrapped = textwrap.fill(text, width=80)
+                else:
+                    highlighted = text
+                    for term in search_terms:
+                        pattern = term if use_regex else re.escape(term)
+                        highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
+                    wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     # Create docsearch_results.docx with yellow-highlighted matches
