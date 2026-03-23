@@ -59,6 +59,7 @@ BANNER_TOP = (
     'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
+    'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
     'Use option flag -O to enable OCR for scanned PDFs and images. Example: docsearch -O budget\n'
     'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue'
 )
@@ -69,6 +70,7 @@ BANNER_BOTTOM = (
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
     'Use option flag -v for version. Example: docsearch -v\n'
+    'Use option flag -w for wildcard pattern matching (* and ?). Example: docsearch -w "budg*"\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -z for fuzzy matching (approximate matches, typo-tolerant). Example: docsearch -z budgt\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
@@ -132,7 +134,7 @@ def _default_cores():
     return max(1, cpu // 2)
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after"}
 CONFIG_STR_KEYS = {"file_types"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -186,6 +188,14 @@ def _save_config(settings):
                 f.write(f"{key} = {value}\n")
 
 
+def _wildcard_to_regex(term):
+    """Convert a wildcard pattern (* and ?) to a regex pattern."""
+    escaped = re.escape(term)
+    escaped = escaped.replace(r'\*', r'\w*')
+    escaped = escaped.replace(r'\?', r'\w')
+    return r'\b' + escaped + r'\b'
+
+
 def _ocr_image(image):
     """Run OCR on a PIL Image and return extracted text."""
     import pytesseract
@@ -206,6 +216,13 @@ def _process_file(args_tuple):
     context_after = config["context_after"]
     use_ocr = config.get("use_ocr", False)
     use_fuzzy = config.get("use_fuzzy", False)
+    exclude_terms = config.get("exclude_terms", [])
+    use_wildcard = config.get("use_wildcard", False)
+    if use_wildcard:
+        search_terms = [_wildcard_to_regex(t) for t in search_terms]
+        if exclude_terms:
+            exclude_terms = [_wildcard_to_regex(t) for t in exclude_terms]
+        use_regex = True
     if use_fuzzy:
         from rapidfuzz import fuzz
 
@@ -247,22 +264,37 @@ def _process_file(args_tuple):
                 return True
         return False
 
+    def _excludes_match(text):
+        """Return True if any exclude term is found in text."""
+        if use_regex:
+            return any(re.search(t, text, re.IGNORECASE) for t in exclude_terms)
+        if use_fuzzy:
+            return any(_fuzzy_word_match(text, t) is not None for t in exclude_terms)
+        text_lower = text.lower()
+        return any(t.lower() in text_lower for t in exclude_terms)
+
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
         check = all if match_all else any
         if use_regex:
             if use_proximity:
-                return _proximity_match(text)
-            return check(re.search(term, text, re.IGNORECASE) for term in search_terms)
-        if use_fuzzy:
+                matched = _proximity_match(text)
+            else:
+                matched = check(re.search(term, text, re.IGNORECASE) for term in search_terms)
+        elif use_fuzzy:
             if use_proximity:
-                return _proximity_match(text)
-            return check(_fuzzy_word_match(text, term) is not None for term in search_terms)
-        text_lower = text.lower()
-        if not check(term.lower() in text_lower for term in search_terms):
+                matched = _proximity_match(text)
+            else:
+                matched = check(_fuzzy_word_match(text, term) is not None for term in search_terms)
+        else:
+            text_lower = text.lower()
+            matched = check(term.lower() in text_lower for term in search_terms)
+            if matched and use_proximity:
+                matched = _proximity_match(text)
+        if not matched:
             return False
-        if use_proximity:
-            return _proximity_match(text)
+        if exclude_terms:
+            return not _excludes_match(text)
         return True
 
     def highlight_text(text):
@@ -638,9 +670,28 @@ def main(argv=None):
     if "-z" in args:
         args.remove("-z")
 
+    use_wildcard = "-w" in args or config.get("wildcard", False)
+    if "-w" in args:
+        args.remove("-w")
+
     if use_fuzzy and use_regex:
         print("Cannot combine fuzzy (-z) and regex (-x) search modes.\n")
         return 2
+    if use_wildcard and use_regex:
+        print("Cannot combine wildcard (-w) and regex (-x) search modes.\n")
+        return 2
+    if use_wildcard and use_fuzzy:
+        print("Cannot combine wildcard (-w) and fuzzy (-z) search modes.\n")
+        return 2
+
+    exclude_terms = []
+    if "-n" in args:
+        idx = args.index("-n")
+        if idx + 1 >= len(args):
+            print("No exclude terms provided. Usage: docsearch -n draft,obsolete budget\n")
+            return 2
+        exclude_terms = [t.strip() for t in args[idx + 1].split(",")]
+        args = args[:idx] + args[idx + 2:]
 
     file_types = None
     if "-t" in args:
@@ -767,7 +818,7 @@ def main(argv=None):
 
     use_context = context_before > 0 or context_after > 0
 
-    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z")]
+    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
 
     if not search_terms:
         print("No search terms provided.\n")
@@ -785,7 +836,11 @@ def main(argv=None):
                 print(f"Invalid regex pattern '{term}': {e}\n")
                 return 2
 
-    if use_regex and match_all:
+    if use_wildcard and match_all:
+        mode = "WILDCARD+AND"
+    elif use_wildcard:
+        mode = "WILDCARD"
+    elif use_regex and match_all:
         mode = "REGEX+AND"
     elif use_regex:
         mode = "REGEX"
@@ -795,11 +850,15 @@ def main(argv=None):
         mode = "OR"
     if use_fuzzy:
         mode += "+FUZZY"
+    if exclude_terms:
+        mode += "+NOT"
     if use_ocr:
         mode += "+OCR"
     command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
     print(command_str)
     print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
+    if exclude_terms:
+        print(f"Excluding [{', '.join(exclude_terms)}]")
     start_time = time.time()
     cwd = os.getcwd()
 
@@ -883,6 +942,8 @@ def main(argv=None):
         "context_after": context_after,
         "use_ocr": use_ocr,
         "use_fuzzy": use_fuzzy,
+        "exclude_terms": exclude_terms,
+        "use_wildcard": use_wildcard,
     }
 
     matches = []
@@ -997,7 +1058,11 @@ def main(argv=None):
         if use_ocr:
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        if use_regex and match_all:
+        if use_wildcard and match_all:
+            report_mode = "WILDCARD+AND"
+        elif use_wildcard:
+            report_mode = "WILDCARD"
+        elif use_regex and match_all:
             report_mode = "REGEX+AND"
         elif use_regex:
             report_mode = "REGEX"
@@ -1007,8 +1072,14 @@ def main(argv=None):
             report_mode = "ANY"
         if use_fuzzy:
             report_mode += "+FUZZY"
+        if exclude_terms:
+            report_mode += "+NOT"
+        if use_ocr:
+            report_mode += "+OCR"
         f.write(f"Command ==> {command_str}\n")
         f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
+        if exclude_terms:
+            f.write(f"Exclude Term(s) ==> {', '.join(exclude_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores} of {cpu_count}\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
@@ -1043,7 +1114,12 @@ def main(argv=None):
                 else:
                     highlighted = text
                     for term in search_terms:
-                        pattern = term if use_regex else re.escape(term)
+                        if use_wildcard:
+                            pattern = _wildcard_to_regex(term)
+                        elif use_regex:
+                            pattern = term
+                        else:
+                            pattern = re.escape(term)
                         highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
                     wrapped = textwrap.fill(highlighted, width=80)
             f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
@@ -1088,7 +1164,7 @@ def main(argv=None):
                 prefix = "Search Term(s) ==> "
                 rest = line[len(prefix):]
                 # rest looks like "budget, revenue (match: ANY)"
-                match = re.match(r"(.+?)( \(match: \w+\))$", rest)
+                match = re.match(r"(.+?)( \(match: [A-Z+]+\))$", rest)
                 if match:
                     terms_str, mode_str = match.group(1), match.group(2)
                     para.add_run(prefix)

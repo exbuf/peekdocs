@@ -26,7 +26,7 @@
 
 ## Introduction
 
-docsearch is a fast, offline search tool that scans 25+ file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches, and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are highlighted in the terminal and saved to `.txt` and `.docx` files for easy review and sharing. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 25+ file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are highlighted in the terminal and saved to `.txt` and `.docx` files for easy review and sharing. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I built it because I had hundreds of documents backed up from Google Docs and scattered across folders, with no way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -55,6 +55,8 @@ I built it because I had hundreds of documents backed up from Google Docs and sc
 - Multiprocessing with `-c N` flag — uses multiple CPU cores to search files in parallel, speeding up large searches. Defaults to half of available cores to keep your machine responsive
 - OCR support with `-O` flag — extracts text from scanned PDFs and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp) using Optical Character Recognition. Requires Tesseract (see [Installation](#installation))
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
+- Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
+- Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
 
 ### Supported File Types
 
@@ -158,10 +160,11 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `context_before` | number | `-B N` | 0 (no lines before match) |
 | `context_after` | number | `-A N` | 0 (no lines after match) |
 | `fuzzy` | true/false | `-z` | false (exact match) |
+| `wildcard` | true/false | `-w` | false (plain text search) |
 | `ocr` | true/false | `-O` | false (no OCR) |
 | `file_types` | comma-separated | `-t` | all supported types |
 
-If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-s`, and `-sa` are not configurable.
+If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-n`, `-s`, and `-sa` are not configurable.
 
 **Advanced:** Your settings are stored in a text file called `.docsearchrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
 
@@ -232,7 +235,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for 70 more combinations.
+See the [Command Examples](#command-examples) table for 80 more combinations.
 
 ## Usage
 
@@ -289,13 +292,14 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has fifteen flags that can be mixed and matched:
+docsearch has seventeen flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` (all) | AND logic — all terms must appear in the same paragraph |
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
+| `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
@@ -303,6 +307,7 @@ docsearch has fifteen flags that can be mixed and matched:
 | `-s` (save) | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
 | `-z` (fuzzy) | Fuzzy matching — find approximate matches (e.g., typos like "budgt" matching "budget") |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
@@ -335,6 +340,13 @@ docsearch has fifteen flags that can be mixed and matched:
 - `-z` and `-x` cannot be used together (fuzzy and regex are incompatible modes)
 - `-z` is especially useful with `-O` (OCR), since OCR text often contains recognition errors
 - `-z` works with `-a` (AND), `-p` (proximity), `-t` (file type filter), `-r` (recursive), `-A`/`-B` (context), and all other flags except `-x`
+- `-w` enables wildcard pattern matching — `*` matches zero or more characters, `?` matches exactly one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
+- `-w` and `-x` cannot be used together (wildcard and regex are incompatible modes)
+- `-w` and `-z` cannot be used together (wildcard and fuzzy are incompatible modes)
+- `-w` matches whole words only — `budg*` will not match the "budg" inside "debugging"
+- `-n` always needs its exclude terms immediately after it (e.g., `-n draft` or `-n draft,obsolete`)
+- `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
+- `-n` works with all flags and all search modes
 
 ### Command Examples
 
@@ -416,15 +428,29 @@ docsearch has fifteen flags that can be mixed and matched:
 | 61 | Fuzzy with OCR | `docsearch -z -O budget` |
 | 62 | Fuzzy with context lines | `docsearch -z -B 3 -A 3 budget` |
 | 63 | Fuzzy, AND, recursive, file type | `docsearch -z -a -r -t pdf budget revenue` |
+| | **Wildcard Searches** | |
+| 64 | Wildcard single pattern | `docsearch -w "budg*"` |
+| 65 | Wildcard question mark | `docsearch -w "te?t"` |
+| 66 | Wildcard with AND logic | `docsearch -w -a "budg*" "rev*"` |
+| 67 | Wildcard with file type filter | `docsearch -w -t pdf,docx "budg*"` |
+| 68 | Wildcard with recursive search | `docsearch -w -r "budg*"` |
+| 69 | Wildcard with context lines | `docsearch -w -B 3 -A 3 "budg*"` |
+| | **Exclude Searches** | |
+| 70 | Exclude lines containing a term | `docsearch -n draft budget` |
+| 71 | Exclude multiple terms | `docsearch -n draft,obsolete budget` |
+| 72 | Exclude with AND logic | `docsearch -n draft -a budget revenue` |
+| 73 | Exclude with recursive search | `docsearch -n draft -r budget` |
+| 74 | Exclude with file type filter | `docsearch -n draft -t pdf,docx budget` |
+| 75 | Exclude with wildcard search | `docsearch -w -n "dra*" "budg*"` |
 | | **Saved Settings** | |
-| 64 | View saved settings | `docsearch --config` |
-| 65 | Save a setting | `docsearch --config recursive=true` |
-| 66 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 67 | Remove a saved setting | `docsearch --config recursive=` |
+| 76 | View saved settings | `docsearch --config` |
+| 77 | Save a setting | `docsearch --config recursive=true` |
+| 78 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 79 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Version and Help** | |
-| 68 | Show version | `docsearch -v` |
-| 69 | Show help | `docsearch -h` |
-| 70 | Show help (no arguments) | `docsearch` |
+| 80 | Show version | `docsearch -v` |
+| 81 | Show help | `docsearch -h` |
+| 82 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -510,6 +536,15 @@ Each new search you run with the same name is appended to the bottom of the file
 Yes — use the `-z` flag. This enables fuzzy matching, which finds words that are similar to your search terms even if they're not spelled exactly the same. For example, searching for "budget" with `-z` will also match "budgt", "buget", or "budjet". This is especially useful when searching OCR text (combine with `-O`), which often contains recognition errors.<br>
 Example: `docsearch -z budget`
 
+**Can I use wildcards instead of regex?**
+Yes — use the `-w` flag. Wildcards are simpler than regex: `*` matches any characters and `?` matches exactly one character. For example, `budg*` matches "budget", "budgets", and "budgeting", while `te?t` matches "test" and "text". Wildcards match whole words only, so `budg*` won't match the "budg" inside "debugging".<br>
+Example: `docsearch -w "budg*"`
+
+**Can I exclude certain terms from results?**
+Yes — use the `-n` flag. This filters out any lines that contain the specified terms, even if they match your search. Use commas for multiple exclude terms. The exclude check follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, they are wildcard-matched.<br>
+Example: `docsearch -n draft budget`<br>
+Example with multiple excludes: `docsearch -n draft,obsolete budget`
+
 **Can I search scanned PDFs or images?**
 Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [Installation](#installation) section for instructions. OCR is slower than regular text search, so it's opt-in.<br>
 Example: `docsearch -O budget`
@@ -543,7 +578,9 @@ Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
 Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
 
 **Why is docsearch a terminal application? Why doesn't it have a GUI?**
-docsearch was designed as a command-line tool for speed, simplicity, and portability. Terminal apps launch instantly, run on any operating system without modification, and are easy to script or automate. A GUI would add complexity and platform-specific dependencies without improving the core search functionality.
+If you've never used a terminal before, it can look intimidating — a blank screen with a blinking cursor. But here's the thing: you only need to learn one pattern. Type `docsearch` followed by what you're looking for, press Enter, and you're done. That's it. There are no menus to navigate, no buttons to find, no settings buried three screens deep. You type what you want, and you get it. After your first search, the terminal won't feel scary — it'll feel fast.
+
+The terminal also has practical advantages. It launches instantly (no loading screens), runs identically on Mac, Windows, and Linux, and keeps a history of your commands so you can press the up arrow to repeat or tweak a previous search. Your results are saved to files you can open in any word processor. And because there's no graphical interface to maintain, docsearch stays lightweight, simple, and focused on what matters — finding your documents.
 
 **What operating systems does docsearch run on?**
 docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is installed.
@@ -565,8 +602,8 @@ docsearch skips it with a warning and continues searching the remaining files.
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
-- **Search flags** (`-a`, `-x`, `-p`, `-O`, `-z`) — control *how* to match
-- **Filter flags** (`-t`, `-f`, `-r`) — control *where* to search
+- **Search flags** (`-a`, `-x`, `-p`, `-O`, `-z`, `-w`) — control *how* to match
+- **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
 - **Performance flags** (`-c`) — control *how fast* to search

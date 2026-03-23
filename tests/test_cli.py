@@ -1580,3 +1580,251 @@ def test_search_fuzzy_config(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert "FUZZY" in captured.out
+
+
+# --- Exclude terms tests ---
+
+
+def test_search_exclude_basic(tmp_path, monkeypatch, capsys):
+    """Lines containing exclude terms are filtered out."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\nThe draft budget needs review\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", "draft", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "approved" in content
+    assert "draft" not in content.split("Document:")[1]
+
+
+def test_search_exclude_keeps_non_excluded(tmp_path, monkeypatch, capsys):
+    """When exclude term is absent, matches are kept."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", "draft", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_exclude_with_and(tmp_path, monkeypatch, capsys):
+    """Exclude works with AND logic."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("budget and revenue approved\nbudget and revenue draft\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", "draft", "-a", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_exclude_with_regex(tmp_path, monkeypatch, capsys):
+    """Exclude terms use regex matching when -x is active."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("budget $100\nbudget pending\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", r"\$\d+", "-x", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "pending" in content
+
+
+def test_search_exclude_with_fuzzy(tmp_path, monkeypatch, capsys):
+    """Exclude terms use fuzzy matching when -z is active."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budgt was approved\nThe budgt drft needs review\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", "draft", "-z", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_exclude_mode_string(tmp_path, monkeypatch, capsys):
+    """Mode string includes +NOT when exclude terms present."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-n", "draft", "budget"])
+    captured = capsys.readouterr()
+
+    assert "OR+NOT" in captured.out
+    assert "Excluding [draft]" in captured.out
+
+
+def test_search_exclude_multiple(tmp_path, monkeypatch, capsys):
+    """Multiple comma-separated exclude terms all filter."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("budget approved\nbudget draft\nbudget obsolete\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-n", "draft,obsolete", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Exclude Term(s) ==> draft, obsolete" in content
+
+
+def test_search_exclude_no_terms_error(tmp_path, monkeypatch, capsys):
+    """-n without terms returns error."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "doc.txt").write_text("hello")
+    result = main(["-n"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "No exclude terms provided" in captured.out
+
+
+# --- Wildcard search tests ---
+
+
+def test_search_wildcard_star(tmp_path, monkeypatch, capsys):
+    """Wildcard * matches zero or more word characters."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget and budgets and budgeting\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "budg*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "**budget**" in content
+
+
+def test_search_wildcard_question(tmp_path, monkeypatch, capsys):
+    """Wildcard ? matches exactly one word character."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The test and the text are here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "te?t"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "**test**" in content or "**text**" in content
+
+
+def test_search_wildcard_no_match(tmp_path, monkeypatch, capsys):
+    """Wildcard that doesn't match returns no results."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "xyz*"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
+
+
+def test_search_wildcard_exact(tmp_path, monkeypatch, capsys):
+    """Term without wildcard chars still works in -w mode."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_wildcard_with_and(tmp_path, monkeypatch, capsys):
+    """Wildcard with AND logic."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget and revenue report\nOnly budget here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "-a", "budg*", "rev*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_search_wildcard_with_regex_error(tmp_path, monkeypatch, capsys):
+    """Wildcard + regex is an error."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "doc.txt").write_text("hello")
+    result = main(["-w", "-x", "hello"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine wildcard (-w) and regex (-x)" in captured.out
+
+
+def test_search_wildcard_with_fuzzy_error(tmp_path, monkeypatch, capsys):
+    """Wildcard + fuzzy is an error."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "doc.txt").write_text("hello")
+    result = main(["-w", "-z", "hello"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine wildcard (-w) and fuzzy (-z)" in captured.out
+
+
+def test_search_wildcard_mode_string(tmp_path, monkeypatch, capsys):
+    """Mode string shows WILDCARD."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-w", "budg*"])
+    captured = capsys.readouterr()
+
+    assert "WILDCARD" in captured.out
+
+
+def test_search_wildcard_config(tmp_path, monkeypatch, capsys):
+    """wildcard=true in config enables wildcard by default."""
+    rc = tmp_path / ".docsearchrc"
+    rc.write_text("wildcard = true\n")
+
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budg*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "WILDCARD" in captured.out
+
+
+def test_search_wildcard_with_exclude(tmp_path, monkeypatch, capsys):
+    """Wildcard + exclude: exclude terms are also wildcard-matched."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\nThe budget draft was rejected\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-w", "-n", "dra*", "budg*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "approved" in content
