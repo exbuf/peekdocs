@@ -228,7 +228,7 @@ cd /path/to/your/documents
 docsearch budget
 ```
 
-That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`. To open the report, double-click it in your file manager (it's saved in the folder where you ran docsearch, not inside any subfolder) or type one of these commands right after your search:
+That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`. To open the report, double-click it in your file manager (it's saved in the folder where you ran docsearch, not inside any subfolder) or — once your search finishes — type one of these commands on the same command line:
 
 ```bash
 open docsearch_results.docx        # macOS
