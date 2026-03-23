@@ -228,7 +228,13 @@ cd /path/to/your/documents
 docsearch budget
 ```
 
-That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`.
+That's it. docsearch scans every supported file in the folder and saves the results to `docsearch_results.txt` and `docsearch_results.docx`. To open the report:
+
+```bash
+open docsearch_results.docx        # macOS
+start docsearch_results.docx       # Windows
+xdg-open docsearch_results.docx    # Linux
+```
 
 A few more examples to try:
 
