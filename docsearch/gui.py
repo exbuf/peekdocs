@@ -25,12 +25,25 @@ def _build_command_from_values(
     context_before,
     context_after,
 ):
-    """Build a docsearch CLI command list from GUI values. Returns None on validation error."""
+    """Build a docsearch CLI command list from GUI values.
+
+    Returns None on validation error, or "FLAGS_IN_SEARCH" if flags are
+    detected in the search text.
+    """
     if not search_text.strip():
         return None
 
     if not folder or not os.path.isdir(folder):
         return None
+
+    # Block flags typed into the search box
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-f", "-h", "-n", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config"}
+    try:
+        tokens = shlex.split(search_text.strip())
+    except ValueError:
+        tokens = search_text.strip().split()
+    if any(token in _CLI_FLAGS for token in tokens):
+        return "FLAGS_IN_SEARCH"
 
     cmd = [sys.executable, "-m", "docsearch", "-q"]
 
@@ -110,6 +123,37 @@ def _launch_gui():
     from tkinter import filedialog
     from importlib.metadata import version as pkg_version
 
+    class Tooltip:
+        """Simple hover tooltip for any widget."""
+
+        def __init__(self, widget, text):
+            self.widget = widget
+            self.text = text
+            self.tip_window = None
+            widget.bind("<Enter>", self._show)
+            widget.bind("<Leave>", self._hide)
+
+        def _show(self, event=None):
+            if self.tip_window:
+                return
+            import tkinter as tk
+            x = self.widget.winfo_rootx() + 20
+            y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+            self.tip_window = tw = tk.Toplevel(self.widget)
+            tw.wm_overrideredirect(True)
+            tw.wm_geometry(f"+{x}+{y}")
+            label = tk.Label(
+                tw, text=self.text, background="#333333", foreground="white",
+                relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
+                padx=6, pady=4, wraplength=300, justify="left",
+            )
+            label.pack()
+
+        def _hide(self, event=None):
+            if self.tip_window:
+                self.tip_window.destroy()
+                self.tip_window = None
+
     class DocSearchApp(ctk.CTk):
         def __init__(self):
             super().__init__()
@@ -170,6 +214,8 @@ def _launch_gui():
             )
             self.search_button.grid(row=row, column=2, padx=(5, 15), pady=(15, 5))
 
+            Tooltip(self.search_entry, "Type one or more search terms. Use quotes for phrases (e.g., \"annual report\")")
+
         def _build_folder_row(self):
             row = 1
             label = ctk.CTkLabel(self, text="Folder:", font=ctk.CTkFont(size=14))
@@ -184,6 +230,8 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14),
             )
             self.browse_button.grid(row=row, column=2, padx=(5, 15), pady=5)
+
+            Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
         def _build_advanced_toggle(self):
             self.advanced_toggle = ctk.CTkButton(
@@ -209,36 +257,42 @@ def _launch_gui():
             self.recursive_var = ctk.StringVar(value="off")
             self.fuzzy_var = ctk.StringVar(value="off")
 
-            ctk.CTkCheckBox(
+            cb_and = ctk.CTkCheckBox(
                 self.advanced_frame, text="AND mode", variable=self.and_mode_var,
                 onvalue="on", offvalue="off",
-            ).grid(row=0, column=0, padx=15, pady=(10, 5), sticky="w")
-            ctk.CTkCheckBox(
+            )
+            cb_and.grid(row=0, column=0, padx=15, pady=(10, 5), sticky="w")
+            cb_rec = ctk.CTkCheckBox(
                 self.advanced_frame, text="Recursive", variable=self.recursive_var,
                 onvalue="on", offvalue="off",
-            ).grid(row=0, column=1, padx=15, pady=(10, 5), sticky="w")
-            ctk.CTkCheckBox(
+            )
+            cb_rec.grid(row=0, column=1, padx=15, pady=(10, 5), sticky="w")
+            cb_fuz = ctk.CTkCheckBox(
                 self.advanced_frame, text="Fuzzy", variable=self.fuzzy_var,
                 onvalue="on", offvalue="off", command=self._on_fuzzy_toggle,
-            ).grid(row=0, column=2, padx=15, pady=(10, 5), sticky="w")
+            )
+            cb_fuz.grid(row=0, column=2, padx=15, pady=(10, 5), sticky="w")
 
             # Row 1: checkboxes row 2
             self.wildcard_var = ctk.StringVar(value="off")
             self.ocr_var = ctk.StringVar(value="off")
             self.regex_var = ctk.StringVar(value="off")
 
-            ctk.CTkCheckBox(
+            cb_wild = ctk.CTkCheckBox(
                 self.advanced_frame, text="Wildcard", variable=self.wildcard_var,
                 onvalue="on", offvalue="off", command=self._on_wildcard_toggle,
-            ).grid(row=1, column=0, padx=15, pady=5, sticky="w")
-            ctk.CTkCheckBox(
+            )
+            cb_wild.grid(row=1, column=0, padx=15, pady=5, sticky="w")
+            cb_ocr = ctk.CTkCheckBox(
                 self.advanced_frame, text="OCR", variable=self.ocr_var,
                 onvalue="on", offvalue="off",
-            ).grid(row=1, column=1, padx=15, pady=5, sticky="w")
-            ctk.CTkCheckBox(
+            )
+            cb_ocr.grid(row=1, column=1, padx=15, pady=5, sticky="w")
+            cb_regex = ctk.CTkCheckBox(
                 self.advanced_frame, text="Regex", variable=self.regex_var,
                 onvalue="on", offvalue="off", command=self._on_regex_toggle,
-            ).grid(row=1, column=2, padx=15, pady=5, sticky="w")
+            )
+            cb_regex.grid(row=1, column=2, padx=15, pady=5, sticky="w")
 
             # Row 2: exclude
             ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
@@ -275,6 +329,19 @@ def _launch_gui():
             self.context_after_entry.grid(row=0, column=5)
 
             self.advanced_frame.grid_columnconfigure(1, weight=1)
+
+            # Tooltips
+            Tooltip(cb_and, "All search terms must appear in the same paragraph")
+            Tooltip(cb_rec, "Search subfolders inside the selected folder")
+            Tooltip(cb_fuz, "Find approximate matches for typos and misspellings (e.g., 'budgt' matches 'budget')")
+            Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
+            Tooltip(cb_ocr, "Read text from scanned PDFs and images (requires Tesseract)")
+            Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers)")
+            Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
+            Tooltip(self.file_types_entry, "Comma-separated file extensions to search (e.g., pdf,docx,txt)")
+            Tooltip(self.proximity_entry, "Find terms within this many words of each other")
+            Tooltip(self.context_before_entry, "Number of lines to show before each match")
+            Tooltip(self.context_after_entry, "Number of lines to show after each match")
 
         def _build_progress_area(self):
             self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
@@ -362,6 +429,9 @@ def _launch_gui():
                 context_before=self.context_before_entry.get(),
                 context_after=self.context_after_entry.get(),
             )
+            if cmd == "FLAGS_IN_SEARCH":
+                self._show_error("Flags go in Advanced Options, not the search box.")
+                return
             if cmd is None:
                 self._show_error("Invalid input. Check your search terms and options.")
                 return

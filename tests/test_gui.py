@@ -97,6 +97,31 @@ def test_build_command_quoted_phrase(tmp_path):
     assert cmd[-2:] == ["annual report", "budget"]
 
 
+def test_build_command_flags_in_search(tmp_path):
+    result = _build_command_from_values(
+        search_text="-a budget revenue",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+    )
+    assert result == "FLAGS_IN_SEARCH"
+
+
+def test_build_command_flags_in_search_various(tmp_path):
+    for flag in ["-r", "-z", "-w", "-O", "-x", "-n", "-t", "-p"]:
+        result = _build_command_from_values(
+            search_text=f"{flag} budget",
+            folder=str(tmp_path),
+            and_mode=False, recursive=False, fuzzy=False,
+            wildcard=False, ocr=False, regex=False,
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+        )
+        assert result == "FLAGS_IN_SEARCH", f"Expected FLAGS_IN_SEARCH for {flag}"
+
+
 def test_parse_summary_with_ansi():
     stdout = (
         "\r  [########] 5/5 done\n"
