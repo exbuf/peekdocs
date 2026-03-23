@@ -106,6 +106,7 @@ def _launch_gui():
         print("GUI mode requires customtkinter. Install it with: pip install customtkinter")
         sys.exit(1)
 
+    import webbrowser
     from tkinter import filedialog
     from importlib.metadata import version as pkg_version
 
@@ -140,6 +141,7 @@ def _launch_gui():
             self._build_advanced_panel()
             self._build_progress_area()
             self._build_open_report()
+            self._build_help_button()
 
         def _center_window(self, width, height):
             self.update_idletasks()
@@ -295,6 +297,21 @@ def _launch_gui():
             )
             # Starts hidden — shown after successful search
 
+        def _build_help_button(self):
+            self.help_button = ctk.CTkButton(
+                self,
+                text="Help",
+                width=60,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.open_help,
+                font=ctk.CTkFont(size=13),
+            )
+            self.help_button.grid(
+                row=6, column=0, padx=15, pady=(0, 15), sticky="w"
+            )
+
         # ── Actions ──────────────────────────────────────────────
 
         def toggle_advanced(self):
@@ -448,6 +465,9 @@ def _launch_gui():
                 os.startfile(docx_path)  # type: ignore[attr-defined]
             else:
                 subprocess.Popen(["xdg-open", docx_path])
+
+        def open_help(self):
+            webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
 
         def _show_error(self, message):
             self.status_label.configure(text=message, text_color="red")
