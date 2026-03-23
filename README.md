@@ -26,15 +26,11 @@
 
 ## Introduction
 
-If you've ever downloaded years of documents to your local machine and then realized you have no way to search through them — that's exactly why docsearch exists. It searches across 25 file types — including PDFs, Word docs, spreadsheets, presentations, and e-books — using plain text or regex patterns, with AND/OR logic, proximity search to find terms near each other, context lines before and after each match, and results highlighted and saved to both `.txt` and `.docx` files, all entirely offline.
+docsearch finds text across 25 file types — PDFs, Word docs, spreadsheets, presentations, e-books, and more — entirely offline. It supports plain text and regex patterns, AND/OR logic, proximity search, context lines, and saves highlighted results to both `.txt` and `.docx` files.
 
-I'm a 77-year-old retired electrical engineer, programmer, and software patent holder who recently used Claude Code to build my new website. For years I'd been meaning to back up my Google Docs and Sheets to my local machine — hundreds of files accumulated over a decade — but I kept putting it off because I knew that once they were saved locally, I'd have no easy way to search through them. I also had plenty of other documents that were never in Google to begin with — old Word files, PDFs, text files scattered across folders.
+I built it because I had hundreds of documents backed up from Google Docs and scattered across folders, with no way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-Then it hit me: with Claude Code, I could build the search tool myself.
-
-So what began as a weekend project took on a life of its own. I kept thinking "what if it could also do this?" and before long, docsearch had grown into something far more capable than I originally imagined. It searches across PDFs, Word docs, spreadsheets, and text files. It supports regex patterns. It works entirely offline, keeping your data private.
-
-I built docsearch for myself, but I'm sharing it because I suspect I'm not the only one drowning in years of documents. If that sounds familiar, I hope this tool helps you as much as it's helped me.
+**Built with [Claude Code](https://claude.ai/code).** Programming process details: I'm a 77-year-old retired electrical engineer, programmer, and software patent holder. What began as a weekend project took on a life of its own — I kept thinking "what if it could also do this?" and before long, docsearch had grown into something far more capable than I originally imagined.
 
 ## Features
 
