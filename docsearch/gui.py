@@ -342,8 +342,10 @@ def _launch_gui():
             self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_after_entry.grid(row=0, column=5)
 
+            self._default_cores = max(1, (os.cpu_count() or 1) // 2)
             ctk.CTkLabel(num_frame, text="Cores to Use:").grid(row=0, column=6, padx=(20, 5))
             self.cores_entry = ctk.CTkEntry(num_frame, width=60)
+            self.cores_entry.insert(0, str(self._default_cores))
             self.cores_entry.grid(row=0, column=7)
 
             # Row 5: specific files
@@ -381,7 +383,7 @@ def _launch_gui():
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
-            Tooltip(self.cores_entry, f"Number of CPU cores to use (this machine has {os.cpu_count()})")
+            Tooltip(self.cores_entry, f"Number of CPU cores to use. This machine has {os.cpu_count()}, default is {self._default_cores}")
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
