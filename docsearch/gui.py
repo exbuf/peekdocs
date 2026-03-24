@@ -338,11 +338,11 @@ def _launch_gui():
             self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_before_entry.grid(row=0, column=3, padx=(0, 20))
 
-            ctk.CTkLabel(num_frame, text="A:").grid(row=0, column=4, padx=(0, 5))
+            ctk.CTkLabel(num_frame, text="Context A:").grid(row=0, column=4, padx=(0, 5))
             self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_after_entry.grid(row=0, column=5)
 
-            ctk.CTkLabel(num_frame, text="Cores:").grid(row=0, column=6, padx=(20, 5))
+            ctk.CTkLabel(num_frame, text="Cores to Use:").grid(row=0, column=6, padx=(20, 5))
             self.cores_entry = ctk.CTkEntry(num_frame, width=60)
             self.cores_entry.grid(row=0, column=7)
 
@@ -372,7 +372,7 @@ def _launch_gui():
             # Tooltips
             Tooltip(cb_and, "All search terms must appear in the same paragraph")
             Tooltip(cb_rec, "Search subfolders inside the selected folder")
-            Tooltip(cb_fuz, "Find approximate matches for typos and misspellings (e.g., 'budgt' matches 'budget')")
+            Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget')")
             Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
             Tooltip(cb_ocr, "Read text from scanned PDFs and images (requires Tesseract)")
             Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers)")
@@ -381,7 +381,7 @@ def _launch_gui():
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
-            Tooltip(self.cores_entry, "Number of CPU cores to use (default: auto-detected)")
+            Tooltip(self.cores_entry, f"Number of CPU cores to use (this machine has {os.cpu_count()})")
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it)")
