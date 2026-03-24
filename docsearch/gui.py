@@ -110,6 +110,7 @@ def _parse_summary_text(stdout):
         return ""
     clean = re.sub(r"\033\[[0-9;]*m", "", stdout)
     files_match = re.search(r"Files searched:\s*(\d+)", clean)
+    size_match = re.search(r"Files searched:\s*\d+\s*\(([\d.]+ [KMGT]?B)\)", clean)
     found_match = re.search(r"Found\s+(\d+)\s+match", clean)
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
 
@@ -119,8 +120,10 @@ def _parse_summary_text(stdout):
         parts.append(f"Found {count} match(es)")
     if files_match:
         parts.append(f"in {files_match.group(1)} files")
+    if size_match:
+        parts.append(f"({size_match.group(1)})")
     if elapsed_match:
-        parts.append(f"({elapsed_match.group(1)}s)")
+        parts.append(f"in {elapsed_match.group(1)}s")
 
     return " ".join(parts) if parts else ""
 
@@ -192,6 +195,7 @@ def _launch_gui():
             self.search_start_time = None
 
             self.grid_columnconfigure(1, weight=1)
+            self.grid_rowconfigure(5, weight=1)
 
             self._build_search_row()
             self._build_folder_row()
@@ -199,7 +203,7 @@ def _launch_gui():
             self._build_advanced_panel()
             self._build_progress_area()
             self._build_open_report()
-            self._build_help_button()
+            self._build_bottom_row()
 
         def _center_window(self, width, height):
             self.update_idletasks()
@@ -326,40 +330,44 @@ def _launch_gui():
             )
             self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-            # Row 4: proximity + context
+            # Row 4: proximity + context lines
             num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            num_frame.grid(row=4, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+            num_frame.grid(row=4, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="w")
 
             ctk.CTkLabel(num_frame, text="Proximity:").grid(row=0, column=0, padx=(0, 5))
             self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
             self.proximity_entry.grid(row=0, column=1, padx=(0, 20))
 
-            ctk.CTkLabel(num_frame, text="Context B:").grid(row=0, column=2, padx=(0, 5))
+            ctk.CTkLabel(num_frame, text="Lines Before:").grid(row=0, column=2, padx=(0, 5))
             self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_before_entry.grid(row=0, column=3, padx=(0, 20))
 
-            ctk.CTkLabel(num_frame, text="Context A:").grid(row=0, column=4, padx=(0, 5))
+            ctk.CTkLabel(num_frame, text="Lines After:").grid(row=0, column=4, padx=(0, 5))
             self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_after_entry.grid(row=0, column=5)
 
+            # Row 5: cores
             self._default_cores = max(1, (os.cpu_count() or 1) // 2)
-            ctk.CTkLabel(num_frame, text="Cores to Use:").grid(row=0, column=6, padx=(20, 5))
-            self.cores_entry = ctk.CTkEntry(num_frame, width=60)
-            self.cores_entry.insert(0, str(self._default_cores))
-            self.cores_entry.grid(row=0, column=7)
+            cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            cores_frame.grid(row=5, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
 
-            # Row 5: specific files
+            ctk.CTkLabel(cores_frame, text="Cores to Use:").grid(row=0, column=0, padx=(0, 5))
+            self.cores_entry = ctk.CTkEntry(cores_frame, width=60)
+            self.cores_entry.insert(0, str(self._default_cores))
+            self.cores_entry.grid(row=0, column=1)
+
+            # Row 6: specific files
             ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
-                row=5, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=6, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.specific_files_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
             )
-            self.specific_files_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.specific_files_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-            # Row 6: save as + append to
+            # Row 7: save as + append to
             save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            save_frame.grid(row=6, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+            save_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
 
             ctk.CTkLabel(save_frame, text="Save as:").grid(row=0, column=0, padx=(0, 5))
             self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
@@ -409,7 +417,7 @@ def _launch_gui():
             )
             # Starts hidden — shown after successful search
 
-        def _build_help_button(self):
+        def _build_bottom_row(self):
             self.help_button = ctk.CTkButton(
                 self,
                 text="GitHub-Readme",
@@ -421,7 +429,21 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.help_button.grid(
-                row=6, column=0, padx=15, pady=(0, 15), sticky="w"
+                row=6, column=0, padx=15, pady=(0, 15), sticky="sw"
+            )
+
+            self.reset_button = ctk.CTkButton(
+                self,
+                text="Reset",
+                width=90,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.reset_form,
+                font=ctk.CTkFont(size=13),
+            )
+            self.reset_button.grid(
+                row=6, column=1, padx=5, pady=(0, 15), sticky="s"
             )
 
         # ── Actions ──────────────────────────────────────────────
@@ -552,15 +574,20 @@ def _launch_gui():
                 self.status_label.configure(
                     text=summary or "Search complete. Matches found.",
                     text_color=("gray30", "gray70"),
+                    font=ctk.CTkFont(size=13),
                 )
                 # Post-search save (-s) if user filled in "Save as" field
                 save_name = self.save_name_entry.get().strip()
                 if save_name:
                     save_cmd = [sys.executable, "-m", "docsearch", "-s", save_name]
                     try:
-                        subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True)
-                    except Exception:
-                        pass
+                        result = subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True)
+                        if result.returncode != 0:
+                            self._show_error(f"Save failed: {result.stdout.strip() or 'unknown error'}")
+                            return
+                    except Exception as e:
+                        self._show_error(f"Save failed: {e}")
+                        return
                 docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
                 if os.path.exists(docx_path):
                     self.open_report_button.grid(
@@ -570,13 +597,15 @@ def _launch_gui():
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
                     text_color=("gray30", "gray70"),
+                    font=ctk.CTkFont(size=13),
                 )
             elif returncode == 2:
                 error_msg = stdout.strip().split("\n")[-1] if stdout.strip() else "Invalid input."
                 self._show_error(error_msg)
             else:
                 self.status_label.configure(
-                    text="Search was cancelled.", text_color=("gray30", "gray70")
+                    text="Search was cancelled.", text_color=("gray30", "gray70"),
+                    font=ctk.CTkFont(size=13),
                 )
 
         def open_report(self):
@@ -595,8 +624,36 @@ def _launch_gui():
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
 
+        def reset_form(self):
+            """Reset all fields to their defaults."""
+            self.search_entry.delete(0, "end")
+            self.folder_entry.delete(0, "end")
+            self.folder_entry.insert(0, os.path.expanduser("~"))
+            self.and_mode_var.set("off")
+            self.recursive_var.set("off")
+            self.fuzzy_var.set("off")
+            self.wildcard_var.set("off")
+            self.ocr_var.set("off")
+            self.regex_var.set("off")
+            self.exclude_entry.delete(0, "end")
+            self.file_types_entry.delete(0, "end")
+            self.proximity_entry.delete(0, "end")
+            self.context_before_entry.delete(0, "end")
+            self.context_after_entry.delete(0, "end")
+            self.cores_entry.delete(0, "end")
+            self.cores_entry.insert(0, str(self._default_cores))
+            self.specific_files_entry.delete(0, "end")
+            self.save_name_entry.delete(0, "end")
+            self.append_name_entry.delete(0, "end")
+            self.status_label.configure(
+                text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
+            )
+            self.open_report_button.grid_remove()
+
         def _show_error(self, message):
-            self.status_label.configure(text=message, text_color="red")
+            self.status_label.configure(
+                text=message, text_color="red", font=ctk.CTkFont(size=13, weight="bold")
+            )
 
         # ── Mutual exclusion for search modes ────────────────────
 

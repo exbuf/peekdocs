@@ -192,6 +192,7 @@ def test_parse_summary_with_ansi():
     result = _parse_summary_text(stdout)
     assert "12" in result
     assert "5" in result
+    assert "1.23 MB" in result
     assert "1.45" in result
 
 
