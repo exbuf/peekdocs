@@ -277,7 +277,7 @@ You still need to open a terminal once to launch the GUI. If you used the manual
 docsearch-gui
 ```
 
-A window will appear. From here, everything is point-and-click — no more terminal commands needed.
+A window will appear. From here, everything is point-and-click — no more terminal commands needed. The GUI can do everything the terminal can do; you don't give up any features by using it.
 
 **Your first GUI search:**
 
@@ -288,7 +288,7 @@ A window will appear. From here, everything is point-and-click — no more termi
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, and context lines. These are the same options available as terminal flags. You don't need any of them for a basic search.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, and append to. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
 
 ## Usage
 

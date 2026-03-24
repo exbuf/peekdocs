@@ -24,6 +24,9 @@ def _build_command_from_values(
     proximity,
     context_before,
     context_after,
+    cores="",
+    specific_files="",
+    append_name="",
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -80,6 +83,17 @@ def _build_command_from_values(
         if not context_after.strip().isdigit():
             return None
         cmd.extend(["-A", context_after.strip()])
+
+    if cores.strip():
+        if not cores.strip().isdigit() or int(cores.strip()) < 1:
+            return None
+        cmd.extend(["-c", cores.strip()])
+
+    if specific_files.strip():
+        cmd.extend(["-f", specific_files.strip()])
+
+    if append_name.strip():
+        cmd.extend(["-sa", append_name.strip()])
 
     try:
         terms = shlex.split(search_text.strip())
@@ -214,7 +228,7 @@ def _launch_gui():
             )
             self.search_button.grid(row=row, column=2, padx=(5, 15), pady=(15, 5))
 
-            Tooltip(self.search_entry, "Type one or more search terms. Use quotes for phrases (e.g., \"annual report\")")
+            Tooltip(self.search_entry, "Type one or more search terms separated by spaces. Use quotes for phrases (e.g., \"annual report\"). Do not use commas.")
 
         def _build_folder_row(self):
             row = 1
@@ -328,6 +342,31 @@ def _launch_gui():
             self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
             self.context_after_entry.grid(row=0, column=5)
 
+            ctk.CTkLabel(num_frame, text="Cores:").grid(row=0, column=6, padx=(20, 5))
+            self.cores_entry = ctk.CTkEntry(num_frame, width=60)
+            self.cores_entry.grid(row=0, column=7)
+
+            # Row 5: specific files
+            ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
+                row=5, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
+            self.specific_files_entry = ctk.CTkEntry(
+                self.advanced_frame, placeholder_text="report.pdf,notes.txt"
+            )
+            self.specific_files_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+            # Row 6: save as + append to
+            save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            save_frame.grid(row=6, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+
+            ctk.CTkLabel(save_frame, text="Save as:").grid(row=0, column=0, padx=(0, 5))
+            self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="my_report")
+            self.save_name_entry.grid(row=0, column=1, padx=(0, 20))
+
+            ctk.CTkLabel(save_frame, text="Append to:").grid(row=0, column=2, padx=(0, 5))
+            self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="combined_report")
+            self.append_name_entry.grid(row=0, column=3)
+
             self.advanced_frame.grid_columnconfigure(1, weight=1)
 
             # Tooltips
@@ -342,6 +381,10 @@ def _launch_gui():
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
+            Tooltip(self.cores_entry, "Number of CPU cores to use (default: auto-detected)")
+            Tooltip(self.specific_files_entry, "Comma-separated filenames to search (e.g., report.pdf,notes.txt)")
+            Tooltip(self.save_name_entry, "Save the report with a custom name after search completes")
+            Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it)")
 
         def _build_progress_area(self):
             self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
@@ -367,8 +410,8 @@ def _launch_gui():
         def _build_help_button(self):
             self.help_button = ctk.CTkButton(
                 self,
-                text="Help",
-                width=60,
+                text="GitHub-Readme",
+                width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -428,6 +471,9 @@ def _launch_gui():
                 proximity=self.proximity_entry.get(),
                 context_before=self.context_before_entry.get(),
                 context_after=self.context_after_entry.get(),
+                cores=self.cores_entry.get(),
+                specific_files=self.specific_files_entry.get(),
+                append_name=self.append_name_entry.get(),
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -505,6 +551,14 @@ def _launch_gui():
                     text=summary or "Search complete. Matches found.",
                     text_color=("gray30", "gray70"),
                 )
+                # Post-search save (-s) if user filled in "Save as" field
+                save_name = self.save_name_entry.get().strip()
+                if save_name:
+                    save_cmd = [sys.executable, "-m", "docsearch", "-s", save_name]
+                    try:
+                        subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True)
+                    except Exception:
+                        pass
                 docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
                 if os.path.exists(docx_path):
                     self.open_report_button.grid(
