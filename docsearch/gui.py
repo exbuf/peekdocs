@@ -437,13 +437,18 @@ def _launch_gui():
             # Matched files list — starts hidden, shown after search with matches
             import tkinter as tk
             self.files_frame = ctk.CTkFrame(self)
+            self.files_label = ctk.CTkLabel(
+                self.files_frame, text="Matched Files (double-click to open):",
+                font=ctk.CTkFont(size=12), anchor="w",
+            )
+            self.files_label.pack(fill="x", padx=5, pady=(4, 0))
             self.files_listbox = tk.Listbox(
                 self.files_frame, font=("TkDefaultFont", 12),
                 selectmode=tk.SINGLE, activestyle="none",
                 bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
-                highlightthickness=0, borderwidth=0,
+                highlightthickness=0, borderwidth=0, height=6,
             )
-            self.files_listbox.pack(fill="both", expand=True, padx=2, pady=2)
+            self.files_listbox.pack(fill="both", expand=True, padx=5, pady=(2, 5))
             self.files_listbox.bind("<Double-1>", lambda e: self._open_selected_file())
             self.matched_files = []
             Tooltip(self.files_listbox, "Double-click a file to open it")
@@ -656,9 +661,9 @@ def _launch_gui():
                     for filepath, filename in self.matched_files:
                         self.files_listbox.insert("end", filename)
                     self.files_frame.grid(
-                        row=6, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="nsew"
+                        row=6, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="nsew"
                     )
-                    self.grid_rowconfigure(6, weight=1)
+                    self.grid_rowconfigure(6, weight=1, minsize=150)
                     self.grid_rowconfigure(5, weight=0)
                     # Move bottom row down
                     self.help_button.grid(row=7, column=0, padx=15, pady=(0, 15), sticky="sw")
@@ -712,7 +717,7 @@ def _launch_gui():
             self.files_frame.grid_remove()
             self.files_listbox.delete(0, "end")
             self.matched_files = []
-            self.grid_rowconfigure(6, weight=0)
+            self.grid_rowconfigure(6, weight=0, minsize=0)
             self.grid_rowconfigure(5, weight=1)
             # Restore bottom row position
             self.help_button.grid(row=6, column=0, padx=15, pady=(0, 15), sticky="sw")
