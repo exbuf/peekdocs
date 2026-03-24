@@ -384,10 +384,10 @@ def _launch_gui():
             Tooltip(cb_rec, "Search subfolders inside the selected folder")
             Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget')")
             Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
-            Tooltip(cb_ocr, "Read text from scanned PDFs and images (requires Tesseract)")
+            Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed")
             Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers)")
             Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
-            Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: cfg, csv, docx, epub, html, ini, json, log, md, odp, ods, odt, pdf, pptx, rst, rtf, sql, tex, toml, tsv, txt, xlsx, xml, yaml, yml")
+            Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: cfg, csv, docx, epub, html, ini, json, log, md, odp, ods, odt, pdf, pptx, rst, rtf, sql, tex, toml, tsv, txt, xlsx, xml, yaml, yml. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
@@ -627,8 +627,6 @@ def _launch_gui():
         def reset_form(self):
             """Reset all fields to their defaults."""
             self.search_entry.delete(0, "end")
-            self.folder_entry.delete(0, "end")
-            self.folder_entry.insert(0, os.path.expanduser("~"))
             self.and_mode_var.set("off")
             self.recursive_var.set("off")
             self.fuzzy_var.set("off")
