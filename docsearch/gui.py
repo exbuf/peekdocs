@@ -446,6 +446,20 @@ def _launch_gui():
                 row=6, column=1, padx=5, pady=(0, 15), sticky="s"
             )
 
+            self.about_button = ctk.CTkButton(
+                self,
+                text="About",
+                width=70,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.show_about,
+                font=ctk.CTkFont(size=13),
+            )
+            self.about_button.grid(
+                row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="se"
+            )
+
         # ── Actions ──────────────────────────────────────────────
 
         def toggle_advanced(self):
@@ -591,7 +605,7 @@ def _launch_gui():
                 docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
                 if os.path.exists(docx_path):
                     self.open_report_button.grid(
-                        row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="e"
+                        row=5, column=2, padx=(5, 15), pady=(5, 5), sticky="e"
                     )
             elif returncode == 1:
                 self.status_label.configure(
@@ -623,6 +637,26 @@ def _launch_gui():
 
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
+
+        def show_about(self):
+            import tkinter as tk
+            about_win = tk.Toplevel(self)
+            about_win.title("About docsearch")
+            about_win.resizable(False, False)
+            about_win.geometry("300x140")
+            # Center on parent
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 300) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 120) // 2
+            about_win.geometry(f"+{x}+{y}")
+            try:
+                ver = pkg_version("claude-docsearch")
+            except Exception:
+                ver = "unknown"
+            tk.Label(about_win, text="docsearch", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
+            tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
+            tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
+            tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack(pady=(0, 15))
 
         def reset_form(self):
             """Reset all fields to their defaults."""
