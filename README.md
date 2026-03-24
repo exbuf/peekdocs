@@ -1,4 +1,4 @@
-# Claude-DocSearch
+# docsearch
 
 ## Table of Contents
 
@@ -101,7 +101,6 @@ All file types can exist in the same folder — no need to separate them into di
 
 Local search is also fast, with no rate limits, usage caps, or waiting on cloud services.
 
-**Programming process:** DocSearch was developed using Claude Code. It's my second Claude Code app, the first being my personal website.
 
 ## System Requirements
 
@@ -194,7 +193,7 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
 
 2. Install docsearch:
    ```bash
-   pipx install git+https://github.com/exbuf/Claude-DocSearch.git
+   pipx install git+https://github.com/exbuf/docsearch.git
    ```
 
 That's it. `docsearch` and `docsearch-gui` are now available from any terminal — no activation step, no virtual environment to manage.
@@ -205,10 +204,10 @@ If you prefer to manage things yourself, or if pipx is not available:
 
 1. Clone the repository (requires [git](https://git-scm.com/downloads)):
    ```bash
-   git clone https://github.com/exbuf/Claude-DocSearch.git
-   cd Claude-DocSearch
+   git clone https://github.com/exbuf/docsearch.git
+   cd docsearch
    ```
-   **Don't have git?** Click the green **Code** button on the [GitHub page](https://github.com/exbuf/Claude-DocSearch), select **Download ZIP**, extract it, and open the extracted folder in your terminal.
+   **Don't have git?** Click the green **Code** button on the [GitHub page](https://github.com/exbuf/docsearch), select **Download ZIP**, extract it, and open the extracted folder in your terminal.
 
 2. Set up a private workspace for docsearch (called a "virtual environment" — this keeps docsearch's files separate from the rest of your computer so nothing conflicts):
 
@@ -230,9 +229,9 @@ If you prefer to manage things yourself, or if pipx is not available:
    venv\Scripts\Activate.ps1
    ```
 
-   After running the activate command, you'll notice `(venv)` appear at the beginning of your command line. This is normal — it just means docsearch is ready to use. If you close your terminal and open it later, you won't see `(venv)` anymore. Just navigate back to the Claude-DocSearch folder and run the activate command again (step 2 above) before using docsearch.
+   After running the activate command, you'll notice `(venv)` appear at the beginning of your command line. This is normal — it just means docsearch is ready to use. If you close your terminal and open it later, you won't see `(venv)` anymore. Just navigate back to the docsearch folder and run the activate command again (step 2 above) before using docsearch.
 
-3. Install docsearch (make sure you're still in the Claude-DocSearch folder):
+3. Install docsearch (make sure you're still in the docsearch folder):
    ```bash
    pip install -e .
    ```
@@ -653,7 +652,7 @@ pytest tests/ -v
 ## Project Structure
 
 ```
-Claude-DocSearch/
+docsearch/
 ├── docsearch/
 │   ├── __init__.py      # Package init
 │   ├── __main__.py      # Enables python -m docsearch

@@ -203,7 +203,7 @@ def _launch_gui():
             super().__init__()
 
             try:
-                version = pkg_version("claude-docsearch")
+                version = pkg_version("docsearch")
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
@@ -731,7 +731,7 @@ def _launch_gui():
             self.geometry(f"{self.winfo_width()}x520")
 
         def open_help(self):
-            webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
+            webbrowser.open("https://github.com/exbuf/docsearch#readme")
 
         def show_about(self):
             import tkinter as tk
@@ -745,7 +745,7 @@ def _launch_gui():
             y = self.winfo_rooty() + (self.winfo_height() - 120) // 2
             about_win.geometry(f"+{x}+{y}")
             try:
-                ver = pkg_version("claude-docsearch")
+                ver = pkg_version("docsearch")
             except Exception:
                 ver = "unknown"
             tk.Label(about_win, text="docsearch", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))

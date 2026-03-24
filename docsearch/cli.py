@@ -39,7 +39,7 @@ from ebooklib import epub
 from importlib.metadata import version as pkg_version
 
 
-VERSION = pkg_version("claude-docsearch")
+VERSION = pkg_version("docsearch")
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
@@ -74,7 +74,7 @@ BANNER_BOTTOM = (
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -z for fuzzy matching (approximate matches, typo-tolerant). Example: docsearch -z budgt\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
-    'More details here: https://github.com/exbuf/Claude-DocSearch/blob/main/README.md'
+    'More details here: https://github.com/exbuf/docsearch/blob/main/README.md'
 )
 
 REGEX_PATTERNS = (
