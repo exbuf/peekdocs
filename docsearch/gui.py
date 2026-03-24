@@ -669,6 +669,10 @@ def _launch_gui():
                     self.help_button.grid(row=7, column=0, padx=15, pady=(0, 15), sticky="sw")
                     self.reset_button.grid(row=7, column=1, padx=5, pady=(0, 15), sticky="s")
                     self.about_button.grid(row=7, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
+                    # Expand window to fit files list
+                    current_height = self.winfo_height()
+                    if current_height < 720:
+                        self.geometry(f"{self.winfo_width()}x720")
             elif returncode == 1:
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
@@ -723,6 +727,8 @@ def _launch_gui():
             self.help_button.grid(row=6, column=0, padx=15, pady=(0, 15), sticky="sw")
             self.reset_button.grid(row=6, column=1, padx=5, pady=(0, 15), sticky="s")
             self.about_button.grid(row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
+            # Restore window size
+            self.geometry(f"{self.winfo_width()}x520")
 
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
