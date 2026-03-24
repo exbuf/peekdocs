@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from docsearch.gui import _build_command_from_values, _parse_summary_text
+from docsearch.gui import _build_command_from_values, _parse_summary_text, _parse_matched_files
 
 
 def test_build_command_basic(tmp_path):
@@ -199,3 +199,30 @@ def test_parse_summary_with_ansi():
 def test_parse_summary_empty():
     assert _parse_summary_text("") == ""
     assert _parse_summary_text(None) == ""
+
+
+def test_parse_matched_files(tmp_path):
+    results = tmp_path / "docsearch_results.txt"
+    results.write_text(
+        'Program name: docsearch\n'
+        '\n'
+        'Document: report.pdf, Line: 5, Match:\n'
+        f'({tmp_path})\n'
+        '"some matched text"\n'
+        '\n'
+        'Document: notes.txt, Line: 12, Match:\n'
+        f'({tmp_path})\n'
+        '"another match"\n'
+        '\n'
+        'Document: report.pdf, Line: 20, Match:\n'
+        f'({tmp_path})\n'
+        '"duplicate file should not repeat"\n'
+    )
+    files = _parse_matched_files(str(tmp_path))
+    assert len(files) == 2
+    assert files[0][1] == "report.pdf"
+    assert files[1][1] == "notes.txt"
+
+
+def test_parse_matched_files_empty(tmp_path):
+    assert _parse_matched_files(str(tmp_path)) == []

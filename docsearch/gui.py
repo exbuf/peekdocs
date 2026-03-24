@@ -128,6 +128,33 @@ def _parse_summary_text(stdout):
     return " ".join(parts) if parts else ""
 
 
+def _parse_matched_files(results_dir):
+    """Parse docsearch_results.txt and return a list of unique (filepath, filename) tuples."""
+    results_path = os.path.join(results_dir, "docsearch_results.txt")
+    if not os.path.exists(results_path):
+        return []
+    files = []
+    seen = set()
+    with open(results_path, "r") as f:
+        lines = f.readlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith("Document: ") and ", Line: " in line:
+            # Next line has the directory in parentheses
+            if i + 1 < len(lines):
+                dir_line = lines[i + 1].strip()
+                if dir_line.startswith("(") and dir_line.endswith(")"):
+                    file_dir = dir_line[1:-1]
+                    filename = line.split("Document: ")[1].split(", Line: ")[0]
+                    filepath = os.path.join(file_dir, filename)
+                    if filepath not in seen:
+                        seen.add(filepath)
+                        files.append((filepath, filename))
+        i += 1
+    return files
+
+
 def _launch_gui():
     """Import customtkinter and build the GUI. Separated to keep module importable without tkinter."""
     try:
@@ -404,8 +431,22 @@ def _launch_gui():
                 self, text="", font=ctk.CTkFont(size=13), anchor="w"
             )
             self.status_label.grid(
-                row=5, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="ew"
+                row=5, column=0, columnspan=2, padx=15, pady=(5, 0), sticky="ew"
             )
+
+            # Matched files list — starts hidden, shown after search with matches
+            import tkinter as tk
+            self.files_frame = ctk.CTkFrame(self)
+            self.files_listbox = tk.Listbox(
+                self.files_frame, font=("TkDefaultFont", 12),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=0,
+            )
+            self.files_listbox.pack(fill="both", expand=True, padx=2, pady=2)
+            self.files_listbox.bind("<Double-1>", lambda e: self._open_selected_file())
+            self.matched_files = []
+            Tooltip(self.files_listbox, "Double-click a file to open it")
 
         def _build_open_report(self):
             self.open_report_button = ctk.CTkButton(
@@ -524,6 +565,7 @@ def _launch_gui():
             self.search_button.configure(text="Cancel")
             self.search_entry.configure(state="disabled")
             self.open_report_button.grid_remove()
+            self._hide_files_list()
             self.progress_bar.grid(
                 row=4, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
@@ -605,8 +647,23 @@ def _launch_gui():
                 docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
                 if os.path.exists(docx_path):
                     self.open_report_button.grid(
-                        row=5, column=2, padx=(5, 15), pady=(5, 5), sticky="e"
+                        row=5, column=2, padx=(5, 15), pady=(5, 0), sticky="ne"
                     )
+                # Populate matched files list
+                self.matched_files = _parse_matched_files(self.results_dir)
+                self.files_listbox.delete(0, "end")
+                if self.matched_files:
+                    for filepath, filename in self.matched_files:
+                        self.files_listbox.insert("end", filename)
+                    self.files_frame.grid(
+                        row=6, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="nsew"
+                    )
+                    self.grid_rowconfigure(6, weight=1)
+                    self.grid_rowconfigure(5, weight=0)
+                    # Move bottom row down
+                    self.help_button.grid(row=7, column=0, padx=15, pady=(0, 15), sticky="sw")
+                    self.reset_button.grid(row=7, column=1, padx=5, pady=(0, 15), sticky="s")
+                    self.about_button.grid(row=7, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
             elif returncode == 1:
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
@@ -634,6 +691,33 @@ def _launch_gui():
                 os.startfile(docx_path)  # type: ignore[attr-defined]
             else:
                 subprocess.Popen(["xdg-open", docx_path])
+
+        def _open_selected_file(self):
+            selection = self.files_listbox.curselection()
+            if not selection:
+                return
+            filepath, _ = self.matched_files[selection[0]]
+            if not os.path.exists(filepath):
+                self._show_error(f"File not found: {filepath}")
+                return
+            system = platform.system()
+            if system == "Darwin":
+                subprocess.Popen(["open", filepath])
+            elif system == "Windows":
+                os.startfile(filepath)  # type: ignore[attr-defined]
+            else:
+                subprocess.Popen(["xdg-open", filepath])
+
+        def _hide_files_list(self):
+            self.files_frame.grid_remove()
+            self.files_listbox.delete(0, "end")
+            self.matched_files = []
+            self.grid_rowconfigure(6, weight=0)
+            self.grid_rowconfigure(5, weight=1)
+            # Restore bottom row position
+            self.help_button.grid(row=6, column=0, padx=15, pady=(0, 15), sticky="sw")
+            self.reset_button.grid(row=6, column=1, padx=5, pady=(0, 15), sticky="s")
+            self.about_button.grid(row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
 
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/Claude-DocSearch#readme")
@@ -681,6 +765,7 @@ def _launch_gui():
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
             )
             self.open_report_button.grid_remove()
+            self._hide_files_list()
 
         def _show_error(self, message):
             self.status_label.configure(
