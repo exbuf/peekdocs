@@ -262,7 +262,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for over 80 more combinations.
+See the [Command Examples](#command-examples) table for over 80 more combinations and examples.
 
 ## GUI Mode
 
@@ -287,7 +287,7 @@ A window will appear. From here, everything is point-and-click — no more termi
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, and append to. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, append to, and additional output formats (CSV, JSON). Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
 
 Do not type flags (like `-a` or `-r`) into the Search box — the Search box is only for search terms. Each checkbox and input field under Advanced Options asserts the corresponding flag behind the scenes.
 
@@ -326,7 +326,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has seventeen flags that can be mixed and matched:
+docsearch has eighteen flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -334,6 +334,7 @@ docsearch has seventeen flags that can be mixed and matched:
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
+| `-o` (output) | Additional output formats — `csv`, `json`, or both (`csv,json`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
@@ -381,6 +382,12 @@ docsearch has seventeen flags that can be mixed and matched:
 - `-n` always needs its exclude terms immediately after it (e.g., `-n draft` or `-n draft,obsolete`)
 - `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
 - `-n` works with all flags and all search modes
+- `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
+- `-o` supported formats are `csv` and `json`
+- `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
+- `-o csv` creates `docsearch_results.csv` with columns: filename, folder, line_number, matched_text
+- `-o json` creates `docsearch_results.json` with metadata and a matches array
+- `-o csv,json` creates both files
 
 ### Command Examples
 
@@ -476,22 +483,32 @@ docsearch has seventeen flags that can be mixed and matched:
 | 73 | Exclude with recursive search | `docsearch -n draft -r budget` |
 | 74 | Exclude with file type filter | `docsearch -n draft -t pdf,docx budget` |
 | 75 | Exclude with wildcard search | `docsearch -w -n "dra*" "budg*"` |
+| | **Additional Output Formats** | |
+| 76 | Output results as CSV | `docsearch -o csv budget` |
+| 77 | Output results as JSON | `docsearch -o json budget` |
+| 78 | Output both CSV and JSON | `docsearch -o csv,json budget` |
+| 79 | CSV with recursive search | `docsearch -o csv -r budget` |
 | | **Saved Settings** | |
-| 76 | View saved settings | `docsearch --config` |
-| 77 | Save a setting | `docsearch --config recursive=true` |
-| 78 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 79 | Remove a saved setting | `docsearch --config recursive=` |
+| 80 | View saved settings | `docsearch --config` |
+| 81 | Save a setting | `docsearch --config recursive=true` |
+| 82 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 83 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Version and Help** | |
-| 80 | Show version | `docsearch -v` |
-| 81 | Show help | `docsearch -h` |
-| 82 | Show help (no arguments) | `docsearch` |
+| 84 | Show version | `docsearch -v` |
+| 85 | Show help | `docsearch -h` |
+| 86 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
-Search results are written to two files in the current directory:
+Search results are always written to two files in the current directory:
 
 - **`docsearch_results.txt`** — Plain text with `**` markers around matched terms
 - **`docsearch_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
+
+With the `-o` flag, additional output files are created:
+
+- **`docsearch_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
+- **`docsearch_results.json`** (`-o json`) — Machine-readable format with search metadata and a matches array. Useful for integrating docsearch into automated workflows, dashboards, or other tools.
 
 Text file format:
 ```

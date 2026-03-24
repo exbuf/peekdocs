@@ -27,6 +27,8 @@ def _build_command_from_values(
     cores="",
     specific_files="",
     append_name="",
+    output_csv=False,
+    output_json=False,
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -40,7 +42,7 @@ def _build_command_from_values(
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-f", "-h", "-n", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config"}
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config"}
     try:
         tokens = shlex.split(search_text.strip())
     except ValueError:
@@ -94,6 +96,14 @@ def _build_command_from_values(
 
     if append_name.strip():
         cmd.extend(["-sa", append_name.strip()])
+
+    output_parts = []
+    if output_csv:
+        output_parts.append("csv")
+    if output_json:
+        output_parts.append("json")
+    if output_parts:
+        cmd.extend(["-o", ",".join(output_parts)])
 
     try:
         terms = shlex.split(search_text.strip())
@@ -404,6 +414,24 @@ def _launch_gui():
             self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
             self.append_name_entry.grid(row=0, column=3)
 
+            # Row 8: additional output formats
+            output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            output_frame.grid(row=8, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+
+            ctk.CTkLabel(output_frame, text="Also output report in ==>").grid(row=0, column=0, padx=(0, 10))
+            self.output_csv_var = ctk.StringVar(value="off")
+            self.output_json_var = ctk.StringVar(value="off")
+            cb_csv = ctk.CTkCheckBox(
+                output_frame, text="CSV", variable=self.output_csv_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_csv.grid(row=0, column=1, padx=(0, 15))
+            cb_json = ctk.CTkCheckBox(
+                output_frame, text="JSON", variable=self.output_json_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_json.grid(row=0, column=2)
+
             self.advanced_frame.grid_columnconfigure(1, weight=1)
 
             # Tooltips
@@ -422,6 +450,8 @@ def _launch_gui():
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
+            Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
+            Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
 
         def _build_progress_area(self):
             self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
@@ -558,6 +588,8 @@ def _launch_gui():
                 cores=self.cores_entry.get(),
                 specific_files=self.specific_files_entry.get(),
                 append_name=self.append_name_entry.get(),
+                output_csv=self.output_csv_var.get() == "on",
+                output_json=self.output_json_var.get() == "on",
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -772,6 +804,8 @@ def _launch_gui():
             self.specific_files_entry.delete(0, "end")
             self.save_name_entry.delete(0, "end")
             self.append_name_entry.delete(0, "end")
+            self.output_csv_var.set("off")
+            self.output_json_var.set("off")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
             )

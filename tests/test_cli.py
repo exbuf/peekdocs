@@ -1,5 +1,7 @@
 """Tests for the CLI module."""
 
+import csv
+import json
 import os
 import re
 
@@ -1828,3 +1830,79 @@ def test_search_wildcard_with_exclude(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "approved" in content
+
+
+def test_output_csv(tmp_path, capsys, monkeypatch):
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\nNothing here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "-o", "csv", "budget"])
+    assert result == 0
+
+    csv_path = tmp_path / "docsearch_results.csv"
+    assert csv_path.exists()
+    with open(csv_path) as f:
+        reader = csv.reader(f)
+        rows = list(reader)
+    assert rows[0] == ["filename", "folder", "line_number", "matched_text"]
+    assert rows[1][0] == "notes.txt"
+    assert rows[1][2] == "1"
+    assert "budget" in rows[1][3].lower()
+    # Highlight markers should be stripped
+    assert "**" not in rows[1][3]
+
+
+def test_output_json(tmp_path, capsys, monkeypatch):
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\nNothing here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "-o", "json", "budget"])
+    assert result == 0
+
+    json_path = tmp_path / "docsearch_results.json"
+    assert json_path.exists()
+    with open(json_path) as f:
+        data = json.load(f)
+    assert data["search_terms"] == ["budget"]
+    assert data["matches_found"] == 1
+    assert data["files_searched"] == 1
+    assert "elapsed_seconds" in data
+    assert "timestamp" in data
+    assert data["mode"] == "ANY"
+    assert len(data["matches"]) == 1
+    assert data["matches"][0]["filename"] == "notes.txt"
+    assert data["matches"][0]["line_number"] == 1
+    assert "budget" in data["matches"][0]["matched_text"].lower()
+    assert "**" not in data["matches"][0]["matched_text"]
+
+
+def test_output_csv_and_json(tmp_path, capsys, monkeypatch):
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "-o", "csv,json", "budget"])
+    assert result == 0
+    assert (tmp_path / "docsearch_results.csv").exists()
+    assert (tmp_path / "docsearch_results.json").exists()
+
+
+def test_output_invalid_format(tmp_path, capsys, monkeypatch):
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("The budget was approved\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "-o", "xml", "budget"])
+    captured = capsys.readouterr()
+    assert result == 2
+    assert "Invalid output format" in captured.out
+
+
+def test_output_no_format(tmp_path, capsys, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = main(["-o"])
+    captured = capsys.readouterr()
+    assert result == 2
+    assert "No format provided" in captured.out

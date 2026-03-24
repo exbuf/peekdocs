@@ -1,6 +1,7 @@
 """Command-line interface for DocSearch."""
 
 import csv
+import json
 from copy import deepcopy
 import glob
 from html.parser import HTMLParser
@@ -60,6 +61,7 @@ BANNER_TOP = (
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
+    'Use option flag -o to output additional formats (csv, json). Example: docsearch -o csv budget\n'
     'Use option flag -O to enable OCR for scanned PDFs and images. Example: docsearch -O budget\n'
     'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue'
 )
@@ -816,6 +818,21 @@ def main(argv=None):
             return 2
         args = args[:idx] + args[idx + 2:]
 
+    output_formats = []
+    if "-o" in args:
+        idx = args.index("-o")
+        if idx + 1 >= len(args):
+            print("No format provided. Usage: docsearch -o csv search_term\n")
+            return 2
+        valid_formats = {"csv", "json"}
+        requested = [fmt.strip().lower() for fmt in args[idx + 1].split(",")]
+        for fmt in requested:
+            if fmt not in valid_formats:
+                print(f"Invalid output format '{fmt}'. Supported formats: csv, json\n")
+                return 2
+        output_formats = requested
+        args = args[:idx] + args[idx + 2:]
+
     use_context = context_before > 0 or context_after > 0
 
     search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
@@ -1225,6 +1242,47 @@ def main(argv=None):
             break
     result_doc.save(docx_output_path)
 
+    # Write optional CSV/JSON output
+    def _strip_highlights(text):
+        return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+
+    csv_output_path = None
+    json_output_path = None
+
+    if "csv" in output_formats:
+        csv_output_path = os.path.join(cwd, "docsearch_results.csv")
+        if os.path.exists(csv_output_path):
+            os.remove(csv_output_path)
+        with open(csv_output_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["filename", "folder", "line_number", "matched_text"])
+            for file_dir, filename, line_num, text in matches:
+                writer.writerow([filename, file_dir, line_num, _strip_highlights(text)])
+
+    if "json" in output_formats:
+        json_output_path = os.path.join(cwd, "docsearch_results.json")
+        if os.path.exists(json_output_path):
+            os.remove(json_output_path)
+        json_data = {
+            "search_terms": search_terms,
+            "mode": report_mode,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "files_searched": len(all_files),
+            "matches_found": len(matches),
+            "elapsed_seconds": round(search_elapsed, 2),
+            "matches": [
+                {
+                    "filename": filename,
+                    "folder": file_dir,
+                    "line_number": line_num,
+                    "matched_text": _strip_highlights(text),
+                }
+                for file_dir, filename, line_num, text in matches
+            ],
+        }
+        with open(json_output_path, "w") as f:
+            json.dump(json_data, f, indent=2)
+
     if append_name is not None:
         append_txt_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")
         append_docx_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
@@ -1253,6 +1311,10 @@ def main(argv=None):
     print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
     print(f"Results ==> {cwd}")
     print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
+    if csv_output_path:
+        print(f"  docsearch_results.csv ({fmt_size(os.path.getsize(csv_output_path))})")
+    if json_output_path:
+        print(f"  docsearch_results.json ({fmt_size(os.path.getsize(json_output_path))})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
