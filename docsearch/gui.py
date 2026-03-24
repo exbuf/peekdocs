@@ -383,8 +383,8 @@ def _launch_gui():
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
             Tooltip(self.cores_entry, f"Number of CPU cores to use (this machine has {os.cpu_count()})")
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search (e.g., report.pdf,notes.txt)")
-            Tooltip(self.save_name_entry, "Save the report with a custom name after search completes")
-            Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it)")
+            Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
+            Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
 
         def _build_progress_area(self):
             self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
