@@ -228,7 +228,7 @@ def _launch_gui():
             )
             self.search_button.grid(row=row, column=2, padx=(5, 15), pady=(15, 5))
 
-            Tooltip(self.search_entry, "Type one or more search terms separated by spaces. Use quotes for phrases (e.g., \"annual report\"). Do not use commas.")
+            Tooltip(self.search_entry, "Type one or more search terms separated by spaces. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
 
         def _build_folder_row(self):
             row = 1

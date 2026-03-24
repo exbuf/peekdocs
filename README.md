@@ -290,6 +290,8 @@ A window will appear. From here, everything is point-and-click — no more termi
 
 Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, and append to. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
 
+Do not type flags (like `-a` or `-r`) into the Search box — the Search box is only for search terms. Each checkbox and input field under Advanced Options asserts the corresponding flag behind the scenes.
+
 ## Usage
 
 If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the workspace first each time you open a new terminal (see [Option B step 2](#option-b-manual-install)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
