@@ -313,7 +313,7 @@ def _launch_gui():
                 row=2, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.exclude_entry = ctk.CTkEntry(
-                self.advanced_frame, placeholder_text="draft,obsolete"
+                self.advanced_frame, placeholder_text="Ex: draft,obsolete"
             )
             self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
@@ -322,7 +322,7 @@ def _launch_gui():
                 row=3, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.file_types_entry = ctk.CTkEntry(
-                self.advanced_frame, placeholder_text="pdf,docx,txt"
+                self.advanced_frame, placeholder_text="Ex: pdf,docx,txt"
             )
             self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
@@ -353,7 +353,7 @@ def _launch_gui():
                 row=5, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.specific_files_entry = ctk.CTkEntry(
-                self.advanced_frame, placeholder_text="report.pdf,notes.txt"
+                self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
             )
             self.specific_files_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
@@ -362,11 +362,11 @@ def _launch_gui():
             save_frame.grid(row=6, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
 
             ctk.CTkLabel(save_frame, text="Save as:").grid(row=0, column=0, padx=(0, 5))
-            self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="my_report")
+            self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
             self.save_name_entry.grid(row=0, column=1, padx=(0, 20))
 
             ctk.CTkLabel(save_frame, text="Append to:").grid(row=0, column=2, padx=(0, 5))
-            self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="combined_report")
+            self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
             self.append_name_entry.grid(row=0, column=3)
 
             self.advanced_frame.grid_columnconfigure(1, weight=1)
