@@ -32,6 +32,8 @@ docsearch is a fast, offline search tool that scans 29 file types — including 
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
+**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory.
+
 ## Features
 
 - Searches all files in the current folder (and subfolders with `-r`). Use `-t` to focus on specific file types. See table for supported file types.
