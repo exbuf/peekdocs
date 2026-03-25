@@ -3,12 +3,14 @@
 import logging
 import multiprocessing
 import os
+import platform
 import re
 import shutil
 import signal
 import sys
 import threading
 import time
+import traceback
 from datetime import datetime
 from importlib.metadata import version as pkg_version
 
@@ -136,6 +138,30 @@ from docsearch.reporter import (  # noqa: E402
 
 
 def main(argv=None):
+    try:
+        return _main_inner(argv)
+    except KeyboardInterrupt:
+        print("\nSearch cancelled.\n")
+        return 2
+    except Exception:
+        error_log_path = os.path.join(os.getcwd(), "docsearch_errors.log")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(error_log_path, "a") as log_f:
+            log_f.write(f"\n{'='*60}\n")
+            log_f.write(f"{timestamp}  CRASH REPORT\n")
+            log_f.write(f"docsearch {VERSION}\n")
+            log_f.write(f"Python {sys.version}\n")
+            log_f.write(f"OS: {platform.system()} {platform.release()}\n")
+            cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
+            log_f.write(f"Command: docsearch {cmd}\n")
+            log_f.write(f"{'='*60}\n")
+            traceback.print_exc(file=log_f)
+            log_f.write("\n")
+        print(f"\nAn unexpected error occurred. Details logged to docsearch_errors.log\n")
+        return 2
+
+
+def _main_inner(argv=None):
     if argv is None:
         args = sys.argv[1:]
     else:
