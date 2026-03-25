@@ -25,7 +25,10 @@ VERSION = pkg_version("docsearch")
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
 
-from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD, _default_cores  # noqa: E402
+from docsearch.constants import (  # noqa: E402
+    SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD, _default_cores,
+    TESTED_PYTHON_MIN, TESTED_PYTHON_MAX,
+)
 
 BANNER_TOP = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
@@ -137,6 +140,45 @@ from docsearch.reporter import (  # noqa: E402
 )
 
 
+_REQUIRED_MODULES = [
+    ("fitz", "pymupdf", "PDF files"),
+    ("docx", "python-docx", "Word documents (.docx)"),
+    ("openpyxl", "openpyxl", "Excel spreadsheets (.xlsx)"),
+    ("pptx", "python-pptx", "PowerPoint files (.pptx)"),
+    ("ebooklib", "ebooklib", "EPUB e-books"),
+    ("striprtf.striprtf", "striprtf", "RTF files"),
+    ("odf.opendocument", "odfpy", "ODF files (.odt, .ods, .odp)"),
+]
+
+
+def _check_dependencies():
+    """Check that all required modules can be imported.
+
+    Returns list of (module_display, package, status, message) tuples.
+    """
+    results = []
+    for module_name, package, description in _REQUIRED_MODULES:
+        try:
+            __import__(module_name)
+            results.append((description, package, "ok", ""))
+        except ImportError as e:
+            results.append((description, package, "MISSING", str(e)))
+    return results
+
+
+def _check_python_version():
+    """Return a warning string if Python version is outside tested range, or None."""
+    v = sys.version_info[:2]
+    if v < TESTED_PYTHON_MIN:
+        return (f"Warning: Python {v[0]}.{v[1]} is below the minimum tested version "
+                f"({TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]}). "
+                "docsearch may not work correctly.")
+    if v > TESTED_PYTHON_MAX:
+        return (f"Warning: docsearch has not been tested with Python {v[0]}.{v[1]}. "
+                "If you experience issues, check docsearch_errors.log.")
+    return None
+
+
 def _diagnose(exc):
     """Return a plain-English diagnosis based on the exception type and message."""
     name = type(exc).__name__
@@ -214,7 +256,7 @@ def main(argv=None):
             log_f.write(f"{'='*60}\n")
             traceback.print_exc(file=log_f)
             log_f.write("\n")
-        print(f"\nAn unexpected error occurred. Details logged to docsearch_errors.log\n")
+        print(f"\nError: An unexpected error occurred. Details logged to docsearch_errors.log\n")
         return 2
 
 
@@ -223,6 +265,21 @@ def _main_inner(argv=None):
         args = sys.argv[1:]
     else:
         args = list(argv)
+
+    # Python version guard (warning only, does not block)
+    version_warning = _check_python_version()
+    if version_warning:
+        print(version_warning)
+
+    # Startup dependency check (blocks if critical deps missing)
+    dep_results = _check_dependencies()
+    missing = [(desc, pkg) for desc, pkg, status, _ in dep_results if status == "MISSING"]
+    if missing:
+        print("Error: Required dependencies are missing:\n")
+        for desc, pkg in missing:
+            print(f"  {desc} — install with: pip install {pkg}")
+        print(f"\nOr reinstall docsearch: pip install --upgrade docsearch\n")
+        return 2
 
     original_args = list(args)
 
@@ -258,12 +315,56 @@ def _main_inner(argv=None):
         print(REGEX_PATTERNS)
         return 0
 
+    if args and args[0] == "--check":
+        print(f"docsearch {VERSION}")
+        print(f"Python {sys.version}")
+        print(f"OS: {platform.system()} {platform.release()}")
+        print()
+
+        # Python version
+        v = sys.version_info[:2]
+        if v < TESTED_PYTHON_MIN:
+            print(f"Python version:  {v[0]}.{v[1]} (below minimum tested {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]})")
+        elif v > TESTED_PYTHON_MAX:
+            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {TESTED_PYTHON_MAX[0]}.{TESTED_PYTHON_MAX[1]})")
+        else:
+            print(f"Python version:  {v[0]}.{v[1]} (ok)")
+        print()
+
+        # Dependencies
+        print("Dependencies:")
+        all_ok = True
+        for desc, pkg, status, msg in dep_results:
+            if status == "ok":
+                print(f"  {desc}: ok")
+            else:
+                print(f"  {desc}: MISSING — install with: pip install {pkg}")
+                all_ok = False
+        print()
+
+        # Tesseract (optional)
+        if shutil.which("tesseract"):
+            print("Tesseract OCR:   installed (OCR available with -O flag)")
+        else:
+            print("Tesseract OCR:   not installed (optional — needed only for -O flag)")
+        print()
+
+        # Disk space
+        cwd = os.getcwd()
+        free = shutil.disk_usage(cwd).free
+        print(f"Disk space:      {fmt_size(free)} free")
+        if free < 10_000_000:
+            print("  Warning: Low disk space. Reports may fail to write.")
+        print()
+
+        return 0 if all_ok else 2
+
     if not args:
         return 0
 
     if args and args[0] in ("-s", "-save"):
         if len(args) < 2:
-            print("No filename provided. Usage: docsearch -s name_of_your_file\n")
+            print("Error: No filename provided. Usage: docsearch -s name_of_your_file\n")
             return 2
         name = "_".join(args[1:]).replace(" ", "_")
         cwd = os.getcwd()
@@ -272,7 +373,7 @@ def _main_inner(argv=None):
         dest_docx = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.docx")
         dest_txt = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
-            print("No search results found. Run a search first.\n")
+            print("Error: No search results found. Run a search first.\n")
             return 2
         shutil.copy2(src_docx, dest_docx)
         shutil.copy2(src_txt, dest_txt)
@@ -297,14 +398,14 @@ def _main_inner(argv=None):
         bool_values = {"true", "false", "yes", "no", "1", "0"}
         for pair in config_args:
             if "=" not in pair:
-                print(f"Invalid format: {pair}. Use key=value (e.g., --config recursive=true)\n")
+                print(f"Error: Invalid format: {pair}. Use key=value (e.g., --config recursive=true)\n")
                 return 2
             key, _, value = pair.partition("=")
             key = key.strip()
             value = value.strip()
             if key not in CONFIG_ALL_KEYS:
                 valid = ", ".join(sorted(CONFIG_ALL_KEYS))
-                print(f"Unknown setting: {key}. Valid settings: {valid}\n")
+                print(f"Error: Unknown setting: {key}. Valid settings: {valid}\n")
                 return 2
             if not value:
                 # Remove the key
@@ -312,7 +413,7 @@ def _main_inner(argv=None):
                 print(f"Removed: {key}")
             elif key in CONFIG_BOOL_KEYS:
                 if value.lower() not in bool_values:
-                    print(f"Invalid value for {key}: {value}. Use true or false.\n")
+                    print(f"Error: Invalid value for {key}: {value}. Use true or false.\n")
                     return 2
                 current[key] = value.lower() in ("true", "yes", "1")
                 print(f"Set: {key} = {current[key]}")
@@ -322,7 +423,7 @@ def _main_inner(argv=None):
                     if int_val < 1:
                         raise ValueError
                 except ValueError:
-                    print(f"Invalid value for {key}: {value}. Must be a positive integer.\n")
+                    print(f"Error: Invalid value for {key}: {value}. Must be a positive integer.\n")
                     return 2
                 current[key] = int_val
                 print(f"Set: {key} = {int_val}")
@@ -342,7 +443,7 @@ def _main_inner(argv=None):
     # Parse all flags
     parsed = parse_flags(args, config)
     if isinstance(parsed, tuple):
-        print(parsed[1])
+        print(f"Error: {parsed[1]}")
         return parsed[0]
 
     search_terms = parsed["search_terms"]
@@ -377,7 +478,7 @@ def _main_inner(argv=None):
     # Discover files
     result = discover_files(cwd, recursive, use_ocr, file_types, file_names)
     if isinstance(result, tuple):
-        print(result[1])
+        print(f"Error: {result[1]}")
         return result[0]
     all_files = result
 
@@ -495,6 +596,13 @@ def _main_inner(argv=None):
                 log_f.write(f"{timestamp}  Could not read {skipped_name} ({error_msg})\n")
 
     search_elapsed = time.time() - start_time
+
+    # Check disk space before writing reports
+    free_space = shutil.disk_usage(cwd).free
+    if free_space < 10_000_000:
+        print(f"\nWarning: Low disk space ({fmt_size(free_space)} free). Cannot write reports.")
+        print("Free up disk space and try again.\n")
+        return 2
 
     # Generate reports
     output_path = os.path.join(cwd, "docsearch_results.txt")

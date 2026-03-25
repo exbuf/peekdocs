@@ -285,7 +285,7 @@ A window will appear. From here, everything is point-and-click — no more termi
 1. Type what you're looking for in the **Search** box
 2. Click **Browse** to pick the folder containing your documents (your home folder is selected by default)
 3. Click **Search** (or press Enter)
-4. When the search finishes, click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow
+4. When the search finishes, click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Advanced Options:**
 
@@ -328,7 +328,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has eighteen flags that can be mixed and matched:
+docsearch has nineteen flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -347,6 +347,7 @@ docsearch has eighteen flags that can be mixed and matched:
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
 | `-z` (fuzzy) | Fuzzy matching — find approximate matches (e.g., typos like "budgt" matching "budget") |
+| `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
@@ -495,10 +496,12 @@ docsearch has eighteen flags that can be mixed and matched:
 | 81 | Save a setting | `docsearch --config recursive=true` |
 | 82 | Save multiple settings | `docsearch --config recursive=true cores=4` |
 | 83 | Remove a saved setting | `docsearch --config recursive=` |
+| | **Installation Check** | |
+| 84 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 84 | Show version | `docsearch -v` |
-| 85 | Show help | `docsearch -h` |
-| 86 | Show help (no arguments) | `docsearch` |
+| 85 | Show version | `docsearch -v` |
+| 86 | Show help | `docsearch -h` |
+| 87 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -564,13 +567,16 @@ Found 2 match(es). Results written to docsearch_results.txt and docsearch_result
 Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
 
 **What happens when a file can't be read?**
-Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, or files with unsupported encoding. When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file — see the [Output](#output) section for details.
+Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file — see the [Output](#output) section for details.
 
 **How do I recall a previous command?**
 Press the up arrow key in your terminal to scroll through previous commands. This is a built-in feature of all terminals (macOS, Windows, and Linux) — not specific to docsearch. You can press up repeatedly to go further back, then press Enter to re-run the command.
 
 **How do I cancel a search in progress?**
 Press Ctrl+C. docsearch will stop cleanly and print "Search cancelled." This works on macOS, Windows, and Linux.
+
+**How do I check if docsearch is installed correctly?**
+Run `docsearch --check`. This verifies your Python version, checks that all required dependencies are installed, reports whether Tesseract is available for OCR, and checks available disk space. If anything is missing, it tells you exactly how to fix it.
 
 **How do I save my preferred settings?**
 Use the `--config` flag. For example, `docsearch --config recursive=true` saves that setting so it applies automatically every time. See the [Saved Settings](#saved-settings-optional) section for details.
@@ -663,7 +669,7 @@ No — docsearch searches uncompressed files only.
 Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
 **What if I upgrade Python and docsearch stops working?**
-Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, reinstall it: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. Most dependency updates are available within a few weeks of a new Python release.
+Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, run `docsearch --check` to see which dependencies need updating, then reinstall: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. docsearch will also print a warning at startup if your Python version is outside the tested range. Most dependency updates are available within a few weeks of a new Python release.
 
 **Does it modify my files?**
 No — docsearch only reads your files. It never changes, moves, or deletes them.

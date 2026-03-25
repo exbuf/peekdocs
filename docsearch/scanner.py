@@ -389,9 +389,23 @@ def _process_file(args_tuple):
                 collect_matches(all_lines, file_dir, filename)
 
     except Exception as e:
-        skipped.append((filename, str(e)))
+        skipped.append((filename, _friendly_file_error(e, filename)))
 
     return (matches, skipped)
+
+
+def _friendly_file_error(exc, filename):
+    """Return a user-friendly error message for file processing failures."""
+    if isinstance(exc, PermissionError):
+        return (f"Permission denied — '{filename}' may be open in another program. "
+                "Close it and try again.")
+    if isinstance(exc, OSError):
+        errno = getattr(exc, 'errno', None)
+        # Windows: file in use (errno 13, 32, 33)
+        if errno in (13, 32, 33):
+            return (f"'{filename}' is locked or in use by another program. "
+                    "Close it and try again.")
+    return str(exc)
 
 
 def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):

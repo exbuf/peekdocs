@@ -484,14 +484,28 @@ def _launch_gui():
             Tooltip(self.files_listbox, "Double-click a file to open it")
 
         def _build_open_report(self):
+            self.action_buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
+            # Starts hidden — shown after search when buttons are needed
+
             self.open_report_button = ctk.CTkButton(
-                self,
+                self.action_buttons_frame,
                 text="Open Report",
-                width=120,
+                width=130,
                 command=self.open_report,
                 font=ctk.CTkFont(size=14),
             )
-            # Starts hidden — shown after successful search
+
+            self.error_log_button = ctk.CTkButton(
+                self.action_buttons_frame,
+                text="View Error Log",
+                width=130,
+                command=self.open_error_log,
+                font=ctk.CTkFont(size=13),
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+            )
+            Tooltip(self.error_log_button, "Open docsearch_errors.log to see details about files that could not be read")
 
         def _build_bottom_row(self):
             self.help_button = ctk.CTkButton(
@@ -601,7 +615,7 @@ def _launch_gui():
             self.results_dir = folder
             self.search_button.configure(text="Cancel")
             self.search_entry.configure(state="disabled")
-            self.open_report_button.grid_remove()
+            self.action_buttons_frame.grid_remove()
             self._hide_files_list()
             self.progress_bar.grid(
                 row=4, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
@@ -681,11 +695,7 @@ def _launch_gui():
                     except Exception as e:
                         self._show_error(f"Save failed: {e}")
                         return
-                docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
-                if os.path.exists(docx_path):
-                    self.open_report_button.grid(
-                        row=5, column=2, padx=(5, 15), pady=(5, 0), sticky="ne"
-                    )
+                self._show_action_buttons()
                 # Populate matched files list
                 self.matched_files = _parse_matched_files(self.results_dir)
                 self.files_listbox.delete(0, "end")
@@ -711,14 +721,57 @@ def _launch_gui():
                     text_color=("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
+                self._show_action_buttons()
             elif returncode == 2:
                 error_msg = stdout.strip().split("\n")[-1] if stdout.strip() else "Invalid input."
                 self._show_error(error_msg)
+                self._show_action_buttons()
             else:
                 self.status_label.configure(
                     text="Search was cancelled.", text_color=("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
+
+        def _show_action_buttons(self):
+            """Show Open Report and/or View Error Log buttons as appropriate."""
+            # Clear any previous buttons
+            self.open_report_button.pack_forget()
+            self.error_log_button.pack_forget()
+            self.action_buttons_frame.grid_remove()
+
+            has_report = False
+            has_error_log = False
+
+            if self.results_dir:
+                docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
+                has_report = os.path.exists(docx_path)
+                error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
+                has_error_log = os.path.exists(error_log_path)
+
+            if not has_report and not has_error_log:
+                return
+
+            if has_report:
+                self.open_report_button.pack(pady=(0, 2))
+            if has_error_log:
+                self.error_log_button.pack(pady=(0, 2))
+
+            self.action_buttons_frame.grid(
+                row=5, column=2, padx=(5, 15), pady=(5, 0), sticky="ne"
+            )
+
+        def open_error_log(self):
+            error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
+            if not os.path.exists(error_log_path):
+                self._show_error("Error log not found.")
+                return
+            system = platform.system()
+            if system == "Darwin":
+                subprocess.Popen(["open", error_log_path])
+            elif system == "Windows":
+                os.startfile(error_log_path)  # type: ignore[attr-defined]
+            else:
+                subprocess.Popen(["xdg-open", error_log_path])
 
         def open_report(self):
             docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
@@ -809,7 +862,7 @@ def _launch_gui():
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
             )
-            self.open_report_button.grid_remove()
+            self.action_buttons_frame.grid_remove()
             self._hide_files_list()
 
         def _show_error(self, message):
