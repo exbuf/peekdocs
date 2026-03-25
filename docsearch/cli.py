@@ -137,15 +137,71 @@ from docsearch.reporter import (  # noqa: E402
 )
 
 
+def _diagnose(exc):
+    """Return a plain-English diagnosis based on the exception type and message."""
+    name = type(exc).__name__
+    msg = str(exc).lower()
+
+    if isinstance(exc, ImportError):
+        module = getattr(exc, "name", "") or ""
+        if module:
+            return (f"The Python module '{module}' could not be loaded. "
+                    "This is usually caused by a missing or incompatible dependency. "
+                    "Try: pip install --upgrade docsearch")
+        return ("A required module could not be imported. "
+                "A dependency may be missing or incompatible with your Python version. "
+                "Try reinstalling: pip install --upgrade docsearch")
+
+    if isinstance(exc, MemoryError):
+        return ("The system ran out of memory. "
+                "This may happen when searching very large files. "
+                "Try searching fewer files or use -t to limit file types.")
+
+    if isinstance(exc, PermissionError):
+        return ("A file or directory could not be accessed due to permissions. "
+                "Check that you have read access to the files being searched.")
+
+    if isinstance(exc, OSError):
+        if "no space" in msg:
+            return ("The disk is full. Free up space and try again.")
+        if "too many open files" in msg:
+            return ("Too many files open at once. "
+                    "Try reducing the number of CPU cores with -c 1.")
+        return (f"An operating system error occurred: {exc}. "
+                "This may indicate a file access or disk problem.")
+
+    if isinstance(exc, UnicodeDecodeError):
+        return ("A file contained unexpected character encoding. "
+                "The file may be corrupted or in an unsupported format.")
+
+    if "fitz" in msg or "pymupdf" in msg:
+        return ("An error occurred in the PDF processing library (PyMuPDF). "
+                "The PDF file may be corrupted, or the library may need updating. "
+                "Try: pip install --upgrade pymupdf")
+
+    if "docx" in msg or "opc" in msg:
+        return ("An error occurred reading a Word document. "
+                "The .docx file may be corrupted or password-protected.")
+
+    if "openpyxl" in msg:
+        return ("An error occurred reading an Excel file. "
+                "The .xlsx file may be corrupted or password-protected.")
+
+    return (f"An unexpected {name} occurred. "
+            "This may be a bug or a compatibility issue with your Python version. "
+            "Please report this at https://github.com/exbuf/docsearch/issues")
+
+
 def main(argv=None):
     try:
         return _main_inner(argv)
     except KeyboardInterrupt:
         print("\nSearch cancelled.\n")
         return 2
-    except Exception:
+    except Exception as exc:
         error_log_path = os.path.join(os.getcwd(), "docsearch_errors.log")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        diagnosis = _diagnose(exc)
         with open(error_log_path, "a") as log_f:
             log_f.write(f"\n{'='*60}\n")
             log_f.write(f"{timestamp}  CRASH REPORT\n")
@@ -154,6 +210,7 @@ def main(argv=None):
             log_f.write(f"OS: {platform.system()} {platform.release()}\n")
             cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
             log_f.write(f"Command: docsearch {cmd}\n")
+            log_f.write(f"\nDiagnosis: {diagnosis}\n")
             log_f.write(f"{'='*60}\n")
             traceback.print_exc(file=log_f)
             log_f.write("\n")

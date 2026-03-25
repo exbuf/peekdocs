@@ -535,6 +535,24 @@ If any files could not be read during a search, errors are logged to **`docsearc
 
 The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The error log appends across searches so you can track issues over time. You can safely delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs.
 
+If docsearch itself crashes unexpectedly, a crash report is also written to `docsearch_errors.log` with a diagnosis to help identify the cause:
+```
+============================================================
+2026-03-25 14:30:12  CRASH REPORT
+docsearch 0.1.0
+Python 3.14.0 (main, Oct 7 2026, 00:00:00)
+OS: Darwin 24.6.0
+Command: docsearch budget
+
+Diagnosis: The Python module 'fitz' could not be loaded. This is usually
+caused by a missing or incompatible dependency. Try: pip install --upgrade docsearch
+============================================================
+Traceback (most recent call last):
+  ...
+```
+
+If you experience a crash, check `docsearch_errors.log` in the folder where you ran the search. The diagnosis line suggests a likely cause and fix. Common causes include a missing or incompatible Python package (fix: `pip install --upgrade docsearch`), a corrupted file that couldn't be handled, or a Python version incompatibility. If the problem persists, the crash report contains everything needed to investigate — you can include it when reporting an issue.
+
 The terminal also displays a summary:
 ```
 Found 2 match(es). Results written to docsearch_results.txt and docsearch_results.docx
@@ -546,7 +564,7 @@ Found 2 match(es). Results written to docsearch_results.txt and docsearch_result
 Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
 
 **What happens when a file can't be read?**
-Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, or files with unsupported encoding. When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results.
+Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, or files with unsupported encoding. When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file — see the [Output](#output) section for details.
 
 **How do I recall a previous command?**
 Press the up arrow key in your terminal to scroll through previous commands. This is a built-in feature of all terminals (macOS, Windows, and Linux) — not specific to docsearch. You can press up repeatedly to go further back, then press Enter to re-run the command.
@@ -644,6 +662,9 @@ No — docsearch searches uncompressed files only.
 **Does it work offline?**
 Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
+**What if I upgrade Python and docsearch stops working?**
+Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, reinstall it: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. Most dependency updates are available within a few weeks of a new Python release.
+
 **Does it modify my files?**
 No — docsearch only reads your files. It never changes, moves, or deletes them.
 
@@ -676,7 +697,11 @@ docsearch/
 │   ├── __init__.py      # Package init
 │   ├── __main__.py      # Enables python -m docsearch
 │   ├── cli.py           # Main CLI entry point
-│   └── gui.py           # Optional GUI (docsearch-gui)
+│   ├── constants.py     # Shared constants and defaults
+│   ├── gui.py           # Optional GUI (docsearch-gui)
+│   ├── parser.py        # Command-line flag parsing
+│   ├── reporter.py      # Report generation (txt, docx, csv, json)
+│   └── scanner.py       # File processing and discovery
 ├── tests/
 │   ├── test_cli.py      # CLI test suite
 │   └── test_gui.py      # GUI test suite
