@@ -1,43 +1,21 @@
 """Command-line interface for DocSearch."""
 
-import csv
-import json
-from copy import deepcopy
-import glob
-from html.parser import HTMLParser
-from itertools import product
 import logging
 import multiprocessing
-import signal
-import threading
 import os
 import re
 import shutil
+import signal
 import sys
-import textwrap
+import threading
 import time
 from datetime import datetime
+from importlib.metadata import version as pkg_version
 
 logging.getLogger("pymupdf").setLevel(logging.ERROR)
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
-
-import fitz
-from docx import Document
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
-from odf.opendocument import load as load_odt
-from odf.text import P as OdtParagraph
-from odf.table import Table as OdfTable, TableRow as OdfTableRow, TableCell as OdfTableCell
-from odf import teletype
-from docx.enum.text import WD_COLOR_INDEX
-from openpyxl import load_workbook
-from striprtf.striprtf import rtf_to_text
-from pptx import Presentation as PptxPresentation
-import ebooklib
-from ebooklib import epub
-from importlib.metadata import version as pkg_version
 
 
 VERSION = pkg_version("docsearch")
@@ -45,11 +23,7 @@ VERSION = pkg_version("docsearch")
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
 
-SUPPORTED_TYPES = {".docx", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".md", ".json", ".rtf", ".pptx", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"}
-
-OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
-
-FUZZY_THRESHOLD = 80
+from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD, _default_cores  # noqa: E402
 
 BANNER_TOP = (
     '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
@@ -95,45 +69,6 @@ REGEX_PATTERNS = (
     '  \\b\\d+%                                          Percentages (92%)\n'
     '  Q[1-4]\\s?\\d{4}                                  Fiscal quarters (Q1 2026)\n'
 )
-
-
-def apply_context(all_lines, match_indices, before, after):
-    """Expand match indices with before/after context and return merged groups."""
-    if not match_indices:
-        return []
-
-    total = len(all_lines)
-    ranges = []
-    for idx in sorted(match_indices):
-        start = max(0, idx - before)
-        end = min(total - 1, idx + after)
-        ranges.append((start, end))
-
-    merged = []
-    for start, end in ranges:
-        if merged and start <= merged[-1][1] + 1:
-            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-        else:
-            merged.append([start, end])
-
-    groups = []
-    for start, end in merged:
-        group = []
-        for i in range(start, end + 1):
-            line_num, text = all_lines[i]
-            is_match = i in match_indices
-            group.append((line_num, text, is_match))
-        groups.append(group)
-
-    return groups
-
-
-def _default_cores():
-    """Return the default number of worker processes: half of available cores, minimum 1."""
-    cpu = os.cpu_count()
-    if cpu is None:
-        return 1
-    return max(1, cpu // 2)
 
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard"}
@@ -190,343 +125,14 @@ def _save_config(settings):
                 f.write(f"{key} = {value}\n")
 
 
-def _wildcard_to_regex(term):
-    """Convert a wildcard pattern (* and ?) to a regex pattern."""
-    escaped = re.escape(term)
-    escaped = escaped.replace(r'\*', r'\w*')
-    escaped = escaped.replace(r'\?', r'\w')
-    return r'\b' + escaped + r'\b'
-
-
-def _ocr_image(image):
-    """Run OCR on a PIL Image and return extracted text."""
-    import pytesseract
-    return pytesseract.image_to_string(image)
-
-
-def _process_file(args_tuple):
-    """Process a single file and return (matches, skipped) for that file."""
-    filepath, config = args_tuple
-
-    search_terms = config["search_terms"]
-    use_regex = config["use_regex"]
-    match_all = config["match_all"]
-    use_proximity = config["use_proximity"]
-    proximity = config["proximity"]
-    use_context = config["use_context"]
-    context_before = config["context_before"]
-    context_after = config["context_after"]
-    use_ocr = config.get("use_ocr", False)
-    use_fuzzy = config.get("use_fuzzy", False)
-    exclude_terms = config.get("exclude_terms", [])
-    use_wildcard = config.get("use_wildcard", False)
-    if use_wildcard:
-        search_terms = [_wildcard_to_regex(t) for t in search_terms]
-        if exclude_terms:
-            exclude_terms = [_wildcard_to_regex(t) for t in exclude_terms]
-        use_regex = True
-    if use_fuzzy:
-        from rapidfuzz import fuzz
-
-    def _fuzzy_word_match(text, term):
-        """Return the first word in text that fuzzy-matches term, or None."""
-        for word in re.findall(r'\S+', text):
-            clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
-            if not clean:
-                continue
-            if fuzz.ratio(term.lower(), clean.lower()) >= FUZZY_THRESHOLD:
-                return word
-        return None
-
-    def _proximity_match(text):
-        """Return True if all search terms appear within 'proximity' words of each other."""
-        words = re.findall(r'\S+', text.lower())
-        term_positions = {}
-        for term in search_terms:
-            term_lower = term.lower()
-            positions = []
-            if use_regex:
-                for i, word in enumerate(words):
-                    if re.search(term, word, re.IGNORECASE):
-                        positions.append(i)
-            elif use_fuzzy:
-                for i, word in enumerate(words):
-                    clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
-                    if clean and fuzz.ratio(term_lower, clean) >= FUZZY_THRESHOLD:
-                        positions.append(i)
-            else:
-                for i, word in enumerate(words):
-                    if term_lower in word:
-                        positions.append(i)
-            if not positions:
-                return False
-            term_positions[term] = positions
-        for combo in product(*term_positions.values()):
-            if max(combo) - min(combo) <= proximity:
-                return True
-        return False
-
-    def _excludes_match(text):
-        """Return True if any exclude term is found in text."""
-        if use_regex:
-            return any(re.search(t, text, re.IGNORECASE) for t in exclude_terms)
-        if use_fuzzy:
-            return any(_fuzzy_word_match(text, t) is not None for t in exclude_terms)
-        text_lower = text.lower()
-        return any(t.lower() in text_lower for t in exclude_terms)
-
-    def text_matches(text):
-        """Return True if search terms are found in text (ANY or ALL based on mode)."""
-        check = all if match_all else any
-        if use_regex:
-            if use_proximity:
-                matched = _proximity_match(text)
-            else:
-                matched = check(re.search(term, text, re.IGNORECASE) for term in search_terms)
-        elif use_fuzzy:
-            if use_proximity:
-                matched = _proximity_match(text)
-            else:
-                matched = check(_fuzzy_word_match(text, term) is not None for term in search_terms)
-        else:
-            text_lower = text.lower()
-            matched = check(term.lower() in text_lower for term in search_terms)
-            if matched and use_proximity:
-                matched = _proximity_match(text)
-        if not matched:
-            return False
-        if exclude_terms:
-            return not _excludes_match(text)
-        return True
-
-    def highlight_text(text):
-        """Apply ** highlighting around matched search terms."""
-        if use_fuzzy:
-            highlighted = text
-            for term in search_terms:
-                result_words = []
-                for word in highlighted.split():
-                    clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
-                    if clean and fuzz.ratio(term.lower(), clean.lower()) >= FUZZY_THRESHOLD:
-                        result_words.append(f"**{word}**")
-                    else:
-                        result_words.append(word)
-                highlighted = " ".join(result_words)
-            return highlighted
-        highlighted = text
-        for term in search_terms:
-            pattern = term if use_regex else re.escape(term)
-            highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-        return highlighted
-
-    def context_group_to_match(group, file_dir, filename, line_num_override=None):
-        """Convert a context group to a match tuple with pre-highlighted text."""
-        first_match_num = line_num_override or next(ln for ln, _, is_match in group if is_match)
-        parts = []
-        for ln, text, is_match in group:
-            if is_match:
-                parts.append(highlight_text(text))
-            else:
-                parts.append(text)
-        return (file_dir, filename, first_match_num, "\n".join(parts))
-
-    matches = []
-    skipped = []
-
-    def collect_matches(all_lines, file_dir, filename):
-        """Find matches in all_lines and append to matches list, with context if active."""
-        if use_context:
-            match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
-            if not match_indices:
-                return
-            groups = apply_context(all_lines, match_indices, context_before, context_after)
-            for group in groups:
-                matches.append(context_group_to_match(group, file_dir, filename))
-        else:
-            for line_num, text in all_lines:
-                if text_matches(text):
-                    if use_fuzzy:
-                        matches.append((file_dir, filename, line_num, highlight_text(text)))
-                    else:
-                        matches.append((file_dir, filename, line_num, text))
-
-    file_dir = os.path.dirname(filepath)
-    filename = os.path.basename(filepath)
-    ext = os.path.splitext(filename)[1].lower()
-
-    try:
-        if ext == ".docx":
-            doc = Document(filepath)
-            all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".pdf":
-            doc = fitz.open(filepath)
-            for page_num, page in enumerate(doc, start=1):
-                text = page.get_text()
-                if use_ocr and len((text or "").strip()) < 10:
-                    import io
-                    from PIL import Image
-                    pix = page.get_pixmap(dpi=300)
-                    img = Image.open(io.BytesIO(pix.tobytes("png")))
-                    text = _ocr_image(img)
-                if not text or not text.strip():
-                    continue
-                page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
-                if use_context:
-                    match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
-                    if match_indices:
-                        groups = apply_context(page_lines, match_indices, context_before, context_after)
-                        for group in groups:
-                            matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
-                else:
-                    for line_num, line in page_lines:
-                        if text_matches(line):
-                            if use_fuzzy:
-                                matches.append((file_dir, filename, page_num, highlight_text(line)))
-                            else:
-                                matches.append((file_dir, filename, page_num, line))
-            doc.close()
-
-        elif ext == ".csv":
-            with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
-                reader = csv.reader(csvfile)
-                all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".tsv":
-            with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
-                reader = csv.reader(tsvfile, delimiter="\t")
-                all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".epub":
-            book = epub.read_epub(filepath)
-            all_lines = []
-            line_num = 0
-            for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-                html_content = item.get_content().decode("utf-8", errors="replace")
-                class _EpubTextExtractor(HTMLParser):
-                    def __init__(self):
-                        super().__init__()
-                        self.text_parts = []
-                    def handle_data(self, data):
-                        self.text_parts.append(data)
-                parser = _EpubTextExtractor()
-                parser.feed(html_content)
-                for line in "".join(parser.text_parts).split("\n"):
-                    stripped = line.strip()
-                    if stripped:
-                        line_num += 1
-                        all_lines.append((line_num, stripped))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".odt":
-            odt_doc = load_odt(filepath)
-            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".odp":
-            odp_doc = load_odt(filepath)
-            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".ods":
-            ods_doc = load_odt(filepath)
-            all_lines = []
-            row_num = 0
-            for table in ods_doc.getElementsByType(OdfTable):
-                for row in table.getElementsByType(OdfTableRow):
-                    row_num += 1
-                    cells = []
-                    for cell in row.getElementsByType(OdfTableCell):
-                        cell_text = teletype.extractText(cell)
-                        if cell_text:
-                            cells.append(cell_text)
-                    row_text = ", ".join(cells)
-                    all_lines.append((row_num, row_text))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
-            with open(filepath, encoding="utf-8", errors="replace") as txtfile:
-                all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".html":
-            class _HTMLTextExtractor(HTMLParser):
-                def __init__(self):
-                    super().__init__()
-                    self.text_parts = []
-                def handle_data(self, data):
-                    self.text_parts.append(data)
-            with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
-                parser = _HTMLTextExtractor()
-                parser.feed(htmlfile.read())
-            lines = "".join(parser.text_parts).split("\n")
-            all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
-            if use_context:
-                collect_matches(all_lines, file_dir, filename)
-            else:
-                for line_num, text in all_lines:
-                    if text and text_matches(text):
-                        if use_fuzzy:
-                            matches.append((file_dir, filename, line_num, highlight_text(text)))
-                        else:
-                            matches.append((file_dir, filename, line_num, text))
-
-        elif ext == ".pptx":
-            prs = PptxPresentation(filepath)
-            all_lines = []
-            para_num = 0
-            for slide in prs.slides:
-                for shape in slide.shapes:
-                    if shape.has_text_frame:
-                        for para in shape.text_frame.paragraphs:
-                            para_num += 1
-                            all_lines.append((para_num, para.text))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".rtf":
-            with open(filepath, encoding="utf-8", errors="replace") as rtffile:
-                raw = rtffile.read()
-            plain = rtf_to_text(raw)
-            all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".xlsx":
-            wb = load_workbook(filepath, read_only=True, data_only=True)
-            for sheet in wb.worksheets:
-                sheet_lines = []
-                for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
-                    row_text = ", ".join(str(cell) for cell in row if cell is not None)
-                    sheet_lines.append((row_num, row_text))
-                if use_context:
-                    match_indices = {i for i, (_, text) in enumerate(sheet_lines) if text and text_matches(text)}
-                    if match_indices:
-                        groups = apply_context(sheet_lines, match_indices, context_before, context_after)
-                        for group in groups:
-                            matches.append(context_group_to_match(group, file_dir, filename))
-                else:
-                    for row_num, row_text in sheet_lines:
-                        if row_text and text_matches(row_text):
-                            if use_fuzzy:
-                                matches.append((file_dir, filename, row_num, highlight_text(row_text)))
-                            else:
-                                matches.append((file_dir, filename, row_num, row_text))
-            wb.close()
-
-        elif ext in OCR_IMAGE_TYPES:
-            from PIL import Image
-            img = Image.open(filepath)
-            text = _ocr_image(img)
-            if text and text.strip():
-                all_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1) if line.strip()]
-                collect_matches(all_lines, file_dir, filename)
-
-    except Exception as e:
-        skipped.append((filename, str(e)))
-
-    return (matches, skipped)
+# Re-export from scanner so tests can monkeypatch via docsearch.cli
+from docsearch.scanner import _process_file, _ocr_image, discover_files  # noqa: E402
+from docsearch.parser import parse_flags  # noqa: E402
+from docsearch.reporter import (  # noqa: E402
+    fmt_size, write_txt_report, write_docx_report,
+    insert_file_sizes, write_csv_report, write_json_report,
+    append_results,
+)
 
 
 def main(argv=None):
@@ -650,227 +256,33 @@ def main(argv=None):
         print()
         return 0
 
-    match_all = "-a" in args or "--all" in args or config.get("match_all", False)
-    recursive = "-r" in args or config.get("recursive", False)
-    use_regex = "-x" in args or config.get("regex", False)
+    # Parse all flags
+    parsed = parse_flags(args, config)
+    if isinstance(parsed, tuple):
+        print(parsed[1])
+        return parsed[0]
 
-    use_ocr = "-O" in args or "--ocr" in args or config.get("ocr", False)
-    if "-O" in args:
-        args.remove("-O")
-    if "--ocr" in args:
-        args.remove("--ocr")
+    search_terms = parsed["search_terms"]
+    match_all = parsed["match_all"]
+    recursive = parsed["recursive"]
+    use_regex = parsed["use_regex"]
+    use_ocr = parsed["use_ocr"]
+    use_fuzzy = parsed["use_fuzzy"]
+    use_wildcard = parsed["use_wildcard"]
+    exclude_terms = parsed["exclude_terms"]
+    file_types = parsed["file_types"]
+    file_names = parsed["file_names"]
+    context_before = parsed["context_before"]
+    context_after = parsed["context_after"]
+    use_context = parsed["use_context"]
+    proximity = parsed["proximity"]
+    use_proximity = parsed["use_proximity"]
+    append_name = parsed["append_name"]
+    cores = parsed["cores"]
+    output_formats = parsed["output_formats"]
+    mode = parsed["mode"]
+    report_mode = parsed["report_mode"]
 
-    if use_ocr and not shutil.which("tesseract"):
-        print("Tesseract OCR is not installed. The -O flag requires Tesseract.\n")
-        print("Install Tesseract:")
-        print("  macOS:   brew install tesseract")
-        print("  Ubuntu:  sudo apt install tesseract-ocr")
-        print("  Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki\n")
-        return 2
-
-    use_fuzzy = "-z" in args or config.get("fuzzy", False)
-    if "-z" in args:
-        args.remove("-z")
-
-    use_wildcard = "-w" in args or config.get("wildcard", False)
-    if "-w" in args:
-        args.remove("-w")
-
-    if use_fuzzy and use_regex:
-        print("Cannot combine fuzzy (-z) and regex (-x) search modes.\n")
-        return 2
-    if use_wildcard and use_regex:
-        print("Cannot combine wildcard (-w) and regex (-x) search modes.\n")
-        return 2
-    if use_wildcard and use_fuzzy:
-        print("Cannot combine wildcard (-w) and fuzzy (-z) search modes.\n")
-        return 2
-
-    exclude_terms = []
-    if "-n" in args:
-        idx = args.index("-n")
-        if idx + 1 >= len(args):
-            print("No exclude terms provided. Usage: docsearch -n draft,obsolete budget\n")
-            return 2
-        exclude_terms = [t.strip() for t in args[idx + 1].split(",")]
-        args = args[:idx] + args[idx + 2:]
-
-    file_types = None
-    if "-t" in args:
-        idx = args.index("-t")
-        if idx + 1 >= len(args):
-            print("No file types provided. Usage: docsearch -t pdf,docx search_term\n")
-            return 2
-        raw_types = args[idx + 1].split(",")
-        file_types = set()
-        valid_types = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
-        for t in raw_types:
-            ext = "." + t.strip().lower().lstrip(".")
-            if ext not in valid_types:
-                supported_list = "docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql"
-                if use_ocr:
-                    supported_list += ", jpg, jpeg, png, tiff, tif, bmp"
-                print(f"Unsupported file type: {t.strip()}. Supported types: {supported_list}\n")
-                return 2
-            file_types.add(ext)
-        args = args[:idx] + args[idx + 2:]
-    elif "file_types" in config:
-        raw_types = config["file_types"].split(",")
-        file_types = set()
-        valid_types = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
-        for t in raw_types:
-            ext = "." + t.strip().lower().lstrip(".")
-            if ext in valid_types:
-                file_types.add(ext)
-
-    file_names = None
-    if "-f" in args:
-        idx = args.index("-f")
-        if idx + 1 >= len(args):
-            print("No file names provided. Usage: docsearch -f report.pdf,notes.txt search_term\n")
-            return 2
-        file_names = [n.strip() for n in args[idx + 1].split(",")]
-        valid_types_f = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
-        for n in file_names:
-            ext = os.path.splitext(n)[1].lower()
-            if ext not in valid_types_f:
-                supported_list = "docx, pdf, csv, odt, txt, html, xlsx, md, json, rtf, pptx, xml, log, yaml, yml, tsv, epub, ods, odp, toml, rst, tex, ini, cfg, sql"
-                if use_ocr:
-                    supported_list += ", jpg, jpeg, png, tiff, tif, bmp"
-                print(f"Unsupported file type in '{n}'. Supported types: {supported_list}\n")
-                return 2
-        args = args[:idx] + args[idx + 2:]
-
-    if file_types is not None and file_names is not None:
-        print("Cannot use -f and -t together. Use -f to search specific files or -t to filter by file type.\n")
-        return 2
-
-    context_before = config.get("context_before", 0)
-    if "-B" in args:
-        idx = args.index("-B")
-        if idx + 1 >= len(args):
-            print("No count provided. Usage: docsearch -B 5 search_term\n")
-            return 2
-        try:
-            context_before = int(args[idx + 1])
-            if context_before < 0:
-                raise ValueError
-        except ValueError:
-            print(f"Invalid count for -B: {args[idx + 1]}. Must be a positive integer.\n")
-            return 2
-        args = args[:idx] + args[idx + 2:]
-
-    context_after = config.get("context_after", 0)
-    if "-A" in args:
-        idx = args.index("-A")
-        if idx + 1 >= len(args):
-            print("No count provided. Usage: docsearch -A 5 search_term\n")
-            return 2
-        try:
-            context_after = int(args[idx + 1])
-            if context_after < 0:
-                raise ValueError
-        except ValueError:
-            print(f"Invalid count for -A: {args[idx + 1]}. Must be a positive integer.\n")
-            return 2
-        args = args[:idx] + args[idx + 2:]
-
-    proximity = 0
-    if "-p" in args:
-        idx = args.index("-p")
-        if idx + 1 >= len(args):
-            print("No count provided. Usage: docsearch -p 5 budget revenue\n")
-            return 2
-        try:
-            proximity = int(args[idx + 1])
-            if proximity < 1:
-                raise ValueError
-        except ValueError:
-            print(f"Invalid count for -p: {args[idx + 1]}. Must be a positive integer.\n")
-            return 2
-        args = args[:idx] + args[idx + 2:]
-
-    use_proximity = proximity > 0
-    if use_proximity:
-        match_all = True
-
-    append_name = None
-    if "-sa" in args:
-        idx = args.index("-sa")
-        if idx + 1 >= len(args):
-            print("No filename provided. Usage: docsearch -sa my_report budget revenue\n")
-            return 2
-        append_name = args[idx + 1]
-        args = args[:idx] + args[idx + 2:]
-
-    cores = config.get("cores", _default_cores())
-    if "-c" in args:
-        idx = args.index("-c")
-        if idx + 1 >= len(args):
-            print("No count provided. Usage: docsearch -c 4 search_term\n")
-            return 2
-        try:
-            cores = int(args[idx + 1])
-            if cores < 1:
-                raise ValueError
-        except ValueError:
-            print(f"Invalid count for -c: {args[idx + 1]}. Must be a positive integer.\n")
-            return 2
-        args = args[:idx] + args[idx + 2:]
-
-    output_formats = []
-    if "-o" in args:
-        idx = args.index("-o")
-        if idx + 1 >= len(args):
-            print("No format provided. Usage: docsearch -o csv search_term\n")
-            return 2
-        valid_formats = {"csv", "json"}
-        requested = [fmt.strip().lower() for fmt in args[idx + 1].split(",")]
-        for fmt in requested:
-            if fmt not in valid_formats:
-                print(f"Invalid output format '{fmt}'. Supported formats: csv, json\n")
-                return 2
-        output_formats = requested
-        args = args[:idx] + args[idx + 2:]
-
-    use_context = context_before > 0 or context_after > 0
-
-    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
-
-    if not search_terms:
-        print("No search terms provided.\n")
-        return 2
-
-    if use_proximity and len(search_terms) < 2:
-        print("Proximity search (-p) requires at least 2 search terms.\n")
-        return 2
-
-    if use_regex:
-        for term in search_terms:
-            try:
-                re.compile(term)
-            except re.error as e:
-                print(f"Invalid regex pattern '{term}': {e}\n")
-                return 2
-
-    if use_wildcard and match_all:
-        mode = "WILDCARD+AND"
-    elif use_wildcard:
-        mode = "WILDCARD"
-    elif use_regex and match_all:
-        mode = "REGEX+AND"
-    elif use_regex:
-        mode = "REGEX"
-    elif match_all:
-        mode = "AND"
-    else:
-        mode = "OR"
-    if use_fuzzy:
-        mode += "+FUZZY"
-    if exclude_terms:
-        mode += "+NOT"
-    if use_ocr:
-        mode += "+OCR"
     command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
     print(command_str)
     print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
@@ -879,74 +291,12 @@ def main(argv=None):
     start_time = time.time()
     cwd = os.getcwd()
 
-    if recursive:
-        glob_prefix = os.path.join(cwd, "**", "*")
-    else:
-        glob_prefix = os.path.join(cwd, "*")
-
-    docx_files = sorted(
-        f for f in glob.glob(glob_prefix + ".docx", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.docx"
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    pdf_files = sorted(glob.glob(glob_prefix + ".pdf", recursive=recursive))
-    csv_files = sorted(glob.glob(glob_prefix + ".csv", recursive=recursive))
-    odt_files = sorted(glob.glob(glob_prefix + ".odt", recursive=recursive))
-    txt_files = sorted(
-        f for f in glob.glob(glob_prefix + ".txt", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.txt"
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
-    xlsx_files = sorted(glob.glob(glob_prefix + ".xlsx", recursive=recursive))
-    md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
-    json_files = sorted(glob.glob(glob_prefix + ".json", recursive=recursive))
-    rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
-    pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
-    xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
-    log_files = sorted(
-        f for f in glob.glob(glob_prefix + ".log", recursive=recursive)
-        if os.path.basename(f) != "docsearch_errors.log"
-    )
-    yaml_files = sorted(glob.glob(glob_prefix + ".yaml", recursive=recursive))
-    yml_files = sorted(glob.glob(glob_prefix + ".yml", recursive=recursive))
-    tsv_files = sorted(glob.glob(glob_prefix + ".tsv", recursive=recursive))
-    epub_files = sorted(glob.glob(glob_prefix + ".epub", recursive=recursive))
-    ods_files = sorted(glob.glob(glob_prefix + ".ods", recursive=recursive))
-    odp_files = sorted(glob.glob(glob_prefix + ".odp", recursive=recursive))
-    toml_files = sorted(glob.glob(glob_prefix + ".toml", recursive=recursive))
-    rst_files = sorted(glob.glob(glob_prefix + ".rst", recursive=recursive))
-    tex_files = sorted(glob.glob(glob_prefix + ".tex", recursive=recursive))
-    ini_files = sorted(glob.glob(glob_prefix + ".ini", recursive=recursive))
-    cfg_files = sorted(glob.glob(glob_prefix + ".cfg", recursive=recursive))
-    sql_files = sorted(glob.glob(glob_prefix + ".sql", recursive=recursive))
-    if use_ocr:
-        jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
-        jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
-        png_files = sorted(glob.glob(glob_prefix + ".png", recursive=recursive))
-        tiff_files = sorted(glob.glob(glob_prefix + ".tiff", recursive=recursive))
-        tif_files = sorted(glob.glob(glob_prefix + ".tif", recursive=recursive))
-        bmp_files = sorted(glob.glob(glob_prefix + ".bmp", recursive=recursive))
-        image_files = jpg_files + jpeg_files + png_files + tiff_files + tif_files + bmp_files
-    else:
-        image_files = []
-    all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + image_files
-        if not os.path.basename(f).startswith("DO_NOT_SEARCH")
-    )
-
-    if file_types is not None:
-        all_files = [f for f in all_files if os.path.splitext(f)[1].lower() in file_types]
-
-    if file_names is not None:
-        name_set = {n.lower() for n in file_names}
-        all_files = [f for f in all_files if os.path.basename(f).lower() in name_set]
-        missing = name_set - {os.path.basename(f).lower() for f in all_files}
-        if missing:
-            for m in sorted(missing):
-                print(f"File not found: {m}")
-            print()
-            return 2
+    # Discover files
+    result = discover_files(cwd, recursive, use_ocr, file_types, file_names)
+    if isinstance(result, tuple):
+        print(result[1])
+        return result[0]
+    all_files = result
 
     search_config = {
         "search_terms": search_terms,
@@ -961,6 +311,7 @@ def main(argv=None):
         "use_fuzzy": use_fuzzy,
         "exclude_terms": exclude_terms,
         "use_wildcard": use_wildcard,
+        "_ocr_image_func": _ocr_image,
     }
 
     matches = []
@@ -1062,248 +413,36 @@ def main(argv=None):
 
     search_elapsed = time.time() - start_time
 
+    # Generate reports
     output_path = os.path.join(cwd, "docsearch_results.txt")
-    if os.path.exists(output_path):
-        os.remove(output_path)
-    with open(output_path, "w") as f:
-        f.write("Program name: docsearch\n")
-        f.write("Program Source: https://github.com/exbuf\n")
-        f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types:\n")
-        f.write(".cfg, .csv, .docx, .epub, .html, .ini, .json, .log, .md, .ods, .odp, .odt, .pdf, .pptx, .rst,\n")
-        f.write(".rtf, .sql, .tex, .toml, .tsv, .txt, .xlsx, .xml, .yaml, .yml\n")
-        if use_ocr:
-            f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
-        f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        if use_wildcard and match_all:
-            report_mode = "WILDCARD+AND"
-        elif use_wildcard:
-            report_mode = "WILDCARD"
-        elif use_regex and match_all:
-            report_mode = "REGEX+AND"
-        elif use_regex:
-            report_mode = "REGEX"
-        elif match_all:
-            report_mode = "ALL"
-        else:
-            report_mode = "ANY"
-        if use_fuzzy:
-            report_mode += "+FUZZY"
-        if exclude_terms:
-            report_mode += "+NOT"
-        if use_ocr:
-            report_mode += "+OCR"
-        f.write(f"Command ==> {command_str}\n")
-        f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
-        if exclude_terms:
-            f.write(f"Exclude Term(s) ==> {', '.join(exclude_terms)}\n")
-        f.write(f"Hits ==> {len(matches)}\n")
-        f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores} of {cpu_count}\n")
-        total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
-        if total_bytes >= 1_000_000:
-            size_str = f"{total_bytes / 1_000_000:.2f} MB"
-        elif total_bytes >= 1_000:
-            size_str = f"{total_bytes / 1_000:.2f} KB"
-        else:
-            size_str = f"{total_bytes} bytes"
-        f.write(f"Files searched ==> {len(all_files)} ({size_str})\n")
-        ext_counts = {}
-        for fp in all_files:
-            ext = os.path.splitext(fp)[1].lower()
-            ext_counts[ext] = ext_counts.get(ext, 0) + 1
-        if ext_counts:
-            tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
-            f.write(f"File Types Searched ==> {tally}\n")
-        f.write("\n")
-        prev_file = None
-        for file_dir, filename, line_num, text in matches:
-            current_file = os.path.join(file_dir, filename)
-            if use_context and prev_file == current_file:
-                f.write("---\n\n")
-            prev_file = current_file
-            if use_context:
-                lines = text.split("\n")
-                wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
-                wrapped = "\n".join(wrapped_lines)
-            else:
-                if use_fuzzy:
-                    wrapped = textwrap.fill(text, width=80)
-                else:
-                    highlighted = text
-                    for term in search_terms:
-                        if use_wildcard:
-                            pattern = _wildcard_to_regex(term)
-                        elif use_regex:
-                            pattern = term
-                        else:
-                            pattern = re.escape(term)
-                        highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-                    wrapped = textwrap.fill(highlighted, width=80)
-            f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
-
-    # Create docsearch_results.docx with yellow-highlighted matches
     docx_output_path = os.path.join(cwd, "docsearch_results.docx")
-    if os.path.exists(docx_output_path):
-        os.remove(docx_output_path)
-    result_doc = Document()
-    with open(output_path, "r") as f:
-        for line in f:
-            line = line.rstrip("\n")
-            para = result_doc.add_paragraph()
 
-            # Make URL a clickable hyperlink
-            if line.startswith("Program Source: "):
-                prefix = "Program Source: "
-                url = line[len(prefix):]
-                para.add_run(prefix)
-                r_id = result_doc.part.relate_to(
-                    url, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", is_external=True
-                )
-                hyperlink = OxmlElement("w:hyperlink")
-                hyperlink.set(qn("r:id"), r_id)
-                run_elem = OxmlElement("w:r")
-                rPr = OxmlElement("w:rPr")
-                color = OxmlElement("w:color")
-                color.set(qn("w:val"), "0000FF")
-                rPr.append(color)
-                u = OxmlElement("w:u")
-                u.set(qn("w:val"), "single")
-                rPr.append(u)
-                run_elem.append(rPr)
-                text_elem = OxmlElement("w:t")
-                text_elem.text = url
-                run_elem.append(text_elem)
-                hyperlink.append(run_elem)
-                para._p.append(hyperlink)
-                continue
-
-            if line.startswith("Search Term(s) ==> "):
-                prefix = "Search Term(s) ==> "
-                rest = line[len(prefix):]
-                # rest looks like "budget, revenue (match: ANY)"
-                match = re.match(r"(.+?)( \(match: [A-Z+]+\))$", rest)
-                if match:
-                    terms_str, mode_str = match.group(1), match.group(2)
-                    para.add_run(prefix)
-                    run = para.add_run(terms_str)
-                    run.font.highlight_color = WD_COLOR_INDEX.BRIGHT_GREEN
-                    para.add_run(mode_str)
-                else:
-                    para.add_run(line)
-                continue
-
-            is_doc_line = line.startswith("Document:")
-            parts = re.split(r"(\*\*.*?\*\*)", line)
-            for part in parts:
-                if part.startswith("**") and part.endswith("**"):
-                    run = para.add_run(part[2:-2])
-                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
-                    if is_doc_line:
-                        run.bold = True
-                else:
-                    run = para.add_run(part)
-                    if is_doc_line:
-                        run.bold = True
-    result_doc.save(docx_output_path)
-
-    # Insert report file sizes into both files (after timestamp, before Command)
-    def fmt_size(b):
-        if b >= 1_000_000:
-            return f"{b / 1_000_000:.2f} MB"
-        elif b >= 1_000:
-            return f"{b / 1_000:.2f} KB"
-        return f"{b} bytes"
-
-    txt_size = os.path.getsize(output_path)
-    docx_size = os.path.getsize(docx_output_path)
-    sizes_line = f"Report File Sizes ==> docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})"
-
-    # Update txt report
-    with open(output_path, "r") as f:
-        content = f.read()
-    content = content.replace(
-        "\nCommand ==>",
-        f"\n{sizes_line}\nCommand ==>",
-        1,
+    total_bytes, size_str = write_txt_report(
+        output_path, matches, all_files, search_terms, command_str,
+        report_mode, use_ocr, exclude_terms, use_context,
+        use_fuzzy, use_regex, use_wildcard,
+        search_elapsed, cores, cpu_count,
     )
-    with open(output_path, "w") as f:
-        f.write(content)
 
-    # Update docx report — insert sizes paragraph after timestamp
-    for i, para in enumerate(result_doc.paragraphs):
-        if para.text.startswith("Report Generated On ==>"):
-            new_para = OxmlElement("w:p")
-            run_elem = OxmlElement("w:r")
-            text_elem = OxmlElement("w:t")
-            text_elem.text = sizes_line
-            run_elem.append(text_elem)
-            new_para.append(run_elem)
-            para._p.addnext(new_para)
-            break
-    result_doc.save(docx_output_path)
-
-    # Write optional CSV/JSON output
-    def _strip_highlights(text):
-        return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    result_doc = write_docx_report(docx_output_path, output_path)
+    txt_size, docx_size = insert_file_sizes(output_path, docx_output_path, result_doc)
 
     csv_output_path = None
     json_output_path = None
 
     if "csv" in output_formats:
         csv_output_path = os.path.join(cwd, "docsearch_results.csv")
-        if os.path.exists(csv_output_path):
-            os.remove(csv_output_path)
-        with open(csv_output_path, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["filename", "folder", "line_number", "matched_text"])
-            for file_dir, filename, line_num, text in matches:
-                writer.writerow([filename, file_dir, line_num, _strip_highlights(text)])
+        write_csv_report(csv_output_path, matches)
 
     if "json" in output_formats:
         json_output_path = os.path.join(cwd, "docsearch_results.json")
-        if os.path.exists(json_output_path):
-            os.remove(json_output_path)
-        json_data = {
-            "search_terms": search_terms,
-            "mode": report_mode,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "files_searched": len(all_files),
-            "matches_found": len(matches),
-            "elapsed_seconds": round(search_elapsed, 2),
-            "matches": [
-                {
-                    "filename": filename,
-                    "folder": file_dir,
-                    "line_number": line_num,
-                    "matched_text": _strip_highlights(text),
-                }
-                for file_dir, filename, line_num, text in matches
-            ],
-        }
-        with open(json_output_path, "w") as f:
-            json.dump(json_data, f, indent=2)
+        write_json_report(
+            json_output_path, matches, search_terms, report_mode,
+            len(all_files), search_elapsed,
+        )
 
     if append_name is not None:
-        append_txt_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")
-        append_docx_path = os.path.join(cwd, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
-        with open(output_path, "r") as src:
-            results_content = src.read()
-        with open(append_txt_path, "a") as dst:
-            dst.write(results_content)
-        if os.path.exists(append_docx_path):
-            existing_doc = Document(append_docx_path)
-            new_doc = Document(docx_output_path)
-            body = existing_doc.element.body
-            sect_pr = body.find(qn('w:sectPr'))
-            for para in new_doc.paragraphs:
-                new_elem = deepcopy(para._p)
-                if sect_pr is not None:
-                    sect_pr.addprevious(new_elem)
-                else:
-                    body.append(new_elem)
-            existing_doc.save(append_docx_path)
-        else:
-            shutil.copy2(docx_output_path, append_docx_path)
+        append_results(append_name, cwd, output_path, docx_output_path)
 
     elapsed = time.time() - start_time
     print()
