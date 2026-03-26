@@ -155,19 +155,62 @@ _REQUIRED_MODULES = [
 ]
 
 
+_OPTIONAL_MODULES = [
+    ("rapidfuzz", "rapidfuzz", "Fuzzy matching (-z)"),
+    ("pytesseract", "pytesseract", "OCR engine (-O)"),
+    ("PIL", "Pillow", "OCR image processing (-O)"),
+    ("customtkinter", "customtkinter", "GUI (docsearch-gui)"),
+]
+
+
+def _get_pkg_version(package):
+    """Return the installed version of a package, or '?' if unavailable."""
+    try:
+        return pkg_version(package)
+    except Exception:
+        return "?"
+
+
 def _check_dependencies():
     """Check that all required modules can be imported.
 
-    Returns list of (module_display, package, status, message) tuples.
+    Returns list of (module_display, package, status, version) tuples.
     """
     results = []
     for module_name, package, description in _REQUIRED_MODULES:
         try:
             __import__(module_name)
-            results.append((description, package, "ok", ""))
+            ver = _get_pkg_version(package)
+            results.append((description, package, "ok", ver))
         except ImportError as e:
             results.append((description, package, "MISSING", str(e)))
     return results
+
+
+def _check_optional_dependencies():
+    """Check optional modules. Returns list of (description, package, status, version) tuples."""
+    results = []
+    for module_name, package, description in _OPTIONAL_MODULES:
+        try:
+            __import__(module_name)
+            ver = _get_pkg_version(package)
+            results.append((description, package, "ok", ver))
+        except ImportError:
+            results.append((description, package, "not installed", ""))
+    return results
+
+
+def _dep_versions_str():
+    """Return a formatted string of all dependency versions for crash reports."""
+    import sqlite3
+    lines = []
+    for desc, pkg, status, ver in _check_dependencies():
+        lines.append(f"  {pkg}: {ver}" if status == "ok" else f"  {pkg}: MISSING")
+    for desc, pkg, status, ver in _check_optional_dependencies():
+        if status == "ok":
+            lines.append(f"  {pkg}: {ver}")
+    lines.append(f"  sqlite3: {sqlite3.sqlite_version}")
+    return "\n".join(lines)
 
 
 def _check_python_version():
@@ -257,10 +300,16 @@ def main(argv=None):
             cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
             log_f.write(f"Command: docsearch {cmd}\n")
             log_f.write(f"\nDiagnosis: {diagnosis}\n")
+            log_f.write(f"\nDependency versions:\n")
+            try:
+                log_f.write(_dep_versions_str() + "\n")
+            except Exception:
+                log_f.write("  (could not determine)\n")
             log_f.write(f"{'='*60}\n")
             traceback.print_exc(file=log_f)
             log_f.write("\n")
-        print(f"\nError: An unexpected error occurred. Details logged to docsearch_errors.log\n")
+        print(f"\nError: An unexpected error occurred. Details logged to docsearch_errors.log")
+        print(f"Run 'docsearch --check' to verify your installation.\n")
         return 2
 
 
@@ -270,7 +319,17 @@ def _main_inner(argv=None):
     else:
         args = list(argv)
 
-    # Python version guard (warning only, does not block)
+    # Python version guard — hard block if below minimum
+    v = sys.version_info[:2]
+    if v < TESTED_PYTHON_MIN:
+        print(f"Error: docsearch requires Python {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]} or later. "
+              f"You are running Python {v[0]}.{v[1]}.\n")
+        print("To upgrade Python:")
+        print("  macOS:   brew install python@3.12")
+        print("  Ubuntu:  sudo apt install python3.12")
+        print("  Windows: Download from https://www.python.org/downloads/")
+        print()
+        return 2
     version_warning = _check_python_version()
     if version_warning:
         print(version_warning)
@@ -320,6 +379,7 @@ def _main_inner(argv=None):
         return 0
 
     if args and args[0] == "--check":
+        import sqlite3
         print(f"docsearch {VERSION}")
         print(f"Python {sys.version}")
         print(f"OS: {platform.system()} {platform.release()}")
@@ -328,29 +388,42 @@ def _main_inner(argv=None):
         # Python version
         v = sys.version_info[:2]
         if v < TESTED_PYTHON_MIN:
-            print(f"Python version:  {v[0]}.{v[1]} (below minimum tested {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]})")
+            print(f"Python version:  {v[0]}.{v[1]} (BELOW minimum {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]}) — upgrade Python to {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]} or later")
         elif v > TESTED_PYTHON_MAX:
-            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {TESTED_PYTHON_MAX[0]}.{TESTED_PYTHON_MAX[1]})")
+            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {TESTED_PYTHON_MAX[0]}.{TESTED_PYTHON_MAX[1]}) — should work, but not yet verified")
         else:
             print(f"Python version:  {v[0]}.{v[1]} (ok)")
         print()
 
-        # Dependencies
-        print("Dependencies:")
+        # Required dependencies
+        print("Required dependencies:")
         all_ok = True
-        for desc, pkg, status, msg in dep_results:
+        for desc, pkg, status, ver in dep_results:
             if status == "ok":
-                print(f"  {desc}: ok")
+                print(f"  {desc} ({pkg}): ok ({ver})")
             else:
-                print(f"  {desc}: MISSING — install with: pip install {pkg}")
+                print(f"  {desc} ({pkg}): MISSING — install with: pip install {pkg}")
                 all_ok = False
         print()
 
-        # Tesseract (optional)
+        # Optional dependencies
+        print("Optional dependencies:")
+        opt_results = _check_optional_dependencies()
+        for desc, pkg, status, ver in opt_results:
+            if status == "ok":
+                print(f"  {desc} ({pkg}): ok ({ver})")
+            else:
+                print(f"  {desc} ({pkg}): not installed — install with: pip install {pkg}")
+        print()
+
+        # Tesseract binary (separate from Python package)
         if shutil.which("tesseract"):
             print("Tesseract OCR:   installed (OCR available with -O flag)")
         else:
             print("Tesseract OCR:   not installed (optional — needed only for -O flag)")
+
+        # SQLite
+        print(f"SQLite version:  {sqlite3.sqlite_version}")
         print()
 
         # Disk space
@@ -360,6 +433,10 @@ def _main_inner(argv=None):
         if free < 10_000_000:
             print("  Warning: Low disk space. Reports may fail to write.")
         print()
+
+        if not all_ok:
+            print("Fix missing dependencies with: pip install --upgrade docsearch")
+            print()
 
         return 0 if all_ok else 2
 
@@ -594,7 +671,12 @@ def _main_inner(argv=None):
         matches, skipped_files, all_files = search_with_index(
             cwd, search_config, file_types, file_names,
         )
-    else:
+
+        # If index was corrupt and deleted, fall back to direct scan
+        if not index_exists(cwd):
+            use_index = False
+
+    if not use_index:
         print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
         if exclude_terms:
             print(f"Excluding [{', '.join(exclude_terms)}]")

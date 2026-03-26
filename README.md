@@ -23,6 +23,7 @@
 - [Output](#output)
 - [Search Index (Optional)](#search-index-optional)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
+- [Troubleshooting](#troubleshooting)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [License](#license)
@@ -741,6 +742,94 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
 - **Performance flags** (`-c`, `--index`) — control *how fast* to search
 - **Settings flag** (`--config`) — manage *saved settings*
+
+## Troubleshooting
+
+**"ModuleNotFoundError: No module named 'fitz'" (or any other module)**
+
+A required dependency is missing. This can happen after a Python upgrade or if the install was interrupted.
+
+```bash
+pip install --upgrade docsearch       # reinstalls docsearch and all dependencies
+docsearch --check                      # verify everything is installed
+```
+
+If you used pipx: `pipx reinstall docsearch`
+
+---
+
+**"Error: docsearch requires Python 3.10 or later"**
+
+docsearch needs Python 3.10+. Check your version with `python3 --version`, then upgrade:
+
+- macOS: `brew install python@3.12`
+- Ubuntu: `sudo apt install python3.12`
+- Windows: Download from [python.org/downloads](https://www.python.org/downloads/)
+
+After upgrading, reinstall docsearch with the new Python.
+
+---
+
+**"Fuzzy search requires the rapidfuzz Python package"**
+
+The `-z` (fuzzy) flag needs the `rapidfuzz` package:
+
+```bash
+pip install rapidfuzz
+```
+
+Or reinstall docsearch: `pip install --upgrade docsearch`
+
+---
+
+**"OCR requires the pytesseract and Pillow packages" / "Tesseract OCR is not installed"**
+
+The `-O` (OCR) flag needs three things:
+
+1. **Tesseract binary** (the OCR engine):
+   - macOS: `brew install tesseract`
+   - Ubuntu: `sudo apt install tesseract-ocr`
+   - Windows: [Download from GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
+
+2. **Python packages**: `pip install pytesseract Pillow`
+
+---
+
+**"Index database was corrupted and has been removed"**
+
+docsearch detected that the `.docsearch.db` file was damaged and automatically deleted it. This can happen if a previous indexing operation was interrupted. Simply rebuild:
+
+```bash
+docsearch --index
+```
+
+---
+
+**"docsearch stopped working after upgrading Python"**
+
+Python upgrades can break installed packages. Fix it by reinstalling:
+
+```bash
+pip install --upgrade docsearch       # if installed with pip
+pipx reinstall docsearch              # if installed with pipx
+docsearch --check                      # verify the fix
+```
+
+Check `docsearch_errors.log` in the current directory for a crash report with a diagnosis of the specific issue.
+
+---
+
+**"Permission denied" or "file is locked"**
+
+A file could not be read because it's open in another application (common on Windows) or you don't have read permissions. docsearch will skip the file and continue searching. Check `docsearch_errors.log` for the specific file.
+
+---
+
+**"An unexpected error occurred"**
+
+1. Check `docsearch_errors.log` in the current directory — it contains a diagnosis with the likely cause and a suggested fix
+2. Run `docsearch --check` to verify your Python version and all dependencies
+3. If the problem persists, [report it on GitHub](https://github.com/exbuf/docsearch/issues) and include the contents of `docsearch_errors.log`
 
 ## Running Tests
 

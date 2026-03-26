@@ -2170,3 +2170,118 @@ def test_indexed_search_shows_indexed_in_output(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert "indexed" in captured.out
+
+
+# ─── Dependency and error handling tests ─────────────────
+
+
+def test_check_shows_versions(tmp_path, monkeypatch, capsys):
+    """--check output includes dependency version numbers."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["--check"])
+    captured = capsys.readouterr()
+
+    # Should show version numbers for required deps
+    assert "pymupdf" in captured.out
+    assert "python-docx" in captured.out
+    assert "ok (" in captured.out  # version in parens
+    # Should show optional deps section
+    assert "Optional dependencies:" in captured.out
+    assert "SQLite version:" in captured.out
+
+
+def test_check_shows_optional_deps(tmp_path, monkeypatch, capsys):
+    """--check output includes optional dependency status."""
+    monkeypatch.chdir(tmp_path)
+    main(["--check"])
+    captured = capsys.readouterr()
+
+    assert "rapidfuzz" in captured.out
+    assert "customtkinter" in captured.out
+    assert "Pillow" in captured.out
+
+
+def test_fuzzy_missing_dep(tmp_path, monkeypatch, capsys):
+    """Fuzzy search with missing rapidfuzz gives helpful error."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    import builtins
+    original_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "rapidfuzz":
+            raise ImportError("No module named 'rapidfuzz'")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", mock_import)
+    result = main(["-z", "budgt"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "rapidfuzz" in captured.out
+    assert "pip install" in captured.out
+
+
+def test_ocr_missing_pytesseract(tmp_path, monkeypatch, capsys):
+    """OCR with missing pytesseract gives helpful error."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    import builtins
+    original_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "pytesseract":
+            raise ImportError("No module named 'pytesseract'")
+        return original_import(name, *args, **kwargs)
+
+    # Also mock shutil.which to return a path so we get past the Tesseract binary check
+    monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/tesseract" if x == "tesseract" else None)
+    monkeypatch.setattr(builtins, "__import__", mock_import)
+    result = main(["-O", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "pytesseract" in captured.out
+    assert "pip install" in captured.out
+
+
+def test_corrupt_index_recovery(tmp_path, monkeypatch, capsys):
+    """Corrupt .docsearch.db is auto-deleted and search falls back to direct scan."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+
+    # Write garbage to .docsearch.db
+    db_path = tmp_path / ".docsearch.db"
+    db_path.write_bytes(b"THIS IS NOT A SQLITE DATABASE")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "budget"])
+    captured = capsys.readouterr()
+
+    # Should succeed (falls back to direct scan since corrupt DB was removed)
+    assert result == 0
+    # Corrupt DB should have been deleted
+    assert not db_path.exists()
+
+
+def test_crash_report_includes_versions(tmp_path, monkeypatch):
+    """Crash report in docsearch_errors.log includes dependency versions."""
+    monkeypatch.chdir(tmp_path)
+
+    # Force a crash by monkeypatching _main_inner to raise
+    from docsearch import cli
+    original = cli._main_inner
+
+    def crash_inner(argv=None):
+        raise RuntimeError("test crash for version logging")
+
+    monkeypatch.setattr(cli, "_main_inner", crash_inner)
+    result = cli.main(["budget"])
+
+    assert result == 2
+    log_path = tmp_path / "docsearch_errors.log"
+    assert log_path.exists()
+    log_content = log_path.read_text()
+    assert "Dependency versions:" in log_content
+    assert "pymupdb" in log_content or "pymupdf" in log_content

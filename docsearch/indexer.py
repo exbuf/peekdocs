@@ -73,6 +73,28 @@ def _create_schema(conn):
     """)
 
 
+def _validate_db(directory):
+    """Check if the index database is valid. Returns True if ok, False if corrupt."""
+    try:
+        conn = _connect(directory)
+        conn.execute("SELECT COUNT(*) FROM files")
+        conn.execute("SELECT COUNT(*) FROM paragraphs")
+        conn.close()
+        return True
+    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+        return False
+
+
+def _handle_corrupt_db(directory):
+    """Delete a corrupt database and print a warning. Returns True if deleted."""
+    import sys
+    clear_index(directory)
+    print("Warning: Index database was corrupted and has been removed.",
+          file=sys.stderr)
+    print("Rebuild with: docsearch --index", file=sys.stderr)
+    return True
+
+
 # ─── Index building ──────────────────────────────────────
 
 
@@ -124,12 +146,22 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
         dict with keys: file_count, line_count, elapsed, errors
     """
     start = time.time()
-    conn = _connect(directory)
-    _create_schema(conn)
 
-    # Clear existing data for full rebuild
-    conn.execute("DELETE FROM paragraphs")
-    conn.execute("DELETE FROM files")
+    # If existing DB is corrupt, delete and start fresh
+    if index_exists(directory) and not _validate_db(directory):
+        clear_index(directory)
+
+    try:
+        conn = _connect(directory)
+        _create_schema(conn)
+        # Clear existing data for full rebuild
+        conn.execute("DELETE FROM paragraphs")
+        conn.execute("DELETE FROM files")
+    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+        # Database broken beyond repair — delete and retry once
+        clear_index(directory)
+        conn = _connect(directory)
+        _create_schema(conn)
 
     # Discover files
     result = discover_files(directory, recursive, use_ocr)
@@ -221,6 +253,11 @@ def refresh_index(directory, recursive, use_ocr):
         dict with keys: added, updated, removed, elapsed
     """
     start = time.time()
+
+    if not _validate_db(directory):
+        _handle_corrupt_db(directory)
+        return {"added": 0, "updated": 0, "removed": 0, "elapsed": 0}
+
     conn = _connect(directory)
 
     # Get current files on disk
@@ -297,6 +334,10 @@ def clear_index(directory):
 def index_status(directory):
     """Return index metadata as a dict, or None if no index exists."""
     if not index_exists(directory):
+        return None
+
+    if not _validate_db(directory):
+        _handle_corrupt_db(directory)
         return None
 
     conn = _connect(directory)
@@ -377,6 +418,10 @@ def search_with_index(directory, config, file_types=None, file_names=None):
         - skipped = list of (filename, error_msg) tuples
         - all_indexed_files = list of filepaths in the index (for report)
     """
+    if not _validate_db(directory):
+        _handle_corrupt_db(directory)
+        return [], [], []
+
     conn = _connect(directory)
 
     # Get list of indexed files (for report generation)

@@ -33,9 +33,34 @@ def parse_flags(args, config):
             "  Ubuntu:  sudo apt install tesseract-ocr\n"
             "  Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki\n")
 
+    if use_ocr:
+        try:
+            import pytesseract  # noqa: F401
+        except ImportError:
+            return (2,
+                "OCR requires the pytesseract Python package, which is not installed.\n\n"
+                "Install it with:  pip install pytesseract\n"
+                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
+        try:
+            from PIL import Image  # noqa: F401
+        except ImportError:
+            return (2,
+                "OCR requires the Pillow Python package, which is not installed.\n\n"
+                "Install it with:  pip install Pillow\n"
+                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
+
     use_fuzzy = "-z" in args or config.get("fuzzy", False)
     if "-z" in args:
         args.remove("-z")
+
+    if use_fuzzy:
+        try:
+            import rapidfuzz  # noqa: F401
+        except ImportError:
+            return (2,
+                "Fuzzy search requires the rapidfuzz Python package, which is not installed.\n\n"
+                "Install it with:  pip install rapidfuzz\n"
+                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
 
     use_wildcard = "-w" in args or config.get("wildcard", False)
     if "-w" in args:
