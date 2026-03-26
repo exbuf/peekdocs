@@ -68,10 +68,155 @@ def _ocr_image(image):
     return pytesseract.image_to_string(image)
 
 
-def _process_file(args_tuple):
-    """Process a single file and return (matches, skipped) for that file."""
-    filepath, config = args_tuple
+def _extract_lines(filepath, use_ocr=False, ocr_func=None):
+    """Extract text lines from a file.
 
+    Returns a list of (line_num, text) tuples. The meaning of line_num
+    varies by file type (line number, page number, row number, etc.).
+    Raises an exception on error — the caller decides how to handle it.
+    """
+    if ocr_func is None:
+        ocr_func = _ocr_image
+
+    ext = os.path.splitext(filepath)[1].lower()
+    all_lines = []
+
+    if ext == ".docx":
+        doc = Document(filepath)
+        all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
+
+    elif ext == ".pdf":
+        doc = fitz.open(filepath)
+        for page_num, page in enumerate(doc, start=1):
+            text = page.get_text()
+            if use_ocr and len((text or "").strip()) < 10:
+                import io
+                from PIL import Image
+                pix = page.get_pixmap(dpi=300)
+                img = Image.open(io.BytesIO(pix.tobytes("png")))
+                text = ocr_func(img)
+            if not text or not text.strip():
+                continue
+            for line in text.split("\n"):
+                all_lines.append((page_num, line))
+        doc.close()
+
+    elif ext == ".csv":
+        with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
+            reader = csv.reader(csvfile)
+            all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
+
+    elif ext == ".tsv":
+        with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
+            reader = csv.reader(tsvfile, delimiter="\t")
+            all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
+
+    elif ext == ".epub":
+        book = epub.read_epub(filepath)
+        line_num = 0
+        for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+            html_content = item.get_content().decode("utf-8", errors="replace")
+            class _EpubTextExtractor(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.text_parts = []
+                def handle_data(self, data):
+                    self.text_parts.append(data)
+            parser = _EpubTextExtractor()
+            parser.feed(html_content)
+            for line in "".join(parser.text_parts).split("\n"):
+                stripped = line.strip()
+                if stripped:
+                    line_num += 1
+                    all_lines.append((line_num, stripped))
+
+    elif ext == ".odt":
+        odt_doc = load_odt(filepath)
+        all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
+
+    elif ext == ".odp":
+        odp_doc = load_odt(filepath)
+        all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
+
+    elif ext == ".ods":
+        ods_doc = load_odt(filepath)
+        row_num = 0
+        for table in ods_doc.getElementsByType(OdfTable):
+            for row in table.getElementsByType(OdfTableRow):
+                row_num += 1
+                cells = []
+                for cell in row.getElementsByType(OdfTableCell):
+                    cell_text = teletype.extractText(cell)
+                    if cell_text:
+                        cells.append(cell_text)
+                row_text = ", ".join(cells)
+                all_lines.append((row_num, row_text))
+
+    elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
+        with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+            all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
+
+    elif ext == ".html":
+        class _HTMLTextExtractor(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.text_parts = []
+            def handle_data(self, data):
+                self.text_parts.append(data)
+        with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
+            parser = _HTMLTextExtractor()
+            parser.feed(htmlfile.read())
+        lines = "".join(parser.text_parts).split("\n")
+        all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
+
+    elif ext == ".pptx":
+        prs = PptxPresentation(filepath)
+        para_num = 0
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame:
+                    for para in shape.text_frame.paragraphs:
+                        para_num += 1
+                        all_lines.append((para_num, para.text))
+
+    elif ext == ".rtf":
+        with open(filepath, encoding="utf-8", errors="replace") as rtffile:
+            raw = rtffile.read()
+        plain = rtf_to_text(raw)
+        all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
+
+    elif ext == ".xlsx":
+        wb = load_workbook(filepath, read_only=True, data_only=True)
+        for sheet in wb.worksheets:
+            for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
+                row_text = ", ".join(str(cell) for cell in row if cell is not None)
+                all_lines.append((row_num, row_text))
+        wb.close()
+
+    elif ext in OCR_IMAGE_TYPES:
+        from PIL import Image
+        img = Image.open(filepath)
+        text = ocr_func(img)
+        if text and text.strip():
+            all_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1) if line.strip()]
+
+    return all_lines
+
+
+def _search_file_lines(all_lines, file_dir, filename, config):
+    """Search extracted lines for matches.
+
+    Args:
+        all_lines: list of (line_num, text) tuples from _extract_lines
+        file_dir: directory containing the file
+        filename: base name of the file
+        config: search configuration dict
+
+    Returns:
+        (matches, skipped) where:
+        - matches = list of (file_dir, filename, line_num, text) tuples
+        - skipped = list of (filename, error_msg) tuples (usually empty)
+    """
     search_terms = config["search_terms"]
     use_regex = config["use_regex"]
     match_all = config["match_all"]
@@ -80,11 +225,9 @@ def _process_file(args_tuple):
     use_context = config["use_context"]
     context_before = config["context_before"]
     context_after = config["context_after"]
-    use_ocr = config.get("use_ocr", False)
     use_fuzzy = config.get("use_fuzzy", False)
     exclude_terms = config.get("exclude_terms", [])
     use_wildcard = config.get("use_wildcard", False)
-    ocr_func = config.get("_ocr_image_func", _ocr_image)
     if use_wildcard:
         search_terms = [_wildcard_to_regex(t) for t in search_terms]
         if exclude_terms:
@@ -184,9 +327,9 @@ def _process_file(args_tuple):
             highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
         return highlighted
 
-    def context_group_to_match(group, file_dir, filename, line_num_override=None):
+    def context_group_to_match(group, file_dir, filename):
         """Convert a context group to a match tuple with pre-highlighted text."""
-        first_match_num = line_num_override or next(ln for ln, _, is_match in group if is_match)
+        first_match_num = next(ln for ln, _, is_match in group if is_match)
         parts = []
         for ln, text, is_match in group:
             if is_match:
@@ -196,202 +339,44 @@ def _process_file(args_tuple):
         return (file_dir, filename, first_match_num, "\n".join(parts))
 
     matches = []
-    skipped = []
 
-    def collect_matches(all_lines, file_dir, filename):
-        """Find matches in all_lines and append to matches list, with context if active."""
-        if use_context:
-            match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
-            if not match_indices:
-                return
+    if use_context:
+        match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
+        if match_indices:
             groups = apply_context(all_lines, match_indices, context_before, context_after)
             for group in groups:
                 matches.append(context_group_to_match(group, file_dir, filename))
-        else:
-            for line_num, text in all_lines:
-                if text_matches(text):
-                    if use_fuzzy:
-                        matches.append((file_dir, filename, line_num, highlight_text(text)))
-                    else:
-                        matches.append((file_dir, filename, line_num, text))
+    else:
+        for line_num, text in all_lines:
+            if text_matches(text):
+                if use_fuzzy:
+                    matches.append((file_dir, filename, line_num, highlight_text(text)))
+                else:
+                    matches.append((file_dir, filename, line_num, text))
 
-    file_dir = os.path.dirname(filepath)
+    return (matches, [])
+
+
+def _process_file(args_tuple):
+    """Process a single file and return (matches, skipped) for that file."""
+    filepath, config = args_tuple
     filename = os.path.basename(filepath)
-    ext = os.path.splitext(filename)[1].lower()
 
     try:
-        if ext == ".docx":
-            doc = Document(filepath)
-            all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".pdf":
-            doc = fitz.open(filepath)
-            for page_num, page in enumerate(doc, start=1):
-                text = page.get_text()
-                if use_ocr and len((text or "").strip()) < 10:
-                    import io
-                    from PIL import Image
-                    pix = page.get_pixmap(dpi=300)
-                    img = Image.open(io.BytesIO(pix.tobytes("png")))
-                    text = ocr_func(img)
-                if not text or not text.strip():
-                    continue
-                page_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1)]
-                if use_context:
-                    match_indices = {i for i, (_, lt) in enumerate(page_lines) if text_matches(lt)}
-                    if match_indices:
-                        groups = apply_context(page_lines, match_indices, context_before, context_after)
-                        for group in groups:
-                            matches.append(context_group_to_match(group, file_dir, filename, line_num_override=page_num))
-                else:
-                    for line_num, line in page_lines:
-                        if text_matches(line):
-                            if use_fuzzy:
-                                matches.append((file_dir, filename, page_num, highlight_text(line)))
-                            else:
-                                matches.append((file_dir, filename, page_num, line))
-            doc.close()
-
-        elif ext == ".csv":
-            with open(filepath, newline="", encoding="utf-8", errors="replace") as csvfile:
-                reader = csv.reader(csvfile)
-                all_lines = [(row_num, ", ".join(row)) for row_num, row in enumerate(reader, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".tsv":
-            with open(filepath, newline="", encoding="utf-8", errors="replace") as tsvfile:
-                reader = csv.reader(tsvfile, delimiter="\t")
-                all_lines = [(row_num, "\t".join(row)) for row_num, row in enumerate(reader, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".epub":
-            book = epub.read_epub(filepath)
-            all_lines = []
-            line_num = 0
-            for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-                html_content = item.get_content().decode("utf-8", errors="replace")
-                class _EpubTextExtractor(HTMLParser):
-                    def __init__(self):
-                        super().__init__()
-                        self.text_parts = []
-                    def handle_data(self, data):
-                        self.text_parts.append(data)
-                parser = _EpubTextExtractor()
-                parser.feed(html_content)
-                for line in "".join(parser.text_parts).split("\n"):
-                    stripped = line.strip()
-                    if stripped:
-                        line_num += 1
-                        all_lines.append((line_num, stripped))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".odt":
-            odt_doc = load_odt(filepath)
-            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odt_doc.getElementsByType(OdtParagraph), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".odp":
-            odp_doc = load_odt(filepath)
-            all_lines = [(i, teletype.extractText(para)) for i, para in enumerate(odp_doc.getElementsByType(OdtParagraph), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".ods":
-            ods_doc = load_odt(filepath)
-            all_lines = []
-            row_num = 0
-            for table in ods_doc.getElementsByType(OdfTable):
-                for row in table.getElementsByType(OdfTableRow):
-                    row_num += 1
-                    cells = []
-                    for cell in row.getElementsByType(OdfTableCell):
-                        cell_text = teletype.extractText(cell)
-                        if cell_text:
-                            cells.append(cell_text)
-                    row_text = ", ".join(cells)
-                    all_lines.append((row_num, row_text))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
-            with open(filepath, encoding="utf-8", errors="replace") as txtfile:
-                all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".html":
-            class _HTMLTextExtractor(HTMLParser):
-                def __init__(self):
-                    super().__init__()
-                    self.text_parts = []
-                def handle_data(self, data):
-                    self.text_parts.append(data)
-            with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
-                parser = _HTMLTextExtractor()
-                parser.feed(htmlfile.read())
-            lines = "".join(parser.text_parts).split("\n")
-            all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
-            if use_context:
-                collect_matches(all_lines, file_dir, filename)
-            else:
-                for line_num, text in all_lines:
-                    if text and text_matches(text):
-                        if use_fuzzy:
-                            matches.append((file_dir, filename, line_num, highlight_text(text)))
-                        else:
-                            matches.append((file_dir, filename, line_num, text))
-
-        elif ext == ".pptx":
-            prs = PptxPresentation(filepath)
-            all_lines = []
-            para_num = 0
-            for slide in prs.slides:
-                for shape in slide.shapes:
-                    if shape.has_text_frame:
-                        for para in shape.text_frame.paragraphs:
-                            para_num += 1
-                            all_lines.append((para_num, para.text))
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".rtf":
-            with open(filepath, encoding="utf-8", errors="replace") as rtffile:
-                raw = rtffile.read()
-            plain = rtf_to_text(raw)
-            all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
-            collect_matches(all_lines, file_dir, filename)
-
-        elif ext == ".xlsx":
-            wb = load_workbook(filepath, read_only=True, data_only=True)
-            for sheet in wb.worksheets:
-                sheet_lines = []
-                for row_num, row in enumerate(sheet.iter_rows(values_only=True), start=1):
-                    row_text = ", ".join(str(cell) for cell in row if cell is not None)
-                    sheet_lines.append((row_num, row_text))
-                if use_context:
-                    match_indices = {i for i, (_, text) in enumerate(sheet_lines) if text and text_matches(text)}
-                    if match_indices:
-                        groups = apply_context(sheet_lines, match_indices, context_before, context_after)
-                        for group in groups:
-                            matches.append(context_group_to_match(group, file_dir, filename))
-                else:
-                    for row_num, row_text in sheet_lines:
-                        if row_text and text_matches(row_text):
-                            if use_fuzzy:
-                                matches.append((file_dir, filename, row_num, highlight_text(row_text)))
-                            else:
-                                matches.append((file_dir, filename, row_num, row_text))
-            wb.close()
-
-        elif ext in OCR_IMAGE_TYPES:
-            from PIL import Image
-            img = Image.open(filepath)
-            text = ocr_func(img)
-            if text and text.strip():
-                all_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1) if line.strip()]
-                collect_matches(all_lines, file_dir, filename)
-
+        all_lines = _extract_lines(
+            filepath,
+            config.get("use_ocr", False),
+            config.get("_ocr_image_func"),
+        )
     except Exception as e:
-        skipped.append((filename, _friendly_file_error(e, filename)))
+        return ([], [(filename, _friendly_file_error(e, filename))])
 
-    return (matches, skipped)
+    return _search_file_lines(
+        all_lines,
+        os.path.dirname(filepath),
+        filename,
+        config,
+    )
 
 
 def _friendly_file_error(exc, filename):

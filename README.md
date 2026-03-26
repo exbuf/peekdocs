@@ -21,6 +21,7 @@
   - [Notes](#notes)
   - [Command Examples](#command-examples)
 - [Output](#output)
+- [Search Index (Optional)](#search-index-optional)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
@@ -32,7 +33,7 @@ docsearch is a fast, offline search tool that scans 29 file types — including 
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory.
+**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory, plus an optional `.docsearch.db` index file if you use `--index`.
 
 ## Features
 
@@ -54,6 +55,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
 - Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
 - Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
+- Optional search index (`--index`) — build a SQLite FTS5 index for faster repeated searches. Once built, the index is used automatically and refreshed incrementally
 - Optional GUI (`docsearch-gui`) — a point-and-click interface with search box, folder picker, and all advanced options, for users who prefer not to use the terminal
 
 ### Supported File Types
@@ -126,7 +128,7 @@ Local search is also fast, with no rate limits, usage caps, or waiting on cloud 
 
 - More CPU cores improve performance when searching large numbers of files
 - Disk space requirements do not include user documents or search output files
-- No database required — the only optional extra software is Tesseract, needed only for OCR (the `-O` flag)
+- No external database required — the optional search index uses SQLite (built into Python) and the only optional extra software is Tesseract, needed only for OCR (the `-O` flag)
 - To view the `.docx` report, you need a word processor such as Microsoft Word, LibreOffice Writer (free), Google Docs (free), or Apple Pages (free, Mac only). See [Quick Start](#quick-start) for how to open it
 - The `.txt` report can be opened on any computer with no additional software
 
@@ -291,6 +293,8 @@ A window will appear. From here, everything is point-and-click — no more termi
 
 Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, append to, and additional output formats (CSV, JSON). Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
 
+The **Search Index** panel at the bottom of the window lets you manage the search index without using the terminal. Click **Build Index(es)** to create the index (all subfolders are included automatically). Check **Search Using Index(es)** to use the index for your next search — uncheck it to search files directly, which is useful for verifying that both methods find identical results. Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work.
+
 Do not type flags (like `-a` or `-r`) into the Search box — the Search box is only for search terms. Each checkbox and input field under Advanced Options asserts the corresponding flag behind the scenes.
 
 ## Usage
@@ -328,7 +332,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has nineteen flags that can be mixed and matched:
+docsearch has twenty-two flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -349,6 +353,9 @@ docsearch has nineteen flags that can be mixed and matched:
 | `-z` (fuzzy) | Fuzzy matching — find approximate matches (e.g., typos like "budgt" matching "budget") |
 | `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
+| `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
+| `--index-clear` (index-clear) | Delete the search index |
+| `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
 
@@ -496,12 +503,17 @@ docsearch has nineteen flags that can be mixed and matched:
 | 81 | Save a setting | `docsearch --config recursive=true` |
 | 82 | Save multiple settings | `docsearch --config recursive=true cores=4` |
 | 83 | Remove a saved setting | `docsearch --config recursive=` |
+| | **Search Index** | |
+| 84 | Build index (includes all subfolders) | `docsearch --index` |
+| 85 | Build index with OCR | `docsearch --index -O` |
+| 86 | Show index info | `docsearch --index-status` |
+| 87 | Delete the index | `docsearch --index-clear` |
 | | **Installation Check** | |
-| 84 | Check installation health | `docsearch --check` |
+| 88 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 85 | Show version | `docsearch -v` |
-| 86 | Show help | `docsearch -h` |
-| 87 | Show help (no arguments) | `docsearch` |
+| 89 | Show version | `docsearch -v` |
+| 90 | Show help | `docsearch -h` |
+| 91 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -560,6 +572,41 @@ The terminal also displays a summary:
 ```
 Found 2 match(es). Results written to docsearch_results.txt and docsearch_results.docx
 ```
+
+## Search Index (Optional)
+
+By default, docsearch opens and parses every file on each search. For large folders with many documents, you can build an optional search index to make repeated searches much faster. The index stores extracted text in a SQLite FTS5 database so subsequent searches skip file I/O and parsing entirely.
+
+**Building the index:**
+
+```bash
+cd /path/to/your/documents
+docsearch --index              # index files in current folder and all subfolders
+docsearch --index -O           # same, with OCR for scanned PDFs and images
+```
+
+**Using the index:**
+
+Once built, the index is used automatically — just search as usual:
+
+```bash
+docsearch budget               # uses the index automatically (faster)
+docsearch -z budgt             # fuzzy search — also uses the index
+docsearch -x "\d{3}-\d{4}"    # regex search — also uses the index
+```
+
+The index stays up to date automatically. Each search checks for new, changed, or deleted files and refreshes the index incrementally before searching. You do not need to rebuild the index manually unless you want a full rebuild.
+
+**Managing the index:**
+
+```bash
+docsearch --index-status       # show file count, size, creation date
+docsearch --index-clear        # delete the index
+```
+
+**How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
+
+**In the GUI:** The Search Index panel at the bottom of the window has **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons, and a **Search Using Index(es)** checkbox to toggle between indexed and direct search. Building an index always includes all subfolders.
 
 ## FAQ (Frequently Asked Questions)
 
@@ -671,6 +718,15 @@ Yes — docsearch runs entirely on your local machine with no internet connectio
 **What if I upgrade Python and docsearch stops working?**
 Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, run `docsearch --check` to see which dependencies need updating, then reinstall: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. docsearch will also print a warning at startup if your Python version is outside the tested range. Most dependency updates are available within a few weeks of a new Python release.
 
+**What is the search index and when should I use it?**
+The search index is an optional SQLite database (`.docsearch.db`) that stores extracted text from your documents. Build it with `docsearch --index` in any folder where you search frequently. After that, every search in that folder uses the index automatically — skipping file parsing entirely — making repeated searches much faster. You don't need the index for one-off searches or small folders. See [Search Index](#search-index-optional) for details.
+
+**How much disk space does the index use?**
+The index is typically 10–20% the size of the original files. Text-heavy documents (PDFs, Word docs) produce smaller indexes relative to file size since the index stores only the extracted text. You can check the exact size with `docsearch --index-status` and delete it anytime with `docsearch --index-clear`.
+
+**Does the index stay up to date?**
+Yes — each search automatically detects new, changed, or deleted files and refreshes the index incrementally before searching. You only need to rebuild manually (`docsearch --index`) if you want a full rebuild, such as after changing OCR or recursive settings.
+
 **Does it modify my files?**
 No — docsearch only reads your files. It never changes, moves, or deletes them.
 
@@ -683,7 +739,7 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
-- **Performance flags** (`-c`) — control *how fast* to search
+- **Performance flags** (`-c`, `--index`) — control *how fast* to search
 - **Settings flag** (`--config`) — manage *saved settings*
 
 ## Running Tests
@@ -705,6 +761,7 @@ docsearch/
 │   ├── cli.py           # Main CLI entry point
 │   ├── constants.py     # Shared constants and defaults
 │   ├── gui.py           # Optional GUI (docsearch-gui)
+│   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
 │   ├── reporter.py      # Report generation (txt, docx, csv, json)
 │   └── scanner.py       # File processing and discovery

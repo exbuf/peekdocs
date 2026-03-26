@@ -8,6 +8,7 @@ OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
 
 FUZZY_THRESHOLD = 80
 
+INDEX_FILENAME = ".docsearch.db"
 
 TESTED_PYTHON_MIN = (3, 10)
 TESTED_PYTHON_MAX = (3, 13)

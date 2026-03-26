@@ -226,3 +226,32 @@ def test_parse_matched_files(tmp_path):
 
 def test_parse_matched_files_empty(tmp_path):
     assert _parse_matched_files(str(tmp_path)) == []
+
+
+def test_build_command_index_search_default(tmp_path):
+    """By default (index_search=False), --no-index is appended."""
+    cmd = _build_command_from_values(
+        search_text="budget",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+    )
+    assert cmd is not None
+    assert "--no-index" in cmd
+
+
+def test_build_command_index_search_enabled(tmp_path):
+    """With index_search=True, --no-index is NOT in the command."""
+    cmd = _build_command_from_values(
+        search_text="budget",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+        index_search=True,
+    )
+    assert cmd is not None
+    assert "--no-index" not in cmd

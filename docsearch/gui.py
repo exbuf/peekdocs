@@ -29,6 +29,7 @@ def _build_command_from_values(
     append_name="",
     output_csv=False,
     output_json=False,
+    index_search=False,
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -51,6 +52,9 @@ def _build_command_from_values(
         return "FLAGS_IN_SEARCH"
 
     cmd = [sys.executable, "-m", "docsearch", "-q"]
+
+    if not index_search:
+        cmd.append("--no-index")
 
     if and_mode:
         cmd.append("-a")
@@ -217,9 +221,9 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
-            self.geometry("700x520")
-            self.minsize(600, 400)
-            self._center_window(700, 520)
+            self.geometry("700x600")
+            self.minsize(750, 500)
+            self._center_window(900, 600)
 
             ctk.set_appearance_mode("System")
             ctk.set_default_color_theme("blue")
@@ -240,6 +244,7 @@ def _launch_gui():
             self._build_advanced_panel()
             self._build_progress_area()
             self._build_open_report()
+            self._build_index_panel()
             self._build_bottom_row()
 
         def _center_window(self, width, height):
@@ -507,9 +512,63 @@ def _launch_gui():
             )
             Tooltip(self.error_log_button, "Open docsearch_errors.log to see details about files that could not be read")
 
+        def _build_index_panel(self):
+            self.index_frame = ctk.CTkFrame(self)
+            self.index_frame.grid(
+                row=6, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="ew"
+            )
+            self.index_frame.grid_columnconfigure(1, weight=1)
+
+            self.index_search_var = ctk.StringVar(value="off")
+            cb_index_search = ctk.CTkCheckBox(
+                self.index_frame, text="Search Using Index(es)", variable=self.index_search_var,
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            )
+            cb_index_search.grid(row=0, column=0, padx=(10, 5), pady=5, sticky="w")
+            Tooltip(cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results")
+
+            self.build_index_button = ctk.CTkButton(
+                self.index_frame, text="Build Index(es)", width=120,
+                command=self.build_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.build_index_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+            Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically. Warning: Navigate to the right folder (Browse button) before Building Index(es)")
+
+            self.delete_index_button = ctk.CTkButton(
+                self.index_frame, text="Delete Index(es)", width=120,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.delete_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.delete_index_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
+            Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
+
+            self.index_status_button = ctk.CTkButton(
+                self.index_frame, text="Index Status", width=100,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.index_status_action, font=ctk.CTkFont(size=12),
+            )
+            self.index_status_button.grid(row=0, column=4, padx=5, pady=5, sticky="e")
+            Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
+
+            self.about_index_button = ctk.CTkButton(
+                self.index_frame, text="About Index", width=100,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.about_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.about_index_button.grid(row=0, column=5, padx=(5, 10), pady=5, sticky="e")
+            Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
+
         def _build_bottom_row(self):
+            self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
+            self.bottom_frame.grid(
+                row=7, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
+            )
+
             self.help_button = ctk.CTkButton(
-                self,
+                self.bottom_frame,
                 text="GitHub-Readme",
                 width=110,
                 fg_color="transparent",
@@ -518,26 +577,10 @@ def _launch_gui():
                 command=self.open_help,
                 font=ctk.CTkFont(size=13),
             )
-            self.help_button.grid(
-                row=6, column=0, padx=15, pady=(0, 15), sticky="sw"
-            )
-
-            self.reset_button = ctk.CTkButton(
-                self,
-                text="Reset",
-                width=90,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.reset_form,
-                font=ctk.CTkFont(size=13),
-            )
-            self.reset_button.grid(
-                row=6, column=1, padx=5, pady=(0, 15), sticky="s"
-            )
+            self.help_button.pack(side="left")
 
             self.about_button = ctk.CTkButton(
-                self,
+                self.bottom_frame,
                 text="About",
                 width=70,
                 fg_color="transparent",
@@ -546,9 +589,20 @@ def _launch_gui():
                 command=self.show_about,
                 font=ctk.CTkFont(size=13),
             )
-            self.about_button.grid(
-                row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="se"
+            self.about_button.pack(side="right")
+
+            self.reset_button = ctk.CTkButton(
+                self.bottom_frame,
+                text="Reset",
+                width=90,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.reset_form,
+                font=ctk.CTkFont(size=13),
             )
+            self.reset_button.pack(side="right", padx=5)
+
 
         # ── Actions ──────────────────────────────────────────────
 
@@ -604,6 +658,7 @@ def _launch_gui():
                 append_name=self.append_name_entry.get(),
                 output_csv=self.output_csv_var.get() == "on",
                 output_json=self.output_json_var.get() == "on",
+                index_search=self.index_search_var.get() == "on",
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -703,14 +758,12 @@ def _launch_gui():
                     for filepath, filename in self.matched_files:
                         self.files_listbox.insert("end", filename)
                     self.files_frame.grid(
-                        row=6, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="nsew"
+                        row=8, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="nsew"
                     )
-                    self.grid_rowconfigure(6, weight=1, minsize=150)
+                    self.grid_rowconfigure(8, weight=1, minsize=150)
                     self.grid_rowconfigure(5, weight=0)
                     # Move bottom row down
-                    self.help_button.grid(row=7, column=0, padx=15, pady=(0, 15), sticky="sw")
-                    self.reset_button.grid(row=7, column=1, padx=5, pady=(0, 15), sticky="s")
-                    self.about_button.grid(row=7, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
+                    self.bottom_frame.grid(row=9, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew")
                     # Expand window to fit files list
                     current_height = self.winfo_height()
                     if current_height < 720:
@@ -786,6 +839,167 @@ def _launch_gui():
             else:
                 subprocess.Popen(["xdg-open", docx_path])
 
+        def build_index_action(self):
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder.")
+                return
+
+            cmd = [sys.executable, "-m", "docsearch", "-q", "--index", "-r"]
+
+            self.build_index_button.configure(state="disabled", text="Building...", width=120)
+            self.status_label.configure(text="Building index...", text_color=("gray30", "gray70"))
+
+            def _run():
+                try:
+                    result = subprocess.run(
+                        cmd, cwd=folder, capture_output=True, text=True,
+                    )
+                    stdout = result.stdout
+                    returncode = result.returncode
+                except Exception:
+                    stdout = ""
+                    returncode = -1
+                self.after(0, _finished, stdout, returncode)
+
+            def _finished(stdout, returncode):
+                self.build_index_button.configure(state="normal", text="Build Index(es)")
+                if returncode == 0:
+                    summary = ""
+                    index_file = ""
+                    for line in stdout.strip().split("\n"):
+                        if line.startswith("Index built:"):
+                            summary = line
+                        elif line.startswith("Index file:"):
+                            index_file = line.strip()
+                    display = summary or "Index built successfully."
+                    if index_file:
+                        display += f"  ({index_file.replace('Index file:', '').strip()})"
+                    self.status_label.configure(
+                        text=display,
+                        text_color=("gray30", "gray70"),
+                    )
+                else:
+                    self._show_error("Index build failed. Check the error log.")
+
+            threading.Thread(target=_run, daemon=True).start()
+
+        def delete_index_action(self):
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder.")
+                return
+
+            cmd = [sys.executable, "-m", "docsearch", "-q", "--index-clear"]
+            try:
+                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True)
+                msg = result.stdout.strip()
+                self.status_label.configure(
+                    text=msg or "Index removed.",
+                    text_color=("gray30", "gray70"),
+                )
+            except Exception:
+                self._show_error("Failed to delete index.")
+
+        def index_status_action(self):
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder.")
+                return
+
+            cmd = [sys.executable, "-m", "docsearch", "-q", "--index-status"]
+            try:
+                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True)
+                stdout = result.stdout.strip()
+            except Exception:
+                self._show_error("Failed to get index status.")
+                return
+
+            if not stdout or "No index found" in stdout:
+                self.status_label.configure(
+                    text="No index found. Click Build Index(es) to create one.",
+                    text_color=("gray30", "gray70"),
+                )
+                return
+
+            import tkinter as tk
+            status_win = tk.Toplevel(self)
+            status_win.title("Index Status")
+            status_win.resizable(True, True)
+            line_count = stdout.count("\n") + 1
+            max_line_len = max((len(line) for line in stdout.split("\n")), default=30)
+            win_w = max(380, min(550, max_line_len * 9 + 40))
+            win_h = max(220, min(400, line_count * 26 + 60))
+            status_win.geometry(f"{win_w}x{win_h}")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - win_w) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+            status_win.geometry(f"+{x}+{y}")
+            tk.Label(
+                status_win, text=stdout, font=("TkDefaultFont", 12),
+                justify="left", anchor="nw", padx=15, pady=15,
+            ).pack(fill="both", expand=True)
+
+        def about_index_action(self):
+            import tkinter as tk
+            about_win = tk.Toplevel(self)
+            about_win.title("About Index")
+            about_win.resizable(True, True)
+            about_win.geometry("540x420")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 540) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 420) // 2
+            about_win.geometry(f"+{x}+{y}")
+
+            scrollbar = tk.Scrollbar(about_win)
+            scrollbar.pack(side="right", fill="y")
+
+            text = tk.Text(
+                about_win, font=("TkDefaultFont", 12), wrap="word",
+                padx=15, pady=15, borderwidth=0, highlightthickness=0,
+                yscrollcommand=scrollbar.set,
+            )
+            text.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
+            text.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=text.yview)
+
+            sections = [
+                ("Index Overview\n",
+                 "docsearch can build an optional search index to speed up "
+                 "repeated searches. Instead of opening and parsing every file "
+                 "each time, the index stores extracted text in a small SQLite "
+                 "database (.docsearch.db) so searches skip file I/O entirely.\n\n"),
+                ("How It Works\n",
+                 "When you click Build Index(es), docsearch reads every supported "
+                 "file in the selected folder and all subfolders, extracts the "
+                 "text, and stores it in a single .docsearch.db file in that "
+                 "folder.\n\n"),
+                ("Automatic Refresh\n",
+                 "Each time you search with the index, docsearch automatically "
+                 "checks for new, changed, or deleted files and updates the index "
+                 "before returning results. You never need to manually rebuild.\n\n"),
+                ("Identical Results\n",
+                 "Indexed searches produce the exact same results as direct "
+                 "searches. You can verify this by unchecking Search Using "
+                 "Index(es) and comparing. Both methods use the same matching "
+                 "logic \u2014 the index just skips the file-parsing step.\n\n"),
+                ("The Index File\n",
+                 "A single .docsearch.db file is created in the top-level "
+                 "folder you selected. It contains text from that folder and "
+                 "all subfolders. It is a hidden file (starts with a dot). "
+                 "Use Cmd+Shift+. in Finder or 'ls -a' in Terminal to see it. "
+                 "The index is typically 10\u201320% the size of your original "
+                 "files.\n\n"),
+                ("Managing Indexes\n",
+                 "Use Delete Index(es) to remove the database at any time. "
+                 "Use Index Status to see how many files and lines are indexed, "
+                 "the database size, and when it was created."),
+            ]
+            for heading, body in sections:
+                text.insert("end", heading, "bold")
+                text.insert("end", body)
+            text.configure(state="disabled")
+
         def _open_selected_file(self):
             selection = self.files_listbox.curselection()
             if not selection:
@@ -806,14 +1020,12 @@ def _launch_gui():
             self.files_frame.grid_remove()
             self.files_listbox.delete(0, "end")
             self.matched_files = []
-            self.grid_rowconfigure(6, weight=0, minsize=0)
+            self.grid_rowconfigure(8, weight=0, minsize=0)
             self.grid_rowconfigure(5, weight=1)
             # Restore bottom row position
-            self.help_button.grid(row=6, column=0, padx=15, pady=(0, 15), sticky="sw")
-            self.reset_button.grid(row=6, column=1, padx=5, pady=(0, 15), sticky="s")
-            self.about_button.grid(row=6, column=2, padx=(5, 15), pady=(0, 15), sticky="se")
+            self.bottom_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew")
             # Restore window size
-            self.geometry(f"{self.winfo_width()}x520")
+            self.geometry(f"{self.winfo_width()}x600")
 
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/docsearch#readme")
@@ -859,6 +1071,7 @@ def _launch_gui():
             self.append_name_entry.delete(0, "end")
             self.output_csv_var.set("off")
             self.output_json_var.set("off")
+            self.index_search_var.set("off")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
             )

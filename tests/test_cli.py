@@ -1906,3 +1906,267 @@ def test_output_no_format(tmp_path, capsys, monkeypatch):
     captured = capsys.readouterr()
     assert result == 2
     assert "No format provided" in captured.out
+
+
+# ─── Index tests ─────────────────────────────────────────
+
+
+def test_index_build(tmp_path, monkeypatch, capsys):
+    """--index builds the index database."""
+    txt_file = tmp_path / "notes.txt"
+    txt_file.write_text("Budget overview\nRevenue details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["--index"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Index built:" in captured.out
+    assert "1 files" in captured.out
+    assert (tmp_path / ".docsearch.db").exists()
+
+
+def test_index_build_includes_subfolders(tmp_path, monkeypatch, capsys):
+    """--index always indexes subdirectories."""
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    (subdir / "report.txt").write_text("Revenue details\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["--index"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2 files" in captured.out
+
+
+def test_index_clear(tmp_path, monkeypatch, capsys):
+    """--index-clear removes the database."""
+    (tmp_path / "notes.txt").write_text("Budget\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    assert (tmp_path / ".docsearch.db").exists()
+
+    result = main(["--index-clear"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Index removed" in captured.out
+    assert not (tmp_path / ".docsearch.db").exists()
+
+
+def test_index_clear_no_index(tmp_path, monkeypatch, capsys):
+    """--index-clear with no index prints a message."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["--index-clear"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "No index found" in captured.out
+
+
+def test_index_status(tmp_path, monkeypatch, capsys):
+    """--index-status shows index info."""
+    (tmp_path / "notes.txt").write_text("Budget overview\nRevenue details\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["--index-status"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "Files indexed:" in captured.out
+    assert "Lines indexed:" in captured.out
+    assert "Database size:" in captured.out
+
+
+def test_index_status_no_index(tmp_path, monkeypatch, capsys):
+    """--index-status with no index prints a message."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["--index-status"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "No index found" in captured.out
+
+
+def test_indexed_search_keyword(tmp_path, monkeypatch, capsys):
+    """Indexed keyword search returns same matches as direct scan."""
+    (tmp_path / "notes.txt").write_text("Budget overview\nRevenue details\nOther line\n")
+    monkeypatch.chdir(tmp_path)
+
+    # Direct scan
+    main(["-q", "budget"])
+    direct_content = (tmp_path / "docsearch_results.txt").read_text()
+
+    # Build index and search again
+    main(["--index"])
+    main(["-q", "budget"])
+    indexed_content = (tmp_path / "docsearch_results.txt").read_text()
+
+    # Both should find "Budget overview" with highlighting
+    assert "**Budget** overview" in direct_content
+    assert "**Budget** overview" in indexed_content
+
+
+def test_indexed_search_and(tmp_path, monkeypatch, capsys):
+    """Indexed AND search returns matches."""
+    (tmp_path / "notes.txt").write_text("Budget and revenue overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-a", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_indexed_search_regex(tmp_path, monkeypatch, capsys):
+    """Indexed regex search uses parse-cache path and finds matches."""
+    (tmp_path / "notes.txt").write_text("Call 555-123-4567 for details\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-x", r"\d{3}-\d{3}-\d{4}"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+
+
+def test_indexed_search_fuzzy(tmp_path, monkeypatch, capsys):
+    """Indexed fuzzy search uses parse-cache path and finds matches."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-z", "budgt"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+
+
+def test_indexed_search_wildcard(tmp_path, monkeypatch, capsys):
+    """Indexed wildcard search uses parse-cache path and finds matches."""
+    (tmp_path / "notes.txt").write_text("Budget overview\nBudgets listed\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-w", "budg*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+
+
+def test_indexed_search_with_file_type_filter(tmp_path, monkeypatch, capsys):
+    """Indexed search respects file type filters."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    (tmp_path / "data.csv").write_text("Budget,Amount\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-t", "txt", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+    assert "data.csv" not in content
+
+
+def test_index_refresh_detects_changes(tmp_path, monkeypatch, capsys):
+    """Incremental refresh detects new, changed, and deleted files."""
+    from docsearch.indexer import index_status, refresh_index
+
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    status = index_status(str(tmp_path))
+    assert status["file_count"] == 1
+
+    # Add a new file
+    (tmp_path / "extra.txt").write_text("Revenue details\n")
+    result = refresh_index(str(tmp_path), recursive=False, use_ocr=False)
+    assert result["added"] == 1
+
+    # Delete a file
+    os.remove(tmp_path / "notes.txt")
+    result = refresh_index(str(tmp_path), recursive=False, use_ocr=False)
+    assert result["removed"] == 1
+
+
+def test_no_index_fallback(tmp_path, monkeypatch, capsys):
+    """Without an index, search uses direct scan (existing behavior unchanged)."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["-q", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    assert not (tmp_path / ".docsearch.db").exists()
+
+
+def test_indexed_search_exclude(tmp_path, monkeypatch, capsys):
+    """Indexed search respects exclude terms."""
+    (tmp_path / "notes.txt").write_text("Budget draft overview\nBudget final version\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-n", "draft", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "final version" in content
+    assert "draft overview" not in content
+
+
+def test_indexed_search_proximity(tmp_path, monkeypatch, capsys):
+    """Indexed proximity search uses parse-cache path."""
+    (tmp_path / "notes.txt").write_text("The budget for revenue growth\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-p", "3", "budget", "revenue"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "notes.txt" in content
+
+
+def test_indexed_search_context(tmp_path, monkeypatch, capsys):
+    """Indexed context search uses parse-cache path."""
+    (tmp_path / "notes.txt").write_text("Line one\nBudget overview\nLine three\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    result = main(["-q", "-B", "1", "-A", "1", "budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Line one" in content
+    assert "Line three" in content
+
+
+def test_indexed_search_shows_indexed_in_output(tmp_path, monkeypatch, capsys):
+    """Indexed search shows 'indexed' in the mode string."""
+    (tmp_path / "notes.txt").write_text("Budget overview\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--index"])
+    main(["-q", "budget"])
+    captured = capsys.readouterr()
+
+    assert "indexed" in captured.out
