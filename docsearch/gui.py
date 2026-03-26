@@ -139,16 +139,21 @@ def _parse_summary_text(stdout):
     if elapsed_match:
         parts.append(f"in {elapsed_match.group(1)}s")
 
+    errors_match = re.search(r"(\d+)\s+error\(s\)", clean)
+    if errors_match:
+        err_count = errors_match.group(1)
+        parts.append(f"— {err_count} file(s) could not be read")
+
     return " ".join(parts) if parts else ""
 
 
 def _parse_matched_files(results_dir):
-    """Parse docsearch_results.txt and return a list of unique (filepath, filename) tuples."""
+    """Parse docsearch_results.txt and return a list of (filepath, filename, count) tuples."""
     results_path = os.path.join(results_dir, "docsearch_results.txt")
     if not os.path.exists(results_path):
         return []
-    files = []
-    seen = set()
+    counts = {}  # filepath -> (filepath, filename, count)
+    order = []   # preserve first-appearance order
     with open(results_path, "r") as f:
         lines = f.readlines()
     i = 0
@@ -160,13 +165,17 @@ def _parse_matched_files(results_dir):
                 dir_line = lines[i + 1].strip()
                 if dir_line.startswith("(") and dir_line.endswith(")"):
                     file_dir = dir_line[1:-1]
-                    filename = line.split("Document: ")[1].split(", Line: ")[0]
+                    raw_name = line.split("Document: ")[1].split(", Line: ")[0]
+                    # Strip per-file match count suffix e.g. "report.pdf (5 matches)"
+                    filename = re.sub(r"\s+\(\d+ match(?:es)?\)$", "", raw_name)
                     filepath = os.path.join(file_dir, filename)
-                    if filepath not in seen:
-                        seen.add(filepath)
-                        files.append((filepath, filename))
+                    if filepath in counts:
+                        counts[filepath] = (filepath, filename, counts[filepath][2] + 1)
+                    else:
+                        counts[filepath] = (filepath, filename, 1)
+                        order.append(filepath)
         i += 1
-    return files
+    return [counts[fp] for fp in order]
 
 
 def _launch_gui():
@@ -603,6 +612,19 @@ def _launch_gui():
             )
             self.reset_button.pack(side="right", padx=5)
 
+            self.view_error_log_bottom = ctk.CTkButton(
+                self.bottom_frame,
+                text="View Error Log",
+                width=110,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.open_error_log,
+                font=ctk.CTkFont(size=13),
+            )
+            self.view_error_log_bottom.pack(side="right", padx=5)
+            Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
+
 
         # ── Actions ──────────────────────────────────────────────
 
@@ -755,8 +777,8 @@ def _launch_gui():
                 self.matched_files = _parse_matched_files(self.results_dir)
                 self.files_listbox.delete(0, "end")
                 if self.matched_files:
-                    for filepath, filename in self.matched_files:
-                        self.files_listbox.insert("end", filename)
+                    for filepath, filename, count in self.matched_files:
+                        self.files_listbox.insert("end", f"{filename} ({count})")
                     self.files_frame.grid(
                         row=8, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="nsew"
                     )
@@ -814,9 +836,13 @@ def _launch_gui():
             )
 
         def open_error_log(self):
-            error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
+            folder = self.results_dir or self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a folder first.")
+                return
+            error_log_path = os.path.join(folder, "docsearch_errors.log")
             if not os.path.exists(error_log_path):
-                self._show_error("Error log not found.")
+                self._show_error("No error log found in the selected folder.")
                 return
             system = platform.system()
             if system == "Darwin":
@@ -1004,7 +1030,7 @@ def _launch_gui():
             selection = self.files_listbox.curselection()
             if not selection:
                 return
-            filepath, _ = self.matched_files[selection[0]]
+            filepath, _, _ = self.matched_files[selection[0]]
             if not os.path.exists(filepath):
                 self._show_error(f"File not found: {filepath}")
                 return

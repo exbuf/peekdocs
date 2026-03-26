@@ -53,8 +53,8 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     assert results_file.exists()
     content = results_file.read_text()
     assert "Search Term(s) ==> hello (match: ANY)" in content
-    assert f'Document: sample.docx, Line: 1, Match:\n({tmp_path})\n"**Hello** world"\n\n' in content
-    assert f'Document: sample.docx, Line: 3, Match:\n({tmp_path})\n"**Hello** again"\n\n' in content
+    assert f'Document: sample.docx (2 matches), Line: 1, Match:\n({tmp_path})\n"**Hello** world"\n\n' in content
+    assert f'Document: sample.docx (2 matches), Line: 3, Match:\n({tmp_path})\n"**Hello** again"\n\n' in content
 
     # Check docsearch_results.docx was created with yellow highlighting
     docx_results = tmp_path / "docsearch_results.docx"
@@ -96,7 +96,7 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     main(["PYTHON"])
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert f'Document: test.docx, Line: 1, Match:\n({tmp_path})\n"**Python** is great"' in content
+    assert f'Document: test.docx (1 match), Line: 1, Match:\n({tmp_path})\n"**Python** is great"' in content
 
 
 def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
@@ -2285,3 +2285,40 @@ def test_crash_report_includes_versions(tmp_path, monkeypatch):
     log_content = log_path.read_text()
     assert "Dependency versions:" in log_content
     assert "pymupdb" in log_content or "pymupdf" in log_content
+
+
+def test_results_csv_json_not_searched(tmp_path, monkeypatch):
+    """docsearch_results.csv and docsearch_results.json must not be searched."""
+    # Create a real searchable file
+    (tmp_path / "real.txt").write_text("budget line here")
+    # Create result files that contain the search term — these should be skipped
+    (tmp_path / "docsearch_results.csv").write_text("budget,amount\n100,200\n")
+    (tmp_path / "docsearch_results.json").write_text('{"query": "budget"}')
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "budget"])
+    assert result == 0
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "real.txt" in content
+    assert "docsearch_results.csv" not in content
+    assert "docsearch_results.json" not in content
+
+
+def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
+    """Per-file match counts appear in console output and TXT report."""
+    # file_a has 3 lines with "budget", file_b has 1
+    (tmp_path / "file_a.txt").write_text("budget line one\nbudget line two\nbudget line three\n")
+    (tmp_path / "file_b.txt").write_text("budget found here\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "budget"])
+    assert result == 0
+
+    captured = capsys.readouterr().out
+    assert "file_a.txt: 3" in captured
+    assert "file_b.txt: 1" in captured
+
+    report = (tmp_path / "docsearch_results.txt").read_text()
+    assert "file_a.txt: 3" in report
+    assert "file_b.txt: 1" in report

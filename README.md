@@ -47,6 +47,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Use quotes for multi-word phrases (e.g., `"annual report"`)
 - Don't separate search terms with commas unless they're part of the search term itself
 - Each match includes document name, folder path, line number, and matched text
+- Per-file match counts — see at a glance how many matches each file contributed
 - Generates timestamped `docsearch_results.txt` and `docsearch_results.docx` reports
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
@@ -526,7 +527,7 @@ Search results are always written to two files in the current directory:
 With the `-o` flag, additional output files are created:
 
 - **`docsearch_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
-- **`docsearch_results.json`** (`-o json`) — Machine-readable format with search metadata and a matches array. Useful for integrating docsearch into automated workflows, dashboards, or other tools.
+- **`docsearch_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating docsearch into automated workflows, dashboards, or other tools.
 
 Text file format:
 ```
@@ -534,11 +535,11 @@ Text file format:
 2026-03-07 14:30:45
 Search Term(s) ==> budget, revenue
 
-Document: report.docx, Line: 12, Match:
+Document: report.docx (2 matches), Line: 12, Match:
 (/Users/bob/GoogleDocs)
 "The **budget** for this quarter exceeded expectations"
 
-Document: summary.docx, Line: 3, Match:
+Document: summary.docx (1 match), Line: 3, Match:
 (/Users/bob/GoogleDocs)
 "Revised **budget** proposal attached"
 ```
@@ -569,9 +570,12 @@ Traceback (most recent call last):
 
 If you experience a crash, check `docsearch_errors.log` in the folder where you ran the search. The diagnosis line suggests a likely cause and fix. Common causes include a missing or incompatible Python package (fix: `pip install --upgrade docsearch`), a corrupted file that couldn't be handled, or a Python version incompatibility. If the problem persists, the crash report contains everything needed to investigate — you can include it when reporting an issue.
 
-The terminal also displays a summary:
+The terminal also displays a summary with per-file match counts:
 ```
-Found 2 match(es). Results written to docsearch_results.txt and docsearch_results.docx
+Found 3 match(es).
+  report.docx: 2
+  summary.docx: 1
+Results ==> /Users/bob/GoogleDocs
 ```
 
 ## Search Index (Optional)

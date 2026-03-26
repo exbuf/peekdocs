@@ -196,6 +196,21 @@ def test_parse_summary_with_ansi():
     assert "1.45" in result
 
 
+def test_parse_summary_with_errors():
+    stdout = (
+        "Files searched: 97 (4.23 MB)\n"
+        "Found \033[1;94m5\033[0m match(es).\n"
+        "Results ==> /tmp/docs\n"
+        "  docsearch_results.txt (2.50 KB), docsearch_results.docx (15.30 KB)\n"
+        "Elapsed time: 2.34 seconds, Cores used: 4 of 8\n"
+        "Errors logged to docsearch_errors.log (3 error(s))\n"
+    )
+    result = _parse_summary_text(stdout)
+    assert "5 match(es)" in result
+    assert "97 files" in result
+    assert "3 file(s) could not be read" in result
+
+
 def test_parse_summary_empty():
     assert _parse_summary_text("") == ""
     assert _parse_summary_text(None) == ""
@@ -206,22 +221,24 @@ def test_parse_matched_files(tmp_path):
     results.write_text(
         'Program name: docsearch\n'
         '\n'
-        'Document: report.pdf, Line: 5, Match:\n'
+        'Document: report.pdf (2 matches), Line: 5, Match:\n'
         f'({tmp_path})\n'
         '"some matched text"\n'
         '\n'
-        'Document: notes.txt, Line: 12, Match:\n'
+        'Document: notes.txt (1 match), Line: 12, Match:\n'
         f'({tmp_path})\n'
         '"another match"\n'
         '\n'
-        'Document: report.pdf, Line: 20, Match:\n'
+        'Document: report.pdf (2 matches), Line: 20, Match:\n'
         f'({tmp_path})\n'
         '"duplicate file should not repeat"\n'
     )
     files = _parse_matched_files(str(tmp_path))
     assert len(files) == 2
     assert files[0][1] == "report.pdf"
+    assert files[0][2] == 2  # report.pdf appears twice
     assert files[1][1] == "notes.txt"
+    assert files[1][2] == 1  # notes.txt appears once
 
 
 def test_parse_matched_files_empty(tmp_path):

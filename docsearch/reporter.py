@@ -56,6 +56,15 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         if exclude_terms:
             f.write(f"Exclude Term(s) ==> {', '.join(exclude_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
+        # Per-file match counts
+        file_counts = {}
+        for fd, fn, _ln, _tx in matches:
+            key = (fd, fn)
+            if key not in file_counts:
+                file_counts[key] = 0
+            file_counts[key] += 1
+        for (_fd, fn), count in file_counts.items():
+            f.write(f"  {fn}: {count}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores} of {cpu_count}\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
         if total_bytes >= 1_000_000:
@@ -97,7 +106,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                             pattern = re.escape(term)
                         highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
                     wrapped = textwrap.fill(highlighted, width=80)
-            f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
+            fc = file_counts.get((file_dir, filename), 1)
+            f.write(f'Document: {filename} ({fc} match{"es" if fc != 1 else ""}), Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     return (total_bytes, size_str)
 
@@ -224,12 +234,25 @@ def write_json_report(output_path, matches, search_terms, report_mode,
     """Write docsearch_results.json."""
     if os.path.exists(output_path):
         os.remove(output_path)
+    # Per-file match counts (ordered by first appearance)
+    file_counts = {}
+    for file_dir, filename, _ln, _tx in matches:
+        key = (file_dir, filename)
+        if key not in file_counts:
+            file_counts[key] = 0
+        file_counts[key] += 1
+    matches_per_file = [
+        {"filename": fn, "folder": fd, "matches": count}
+        for (fd, fn), count in file_counts.items()
+    ]
+
     json_data = {
         "search_terms": search_terms,
         "mode": report_mode,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "files_searched": files_count,
         "matches_found": len(matches),
+        "matches_per_file": matches_per_file,
         "elapsed_seconds": round(search_elapsed, 2),
         "matches": [
             {

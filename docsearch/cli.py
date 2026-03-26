@@ -845,6 +845,15 @@ def _main_inner(argv=None):
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
     print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
+    # Per-file match counts
+    file_counts = {}
+    for fd, fn, _ln, _tx in matches:
+        key = (fd, fn)
+        if key not in file_counts:
+            file_counts[key] = 0
+        file_counts[key] += 1
+    for (_fd, fn), count in file_counts.items():
+        print(f"  {fn}: {count}")
     print(f"Results ==> {cwd}")
     print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
     if csv_output_path:
