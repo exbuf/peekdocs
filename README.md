@@ -164,8 +164,18 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `wildcard` | true/false | `-w` | false (plain text search) |
 | `ocr` | true/false | `-O` | false (no OCR) |
 | `file_types` | comma-separated | `-t` | all supported types |
+| `proximity` | number | `-p N` | 0 (disabled) |
+| `output_csv` | true/false | `-o csv` | false (no CSV output) |
+| `output_json` | true/false | `-o json` | false (no JSON output) |
+| `exclude` | comma-separated | `-n` | empty (no exclusions) |
+| `specific_files` | comma-separated | `-f` | empty (search all files) |
+| `save_name` | text | `-s` | empty (no custom save) |
+| `append_name` | text | `-sa` | empty (no append) |
+| `index_search` | true/false | — | false (direct file search) |
+| `search_terms` | text | — | empty (none) |
+| `folder` | path | — | empty (current directory) |
 
-If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. Session-specific flags like `-p`, `-f`, `-n`, `-s`, and `-sa` are not configurable.
+If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
 
 **Advanced:** Your settings are stored in a text file called `.docsearchrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
 
@@ -284,20 +294,96 @@ docsearch-gui
 
 A window will appear. From here, everything is point-and-click — no more terminal commands needed. The GUI can do everything the terminal can do; you don't give up any features by using it.
 
+The GUI window is organized into these regions, from top to bottom:
+
+| Region | Description |
+|--------|-------------|
+| **Search Bar** | Search entry field, **Search** button, and **Wizard** button |
+| **Folder Bar** | Folder path entry and **Browse** button |
+| **Advanced Options** | Collapsible panel with all search options (click to expand) |
+| **Index Bar** | Index controls — **Build Index(es)**, **Delete Index(es)**, **Index Status**, **About Index**, and the **Search Using Index(es)** checkbox |
+| **Matched Files** | Button showing the count of files with matches (appears after a search with results — click to view the list and open individual files) |
+| **Toolbar** | **GitHub-Readme**, **View Error Log**, and **About** buttons |
+
 **Your first GUI search:**
 
-1. Type what you're looking for in the **Search** box
-2. Click **Browse** to pick the folder containing your documents (your home folder is selected by default)
+1. Type what you're looking for in the **Search Bar**
+2. Click **Browse** in the **Folder Bar** to pick the folder containing your documents (your home folder is selected by default)
 3. Click **Search** (or press Enter)
-4. When the search finishes, click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
+4. When the search finishes, a result summary appears. Click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, append to, and additional output formats (CSV, JSON). Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, append to, and additional output formats (CSV, JSON). Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
-The **Search Index** panel at the bottom of the window lets you manage the search index without using the terminal. Click **Build Index(es)** to create the index (all subfolders are included automatically). Check **Search Using Index(es)** to use the index for your next search — uncheck it to search files directly, which is useful for verifying that both methods find identical results. Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work.
+**Search Index:**
 
-Do not type flags (like `-a` or `-r`) into the Search box — the Search box is only for search terms. Each checkbox and input field under Advanced Options asserts the corresponding flag behind the scenes.
+The **Index Bar** lets you manage the search index without using the terminal. Click **Build Index(es)** to create the index (all subfolders are included automatically). Check **Search Using Index(es)** to use the index for your next search — uncheck it to search files directly, which is useful for verifying that both methods find identical results. Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work.
+
+Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Options** handles the corresponding flag behind the scenes.
+
+**Search Wizard:**
+
+Click the **Wizard** button in the Search Bar to open the Search Wizard — a point-and-click regex builder. Instead of writing regex by hand, choose a profession-specific category and check the patterns you want:
+
+| Category | Example patterns |
+|----------|-----------------|
+| **Common / General** | Dates, dollar amounts, phone numbers, email addresses, SSNs |
+| **Business / Finance** | Invoice numbers, purchase orders, tax IDs, account numbers |
+| **Legal** | Case numbers, statute references, Bates numbers, court dockets |
+| **Medical / Healthcare** | ICD-10 codes, CPT codes, NPI numbers, patient IDs |
+| **Engineering / Technical** | Part numbers, serial numbers, measurements, tolerances |
+| **Real Estate** | Parcel/APN numbers, square footage, lot/block, MLS numbers |
+| **HR / Admin** | SSNs, employee IDs, phone numbers, email addresses |
+| **Compliance / Audit** | SSNs, tax IDs, employee IDs, dollar amounts, dates, classification markings, policy numbers, retention codes |
+
+Use the **Match mode** radio buttons to choose **OR** (match any selected pattern) or **AND** (all selected patterns must appear). You can also type a custom regex in the **Custom regex** field. A live preview shows the combined regex before you apply it.
+
+When you click **Apply**, the wizard inserts the regex into the Search Bar and automatically enables the Regex checkbox. If the Search Bar already has text, you can choose to replace or append. The wizard remembers your selections between uses.
+
+**Mixing wizard patterns with typed terms:**
+
+You can combine wizard-generated patterns with terms you type manually. This is powerful because the wizard's OR logic is embedded *inside* the regex pattern using `|`, while the AND mode checkbox controls how *separate* search terms relate to each other. They operate at different levels and don't conflict.
+
+For example, to find paragraphs that contain a phone number or email address *and* the word "invoice":
+
+1. Open the Wizard, select **Common / General**, check **Phone Number** and **Email Address** (with OR mode), click **Apply**
+2. The Search Bar now contains one regex term: `(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})|([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})`
+3. After the regex, type a space and then `invoice` — the Search Bar now has two terms
+4. Check the **AND mode** checkbox in Advanced Options
+
+The search finds paragraphs where *both* conditions are true: at least one phone number or email appears, *and* the word "invoice" appears. The OR stays inside the wizard's regex, and the AND applies between the two separate search terms.
+
+You can also build up the Search Bar in multiple passes — use the wizard once, append, type some words, open the wizard again with a different category, and append again. Each append adds to what's already there.
+
+**Note:** The wizard enables regex mode. If you manually type additional terms containing special characters (`.` `+` `(` `)` `[` `]` etc.), escape them with `\` — for example, `cost\+fees`. Plain words like `budget` need no escaping.
+
+**Compliance and audit examples:**
+
+The wizard combined with typed search terms is especially useful for compliance, auditing, and risk management. Below are practical examples across industries. In each case, use the wizard to select the pattern(s), type any additional keyword(s), and check AND mode so both must appear together.
+
+| Use case | Wizard patterns | Typed terms | Mode | What it finds |
+|----------|----------------|-------------|------|---------------|
+| **PII exposure scan** | SSN, Phone Number, Email Address (Common) | *(none — just the patterns)* | OR | Sensitive personal data in any document. Search shared drives and public folders — any match is a potential data privacy violation (GDPR, CCPA) |
+| **HIPAA — PHI detection** | ICD-10 Code, Patient ID (Medical) | a patient name | AND | Protected health information appearing alongside patient identifiers — flags potential HIPAA exposure |
+| **Invoice completeness** | Invoice Number, Dollar Amount, Date (Business) | *(none)* | AND | Invoices containing all three required fields. Documents that *don't* match may be missing required information |
+| **Missing purchase orders** | Dollar Amount (Business) | invoice | AND, then search *without* PO Number | Find invoices with dollar amounts but no purchase order — flags spending without proper authorization |
+| **Contract clause verification** | Dollar Amount, Date (Common) | indemnif | AND | Contracts containing financial terms and indemnification language — verifies required clauses are present |
+| **Contract expiration review** | Date (Common) | termination renewal expir | AND | Contracts mentioning termination, renewal, or expiration alongside dates — identifies agreements approaching key deadlines |
+| **Export control** | Part Number, Serial Number (Engineering) | controlled restricted ITAR | AND | Technical documents referencing part or serial numbers alongside export-control language |
+| **HR records audit** | SSN, Employee ID (HR) | *(none — just the patterns)* | OR | SSNs or employee IDs in any folder. Matches on a shared or public drive indicate a policy violation |
+| **Salary disclosure check** | Dollar Amount (Common) | salary compensation bonus | AND | Documents containing dollar amounts alongside pay-related terms — flags potential unauthorized salary disclosures |
+| **Tax document review** | Tax ID / EIN, Dollar Amount (Business) | deduction credit | AND | Tax filings referencing specific EINs alongside deduction or credit language — useful for tax audit preparation |
+| **Real estate due diligence** | Parcel / APN, Dollar Amount (Real Estate) | lien encumbrance easement | AND | Property documents referencing parcel numbers alongside potential title issues |
+| **Insurance claims audit** | Dollar Amount, Date (Common) | claim denied approved | AND | Claims documents with dollar amounts, dates, and disposition keywords — identifies patterns in claim processing |
+| **Regulatory filing check** | Case Number, Statute Reference (Legal) | violation penalty fine | AND | Legal filings referencing case numbers and statutes alongside enforcement language |
+| **Vendor compliance** | Invoice Number, Dollar Amount (Business) | late overdue past.due | AND | Vendor invoices mentioning late or overdue status — identifies vendors with payment issues |
+| **Document retention audit** | Date (Common) | destroy shred retain archive | AND | Documents containing dates alongside retention-related terms — helps enforce retention schedules |
+| **Intellectual property scan** | Part Number, Drawing Number (Engineering) | confidential proprietary | AND | Engineering documents referencing specific parts alongside IP markings — verifies proper classification |
+| **Background check compliance** | SSN, Date (Common) | consent authorization | AND | Background check documents containing SSNs and dates alongside consent language — verifies proper authorization was obtained |
+| **Medical billing audit** | CPT Code, Dollar Amount (Medical) | *(none)* | AND | Medical billing records containing both procedure codes and dollar amounts — useful for detecting billing anomalies |
+
+**Tip:** For any of these searches, enable **Recursive** to scan all subfolders, and use **File types** to limit the search to specific formats (e.g., `pdf,docx`). After the search completes, click **Open Report** to review all matches with context highlighted in yellow, or export to **CSV** for further analysis in a spreadsheet.
 
 ## Usage
 
@@ -611,7 +697,7 @@ docsearch --index-clear        # delete the index
 
 **How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
 
-**In the GUI:** The Search Index panel at the bottom of the window has **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons, and a **Search Using Index(es)** checkbox to toggle between indexed and direct search. Building an index always includes all subfolders.
+**In the GUI:** The **Index Bar** at the bottom of the window has **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons, and a **Search Using Index(es)** checkbox to toggle between indexed and direct search. Building an index always includes all subfolders.
 
 ## FAQ (Frequently Asked Questions)
 

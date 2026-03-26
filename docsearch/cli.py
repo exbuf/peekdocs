@@ -76,9 +76,9 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard"}
-CONFIG_INT_KEYS = {"cores", "context_before", "context_after"}
-CONFIG_STR_KEYS = {"file_types"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "index_search", "output_csv", "output_json"}
+CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 

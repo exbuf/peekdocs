@@ -44,10 +44,7 @@ def _build_command_from_values(
 
     # Block flags typed into the search box
     _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config"}
-    try:
-        tokens = shlex.split(search_text.strip())
-    except ValueError:
-        tokens = search_text.strip().split()
+    tokens = search_text.strip().split()
     if any(token in _CLI_FLAGS for token in tokens):
         return "FLAGS_IN_SEARCH"
 
@@ -109,10 +106,21 @@ def _build_command_from_values(
     if output_parts:
         cmd.extend(["-o", ",".join(output_parts)])
 
-    try:
-        terms = shlex.split(search_text.strip())
-    except ValueError:
-        terms = search_text.strip().split()
+    if regex:
+        # Preserve backslashes for regex patterns (shlex.split eats them)
+        lex = shlex.shlex(search_text.strip(), posix=True)
+        lex.escape = ""
+        lex.commenters = ""
+        lex.whitespace_split = True
+        try:
+            terms = list(lex)
+        except ValueError:
+            terms = search_text.strip().split()
+    else:
+        try:
+            terms = shlex.split(search_text.strip())
+        except ValueError:
+            terms = search_text.strip().split()
 
     cmd.extend(terms)
     return cmd
@@ -178,6 +186,16 @@ def _parse_matched_files(results_dir):
     return [counts[fp] for fp in order]
 
 
+def _build_wizard_regex(selected_patterns):
+    """Combine selected (label, regex) tuples into a single regex.
+
+    Returns a regex string joining patterns with '|' (OR).
+    """
+    if not selected_patterns:
+        return ""
+    return "|".join(f"({regex})" for _, regex in selected_patterns)
+
+
 def _launch_gui():
     """Import customtkinter and build the GUI. Separated to keep module importable without tkinter."""
     try:
@@ -187,7 +205,7 @@ def _launch_gui():
         sys.exit(1)
 
     import webbrowser
-    from tkinter import filedialog
+    from tkinter import filedialog, messagebox
     from importlib.metadata import version as pkg_version
 
     class Tooltip:
@@ -199,6 +217,10 @@ def _launch_gui():
             self.tip_window = None
             widget.bind("<Enter>", self._show)
             widget.bind("<Leave>", self._hide)
+            # Bind to internal children (needed for CTk composite widgets)
+            for child in widget.winfo_children():
+                child.bind("<Enter>", self._show)
+                child.bind("<Leave>", self._hide)
 
         def _show(self, event=None):
             if self.tip_window:
@@ -230,9 +252,9 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
-            self.geometry("700x600")
-            self.minsize(750, 500)
-            self._center_window(900, 600)
+            self.geometry("700x720")
+            self.minsize(750, 620)
+            self._center_window(900, 720)
 
             ctk.set_appearance_mode("System")
             ctk.set_default_color_theme("blue")
@@ -255,6 +277,7 @@ def _launch_gui():
             self._build_open_report()
             self._build_index_panel()
             self._build_bottom_row()
+            self._load_saved_settings()
 
         def _center_window(self, width, height):
             self.update_idletasks()
@@ -267,38 +290,65 @@ def _launch_gui():
         # ── Layout builders ──────────────────────────────────────
 
         def _build_search_row(self):
-            row = 0
-            label = ctk.CTkLabel(self, text="Search:", font=ctk.CTkFont(size=14))
-            label.grid(row=row, column=0, padx=(15, 5), pady=(15, 5), sticky="w")
+            self.search_bar_frame = ctk.CTkFrame(self)
+            self.search_bar_frame.grid(
+                row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
+            )
+            self.search_bar_frame.grid_columnconfigure(1, weight=1)
+
+            ctk.CTkLabel(
+                self.search_bar_frame, text="Search Bar",
+                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
+            ).grid(row=0, column=0, columnspan=4, padx=10, pady=(4, 0), sticky="w")
+
+            label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=14))
+            label.grid(row=1, column=0, padx=(10, 5), pady=(0, 8), sticky="w")
 
             self.search_entry = ctk.CTkEntry(
-                self, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
+                self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=row, column=1, padx=5, pady=(15, 5), sticky="ew")
+            self.search_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
             self.search_button = ctk.CTkButton(
-                self, text="Search", width=90, command=self.start_search,
+                self.search_bar_frame, text="Search", width=90, command=self.start_search,
                 font=ctk.CTkFont(size=14),
             )
-            self.search_button.grid(row=row, column=2, padx=(5, 15), pady=(15, 5))
+            self.search_button.grid(row=1, column=2, padx=(5, 5), pady=(0, 8))
+
+            self.wizard_button = ctk.CTkButton(
+                self.search_bar_frame, text="Wizard", width=80, command=self._open_search_wizard,
+                font=ctk.CTkFont(size=14),
+            )
+            self.wizard_button.grid(row=1, column=3, padx=(0, 10), pady=(0, 8))
+            Tooltip(self.wizard_button, "Open the Search Wizard to build regex patterns from presets")
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
 
         def _build_folder_row(self):
-            row = 1
-            label = ctk.CTkLabel(self, text="Folder:", font=ctk.CTkFont(size=14))
-            label.grid(row=row, column=0, padx=(15, 5), pady=5, sticky="w")
+            self.folder_bar_frame = ctk.CTkFrame(self)
+            self.folder_bar_frame.grid(
+                row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
+            )
+            self.folder_bar_frame.grid_columnconfigure(1, weight=1)
 
-            self.folder_entry = ctk.CTkEntry(self, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
+            ctk.CTkLabel(
+                self.folder_bar_frame, text="Folder Bar",
+                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
+            ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
+
+            label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=14))
+            label.grid(row=1, column=0, padx=(10, 5), pady=(0, 8), sticky="w")
+
+            self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
+            self.folder_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             self.browse_button = ctk.CTkButton(
-                self, text="Browse", width=90, command=self.browse_folder,
+                self.folder_bar_frame, text="Browse", width=90, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
-            self.browse_button.grid(row=row, column=2, padx=(5, 15), pady=5)
+            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8))
 
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
@@ -446,11 +496,55 @@ def _launch_gui():
             )
             cb_json.grid(row=0, column=2)
 
+            # Row 9: Save Settings + Restore Settings buttons
+            settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            settings_btn_frame.grid(row=9, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+
+            inspect_settings_btn = ctk.CTkButton(
+                settings_btn_frame, text="Inspect .docsearchrc", width=155,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._inspect_settings,
+                font=ctk.CTkFont(size=12),
+            )
+            inspect_settings_btn.pack(side="left", padx=5)
+            Tooltip(inspect_settings_btn, "View the current saved settings in ~/.docsearchrc (read-only)")
+
+            save_settings_btn = ctk.CTkButton(
+                settings_btn_frame, text="Save Settings", width=120,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._save_current_settings,
+                font=ctk.CTkFont(size=12),
+            )
+            save_settings_btn.pack(side="left", padx=5)
+            Tooltip(save_settings_btn, "Save the current Advanced Options as defaults in ~/.docsearchrc")
+
+            restore_settings_btn = ctk.CTkButton(
+                settings_btn_frame, text="Restore Settings", width=130,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._load_saved_settings,
+                font=ctk.CTkFont(size=12),
+            )
+            restore_settings_btn.pack(side="left", padx=5)
+            Tooltip(restore_settings_btn, "Load saved defaults from ~/.docsearchrc into the GUI")
+
+            reset_btn = ctk.CTkButton(
+                settings_btn_frame, text="Reset", width=90,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.reset_form,
+                font=ctk.CTkFont(size=12),
+            )
+            reset_btn.pack(side="left", padx=5)
+            Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
+
             self.advanced_frame.grid_columnconfigure(1, weight=1)
 
             # Tooltips
             Tooltip(cb_and, "All search terms must appear in the same paragraph")
-            Tooltip(cb_rec, "Search subfolders inside the selected folder")
+            Tooltip(cb_rec, "Search subfolders inside the Search Folder")
             Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget')")
             Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
             Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see GitHub-Readme)")
@@ -478,24 +572,7 @@ def _launch_gui():
                 row=5, column=0, columnspan=2, padx=15, pady=(5, 0), sticky="ew"
             )
 
-            # Matched files list — starts hidden, shown after search with matches
-            import tkinter as tk
-            self.files_frame = ctk.CTkFrame(self)
-            self.files_label = ctk.CTkLabel(
-                self.files_frame, text="Matched Files (double-click to open):",
-                font=ctk.CTkFont(size=12), anchor="w",
-            )
-            self.files_label.pack(fill="x", padx=5, pady=(4, 0))
-            self.files_listbox = tk.Listbox(
-                self.files_frame, font=("TkDefaultFont", 12),
-                selectmode=tk.SINGLE, activestyle="none",
-                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
-                highlightthickness=0, borderwidth=0, height=6,
-            )
-            self.files_listbox.pack(fill="both", expand=True, padx=5, pady=(2, 5))
-            self.files_listbox.bind("<Double-1>", lambda e: self._open_selected_file())
             self.matched_files = []
-            Tooltip(self.files_listbox, "Double-click a file to open it")
 
         def _build_open_report(self):
             self.action_buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -521,6 +598,15 @@ def _launch_gui():
             )
             Tooltip(self.error_log_button, "Open docsearch_errors.log to see details about files that could not be read")
 
+            self.matched_files_button = ctk.CTkButton(
+                self.action_buttons_frame,
+                text="Matched Files",
+                width=130,
+                command=self._show_matched_files_popup,
+                font=ctk.CTkFont(size=13),
+            )
+            Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
+
         def _build_index_panel(self):
             self.index_frame = ctk.CTkFrame(self)
             self.index_frame.grid(
@@ -528,19 +614,24 @@ def _launch_gui():
             )
             self.index_frame.grid_columnconfigure(1, weight=1)
 
+            ctk.CTkLabel(
+                self.index_frame, text="Index Bar",
+                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
+            ).grid(row=0, column=0, columnspan=6, padx=10, pady=(4, 0), sticky="w")
+
             self.index_search_var = ctk.StringVar(value="off")
             cb_index_search = ctk.CTkCheckBox(
                 self.index_frame, text="Search Using Index(es)", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
             )
-            cb_index_search.grid(row=0, column=0, padx=(10, 5), pady=5, sticky="w")
+            cb_index_search.grid(row=1, column=0, padx=(10, 5), pady=(0, 5), sticky="w")
             Tooltip(cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results")
 
             self.build_index_button = ctk.CTkButton(
                 self.index_frame, text="Build Index(es)", width=120,
                 command=self.build_index_action, font=ctk.CTkFont(size=12),
             )
-            self.build_index_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+            self.build_index_button.grid(row=1, column=2, padx=5, pady=(0, 5), sticky="e")
             Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically. Warning: Navigate to the right folder (Browse button) before Building Index(es)")
 
             self.delete_index_button = ctk.CTkButton(
@@ -549,7 +640,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self.delete_index_action, font=ctk.CTkFont(size=12),
             )
-            self.delete_index_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
+            self.delete_index_button.grid(row=1, column=3, padx=5, pady=(0, 5), sticky="e")
             Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
 
             self.index_status_button = ctk.CTkButton(
@@ -558,7 +649,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self.index_status_action, font=ctk.CTkFont(size=12),
             )
-            self.index_status_button.grid(row=0, column=4, padx=5, pady=5, sticky="e")
+            self.index_status_button.grid(row=1, column=4, padx=5, pady=(0, 5), sticky="e")
             Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
 
             self.about_index_button = ctk.CTkButton(
@@ -567,7 +658,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self.about_index_action, font=ctk.CTkFont(size=12),
             )
-            self.about_index_button.grid(row=0, column=5, padx=(5, 10), pady=5, sticky="e")
+            self.about_index_button.grid(row=1, column=5, padx=(5, 10), pady=(0, 5), sticky="e")
             Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
 
         def _build_bottom_row(self):
@@ -575,6 +666,11 @@ def _launch_gui():
             self.bottom_frame.grid(
                 row=7, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
             )
+
+            ctk.CTkLabel(
+                self.bottom_frame, text="Toolbar",
+                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
+            ).pack(side="left", padx=(5, 2))
 
             self.help_button = ctk.CTkButton(
                 self.bottom_frame,
@@ -599,18 +695,6 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.about_button.pack(side="right")
-
-            self.reset_button = ctk.CTkButton(
-                self.bottom_frame,
-                text="Reset",
-                width=90,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.reset_form,
-                font=ctk.CTkFont(size=13),
-            )
-            self.reset_button.pack(side="right", padx=5)
 
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
@@ -660,6 +744,16 @@ def _launch_gui():
             if not search_text:
                 self._show_error("Please enter one or more search terms.")
                 return
+
+            if self.index_search_var.get() == "on":
+                index_path = os.path.join(folder, ".docsearch.db")
+                if not os.path.exists(index_path):
+                    self._show_error(
+                        "No search index found in this folder. "
+                        "First use Browse to navigate to the folder where your files are, "
+                        "then click Build Index(es) to create one."
+                    )
+                    return
 
             cmd = _build_command_from_values(
                 search_text=search_text,
@@ -772,24 +866,9 @@ def _launch_gui():
                     except Exception as e:
                         self._show_error(f"Save failed: {e}")
                         return
-                self._show_action_buttons()
-                # Populate matched files list
+                # Populate matched files for the popup button
                 self.matched_files = _parse_matched_files(self.results_dir)
-                self.files_listbox.delete(0, "end")
-                if self.matched_files:
-                    for filepath, filename, count in self.matched_files:
-                        self.files_listbox.insert("end", f"{filename} ({count})")
-                    self.files_frame.grid(
-                        row=8, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="nsew"
-                    )
-                    self.grid_rowconfigure(8, weight=1, minsize=150)
-                    self.grid_rowconfigure(5, weight=0)
-                    # Move bottom row down
-                    self.bottom_frame.grid(row=9, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew")
-                    # Expand window to fit files list
-                    current_height = self.winfo_height()
-                    if current_height < 720:
-                        self.geometry(f"{self.winfo_width()}x720")
+                self._show_action_buttons()
             elif returncode == 1:
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
@@ -812,10 +891,14 @@ def _launch_gui():
             # Clear any previous buttons
             self.open_report_button.pack_forget()
             self.error_log_button.pack_forget()
+            self.matched_files_button.pack_forget()
+            if hasattr(self, "top_action_row"):
+                self.top_action_row.destroy()
             self.action_buttons_frame.grid_remove()
 
             has_report = False
             has_error_log = False
+            has_matched = bool(self.matched_files)
 
             if self.results_dir:
                 docx_path = os.path.join(self.results_dir, "docsearch_results.docx")
@@ -823,11 +906,20 @@ def _launch_gui():
                 error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
                 has_error_log = os.path.exists(error_log_path)
 
-            if not has_report and not has_error_log:
+            if not has_report and not has_error_log and not has_matched:
                 return
 
-            if has_report:
-                self.open_report_button.pack(pady=(0, 2))
+            # Top row: Matched Files + Open Report side by side
+            if has_matched or has_report:
+                self.top_action_row = ctk.CTkFrame(self.action_buttons_frame, fg_color="transparent")
+                self.top_action_row.pack(pady=(0, 2))
+                if has_matched:
+                    self.matched_files_button.configure(
+                        text=f"Matched Files ({len(self.matched_files)})"
+                    )
+                    self.matched_files_button.pack(in_=self.top_action_row, side="left", padx=(0, 5))
+                if has_report:
+                    self.open_report_button.pack(in_=self.top_action_row, side="left")
             if has_error_log:
                 self.error_log_button.pack(pady=(0, 2))
 
@@ -1043,15 +1135,72 @@ def _launch_gui():
                 subprocess.Popen(["xdg-open", filepath])
 
         def _hide_files_list(self):
-            self.files_frame.grid_remove()
-            self.files_listbox.delete(0, "end")
             self.matched_files = []
-            self.grid_rowconfigure(8, weight=0, minsize=0)
-            self.grid_rowconfigure(5, weight=1)
-            # Restore bottom row position
-            self.bottom_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew")
-            # Restore window size
-            self.geometry(f"{self.winfo_width()}x600")
+
+        def _show_matched_files_popup(self):
+            """Show a popup listing all matched files. Click a file to open it."""
+            if not self.matched_files:
+                return
+            import tkinter as tk
+
+            popup = tk.Toplevel(self)
+            popup.title("Matched Files")
+            popup.resizable(True, True)
+            count = len(self.matched_files)
+            win_h = max(200, min(500, count * 28 + 80))
+            popup.geometry(f"500x{win_h}")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup, text=f"Matched Files ({count})",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                popup, text="Click a file to open it",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 8))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 12),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            for filepath, filename, match_count in self.matched_files:
+                listbox.insert("end", f"{filename} ({match_count} match{'es' if match_count != 1 else ''})")
+
+            def _on_click(event):
+                selection = listbox.curselection()
+                if not selection:
+                    return
+                filepath, _, _ = self.matched_files[selection[0]]
+                if not os.path.exists(filepath):
+                    self._show_error(f"File not found: {filepath}")
+                    return
+                system = platform.system()
+                if system == "Darwin":
+                    subprocess.Popen(["open", filepath])
+                elif system == "Windows":
+                    os.startfile(filepath)  # type: ignore[attr-defined]
+                else:
+                    subprocess.Popen(["xdg-open", filepath])
+
+            listbox.bind("<Double-1>", _on_click)
+
+            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(0, 10))
 
         def open_help(self):
             webbrowser.open("https://github.com/exbuf/docsearch#readme")
@@ -1075,6 +1224,187 @@ def _launch_gui():
             tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
             tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
             tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack(pady=(0, 15))
+
+        def _inspect_settings(self):
+            """Show the current saved settings from ~/.docsearchrc in a read-only popup."""
+            from docsearch.cli import _config_path
+            import tkinter as tk
+
+            path = _config_path()
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    content = f.read().strip()
+            else:
+                content = "(No settings file found)"
+
+            win = tk.Toplevel(self)
+            win.title("Saved Settings")
+            win.resizable(True, True)
+            line_count = content.count("\n") + 1
+            max_line_len = max((len(line) for line in content.split("\n")), default=30)
+            win_w = max(380, min(550, max_line_len * 9 + 40))
+            win_h = max(200, min(500, line_count * 26 + 80))
+            win.geometry(f"{win_w}x{win_h}")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - win_w) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+            win.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                win, text="Saved Settings (read-only)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                win, text=path,
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 8))
+            tk.Label(
+                win, text=content, font=("TkDefaultFont", 12),
+                justify="left", anchor="nw", padx=15, pady=10,
+            ).pack(fill="both", expand=True)
+            tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
+
+        def _save_current_settings(self):
+            """Save current Advanced Options state to ~/.docsearchrc."""
+            from docsearch.cli import _save_config, _config_path
+
+            settings = {}
+            # Boolean settings
+            if self.recursive_var.get() == "on":
+                settings["recursive"] = True
+            if self.and_mode_var.get() == "on":
+                settings["match_all"] = True
+            if self.fuzzy_var.get() == "on":
+                settings["fuzzy"] = True
+            if self.wildcard_var.get() == "on":
+                settings["wildcard"] = True
+            if self.regex_var.get() == "on":
+                settings["regex"] = True
+            if self.ocr_var.get() == "on":
+                settings["ocr"] = True
+            if self.index_search_var.get() == "on":
+                settings["index_search"] = True
+            if self.output_csv_var.get() == "on":
+                settings["output_csv"] = True
+            if self.output_json_var.get() == "on":
+                settings["output_json"] = True
+            # Integer settings
+            cores_val = self.cores_entry.get().strip()
+            if cores_val:
+                try:
+                    n = int(cores_val)
+                    if n >= 1:
+                        settings["cores"] = n
+                except ValueError:
+                    pass
+            cb = self.context_before_entry.get().strip()
+            if cb:
+                try:
+                    n = int(cb)
+                    if n >= 1:
+                        settings["context_before"] = n
+                except ValueError:
+                    pass
+            ca = self.context_after_entry.get().strip()
+            if ca:
+                try:
+                    n = int(ca)
+                    if n >= 1:
+                        settings["context_after"] = n
+                except ValueError:
+                    pass
+            prox = self.proximity_entry.get().strip()
+            if prox:
+                try:
+                    n = int(prox)
+                    if n >= 1:
+                        settings["proximity"] = n
+                except ValueError:
+                    pass
+            # String settings
+            ft = self.file_types_entry.get().strip()
+            if ft:
+                settings["file_types"] = ft
+            search = self.search_entry.get().strip()
+            if search:
+                settings["search_terms"] = search
+            folder = self.folder_entry.get().strip()
+            if folder:
+                settings["folder"] = folder
+            exclude = self.exclude_entry.get().strip()
+            if exclude:
+                settings["exclude"] = exclude
+            specific = self.specific_files_entry.get().strip()
+            if specific:
+                settings["specific_files"] = specific
+            save_name = self.save_name_entry.get().strip()
+            if save_name:
+                settings["save_name"] = save_name
+            append_name = self.append_name_entry.get().strip()
+            if append_name:
+                settings["append_name"] = append_name
+
+            if settings:
+                _save_config(settings)
+            else:
+                path = _config_path()
+                if os.path.exists(path):
+                    os.remove(path)
+            self.status_label.configure(
+                text="Settings saved to ~/.docsearchrc",
+                text_color=("gray30", "gray70"),
+                font=ctk.CTkFont(size=13),
+            )
+
+        def _load_saved_settings(self):
+            """Load saved settings from ~/.docsearchrc and apply to GUI."""
+            from docsearch.cli import _load_config
+
+            config = _load_config()
+            # Set booleans — reset to off if not in config
+            self.recursive_var.set("on" if config.get("recursive") else "off")
+            self.and_mode_var.set("on" if config.get("match_all") else "off")
+            self.fuzzy_var.set("on" if config.get("fuzzy") else "off")
+            self.wildcard_var.set("on" if config.get("wildcard") else "off")
+            self.regex_var.set("on" if config.get("regex") else "off")
+            self.ocr_var.set("on" if config.get("ocr") else "off")
+            self.index_search_var.set("on" if config.get("index_search") else "off")
+            self.output_csv_var.set("on" if config.get("output_csv") else "off")
+            self.output_json_var.set("on" if config.get("output_json") else "off")
+            # Clear and set entry fields
+            self.cores_entry.delete(0, "end")
+            if "cores" in config:
+                self.cores_entry.insert(0, str(config["cores"]))
+            self.context_before_entry.delete(0, "end")
+            if "context_before" in config:
+                self.context_before_entry.insert(0, str(config["context_before"]))
+            self.context_after_entry.delete(0, "end")
+            if "context_after" in config:
+                self.context_after_entry.insert(0, str(config["context_after"]))
+            self.proximity_entry.delete(0, "end")
+            if "proximity" in config:
+                self.proximity_entry.insert(0, str(config["proximity"]))
+            self.file_types_entry.delete(0, "end")
+            if "file_types" in config:
+                self.file_types_entry.insert(0, config["file_types"])
+            self.search_entry.delete(0, "end")
+            if "search_terms" in config:
+                self.search_entry.insert(0, config["search_terms"])
+            self.folder_entry.delete(0, "end")
+            if "folder" in config:
+                self.folder_entry.insert(0, config["folder"])
+            self.exclude_entry.delete(0, "end")
+            if "exclude" in config:
+                self.exclude_entry.insert(0, config["exclude"])
+            self.specific_files_entry.delete(0, "end")
+            if "specific_files" in config:
+                self.specific_files_entry.insert(0, config["specific_files"])
+            self.save_name_entry.delete(0, "end")
+            if "save_name" in config:
+                self.save_name_entry.insert(0, config["save_name"])
+            self.append_name_entry.delete(0, "end")
+            if "append_name" in config:
+                self.append_name_entry.insert(0, config["append_name"])
 
         def reset_form(self):
             """Reset all fields to their defaults."""
@@ -1108,6 +1438,243 @@ def _launch_gui():
             self.status_label.configure(
                 text=message, text_color="red", font=ctk.CTkFont(size=13, weight="bold")
             )
+            self.bell()
+            messagebox.showerror("Error", message)
+
+        # ── Search Wizard ────────────────────────────────────────
+
+        def _open_search_wizard(self):
+            """Open the Search Wizard popup for building regex patterns."""
+            import tkinter as tk
+            from tkinter import ttk
+            from docsearch.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
+
+            # Initialize persistent state on first open
+            if not hasattr(self, "_wizard_state"):
+                self._wizard_state = {
+                    "category": WIZARD_CATEGORY_ORDER[0],
+                    "mode": "OR",
+                    "custom": "",
+                    "checked": {},  # category -> set of checked labels
+                }
+
+            wiz = tk.Toplevel(self)
+            wiz.title("Search Wizard")
+            wiz.resizable(True, True)
+            wiz.geometry("560x640")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 560) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 640) // 2
+            wiz.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                wiz, text="Search Wizard",
+                font=("TkDefaultFont", 15, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                wiz, text="Select a category and check the patterns to include.",
+                font=("TkDefaultFont", 11), fg="gray",
+            ).pack(pady=(0, 2))
+            tk.Label(
+                wiz,
+                text="Note: The wizard enables regex mode. If you manually type terms with\n"
+                     "special characters ( . + ( ) [ ] etc.), escape them with \\ (e.g., cost\\+fees).\n"
+                     "Plain words like \"budget\" need no escaping.",
+                font=("TkDefaultFont", 10), fg="gray", justify="left",
+            ).pack(padx=15, pady=(0, 8), anchor="w")
+
+            # Category dropdown — restore previous selection
+            cat_frame = tk.Frame(wiz)
+            cat_frame.pack(fill="x", padx=15, pady=(0, 5))
+            tk.Label(cat_frame, text="Category:", font=("TkDefaultFont", 12)).pack(side="left")
+            cat_var = tk.StringVar(value=self._wizard_state["category"])
+            cat_combo = ttk.Combobox(
+                cat_frame, textvariable=cat_var, values=WIZARD_CATEGORY_ORDER,
+                state="readonly", width=28, font=("TkDefaultFont", 12),
+            )
+            cat_combo.pack(side="left", padx=(8, 0))
+
+            # Match mode selector (OR / AND) — restore previous selection
+            mode_frame = tk.Frame(wiz)
+            mode_frame.pack(fill="x", padx=15, pady=(0, 5))
+            tk.Label(mode_frame, text="Match mode:", font=("TkDefaultFont", 12)).pack(side="left")
+            mode_var = tk.StringVar(value=self._wizard_state["mode"])
+            tk.Radiobutton(
+                mode_frame, text="OR  (match any pattern)",
+                variable=mode_var, value="OR", font=("TkDefaultFont", 11),
+                command=lambda: _update_preview(),
+            ).pack(side="left", padx=(10, 5))
+            tk.Radiobutton(
+                mode_frame, text="AND  (match all patterns)",
+                variable=mode_var, value="AND", font=("TkDefaultFont", 11),
+                command=lambda: _update_preview(),
+            ).pack(side="left", padx=(5, 0))
+
+            # Checkbox area
+            check_frame = tk.Frame(wiz)
+            check_frame.pack(fill="both", expand=True, padx=15, pady=(0, 5))
+
+            canvas = tk.Canvas(check_frame, highlightthickness=0)
+            scrollbar = tk.Scrollbar(check_frame, orient="vertical", command=canvas.yview)
+            inner_frame = tk.Frame(canvas)
+
+            inner_frame.bind(
+                "<Configure>",
+                lambda e: canvas.configure(scrollregion=canvas.bbox("all")),
+            )
+            canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+
+            # State: list of (BooleanVar, label, regex) for current category
+            check_vars = []
+
+            def _save_checked():
+                """Save which labels are checked for the current category."""
+                category = cat_var.get()
+                checked = {label for var, label, _ in check_vars if var.get()}
+                self._wizard_state["checked"][category] = checked
+
+            def _update_preview(*_args):
+                _save_checked()
+                self._wizard_state["mode"] = mode_var.get()
+                self._wizard_state["custom"] = custom_entry.get().strip()
+                selected = [(label, regex) for var, label, regex in check_vars if var.get()]
+                # Include custom regex if any
+                custom = custom_entry.get().strip()
+                if custom:
+                    selected.append(("Custom", custom))
+                if mode_var.get() == "AND":
+                    # Each pattern as a separate quoted term
+                    parts = [f'"{regex}"' for _, regex in selected]
+                    combined = " ".join(parts)
+                else:
+                    combined = _build_wizard_regex(selected)
+                preview_text.configure(state="normal")
+                preview_text.delete("1.0", "end")
+                preview_text.insert("1.0", combined)
+                preview_text.configure(state="disabled")
+
+            def _load_category(*_args):
+                # Save state of outgoing category before switching
+                if check_vars:
+                    _save_checked()
+
+                # Clear existing checkboxes
+                for widget in inner_frame.winfo_children():
+                    widget.destroy()
+                check_vars.clear()
+
+                category = cat_var.get()
+                self._wizard_state["category"] = category
+                patterns = WIZARD_PATTERNS.get(category, [])
+                saved_checked = self._wizard_state["checked"].get(category, set())
+
+                for i, (label, regex) in enumerate(patterns):
+                    var = tk.BooleanVar(value=label in saved_checked)
+                    cb = tk.Checkbutton(
+                        inner_frame, text=label, variable=var,
+                        font=("TkDefaultFont", 12), anchor="w",
+                        command=_update_preview,
+                    )
+                    cb.grid(row=i, column=0, sticky="w", padx=(5, 10), pady=2)
+                    Tooltip(cb, f"Regex: {regex}")
+                    check_vars.append((var, label, regex))
+
+                _update_preview()
+
+            cat_combo.bind("<<ComboboxSelected>>", _load_category)
+
+            # Custom regex entry — restore previous value
+            custom_frame = tk.Frame(wiz)
+            custom_frame.pack(fill="x", padx=15, pady=(0, 5))
+            tk.Label(custom_frame, text="Custom regex:", font=("TkDefaultFont", 12)).pack(side="left")
+            custom_entry = tk.Entry(custom_frame, font=("TkDefaultFont", 12), width=35)
+            custom_entry.pack(side="left", padx=(8, 0), fill="x", expand=True)
+            custom_entry.insert(0, self._wizard_state["custom"])
+            custom_entry.bind("<KeyRelease>", _update_preview)
+
+            # Preview area
+            preview_label = tk.Label(wiz, text="Preview:", font=("TkDefaultFont", 12), anchor="w")
+            preview_label.pack(fill="x", padx=15, pady=(0, 2))
+            preview_text = tk.Text(
+                wiz, font=("TkDefaultFont", 11), height=3, wrap="word",
+                borderwidth=1, relief="sunken", state="disabled",
+            )
+            preview_text.pack(fill="x", padx=15, pady=(0, 8))
+
+            # Buttons
+            btn_frame = tk.Frame(wiz)
+            btn_frame.pack(fill="x", padx=15, pady=(0, 12))
+
+            def _select_all():
+                for var, _, _ in check_vars:
+                    var.set(True)
+                _update_preview()
+
+            def _clear_all():
+                for var, _, _ in check_vars:
+                    var.set(False)
+                custom_entry.delete(0, "end")
+                _update_preview()
+
+            def _apply():
+                preview_text.configure(state="normal")
+                combined = preview_text.get("1.0", "end").strip()
+                preview_text.configure(state="disabled")
+                if not combined:
+                    return
+
+                current_text = self.search_entry.get().strip()
+                if current_text:
+                    answer = messagebox.askyesnocancel(
+                        "Search Bar Has Text",
+                        "The search bar already has text.\n\n"
+                        "Yes = Replace existing text\n"
+                        "No = Append to existing text\n"
+                        "Cancel = Do nothing",
+                        parent=wiz,
+                    )
+                    if answer is None:  # Cancel
+                        return
+                    elif answer:  # Yes = Replace
+                        self.search_entry.delete(0, "end")
+                        self.search_entry.insert(0, combined)
+                    else:  # No = Append
+                        if mode_var.get() == "AND":
+                            self.search_entry.insert("end", " " + combined)
+                        else:
+                            self.search_entry.insert("end", "|" + combined)
+                        messagebox.showinfo(
+                            "Note",
+                            "The AND mode checkbox in Advanced Options applies "
+                            "to ALL terms in the search bar — not just the "
+                            "wizard's patterns. Check or uncheck it to control "
+                            "whether all terms must match (AND) or any term "
+                            "can match (OR).",
+                            parent=wiz,
+                        )
+                else:
+                    self.search_entry.insert(0, combined)
+
+                # Auto-enable regex mode and disable conflicting modes
+                self.regex_var.set("on")
+                self.fuzzy_var.set("off")
+                self.wildcard_var.set("off")
+                # Enable AND mode if selected in wizard
+                if mode_var.get() == "AND":
+                    self.and_mode_var.set("on")
+                wiz.destroy()
+
+            tk.Button(btn_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=(0, 5))
+            tk.Button(btn_frame, text="Clear All", width=10, command=_clear_all).pack(side="left", padx=(0, 5))
+            tk.Button(btn_frame, text="Apply", width=10, command=_apply).pack(side="right", padx=(5, 0))
+            tk.Button(btn_frame, text="Cancel", width=10, command=wiz.destroy).pack(side="right", padx=(5, 0))
+
+            # Load initial category
+            _load_category()
 
         # ── Mutual exclusion for search modes ────────────────────
 
