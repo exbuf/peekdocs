@@ -11,7 +11,7 @@ SEARCH_PARAM_KEYS = [
     "search_text", "and_mode", "recursive", "fuzzy", "wildcard",
     "ocr", "regex", "exclude", "file_types", "proximity",
     "context_before", "context_after", "cores", "specific_files",
-    "index_search", "inverse",
+    "index_search", "inverse", "expression",
 ]
 
 

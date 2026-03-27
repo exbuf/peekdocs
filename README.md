@@ -906,6 +906,8 @@ Search suites let you save individual searches, group them into named suites, an
 - **Edit Suite:** Modify which searches are included in an existing suite.
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
+**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+
 **Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection.
 
 ## FAQ (Frequently Asked Questions)

@@ -2120,6 +2120,8 @@ def _launch_gui():
                 settings["output_json"] = True
             if self.inverse_var.get() == "on":
                 settings["inverse"] = True
+            if self.expression_var.get() == "on":
+                settings["expression"] = True
             # Integer settings
             cores_val = self.cores_entry.get().strip()
             if cores_val:
@@ -2204,6 +2206,7 @@ def _launch_gui():
             self.output_csv_var.set("on" if config.get("output_csv") else "off")
             self.output_json_var.set("on" if config.get("output_json") else "off")
             self.inverse_var.set("on" if config.get("inverse") else "off")
+            self.expression_var.set("on" if config.get("expression") else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
             if "cores" in config:
@@ -2263,6 +2266,8 @@ def _launch_gui():
             self.output_json_var.set("off")
             self.index_search_var.set("off")
             self.inverse_var.set("off")
+            self.expression_var.set("off")
+            self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
             )
@@ -2307,6 +2312,7 @@ def _launch_gui():
                 "specific_files": self.specific_files_entry.get().strip(),
                 "index_search": self.index_search_var.get() == "on",
                 "inverse": self.inverse_var.get() == "on",
+                "expression": self.expression_var.get() == "on",
                 "output_csv": self.output_csv_var.get() == "on",
                 "output_json": self.output_json_var.get() == "on",
                 "append_name": self.append_name_entry.get().strip(),
@@ -2339,6 +2345,11 @@ def _launch_gui():
             self.specific_files_entry.insert(0, params.get("specific_files", ""))
             self.index_search_var.set("on" if params.get("index_search") else "off")
             self.inverse_var.set("on" if params.get("inverse") else "off")
+            self.expression_var.set("on" if params.get("expression") else "off")
+            if params.get("expression"):
+                self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
+            else:
+                self.search_entry.configure(placeholder_text="Enter search terms...")
             self.output_csv_var.set("on" if params.get("output_csv") else "off")
             self.output_json_var.set("on" if params.get("output_json") else "off")
             self.append_name_entry.delete(0, "end")
