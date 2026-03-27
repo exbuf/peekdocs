@@ -1183,8 +1183,8 @@ def test_search_without_quiet_shows_banner(tmp_path, monkeypatch, capsys):
     assert "OR search" in captured.out
 
 
-def test_config_file_defaults(tmp_path, monkeypatch, capsys):
-    """Config file sets recursive=true, search picks up subdirectory files."""
+def test_config_file_ignored_by_cli(tmp_path, monkeypatch, capsys):
+    """Config file does not affect CLI — recursive=true in config is ignored."""
     subdir = tmp_path / "sub"
     subdir.mkdir()
     doc = Document()
@@ -1198,8 +1198,8 @@ def test_config_file_defaults(tmp_path, monkeypatch, capsys):
     result = main(["budget"])
     captured = capsys.readouterr()
 
-    assert result == 0
-    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    # Without -r flag, subdirectory file should NOT be found
+    assert "Files searched: 0" in captured.out
 
 
 def test_config_cli_overrides(tmp_path, monkeypatch, capsys):
@@ -1450,10 +1450,9 @@ def test_ocr_normal_pdf_skips_ocr(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
 
-def test_ocr_config_setting(tmp_path, monkeypatch, capsys):
-    """ocr=true in config activates OCR without the -O flag."""
+def test_ocr_config_ignored_by_cli(tmp_path, monkeypatch, capsys):
+    """ocr=true in config does not activate OCR in CLI without -O flag."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("shutil.which", lambda cmd: "/usr/local/bin/tesseract" if cmd == "tesseract" else None)
 
     config_file = tmp_path / ".docsearchrc"
     config_file.write_text("ocr = true\n")
@@ -1462,15 +1461,11 @@ def test_ocr_config_setting(tmp_path, monkeypatch, capsys):
     img = PILImage.new("RGB", (100, 100), "white")
     img.save(str(tmp_path / "scan.png"))
 
-    import docsearch.api as api_module
-    monkeypatch.setattr(api_module, "_ocr_image", lambda img: "Budget report")
-
     result = main(["budget"])
     captured = capsys.readouterr()
 
-    assert result == 0
-    content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "scan.png" in content
+    # Without -O flag, image files should not be discovered
+    assert "Files searched: 0" in captured.out
 
 
 # --- Fuzzy search tests ---
@@ -1568,8 +1563,8 @@ def test_search_fuzzy_mode_string(tmp_path, monkeypatch, capsys):
     assert "OR+FUZZY" in captured.out
 
 
-def test_search_fuzzy_config(tmp_path, monkeypatch, capsys):
-    """fuzzy=true in config enables fuzzy by default."""
+def test_search_fuzzy_config_ignored_by_cli(tmp_path, monkeypatch, capsys):
+    """fuzzy=true in config does not enable fuzzy in CLI without -z flag."""
     rc = tmp_path / ".docsearchrc"
     rc.write_text("fuzzy = true\n")
 
@@ -1580,8 +1575,8 @@ def test_search_fuzzy_config(tmp_path, monkeypatch, capsys):
     result = main(["budget"])
     captured = capsys.readouterr()
 
-    assert result == 0
-    assert "FUZZY" in captured.out
+    # Without -z flag, fuzzy is not active — "budgt" won't match "budget"
+    assert "FUZZY" not in captured.out
 
 
 # --- Exclude terms tests ---
@@ -1801,8 +1796,8 @@ def test_search_wildcard_mode_string(tmp_path, monkeypatch, capsys):
     assert "WILDCARD" in captured.out
 
 
-def test_search_wildcard_config(tmp_path, monkeypatch, capsys):
-    """wildcard=true in config enables wildcard by default."""
+def test_search_wildcard_config_ignored_by_cli(tmp_path, monkeypatch, capsys):
+    """wildcard=true in config does not enable wildcard in CLI without -w flag."""
     rc = tmp_path / ".docsearchrc"
     rc.write_text("wildcard = true\n")
 
@@ -1813,8 +1808,8 @@ def test_search_wildcard_config(tmp_path, monkeypatch, capsys):
     result = main(["budg*"])
     captured = capsys.readouterr()
 
-    assert result == 0
-    assert "WILDCARD" in captured.out
+    # Without -w flag, wildcard is not active
+    assert "WILDCARD" not in captured.out
 
 
 def test_search_wildcard_with_exclude(tmp_path, monkeypatch, capsys):
@@ -2312,7 +2307,7 @@ def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
     (tmp_path / "file_b.txt").write_text("budget found here\n")
 
     monkeypatch.chdir(tmp_path)
-    result = main(["-q", "budget"])
+    result = main(["budget"])
     assert result == 0
 
     captured = capsys.readouterr().out
@@ -2321,6 +2316,12 @@ def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
 
     report = (tmp_path / "docsearch_results.txt").read_text()
     assert "Hits ==> 4" in report
+
+    # -q suppresses per-file listing
+    result = main(["-q", "budget"])
+    captured = capsys.readouterr().out
+    assert "match(es)" in captured
+    assert "file_a.txt: 3" not in captured
 
 
 def test_search_inverse(tmp_path, monkeypatch, capsys):
@@ -2406,3 +2407,198 @@ def test_search_inverse_json(tmp_path, monkeypatch):
     assert data["files_without_matches"] == 1
     filenames = [f["filename"] for f in data["inverse_files"]]
     assert "no_match.txt" in filenames
+
+
+# ─── Boolean Expression Search (-e) ─────────────────────────
+
+
+def test_expression_and(tmp_path, monkeypatch, capsys):
+    """Test basic AND expression."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.add_paragraph("hello there")
+    doc.add_paragraph("goodbye world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND world"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_or(tmp_path, monkeypatch, capsys):
+    """Test basic OR expression."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.add_paragraph("goodbye world")
+    doc.add_paragraph("nothing here")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello OR goodbye"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_not(tmp_path, monkeypatch, capsys):
+    """Test AND NOT expression."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.add_paragraph("hello draft")
+    doc.add_paragraph("goodbye world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND NOT draft"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_grouped(tmp_path, monkeypatch, capsys):
+    """Test grouped expression: (a AND b) OR (c AND d)."""
+    doc = Document()
+    doc.add_paragraph("bob and amy went to the store")
+    doc.add_paragraph("fred and wilma stayed home")
+    doc.add_paragraph("bob and fred went fishing")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "(bob AND amy) OR (fred AND wilma)"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_or_groups_with_and(tmp_path, monkeypatch, capsys):
+    """Test (a OR b) AND (c OR d)."""
+    doc = Document()
+    doc.add_paragraph("budget and cost analysis")
+    doc.add_paragraph("revenue and profit report")
+    doc.add_paragraph("budget summary only")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "(budget OR revenue) AND (cost OR profit)"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "2" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_mode_string(tmp_path, monkeypatch, capsys):
+    """Test that expression mode displays EXPR."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    main(["-e", "hello AND world"])
+    captured = capsys.readouterr()
+
+    assert "(EXPR)" in captured.out
+
+
+def test_expression_report(tmp_path, monkeypatch, capsys):
+    """Test that report contains expression instead of search terms."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    main(["-e", "hello AND world"])
+
+    results_file = tmp_path / "docsearch_results.txt"
+    content = results_file.read_text()
+    assert "Search Expression ==> hello AND world" in content
+    assert "Expression: ON" in content
+
+
+def test_expression_no_matches(tmp_path, monkeypatch, capsys):
+    """Test expression with no matches returns exit code 1."""
+    doc = Document()
+    doc.add_paragraph("hello world")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "foo AND bar"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "0" in captured.out and "match(es)" in captured.out
+
+
+def test_expression_conflict_with_and_mode(tmp_path, monkeypatch, capsys):
+    """Test -e cannot be combined with -a."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND world", "-a"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine" in captured.out
+
+
+def test_expression_conflict_with_exclude(tmp_path, monkeypatch, capsys):
+    """Test -e cannot be combined with -n."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND world", "-n", "draft"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine" in captured.out
+
+
+def test_expression_conflict_with_proximity(tmp_path, monkeypatch, capsys):
+    """Test -e cannot be combined with -p."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND world", "-p", "5"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Cannot combine" in captured.out
+
+
+def test_expression_invalid_syntax(tmp_path, monkeypatch, capsys):
+    """Test invalid expression returns error."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "(hello AND"])
+    captured = capsys.readouterr()
+
+    assert result == 2
+    assert "Invalid expression" in captured.out
+
+
+def test_expression_with_context(tmp_path, monkeypatch, capsys):
+    """Test expression works with context lines."""
+    (tmp_path / "test.txt").write_text("line one\nhello world\nline three\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "hello AND world", "-B", "1", "-A", "1"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    results_file = tmp_path / "docsearch_results.txt"
+    content = results_file.read_text()
+    assert "line one" in content
+    assert "line three" in content
+
+
+def test_expression_with_wildcard(tmp_path, monkeypatch, capsys):
+    """Test expression combined with -w wildcard mode."""
+    doc = Document()
+    doc.add_paragraph("budget and revenue report")
+    doc.add_paragraph("nothing relevant here")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-e", "-w", "budg* AND rev*"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out

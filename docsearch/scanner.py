@@ -228,7 +228,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     use_fuzzy = config.get("use_fuzzy", False)
     exclude_terms = config.get("exclude_terms", [])
     use_wildcard = config.get("use_wildcard", False)
-    if use_wildcard:
+    expression_ast = config.get("expression_ast")
+    if use_wildcard and expression_ast is None:
         search_terms = [_wildcard_to_regex(t) for t in search_terms]
         if exclude_terms:
             exclude_terms = [_wildcard_to_regex(t) for t in exclude_terms]
@@ -245,6 +246,18 @@ def _search_file_lines(all_lines, file_dir, filename, config):
             if fuzz.ratio(term.lower(), clean.lower()) >= FUZZY_THRESHOLD:
                 return word
         return None
+
+    def _single_term_matches(term, text):
+        """Return True if a single term matches the text, respecting the current mode."""
+        if use_wildcard:
+            pattern = _wildcard_to_regex(term)
+            return bool(re.search(pattern, text, re.IGNORECASE))
+        elif use_regex:
+            return bool(re.search(term, text, re.IGNORECASE))
+        elif use_fuzzy:
+            return _fuzzy_word_match(text, term) is not None
+        else:
+            return term.lower() in text.lower()
 
     def _proximity_match(text):
         """Return True if all search terms appear within 'proximity' words of each other."""
@@ -285,6 +298,9 @@ def _search_file_lines(all_lines, file_dir, filename, config):
 
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
+        if expression_ast is not None:
+            from docsearch.expr_parser import evaluate_expression
+            return evaluate_expression(expression_ast, text, _single_term_matches)
         check = all if match_all else any
         if use_regex:
             if use_proximity:
@@ -309,9 +325,14 @@ def _search_file_lines(all_lines, file_dir, filename, config):
 
     def highlight_text(text):
         """Apply ** highlighting around matched search terms."""
+        if expression_ast is not None:
+            from docsearch.expr_parser import extract_positive_terms
+            terms_to_highlight = extract_positive_terms(expression_ast)
+        else:
+            terms_to_highlight = search_terms
         if use_fuzzy:
             highlighted = text
-            for term in search_terms:
+            for term in terms_to_highlight:
                 result_words = []
                 for word in highlighted.split():
                     clean = re.sub(r'^[^\w]+|[^\w]+$', '', word)
@@ -322,8 +343,13 @@ def _search_file_lines(all_lines, file_dir, filename, config):
                 highlighted = " ".join(result_words)
             return highlighted
         highlighted = text
-        for term in search_terms:
-            pattern = term if use_regex else re.escape(term)
+        for term in terms_to_highlight:
+            if use_wildcard:
+                pattern = _wildcard_to_regex(term)
+            elif use_regex:
+                pattern = term
+            else:
+                pattern = re.escape(term)
             highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
         return highlighted
 

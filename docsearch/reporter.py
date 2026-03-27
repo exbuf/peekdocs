@@ -40,7 +40,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      file_types=None, proximity=None,
                      context_before=0, context_after=0,
                      specific_files=None, use_index=False,
-                     inverse=False, output_csv=False, output_json=False):
+                     inverse=False, output_csv=False, output_json=False,
+                     expression=None):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -68,9 +69,13 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             file_types=file_types, specific_files=specific_files,
             proximity=proximity,
             context_before=context_before, context_after=context_after,
+            expression=expression,
         )
         f.write(f"Translation ==> {translation}\n")
-        f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
+        if expression:
+            f.write(f"Search Expression ==> {expression} (mode: {report_mode})\n")
+        else:
+            f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
         if exclude_terms:
             f.write(f"Exclude Term(s) ==> {' '.join(exclude_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
@@ -78,7 +83,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         # ── Search Settings ──
         on_off = lambda v: "ON" if v else "OFF"
         f.write(f"\nSearch Settings:\n")
-        f.write(f"  AND mode: {on_off(report_mode == 'ALL')}  |  Recursive: {on_off(recursive)}  |  Inverse: {on_off(inverse)}\n")
+        f.write(f"  AND mode: {on_off(report_mode == 'ALL')}  |  Recursive: {on_off(recursive)}  |  Inverse: {on_off(inverse)}  |  Expression: {on_off(expression is not None)}\n")
         f.write(f"  Fuzzy: {on_off(use_fuzzy)}  |  Wildcard: {on_off(use_wildcard)}  |  Regex: {on_off(use_regex)}  |  OCR: {on_off(use_ocr)}\n")
         f.write(f"  Index: {on_off(use_index)}\n")
         if file_types:
@@ -139,8 +144,13 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                 if use_fuzzy:
                     wrapped = textwrap.fill(text, width=80)
                 else:
+                    if expression:
+                        from docsearch.expr_parser import parse_expression, extract_positive_terms
+                        highlight_terms = extract_positive_terms(parse_expression(expression))
+                    else:
+                        highlight_terms = search_terms
                     highlighted = text
-                    for term in search_terms:
+                    for term in highlight_terms:
                         if use_wildcard:
                             pattern = _wildcard_to_regex(term)
                         elif use_regex:

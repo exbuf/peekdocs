@@ -379,6 +379,8 @@ def _can_use_fts5_fast_path(config):
         return False
     if config.get("use_wildcard", False):
         return False
+    if config.get("expression_ast") is not None:
+        return False
     return True
 
 

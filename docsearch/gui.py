@@ -31,6 +31,7 @@ def _build_command_from_values(
     output_json=False,
     index_search=False,
     inverse=False,
+    expression=False,
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -44,17 +45,20 @@ def _build_command_from_values(
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config", "--inverse"}
-    tokens = search_text.strip().split()
-    if any(token in _CLI_FLAGS for token in tokens):
-        return "FLAGS_IN_SEARCH"
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config", "--inverse"}
+    if not expression:
+        tokens = search_text.strip().split()
+        if any(token in _CLI_FLAGS for token in tokens):
+            return "FLAGS_IN_SEARCH"
 
     cmd = [sys.executable, "-m", "docsearch", "-q"]
 
     if not index_search:
         cmd.append("--no-index")
 
-    if and_mode:
+    if expression:
+        cmd.append("-e")
+    if not expression and and_mode:
         cmd.append("-a")
     if recursive:
         cmd.append("-r")
@@ -69,13 +73,13 @@ def _build_command_from_values(
     if inverse:
         cmd.append("--inverse")
 
-    if exclude.strip():
+    if not expression and exclude.strip():
         cmd.extend(["-n", exclude.strip()])
 
     if file_types.strip():
         cmd.extend(["-t", file_types.strip()])
 
-    if proximity.strip():
+    if not expression and proximity.strip():
         if not proximity.strip().isdigit() or int(proximity.strip()) < 1:
             return None
         cmd.extend(["-p", proximity.strip()])
@@ -109,7 +113,10 @@ def _build_command_from_values(
     if output_parts:
         cmd.extend(["-o", ",".join(output_parts)])
 
-    if regex:
+    if expression:
+        # Expression is passed as a single argument
+        cmd.append(search_text.strip())
+    elif regex:
         # Preserve backslashes for regex patterns (shlex.split eats them)
         lex = shlex.shlex(search_text.strip(), posix=True)
         lex.escape = ""
@@ -119,13 +126,14 @@ def _build_command_from_values(
             terms = list(lex)
         except ValueError:
             terms = search_text.strip().split()
+        cmd.extend(terms)
     else:
         try:
             terms = shlex.split(search_text.strip())
         except ValueError:
             terms = search_text.strip().split()
+        cmd.extend(terms)
 
-    cmd.extend(terms)
     return cmd
 
 
@@ -474,7 +482,7 @@ def _launch_gui():
 
             cb_and = ctk.CTkCheckBox(
                 cb_frame, text="AND mode", variable=self.and_mode_var,
-                onvalue="on", offvalue="off",
+                onvalue="on", offvalue="off", command=self._on_and_toggle,
             )
             cb_and.grid(row=0, column=0, padx=(0, 15), pady=(0, 5), sticky="w")
             cb_rec = ctk.CTkCheckBox(
@@ -507,6 +515,13 @@ def _launch_gui():
                 onvalue="on", offvalue="off", command=self._on_regex_toggle,
             )
             cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
+
+            self.expression_var = ctk.StringVar(value="off")
+            cb_expr = ctk.CTkCheckBox(
+                cb_frame, text="Expression", variable=self.expression_var,
+                onvalue="on", offvalue="off", command=self._on_expression_toggle,
+            )
+            cb_expr.grid(row=0, column=3, padx=(0, 15), pady=(0, 5), sticky="w")
 
             # Row 1: exclude
             ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
@@ -643,6 +658,21 @@ def _launch_gui():
             Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
             Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
             Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see GitHub-Readme)")
+            Tooltip(cb_expr, (
+                "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
+                "\n"
+                "Examples:\n"
+                "  budget AND revenue\n"
+                "  budget OR revenue\n"
+                "  budget AND NOT draft\n"
+                "  (budget OR revenue) AND (cost OR profit)\n"
+                "  (bob AND amy) OR (fred AND wilma)\n"
+                '  "annual report" AND (2023 OR 2024)\n'
+                "\n"
+                "Operators: AND, OR, NOT (case-insensitive). Parentheses group expressions.\n"
+                "Precedence: NOT > AND > OR. Use parentheses to override.\n"
+                "Cannot combine with AND mode, Exclude, or Proximity."
+            ))
             Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
             Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
             Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: cfg, csv, docx, epub, html, ini, json, log, md, odp, ods, odt, pdf, pptx, rst, rtf, sql, tex, toml, tsv, txt, xlsx, xml, yaml, yml. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
@@ -1260,6 +1290,7 @@ def _launch_gui():
                     specific_files=params.get("specific_files", ""),
                     index_search=params.get("index_search", False),
                     inverse=params.get("inverse", False),
+                    expression=params.get("expression", False),
                 )
 
                 if cmd is None or cmd == "FLAGS_IN_SEARCH":
@@ -1535,6 +1566,7 @@ def _launch_gui():
                 output_json=self.output_json_var.get() == "on",
                 index_search=self.index_search_var.get() == "on",
                 inverse=self.inverse_var.get() == "on",
+                expression=self.expression_var.get() == "on",
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -2622,6 +2654,20 @@ def _launch_gui():
             if self.wildcard_var.get() == "on":
                 self.fuzzy_var.set("off")
                 self.regex_var.set("off")
+
+        def _on_expression_toggle(self):
+            if self.expression_var.get() == "on":
+                self.and_mode_var.set("off")
+                self.exclude_entry.delete(0, "end")
+                self.proximity_entry.delete(0, "end")
+                self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
+            else:
+                self.search_entry.configure(placeholder_text="Enter search terms...")
+
+        def _on_and_toggle(self):
+            if self.and_mode_var.get() == "on":
+                self.expression_var.set("off")
+                self.search_entry.configure(placeholder_text="Enter search terms...")
 
     app = DocSearchApp()
     app.mainloop()

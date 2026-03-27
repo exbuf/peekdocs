@@ -624,7 +624,7 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
                      use_index=False, inverse=False, recursive=False,
                      exclude_terms=None, file_types=None, specific_files=None,
                      proximity=None, context_before=0, context_after=0,
-                     cores=None):
+                     cores=None, expression=None):
     """Translate search parameters into plain English.
 
     Takes the actual parsed search values (not a command string), so
@@ -645,25 +645,28 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
     else:
         parts.append("Search current directory")
 
-    # Determine AND/ALL vs ANY/OR
-    is_and = "ALL" in report_mode or "AND" in report_mode
-
-    # Describe search terms
-    term_descs = []
-    for term in search_terms:
-        if use_regex:
-            term_descs.append(_translate_regex(term))
-        elif use_wildcard:
-            term_descs.append(_translate_wildcard(term))
-        else:
-            term_descs.append(f'"{term}"')
-
-    if len(term_descs) == 1:
-        parts.append(f"for {term_descs[0]}")
+    if expression is not None:
+        parts.append(f"for boolean expression: {expression}")
     else:
-        mode_word = "ALL" if is_and else "ANY"
-        joiner = " AND " if is_and else " OR "
-        parts.append(f"for {mode_word} of: {joiner.join(term_descs)}")
+        # Determine AND/ALL vs ANY/OR
+        is_and = "ALL" in report_mode or "AND" in report_mode
+
+        # Describe search terms
+        term_descs = []
+        for term in search_terms:
+            if use_regex:
+                term_descs.append(_translate_regex(term))
+            elif use_wildcard:
+                term_descs.append(_translate_wildcard(term))
+            else:
+                term_descs.append(f'"{term}"')
+
+        if len(term_descs) == 1:
+            parts.append(f"for {term_descs[0]}")
+        else:
+            mode_word = "ALL" if is_and else "ANY"
+            joiner = " AND " if is_and else " OR "
+            parts.append(f"for {mode_word} of: {joiner.join(term_descs)}")
 
     # Additional modifiers
     modifiers = []

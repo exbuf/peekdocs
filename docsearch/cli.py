@@ -37,6 +37,7 @@ BANNER_TOP = (
     'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
     'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
     'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
+    'Use option flag -e for boolean expression search. Example: docsearch -e "(bob AND amy) OR fred"\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
@@ -346,9 +347,9 @@ def _main_inner(argv=None):
 
     original_args = list(args)
 
-    config = _load_config()
+    config = {}  # CLI uses only explicit flags; config is for GUI only
 
-    quiet = "-q" in args or config.get("quiet", False)
+    quiet = "-q" in args
     if "-q" in args:
         args.remove("-q")
 
@@ -627,6 +628,7 @@ def _main_inner(argv=None):
     cores = parsed["cores"]
     output_formats = parsed["output_formats"]
     inverse = parsed["inverse"]
+    expression = parsed.get("expression")
     mode = parsed["mode"]
     report_mode = parsed["report_mode"]
 
@@ -637,10 +639,11 @@ def _main_inner(argv=None):
 
     # Determine index mode for display
     _will_use_index = index_exists(cwd) and not no_index
+    display_label = expression if expression else ' '.join(search_terms)
     if _will_use_index:
-        print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
+        print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
     else:
-        print(f"Searching ({mode}) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
+        print(f"Searching ({mode}) on [{HIGHLIGHT}{display_label}{RESET}] ...")
     if exclude_terms:
         print(f"Excluding [{' '.join(exclude_terms)}]")
 
@@ -711,6 +714,7 @@ def _main_inner(argv=None):
             cores=cores,
             use_index=None if not no_index else False,
             progress=_cli_progress,
+            expression=expression,
         )
     except KeyboardInterrupt:
         spinner_stop.set()
@@ -783,6 +787,7 @@ def _main_inner(argv=None):
         inverse=inverse,
         output_csv="csv" in output_formats,
         output_json="json" in output_formats,
+        expression=expression,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)
@@ -808,22 +813,26 @@ def _main_inner(argv=None):
 
     elapsed = time.time() - start_time
     print()
-    print(f"Files searched: {len(all_files)} ({size_str})")
     if inverse:
-        print(f"Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches (out of {len(all_files)} searched).")
-        for f in inverse_files:
-            print(f"  {os.path.basename(f)}")
+        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches.")
     else:
-        print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
-        # Per-file match counts
-        file_counts = {}
-        for fd, fn, _ln, _tx in matches:
-            key = (fd, fn)
-            if key not in file_counts:
-                file_counts[key] = 0
-            file_counts[key] += 1
-        for (_fd, fn), count in file_counts.items():
-            print(f"  {fn}: {count}")
+        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
+    print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
+    if inverse:
+        if not quiet:
+            for f in inverse_files:
+                print(f"  {os.path.basename(f)}")
+    else:
+        if not quiet:
+            # Per-file match counts
+            file_counts = {}
+            for fd, fn, _ln, _tx in matches:
+                key = (fd, fn)
+                if key not in file_counts:
+                    file_counts[key] = 0
+                file_counts[key] += 1
+            for (_fd, fn), count in file_counts.items():
+                print(f"  {fn}: {count}")
     print(f"Results ==> {cwd}")
     print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
     if csv_output_path:
@@ -832,7 +841,6 @@ def _main_inner(argv=None):
         print(f"  docsearch_results.json ({fmt_size(os.path.getsize(json_output_path))})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
-    print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     if skipped_files:
         print(f"Errors logged to docsearch_errors.log ({len(skipped_files)} error(s))")
     print()

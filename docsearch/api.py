@@ -62,6 +62,7 @@ def search(
     cores=None,
     use_index=None,
     progress=None,
+    expression=None,
 ):
     """Search documents and return structured results.
 
@@ -101,6 +102,9 @@ def search(
         True = use index, False = direct scan, None = auto-detect.
     progress : callable, optional
         Callback ``progress(done, total, filename)`` called as files are processed.
+    expression : str, optional
+        Boolean expression string (e.g. "(bob AND amy) OR fred"). Mutually exclusive
+        with match_all, exclude_terms, and proximity.
 
     Returns
     -------
@@ -113,15 +117,34 @@ def search(
         For invalid parameter combinations (e.g. regex + fuzzy).
     """
     # ── Validate parameters ─────────────────────────────────────
-    if not search_terms:
-        raise ValueError("No search terms provided.")
+    if expression is not None:
+        if match_all:
+            raise ValueError("Cannot combine expression with match_all. Use AND/OR in the expression.")
+        if exclude_terms:
+            raise ValueError("Cannot combine expression with exclude_terms. Use NOT in the expression.")
+        if proximity > 0:
+            raise ValueError("Cannot combine expression with proximity search.")
+        from docsearch.expr_parser import parse_expression, extract_terms
+        expression_ast = parse_expression(expression)
+        if not search_terms:
+            search_terms = extract_terms(expression_ast)
+        if use_regex:
+            for term in extract_terms(expression_ast):
+                try:
+                    re.compile(term)
+                except re.error as e:
+                    raise ValueError(f"Invalid regex pattern '{term}' in expression: {e}")
+    else:
+        expression_ast = None
+        if not search_terms:
+            raise ValueError("No search terms provided.")
     if use_fuzzy and use_regex:
         raise ValueError("Cannot combine fuzzy and regex search modes.")
     if use_wildcard and use_regex:
         raise ValueError("Cannot combine wildcard and regex search modes.")
     if use_wildcard and use_fuzzy:
         raise ValueError("Cannot combine wildcard and fuzzy search modes.")
-    if use_regex:
+    if expression is None and use_regex:
         for term in search_terms:
             try:
                 re.compile(term)
@@ -162,6 +185,7 @@ def search(
         "use_fuzzy": use_fuzzy,
         "exclude_terms": exclude_terms,
         "use_wildcard": use_wildcard,
+        "expression_ast": expression_ast,
         "_ocr_image_func": _ocr_image,
     }
 

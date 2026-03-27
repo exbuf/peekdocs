@@ -24,6 +24,7 @@
   - [Command Translation](#command-translation)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
+- [Boolean Expression Search](#boolean-expression-search)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -61,6 +62,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
 - Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
 - Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
+- Boolean expression search with `-e` flag — combine AND, OR, NOT, and parentheses for complex queries: `docsearch -e "(budget OR revenue) AND (cost OR profit)"`. Works with regex, fuzzy, and wildcard modes
 - Inverse search with `--inverse` flag — lists files that do NOT contain the search terms, instead of files that do. Useful for compliance checks ("which contracts are missing an indemnification clause?") and auditing ("which documents lack a required disclaimer?")
 - Optional search index (`--index`) — build a SQLite FTS5 index for faster repeated searches. Once built, the index is used automatically and refreshed incrementally
 - Search suites — save individual searches to a named collection, build search suites from saved searches, run them one-by-one with pass/fail tracking, and generate compliance/audit reports
@@ -285,7 +287,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for over 80 more combinations and examples.
+See the [Command Examples](#command-examples) table for over 100 more combinations and examples.
 
 ## GUI Mode
 
@@ -428,12 +430,13 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-three flags that can be mixed and matched:
+docsearch has twenty-four flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` (all) | AND logic — all terms must appear in the same paragraph |
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
+| `-e` (expression) | Boolean expression search — use AND, OR, NOT, and parentheses for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Additional output formats — `csv`, `json`, or both (`csv,json`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
@@ -470,6 +473,14 @@ docsearch has twenty-three flags that can be mixed and matched:
 - `-s` is used separately after a search to save results: `docsearch -s my_report`
 - `-sa` always needs its filename immediately after it (e.g., `-sa my_report`)
 - `-sa` appends to existing DO_NOT_SEARCH_ACCUMULATED files, allowing you to accumulate results from multiple searches
+- `-e` always needs its expression immediately after it, enclosed in quotes (e.g., `-e "(bob AND amy) OR fred"`)
+- `-e` and `-a` cannot be used together — use AND/OR inside the expression instead
+- `-e` and `-n` cannot be used together — use NOT inside the expression instead
+- `-e` and `-p` cannot be used together
+- `-e` works with `-x` (regex), `-z` (fuzzy), `-w` (wildcard), `-r` (recursive), `-t` (file types), `-A`/`-B` (context), `-c` (cores), and all other flags except `-a`, `-n`, and `-p`
+- `-e` supports `AND`, `OR`, `NOT` (case-insensitive) and parentheses for grouping
+- `-e` standard precedence: NOT binds tightest, then AND, then OR — use parentheses to override
+- `-e` to search for the literal word "AND", "OR", or "NOT", enclose it in quotes inside the expression: `"AND"`
 - `-A` and `-B` are uppercase — don't confuse `-A` (lines after) with `-a` (AND logic)
 - `-A` and `-B` always need their count immediately after them (e.g., `-A 5`, `-B 3`)
 - `-c` always needs its core count immediately after it (e.g., `-c 4`)
@@ -488,7 +499,7 @@ docsearch has twenty-three flags that can be mixed and matched:
 - `-w` matches whole words only — `budg*` will not match the "budg" inside "debugging"
 - `-n` always needs its exclude terms immediately after it (e.g., `-n draft` or `-n draft,obsolete`)
 - `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
-- `-n` works with all flags and all search modes
+- `-n` works with all flags and all search modes except `-e` (use NOT inside the expression instead)
 - `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
 - `-o` supported formats are `csv` and `json`
 - `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
@@ -611,20 +622,33 @@ docsearch has twenty-three flags that can be mixed and matched:
 | 86 | Show index info | `docsearch --index-status` |
 | 87 | Delete the index | `docsearch --index-clear` |
 | | **Inverse Search** | |
-| 89 | Find files missing a term | `docsearch --inverse "indemnification"` |
-| 90 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
-| 91 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
-| 92 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| 93 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
-| 94 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
-| 95 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
-| 96 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
+| 88 | Find files missing a term | `docsearch --inverse "indemnification"` |
+| 89 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
+| 90 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
+| 91 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 92 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
+| 93 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
+| 94 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
+| 95 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
+| | **Boolean Expression Search** | |
+| 96 | AND expression | `docsearch -e "budget AND revenue"` |
+| 97 | OR expression | `docsearch -e "budget OR revenue"` |
+| 98 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
+| 99 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
+| 100 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
+| 101 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
+| 102 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
+| 103 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
+| 104 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
+| 105 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
+| 106 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
+| 107 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
 | | **Installation Check** | |
-| 97 | Check installation health | `docsearch --check` |
+| 108 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 98 | Show version | `docsearch -v` |
-| 99 | Show help | `docsearch -h` |
-| 100 | Show help (no arguments) | `docsearch` |
+| 109 | Show version | `docsearch -v` |
+| 110 | Show help | `docsearch -h` |
+| 111 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -692,7 +716,7 @@ If docsearch itself crashes unexpectedly, a crash report is also written to `doc
 ============================================================
 2026-03-25 14:30:12  CRASH REPORT
 docsearch 0.1.0
-Python 3.14.0 (main, Oct 7 2026, 00:00:00)
+Python 3.13.2 (main, Feb 4 2025, 14:51:09)
 OS: Darwin 24.6.0
 Command: docsearch budget
 
@@ -707,7 +731,8 @@ If you experience a crash, check `docsearch_errors.log` in the folder where you 
 
 The terminal also displays a summary with per-file match counts:
 ```
-Found 3 match(es).
+Files searched: 12 (4.50 MB) — Found 3 match(es).
+Elapsed time: 0.45 seconds, Cores used: 4 of 8
   report.docx: 2
   summary.docx: 1
 Results ==> /Users/bob/GoogleDocs
@@ -778,6 +803,77 @@ Normal docsearch shows files that **contain** your search terms. Inverse search 
 **In the GUI:** Check the **Inverse** checkbox in the Search Bar (next to the Wizard button) before clicking **Run Search**. The results summary will show how many files are missing the search terms.
 
 **Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
+
+## Boolean Expression Search
+
+The `-e` flag enables boolean expression search, allowing you to combine AND, OR, NOT, and parentheses for complex queries that can't be expressed with the `-a` and `-n` flags alone.
+
+### Why use `-e` instead of `-a` and `-n`?
+
+The `-a` flag applies one global AND/OR mode to all terms, and `-n` applies one global exclusion list. This means you can't express queries like:
+
+- "Find lines mentioning **either** (budget AND revenue) **or** (cost AND profit)" — mixing AND and OR in the same query
+- "Find lines with budget but not draft, **or** lines with revenue but not obsolete" — different exclusions per group
+
+With `-e`, you can express any combination:
+
+```bash
+# Either topic A or topic B, where each topic requires multiple terms
+docsearch -e "(budget AND revenue) OR (cost AND profit)"
+
+# Synonyms within an AND query
+docsearch -e "(budget OR revenue) AND (cost OR profit)"
+
+# Different NOT conditions per group
+docsearch -e "(budget AND NOT draft) OR (revenue AND NOT obsolete)"
+
+# Complex nested logic
+docsearch -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND SEC)"
+```
+
+### Operators
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `AND` | Both sides must match | `budget AND revenue` |
+| `OR` | Either side must match | `budget OR revenue` |
+| `NOT` | Must not match | `budget AND NOT draft` |
+| `()` | Group expressions | `(a OR b) AND (c OR d)` |
+
+Operators are case-insensitive (`and`, `And`, `AND` all work).
+
+**Precedence:** NOT binds tightest, then AND, then OR. Use parentheses to override: `a OR b AND c` means `a OR (b AND c)`, while `(a OR b) AND c` requires both.
+
+### Combining with other modes
+
+Expression search works with regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) — these control **how** each term is matched, while the expression controls the **logic**:
+
+```bash
+# Wildcard terms in an expression
+docsearch -e -w "budg* AND rev*"
+
+# Regex terms in an expression
+docsearch -e -x "\\d{3}-\\d{4} AND budget"
+
+# Fuzzy terms in an expression (typo-tolerant)
+docsearch -e -z "budgt AND revnue"
+
+# With context lines
+docsearch -e -B 2 -A 2 "(merger OR acquisition) AND NOT draft"
+```
+
+### Multi-word terms
+
+Use quotes inside the expression for multi-word terms:
+
+```bash
+docsearch -e '"annual report" AND (2023 OR 2024)'
+```
+
+### Limitations
+
+- `-e` cannot be combined with `-a` (AND mode), `-n` (exclude), or `-p` (proximity) — these features are built into the expression syntax
+- To search for the literal word "AND", "OR", or "NOT", enclose it in double quotes inside the expression: `docsearch -e '"AND" OR budget'`
 
 ## Search Suites
 
@@ -890,6 +986,11 @@ This captures 3 lines before (-B) and 3 lines after (-A) each match. The numbers
 Yes — use the `-a` flag.<br>
 Example: `docsearch -a budget revenue expenses`
 
+**Can I combine AND, OR, and NOT in a single query?**
+Yes — use the `-e` flag for boolean expression search. This lets you write complex logic with AND, OR, NOT, and parentheses.<br>
+Example: `docsearch -e "(budget OR revenue) AND NOT draft"`<br>
+Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. See [Boolean Expression Search](#boolean-expression-search) for details.
+
 **How many CPU cores does docsearch use?**
 By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
 Example: `docsearch -c 4 budget`<br>
@@ -939,7 +1040,7 @@ No — all searches are case-insensitive by default.
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
-- **Search flags** (`-a`, `-x`, `-p`, `-O`, `-z`, `-w`) — control *how* to match
+- **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`) — control *how* to match
 - **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
@@ -1072,6 +1173,21 @@ result = search(
     match_all=True,
 )
 
+# Boolean expression search
+result = search(
+    [],
+    directory="/path/to/docs",
+    expression="(budget OR revenue) AND (cost OR profit)",
+)
+
+# Expression with wildcard mode
+result = search(
+    [],
+    directory="/path/to/docs",
+    expression="budg* AND rev*",
+    use_wildcard=True,
+)
+
 # Progress tracking
 def on_progress(done, total, filename):
     print(f"  [{done}/{total}] {filename}")
@@ -1083,9 +1199,10 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `search_terms` | `list[str]` | *(required)* | Terms to search for |
+| `search_terms` | `list[str]` | *(required)* | Terms to search for (pass `[]` when using `expression`) |
 | `directory` | `str` | Current directory | Directory to search in |
 | `match_all` | `bool` | `False` | Require ALL terms (AND mode) |
+| `expression` | `str` | `None` | Boolean expression with AND, OR, NOT, parentheses (e.g. `"(budget OR revenue) AND NOT draft"`) |
 | `recursive` | `bool` | `False` | Search subdirectories |
 | `use_regex` | `bool` | `False` | Treat terms as regex patterns |
 | `use_fuzzy` | `bool` | `False` | Approximate matching |
@@ -1148,6 +1265,7 @@ docsearch/
 │   ├── cli.py           # CLI entry point (calls api.search internally)
 │   ├── collection.py    # Saved search collections and search suites
 │   ├── constants.py     # Shared constants and defaults
+│   ├── expr_parser.py   # Boolean expression parser (AND/OR/NOT)
 │   ├── gui.py           # Optional GUI (docsearch-gui)
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
@@ -1158,6 +1276,7 @@ docsearch/
 ├── tests/
 │   ├── test_api.py        # Library API test suite
 │   ├── test_cli.py        # CLI test suite
+│   ├── test_expr_parser.py # Boolean expression parser tests
 │   ├── test_collection.py # Collection and search suite tests
 │   ├── test_gui.py        # GUI test suite
 │   ├── test_translator.py # Translator test suite

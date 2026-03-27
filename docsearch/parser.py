@@ -81,6 +81,15 @@ def parse_flags(args, config):
         exclude_terms = [t.strip() for t in args[idx + 1].split(",")]
         args[:] = args[:idx] + args[idx + 2:]
 
+    expression = None
+    expression_ast = None
+    if "-e" in args:
+        idx = args.index("-e")
+        if idx + 1 >= len(args):
+            return (2, 'No expression provided. Usage: docsearch -e "(bob AND amy) OR fred"\n')
+        expression = args[idx + 1]
+        args[:] = args[:idx] + args[idx + 2:]
+
     file_types = None
     if "-t" in args:
         idx = args.index("-t")
@@ -209,60 +218,96 @@ def parse_flags(args, config):
     if "--inverse" in args:
         args.remove("--inverse")
 
-    search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
+    if expression is not None:
+        if match_all:
+            return (2, "Cannot combine -e (expression) with -a (AND mode). Use AND/OR in the expression.\n")
+        if exclude_terms:
+            return (2, "Cannot combine -e (expression) with -n (exclude). Use NOT in the expression.\n")
+        if use_proximity:
+            return (2, "Cannot combine -e (expression) with -p (proximity).\n")
+        from docsearch.expr_parser import parse_expression, extract_terms
+        try:
+            expression_ast = parse_expression(expression)
+        except ValueError as e:
+            return (2, f"Invalid expression: {e}\n")
+        search_terms = extract_terms(expression_ast)
+        if use_regex:
+            for term in search_terms:
+                try:
+                    re.compile(term)
+                except re.error as e:
+                    return (2, f"Invalid regex pattern '{term}' in expression: {e}\n")
+    else:
+        search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
 
-    if not search_terms:
-        return (2, "No search terms provided.\n")
+        if not search_terms:
+            return (2, "No search terms provided.\n")
 
-    if use_proximity and len(search_terms) < 2:
-        return (2, "Proximity search (-p) requires at least 2 search terms.\n")
+        if use_proximity and len(search_terms) < 2:
+            return (2, "Proximity search (-p) requires at least 2 search terms.\n")
 
-    if use_regex:
-        for term in search_terms:
-            try:
-                re.compile(term)
-            except re.error as e:
-                return (2, f"Invalid regex pattern '{term}': {e}\n")
+        if use_regex:
+            for term in search_terms:
+                try:
+                    re.compile(term)
+                except re.error as e:
+                    return (2, f"Invalid regex pattern '{term}': {e}\n")
 
     # Console mode string (uses AND/OR)
-    if use_wildcard and match_all:
-        mode = "WILDCARD+AND"
-    elif use_wildcard:
-        mode = "WILDCARD"
-    elif use_regex and match_all:
-        mode = "REGEX+AND"
-    elif use_regex:
-        mode = "REGEX"
-    elif match_all:
-        mode = "AND"
+    if expression is not None:
+        mode = "EXPR"
+        report_mode = "EXPR"
+        if use_wildcard:
+            mode += "+WILDCARD"
+            report_mode += "+WILDCARD"
+        if use_regex:
+            mode += "+REGEX"
+            report_mode += "+REGEX"
+        if use_fuzzy:
+            mode += "+FUZZY"
+            report_mode += "+FUZZY"
+        if use_ocr:
+            mode += "+OCR"
+            report_mode += "+OCR"
     else:
-        mode = "OR"
-    if use_fuzzy:
-        mode += "+FUZZY"
-    if exclude_terms:
-        mode += "+NOT"
-    if use_ocr:
-        mode += "+OCR"
+        if use_wildcard and match_all:
+            mode = "WILDCARD+AND"
+        elif use_wildcard:
+            mode = "WILDCARD"
+        elif use_regex and match_all:
+            mode = "REGEX+AND"
+        elif use_regex:
+            mode = "REGEX"
+        elif match_all:
+            mode = "AND"
+        else:
+            mode = "OR"
+        if use_fuzzy:
+            mode += "+FUZZY"
+        if exclude_terms:
+            mode += "+NOT"
+        if use_ocr:
+            mode += "+OCR"
 
-    # Report mode string (uses ALL/ANY)
-    if use_wildcard and match_all:
-        report_mode = "WILDCARD+AND"
-    elif use_wildcard:
-        report_mode = "WILDCARD"
-    elif use_regex and match_all:
-        report_mode = "REGEX+AND"
-    elif use_regex:
-        report_mode = "REGEX"
-    elif match_all:
-        report_mode = "ALL"
-    else:
-        report_mode = "ANY"
-    if use_fuzzy:
-        report_mode += "+FUZZY"
-    if exclude_terms:
-        report_mode += "+NOT"
-    if use_ocr:
-        report_mode += "+OCR"
+        # Report mode string (uses ALL/ANY)
+        if use_wildcard and match_all:
+            report_mode = "WILDCARD+AND"
+        elif use_wildcard:
+            report_mode = "WILDCARD"
+        elif use_regex and match_all:
+            report_mode = "REGEX+AND"
+        elif use_regex:
+            report_mode = "REGEX"
+        elif match_all:
+            report_mode = "ALL"
+        else:
+            report_mode = "ANY"
+        if use_fuzzy:
+            report_mode += "+FUZZY"
+        if exclude_terms:
+            report_mode += "+NOT"
+        if use_ocr:
+            report_mode += "+OCR"
 
     return {
         "match_all": match_all,
@@ -284,6 +329,8 @@ def parse_flags(args, config):
         "output_formats": output_formats,
         "search_terms": search_terms,
         "inverse": inverse,
+        "expression": expression,
+        "expression_ast": expression_ast,
         "mode": mode,
         "report_mode": report_mode,
     }
