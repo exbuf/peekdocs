@@ -228,6 +228,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     use_fuzzy = config.get("use_fuzzy", False)
     exclude_terms = config.get("exclude_terms", [])
     use_wildcard = config.get("use_wildcard", False)
+    use_whole_word = config.get("use_whole_word", False)
     expression_ast = config.get("expression_ast")
     if use_wildcard and expression_ast is None:
         search_terms = [_wildcard_to_regex(t) for t in search_terms]
@@ -256,6 +257,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
             return bool(re.search(term, text, re.IGNORECASE))
         elif use_fuzzy:
             return _fuzzy_word_match(text, term) is not None
+        elif use_whole_word:
+            return bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
         else:
             return term.lower() in text.lower()
 
@@ -293,6 +296,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
             return any(re.search(t, text, re.IGNORECASE) for t in exclude_terms)
         if use_fuzzy:
             return any(_fuzzy_word_match(text, t) is not None for t in exclude_terms)
+        if use_whole_word:
+            return any(re.search(r'\b' + re.escape(t) + r'\b', text, re.IGNORECASE) for t in exclude_terms)
         text_lower = text.lower()
         return any(t.lower() in text_lower for t in exclude_terms)
 
@@ -312,6 +317,13 @@ def _search_file_lines(all_lines, file_dir, filename, config):
                 matched = _proximity_match(text)
             else:
                 matched = check(_fuzzy_word_match(text, term) is not None for term in search_terms)
+        elif use_whole_word:
+            matched = check(
+                bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
+                for term in search_terms
+            )
+            if matched and use_proximity:
+                matched = _proximity_match(text)
         else:
             text_lower = text.lower()
             matched = check(term.lower() in text_lower for term in search_terms)
@@ -348,6 +360,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
                 pattern = _wildcard_to_regex(term)
             elif use_regex:
                 pattern = term
+            elif use_whole_word:
+                pattern = r'\b' + re.escape(term) + r'\b'
             else:
                 pattern = re.escape(term)
             highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)

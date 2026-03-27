@@ -32,6 +32,7 @@ def _build_command_from_values(
     index_search=False,
     inverse=False,
     expression=False,
+    whole_word=False,
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -45,7 +46,7 @@ def _build_command_from_values(
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-x", "-z", "--config", "--inverse"}
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse"}
     if not expression:
         tokens = search_text.strip().split()
         if any(token in _CLI_FLAGS for token in tokens):
@@ -58,6 +59,7 @@ def _build_command_from_values(
 
     if expression:
         cmd.append("-e")
+        cmd.append(search_text.strip())
     if not expression and and_mode:
         cmd.append("-a")
     if recursive:
@@ -70,6 +72,8 @@ def _build_command_from_values(
         cmd.append("-O")
     if regex:
         cmd.append("-x")
+    if whole_word:
+        cmd.append("-W")
     if inverse:
         cmd.append("--inverse")
 
@@ -114,8 +118,7 @@ def _build_command_from_values(
         cmd.extend(["-o", ",".join(output_parts)])
 
     if expression:
-        # Expression is passed as a single argument
-        cmd.append(search_text.strip())
+        pass  # already appended right after -e
     elif regex:
         # Preserve backslashes for regex patterns (shlex.split eats them)
         lex = shlex.shlex(search_text.strip(), posix=True)
@@ -366,24 +369,12 @@ def _launch_gui():
             self.search_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
-            # Right-side controls: Clear + Inverse grouped to match folder row's Browse button width
-            right_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            right_frame.grid(row=1, column=2, padx=(5, 10), pady=(0, 8))
-
             clear_button = ctk.CTkButton(
-                right_frame, text="Clear", width=40, height=24,
+                self.search_bar_frame, text="Clear", width=90,
                 command=lambda: self.search_entry.delete(0, "end"),
-                font=ctk.CTkFont(size=11),
+                font=ctk.CTkFont(size=14),
             )
-            clear_button.pack(side="left", padx=(0, 5))
-
-            self.inverse_var = ctk.StringVar(value="off")
-            cb_inverse = ctk.CTkCheckBox(
-                right_frame, text="Inverse", variable=self.inverse_var,
-                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
-            )
-            cb_inverse.pack(side="left")
-            Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
+            clear_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="w")
 
             # Row 2: action buttons below the search entry
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
@@ -409,20 +400,19 @@ def _launch_gui():
             self.save_to_collection_btn.pack(side="left", padx=(0, 5))
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
-            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
-
             self.suite_toggle = ctk.CTkButton(
-                self.search_bar_frame,
+                btn_frame,
                 text="\u25b6 Search Suites",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
-                anchor="w",
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            self.suite_toggle.grid(row=3, column=0, padx=(5, 5), pady=(0, 4), sticky="w")
+            self.suite_toggle.pack(side="left", padx=(0, 5))
+
+            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
 
         def _build_folder_row(self):
             self.folder_bar_frame = ctk.CTkFrame(self)
@@ -516,12 +506,28 @@ def _launch_gui():
             )
             cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
 
+            self.whole_word_var = ctk.StringVar(value="off")
+            cb_whole_word = ctk.CTkCheckBox(
+                cb_frame, text="Whole Word", variable=self.whole_word_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
+            Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'")
+
             self.expression_var = ctk.StringVar(value="off")
             cb_expr = ctk.CTkCheckBox(
                 cb_frame, text="Expression", variable=self.expression_var,
                 onvalue="on", offvalue="off", command=self._on_expression_toggle,
             )
             cb_expr.grid(row=0, column=3, padx=(0, 15), pady=(0, 5), sticky="w")
+
+            self.inverse_var = ctk.StringVar(value="off")
+            cb_inverse = ctk.CTkCheckBox(
+                cb_frame, text="Inverse", variable=self.inverse_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_inverse.grid(row=0, column=4, padx=(0, 15), pady=(0, 5), sticky="w")
+            Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
 
             # Row 1: exclude
             ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
@@ -592,7 +598,7 @@ def _launch_gui():
             output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
             output_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
 
-            ctk.CTkLabel(output_frame, text="Also output report in ==>").grid(row=0, column=0, padx=(0, 10))
+            ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
             self.output_csv_var = ctk.StringVar(value="off")
             self.output_json_var = ctk.StringVar(value="off")
             cb_csv = ctk.CTkCheckBox(
@@ -691,10 +697,10 @@ def _launch_gui():
             # Starts hidden — shown only during search
 
             self.status_label = ctk.CTkLabel(
-                self, text="", font=ctk.CTkFont(size=13), anchor="w"
+                self.search_bar_frame, text="", font=ctk.CTkFont(size=13), anchor="w"
             )
             self.status_label.grid(
-                row=5, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="ew"
+                row=3, column=0, columnspan=3, padx=15, pady=(0, 4), sticky="ew"
             )
 
             self.matched_files = []
@@ -1291,6 +1297,7 @@ def _launch_gui():
                     index_search=params.get("index_search", False),
                     inverse=params.get("inverse", False),
                     expression=params.get("expression", False),
+                    whole_word=params.get("whole_word", False),
                 )
 
                 if cmd is None or cmd == "FLAGS_IN_SEARCH":
@@ -1567,6 +1574,7 @@ def _launch_gui():
                 index_search=self.index_search_var.get() == "on",
                 inverse=self.inverse_var.get() == "on",
                 expression=self.expression_var.get() == "on",
+                whole_word=self.whole_word_var.get() == "on",
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -1576,6 +1584,15 @@ def _launch_gui():
                 return
 
             self.results_dir = folder
+            # Remove stale output files for formats not requested
+            if self.output_csv_var.get() != "on":
+                stale = os.path.join(folder, "docsearch_results.csv")
+                if os.path.exists(stale):
+                    os.remove(stale)
+            if self.output_json_var.get() != "on":
+                stale = os.path.join(folder, "docsearch_results.json")
+                if os.path.exists(stale):
+                    os.remove(stale)
             self.search_button.configure(text="Cancel")
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
@@ -1717,15 +1734,22 @@ def _launch_gui():
             if has_any_report:
                 # Pack only the buttons for formats that exist
                 for fmt, btn in [
+                    ("txt", self.report_btn_txt),
                     ("docx", self.report_btn_docx),
                     ("csv", self.report_btn_csv),
                     ("json", self.report_btn_json),
-                    ("txt", self.report_btn_txt),
                 ]:
+                    btn.pack(side="left", padx=(0, 2))
                     if report_formats.get(fmt):
-                        btn.pack(side="left", padx=(0, 2))
+                        btn.configure(
+                            fg_color=("#3B8ED0", "#1F6AA5"),
+                            hover_color=("#36719F", "#144870"),
+                        )
                     else:
-                        btn.pack_forget()
+                        btn.configure(
+                            fg_color="#CC3333",
+                            hover_color="#AA2222",
+                        )
                 self.report_frame.grid(
                     row=6, column=col, padx=(10, 5), pady=(5, 0), sticky="w"
                 )
@@ -1767,14 +1791,14 @@ def _launch_gui():
                 subprocess.Popen(["xdg-open", path])
 
         def _update_index_button_color(self):
-            """Set Build Index(es) button green if index exists, red if not."""
+            """Set Build Index(es) button blue if index exists, red if not."""
             folder = self.folder_entry.get().strip()
             if folder and os.path.isdir(folder):
                 index_path = os.path.join(folder, ".docsearch.db")
                 if os.path.exists(index_path):
-                    self.build_index_button.configure(fg_color="green", hover_color="darkgreen")
+                    self.build_index_button.configure(fg_color=("#3B8ED0", "#1F6AA5"), hover_color=("#36719F", "#144870"))
                     return
-            self.build_index_button.configure(fg_color="red", hover_color="darkred")
+            self.build_index_button.configure(fg_color="#CC3333", hover_color="#AA2222")
 
         def build_index_action(self):
             folder = self.folder_entry.get().strip()
@@ -2122,6 +2146,8 @@ def _launch_gui():
                 settings["inverse"] = True
             if self.expression_var.get() == "on":
                 settings["expression"] = True
+            if self.whole_word_var.get() == "on":
+                settings["whole_word"] = True
             # Integer settings
             cores_val = self.cores_entry.get().strip()
             if cores_val:
@@ -2207,6 +2233,7 @@ def _launch_gui():
             self.output_json_var.set("on" if config.get("output_json") else "off")
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
+            self.whole_word_var.set("on" if config.get("whole_word") else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
             if "cores" in config:
@@ -2267,6 +2294,7 @@ def _launch_gui():
             self.index_search_var.set("off")
             self.inverse_var.set("off")
             self.expression_var.set("off")
+            self.whole_word_var.set("off")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
@@ -2313,6 +2341,7 @@ def _launch_gui():
                 "index_search": self.index_search_var.get() == "on",
                 "inverse": self.inverse_var.get() == "on",
                 "expression": self.expression_var.get() == "on",
+                "whole_word": self.whole_word_var.get() == "on",
                 "output_csv": self.output_csv_var.get() == "on",
                 "output_json": self.output_json_var.get() == "on",
                 "append_name": self.append_name_entry.get().strip(),
@@ -2346,6 +2375,7 @@ def _launch_gui():
             self.index_search_var.set("on" if params.get("index_search") else "off")
             self.inverse_var.set("on" if params.get("inverse") else "off")
             self.expression_var.set("on" if params.get("expression") else "off")
+            self.whole_word_var.set("on" if params.get("whole_word") else "off")
             if params.get("expression"):
                 self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
             else:

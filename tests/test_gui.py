@@ -313,3 +313,37 @@ def test_parse_summary_inverse():
     result = _parse_summary_text(stdout)
     assert "3 file(s) WITHOUT matches" in result
     assert "of 10" in result
+
+
+def test_build_command_expression(tmp_path):
+    """Expression text must be placed immediately after -e flag."""
+    cmd = _build_command_from_values(
+        search_text="(budget OR revenue) AND NOT draft",
+        folder=str(tmp_path),
+        and_mode=False, recursive=True, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="2", context_after="2",
+        expression=True,
+    )
+    assert cmd is not None
+    idx = cmd.index("-e")
+    assert cmd[idx + 1] == "(budget OR revenue) AND NOT draft"
+    assert "-a" not in cmd
+    assert "-r" in cmd
+    assert "-B" in cmd
+
+
+def test_build_command_whole_word(tmp_path):
+    """Whole word flag (-W) should be included in the command."""
+    cmd = _build_command_from_values(
+        search_text="bob",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+        whole_word=True,
+    )
+    assert cmd is not None
+    assert "-W" in cmd

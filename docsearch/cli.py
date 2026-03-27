@@ -38,6 +38,7 @@ BANNER_TOP = (
     'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
     'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
     'Use option flag -e for boolean expression search. Example: docsearch -e "(bob AND amy) OR fred"\n'
+    'Use option flag -W for whole-word matching. Example: docsearch -W bob (matches "bob" not "bobcat")\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
     'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
@@ -77,7 +78,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "index_search", "output_csv", "output_json", "inverse"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -616,6 +617,7 @@ def _main_inner(argv=None):
     use_ocr = parsed["use_ocr"]
     use_fuzzy = parsed["use_fuzzy"]
     use_wildcard = parsed["use_wildcard"]
+    use_whole_word = parsed.get("use_whole_word", False)
     exclude_terms = parsed["exclude_terms"]
     file_types = parsed["file_types"]
     file_names = parsed["file_names"]
@@ -704,6 +706,7 @@ def _main_inner(argv=None):
             use_regex=use_regex,
             use_fuzzy=use_fuzzy,
             use_wildcard=use_wildcard,
+            use_whole_word=use_whole_word,
             use_ocr=use_ocr,
             exclude_terms=exclude_terms,
             file_types=file_types,
@@ -788,6 +791,7 @@ def _main_inner(argv=None):
         output_csv="csv" in output_formats,
         output_json="json" in output_formats,
         expression=expression,
+        use_whole_word=use_whole_word,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)

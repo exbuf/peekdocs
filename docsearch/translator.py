@@ -598,6 +598,7 @@ _SIMPLE_FLAGS = {
     "-z": "fuzzy matching (approximate, typo-tolerant)",
     "-x": "regex mode",
     "-w": "wildcard mode",
+    "-W": "whole-word matching",
     "-O": "OCR enabled (scanned PDFs and images)",
     "-I": "using the search index",
     "-i": "inverse search (files WITHOUT matches)",
@@ -621,7 +622,8 @@ _ARG_FLAGS = {
 
 def translate_search(search_terms, report_mode="ANY", use_regex=False,
                      use_wildcard=False, use_fuzzy=False, use_ocr=False,
-                     use_index=False, inverse=False, recursive=False,
+                     use_index=False, use_whole_word=False, inverse=False,
+                     recursive=False,
                      exclude_terms=None, file_types=None, specific_files=None,
                      proximity=None, context_before=0, context_after=0,
                      cores=None, expression=None):
@@ -674,6 +676,8 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
         modifiers.append("using regex")
     if use_wildcard:
         modifiers.append("using wildcard patterns")
+    if use_whole_word:
+        modifiers.append("matching whole words only")
     if use_fuzzy:
         modifiers.append("fuzzy matching (typo-tolerant)")
     if use_ocr:
@@ -759,6 +763,7 @@ def translate_command(command_str):
         use_fuzzy="-z" in flags,
         use_ocr="-O" in flags,
         use_index="-I" in flags,
+        use_whole_word="-W" in flags,
         inverse="-i" in flags,
         recursive="-r" in flags,
         exclude_terms=[flags["-n"]] if "-n" in flags else None,

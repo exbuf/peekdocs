@@ -430,7 +430,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-four flags that can be mixed and matched:
+docsearch has twenty-five flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -448,6 +448,7 @@ docsearch has twenty-four flags that can be mixed and matched:
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
+| `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
 | `-z` (fuzzy) | Fuzzy matching — find approximate matches (e.g., typos like "budgt" matching "budget") |
 | `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
@@ -497,6 +498,7 @@ docsearch has twenty-four flags that can be mixed and matched:
 - `-w` and `-x` cannot be used together (wildcard and regex are incompatible modes)
 - `-w` and `-z` cannot be used together (wildcard and fuzzy are incompatible modes)
 - `-w` matches whole words only — `budg*` will not match the "budg" inside "debugging"
+- `-W` uses word boundary matching (regex `\b`). `bob` matches "bob" but not "bobcat", "bobby", etc. Works with all other flags including `-a`, `-e`, `-x`, `-w`, `-z`
 - `-n` always needs its exclude terms immediately after it (e.g., `-n draft` or `-n draft,obsolete`)
 - `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
 - `-n` works with all flags and all search modes except `-e` (use NOT inside the expression instead)
@@ -599,56 +601,60 @@ docsearch has twenty-four flags that can be mixed and matched:
 | 67 | Wildcard with file type filter | `docsearch -w -t pdf,docx "budg*"` |
 | 68 | Wildcard with recursive search | `docsearch -w -r "budg*"` |
 | 69 | Wildcard with context lines | `docsearch -w -B 3 -A 3 "budg*"` |
+| | **Whole-Word Searches** | |
+| 70 | Whole-word single term | `docsearch -W bob` |
+| 71 | Whole-word with AND logic | `docsearch -W -a bob amy` |
+| 72 | Whole-word with expression | `docsearch -W -e "bob AND amy"` |
 | | **Exclude Searches** | |
-| 70 | Exclude lines containing a term | `docsearch -n draft budget` |
-| 71 | Exclude multiple terms | `docsearch -n draft,obsolete budget` |
-| 72 | Exclude with AND logic | `docsearch -n draft -a budget revenue` |
-| 73 | Exclude with recursive search | `docsearch -n draft -r budget` |
-| 74 | Exclude with file type filter | `docsearch -n draft -t pdf,docx budget` |
-| 75 | Exclude with wildcard search | `docsearch -w -n "dra*" "budg*"` |
+| 73 | Exclude lines containing a term | `docsearch -n draft budget` |
+| 74 | Exclude multiple terms | `docsearch -n draft,obsolete budget` |
+| 75 | Exclude with AND logic | `docsearch -n draft -a budget revenue` |
+| 76 | Exclude with recursive search | `docsearch -n draft -r budget` |
+| 77 | Exclude with file type filter | `docsearch -n draft -t pdf,docx budget` |
+| 78 | Exclude with wildcard search | `docsearch -w -n "dra*" "budg*"` |
 | | **Additional Output Formats** | |
-| 76 | Output results as CSV | `docsearch -o csv budget` |
-| 77 | Output results as JSON | `docsearch -o json budget` |
-| 78 | Output both CSV and JSON | `docsearch -o csv,json budget` |
-| 79 | CSV with recursive search | `docsearch -o csv -r budget` |
+| 79 | Output results as CSV | `docsearch -o csv budget` |
+| 80 | Output results as JSON | `docsearch -o json budget` |
+| 81 | Output both CSV and JSON | `docsearch -o csv,json budget` |
+| 82 | CSV with recursive search | `docsearch -o csv -r budget` |
 | | **Saved Settings** | |
-| 80 | View saved settings | `docsearch --config` |
-| 81 | Save a setting | `docsearch --config recursive=true` |
-| 82 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 83 | Remove a saved setting | `docsearch --config recursive=` |
+| 83 | View saved settings | `docsearch --config` |
+| 84 | Save a setting | `docsearch --config recursive=true` |
+| 85 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 86 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Search Index** | |
-| 84 | Build index (includes all subfolders) | `docsearch --index` |
-| 85 | Build index with OCR | `docsearch --index -O` |
-| 86 | Show index info | `docsearch --index-status` |
-| 87 | Delete the index | `docsearch --index-clear` |
+| 87 | Build index (includes all subfolders) | `docsearch --index` |
+| 88 | Build index with OCR | `docsearch --index -O` |
+| 89 | Show index info | `docsearch --index-status` |
+| 90 | Delete the index | `docsearch --index-clear` |
 | | **Inverse Search** | |
-| 88 | Find files missing a term | `docsearch --inverse "indemnification"` |
-| 89 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
-| 90 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
-| 91 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| 92 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
-| 93 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
-| 94 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
-| 95 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
+| 91 | Find files missing a term | `docsearch --inverse "indemnification"` |
+| 92 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
+| 93 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
+| 94 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 95 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
+| 96 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
+| 97 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
+| 98 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
 | | **Boolean Expression Search** | |
-| 96 | AND expression | `docsearch -e "budget AND revenue"` |
-| 97 | OR expression | `docsearch -e "budget OR revenue"` |
-| 98 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
-| 99 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
-| 100 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
-| 101 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
-| 102 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
-| 103 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
-| 104 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
-| 105 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
-| 106 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
-| 107 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
+| 99 | AND expression | `docsearch -e "budget AND revenue"` |
+| 100 | OR expression | `docsearch -e "budget OR revenue"` |
+| 101 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
+| 102 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
+| 103 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
+| 104 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
+| 105 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
+| 106 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
+| 107 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
+| 108 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
+| 109 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
+| 110 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
 | | **Installation Check** | |
-| 108 | Check installation health | `docsearch --check` |
+| 111 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 109 | Show version | `docsearch -v` |
-| 110 | Show help | `docsearch -h` |
-| 111 | Show help (no arguments) | `docsearch` |
+| 112 | Show version | `docsearch -v` |
+| 113 | Show help | `docsearch -h` |
+| 114 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -966,6 +972,10 @@ Example: `docsearch -z budget`
 Yes — use the `-w` flag. Wildcards are simpler than regex: `*` matches any characters and `?` matches exactly one character. For example, `budg*` matches "budget", "budgets", and "budgeting", while `te?t` matches "test" and "text". Wildcards match whole words only, so `budg*` won't match the "budg" inside "debugging".<br>
 Example: `docsearch -w "budg*"`
 
+**How do I search for exact word matches only?**
+Use the `-W` flag. This enables whole-word matching using word boundaries, so only complete words are matched — `bob` matches "bob" but not "bobcat", "bobby", etc.<br>
+Example: `docsearch -W bob`
+
 **Can I exclude certain terms from results?**
 Yes — use the `-n` flag. This filters out any lines that contain the specified terms, even if they match your search. Use commas for multiple exclude terms. The exclude check follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, they are wildcard-matched.<br>
 Example: `docsearch -n draft budget`<br>
@@ -1037,12 +1047,15 @@ Yes — each search automatically detects new, changed, or deleted files and ref
 **Does it modify my files?**
 No — docsearch only reads your files. It never changes, moves, or deletes them.
 
+**Is docsearch safe from SQL injection?**
+Yes. All user input that reaches the SQLite search index is handled safely. FTS5 search terms are escaped and passed via parameterized queries (`?` placeholders) — never interpolated into SQL strings. File type and filename filters also use parameterized queries. The direct-scan and parse-cache code paths load data with static SQL and filter entirely in Python, so user input never touches SQL at all. Malformed FTS5 expressions are caught and handled gracefully with a fallback to the parse-cache path.
+
 **Is the search case-sensitive?**
 No — all searches are case-insensitive by default.
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
-- **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`) — control *how* to match
+- **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`, `-W`) — control *how* to match
 - **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
 - **Output flags** (`-s`, `-sa`) — control *what to do* with results
@@ -1209,6 +1222,7 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 | `use_regex` | `bool` | `False` | Treat terms as regex patterns |
 | `use_fuzzy` | `bool` | `False` | Approximate matching |
 | `use_wildcard` | `bool` | `False` | Wildcard patterns (`*` and `?`) |
+| `use_whole_word` | `bool` | `False` | Whole-word matching — matches complete words only |
 | `use_ocr` | `bool` | `False` | OCR for scanned PDFs and images |
 | `exclude_terms` | `list[str]` | `None` | Exclude lines matching these terms |
 | `file_types` | `list[str]` | `None` | Limit to these extensions (e.g. `[".pdf", ".docx"]`) |

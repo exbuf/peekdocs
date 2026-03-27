@@ -52,6 +52,7 @@ def search(
     use_regex=False,
     use_fuzzy=False,
     use_wildcard=False,
+    use_whole_word=False,
     use_ocr=False,
     exclude_terms=None,
     file_types=None,
@@ -185,6 +186,7 @@ def search(
         "use_fuzzy": use_fuzzy,
         "exclude_terms": exclude_terms,
         "use_wildcard": use_wildcard,
+        "use_whole_word": use_whole_word,
         "expression_ast": expression_ast,
         "_ocr_image_func": _ocr_image,
     }

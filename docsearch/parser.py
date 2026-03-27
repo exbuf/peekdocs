@@ -66,6 +66,10 @@ def parse_flags(args, config):
     if "-w" in args:
         args.remove("-w")
 
+    use_whole_word = "-W" in args or config.get("whole_word", False)
+    if "-W" in args:
+        args.remove("-W")
+
     if use_fuzzy and use_regex:
         return (2, "Cannot combine fuzzy (-z) and regex (-x) search modes.\n")
     if use_wildcard and use_regex:
@@ -238,7 +242,7 @@ def parse_flags(args, config):
                 except re.error as e:
                     return (2, f"Invalid regex pattern '{term}' in expression: {e}\n")
     else:
-        search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
+        search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-W", "-n")]
 
         if not search_terms:
             return (2, "No search terms provided.\n")
@@ -266,6 +270,9 @@ def parse_flags(args, config):
         if use_fuzzy:
             mode += "+FUZZY"
             report_mode += "+FUZZY"
+        if use_whole_word:
+            mode += "+WORD"
+            report_mode += "+WORD"
         if use_ocr:
             mode += "+OCR"
             report_mode += "+OCR"
@@ -284,6 +291,8 @@ def parse_flags(args, config):
             mode = "OR"
         if use_fuzzy:
             mode += "+FUZZY"
+        if use_whole_word:
+            mode += "+WORD"
         if exclude_terms:
             mode += "+NOT"
         if use_ocr:
@@ -304,6 +313,8 @@ def parse_flags(args, config):
             report_mode = "ANY"
         if use_fuzzy:
             report_mode += "+FUZZY"
+        if use_whole_word:
+            report_mode += "+WORD"
         if exclude_terms:
             report_mode += "+NOT"
         if use_ocr:
@@ -316,6 +327,7 @@ def parse_flags(args, config):
         "use_ocr": use_ocr,
         "use_fuzzy": use_fuzzy,
         "use_wildcard": use_wildcard,
+        "use_whole_word": use_whole_word,
         "exclude_terms": exclude_terms,
         "file_types": file_types,
         "file_names": file_names,

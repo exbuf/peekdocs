@@ -1,6 +1,7 @@
 """SQLite FTS5 index for docsearch."""
 
 import os
+import re
 import sqlite3
 import time
 from datetime import datetime
@@ -380,7 +381,8 @@ def _can_use_fts5_fast_path(config):
     if config.get("use_wildcard", False):
         return False
     if config.get("expression_ast") is not None:
-        return False
+        if not config.get("use_whole_word", False):
+            return False  # expression without whole-word uses direct scan
     return True
 
 
@@ -446,8 +448,11 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     ]
 
     use_fast_path = _can_use_fts5_fast_path(config)
+    use_direct_scan = _can_use_direct_scan(config)
 
-    if use_fast_path:
+    if use_direct_scan:
+        matches, skipped = _direct_scan_search(conn, config, file_filter_sql, file_filter_params)
+    elif use_fast_path:
         matches, skipped = _fts5_fast_search(conn, config, file_filter_sql, file_filter_params)
     else:
         matches, skipped = _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
@@ -456,17 +461,91 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     return matches, skipped, all_indexed_files
 
 
+def _can_use_direct_scan(config):
+    """Determine if the search can use a direct paragraph scan.
+
+    Direct scan reads all stored paragraphs and filters with Python substring
+    matching.  This is used for AND mode and expression mode because FTS5's
+    token-based matching can miss substring hits (e.g. "bob" inside "bobcat").
+    Only applicable when no special matching modes are active.
+    """
+    if config.get("use_whole_word", False):
+        return False  # FTS5 token matching is already whole-word — no need for direct scan
+    if not config.get("match_all", False) and config.get("expression_ast") is None:
+        return False  # simple OR mode — FTS5 fast path is fine
+    if config.get("use_regex", False):
+        return False
+    if config.get("use_fuzzy", False):
+        return False
+    if config.get("use_wildcard", False):
+        return False
+    if config.get("use_proximity", False):
+        return False
+    if config.get("use_context", False):
+        return False
+    return True
+
+
+def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
+    """Scan all stored paragraphs with Python matching.
+
+    Bypasses FTS5 entirely to avoid token-vs-substring mismatches.
+    Used for AND mode and expression mode with plain literal terms.
+    """
+    sql = f"""
+        SELECT f.file_dir, f.filename, p.line_num, p.text
+        FROM paragraphs p
+        JOIN files f ON p.file_id = f.id
+        WHERE 1=1
+        {file_filter_sql.replace('extension', 'f.extension').replace('filename)', 'f.filename)')}
+        ORDER BY f.filepath, p.line_num
+    """
+    rows = conn.execute(sql, file_filter_params).fetchall()
+
+    expression_ast = config.get("expression_ast")
+    use_whole_word = config.get("use_whole_word", False)
+    matches = []
+
+    def _term_matches(term, text):
+        if use_whole_word:
+            return bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
+        return term.lower() in text.lower()
+
+    if expression_ast is not None:
+        from docsearch.expr_parser import evaluate_expression
+
+        for file_dir, filename, line_num, text in rows:
+            if evaluate_expression(expression_ast, text, _term_matches):
+                matches.append((file_dir, filename, line_num, text))
+    else:
+        search_terms = config["search_terms"]
+        exclude_terms = config.get("exclude_terms", [])
+        for file_dir, filename, line_num, text in rows:
+            if all(_term_matches(t, text) for t in search_terms):
+                if exclude_terms and any(_term_matches(e, text) for e in exclude_terms):
+                    continue
+                matches.append((file_dir, filename, line_num, text))
+
+    return matches, []
+
+
 def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
     """Execute search directly against FTS5 index.
 
-    FTS5 returns candidates; Python post-filters for exact substring semantics
-    and applies highlighting.
+    FTS5 returns candidates; Python post-filters for exact semantics.
+    For expression mode with whole-word, uses FTS5 OR as pre-filter
+    and evaluates the expression AST as post-filter.
     """
     search_terms = config["search_terms"]
     match_all = config["match_all"]
     exclude_terms = config.get("exclude_terms", [])
+    expression_ast = config.get("expression_ast")
 
-    fts_query = _build_fts5_query(search_terms, match_all)
+    # For expression mode, use OR pre-filter to get all candidate rows
+    if expression_ast is not None:
+        fts_query = _build_fts5_query(search_terms, match_all=False)
+    else:
+        fts_query = _build_fts5_query(search_terms, match_all)
     if not fts_query:
         return [], []
 
@@ -488,17 +567,30 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
         # FTS5 query syntax error — fall back to parse-cache path
         return _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
 
-    # Post-filter with Python substring matching for exact semantics
+    # Post-filter
     matches = []
-    check = all if match_all else any
-    for file_dir, filename, line_num, text in rows:
-        text_lower = text.lower()
-        if check(t.lower() in text_lower for t in search_terms):
-            if exclude_terms:
-                if any(e.lower() in text_lower for e in exclude_terms):
-                    continue
-            # Return raw text — reporter applies highlighting
-            matches.append((file_dir, filename, line_num, text))
+
+    if expression_ast is not None:
+        from docsearch.expr_parser import evaluate_expression
+        use_whole_word = config.get("use_whole_word", False)
+
+        def _term_matches(term, text):
+            if use_whole_word:
+                return bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
+            return term.lower() in text.lower()
+
+        for file_dir, filename, line_num, text in rows:
+            if evaluate_expression(expression_ast, text, _term_matches):
+                matches.append((file_dir, filename, line_num, text))
+    else:
+        check = all if match_all else any
+        for file_dir, filename, line_num, text in rows:
+            text_lower = text.lower()
+            if check(t.lower() in text_lower for t in search_terms):
+                if exclude_terms:
+                    if any(e.lower() in text_lower for e in exclude_terms):
+                        continue
+                matches.append((file_dir, filename, line_num, text))
 
     return matches, []
 

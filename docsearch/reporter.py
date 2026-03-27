@@ -41,7 +41,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      context_before=0, context_after=0,
                      specific_files=None, use_index=False,
                      inverse=False, output_csv=False, output_json=False,
-                     expression=None):
+                     expression=None, use_whole_word=False):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -64,6 +64,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             search_terms, report_mode=report_mode,
             use_regex=use_regex, use_wildcard=use_wildcard,
             use_fuzzy=use_fuzzy, use_ocr=use_ocr, use_index=use_index,
+            use_whole_word=use_whole_word,
             inverse=inverse, recursive=recursive,
             exclude_terms=exclude_terms,
             file_types=file_types, specific_files=specific_files,
@@ -84,7 +85,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         on_off = lambda v: "ON" if v else "OFF"
         f.write(f"\nSearch Settings:\n")
         f.write(f"  AND mode: {on_off(report_mode == 'ALL')}  |  Recursive: {on_off(recursive)}  |  Inverse: {on_off(inverse)}  |  Expression: {on_off(expression is not None)}\n")
-        f.write(f"  Fuzzy: {on_off(use_fuzzy)}  |  Wildcard: {on_off(use_wildcard)}  |  Regex: {on_off(use_regex)}  |  OCR: {on_off(use_ocr)}\n")
+        f.write(f"  Fuzzy: {on_off(use_fuzzy)}  |  Wildcard: {on_off(use_wildcard)}  |  Regex: {on_off(use_regex)}  |  Whole Word: {on_off(use_whole_word)}  |  OCR: {on_off(use_ocr)}\n")
         f.write(f"  Index: {on_off(use_index)}\n")
         if file_types:
             f.write(f"  File types: {file_types}\n")
@@ -155,6 +156,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                             pattern = _wildcard_to_regex(term)
                         elif use_regex:
                             pattern = term
+                        elif use_whole_word:
+                            pattern = r'\b' + re.escape(term) + r'\b'
                         else:
                             pattern = re.escape(term)
                         highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)

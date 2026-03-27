@@ -2602,3 +2602,83 @@ def test_expression_with_wildcard(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert "1" in captured.out and "match(es)" in captured.out
+
+
+def test_whole_word_basic(tmp_path, monkeypatch, capsys):
+    """Test -W matches whole words only, not substrings."""
+    doc = Document()
+    doc.add_paragraph("bob is here")
+    doc.add_paragraph("bobcat is an animal")
+    doc.add_paragraph("bobby went home")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-W", "bob"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out
+    # Verify report only has the whole-word match
+    report_path = tmp_path / "docsearch_results.txt"
+    report = report_path.read_text()
+    assert "**bob** is here" in report
+    assert "bobcat" not in report
+    assert "bobby" not in report
+
+
+def test_whole_word_and_mode(tmp_path, monkeypatch, capsys):
+    """Test -W combined with -a (AND mode)."""
+    doc = Document()
+    doc.add_paragraph("bob met amy today")
+    doc.add_paragraph("bobby met amy today")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-W", "-a", "bob", "amy"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out
+
+
+def test_whole_word_expression(tmp_path, monkeypatch, capsys):
+    """Test -W combined with -e (expression mode)."""
+    doc = Document()
+    doc.add_paragraph("bob met amy today")
+    doc.add_paragraph("bobcat met amy today")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-W", "-e", "bob AND amy"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "1" in captured.out and "match(es)" in captured.out
+
+
+def test_whole_word_mode_string(tmp_path, monkeypatch, capsys):
+    """Test that -W adds WORD to the mode string."""
+    doc = Document()
+    doc.add_paragraph("test word here")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-W", "test"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "WORD" in captured.out
+
+
+def test_whole_word_no_match(tmp_path, monkeypatch, capsys):
+    """Test -W returns no matches when only substrings exist."""
+    doc = Document()
+    doc.add_paragraph("bobcat and bobby")
+    doc.save(str(tmp_path / "sample.docx"))
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-W", "bob"])
+    captured = capsys.readouterr()
+
+    assert result == 1
+    assert "0" in captured.out and "match(es)" in captured.out
