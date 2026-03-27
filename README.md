@@ -21,6 +21,7 @@
   - [Notes](#notes)
   - [Command Examples](#command-examples)
 - [Output](#output)
+  - [Command Translation](#command-translation)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
 - [Search Suites](#search-suites)
@@ -50,7 +51,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Don't separate search terms with commas unless they're part of the search term itself
 - Each match includes document name, folder path, line number, and matched text
 - Per-file match counts — see at a glance how many matches each file contributed
-- Generates timestamped `docsearch_results.txt` and `docsearch_results.docx` reports
+- Generates timestamped `docsearch_results.txt` and `docsearch_results.docx` reports with a plain-English **translation** of each command — regex patterns like `\d{3}-\d{3}-\d{4}` are automatically described as "a US phone number", dates, emails, dollar amounts, and more
 - Gracefully handles corrupt or unreadable files — skips them with a warning instead of crashing
 - Special characters (`<`, `>`, `[`, `]`, `*`, `?`, `$`, `|`, etc.) must be enclosed in quotes to prevent shell interpretation. Example: `docsearch "<" "[test]" "$amount"`
 - Save or accumulate results with `-s` and `-sa` flags — saved files are automatically prefixed with `DO_NOT_SEARCH` so they're never re-searched
@@ -635,6 +636,32 @@ With the `-o` flag, additional output files are created:
 - **`docsearch_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
 - **`docsearch_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating docsearch into automated workflows, dashboards, or other tools.
 
+### Command Translation
+
+Every report includes a **Translation** line that explains the search command in plain English. Regex patterns are automatically recognized and described by their meaning — not their individual characters:
+
+| Regex Pattern | Translation |
+|---|---|
+| `\d{1,2}/\d{1,2}/\d{2,4}` | a date (e.g. MM/DD/YYYY or YYYY-MM-DD) |
+| `\d{3}-\d{3}-\d{4}` | a US phone number (e.g. 555-123-4567) |
+| `\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}` | a phone number with area code (e.g. (555) 123-4567) |
+| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | an email address (e.g. user@example.com) |
+| `\$\d+\.?\d*` | a dollar amount (e.g. $45.99) |
+| `\d{3}-\d{2}-\d{4}` | a Social Security Number (SSN) (e.g. 123-45-6789) |
+| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | an IP address (e.g. 192.168.1.1) |
+| `https?://\S+` | a URL (e.g. https://example.com) |
+| `\d{5}(-\d{4})?` | a US ZIP code (e.g. 12345 or 12345-6789) |
+| `\d+%` | a percentage (e.g. 92%) |
+| `Q[1-4]\s?\d{4}` | a fiscal quarter (e.g. Q1 2026) |
+
+Example report header:
+```
+Command ==> docsearch -a -x "\d{1,2}/\d{1,2}/\d{2,4}" budget
+Translation ==> Search current directory, for ALL of: a date (e.g. MM/DD/YYYY or YYYY-MM-DD) AND "budget" (using regex)
+```
+
+Regex patterns combined with `|` (alternation) are also recognized per-branch. Unrecognized patterns fall back to a character-level description.
+
 Text file format:
 ```
 
@@ -1028,11 +1055,14 @@ docsearch/
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
 │   ├── reporter.py      # Report generation (txt, docx, csv, json)
-│   └── scanner.py       # File processing and discovery
+│   ├── scanner.py       # File processing and discovery
+│   ├── translator.py    # Plain-English translation of commands and regex
+│   └── wizard_patterns.py # Regex Wizard pattern presets
 ├── tests/
 │   ├── test_cli.py        # CLI test suite
 │   ├── test_collection.py # Collection and search suite tests
-│   └── test_gui.py        # GUI test suite
+│   ├── test_gui.py        # GUI test suite
+│   └── test_translator.py # Translator test suite
 ├── pyproject.toml       # Project metadata and dependencies
 ├── requirements.txt     # Pip requirements
 └── README.md

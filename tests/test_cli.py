@@ -133,7 +133,7 @@ def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "Search Term(s) ==> Hello, Goodbye (match: ANY)" in content
+    assert "Search Term(s) ==> Hello Goodbye (match: ANY)" in content
     assert "**Hello**" in content
     assert "**Goodbye**" in content
 
@@ -154,7 +154,7 @@ def test_search_all_terms(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "Search Term(s) ==> Hello, Goodbye (match: ALL)" in content
+    assert "Search Term(s) ==> Hello Goodbye (match: ALL)" in content
     assert "**Hello** **Goodbye**" in content
 
 
@@ -551,8 +551,8 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
     assert "**MATCH**_TWO" in content
     assert "delta" in content
     # gamma should appear exactly once (no duplicates from overlap)
-    match_text = content.split('"')[1]  # get the quoted match text
-    assert match_text.count("gamma") == 1
+    results_section = content.split("Results:")[1]  # only look in results
+    assert results_section.count("gamma") == 1
 
 
 def test_search_ods(tmp_path, monkeypatch, capsys):
@@ -1682,7 +1682,7 @@ def test_search_exclude_multiple(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "Exclude Term(s) ==> draft, obsolete" in content
+    assert "Exclude Term(s) ==> draft obsolete" in content
 
 
 def test_search_exclude_no_terms_error(tmp_path, monkeypatch, capsys):

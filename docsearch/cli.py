@@ -640,9 +640,9 @@ def _main_inner(argv=None):
 
     if use_index:
         index_mode = f"{mode}, indexed"
-        print(f"Searching ({index_mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
+        print(f"Searching ({index_mode}) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
         if exclude_terms:
-            print(f"Excluding [{', '.join(exclude_terms)}]")
+            print(f"Excluding [{' '.join(exclude_terms)}]")
 
         # Refresh index (always recursive — index covers all subfolders)
         refresh_result = refresh_index(cwd, recursive=True, use_ocr=use_ocr)
@@ -678,9 +678,9 @@ def _main_inner(argv=None):
             use_index = False
 
     if not use_index:
-        print(f"Searching ({mode}) on [{HIGHLIGHT}{', '.join(search_terms)}{RESET}] ...")
+        print(f"Searching ({mode}) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
         if exclude_terms:
-            print(f"Excluding [{', '.join(exclude_terms)}]")
+            print(f"Excluding [{' '.join(exclude_terms)}]")
 
         # Discover files
         result = discover_files(cwd, recursive, use_ocr, file_types, file_names)
@@ -827,6 +827,16 @@ def _main_inner(argv=None):
         use_fuzzy, use_regex, use_wildcard,
         search_elapsed, cores, cpu_count,
         inverse_files=inverse_files,
+        recursive=recursive,
+        file_types=",".join(file_types) if file_types else None,
+        proximity=proximity if use_proximity else None,
+        context_before=context_before,
+        context_after=context_after,
+        specific_files=",".join(file_names) if file_names else None,
+        use_index=use_index,
+        inverse=inverse,
+        output_csv="csv" in output_formats,
+        output_json="json" in output_formats,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)

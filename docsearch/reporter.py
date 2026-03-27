@@ -15,6 +15,7 @@ from docx.oxml import OxmlElement
 from docx.enum.text import WD_COLOR_INDEX
 
 from docsearch.scanner import _wildcard_to_regex
+from docsearch.translator import translate_search
 
 
 def fmt_size(b):
@@ -35,7 +36,11 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      report_mode, use_ocr, exclude_terms, use_context,
                      use_fuzzy, use_regex, use_wildcard,
                      search_elapsed, cores, cpu_count,
-                     inverse_files=None):
+                     inverse_files=None, recursive=False,
+                     file_types=None, proximity=None,
+                     context_before=0, context_after=0,
+                     specific_files=None, use_index=False,
+                     inverse=False, output_csv=False, output_json=False):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -43,6 +48,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w") as f:
+        f.write("Header:\n\n")
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
@@ -53,10 +59,42 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Command ==> {command_str}\n")
-        f.write(f"Search Term(s) ==> {', '.join(search_terms)} (match: {report_mode})\n")
+        translation = translate_search(
+            search_terms, report_mode=report_mode,
+            use_regex=use_regex, use_wildcard=use_wildcard,
+            use_fuzzy=use_fuzzy, use_ocr=use_ocr, use_index=use_index,
+            inverse=inverse, recursive=recursive,
+            exclude_terms=exclude_terms,
+            file_types=file_types, specific_files=specific_files,
+            proximity=proximity,
+            context_before=context_before, context_after=context_after,
+        )
+        f.write(f"Translation ==> {translation}\n")
+        f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
         if exclude_terms:
-            f.write(f"Exclude Term(s) ==> {', '.join(exclude_terms)}\n")
+            f.write(f"Exclude Term(s) ==> {' '.join(exclude_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
+
+        # ── Search Settings ──
+        on_off = lambda v: "ON" if v else "OFF"
+        f.write(f"\nSearch Settings:\n")
+        f.write(f"  AND mode: {on_off(report_mode == 'ALL')}  |  Recursive: {on_off(recursive)}  |  Inverse: {on_off(inverse)}\n")
+        f.write(f"  Fuzzy: {on_off(use_fuzzy)}  |  Wildcard: {on_off(use_wildcard)}  |  Regex: {on_off(use_regex)}  |  OCR: {on_off(use_ocr)}\n")
+        f.write(f"  Index: {on_off(use_index)}\n")
+        if file_types:
+            f.write(f"  File types: {file_types}\n")
+        if specific_files:
+            f.write(f"  Specific files: {specific_files}\n")
+        if proximity:
+            f.write(f"  Proximity: {proximity} words\n")
+        if use_context:
+            f.write(f"  Context: {context_before} line(s) before, {context_after} line(s) after\n")
+        outputs = ["TXT", "DOCX"]
+        if output_csv:
+            outputs.append("CSV")
+        if output_json:
+            outputs.append("JSON")
+        f.write(f"  Output formats: {', '.join(outputs)}\n\n")
         # Per-file match counts (used later for per-match headers)
         file_counts = {}
         for fd, fn, _ln, _tx in matches:
@@ -81,6 +119,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
             f.write(f"File Types Searched ==> {tally}\n")
         f.write("\n")
+        f.write("Results:\n\n")
         if inverse_files is not None:
             f.write(f"Files WITHOUT matches: {len(inverse_files)} (out of {len(all_files)} searched)\n\n")
             for fp in inverse_files:
@@ -168,6 +207,11 @@ def write_docx_report(docx_path, txt_path):
                     para.add_run(mode_str)
                 else:
                     para.add_run(line)
+                continue
+
+            if line in ("Header:", "Results:"):
+                run = para.add_run(line)
+                run.bold = True
                 continue
 
             is_doc_line = line.startswith("Document:")
