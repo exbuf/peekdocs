@@ -1257,11 +1257,11 @@ def test_keyboard_interrupt(tmp_path, monkeypatch, capsys):
     txt_file.write_text("Budget overview\n")
     monkeypatch.chdir(tmp_path)
 
-    import docsearch.cli as cli_module
+    import docsearch.api as api_module
     def interrupt_on_process(args_tuple):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(cli_module, "_process_file", interrupt_on_process)
+    monkeypatch.setattr(api_module, "_process_file", interrupt_on_process)
     result = main(["budget"])
     captured = capsys.readouterr()
 
@@ -1352,8 +1352,8 @@ def test_ocr_scanned_pdf(tmp_path, monkeypatch, capsys):
     pdf.add_page()
     pdf.output(str(tmp_path / "scanned.pdf"))
 
-    import docsearch.cli as cli_module
-    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report for Q1\nTotal revenue increased")
+    import docsearch.api as api_module
+    monkeypatch.setattr(api_module, "_ocr_image", lambda img: "Budget report for Q1\nTotal revenue increased")
 
     result = main(["-O", "budget"])
     captured = capsys.readouterr()
@@ -1374,8 +1374,8 @@ def test_ocr_image_jpg(tmp_path, monkeypatch, capsys):
     img = PILImage.new("RGB", (100, 100), "white")
     img.save(str(tmp_path / "scan.jpg"))
 
-    import docsearch.cli as cli_module
-    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report for Q1")
+    import docsearch.api as api_module
+    monkeypatch.setattr(api_module, "_ocr_image", lambda img: "Budget report for Q1")
 
     result = main(["-O", "budget"])
     captured = capsys.readouterr()
@@ -1394,8 +1394,8 @@ def test_ocr_image_png(tmp_path, monkeypatch, capsys):
     img = PILImage.new("RGB", (100, 100), "white")
     img.save(str(tmp_path / "scan.png"))
 
-    import docsearch.cli as cli_module
-    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Invoice total amount due")
+    import docsearch.api as api_module
+    monkeypatch.setattr(api_module, "_ocr_image", lambda img: "Invoice total amount due")
 
     result = main(["-O", "invoice"])
     captured = capsys.readouterr()
@@ -1462,8 +1462,8 @@ def test_ocr_config_setting(tmp_path, monkeypatch, capsys):
     img = PILImage.new("RGB", (100, 100), "white")
     img.save(str(tmp_path / "scan.png"))
 
-    import docsearch.cli as cli_module
-    monkeypatch.setattr(cli_module, "_ocr_image", lambda img: "Budget report")
+    import docsearch.api as api_module
+    monkeypatch.setattr(api_module, "_ocr_image", lambda img: "Budget report")
 
     result = main(["budget"])
     captured = capsys.readouterr()

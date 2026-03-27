@@ -635,162 +635,108 @@ def _main_inner(argv=None):
     start_time = time.time()
     cwd = os.getcwd()
 
-    # Check if index exists — use indexed search path if so
-    use_index = index_exists(cwd) and not no_index
-
-    if use_index:
-        index_mode = f"{mode}, indexed"
-        print(f"Searching ({index_mode}) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
-        if exclude_terms:
-            print(f"Excluding [{' '.join(exclude_terms)}]")
-
-        # Refresh index (always recursive — index covers all subfolders)
-        refresh_result = refresh_index(cwd, recursive=True, use_ocr=use_ocr)
-        refreshed = refresh_result["added"] + refresh_result["updated"] + refresh_result["removed"]
-        if refreshed > 0:
-            print(f"  Index refreshed: +{refresh_result['added']} "
-                  f"~{refresh_result['updated']} "
-                  f"-{refresh_result['removed']} files "
-                  f"({refresh_result['elapsed']:.1f}s)")
-
-        search_config = {
-            "search_terms": search_terms,
-            "use_regex": use_regex,
-            "match_all": match_all,
-            "use_proximity": use_proximity,
-            "proximity": proximity,
-            "use_context": use_context,
-            "context_before": context_before,
-            "context_after": context_after,
-            "use_ocr": use_ocr,
-            "use_fuzzy": use_fuzzy,
-            "exclude_terms": exclude_terms,
-            "use_wildcard": use_wildcard,
-            "_ocr_image_func": _ocr_image,
-        }
-
-        matches, skipped_files, all_files = search_with_index(
-            cwd, search_config, file_types, file_names,
-        )
-
-        # If index was corrupt and deleted, fall back to direct scan
-        if not index_exists(cwd):
-            use_index = False
-
-    if not use_index:
+    # Determine index mode for display
+    _will_use_index = index_exists(cwd) and not no_index
+    if _will_use_index:
+        print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
+    else:
         print(f"Searching ({mode}) on [{HIGHLIGHT}{' '.join(search_terms)}{RESET}] ...")
-        if exclude_terms:
-            print(f"Excluding [{' '.join(exclude_terms)}]")
+    if exclude_terms:
+        print(f"Excluding [{' '.join(exclude_terms)}]")
 
-        # Discover files
-        result = discover_files(cwd, recursive, use_ocr, file_types, file_names)
-        if isinstance(result, tuple):
-            print(f"Error: {result[1]}")
-            return result[0]
-        all_files = result
+    # Set up CLI progress bar / spinner
+    bar_width = 40
+    spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    try:
+        term_width = os.get_terminal_size().columns
+    except OSError:
+        term_width = 80
 
-        search_config = {
-            "search_terms": search_terms,
-            "use_regex": use_regex,
-            "match_all": match_all,
-            "use_proximity": use_proximity,
-            "proximity": proximity,
-            "use_context": use_context,
-            "context_before": context_before,
-            "context_after": context_after,
-            "use_ocr": use_ocr,
-            "use_fuzzy": use_fuzzy,
-            "exclude_terms": exclude_terms,
-            "use_wildcard": use_wildcard,
-            "_ocr_image_func": _ocr_image,
-        }
+    spinner_lock = threading.Lock()
+    spinner_stop = threading.Event()
+    spinner_state = {"done": 0, "total": 0, "filename": ""}
 
-        matches = []
-        skipped_files = []
-        total = len(all_files)
-        bar_width = 40
-        spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    def _render_progress(done, total_count, filename, spinner=""):
+        if total_count == 0:
+            return
+        pct = done / total_count
+        filled = int(bar_width * pct)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        if spinner:
+            line = f"\r  [{bar}] {done}/{total_count} {filename} {spinner}"
+        else:
+            line = f"\r  [{bar}] {done}/{total_count} {filename}"
+        line = line.ljust(term_width)[:term_width]
+        sys.stdout.write(line)
+        sys.stdout.flush()
 
-        try:
-            term_width = os.get_terminal_size().columns
-        except OSError:
-            term_width = 80
+    def _spinner_thread_func():
+        idx = 0
+        while not spinner_stop.is_set():
+            with spinner_lock:
+                done = spinner_state["done"]
+                total_count = spinner_state["total"]
+                filename = spinner_state["filename"]
+            _render_progress(done, total_count, filename, spinner_chars[idx % len(spinner_chars)])
+            idx += 1
+            spinner_stop.wait(0.15)
 
-        spinner_lock = threading.Lock()
-        spinner_stop = threading.Event()
-        spinner_state = {"done": 0, "filename": ""}
+    def _cli_progress(done, total_count, filename):
+        with spinner_lock:
+            spinner_state["done"] = done
+            spinner_state["total"] = total_count
+            spinner_state["filename"] = filename
+        _render_progress(done, total_count, filename)
 
-        def _render_progress(done, total_count, filename, spinner=""):
-            if total_count == 0:
-                return
-            pct = done / total_count
-            filled = int(bar_width * pct)
-            bar = "█" * filled + "░" * (bar_width - filled)
-            if spinner:
-                line = f"\r  [{bar}] {done}/{total_count} {filename} {spinner}"
-            else:
-                line = f"\r  [{bar}] {done}/{total_count} {filename}"
-            line = line.ljust(term_width)[:term_width]
-            sys.stdout.write(line)
-            sys.stdout.flush()
+    spinner_t = threading.Thread(target=_spinner_thread_func, daemon=True)
+    spinner_t.start()
 
-        def _spinner_thread():
-            idx = 0
-            while not spinner_stop.is_set():
-                with spinner_lock:
-                    done = spinner_state["done"]
-                    filename = spinner_state["filename"]
-                _render_progress(done, total, filename, spinner_chars[idx % len(spinner_chars)])
-                idx += 1
-                spinner_stop.wait(0.15)
-
-        spinner = threading.Thread(target=_spinner_thread, daemon=True)
-        spinner.start()
-
-        try:
-            if len(all_files) < 10 or cores == 1:
-                for i, filepath in enumerate(all_files):
-                    filename = os.path.relpath(filepath, cwd)
-                    with spinner_lock:
-                        spinner_state["done"] = i
-                        spinner_state["filename"] = filename
-                    _render_progress(i, total, filename)
-                    file_matches, file_skipped = _process_file((filepath, search_config))
-                    matches.extend(file_matches)
-                    skipped_files.extend(file_skipped)
-            else:
-                # Workers ignore SIGINT so only the main process handles Ctrl+C
-                pool = multiprocessing.Pool(processes=cores, initializer=signal.signal, initargs=(signal.SIGINT, signal.SIG_IGN))
-                try:
-                    result_iter = pool.imap(_process_file, [(f, search_config) for f in all_files])
-                    for i in range(total):
-                        # Show the file we're about to wait on BEFORE blocking
-                        filename = os.path.relpath(all_files[i], cwd)
-                        with spinner_lock:
-                            spinner_state["done"] = i
-                            spinner_state["filename"] = filename
-                        _render_progress(i, total, filename)
-                        # Now block waiting for this file's result
-                        file_matches, file_skipped = next(result_iter)
-                        matches.extend(file_matches)
-                        skipped_files.extend(file_skipped)
-                finally:
-                    pool.terminate()
-                    pool.join()
-        except KeyboardInterrupt:
-            spinner_stop.set()
-            spinner.join()
-            sys.stdout.write("\n")
-            print("\nSearch cancelled.\n")
-            return 2
-
+    try:
+        from docsearch.api import search as _api_search
+        search_result = _api_search(
+            search_terms,
+            directory=cwd,
+            match_all=match_all,
+            recursive=recursive,
+            use_regex=use_regex,
+            use_fuzzy=use_fuzzy,
+            use_wildcard=use_wildcard,
+            use_ocr=use_ocr,
+            exclude_terms=exclude_terms,
+            file_types=file_types,
+            file_names=file_names,
+            context_before=context_before,
+            context_after=context_after,
+            proximity=proximity,
+            cores=cores,
+            use_index=None if not no_index else False,
+            progress=_cli_progress,
+        )
+    except KeyboardInterrupt:
         spinner_stop.set()
-        spinner.join()
+        spinner_t.join()
+        sys.stdout.write("\n")
+        print("\nSearch cancelled.\n")
+        return 2
+    except (ValueError, FileNotFoundError) as e:
+        spinner_stop.set()
+        spinner_t.join()
+        print(f"\nError: {e}")
+        return 2
 
-        if total > 0:
-            _render_progress(total, total, "done")
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+    spinner_stop.set()
+    spinner_t.join()
+
+    if spinner_state["total"] > 0:
+        _render_progress(spinner_state["total"], spinner_state["total"], "done")
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
+    matches = search_result.matches
+    all_files = search_result.files_searched
+    skipped_files = search_result.skipped_files
+    search_elapsed = search_result.elapsed
+    use_index = search_result.used_index
 
     for skipped_name, error_msg in skipped_files:
         print(f"Warning: Could not read {skipped_name} ({error_msg})")

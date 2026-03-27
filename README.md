@@ -27,6 +27,7 @@
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
+- [Library API](#library-api)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [License](#license)
@@ -64,6 +65,7 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Optional search index (`--index`) — build a SQLite FTS5 index for faster repeated searches. Once built, the index is used automatically and refreshed incrementally
 - Search suites — save individual searches to a named collection, build search suites from saved searches, run them one-by-one with pass/fail tracking, and generate compliance/audit reports
 - Optional GUI (`docsearch-gui`) — a point-and-click interface with search box, folder picker, and all advanced options, for users who prefer not to use the terminal
+- Library API — call `search()` from your own Python code to integrate docsearch into automated workflows, pipelines, and custom applications
 
 ### Supported File Types
 
@@ -1032,6 +1034,100 @@ A file could not be read because it's open in another application (common on Win
 2. Run `docsearch --check` to verify your Python version and all dependencies
 3. If the problem persists, [report it on GitHub](https://github.com/exbuf/docsearch/issues) and include the contents of `docsearch_errors.log`
 
+## Library API
+
+docsearch can be called directly from Python code, making it easy to integrate into automated workflows, compliance pipelines, or custom applications.
+
+### Basic Usage
+
+```python
+from docsearch import search
+
+result = search(["budget", "revenue"], directory="/path/to/docs")
+
+print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
+for match in result.matches:
+    print(f"  {match.filename}:{match.line_num}: {match.text}")
+```
+
+### With Options
+
+```python
+from docsearch import search
+
+# Wildcard search in specific file types, with subdirectories
+result = search(
+    ["budg*"],
+    directory="/path/to/docs",
+    use_wildcard=True,
+    recursive=True,
+    file_types=[".pdf", ".docx"],
+)
+
+# Regex search with AND mode
+result = search(
+    [r"\d{3}-\d{3}-\d{4}", "invoice"],
+    directory="/path/to/docs",
+    use_regex=True,
+    match_all=True,
+)
+
+# Progress tracking
+def on_progress(done, total, filename):
+    print(f"  [{done}/{total}] {filename}")
+
+result = search(["error"], directory="/var/log", progress=on_progress)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `search_terms` | `list[str]` | *(required)* | Terms to search for |
+| `directory` | `str` | Current directory | Directory to search in |
+| `match_all` | `bool` | `False` | Require ALL terms (AND mode) |
+| `recursive` | `bool` | `False` | Search subdirectories |
+| `use_regex` | `bool` | `False` | Treat terms as regex patterns |
+| `use_fuzzy` | `bool` | `False` | Approximate matching |
+| `use_wildcard` | `bool` | `False` | Wildcard patterns (`*` and `?`) |
+| `use_ocr` | `bool` | `False` | OCR for scanned PDFs and images |
+| `exclude_terms` | `list[str]` | `None` | Exclude lines matching these terms |
+| `file_types` | `list[str]` | `None` | Limit to these extensions (e.g. `[".pdf", ".docx"]`) |
+| `file_names` | `list[str]` | `None` | Search only these specific files |
+| `context_before` | `int` | `0` | Lines to include before each match |
+| `context_after` | `int` | `0` | Lines to include after each match |
+| `proximity` | `int` | `0` | Require terms within N words of each other |
+| `cores` | `int` | Auto | CPU cores for parallel processing |
+| `use_index` | `bool` | Auto | Use search index if available |
+| `progress` | `callable` | `None` | Callback `progress(done, total, filename)` |
+
+### Return Value
+
+`search()` returns a `SearchResult` with these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `matches` | `list[SearchMatch]` | List of matches found |
+| `files_searched` | `list[str]` | Absolute paths of all files examined |
+| `skipped_files` | `list[tuple]` | Files that couldn't be read: `(filename, error_msg)` |
+| `elapsed` | `float` | Search time in seconds |
+| `used_index` | `bool` | Whether the indexed search path was used |
+
+Each `SearchMatch` has fields: `file_dir`, `filename`, `line_num`, `text`.
+
+### Error Handling
+
+`search()` raises `ValueError` for invalid parameter combinations (e.g. combining regex + fuzzy) and `FileNotFoundError` if specified files are not found.
+
+```python
+from docsearch import search
+
+try:
+    result = search([r"[invalid"], use_regex=True)
+except ValueError as e:
+    print(f"Invalid search: {e}")
+```
+
 ## Running Tests
 
 Running tests requires the cloned repository (see [Option B](#option-b-manual-install)). From the project folder:
@@ -1046,9 +1142,10 @@ pytest tests/ -v
 ```
 docsearch/
 ├── docsearch/
-│   ├── __init__.py      # Package init
+│   ├── __init__.py      # Package init, re-exports library API
 │   ├── __main__.py      # Enables python -m docsearch
-│   ├── cli.py           # Main CLI entry point
+│   ├── api.py           # Public library API (search(), SearchMatch, SearchResult)
+│   ├── cli.py           # CLI entry point (calls api.search internally)
 │   ├── collection.py    # Saved search collections and search suites
 │   ├── constants.py     # Shared constants and defaults
 │   ├── gui.py           # Optional GUI (docsearch-gui)
@@ -1059,10 +1156,12 @@ docsearch/
 │   ├── translator.py    # Plain-English translation of commands and regex
 │   └── wizard_patterns.py # Regex Wizard pattern presets
 ├── tests/
+│   ├── test_api.py        # Library API test suite
 │   ├── test_cli.py        # CLI test suite
 │   ├── test_collection.py # Collection and search suite tests
 │   ├── test_gui.py        # GUI test suite
-│   └── test_translator.py # Translator test suite
+│   ├── test_translator.py # Translator test suite
+│   └── test_wizard.py     # Wizard patterns test suite
 ├── pyproject.toml       # Project metadata and dependencies
 ├── requirements.txt     # Pip requirements
 └── README.md
