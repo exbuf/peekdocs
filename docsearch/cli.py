@@ -76,7 +76,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "index_search", "output_csv", "output_json"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "index_search", "output_csv", "output_json", "inverse"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -626,6 +626,7 @@ def _main_inner(argv=None):
     append_name = parsed["append_name"]
     cores = parsed["cores"]
     output_formats = parsed["output_formats"]
+    inverse = parsed["inverse"]
     mode = parsed["mode"]
     report_mode = parsed["report_mode"]
 
@@ -803,6 +804,12 @@ def _main_inner(argv=None):
 
     search_elapsed = time.time() - start_time
 
+    # Compute inverse file list if requested
+    inverse_files = None
+    if inverse:
+        matched_paths = {os.path.join(fd, fn) for fd, fn, _ln, _tx in matches}
+        inverse_files = [f for f in all_files if f not in matched_paths]
+
     # Check disk space before writing reports
     free_space = shutil.disk_usage(cwd).free
     if free_space < 10_000_000:
@@ -819,6 +826,7 @@ def _main_inner(argv=None):
         report_mode, use_ocr, exclude_terms, use_context,
         use_fuzzy, use_regex, use_wildcard,
         search_elapsed, cores, cpu_count,
+        inverse_files=inverse_files,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)
@@ -829,13 +837,14 @@ def _main_inner(argv=None):
 
     if "csv" in output_formats:
         csv_output_path = os.path.join(cwd, "docsearch_results.csv")
-        write_csv_report(csv_output_path, matches)
+        write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
         json_output_path = os.path.join(cwd, "docsearch_results.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
+            inverse_files=inverse_files,
         )
 
     if append_name is not None:
@@ -844,16 +853,21 @@ def _main_inner(argv=None):
     elapsed = time.time() - start_time
     print()
     print(f"Files searched: {len(all_files)} ({size_str})")
-    print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
-    # Per-file match counts
-    file_counts = {}
-    for fd, fn, _ln, _tx in matches:
-        key = (fd, fn)
-        if key not in file_counts:
-            file_counts[key] = 0
-        file_counts[key] += 1
-    for (_fd, fn), count in file_counts.items():
-        print(f"  {fn}: {count}")
+    if inverse:
+        print(f"Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches (out of {len(all_files)} searched).")
+        for f in inverse_files:
+            print(f"  {os.path.basename(f)}")
+    else:
+        print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
+        # Per-file match counts
+        file_counts = {}
+        for fd, fn, _ln, _tx in matches:
+            key = (fd, fn)
+            if key not in file_counts:
+                file_counts[key] = 0
+            file_counts[key] += 1
+        for (_fd, fn), count in file_counts.items():
+            print(f"  {fn}: {count}")
     print(f"Results ==> {cwd}")
     print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
     if csv_output_path:
@@ -866,6 +880,8 @@ def _main_inner(argv=None):
     if skipped_files:
         print(f"Errors logged to docsearch_errors.log ({len(skipped_files)} error(s))")
     print()
+    if inverse:
+        return 0 if inverse_files else 1
     return 0 if matches else 1
 
 

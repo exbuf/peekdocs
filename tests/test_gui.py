@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from docsearch.gui import _build_command_from_values, _parse_summary_text, _parse_matched_files
+from docsearch.gui import _build_command_from_values, _parse_summary_text, _parse_matched_files, _parse_inverse_files
 
 
 def test_build_command_basic(tmp_path):
@@ -272,3 +272,44 @@ def test_build_command_index_search_enabled(tmp_path):
     )
     assert cmd is not None
     assert "--no-index" not in cmd
+
+
+def test_build_command_inverse(tmp_path):
+    """With inverse=True, --inverse appears in the command."""
+    cmd = _build_command_from_values(
+        search_text="budget",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+        inverse=True,
+    )
+    assert cmd is not None
+    assert "--inverse" in cmd
+
+
+def test_build_command_inverse_default(tmp_path):
+    """By default, --inverse does NOT appear in the command."""
+    cmd = _build_command_from_values(
+        search_text="budget",
+        folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="",
+    )
+    assert cmd is not None
+    assert "--inverse" not in cmd
+
+
+def test_parse_summary_inverse():
+    """_parse_summary_text handles inverse search output."""
+    stdout = (
+        "Files searched: 10 (1.50 MB)\n"
+        "Found 3 file(s) WITHOUT matches (out of 10 searched).\n"
+        "Elapsed time: 0.42 seconds, Cores used: 4 of 8\n"
+    )
+    result = _parse_summary_text(stdout)
+    assert "3 file(s) WITHOUT matches" in result
+    assert "of 10" in result

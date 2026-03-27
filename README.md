@@ -22,6 +22,8 @@
   - [Command Examples](#command-examples)
 - [Output](#output)
 - [Search Index (Optional)](#search-index-optional)
+- [Inverse Search](#inverse-search)
+- [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
 - [Running Tests](#running-tests)
@@ -34,7 +36,7 @@ docsearch is a fast, offline search tool that scans 29 file types — including 
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory, plus an optional `.docsearch.db` index file if you use `--index`.
+**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory, plus an optional `.docsearch.db` index file if you use `--index`, and an optional `.docsearch_collection.json` file if you save searches to a collection for search suites.
 
 ## Features
 
@@ -57,7 +59,9 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
 - Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
 - Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
+- Inverse search with `--inverse` flag — lists files that do NOT contain the search terms, instead of files that do. Useful for compliance checks ("which contracts are missing an indemnification clause?") and auditing ("which documents lack a required disclaimer?")
 - Optional search index (`--index`) — build a SQLite FTS5 index for faster repeated searches. Once built, the index is used automatically and refreshed incrementally
+- Search suites — save individual searches to a named collection, build search suites from saved searches, run them one-by-one with pass/fail tracking, and generate compliance/audit reports
 - Optional GUI (`docsearch-gui`) — a point-and-click interface with search box, folder picker, and all advanced options, for users who prefer not to use the terminal
 
 ### Supported File Types
@@ -298,19 +302,20 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field, **Search** button, and **Wizard** button |
+| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Search Suites** toggle (opens the suites window) |
 | **Folder Bar** | Folder path entry and **Browse** button |
 | **Advanced Options** | Collapsible panel with all search options (click to expand) |
+| **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read |
 | **Index Bar** | Index controls — **Build Index(es)**, **Delete Index(es)**, **Index Status**, **About Index**, and the **Search Using Index(es)** checkbox |
-| **Matched Files** | Button showing the count of files with matches (appears after a search with results — click to view the list and open individual files) |
+| **Search Suites** | Opens in a standalone window — manage saved searches and search suites, select one or more suites, run them with pass/fail tracking, and generate compliance/audit reports |
 | **Toolbar** | **GitHub-Readme**, **View Error Log**, and **About** buttons |
 
 **Your first GUI search:**
 
 1. Type what you're looking for in the **Search Bar**
 2. Click **Browse** in the **Folder Bar** to pick the folder containing your documents (your home folder is selected by default)
-3. Click **Search** (or press Enter)
-4. When the search finishes, a result summary appears. Click **Open Report** to view your results in a `.docx` file with matches highlighted in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
+3. Click **Run Search** (or press Enter)
+4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, or **JSON** to open the report in other formats. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Advanced Options:**
 
@@ -383,7 +388,7 @@ The wizard combined with typed search terms is especially useful for compliance,
 | **Background check compliance** | SSN, Date (Common) | consent authorization | AND | Background check documents containing SSNs and dates alongside consent language — verifies proper authorization was obtained |
 | **Medical billing audit** | CPT Code, Dollar Amount (Medical) | *(none)* | AND | Medical billing records containing both procedure codes and dollar amounts — useful for detecting billing anomalies |
 
-**Tip:** For any of these searches, enable **Recursive** to scan all subfolders, and use **File types** to limit the search to specific formats (e.g., `pdf,docx`). After the search completes, click **Open Report** to review all matches with context highlighted in yellow, or export to **CSV** for further analysis in a spreadsheet.
+**Tip:** For any of these searches, enable **Recursive** to scan all subfolders, and use **File types** to limit the search to specific formats (e.g., `pdf,docx`). After the search completes, click **DOCX** next to **View Report:** to review all matches with context highlighted in yellow, or click **CSV** for further analysis in a spreadsheet.
 
 ## Usage
 
@@ -420,7 +425,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-two flags that can be mixed and matched:
+docsearch has twenty-three flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -444,6 +449,7 @@ docsearch has twenty-two flags that can be mixed and matched:
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
+| `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
 
@@ -486,6 +492,11 @@ docsearch has twenty-two flags that can be mixed and matched:
 - `-o csv` creates `docsearch_results.csv` with columns: filename, folder, line_number, matched_text
 - `-o json` creates `docsearch_results.json` with metadata and a matches array
 - `-o csv,json` creates both files
+- `--inverse` flips the search — instead of showing files WITH matches, it shows files WITHOUT matches
+- `--inverse` works with all search modes (OR, AND, regex, fuzzy, wildcard) and all other flags
+- `--inverse` reports and exports list the files that are missing the search terms
+- `--inverse` exit code: 0 if files without matches were found, 1 if all files matched
+- `--inverse` is especially useful for compliance — "which documents are missing required content?"
 
 ### Command Examples
 
@@ -596,12 +607,21 @@ docsearch has twenty-two flags that can be mixed and matched:
 | 85 | Build index with OCR | `docsearch --index -O` |
 | 86 | Show index info | `docsearch --index-status` |
 | 87 | Delete the index | `docsearch --index-clear` |
+| | **Inverse Search** | |
+| 89 | Find files missing a term | `docsearch --inverse "indemnification"` |
+| 90 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
+| 91 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
+| 92 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 93 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
+| 94 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
+| 95 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
+| 96 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
 | | **Installation Check** | |
-| 88 | Check installation health | `docsearch --check` |
+| 97 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 89 | Show version | `docsearch -v` |
-| 90 | Show help | `docsearch -h` |
-| 91 | Show help (no arguments) | `docsearch` |
+| 98 | Show version | `docsearch -v` |
+| 99 | Show help | `docsearch -h` |
+| 100 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -698,6 +718,70 @@ docsearch --index-clear        # delete the index
 **How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
 
 **In the GUI:** The **Index Bar** at the bottom of the window has **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons, and a **Search Using Index(es)** checkbox to toggle between indexed and direct search. Building an index always includes all subfolders.
+
+## Inverse Search
+
+Normal docsearch shows files that **contain** your search terms. Inverse search (`--inverse`) flips this — it shows files that **do not contain** the search terms. This answers the question: "Which documents are missing required content?"
+
+**Use cases:**
+
+| Scenario | Command |
+|----------|---------|
+| Contracts missing an indemnification clause | `docsearch --inverse -t pdf,docx "indemnification"` |
+| Policies missing a confidentiality notice | `docsearch --inverse -r "CONFIDENTIAL"` |
+| Documents without a required signature date | `docsearch --inverse -x "\d{1,2}/\d{1,2}/\d{2,4}"` |
+| Files missing SSNs (data hygiene check) | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| HR documents without employee IDs | `docsearch --inverse -t pdf,docx -x "[Ee]mp\.?\s*#?\s*\d{4,}"` |
+
+**How it works:**
+
+1. docsearch searches all files normally and identifies which files have matches
+2. It then computes the **difference** — files that were searched but had no matches
+3. The console output, TXT/DOCX reports, and optional CSV/JSON exports all list the files without matches instead of match details
+
+**Output:**
+
+- Console: `Found 8 file(s) WITHOUT matches (out of 20 searched).` followed by a list of filenames
+- TXT/DOCX report: includes a "Files WITHOUT matches" section listing each file and its directory
+- CSV (`-o csv`): two columns — `filename` and `folder`
+- JSON (`-o json`): includes `files_without_matches` count and `inverse_files` array
+
+**In the GUI:** Check the **Inverse** checkbox in the Search Bar (next to the Wizard button) before clicking **Run Search**. The results summary will show how many files are missing the search terms.
+
+**Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
+
+## Search Suites
+
+Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into an audit automation tool — run the same compliance checks repeatedly and get a report showing which checks passed and which failed.
+
+**How it works:**
+
+1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
+
+2. **Build a suite:** Click **Search Suites** in the Search Bar to open the suites window. Click **New Suite**, give it a name (e.g., "quarterly_compliance"), and check the saved searches you want to include. Click **Create**.
+
+3. **Run the suite:** Select one or more suites from the **Suites of Searches** list and click **Run Entire Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
+
+4. **Generate a report:** After the suite finishes, click **Generate Report** to create `docsearch_suite_{name}.txt` and `.json` files in the folder. The report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
+
+**Pass/fail logic:**
+
+| Condition | Result |
+|-----------|--------|
+| Search finds at least one match | PASS |
+| Search finds no matches | FAIL |
+| Inverse search finds files without matches | PASS |
+| Inverse search finds all files match | FAIL |
+| Search configuration error | FAIL |
+
+**Managing the collection:**
+
+- **Load:** Select a saved search in the left panel and click **Load** to populate the GUI with its settings — useful for reviewing or tweaking a saved search before re-saving it.
+- **Delete:** Remove a saved search from the collection. If it's referenced by any suites, it's automatically removed from those suites too.
+- **Edit Suite:** Modify which searches are included in an existing suite.
+- **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
+
+**Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection.
 
 ## FAQ (Frequently Asked Questions)
 
@@ -938,6 +1022,7 @@ docsearch/
 │   ├── __init__.py      # Package init
 │   ├── __main__.py      # Enables python -m docsearch
 │   ├── cli.py           # Main CLI entry point
+│   ├── collection.py    # Saved search collections and search suites
 │   ├── constants.py     # Shared constants and defaults
 │   ├── gui.py           # Optional GUI (docsearch-gui)
 │   ├── indexer.py       # Optional SQLite FTS5 search index
@@ -945,8 +1030,9 @@ docsearch/
 │   ├── reporter.py      # Report generation (txt, docx, csv, json)
 │   └── scanner.py       # File processing and discovery
 ├── tests/
-│   ├── test_cli.py      # CLI test suite
-│   └── test_gui.py      # GUI test suite
+│   ├── test_cli.py        # CLI test suite
+│   ├── test_collection.py # Collection and search suite tests
+│   └── test_gui.py        # GUI test suite
 ├── pyproject.toml       # Project metadata and dependencies
 ├── requirements.txt     # Pip requirements
 └── README.md

@@ -1,4 +1,4 @@
-"""Report generation for docsearch (TXT, DOCX, CSV, JSON, append)."""
+"""Report generation for docsearch (TXT, DOCX, CSV, JSON, append, suite reports)."""
 
 import csv
 import json
@@ -34,7 +34,8 @@ def _strip_highlights(text):
 def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      report_mode, use_ocr, exclude_terms, use_context,
                      use_fuzzy, use_regex, use_wildcard,
-                     search_elapsed, cores, cpu_count):
+                     search_elapsed, cores, cpu_count,
+                     inverse_files=None):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -56,15 +57,13 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         if exclude_terms:
             f.write(f"Exclude Term(s) ==> {', '.join(exclude_terms)}\n")
         f.write(f"Hits ==> {len(matches)}\n")
-        # Per-file match counts
+        # Per-file match counts (used later for per-match headers)
         file_counts = {}
         for fd, fn, _ln, _tx in matches:
             key = (fd, fn)
             if key not in file_counts:
                 file_counts[key] = 0
             file_counts[key] += 1
-        for (_fd, fn), count in file_counts.items():
-            f.write(f"  {fn}: {count}\n")
         f.write(f"Search Time ==> {search_elapsed:.2f} seconds, Cores used ==> {cores} of {cpu_count}\n")
         total_bytes = sum(os.path.getsize(f_path) for f_path in all_files)
         if total_bytes >= 1_000_000:
@@ -82,6 +81,11 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             tally = ", ".join(f"{ext}: {count}" for ext, count in ext_counts.items())
             f.write(f"File Types Searched ==> {tally}\n")
         f.write("\n")
+        if inverse_files is not None:
+            f.write(f"Files WITHOUT matches: {len(inverse_files)} (out of {len(all_files)} searched)\n\n")
+            for fp in inverse_files:
+                f.write(f"  {os.path.basename(fp)}\n")
+                f.write(f"  ({os.path.dirname(fp)})\n\n")
         prev_file = None
         for file_dir, filename, line_num, text in matches:
             current_file = os.path.join(file_dir, filename)
@@ -218,52 +222,75 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
     return (txt_size, docx_size)
 
 
-def write_csv_report(output_path, matches):
+def write_csv_report(output_path, matches, inverse_files=None):
     """Write docsearch_results.csv."""
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["filename", "folder", "line_number", "matched_text"])
-        for file_dir, filename, line_num, text in matches:
-            writer.writerow([filename, file_dir, line_num, _strip_highlights(text)])
+        if inverse_files is not None:
+            writer.writerow(["filename", "folder"])
+            for fp in inverse_files:
+                writer.writerow([os.path.basename(fp), os.path.dirname(fp)])
+        else:
+            writer.writerow(["filename", "folder", "line_number", "matched_text"])
+            for file_dir, filename, line_num, text in matches:
+                writer.writerow([filename, file_dir, line_num, _strip_highlights(text)])
 
 
 def write_json_report(output_path, matches, search_terms, report_mode,
-                      files_count, search_elapsed):
+                      files_count, search_elapsed, inverse_files=None):
     """Write docsearch_results.json."""
     if os.path.exists(output_path):
         os.remove(output_path)
-    # Per-file match counts (ordered by first appearance)
-    file_counts = {}
-    for file_dir, filename, _ln, _tx in matches:
-        key = (file_dir, filename)
-        if key not in file_counts:
-            file_counts[key] = 0
-        file_counts[key] += 1
-    matches_per_file = [
-        {"filename": fn, "folder": fd, "matches": count}
-        for (fd, fn), count in file_counts.items()
-    ]
 
-    json_data = {
-        "search_terms": search_terms,
-        "mode": report_mode,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "files_searched": files_count,
-        "matches_found": len(matches),
-        "matches_per_file": matches_per_file,
-        "elapsed_seconds": round(search_elapsed, 2),
-        "matches": [
-            {
-                "filename": filename,
-                "folder": file_dir,
-                "line_number": line_num,
-                "matched_text": _strip_highlights(text),
-            }
-            for file_dir, filename, line_num, text in matches
-        ],
-    }
+    if inverse_files is not None:
+        json_data = {
+            "search_terms": search_terms,
+            "mode": report_mode,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "files_searched": files_count,
+            "files_without_matches": len(inverse_files),
+            "elapsed_seconds": round(search_elapsed, 2),
+            "inverse_files": [
+                {
+                    "filename": os.path.basename(fp),
+                    "folder": os.path.dirname(fp),
+                }
+                for fp in inverse_files
+            ],
+        }
+    else:
+        # Per-file match counts (ordered by first appearance)
+        file_counts = {}
+        for file_dir, filename, _ln, _tx in matches:
+            key = (file_dir, filename)
+            if key not in file_counts:
+                file_counts[key] = 0
+            file_counts[key] += 1
+        matches_per_file = [
+            {"filename": fn, "folder": fd, "matches": count}
+            for (fd, fn), count in file_counts.items()
+        ]
+
+        json_data = {
+            "search_terms": search_terms,
+            "mode": report_mode,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "files_searched": files_count,
+            "matches_found": len(matches),
+            "matches_per_file": matches_per_file,
+            "elapsed_seconds": round(search_elapsed, 2),
+            "matches": [
+                {
+                    "filename": filename,
+                    "folder": file_dir,
+                    "line_number": line_num,
+                    "matched_text": _strip_highlights(text),
+                }
+                for file_dir, filename, line_num, text in matches
+            ],
+        }
     with open(output_path, "w") as f:
         json.dump(json_data, f, indent=2)
 
@@ -290,3 +317,94 @@ def append_results(append_name, cwd, txt_path, docx_path):
         existing_doc.save(append_docx_path)
     else:
         shutil.copy2(docx_path, append_docx_path)
+
+
+# ── Suite Reports ──────────────────────────────────────────────
+
+def _describe_search(result):
+    """Return a short description of a search result's configuration."""
+    parts = [f'"{result["search_text"]}"']
+    if result.get("inverse"):
+        parts.append("(inverse)")
+    return " ".join(parts)
+
+
+def write_suite_report_txt(output_path, suite_name, folder, results, start_time, end_time):
+    """Write a search suite compliance/audit report as a text file."""
+    ts = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
+    elapsed = end_time - start_time
+    passed = sum(1 for r in results if r["passed"])
+    total = len(results)
+    verdict = "PASSED" if passed == total else "FAILED"
+
+    lines = [
+        "=" * 50,
+        "docsearch Search Suite Report",
+        "=" * 50,
+        f"Suite: {suite_name}",
+        f"Folder: {folder}",
+        f"Date: {ts}",
+        f"Duration: {elapsed:.1f} seconds",
+        "",
+        "Results:",
+        "-" * 40,
+    ]
+
+    for r in results:
+        status = "PASS" if r["passed"] else "FAIL"
+        lines.append(f"  [{status}] {r['name']}")
+        lines.append(f"    Search: {_describe_search(r)}")
+        if r["passed"]:
+            if r.get("inverse"):
+                lines.append(f"    Result: {r['match_count']} file(s) without matches")
+            else:
+                lines.append(f"    Result: {r['match_count']} match(es) found")
+        elif r.get("return_code") == 2:
+            lines.append(f"    Result: Error — {r.get('summary', 'unknown error')}")
+        elif r.get("inverse"):
+            lines.append("    Result: All files matched (none missing)")
+        else:
+            lines.append("    Result: No matches found")
+        lines.append("")
+
+    lines.append("=" * 50)
+    lines.append(f"Summary: {passed} of {total} tests passed. {verdict}")
+    lines.append("=" * 50)
+    lines.append("")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def write_suite_report_json(output_path, suite_name, folder, results, start_time, end_time):
+    """Write suite results as JSON for programmatic consumption."""
+    ts = datetime.fromtimestamp(start_time).strftime("%Y-%m-%dT%H:%M:%S")
+    elapsed = end_time - start_time
+    passed = sum(1 for r in results if r["passed"])
+    total = len(results)
+    verdict = "PASSED" if passed == total else "FAILED"
+
+    data = {
+        "suite_name": suite_name,
+        "folder": folder,
+        "timestamp": ts,
+        "duration_seconds": round(elapsed, 2),
+        "total_tests": total,
+        "passed": passed,
+        "failed": total - passed,
+        "overall": verdict,
+        "tests": [
+            {
+                "name": r["name"],
+                "search_text": r["search_text"],
+                "inverse": r.get("inverse", False),
+                "passed": r["passed"],
+                "match_count": r["match_count"],
+                "return_code": r["return_code"],
+            }
+            for r in results
+        ],
+    }
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)

@@ -2320,5 +2320,89 @@ def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
     assert "file_b.txt: 1" in captured
 
     report = (tmp_path / "docsearch_results.txt").read_text()
-    assert "file_a.txt: 3" in report
-    assert "file_b.txt: 1" in report
+    assert "Hits ==> 4" in report
+
+
+def test_search_inverse(tmp_path, monkeypatch, capsys):
+    """Inverse search lists files WITHOUT matches."""
+    (tmp_path / "has_match.txt").write_text("budget report\n")
+    (tmp_path / "no_match.txt").write_text("revenue forecast\n")
+    (tmp_path / "also_no_match.txt").write_text("quarterly summary\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "--inverse", "budget"])
+    captured = capsys.readouterr().out
+
+    assert result == 0
+    assert "file(s) WITHOUT matches" in captured
+    assert "no_match.txt" in captured
+    assert "also_no_match.txt" in captured
+    # The file with the match should NOT appear in the inverse listing
+    assert "has_match.txt" not in captured.split("WITHOUT matches")[1]
+
+    report = (tmp_path / "docsearch_results.txt").read_text()
+    assert "Files WITHOUT matches: 2" in report
+    assert "no_match.txt" in report
+    assert "also_no_match.txt" in report
+
+
+def test_search_inverse_all_match(tmp_path, monkeypatch, capsys):
+    """When all files match, inverse returns exit code 1 (nothing to report)."""
+    (tmp_path / "a.txt").write_text("budget\n")
+    (tmp_path / "b.txt").write_text("budget\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "--inverse", "budget"])
+    captured = capsys.readouterr().out
+    clean = re.sub(r"\033\[[0-9;]*m", "", captured)
+
+    assert result == 1
+    assert "0 file(s) WITHOUT matches" in clean
+
+
+def test_search_inverse_none_match(tmp_path, monkeypatch, capsys):
+    """When no files match, inverse lists all files."""
+    (tmp_path / "a.txt").write_text("hello\n")
+    (tmp_path / "b.txt").write_text("world\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["-q", "--inverse", "zzzzz"])
+    captured = capsys.readouterr().out
+    clean = re.sub(r"\033\[[0-9;]*m", "", captured)
+
+    assert result == 0
+    assert "2 file(s) WITHOUT matches" in clean
+
+
+def test_search_inverse_csv(tmp_path, monkeypatch):
+    """Inverse search CSV export contains filename and folder columns only."""
+    (tmp_path / "has_match.txt").write_text("budget\n")
+    (tmp_path / "no_match.txt").write_text("revenue\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-q", "--inverse", "-o", "csv", "budget"])
+
+    csv_path = tmp_path / "docsearch_results.csv"
+    assert csv_path.exists()
+    content = csv_path.read_text()
+    assert "filename,folder" in content
+    assert "no_match.txt" in content
+    assert "line_number" not in content
+
+
+def test_search_inverse_json(tmp_path, monkeypatch):
+    """Inverse search JSON export contains inverse_files array."""
+    (tmp_path / "has_match.txt").write_text("budget\n")
+    (tmp_path / "no_match.txt").write_text("revenue\n")
+
+    monkeypatch.chdir(tmp_path)
+    main(["-q", "--inverse", "-o", "json", "budget"])
+
+    json_path = tmp_path / "docsearch_results.json"
+    assert json_path.exists()
+    data = json.load(open(json_path))
+    assert "inverse_files" in data
+    assert "files_without_matches" in data
+    assert data["files_without_matches"] == 1
+    filenames = [f["filename"] for f in data["inverse_files"]]
+    assert "no_match.txt" in filenames

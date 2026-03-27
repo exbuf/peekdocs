@@ -205,6 +205,10 @@ def parse_flags(args, config):
 
     use_context = context_before > 0 or context_after > 0
 
+    inverse = "--inverse" in args
+    if "--inverse" in args:
+        args.remove("--inverse")
+
     search_terms = [a for a in args if a not in ("-a", "--all", "-r", "-x", "-z", "-w", "-n")]
 
     if not search_terms:
@@ -279,6 +283,7 @@ def parse_flags(args, config):
         "cores": cores,
         "output_formats": output_formats,
         "search_terms": search_terms,
+        "inverse": inverse,
         "mode": mode,
         "report_mode": report_mode,
     }
