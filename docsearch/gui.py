@@ -340,12 +340,14 @@ def _launch_gui():
             self.search_bar_frame.grid(
                 row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
             )
+            self.search_bar_frame.grid_columnconfigure(0, minsize=120)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
+            self.search_bar_frame.grid_columnconfigure(2, minsize=170)
 
             ctk.CTkLabel(
                 self.search_bar_frame, text="Search Bar",
                 font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).grid(row=0, column=0, columnspan=6, padx=10, pady=(4, 0), sticky="w")
+            ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
 
             label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=14))
             label.grid(row=1, column=0, padx=(10, 5), pady=(0, 8), sticky="w")
@@ -356,32 +358,47 @@ def _launch_gui():
             self.search_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
+            # Right-side controls: Clear + Inverse grouped to match folder row's Browse button width
+            right_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
+            right_frame.grid(row=1, column=2, padx=(5, 10), pady=(0, 8))
+
+            clear_button = ctk.CTkButton(
+                right_frame, text="Clear", width=40, height=24,
+                command=lambda: self.search_entry.delete(0, "end"),
+                font=ctk.CTkFont(size=11),
+            )
+            clear_button.pack(side="left", padx=(0, 5))
+
             self.inverse_var = ctk.StringVar(value="off")
             cb_inverse = ctk.CTkCheckBox(
-                self.search_bar_frame, text="Inverse", variable=self.inverse_var,
+                right_frame, text="Inverse", variable=self.inverse_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
             )
-            cb_inverse.grid(row=1, column=2, padx=(5, 5), pady=(0, 8))
+            cb_inverse.pack(side="left")
             Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
 
+            # Row 2: action buttons below the search entry
+            btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
+            btn_frame.grid(row=2, column=1, columnspan=3, padx=5, pady=(0, 8), sticky="w")
+
             self.search_button = ctk.CTkButton(
-                self.search_bar_frame, text="Run Search", width=100, command=self.start_search,
+                btn_frame, text="Run Search", width=100, command=self.start_search,
                 font=ctk.CTkFont(size=14),
             )
-            self.search_button.grid(row=1, column=3, padx=(0, 5), pady=(0, 8))
+            self.search_button.pack(side="left", padx=(0, 5))
 
             self.wizard_button = ctk.CTkButton(
-                self.search_bar_frame, text="Wizard", width=80, command=self._open_search_wizard,
+                btn_frame, text="Wizard", width=80, command=self._open_search_wizard,
                 font=ctk.CTkFont(size=14),
             )
-            self.wizard_button.grid(row=1, column=4, padx=(0, 5), pady=(0, 8))
+            self.wizard_button.pack(side="left", padx=(0, 5))
             Tooltip(self.wizard_button, "Open the Search Wizard to build regex patterns from presets")
 
             self.save_to_collection_btn = ctk.CTkButton(
-                self.search_bar_frame, text="Save Search", width=100, command=self._save_to_collection,
+                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
                 font=ctk.CTkFont(size=14),
             )
-            self.save_to_collection_btn.grid(row=1, column=5, padx=(0, 10), pady=(0, 8))
+            self.save_to_collection_btn.pack(side="left", padx=(0, 5))
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
@@ -397,14 +414,16 @@ def _launch_gui():
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            self.suite_toggle.grid(row=2, column=0, padx=(5, 5), pady=(0, 4), sticky="w")
+            self.suite_toggle.grid(row=3, column=0, padx=(5, 5), pady=(0, 4), sticky="w")
 
         def _build_folder_row(self):
             self.folder_bar_frame = ctk.CTkFrame(self)
             self.folder_bar_frame.grid(
                 row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
             )
+            self.folder_bar_frame.grid_columnconfigure(0, minsize=120)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
+            self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
 
             ctk.CTkLabel(
                 self.folder_bar_frame, text="Folder Bar",
@@ -422,7 +441,7 @@ def _launch_gui():
                 self.folder_bar_frame, text="Browse", width=90, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
-            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8))
+            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="w")
 
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
