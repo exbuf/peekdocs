@@ -128,6 +128,108 @@ class TestSearch:
         assert result.used_index is False
 
 
+# ── Expression search ─────────────────────────────────────────────
+
+class TestExpressionSearch:
+    def test_expression_and(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "budget and revenue report",
+            "budget only",
+            "revenue only",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), expression="budget AND revenue")
+        assert len(result.matches) == 1
+        assert "budget" in result.matches[0].text.lower()
+        assert "revenue" in result.matches[0].text.lower()
+
+    def test_expression_or(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "budget report",
+            "revenue report",
+            "other line",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), expression="budget OR revenue")
+        assert len(result.matches) == 2
+
+    def test_expression_not(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "budget draft",
+            "budget final",
+            "other line",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), expression="budget AND NOT draft")
+        assert len(result.matches) == 1
+        assert "final" in result.matches[0].text.lower()
+
+    def test_expression_grouped(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "budget and cost analysis",
+            "revenue and profit analysis",
+            "budget and profit analysis",
+            "other line",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                        expression="(budget OR revenue) AND (cost OR profit)")
+        assert len(result.matches) == 3
+
+    def test_expression_no_matches(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", ["hello world"])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), expression="budget AND revenue")
+        assert len(result.matches) == 0
+
+    def test_expression_with_regex(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "call 555-123-4567 about budget",
+            "call 555-123-4567 about revenue",
+            "no phone here about budget",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), use_regex=True,
+                        expression=r"\d{3}-\d{3}-\d{4} AND budget")
+        assert len(result.matches) == 1
+        assert "555" in result.matches[0].text
+
+    def test_expression_with_wildcard(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "budget and revenue report",
+            "budgetary concerns",
+            "revenue only",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), use_wildcard=True,
+                        expression="budg* AND rev*")
+        assert len(result.matches) == 1
+        assert "budget" in result.matches[0].text.lower()
+        assert "revenue" in result.matches[0].text.lower()
+
+    def test_expression_with_fuzzy(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "the budget report is ready",
+            "other line",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path), use_fuzzy=True,
+                        expression="budgt")
+        assert len(result.matches) == 1
+
+    def test_expression_quoted_term(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "the annual report is ready",
+            "annual meeting scheduled",
+            "other report line",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                        expression='"annual report"')
+        assert len(result.matches) == 1
+        assert "annual report" in result.matches[0].text.lower()
+
+
 # ── Validation errors ────────────────────────────────────────────
 
 class TestSearchValidation:
@@ -154,3 +256,19 @@ class TestSearchValidation:
     def test_proximity_needs_two_terms(self):
         with pytest.raises(ValueError, match="Proximity"):
             search(["single"], proximity=5)
+
+    def test_expression_with_match_all(self):
+        with pytest.raises(ValueError, match="expression with match_all"):
+            search([], expression="a AND b", match_all=True)
+
+    def test_expression_with_exclude(self):
+        with pytest.raises(ValueError, match="expression with exclude_terms"):
+            search([], expression="a AND b", exclude_terms=["c"])
+
+    def test_expression_with_proximity(self):
+        with pytest.raises(ValueError, match="expression with proximity"):
+            search(["a", "b"], expression="a AND b", proximity=5)
+
+    def test_expression_invalid_regex(self):
+        with pytest.raises(ValueError, match="Invalid regex"):
+            search([], expression="[invalid AND budget", use_regex=True)
