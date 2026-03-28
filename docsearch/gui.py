@@ -1100,49 +1100,91 @@ def _launch_gui():
 
         def _show_suite_help(self):
             """Show an informational popup explaining how Search Suites work."""
-            from tkinter import messagebox
-            messagebox.showinfo("Search Suites — How They Work", (
-                "Search Suites let you save individual searches, group them into named suites, "
-                "and run them as a batch with pass/fail tracking.\n\n"
+            import tkinter as tk
+            help_win = tk.Toplevel(self.suite_window)
+            help_win.title("Search Suites — How They Work")
+            help_win.geometry("820x420")
+            help_win.resizable(False, False)
+            help_win.transient(self.suite_window)
+            help_win.grab_set()
 
+            # Intro across the top
+            intro = tk.Label(
+                help_win,
+                text="Search Suites let you save individual searches, group them "
+                     "into named suites, and run them as a batch with pass/fail tracking.",
+                wraplength=780, justify="left", anchor="w",
+            )
+            intro.pack(fill="x", padx=10, pady=(10, 5))
+
+            # Two-column frame
+            cols = tk.Frame(help_win)
+            cols.pack(fill="both", expand=True, padx=10, pady=5)
+            cols.columnconfigure(0, weight=1, uniform="col")
+            cols.columnconfigure(1, weight=1, uniform="col")
+
+            left_text = (
                 "HOW TO USE\n"
-                "1. Save a search: configure a search in the main GUI, then click Save Search "
-                "in the Search Bar. Give it a unique name.\n"
-                "2. Build a suite: click New Suite, name it, and check the saved searches to include.\n"
-                "3. Run: select a suite and click Run Entire Suite. Each search runs sequentially "
-                "with real-time pass/fail results.\n"
-                "4. Report: click Generate Report for a summary of all results.\n\n"
-
-                "WHAT IT'S GOOD FOR\n"
-                "- Compliance audits: run the same checks repeatedly across document sets\n"
-                "- Quality assurance: verify documents contain required terms or clauses\n"
-                "- Sensitive data discovery: batch-search for SSNs, emails, account numbers\n"
-                "- Due diligence: systematic review of contracts or regulatory filings\n\n"
-
+                "1. Save a search: configure in the main GUI,\n"
+                "   click Save Search, give it a name.\n"
+                "2. Build a suite: click New Suite, name it,\n"
+                "   add searches and set execution order.\n"
+                "3. Run: select a suite, click Run Entire Suite.\n"
+                "4. Report: click Generate Report.\n"
+                "\n"
                 "CASCADE MODE\n"
-                "Check 'Cascade mode' when creating a suite to enable progressive narrowing. "
-                "Each stage's matched files become the file list for the next stage, "
-                "creating a filtering pipeline.\n\n"
+                "Check 'Cascade mode' to enable progressive\n"
+                "narrowing — each stage's matched files become\n"
+                "the file list for the next stage. Use the order\n"
+                "controls (▲/▼) to set the pipeline sequence.\n"
+                "\n"
+                "SEARCH ORDER\n"
+                "When creating or editing a suite, use the dual-\n"
+                "panel selector to pick and reorder searches.\n"
+                "→/← move searches between panels; ▲/▼ set\n"
+                "execution order. Order matters for cascade mode."
+            )
 
+            right_text = (
+                "WHAT IT'S GOOD FOR\n"
+                "• Compliance audits: repeat checks on doc sets\n"
+                "• Quality assurance: verify required terms\n"
+                "• Data discovery: batch-find SSNs, emails, etc.\n"
+                "• Due diligence: systematic contract review\n"
+                "\n"
                 "FILES GENERATED\n"
-                "- Per-stage reports: DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt/.docx\n"
-                "  Saved in the search folder (or the Output Dir if set). Every search in the\n"
-                "  suite gets its own report file — without this, each search would overwrite\n"
-                "  the previous one's results.\n"
-                "- Suite report: DO_NOT_SEARCH_docsearch_suite_{name}.txt/.json\n"
-                "  Consolidated pass/fail summary generated via Generate Report.\n"
-                "- Collection file: .docsearch_collection.json\n"
-                "  Stores all saved searches and suite definitions for this folder.\n\n"
-
+                "• Stage reports: …_stage{NN}_{search}.txt/.docx\n"
+                "  Each search gets its own report file.\n"
+                "• Suite report: …_suite_{name}.txt/.json\n"
+                "  Consolidated pass/fail via Generate Report.\n"
+                "• Collection: .docsearch_collection.json\n"
+                "  Saves searches & suite definitions per folder.\n"
+                "\n"
                 "OUTPUT DIRECTORY\n"
-                "Use the Output Dir field to write all suite-generated files to a separate "
-                "folder instead of the search folder. This keeps your document folders clean. "
-                "This setting is independent from the Output Dir in Advanced Options — "
-                "each can point to a different location.\n\n"
+                "Set Output Dir to write suite files to a separate\n"
+                "folder. Independent from Advanced Options' dir.\n"
+                "All files use DO_NOT_SEARCH prefix to auto-\n"
+                "exclude from future searches."
+            )
 
-                "All generated files use the DO_NOT_SEARCH prefix so they are automatically "
-                "excluded from future searches."
-            ))
+            left_lbl = tk.Label(
+                cols, text=left_text, justify="left", anchor="nw",
+                font=("TkDefaultFont", 11),
+            )
+            left_lbl.grid(row=0, column=0, sticky="nw", padx=(0, 10))
+
+            right_lbl = tk.Label(
+                cols, text=right_text, justify="left", anchor="nw",
+                font=("TkDefaultFont", 11),
+            )
+            right_lbl.grid(row=0, column=1, sticky="nw", padx=(10, 0))
+
+            # Close button
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=100,
+                command=help_win.destroy,
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _on_suite_window_close(self):
             """Handle the suite window close button."""
@@ -1230,6 +1272,128 @@ def _launch_gui():
             remove_saved_search(folder, name)
             self._refresh_suite_panel()
 
+        def _build_search_shuttle(self, dialog, available, selected_order):
+            """Build a dual-listbox shuttle widget for ordering suite searches.
+
+            Args:
+                dialog: Parent tk.Toplevel.
+                available: List of search names to show on the left (not yet selected).
+                selected_order: List of search names for the right (pre-selected, in order).
+
+            Returns:
+                A callable that returns the ordered list of selected search names.
+            """
+            import tkinter as tk
+
+            # Labels row
+            label_frame = tk.Frame(dialog)
+            label_frame.pack(padx=15, fill="x")
+            tk.Label(label_frame, text="Available searches:", font=("TkDefaultFont", 13)).pack(
+                side="left", expand=True, anchor="w"
+            )
+            tk.Label(label_frame, text="Selected (run order):", font=("TkDefaultFont", 13)).pack(
+                side="right", expand=True, anchor="w", padx=(40, 0)
+            )
+
+            # Main shuttle frame
+            shuttle = tk.Frame(dialog)
+            shuttle.pack(padx=15, fill="both", expand=True)
+
+            # Left listbox — available searches
+            left_frame = tk.Frame(shuttle)
+            left_frame.pack(side="left", fill="both", expand=True)
+            left_scroll = tk.Scrollbar(left_frame)
+            left_scroll.pack(side="right", fill="y")
+            left_lb = tk.Listbox(
+                left_frame, font=("TkDefaultFont", 12), selectmode="extended",
+                yscrollcommand=left_scroll.set, activestyle="none",
+            )
+            left_lb.pack(side="left", fill="both", expand=True)
+            left_scroll.config(command=left_lb.yview)
+
+            # Center buttons — Add / Remove
+            center_frame = tk.Frame(shuttle)
+            center_frame.pack(side="left", padx=8, anchor="center")
+            tk.Button(center_frame, text="\u2192", width=3, command=lambda: _add()).pack(pady=2)
+            tk.Button(center_frame, text="\u2190", width=3, command=lambda: _remove()).pack(pady=2)
+
+            # Right listbox — selected searches in order
+            right_frame = tk.Frame(shuttle)
+            right_frame.pack(side="left", fill="both", expand=True)
+            right_scroll = tk.Scrollbar(right_frame)
+            right_scroll.pack(side="right", fill="y")
+            right_lb = tk.Listbox(
+                right_frame, font=("TkDefaultFont", 12), selectmode="extended",
+                yscrollcommand=right_scroll.set, activestyle="none",
+            )
+            right_lb.pack(side="left", fill="both", expand=True)
+            right_scroll.config(command=right_lb.yview)
+
+            # Right-side buttons — Up / Down
+            order_frame = tk.Frame(shuttle)
+            order_frame.pack(side="left", padx=(8, 0), anchor="center")
+            tk.Button(order_frame, text="\u25b2 Up", width=5, command=lambda: _move_up()).pack(pady=2)
+            tk.Button(order_frame, text="\u25bc Down", width=5, command=lambda: _move_down()).pack(pady=2)
+
+            # Populate
+            for name in sorted(available):
+                left_lb.insert("end", name)
+            for name in selected_order:
+                right_lb.insert("end", name)
+
+            # Double-click to add/remove
+            left_lb.bind("<Double-Button-1>", lambda e: _add())
+            right_lb.bind("<Double-Button-1>", lambda e: _remove())
+
+            def _add():
+                sel = list(left_lb.curselection())
+                if not sel:
+                    return
+                names = [left_lb.get(i) for i in sel]
+                for i in reversed(sel):
+                    left_lb.delete(i)
+                for name in names:
+                    right_lb.insert("end", name)
+
+            def _remove():
+                sel = list(right_lb.curselection())
+                if not sel:
+                    return
+                names = [right_lb.get(i) for i in sel]
+                for i in reversed(sel):
+                    right_lb.delete(i)
+                for name in sorted(names):
+                    # Insert in alphabetical position (re-read each time)
+                    left_items = list(left_lb.get(0, "end"))
+                    pos = len(left_items)
+                    for j, existing in enumerate(left_items):
+                        if name.lower() < existing.lower():
+                            pos = j
+                            break
+                    left_lb.insert(pos, name)
+
+            def _move_up():
+                sel = list(right_lb.curselection())
+                if not sel or sel[0] == 0:
+                    return
+                for i in sel:
+                    text = right_lb.get(i)
+                    right_lb.delete(i)
+                    right_lb.insert(i - 1, text)
+                    right_lb.selection_set(i - 1)
+
+            def _move_down():
+                sel = list(right_lb.curselection())
+                if not sel or sel[-1] >= right_lb.size() - 1:
+                    return
+                for i in reversed(sel):
+                    text = right_lb.get(i)
+                    right_lb.delete(i)
+                    right_lb.insert(i + 1, text)
+                    right_lb.selection_set(i + 1)
+
+            return lambda: list(right_lb.get(0, "end"))
+
         def _create_suite_dialog(self):
             """Open dialog to create a new search suite."""
             import tkinter as tk
@@ -1249,7 +1413,7 @@ def _launch_gui():
             dialog = tk.Toplevel(parent)
             dialog.title("Create Search Suite")
             dialog.resizable(True, True)
-            w, h = 650, 420
+            w, h = 700, 480
             x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
             y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
@@ -1273,41 +1437,19 @@ def _launch_gui():
             tk.Checkbutton(
                 dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
                 variable=cascade_var, font=("TkDefaultFont", 11),
-            ).pack(padx=15, pady=(5, 0), anchor="w")
-
-            tk.Label(dialog, text="Select searches to include:", font=("TkDefaultFont", 13)).pack(
-                padx=15, pady=(10, 2), anchor="w"
-            )
+            ).pack(padx=15, pady=(5, 5), anchor="w")
 
             # Buttons at the bottom (pack first so they're never pushed off)
             btn_frame = tk.Frame(dialog)
             btn_frame.pack(side="bottom", pady=(10, 15))
 
-            # Scrollable checkbox list (fills remaining space)
-            canvas_frame = tk.Frame(dialog)
-            canvas_frame.pack(padx=15, fill="both", expand=True)
-            canvas = tk.Canvas(canvas_frame)
-            scrollbar = tk.Scrollbar(canvas_frame, command=canvas.yview)
-            inner = tk.Frame(canvas)
-            canvas.create_window((0, 0), window=inner, anchor="nw")
-            canvas.configure(yscrollcommand=scrollbar.set)
-            canvas.pack(side="left", fill="both", expand=True)
-            scrollbar.pack(side="right", fill="y")
-
-            check_vars = {}
-            for name in search_names:
-                var = tk.BooleanVar(value=False)
-                check_vars[name] = var
-                tk.Checkbutton(inner, text=name, variable=var, font=("TkDefaultFont", 12)).pack(anchor="w")
-
-            inner.update_idletasks()
-            canvas.configure(scrollregion=canvas.bbox("all"))
+            get_selected = self._build_search_shuttle(dialog, search_names, [])
 
             def do_create():
                 suite_name = name_entry.get().strip()
                 if not suite_name:
                     return
-                selected = [n for n, v in check_vars.items() if v.get()]
+                selected = get_selected()
                 if not selected:
                     return
                 desc = desc_entry.get().strip()
@@ -1338,14 +1480,16 @@ def _launch_gui():
             suite = data["test_suites"].get(suite_name)
             if not suite:
                 return
-            search_names = sorted(data["saved_searches"])
-            current_searches = set(suite["searches"])
+            all_search_names = sorted(data["saved_searches"])
+            current_order = suite["searches"]
+            current_set = set(current_order)
+            available = [n for n in all_search_names if n not in current_set]
 
             parent = self.suite_window or self
             dialog = tk.Toplevel(parent)
             dialog.title(f"Edit Suite: {suite_name}")
             dialog.resizable(True, True)
-            w, h = 650, 420
+            w, h = 700, 480
             x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
             y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
@@ -1363,38 +1507,16 @@ def _launch_gui():
             tk.Checkbutton(
                 dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
                 variable=cascade_var, font=("TkDefaultFont", 11),
-            ).pack(padx=15, pady=(5, 0), anchor="w")
-
-            tk.Label(dialog, text="Select searches to include:", font=("TkDefaultFont", 13)).pack(
-                padx=15, pady=(10, 2), anchor="w"
-            )
+            ).pack(padx=15, pady=(5, 5), anchor="w")
 
             # Buttons at the bottom (pack first so they're never pushed off)
             btn_frame = tk.Frame(dialog)
             btn_frame.pack(side="bottom", pady=(10, 15))
 
-            # Scrollable checkbox list (fills remaining space)
-            canvas_frame = tk.Frame(dialog)
-            canvas_frame.pack(padx=15, fill="both", expand=True)
-            canvas = tk.Canvas(canvas_frame)
-            scrollbar = tk.Scrollbar(canvas_frame, command=canvas.yview)
-            inner = tk.Frame(canvas)
-            canvas.create_window((0, 0), window=inner, anchor="nw")
-            canvas.configure(yscrollcommand=scrollbar.set)
-            canvas.pack(side="left", fill="both", expand=True)
-            scrollbar.pack(side="right", fill="y")
-
-            check_vars = {}
-            for name in search_names:
-                var = tk.BooleanVar(value=name in current_searches)
-                check_vars[name] = var
-                tk.Checkbutton(inner, text=name, variable=var, font=("TkDefaultFont", 12)).pack(anchor="w")
-
-            inner.update_idletasks()
-            canvas.configure(scrollregion=canvas.bbox("all"))
+            get_selected = self._build_search_shuttle(dialog, available, current_order)
 
             def do_save():
-                selected = [n for n, v in check_vars.items() if v.get()]
+                selected = get_selected()
                 if not selected:
                     return
                 desc = desc_entry.get().strip()

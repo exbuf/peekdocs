@@ -1294,7 +1294,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
 
-2. **Build a suite:** Click **Search Suites** in the Search Bar to open the suites window. Click **New Suite**, give it a name (e.g., "quarterly_compliance"), and check the saved searches you want to include. Click **Create**.
+2. **Build a suite:** Click **Search Suites** in the Search Bar to open the suites window. Click **New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
 
 3. **Run the suite:** Select one or more suites from the **Suites of Searches** list and click **Run Entire Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
@@ -1314,7 +1314,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 - **Load:** Select a saved search in the left panel and click **Load** to populate the GUI with its settings — useful for reviewing or tweaking a saved search before re-saving it.
 - **Delete:** Remove a saved search from the collection. If it's referenced by any suites, it's automatically removed from those suites too.
-- **Edit Suite:** Modify which searches are included in an existing suite.
+- **Edit Suite:** Modify which searches are included in an existing suite and change their execution order using the same dual-panel selector with Up/Down reordering.
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
 **Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
@@ -1322,6 +1322,8 @@ Search suites let you save individual searches, group them into named suites, an
 **Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Search**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
 
 **Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results. The suite report (generated via **Generate Report**) includes the stage file names for each test.
+
+**Search execution order:** The order of searches in a suite determines the order they run. When creating or editing a suite, use the **▲ Up** and **▼ Down** buttons in the right panel to set the desired execution order. This is especially important for cascade mode, where each stage's output feeds into the next.
 
 **Cascade mode:** When creating or editing a suite, check the **Cascade mode** checkbox to enable progressive file narrowing. In cascade mode, each stage's matched files become the file filter (`-f`) for the next stage — creating a pipeline that progressively narrows results.
 

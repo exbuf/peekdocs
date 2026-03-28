@@ -161,6 +161,14 @@ def test_missing_keys_filled(tmp_path):
     assert data["test_suites"] == {}
 
 
+def test_suite_preserves_order(tmp_path):
+    for name in ["alpha", "beta", "gamma", "delta"]:
+        add_saved_search(str(tmp_path), name, _sample_params())
+    add_test_suite(str(tmp_path), "ordered", "", ["delta", "alpha", "gamma"])
+    suite = get_suite(str(tmp_path), "ordered")
+    assert suite["searches"] == ["delta", "alpha", "gamma"]
+
+
 # ── Suite Report Tests ─────────────────────────────────────
 
 from docsearch.reporter import write_suite_report_txt, write_suite_report_json
