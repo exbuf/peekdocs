@@ -76,7 +76,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      specific_files=None, use_index=False,
                      inverse=False, output_csv=False, output_json=False,
                      expression=None, use_whole_word=False,
-                     total_matches=None, max_matches=None):
+                     total_matches=None, max_matches=None,
+                     range_specs=None):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -106,6 +107,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             proximity=proximity,
             context_before=context_before, context_after=context_after,
             expression=expression,
+            range_specs=range_specs,
         )
         f.write(f"Translation ==> {translation}\n")
         if expression:

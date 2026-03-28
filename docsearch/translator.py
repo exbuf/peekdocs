@@ -626,7 +626,7 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
                      recursive=False,
                      exclude_terms=None, file_types=None, specific_files=None,
                      proximity=None, context_before=0, context_after=0,
-                     cores=None, expression=None):
+                     cores=None, expression=None, range_specs=None):
     """Translate search parameters into plain English.
 
     Takes the actual parsed search values (not a command string), so
@@ -636,7 +636,7 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
     Returns:
         A plain-English description of what the search does.
     """
-    if not search_terms:
+    if not search_terms and not range_specs:
         return "No search terms"
 
     parts = []
@@ -649,7 +649,7 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
 
     if expression is not None:
         parts.append(f"for boolean expression: {expression}")
-    else:
+    elif search_terms:
         # Determine AND/ALL vs ANY/OR
         is_and = "ALL" in report_mode or "AND" in report_mode
 
@@ -669,6 +669,8 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
             mode_word = "ALL" if is_and else "ANY"
             joiner = " AND " if is_and else " OR "
             parts.append(f"for {mode_word} of: {joiner.join(term_descs)}")
+    else:
+        parts.append("with range filters only")
 
     # Additional modifiers
     modifiers = []
@@ -700,6 +702,12 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
         modifiers.append(f"showing {context_after} lines after each match")
     if cores:
         modifiers.append(f"using {cores} CPU cores")
+    if range_specs:
+        for rs in range_specs:
+            min_str = rs.min_val if rs.min_val else "..."
+            max_str = rs.max_val if rs.max_val else "..."
+            target_label = "filename range filter" if rs.target == "filename" else "range filter"
+            modifiers.append(f"{target_label} {rs.field}: {min_str} .. {max_str}")
 
     result = ", ".join(parts)
     if modifiers:

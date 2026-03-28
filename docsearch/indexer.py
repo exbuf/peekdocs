@@ -457,6 +457,23 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     else:
         matches, skipped = _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
 
+    # Apply range filtering on index results
+    content_ranges = config.get("content_ranges", [])
+    metadata_ranges = config.get("metadata_ranges", [])
+    if content_ranges:
+        from docsearch.range_query import line_matches_content_ranges
+        matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
+                   if line_matches_content_ranges(tx, content_ranges)]
+    if metadata_ranges:
+        from docsearch.range_query import file_matches_metadata_ranges
+        matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
+                   if file_matches_metadata_ranges(os.path.join(fd, fn), metadata_ranges)]
+    filename_ranges = config.get("filename_ranges", [])
+    if filename_ranges:
+        from docsearch.range_query import file_matches_filename_ranges
+        matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
+                   if file_matches_filename_ranges(fn, filename_ranges)]
+
     conn.close()
     return matches, skipped, all_indexed_files
 
@@ -513,7 +530,7 @@ def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
         from docsearch.expr_parser import evaluate_expression
 
         for file_dir, filename, line_num, text in rows:
-            if evaluate_expression(expression_ast, text, _term_matches):
+            if evaluate_expression(expression_ast, text, _term_matches, filename=filename):
                 matches.append((file_dir, filename, line_num, text))
     else:
         search_terms = config["search_terms"]
@@ -580,7 +597,7 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
             return term.lower() in text.lower()
 
         for file_dir, filename, line_num, text in rows:
-            if evaluate_expression(expression_ast, text, _term_matches):
+            if evaluate_expression(expression_ast, text, _term_matches, filename=filename):
                 matches.append((file_dir, filename, line_num, text))
     else:
         check = all if match_all else any

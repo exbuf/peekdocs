@@ -25,6 +25,7 @@
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
 - [Boolean Expression Search](#boolean-expression-search)
+- [Range Queries](#range-queries)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -35,7 +36,7 @@
 
 ## Introduction
 
-docsearch is a fast, offline search tool that scans 29 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 29 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), range queries to filter by dates, dollar amounts, percentages, ages, or file metadata (`-R amount:1000..5000`), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -62,7 +63,8 @@ I had hundreds of documents backed up from Google Docs and scattered across fold
 - Fuzzy matching with `-z` flag — finds approximate matches for typos, misspellings, and OCR recognition errors (e.g., "budgt" matches "budget")
 - Wildcard search with `-w` flag — simple pattern matching where `*` matches any characters and `?` matches one character (e.g., `budg*` matches "budget", "budgets", "budgeting")
 - Exclude terms with `-n` flag — filter out lines containing unwanted terms (e.g., `-n draft budget` finds "budget" but skips lines containing "draft")
-- Boolean expression search with `-e` flag — combine AND, OR, NOT, and parentheses for complex queries: `docsearch -e "(budget OR revenue) AND (cost OR profit)"`. Works with regex, fuzzy, and wildcard modes
+- Boolean expression search with `-e` flag — combine AND, OR, NOT, parentheses, and range specs for complex queries: `docsearch -e "(budget AND amount:1000..5000) OR revenue"`. Works with regex, fuzzy, and wildcard modes
+- Range queries with `-R` flag — filter by dates, dollar amounts, numbers, percentages, ages, times, file sizes, or file dates. Multiple ranges combine with AND logic. Supports open-ended ranges, range-only searches, and embedding in boolean expressions
 - Inverse search with `--inverse` flag — lists files that do NOT contain the search terms, instead of files that do. Useful for compliance checks ("which contracts are missing an indemnification clause?") and auditing ("which documents lack a required disclaimer?")
 - Optional search index (`--index`) — build a SQLite FTS5 index for faster repeated searches. Once built, the index is used automatically and refreshed incrementally
 - Search suites — save individual searches to a named collection, build search suites from saved searches, run them one-by-one with pass/fail tracking, and generate compliance/audit reports
@@ -186,6 +188,7 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `timestamp` | true/false | `--timestamp` | true in GUI (add timestamp to report filenames) |
 | `suite_timestamp` | true/false | — | true in GUI (add timestamp to suite/stage report filenames) |
 | `output_dir` | path | `--output-dir` | empty (write to search folder) |
+| `range` | spec list | `-R` | empty (no range filtering) |
 | `index_search` | true/false | — | false (direct file search) |
 | `search_terms` | text | — | empty (none) |
 | `folder` | path | — | empty (current directory) |
@@ -293,7 +296,7 @@ docsearch -r budget                   # search subdirectories too
 docsearch -t pdf,docx budget          # search only PDFs and Word docs
 ```
 
-See the [Command Examples](#command-examples) table for over 100 more combinations and examples.
+See the [Command Examples](#command-examples) table for over 150 more combinations and examples.
 
 ## GUI Mode
 
@@ -330,7 +333,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
 **Search Index:**
 
@@ -436,13 +439,13 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-eight flags that can be mixed and matched:
+docsearch has twenty-nine flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` (all) | AND logic — all terms must appear in the same paragraph |
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
-| `-e` (expression) | Boolean expression search — use AND, OR, NOT, and parentheses for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
+| `-e` (expression) | Boolean expression search — use AND, OR, NOT, parentheses, and range specs for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
@@ -450,6 +453,7 @@ docsearch has twenty-eight flags that can be mixed and matched:
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
+| `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
 | `-r` (recursive) | Search subdirectories recursively |
 | `-s` (save) | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
@@ -532,6 +536,15 @@ docsearch has twenty-eight flags that can be mixed and matched:
 - `--inverse` reports and exports list the files that are missing the search terms
 - `--inverse` exit code: 0 if files without matches were found, 1 if all files matched
 - `--inverse` is especially useful for compliance — "which documents are missing required content?"
+- `-R` (or `--range`) always needs its range spec immediately after it (e.g., `-R amount:1000..5000` or `--range amount:1000..5000`)
+- `-R` syntax: `field:min..max` — use `field:min..` for open-ended minimum, `field:..max` for open-ended maximum. Both bounds are inclusive
+- `-R` content fields: `date`, `amount`, `number`, `percent`, `age`, `time` — these extract values from document text and filter lines
+- `-R` metadata fields: `filesize`, `filedate` — these filter entire files by their properties before text scanning
+- `-R` is repeatable — multiple `-R` flags combine with AND logic (all must match)
+- `-R` can be used alone (range-only search) or combined with text search terms
+- `-R filesize` accepts size suffixes: `K` (kilobytes), `M` (megabytes), `G` (gigabytes), `T` (terabytes). Example: `-R filesize:1M..10M`
+- `-R` works with all other flags including `-a`, `-e`, `-x`, `-z`, `-w`, `-r`, `-t`, and `-O`
+- `-R` range specs can also be embedded directly inside `-e` expressions (e.g., `-e "budget AND amount:1000..5000"`). Metadata fields only work with `-R`, not inside expressions
 
 ### Command Examples
 
@@ -675,12 +688,52 @@ docsearch has twenty-eight flags that can be mixed and matched:
 | | **Output Directory** | |
 | 114 | Write results to a specific folder | `docsearch --output-dir ~/reports budget` |
 | 115 | Output dir with recursive search | `docsearch --output-dir /tmp/results -r budget` |
+| | **Range Queries** | |
+| 116 | Filter by dollar amount range | `docsearch -R amount:1000..5000 budget` |
+| 117 | Filter by date range | `docsearch -R date:2024-01-01..2024-12-31 report` |
+| 118 | Range-only search (no text terms) | `docsearch -R amount:1000..5000` |
+| 119 | Filter by file size | `docsearch -R filesize:1M..10M report` |
+| 120 | Multiple ranges (AND) | `docsearch -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
+| 121 | Open-ended range (minimum only) | `docsearch -R amount:10000.. contract` |
+| 122 | Percent range | `docsearch -R percent:10..50 growth` |
+| 123 | Age range | `docsearch -R age:18..65 patient` |
+| 124 | Time range | `docsearch -R time:09:00..17:00 meeting` |
+| 125 | Range with recursive search | `docsearch -R amount:1000..5000 -r budget` |
+| 126 | Open-ended range (maximum only) | `docsearch -R amount:..5000 invoice` |
+| 127 | Filter by file modification date | `docsearch -R filedate:2024-01-01..2024-06-30 report` |
+| 128 | Number range (any standalone number) | `docsearch -R number:100..999 report` |
+| 129 | Range with file type filter | `docsearch -R amount:1000.. -t .pdf,.docx invoice` |
+| 130 | Range with context lines | `docsearch -R amount:5000..10000 -B 2 -A 2 payment` |
+| 131 | Range with AND mode text search | `docsearch -R date:2024-01-01..2024-12-31 -a budget revenue` |
+| 132 | Range with exclude terms | `docsearch -R amount:1000..5000 -n draft invoice` |
+| 133 | Large file search | `docsearch -R filesize:10M.. -r report` |
+| 134 | Small recent files | `docsearch -R filesize:..100K -R filedate:2025-01-01.. memo` |
+| | **Filename Ranges** | |
+| 134a | Filter by date in filename | `docsearch -R fn:date:2024-01-01..2024-12-31 budget` |
+| 134b | Filename + content range | `docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice` |
+| 134c | Filename range in expression | `docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"` |
+| | **Range Queries in Expressions** | |
+| 135 | Text AND amount range | `docsearch -e "budget AND amount:1000..5000"` |
+| 136 | Text AND date range | `docsearch -e "report AND date:2024-01-01..2024-12-31"` |
+| 137 | OR with range on one branch | `docsearch -e "(budget AND amount:1000..5000) OR revenue"` |
+| 138 | NOT with range (exclude high amounts) | `docsearch -e "invoice AND NOT amount:10000.."` |
+| 139 | Multiple ranges in expression | `docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"` |
+| 140 | Range-only expression | `docsearch -e "amount:1000..5000"` |
+| 141 | OR between two ranges | `docsearch -e "amount:1000..5000 OR percent:10..50"` |
+| 142 | Text with percent range | `docsearch -e "growth AND percent:20..100"` |
+| 143 | Text with age range | `docsearch -e "patient AND age:18..65"` |
+| 144 | Text with time range | `docsearch -e "meeting AND time:09:00..17:00"` |
+| 145 | Complex: text + range + NOT | `docsearch -e "(contract AND amount:5000..50000) AND NOT draft"` |
+| 146 | Complex: two branches with ranges | `docsearch -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
+| 147 | Expression + -R metadata filter | `docsearch -e "budget AND amount:1000..5000" -R filesize:..1M` |
+| 148 | Expression with wildcard + range | `docsearch -e -w "budg* AND amount:1000..5000"` |
+| 149 | Expression with regex + range | `docsearch -e -x "INV-\\d+ AND amount:1000..5000"` |
 | | **Installation Check** | |
-| 116 | Check installation health | `docsearch --check` |
+| 150 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 117 | Show version | `docsearch -v` |
-| 118 | Show help | `docsearch -h` |
-| 119 | Show help (no arguments) | `docsearch` |
+| 151 | Show version | `docsearch -v` |
+| 152 | Show help | `docsearch -h` |
+| 153 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -902,10 +955,336 @@ Use quotes inside the expression for multi-word terms:
 docsearch -e '"annual report" AND (2023 OR 2024)'
 ```
 
+### Range filters in expressions
+
+Range specs (`field:min..max`) can be embedded directly inside boolean expressions, combining value-based filtering with text matching in a single query:
+
+```bash
+# Lines mentioning "budget" that contain amounts between $1,000 and $5,000
+docsearch -e "budget AND amount:1000..5000"
+
+# OR logic: budget with amounts in range, or any line with "revenue"
+docsearch -e "(budget AND amount:1000..5000) OR revenue"
+
+# NOT logic: "invoice" lines without amounts over $10,000
+docsearch -e "invoice AND NOT amount:10000.."
+
+# Multiple ranges: invoice with amount and date constraints
+docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
+
+# Range-only expression (no text terms)
+docsearch -e "amount:1000..5000"
+
+# Combine -e with -R for metadata filtering on top of expression logic
+docsearch -e "budget OR revenue" -R filesize:..1M
+```
+
+All content fields (date, amount, number, percent, age, time) work inside expressions. Metadata fields (filesize, filedate) only work with the `-R` flag, not inside expressions. See [Range Queries](#range-queries) for comprehensive examples of all range types in both `-R` and `-e` modes.
+
 ### Limitations
 
 - `-e` cannot be combined with `-a` (AND mode), `-n` (exclude), or `-p` (proximity) — these features are built into the expression syntax
 - To search for the literal word "AND", "OR", or "NOT", enclose it in double quotes inside the expression: `docsearch -e '"AND" OR budget'`
+- Metadata range fields (`filesize`, `filedate`) cannot be used inside expressions — use `-R` for file-level filtering
+
+## Range Queries
+
+Range queries filter results by numeric values, dates, times, ages, percentages, and file metadata. Use the `-R` (or `--range`) flag with the syntax `field:min..max`. Both bounds are **inclusive** — `amount:1000..5000` matches $1,000, $5,000, and everything in between.
+
+**Target prefixes** — by default, content fields extract values from document text. Use `fn:` to extract values from the **filename** instead:
+
+| Prefix | Target | Example | Meaning |
+|--------|--------|---------|---------|
+| *(none)* | Content (line text) | `-R date:2024-01-01..2024-12-31` | Match dates found in document text |
+| `fn:` | Filename | `-R fn:date:2024-01-01..2024-12-31` | Match dates found in the filename |
+| `fc:` | Content (explicit) | `-R fc:amount:1000..5000` | Same as no prefix — explicitly targets content |
+
+The `fn:` prefix works with all 6 content fields (date, amount, number, percent, age, time). Metadata fields (filesize, filedate) cannot use `fn:` or `fc:` prefixes. Prefixes are case-insensitive (`fn:`, `FN:`, `Fn:` all work).
+
+**Content fields** extract values from document text and filter matching lines:
+
+| Field | Matches | Recognized formats in document text | Example |
+|-------|---------|-------------------------------------|---------|
+| `date` | Dates in text | ISO: `2024-01-15` · US: `01/15/2024`, `01-15-2024` · Natural: `January 15, 2024`, `Jan 15 2024`, `Jan 15, 2024` (all 12 month names and standard abbreviations) | `-R date:2024-01-01..2024-12-31` |
+| `amount` | Currency amounts | `$1,234.56`, `$ 1234`, `USD 1234`, `EUR 500`, `GBP 100`, `1,234 dollars`, `500 USD`, `200 EUR`, `150 GBP` | `-R amount:1000..5000` |
+| `number` | Any standalone number | `42`, `1,234`, `3.14`, `1,000,000` (must be surrounded by whitespace — numbers inside words are ignored) | `-R number:100..999` |
+| `percent` | Percentage values | `45%`, `45.5%`, `1,000%`, `45 percent` (case-insensitive) | `-R percent:10..50` |
+| `age` | Age mentions | `age 25`, `aged 25`, `25 years old`, `25 year old`, `25-year-old`, `25-years-old` (case-insensitive) | `-R age:18..65` |
+| `time` | Time values | 24-hour: `14:30`, `14:30:00` · 12-hour: `2:30 PM`, `9:00 AM`, `2:30:00 PM` (AM/PM converted to 24-hour: 12 PM = 12:00, 1 PM = 13:00, 12 AM = 0:00) | `-R time:09:00..17:00` |
+
+**Metadata fields** filter entire files by their properties (before text scanning):
+
+| Field | Matches | Accepted bound formats | Example |
+|-------|---------|----------------------|---------|
+| `filesize` | File size in bytes | Plain bytes (`1048576`), suffixes: `K` (1,024), `M` (1,048,576), `G` (1,073,741,824), `T` (case-insensitive) | `-R filesize:1M..10M` |
+| `filedate` | File modification date | ISO: `2024-01-15` · US: `01/15/2024`, `01-15-2024` | `-R filedate:2024-01-01..2024-06-30` |
+
+**Bound string formats** — the min and max values in your range spec accept flexible formatting:
+
+| Field | Accepted bound formats | Example specs |
+|-------|----------------------|---------------|
+| `date`, `filedate` | `YYYY-MM-DD`, `MM/DD/YYYY`, `MM-DD-YYYY` | `date:2024-01-01..2024-12-31`, `date:01/01/2024..12/31/2024` |
+| `amount`, `number`, `percent`, `age` | Plain numbers, with `$`, `,`, or `%` (stripped automatically) | `amount:$1,000..$5,000`, `percent:10%..50%`, `amount:1000..5000` |
+| `time` | `HH:MM`, `HH:MM:SS`, `HH:MM AM/PM`, `HH:MM:SS AM/PM` | `time:09:00..17:00`, `time:9:00 AM..5:00 PM`, `time:09:00:00..17:00:00` |
+| `filesize` | Plain bytes or with `K`/`M`/`G`/`T` suffix | `filesize:1M..10M`, `filesize:1048576..10485760` |
+
+### Using the `-R` flag
+
+**Basic range filtering** — combine `-R` with text search terms:
+
+```bash
+# Find "budget" in lines that mention amounts between $1,000 and $5,000
+docsearch -R amount:1000..5000 budget
+
+# Find "report" in lines dated within 2024
+docsearch -R date:2024-01-01..2024-12-31 report
+
+# Find "meeting" in lines with times between 9 AM and 5 PM
+docsearch -R time:09:00..17:00 meeting
+
+# Find "growth" in lines with percentages between 10% and 50%
+docsearch -R percent:10..50 growth
+
+# Find "patient" in lines mentioning ages 18 to 65
+docsearch -R age:18..65 patient
+
+# Find lines with any standalone number between 100 and 999
+docsearch -R number:100..999 report
+```
+
+**Open-ended ranges** — omit min or max for unbounded filtering:
+
+```bash
+# Amounts of $10,000 or more
+docsearch -R amount:10000.. contract
+
+# Amounts up to $500
+docsearch -R amount:..500 expense
+
+# Files larger than 10 MB
+docsearch -R filesize:10M.. report
+
+# Files smaller than 100 KB
+docsearch -R filesize:..100K memo
+
+# Dates from 2024 onward
+docsearch -R date:2024-01-01.. report
+
+# Dates before July 2024
+docsearch -R date:..2024-06-30 invoice
+
+# After-hours times only
+docsearch -R time:17:00.. log
+
+# Percentages above 90%
+docsearch -R percent:90.. performance
+```
+
+**Multiple ranges** combine with AND logic — all must match:
+
+```bash
+# Invoices with amounts $1,000-$5,000 AND dated within 2024
+docsearch -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice
+
+# Payments over $500 in lines mentioning ages 18-65
+docsearch -R amount:500.. -R age:18..65 payment
+
+# Small, recent files only
+docsearch -R filesize:..100K -R filedate:2025-01-01.. memo
+
+# Large files modified in 2024
+docsearch -R filesize:10M.. -R filedate:2024-01-01..2024-12-31 report
+```
+
+**Filename ranges** — use `fn:` to filter files by values extracted from their filenames:
+
+```bash
+# Only search files with 2024 dates in the filename (e.g., report-2024-06-15.pdf)
+docsearch -R fn:date:2024-01-01..2024-12-31 budget
+
+# Combine filename range with content range
+docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice
+
+# Filename range in an expression
+docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
+```
+
+**Range-only search** — use `-R` without text terms to find all lines containing values in range:
+
+```bash
+# Find all lines with dollar amounts between $1,000 and $5,000
+docsearch -R amount:1000..5000
+
+# Find all lines with dates in Q1 2024
+docsearch -R date:2024-01-01..2024-03-31
+
+# Find all lines with percentages over 50%
+docsearch -R percent:50..
+```
+
+**Combining with other flags:**
+
+```bash
+# Range with recursive search
+docsearch -R amount:1000..5000 -r budget
+
+# Range with file type filter
+docsearch -R amount:1000.. -t .pdf,.docx invoice
+
+# Range with context lines
+docsearch -R amount:5000..10000 -B 2 -A 2 payment
+
+# Range with AND mode text search
+docsearch -R date:2024-01-01..2024-12-31 -a budget revenue
+
+# Range with exclude terms
+docsearch -R amount:1000..5000 -n draft invoice
+
+# Range with whole-word matching
+docsearch -R amount:1000..5000 -W budget
+
+# Range with max matches limit
+docsearch -R amount:1000..5000 -m 50 invoice
+```
+
+### Range specs in boolean expressions
+
+Range specs can also be embedded directly inside `-e` expressions using the same `field:min..max` syntax. This lets you combine value-based filtering with boolean logic in a single query:
+
+```bash
+# Lines mentioning "budget" that contain amounts between $1,000 and $5,000
+docsearch -e "budget AND amount:1000..5000"
+
+# Lines mentioning "report" with dates in 2024
+docsearch -e "report AND date:2024-01-01..2024-12-31"
+
+# Lines with "growth" and a percentage above 20%
+docsearch -e "growth AND percent:20..100"
+
+# Lines with "patient" and an age between 18 and 65
+docsearch -e "patient AND age:18..65"
+
+# Lines with "meeting" and a time between 9 AM and 5 PM
+docsearch -e "meeting AND time:09:00..17:00"
+```
+
+**OR logic** — match one condition or the other:
+
+```bash
+# Lines with budget amounts in range, OR any line with "revenue"
+docsearch -e "(budget AND amount:1000..5000) OR revenue"
+
+# Match either high amounts OR high percentages
+docsearch -e "amount:10000.. OR percent:50.."
+
+# Different criteria per branch
+docsearch -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"
+```
+
+**NOT logic** — exclude lines matching a range:
+
+```bash
+# "invoice" lines that do NOT have amounts over $10,000
+docsearch -e "invoice AND NOT amount:10000.."
+
+# "contract" lines excluding dates before 2024
+docsearch -e "contract AND NOT date:..2023-12-31"
+
+# Complex: require text + range, exclude another range
+docsearch -e "(contract AND amount:5000..50000) AND NOT date:..2023-12-31"
+```
+
+**Multiple ranges in one expression:**
+
+```bash
+# Invoice lines with amounts $500-$5,000 AND dated in 2024
+docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
+
+# Payment lines with both amount and time constraints
+docsearch -e "payment AND amount:100..1000 AND time:09:00..17:00"
+```
+
+**Range-only expressions** (no text terms):
+
+```bash
+# All lines with amounts in range
+docsearch -e "amount:1000..5000"
+
+# Lines with amounts in range OR percentages in range
+docsearch -e "amount:1000..5000 OR percent:10..50"
+```
+
+**Combining with other modes:**
+
+```bash
+# Wildcard terms with a range
+docsearch -e -w "budg* AND amount:1000..5000"
+
+# Regex terms with a range
+docsearch -e -x "INV-\\d+ AND amount:1000..5000"
+
+# Fuzzy terms with a range
+docsearch -e -z "budgt AND amount:1000..5000"
+
+# Expression + -R flag for metadata filtering
+docsearch -e "budget AND amount:1000..5000" -R filesize:..1M
+
+# Expression + -R flag for file date filtering
+docsearch -e "budget OR revenue" -R filedate:2024-01-01..2024-12-31
+```
+
+**Real-world scenarios:**
+
+```bash
+# Compliance: find contracts with payments over $50,000 signed in 2024
+docsearch -e "contract AND amount:50000.. AND date:2024-01-01..2024-12-31"
+
+# HR: find employee records for people aged 55-65
+docsearch -e "(employee OR staff) AND age:55..65"
+
+# Finance: find Q4 invoices between $1,000 and $10,000
+docsearch -e "invoice AND amount:1000..10000 AND date:2024-10-01..2024-12-31"
+
+# Audit: find high-growth reports (over 25%) excluding drafts
+docsearch -e "growth AND percent:25.. AND NOT draft"
+
+# Legal: find settlements over $100,000 or judgments over $500,000
+docsearch -e "(settlement AND amount:100000..) OR (judgment AND amount:500000..)"
+
+# Healthcare: after-hours patient records for ages 18-30
+docsearch -e "patient AND age:18..30 AND time:17:00.."
+
+# Small recent PDFs with budget amounts over $5,000
+docsearch -e "budget AND amount:5000.." -R filesize:..1M -R filedate:2025-01-01.. -t .pdf
+
+# Find budget mentions only in files from 2024 (by filename date)
+docsearch -R fn:date:2024-01-01..2024-12-31 budget
+
+# Invoices from 2024 (filename) with amounts $1,000-$10,000 (content)
+docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..10000 invoice
+
+# Expression: budget lines in 2024-dated files
+docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
+```
+
+### Notes on range queries
+
+- **Inclusive bounds** — both min and max are inclusive. `amount:1000..5000` matches $1,000, $5,000, and everything in between
+- **Content fields** (date, amount, number, percent, age, time) extract values from document text and filter at the line level
+- **Filename ranges** (`fn:` prefix) extract values from the filename string and filter entire files — files whose names don't contain matching values are skipped entirely. All 6 content fields work with `fn:`
+- **Metadata fields** (filesize, filedate) filter entire files by their properties before text scanning — files that don't match metadata ranges are skipped entirely
+- **Multiple values in one line** — if a line contains multiple values of the same type (e.g., two dates or three dollar amounts), the line matches if **any one** of those values falls within the range. All ranges must still be satisfied (AND logic across different ranges)
+- Metadata fields (`filesize`, `filedate`) can only be used with the `-R` flag, not inside `-e` expressions. Use `-R` alongside `-e` for metadata filtering
+- When using `-R` alongside `-e`, the `-R` filters apply as an additional AND layer on top of the expression result
+- Multiple `-R` flags combine with AND logic — all ranges must be satisfied
+- **Bound string flexibility** — amounts accept `$` and `,` (e.g., `amount:$1,000..$5,000`), percents accept `%` (e.g., `percent:10%..50%`), dates accept ISO (`YYYY-MM-DD`) and US (`MM/DD/YYYY`, `MM-DD-YYYY`) formats, times accept `HH:MM`, `HH:MM:SS`, and `HH:MM AM/PM` formats
+- **Long form** — `--range` is the long form of `-R` (e.g., `--range amount:1000..5000`)
+- **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
+- **Index search** — ranges work with the search index. Indexed results are post-filtered by content and metadata ranges
+- **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking Save Search
+- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click Save Settings in the GUI, and restored when the GUI opens or when you click Restore Settings
+
+In the GUI, enter range filters in the **Range** field in Advanced Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
 
 ## Search Suites
 
@@ -939,6 +1318,8 @@ Search suites let you save individual searches, group them into named suites, an
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
 **Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+
+**Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Search**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
 
 **Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results. The suite report (generated via **Generate Report**) includes the stage file names for each test.
 
@@ -1047,7 +1428,7 @@ Example: `docsearch -a budget revenue expenses`
 **Can I combine AND, OR, and NOT in a single query?**
 Yes — use the `-e` flag for boolean expression search. This lets you write complex logic with AND, OR, NOT, and parentheses.<br>
 Example: `docsearch -e "(budget OR revenue) AND NOT draft"`<br>
-Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. See [Boolean Expression Search](#boolean-expression-search) for details.
+Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. Range specs (`field:min..max`) can be embedded directly in expressions (e.g., `"budget AND amount:1000..5000"`). See [Boolean Expression Search](#boolean-expression-search) for details.
 
 **How many CPU cores does docsearch use?**
 By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
@@ -1252,6 +1633,34 @@ result = search(
     use_wildcard=True,
 )
 
+# Range query — filter by value ranges
+result = search(
+    ["invoice"],
+    directory="/path/to/docs",
+    range_filters=["amount:1000..5000", "date:2024-01-01..2024-12-31"],
+)
+
+# Range-only search (no text terms)
+result = search(
+    [],
+    directory="/path/to/docs",
+    range_filters=["amount:1000..5000"],
+)
+
+# Range specs inside boolean expressions
+result = search(
+    [],
+    directory="/path/to/docs",
+    expression="budget AND amount:1000..5000",
+)
+
+# Filename range — filter files by date in filename
+result = search(
+    ["budget"],
+    directory="/path/to/docs",
+    range_filters=["fn:date:2024-01-01..2024-12-31"],
+)
+
 # Progress tracking
 def on_progress(done, total, filename):
     print(f"  [{done}/{total}] {filename}")
@@ -1263,10 +1672,10 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `search_terms` | `list[str]` | *(required)* | Terms to search for (pass `[]` when using `expression`) |
+| `search_terms` | `list[str]` | *(required)* | Terms to search for (pass `[]` when using `expression` or `range_filters`) |
 | `directory` | `str` | Current directory | Directory to search in |
 | `match_all` | `bool` | `False` | Require ALL terms (AND mode) |
-| `expression` | `str` | `None` | Boolean expression with AND, OR, NOT, parentheses (e.g. `"(budget OR revenue) AND NOT draft"`) |
+| `expression` | `str` | `None` | Boolean expression with AND, OR, NOT, parentheses, and range specs (e.g. `"(budget OR revenue) AND NOT draft"`, `"budget AND amount:1000..5000"`) |
 | `recursive` | `bool` | `False` | Search subdirectories |
 | `use_regex` | `bool` | `False` | Treat terms as regex patterns |
 | `use_fuzzy` | `bool` | `False` | Approximate matching |
@@ -1282,6 +1691,7 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 | `cores` | `int` | Auto | CPU cores for parallel processing |
 | `use_index` | `bool` | Auto | Use search index if available |
 | `progress` | `callable` | `None` | Callback `progress(done, total, filename)` |
+| `range_filters` | `list[str]` | `None` | Range filter specs (e.g. `["amount:1000..5000", "date:2024-01-01..2024-12-31"]`). Use `fn:` prefix for filename ranges (e.g. `["fn:date:2024-01-01..2024-12-31"]`) |
 
 ### Return Value
 

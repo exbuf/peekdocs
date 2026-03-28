@@ -272,3 +272,197 @@ class TestSearchValidation:
     def test_expression_invalid_regex(self):
         with pytest.raises(ValueError, match="Invalid regex"):
             search([], expression="[invalid AND budget", use_regex=True)
+
+    def test_invalid_range_spec(self):
+        with pytest.raises(ValueError, match="Unknown range field"):
+            search(["test"], range_filters=["badfield:1..2"])
+
+    def test_no_terms_no_range(self):
+        with pytest.raises(ValueError, match="No search terms"):
+            search([])
+
+
+# ── Range query search ──────────────────────────────────────────
+
+class TestRangeSearch:
+    def test_number_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "There are 150 items in stock",
+            "Only 50 items remaining",
+            "Ordered 500 more units",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["items"], directory=str(tmp_path),
+                         range_filters=["number:100..200"])
+        assert len(result.matches) == 1
+        assert "150" in result.matches[0].text
+
+    def test_amount_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Invoice total: $2,500.00",
+            "Small fee: $50.00",
+            "Large payment: $10,000.00",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["total", "fee", "payment"], directory=str(tmp_path),
+                         range_filters=["amount:1000..5000"])
+        assert len(result.matches) == 1
+        assert "2,500" in result.matches[0].text
+
+    def test_date_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Meeting on 2024-06-15 confirmed",
+            "Meeting on 2023-01-10 cancelled",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["meeting"], directory=str(tmp_path),
+                         range_filters=["date:2024-01-01..2024-12-31"])
+        assert len(result.matches) == 1
+        assert "2024-06-15" in result.matches[0].text
+
+    def test_range_only_search(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Total: $2,500.00",
+            "No amounts here",
+            "Cost: $150.00",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         range_filters=["amount:1000..5000"])
+        assert len(result.matches) == 1
+        assert "2,500" in result.matches[0].text
+
+    def test_range_combined_with_text(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Budget: $3,000.00 approved",
+            "Budget: $500.00 pending",
+            "Revenue: $3,000.00 received",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["budget"], directory=str(tmp_path),
+                         range_filters=["amount:1000..5000"])
+        assert len(result.matches) == 1
+        assert "budget" in result.matches[0].text.lower()
+        assert "3,000" in result.matches[0].text
+
+    def test_multiple_ranges(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Invoice $2,500 on 2024-06-15",
+            "Invoice $2,500 on 2023-01-10",
+            "Invoice $500 on 2024-06-15",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["invoice"], directory=str(tmp_path),
+                         range_filters=["amount:1000..5000", "date:2024-01-01..2024-12-31"])
+        assert len(result.matches) == 1
+        assert "2,500" in result.matches[0].text
+        assert "2024-06-15" in result.matches[0].text
+
+    def test_percent_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Growth: 25% achieved",
+            "Growth: 75% achieved",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search(["growth"], directory=str(tmp_path),
+                         range_filters=["percent:10..50"])
+        assert len(result.matches) == 1
+        assert "25%" in result.matches[0].text
+
+
+# ── Range queries in expressions ─────────────────────────────
+
+class TestExpressionWithRange:
+    def test_expression_and_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Budget: $2,500.00 approved",
+            "Budget: $500.00 pending",
+            "Revenue: $2,500.00 received",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         expression="budget AND amount:1000..5000")
+        assert len(result.matches) == 1
+        assert "budget" in result.matches[0].text.lower()
+        assert "2,500" in result.matches[0].text
+
+    def test_expression_or_with_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Budget: $2,500.00 approved",
+            "Revenue report ready",
+            "Other: $2,500.00 noted",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         expression="(budget AND amount:1000..5000) OR revenue")
+        assert len(result.matches) == 2
+
+    def test_expression_not_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Budget: $2,500.00 approved",
+            "Budget: $500.00 pending",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         expression="budget AND NOT amount:1000..5000")
+        assert len(result.matches) == 1
+        assert "500.00" in result.matches[0].text
+
+    def test_expression_range_only(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", [
+            "Total: $2,500.00",
+            "No amounts here",
+            "Cost: $150.00",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         expression="amount:1000..5000")
+        assert len(result.matches) == 1
+        assert "2,500" in result.matches[0].text
+
+
+# ── Filename range queries ──────────────────────────────────────
+
+class TestFilenameRangeSearch:
+    def test_fn_date_filters_by_filename(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "report-2024-06-15.docx", ["budget line one"])
+        _make_docx(tmp_path / "report-2023-03-01.docx", ["budget line two"])
+        monkeypatch.chdir(tmp_path)
+        result = search(["budget"], directory=str(tmp_path),
+                         range_filters=["fn:date:2024-01-01..2024-12-31"])
+        assert len(result.matches) == 1
+        assert result.matches[0].filename == "report-2024-06-15.docx"
+
+    def test_fn_date_in_expression(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "report-2024-06-15.docx", ["budget approved"])
+        _make_docx(tmp_path / "report-2023-03-01.docx", ["budget pending"])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         expression="budget AND fn:date:2024-01-01..2024-12-31")
+        assert len(result.matches) == 1
+        assert "approved" in result.matches[0].text
+
+    def test_fn_range_combined_with_content_range(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "invoice-2024-06-15.docx", [
+            "Total: $2,500.00",
+            "Notes: no amount",
+        ])
+        _make_docx(tmp_path / "invoice-2023-03-01.docx", [
+            "Total: $3,000.00",
+        ])
+        monkeypatch.chdir(tmp_path)
+        result = search([], directory=str(tmp_path),
+                         range_filters=[
+                             "fn:date:2024-01-01..2024-12-31",
+                             "amount:1000..5000",
+                         ])
+        assert len(result.matches) == 1
+        assert "2,500" in result.matches[0].text
+        assert result.matches[0].filename == "invoice-2024-06-15.docx"
+
+    def test_fn_date_no_match(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "report.docx", ["budget line one"])
+        monkeypatch.chdir(tmp_path)
+        result = search(["budget"], directory=str(tmp_path),
+                         range_filters=["fn:date:2024-01-01..2024-12-31"])
+        assert len(result.matches) == 0

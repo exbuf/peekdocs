@@ -21,6 +21,7 @@ import ebooklib
 from ebooklib import epub
 
 from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
+from docsearch.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
 
 
 def apply_context(all_lines, match_indices, before, after):
@@ -218,6 +219,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         - skipped = list of (filename, error_msg) tuples (usually empty)
     """
     search_terms = config["search_terms"]
+    content_ranges = config.get("content_ranges", [])
+    range_only = not search_terms and not config.get("expression_ast") and content_ranges
     use_regex = config["use_regex"]
     match_all = config["match_all"]
     use_proximity = config["use_proximity"]
@@ -305,7 +308,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
         if expression_ast is not None:
             from docsearch.expr_parser import evaluate_expression
-            return evaluate_expression(expression_ast, text, _single_term_matches)
+            return evaluate_expression(expression_ast, text, _single_term_matches, filename=filename)
         check = all if match_all else any
         if use_regex:
             if use_proximity:
@@ -380,16 +383,28 @@ def _search_file_lines(all_lines, file_dir, filename, config):
 
     matches = []
 
+    def _line_passes(text):
+        """Return True if text passes both text matching and content range filters."""
+        if range_only:
+            text_ok = True
+        else:
+            text_ok = text_matches(text)
+        if not text_ok:
+            return False
+        if content_ranges and not line_matches_content_ranges(text, content_ranges):
+            return False
+        return True
+
     if use_context:
-        match_indices = {i for i, (_, text) in enumerate(all_lines) if text_matches(text)}
+        match_indices = {i for i, (_, text) in enumerate(all_lines) if _line_passes(text)}
         if match_indices:
             groups = apply_context(all_lines, match_indices, context_before, context_after)
             for group in groups:
                 matches.append(context_group_to_match(group, file_dir, filename))
     else:
         for line_num, text in all_lines:
-            if text_matches(text):
-                if use_fuzzy:
+            if _line_passes(text):
+                if use_fuzzy and not range_only:
                     matches.append((file_dir, filename, line_num, highlight_text(text)))
                 else:
                     matches.append((file_dir, filename, line_num, text))
@@ -401,6 +416,18 @@ def _process_file(args_tuple):
     """Process a single file and return (matches, skipped) for that file."""
     filepath, config = args_tuple
     filename = os.path.basename(filepath)
+
+    # Metadata range filtering — skip entire file if it doesn't match
+    metadata_ranges = config.get("metadata_ranges", [])
+    if metadata_ranges:
+        if not file_matches_metadata_ranges(filepath, metadata_ranges):
+            return ([], [])
+
+    # Filename range filtering — skip entire file if filename doesn't match
+    filename_ranges = config.get("filename_ranges", [])
+    if filename_ranges:
+        if not file_matches_filename_ranges(filename, filename_ranges):
+            return ([], [])
 
     try:
         all_lines = _extract_lines(

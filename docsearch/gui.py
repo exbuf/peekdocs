@@ -37,20 +37,21 @@ def _build_command_from_values(
     max_matches="",
     timestamp_suffix="",
     output_dir="",
+    range_filters="",
 ):
     """Build a docsearch CLI command list from GUI values.
 
     Returns None on validation error, or "FLAGS_IN_SEARCH" if flags are
     detected in the search text.
     """
-    if not search_text.strip():
+    if not search_text.strip() and not range_filters.strip():
         return None
 
     if not folder or not os.path.isdir(folder):
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--timestamp", "--ts-suffix", "--output-dir"}
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-R", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--range", "--timestamp", "--ts-suffix", "--output-dir"}
     if not expression:
         tokens = search_text.strip().split()
         if any(token in _CLI_FLAGS for token in tokens):
@@ -129,6 +130,12 @@ def _build_command_from_values(
 
     if output_dir.strip():
         cmd.extend(["--output-dir", output_dir.strip()])
+
+    if range_filters.strip():
+        for spec in range_filters.split(","):
+            spec = spec.strip()
+            if spec:
+                cmd.extend(["-R", spec])
 
     if expression:
         pass  # already appended right after -e
@@ -596,18 +603,28 @@ def _launch_gui():
             self.max_matches_entry.insert(0, "1000")
             self.max_matches_entry.grid(row=0, column=3)
 
-            # Row 5: specific files
-            ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
+            # Row 5: range filters
+            ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
                 row=5, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
+            self.range_entry = ctk.CTkEntry(
+                self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
+            )
+            self.range_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
+
+            # Row 6: specific files
+            ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
+                row=6, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.specific_files_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
             )
-            self.specific_files_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.specific_files_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-            # Row 6: save as + append to
+            # Row 7: save as + append to
             save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            save_frame.grid(row=6, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+            save_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
 
             ctk.CTkLabel(save_frame, text="Save as:").grid(row=0, column=0, padx=(0, 5))
             self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
@@ -617,9 +634,9 @@ def _launch_gui():
             self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
             self.append_name_entry.grid(row=0, column=3)
 
-            # Row 7: output directory
+            # Row 8: output directory
             outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            outdir_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew")
+            outdir_frame.grid(row=8, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew")
 
             ctk.CTkLabel(outdir_frame, text="Output Dir:").grid(row=0, column=0, padx=(0, 5))
             self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
@@ -634,9 +651,9 @@ def _launch_gui():
             outdir_browse_btn.grid(row=0, column=2, padx=(0, 0))
             Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder. This is independent from the Output Dir on the Search Suites panel — each can point to a different location")
 
-            # Row 8: additional output formats
+            # Row 9: additional output formats
             output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            output_frame.grid(row=8, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+            output_frame.grid(row=9, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
 
             ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
             self.output_csv_var = ctk.StringVar(value="off")
@@ -659,9 +676,9 @@ def _launch_gui():
             cb_ts.grid(row=0, column=3, padx=(15, 0))
             Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
 
-            # Row 9: Save Settings + Restore Settings buttons
+            # Row 10: Save Settings + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            settings_btn_frame.grid(row=9, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+            settings_btn_frame.grid(row=10, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
             inspect_settings_btn = ctk.CTkButton(
                 settings_btn_frame, text="Inspect .docsearchrc", width=155,
@@ -1522,6 +1539,7 @@ def _launch_gui():
                     expression=params.get("expression", False),
                     whole_word=params.get("whole_word", False),
                     max_matches=params.get("max_matches", ""),
+                    range_filters=params.get("range_filters", ""),
                 )
 
                 # Cascade: track input file count and inject file list
@@ -1830,8 +1848,9 @@ def _launch_gui():
                 return
 
             search_text = self.search_entry.get().strip()
-            if not search_text:
-                self._show_error("Please enter one or more search terms.")
+            range_text = self.range_entry.get().strip()
+            if not search_text and not range_text:
+                self._show_error("Please enter search terms or a range filter.")
                 return
 
             if self.index_search_var.get() == "on":
@@ -1875,6 +1894,7 @@ def _launch_gui():
                 max_matches=self.max_matches_entry.get(),
                 timestamp_suffix=self._last_ts_suffix,
                 output_dir=self.output_dir_entry.get(),
+                range_filters=self.range_entry.get(),
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -2529,6 +2549,9 @@ def _launch_gui():
             output_dir = self.output_dir_entry.get().strip()
             if output_dir:
                 settings["output_dir"] = output_dir
+            range_val = self.range_entry.get().strip()
+            if range_val:
+                settings["range"] = range_val
 
             if settings:
                 _save_config(settings)
@@ -2605,6 +2628,9 @@ def _launch_gui():
             self.output_dir_entry.delete(0, "end")
             if "output_dir" in config:
                 self.output_dir_entry.insert(0, config["output_dir"])
+            self.range_entry.delete(0, "end")
+            if "range" in config:
+                self.range_entry.insert(0, config["range"])
             self._update_index_button_color()
 
         def reset_form(self):
@@ -2636,6 +2662,7 @@ def _launch_gui():
             self.whole_word_var.set("off")
             self.timestamp_var.set("on")
             self.output_dir_entry.delete(0, "end")
+            self.range_entry.delete(0, "end")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
@@ -2686,6 +2713,7 @@ def _launch_gui():
                 "whole_word": self.whole_word_var.get() == "on",
                 "output_csv": self.output_csv_var.get() == "on",
                 "output_json": self.output_json_var.get() == "on",
+                "range_filters": self.range_entry.get().strip(),
                 "append_name": self.append_name_entry.get().strip(),
                 "save_name": self.save_name_entry.get().strip(),
             }
@@ -2726,6 +2754,8 @@ def _launch_gui():
                 self.search_entry.configure(placeholder_text="Enter search terms...")
             self.output_csv_var.set("on" if params.get("output_csv") else "off")
             self.output_json_var.set("on" if params.get("output_json") else "off")
+            self.range_entry.delete(0, "end")
+            self.range_entry.insert(0, params.get("range_filters", ""))
             self.append_name_entry.delete(0, "end")
             self.append_name_entry.insert(0, params.get("append_name", ""))
             self.save_name_entry.delete(0, "end")

@@ -12,6 +12,7 @@ SEARCH_PARAM_KEYS = [
     "ocr", "regex", "exclude", "file_types", "proximity",
     "context_before", "context_after", "cores", "specific_files",
     "index_search", "inverse", "expression", "whole_word", "max_matches",
+    "range_filters",
 ]
 
 

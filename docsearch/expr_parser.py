@@ -48,7 +48,13 @@ class NotNode:
     child: 'ExprNode'
 
 
-ExprNode = Union[TermNode, AndNode, OrNode, NotNode]
+@dataclass
+class RangeNode:
+    """Leaf node: a range filter spec (e.g., amount:1000..5000)."""
+    spec: str
+
+
+ExprNode = Union[TermNode, AndNode, OrNode, NotNode, RangeNode]
 
 
 # ─── Tokenizer ───────────────────────────────────────────
@@ -61,6 +67,7 @@ class TokenType(Enum):
     NOT = auto()
     LPAREN = auto()
     RPAREN = auto()
+    RANGE = auto()
 
 
 @dataclass
@@ -112,16 +119,19 @@ def tokenize(expression):
             i = j + 1
             continue
 
-        # Word (keyword or term)
+        # Word (keyword, range spec, or term)
         j = i
         while j < n and not s[j].isspace() and s[j] not in '()"':
             j += 1
         word = s[i:j]
-        upper = word.upper()
-        if upper in _KEYWORDS:
-            tokens.append(Token(_KEYWORDS[upper], upper))
+        if re.match(r'^[a-zA-Z]+:.*\.\.', word):
+            tokens.append(Token(TokenType.RANGE, word))
         else:
-            tokens.append(Token(TokenType.TERM, word))
+            upper = word.upper()
+            if upper in _KEYWORDS:
+                tokens.append(Token(_KEYWORDS[upper], upper))
+            else:
+                tokens.append(Token(TokenType.TERM, word))
         i = j
 
     return tokens
@@ -194,10 +204,24 @@ def _parse_primary(tokens, pos):
             )
         return node, pos
 
+    if tok.type == TokenType.RANGE:
+        pos += 1
+        if pos < len(tokens) and tokens[pos].type in (TokenType.TERM, TokenType.RANGE):
+            raise ValueError(
+                f"Missing operator between '{tok.value}' and '{tokens[pos].value}'. "
+                "Use AND or OR between terms."
+            )
+        if pos < len(tokens) and tokens[pos].type == TokenType.LPAREN:
+            raise ValueError(
+                f"Missing operator after '{tok.value}'. "
+                "Use AND or OR before '('."
+            )
+        return RangeNode(tok.value), pos
+
     if tok.type == TokenType.TERM:
         pos += 1
         # Check for adjacent term without operator
-        if pos < len(tokens) and tokens[pos].type == TokenType.TERM:
+        if pos < len(tokens) and tokens[pos].type in (TokenType.TERM, TokenType.RANGE):
             raise ValueError(
                 f"Missing operator between '{tok.value}' and '{tokens[pos].value}'. "
                 "Use AND or OR between terms."
@@ -222,7 +246,7 @@ def _parse_primary(tokens, pos):
 # ─── AST Evaluator ───────────────────────────────────────
 
 
-def evaluate_expression(ast, text, match_func):
+def evaluate_expression(ast, text, match_func, filename=None):
     """Evaluate an AST against a text string.
 
     Args:
@@ -230,20 +254,24 @@ def evaluate_expression(ast, text, match_func):
         text: The text to match against.
         match_func: Callable(term, text) -> bool. Determines if a single
                     term matches the text.
+        filename: Optional filename for ``fn:`` range evaluation.
 
     Returns:
         True if the expression matches the text.
     """
     if isinstance(ast, TermNode):
         return match_func(ast.value, text)
+    elif isinstance(ast, RangeNode):
+        from docsearch.range_query import evaluate_single_range
+        return evaluate_single_range(text, ast.spec, filename=filename)
     elif isinstance(ast, AndNode):
-        return (evaluate_expression(ast.left, text, match_func)
-                and evaluate_expression(ast.right, text, match_func))
+        return (evaluate_expression(ast.left, text, match_func, filename=filename)
+                and evaluate_expression(ast.right, text, match_func, filename=filename))
     elif isinstance(ast, OrNode):
-        return (evaluate_expression(ast.left, text, match_func)
-                or evaluate_expression(ast.right, text, match_func))
+        return (evaluate_expression(ast.left, text, match_func, filename=filename)
+                or evaluate_expression(ast.right, text, match_func, filename=filename))
     elif isinstance(ast, NotNode):
-        return not evaluate_expression(ast.child, text, match_func)
+        return not evaluate_expression(ast.child, text, match_func, filename=filename)
     else:
         raise TypeError(f"Unknown AST node type: {type(ast)}")
 
@@ -261,6 +289,8 @@ def extract_terms(ast):
             if node.value not in seen:
                 seen.add(node.value)
                 result.append(node.value)
+        elif isinstance(node, RangeNode):
+            pass  # range specs are not text search terms
         elif isinstance(node, NotNode):
             _walk(node.child)
         else:  # AndNode, OrNode
@@ -284,6 +314,8 @@ def extract_positive_terms(ast):
             if not negated and node.value not in seen:
                 seen.add(node.value)
                 result.append(node.value)
+        elif isinstance(node, RangeNode):
+            pass  # range specs are not text search terms
         elif isinstance(node, NotNode):
             _walk(node.child, negated=True)
         else:  # AndNode, OrNode

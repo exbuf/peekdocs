@@ -48,6 +48,9 @@ BANNER_TOP = (
 )
 
 BANNER_BOTTOM = (
+    'Use option flag -R to filter by value ranges. Example: docsearch -R amount:1000..5000 budget\n'
+    '    Fields: date, amount, number, percent, age, time, filesize, filedate. Repeatable.\n'
+    '    Use fn: prefix to match filename values. Example: docsearch -R fn:date:2024-01-01..2024-12-31\n'
     'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
@@ -83,7 +86,7 @@ REGEX_PATTERNS = (
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
@@ -629,6 +632,17 @@ def _main_inner(argv=None):
         else:
             args.remove("--output-dir")
 
+    # Range filters (-R / --range), repeatable
+    range_specs_raw = []
+    while "-R" in args or "--range" in args:
+        flag = "-R" if "-R" in args else "--range"
+        idx = args.index(flag)
+        if idx + 1 < len(args):
+            range_specs_raw.append(args[idx + 1])
+            del args[idx:idx + 2]
+        else:
+            args.remove(flag)
+
     # Parse all flags
     parsed = parse_flags(args, config)
     if isinstance(parsed, tuple):
@@ -671,6 +685,14 @@ def _main_inner(argv=None):
     # Determine index mode for display
     _will_use_index = index_exists(cwd) and not no_index
     display_label = expression if expression else ' '.join(search_terms)
+    if not display_label and range_specs_raw:
+        display_label = " ".join(range_specs_raw)
+    # Parse range specs for reporter display
+    parsed_range_specs = []
+    if range_specs_raw:
+        from docsearch.range_query import parse_range
+        for spec_str in range_specs_raw:
+            parsed_range_specs.append(parse_range(spec_str))
     if _will_use_index:
         print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
     else:
@@ -747,6 +769,7 @@ def _main_inner(argv=None):
             use_index=None if not no_index else False,
             progress=_cli_progress,
             expression=expression,
+            range_filters=range_specs_raw or None,
         )
     except KeyboardInterrupt:
         spinner_stop.set()
@@ -831,6 +854,7 @@ def _main_inner(argv=None):
         use_whole_word=use_whole_word,
         total_matches=total_match_count if capped else None,
         max_matches=max_matches if capped else None,
+        range_specs=parsed_range_specs or None,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)

@@ -6,6 +6,7 @@ from docsearch.expr_parser import (
     AndNode,
     NotNode,
     OrNode,
+    RangeNode,
     TermNode,
     Token,
     TokenType,
@@ -352,3 +353,169 @@ class TestExtractPositiveTerms:
         assert "b" in terms
         assert "c" not in terms
         assert "d" not in terms
+
+
+# ── Range nodes in expressions ───────────────────────────────
+
+class TestRangeNodeTokenizer:
+    def test_range_token(self):
+        tokens = tokenize("amount:1000..5000")
+        assert len(tokens) == 1
+        assert tokens[0].type == TokenType.RANGE
+        assert tokens[0].value == "amount:1000..5000"
+
+    def test_range_with_terms(self):
+        tokens = tokenize("budget AND amount:1000..5000")
+        assert tokens[0].type == TokenType.TERM
+        assert tokens[1].type == TokenType.AND
+        assert tokens[2].type == TokenType.RANGE
+
+    def test_date_range(self):
+        tokens = tokenize("date:2024-01-01..2024-12-31")
+        assert tokens[0].type == TokenType.RANGE
+
+    def test_open_ended_range(self):
+        tokens = tokenize("amount:1000..")
+        assert tokens[0].type == TokenType.RANGE
+
+
+class TestRangeNodeParser:
+    def test_range_node(self):
+        ast = parse_expression("amount:1000..5000")
+        assert isinstance(ast, RangeNode)
+        assert ast.spec == "amount:1000..5000"
+
+    def test_range_and_term(self):
+        ast = parse_expression("budget AND amount:1000..5000")
+        assert isinstance(ast, AndNode)
+        assert isinstance(ast.left, TermNode)
+        assert isinstance(ast.right, RangeNode)
+
+    def test_range_in_or(self):
+        ast = parse_expression("(budget AND amount:1000..5000) OR revenue")
+        assert isinstance(ast, OrNode)
+        assert isinstance(ast.left, AndNode)
+        assert isinstance(ast.left.right, RangeNode)
+
+    def test_not_range(self):
+        ast = parse_expression("budget AND NOT amount:1000..5000")
+        assert isinstance(ast, AndNode)
+        assert isinstance(ast.right, NotNode)
+        assert isinstance(ast.right.child, RangeNode)
+
+
+class TestRangeNodeEvaluator:
+    def test_amount_matches(self):
+        ast = parse_expression("amount:1000..5000")
+        assert evaluate_expression(ast, "Total: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+
+    def test_amount_no_match(self):
+        ast = parse_expression("amount:1000..5000")
+        assert not evaluate_expression(ast, "Total: $500.00", lambda t, tx: t.lower() in tx.lower())
+
+    def test_term_and_range(self):
+        ast = parse_expression("budget AND amount:1000..5000")
+        assert evaluate_expression(ast, "Budget: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+        assert not evaluate_expression(ast, "Revenue: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+        assert not evaluate_expression(ast, "Budget: $500.00", lambda t, tx: t.lower() in tx.lower())
+
+    def test_or_with_range(self):
+        ast = parse_expression("(budget AND amount:1000..5000) OR revenue")
+        # budget with amount in range
+        assert evaluate_expression(ast, "Budget: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+        # revenue without amount
+        assert evaluate_expression(ast, "Revenue report", lambda t, tx: t.lower() in tx.lower())
+        # neither
+        assert not evaluate_expression(ast, "Other: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+
+    def test_not_range(self):
+        ast = parse_expression("budget AND NOT amount:1000..5000")
+        assert evaluate_expression(ast, "Budget: $500.00", lambda t, tx: t.lower() in tx.lower())
+        assert not evaluate_expression(ast, "Budget: $2,500.00", lambda t, tx: t.lower() in tx.lower())
+
+
+class TestRangeNodeExtractTerms:
+    def test_range_not_extracted(self):
+        ast = parse_expression("budget AND amount:1000..5000")
+        terms = extract_terms(ast)
+        assert terms == ["budget"]
+
+    def test_range_only_empty(self):
+        ast = parse_expression("amount:1000..5000")
+        terms = extract_terms(ast)
+        assert terms == []
+
+    def test_positive_terms_skip_range(self):
+        ast = parse_expression("budget AND amount:1000..5000")
+        terms = extract_positive_terms(ast)
+        assert terms == ["budget"]
+
+    def test_negated_range_skip(self):
+        ast = parse_expression("budget AND NOT amount:1000..5000")
+        terms = extract_positive_terms(ast)
+        assert terms == ["budget"]
+
+
+# ── Filename range (fn:) in expressions ──────────────────────
+
+class TestFilenameRangeInExpressions:
+    def _literal_match(self, term, text):
+        return term.lower() in text.lower()
+
+    def test_fn_tokenized_as_range(self):
+        tokens = tokenize("fn:date:2024-01-01..2024-12-31")
+        assert len(tokens) == 1
+        assert tokens[0].type == TokenType.RANGE
+        assert tokens[0].value == "fn:date:2024-01-01..2024-12-31"
+
+    def test_fn_parsed_as_range_node(self):
+        ast = parse_expression("fn:date:2024-01-01..2024-12-31")
+        assert isinstance(ast, RangeNode)
+        assert ast.spec == "fn:date:2024-01-01..2024-12-31"
+
+    def test_fn_range_with_term(self):
+        ast = parse_expression("budget AND fn:date:2024-01-01..2024-12-31")
+        assert isinstance(ast, AndNode)
+        assert isinstance(ast.left, TermNode)
+        assert isinstance(ast.right, RangeNode)
+
+    def test_fn_range_matches_with_filename(self):
+        ast = parse_expression("budget AND fn:date:2024-01-01..2024-12-31")
+        result = evaluate_expression(
+            ast, "Budget report details", self._literal_match,
+            filename="report-2024-06-15.pdf"
+        )
+        assert result is True
+
+    def test_fn_range_no_match_wrong_filename(self):
+        ast = parse_expression("budget AND fn:date:2024-01-01..2024-12-31")
+        result = evaluate_expression(
+            ast, "Budget report details", self._literal_match,
+            filename="report-2023-06-15.pdf"
+        )
+        assert result is False
+
+    def test_fn_range_no_filename_returns_false(self):
+        ast = parse_expression("fn:date:2024-01-01..2024-12-31")
+        result = evaluate_expression(ast, "some text", self._literal_match)
+        assert result is False
+
+    def test_fn_range_no_filename_returns_false_explicit_none(self):
+        ast = parse_expression("fn:date:2024-01-01..2024-12-31")
+        result = evaluate_expression(ast, "some text", self._literal_match, filename=None)
+        assert result is False
+
+    def test_fn_range_or_term(self):
+        ast = parse_expression("fn:date:2024-01-01..2024-12-31 OR revenue")
+        # filename matches
+        assert evaluate_expression(
+            ast, "some text", self._literal_match, filename="report-2024-06-15.pdf"
+        )
+        # term matches
+        assert evaluate_expression(
+            ast, "revenue report", self._literal_match, filename="old-report.pdf"
+        )
+        # neither matches
+        assert not evaluate_expression(
+            ast, "some text", self._literal_match, filename="old-report.pdf"
+        )

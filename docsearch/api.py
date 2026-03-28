@@ -64,6 +64,7 @@ def search(
     use_index=None,
     progress=None,
     expression=None,
+    range_filters=None,
 ):
     """Search documents and return structured results.
 
@@ -106,6 +107,9 @@ def search(
     expression : str, optional
         Boolean expression string (e.g. "(bob AND amy) OR fred"). Mutually exclusive
         with match_all, exclude_terms, and proximity.
+    range_filters : list[str], optional
+        Range filter specs (e.g. ["amount:1000..5000", "date:2024-01-01..2024-12-31"]).
+        Content ranges filter matched lines; metadata ranges filter files.
 
     Returns
     -------
@@ -117,6 +121,14 @@ def search(
     ValueError
         For invalid parameter combinations (e.g. regex + fuzzy).
     """
+    # ── Parse range filters ────────────────────────────────────
+    from docsearch.range_query import parse_range, split_ranges
+    parsed_ranges = []
+    if range_filters:
+        for spec_str in range_filters:
+            parsed_ranges.append(parse_range(spec_str))
+    content_ranges, metadata_ranges, filename_ranges = split_ranges(parsed_ranges)
+
     # ── Validate parameters ─────────────────────────────────────
     if expression is not None:
         if match_all:
@@ -137,7 +149,7 @@ def search(
                     raise ValueError(f"Invalid regex pattern '{term}' in expression: {e}")
     else:
         expression_ast = None
-        if not search_terms:
+        if not search_terms and not range_filters:
             raise ValueError("No search terms provided.")
     if use_fuzzy and use_regex:
         raise ValueError("Cannot combine fuzzy and regex search modes.")
@@ -189,6 +201,9 @@ def search(
         "use_whole_word": use_whole_word,
         "expression_ast": expression_ast,
         "_ocr_image_func": _ocr_image,
+        "content_ranges": content_ranges,
+        "metadata_ranges": metadata_ranges,
+        "filename_ranges": filename_ranges,
     }
 
     # ── Determine search path ───────────────────────────────────
