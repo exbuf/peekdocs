@@ -36,6 +36,7 @@ def _build_command_from_values(
     whole_word=False,
     max_matches="",
     timestamp_suffix="",
+    output_dir="",
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -49,7 +50,7 @@ def _build_command_from_values(
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--timestamp", "--ts-suffix"}
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--timestamp", "--ts-suffix", "--output-dir"}
     if not expression:
         tokens = search_text.strip().split()
         if any(token in _CLI_FLAGS for token in tokens):
@@ -125,6 +126,9 @@ def _build_command_from_values(
 
     if timestamp_suffix:
         cmd.extend(["--ts-suffix", timestamp_suffix])
+
+    if output_dir.strip():
+        cmd.extend(["--output-dir", output_dir.strip()])
 
     if expression:
         pass  # already appended right after -e
@@ -613,9 +617,26 @@ def _launch_gui():
             self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
             self.append_name_entry.grid(row=0, column=3)
 
-            # Row 7: additional output formats
+            # Row 7: output directory
+            outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            outdir_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew")
+
+            ctk.CTkLabel(outdir_frame, text="Output Dir:").grid(row=0, column=0, padx=(0, 5))
+            self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
+            self.output_dir_entry.grid(row=0, column=1, padx=(0, 5), sticky="ew")
+            outdir_frame.grid_columnconfigure(1, weight=1)
+
+            outdir_browse_btn = ctk.CTkButton(
+                outdir_frame, text="Browse", width=70,
+                command=self._browse_output_dir,
+                font=ctk.CTkFont(size=12),
+            )
+            outdir_browse_btn.grid(row=0, column=2, padx=(0, 0))
+            Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder. This is independent from the Output Dir on the Search Suites panel — each can point to a different location")
+
+            # Row 8: additional output formats
             output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            output_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+            output_frame.grid(row=8, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
 
             ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
             self.output_csv_var = ctk.StringVar(value="off")
@@ -638,9 +659,9 @@ def _launch_gui():
             cb_ts.grid(row=0, column=3, padx=(15, 0))
             Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
 
-            # Row 8: Save Settings + Restore Settings buttons
+            # Row 9: Save Settings + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            settings_btn_frame.grid(row=8, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+            settings_btn_frame.grid(row=9, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
             inspect_settings_btn = ctk.CTkButton(
                 settings_btn_frame, text="Inspect .docsearchrc", width=155,
@@ -960,10 +981,27 @@ def _launch_gui():
             self.suite_status_label = ctk.CTkLabel(run_frame, text="", font=ctk.CTkFont(size=12))
             self.suite_status_label.pack(side="left", padx=10)
 
+            # Output Dir row for suites
+            suite_outdir_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            suite_outdir_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+
+            ctk.CTkLabel(suite_outdir_frame, text="Output Dir:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
+            self.suite_output_dir_entry = ctk.CTkEntry(suite_outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
+            self.suite_output_dir_entry.grid(row=0, column=1, padx=(0, 5), sticky="ew")
+            suite_outdir_frame.grid_columnconfigure(1, weight=1)
+
+            suite_outdir_browse_btn = ctk.CTkButton(
+                suite_outdir_frame, text="Browse", width=70,
+                command=self._browse_suite_output_dir,
+                font=ctk.CTkFont(size=12),
+            )
+            suite_outdir_browse_btn.grid(row=0, column=2)
+            Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location")
+
             # Results area
             results_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            results_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
-            self.suite_frame.grid_rowconfigure(3, weight=1)
+            results_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
+            self.suite_frame.grid_rowconfigure(4, weight=1)
 
             self.suite_results_text = tk.Text(
                 results_frame, height=8, width=60, font=("Courier", 11),
@@ -993,11 +1031,11 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self._cleanup_suite_files,
             )
-            self.cleanup_suite_btn.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="w")
+            self.cleanup_suite_btn.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="w")
             Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
 
         def _cleanup_suite_files(self):
-            """Delete all generated suite and stage report files from the search folder."""
+            """Delete all generated suite and stage report files from the search/output folder."""
             import glob
             from tkinter import messagebox
 
@@ -1006,14 +1044,21 @@ def _launch_gui():
                 self._show_error("Select a valid folder first.")
                 return
 
+            # Scan both search folder and output dir (if different)
+            od = self.suite_output_dir_entry.get().strip() if hasattr(self, 'suite_output_dir_entry') else ""
+            dirs_to_scan = [folder]
+            if od and od != folder and os.path.isdir(od):
+                dirs_to_scan.append(od)
+
             # Find suite-generated files only (not user-saved -s/-sa reports)
-            patterns = [
-                os.path.join(folder, "DO_NOT_SEARCH_SUITE_*"),
-                os.path.join(folder, "DO_NOT_SEARCH_docsearch_suite_*"),
-            ]
             files = []
-            for pat in patterns:
-                files.extend(glob.glob(pat))
+            for d in dirs_to_scan:
+                patterns = [
+                    os.path.join(d, "DO_NOT_SEARCH_SUITE_*"),
+                    os.path.join(d, "DO_NOT_SEARCH_docsearch_suite_*"),
+                ]
+                for pat in patterns:
+                    files.extend(glob.glob(pat))
             files = sorted(set(files))
 
             if not files:
@@ -1064,12 +1109,19 @@ def _launch_gui():
 
                 "FILES GENERATED\n"
                 "- Per-stage reports: DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt/.docx\n"
-                "  Saved in the search folder. Every search in the suite gets its own report\n"
-                "  file — without this, each search would overwrite the previous one's results.\n"
+                "  Saved in the search folder (or the Output Dir if set). Every search in the\n"
+                "  suite gets its own report file — without this, each search would overwrite\n"
+                "  the previous one's results.\n"
                 "- Suite report: DO_NOT_SEARCH_docsearch_suite_{name}.txt/.json\n"
                 "  Consolidated pass/fail summary generated via Generate Report.\n"
                 "- Collection file: .docsearch_collection.json\n"
                 "  Stores all saved searches and suite definitions for this folder.\n\n"
+
+                "OUTPUT DIRECTORY\n"
+                "Use the Output Dir field to write all suite-generated files to a separate "
+                "folder instead of the search folder. This keeps your document folders clean. "
+                "This setting is independent from the Output Dir in Advanced Options — "
+                "each can point to a different location.\n\n"
 
                 "All generated files use the DO_NOT_SEARCH prefix so they are automatically "
                 "excluded from future searches."
@@ -1409,6 +1461,9 @@ def _launch_gui():
             self._suite_name = suite_label
             self._suite_names_list = suite_names
 
+            od = self.suite_output_dir_entry.get().strip() if hasattr(self, 'suite_output_dir_entry') else ""
+            self._suite_output_dir = od if od else folder
+
             self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
 
             thread = threading.Thread(
@@ -1425,9 +1480,10 @@ def _launch_gui():
 
             results = []
             total = len(searches)
+            output_dir = self._suite_output_dir
 
             # Clean up stage files from any previous run of this suite
-            cleanup_stage_reports(folder, self._suite_name)
+            cleanup_stage_reports(output_dir, self._suite_name)
 
             # Cascade: active only for single-suite runs with cascade=True
             cascade_active = False
@@ -1470,6 +1526,10 @@ def _launch_gui():
 
                 # Cascade: track input file count and inject file list
                 cascade_input_count = len(cascade_files) if (cascade_active and cascade_files is not None) else None
+                # Inject --output-dir when output directory differs from search folder
+                if output_dir != folder and cmd is not None and cmd != "FLAGS_IN_SEARCH":
+                    cmd.extend(["--output-dir", output_dir])
+
                 if cascade_active and cascade_files is not None and cmd is not None and cmd != "FLAGS_IN_SEARCH":
                     # Remove any existing -f flag from saved search params
                     if "-f" in cmd:
@@ -1537,7 +1597,7 @@ def _launch_gui():
 
                 # Copy per-stage reports before the next search overwrites them
                 stage_ts = datetime.now().strftime("%Y%m%d_%H%M%S") if self.suite_timestamp_var.get() == "on" else ""
-                stage_files = copy_stage_reports(folder, self._suite_name, i + 1, name, timestamp_suffix=stage_ts)
+                stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name, timestamp_suffix=stage_ts)
 
                 result = {
                     "name": name,
@@ -1555,7 +1615,7 @@ def _launch_gui():
                 # Cascade: extract matched files for next stage
                 if cascade_active:
                     if result["passed"] and match_count > 0:
-                        matched = _parse_matched_files(folder)
+                        matched = _parse_matched_files(output_dir)
                         cascade_files = list({filename for _fp, filename, _count in matched})
                         result["cascade_file_count"] = len(cascade_files)
                     else:
@@ -1630,7 +1690,7 @@ def _launch_gui():
 
             if results:
                 self.generate_report_btn.grid(
-                    row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
+                    row=5, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
                 )
 
         def _cancel_suite(self):
@@ -1644,10 +1704,11 @@ def _launch_gui():
             folder = self.folder_entry.get().strip()
             if not folder or not self._suite_results_data:
                 return
+            report_dir = getattr(self, '_suite_output_dir', folder)
             safe_name = self._suite_name.replace(" ", "_").replace("/", "_")
             ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}" if self.suite_timestamp_var.get() == "on" else ""
-            txt_path = os.path.join(folder, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
-            json_path = os.path.join(folder, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
+            txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
+            json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
             write_suite_report_txt(
                 txt_path, self._suite_name, folder,
                 self._suite_results_data,
@@ -1742,6 +1803,20 @@ def _launch_gui():
                 if self.suite_visible:
                     self._refresh_suite_panel()
 
+        def _browse_output_dir(self):
+            initial = self.output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
+            folder = filedialog.askdirectory(initialdir=initial)
+            if folder:
+                self.output_dir_entry.delete(0, "end")
+                self.output_dir_entry.insert(0, folder)
+
+        def _browse_suite_output_dir(self):
+            initial = self.suite_output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
+            folder = filedialog.askdirectory(initialdir=initial)
+            if folder:
+                self.suite_output_dir_entry.delete(0, "end")
+                self.suite_output_dir_entry.insert(0, folder)
+
         def start_search(self):
             if self.suite_running:
                 return
@@ -1799,6 +1874,7 @@ def _launch_gui():
                 whole_word=self.whole_word_var.get() == "on",
                 max_matches=self.max_matches_entry.get(),
                 timestamp_suffix=self._last_ts_suffix,
+                output_dir=self.output_dir_entry.get(),
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -1807,15 +1883,16 @@ def _launch_gui():
                 self._show_error("Invalid input. Check your search terms and options.")
                 return
 
-            self.results_dir = folder
+            od = self.output_dir_entry.get().strip()
+            self.results_dir = od if od else folder
             # Remove stale output files for formats not requested (skip when timestamps are on)
             if not self._last_ts_suffix:
                 if self.output_csv_var.get() != "on":
-                    stale = os.path.join(folder, "docsearch_results.csv")
+                    stale = os.path.join(self.results_dir, "docsearch_results.csv")
                     if os.path.exists(stale):
                         os.remove(stale)
                 if self.output_json_var.get() != "on":
-                    stale = os.path.join(folder, "docsearch_results.json")
+                    stale = os.path.join(self.results_dir, "docsearch_results.json")
                     if os.path.exists(stale):
                         os.remove(stale)
             self.search_button.configure(text="Cancel")
@@ -2449,6 +2526,9 @@ def _launch_gui():
             append_name = self.append_name_entry.get().strip()
             if append_name:
                 settings["append_name"] = append_name
+            output_dir = self.output_dir_entry.get().strip()
+            if output_dir:
+                settings["output_dir"] = output_dir
 
             if settings:
                 _save_config(settings)
@@ -2522,6 +2602,9 @@ def _launch_gui():
             self.append_name_entry.delete(0, "end")
             if "append_name" in config:
                 self.append_name_entry.insert(0, config["append_name"])
+            self.output_dir_entry.delete(0, "end")
+            if "output_dir" in config:
+                self.output_dir_entry.insert(0, config["output_dir"])
             self._update_index_button_color()
 
         def reset_form(self):
@@ -2552,6 +2635,7 @@ def _launch_gui():
             self.expression_var.set("off")
             self.whole_word_var.set("off")
             self.timestamp_var.set("on")
+            self.output_dir_entry.delete(0, "end")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")

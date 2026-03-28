@@ -52,6 +52,7 @@ BANNER_BOTTOM = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
+    'Use option flag --output-dir to write results to a specific folder. Example: docsearch --output-dir ~/reports budget\n'
     'Use option flag --timestamp to add a timestamp to report filenames. Example: docsearch --timestamp budget\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -w for wildcard pattern matching (* and ?). Example: docsearch -w "budg*"\n'
@@ -82,7 +83,7 @@ REGEX_PATTERNS = (
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
@@ -530,10 +531,11 @@ def _main_inner(argv=None):
             return 2
         name = "_".join(args[1:]).replace(" ", "_")
         cwd = os.getcwd()
-        src_docx = os.path.join(cwd, "docsearch_results.docx")
-        src_txt = os.path.join(cwd, "docsearch_results.txt")
-        dest_docx = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.docx")
-        dest_txt = os.path.join(cwd, f"DO_NOT_SEARCH_{name}.txt")
+        save_dir = _load_config().get("output_dir", cwd)
+        src_docx = os.path.join(save_dir, "docsearch_results.docx")
+        src_txt = os.path.join(save_dir, "docsearch_results.txt")
+        dest_docx = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.docx")
+        dest_txt = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
             print("Error: No search results found. Run a search first.\n")
             return 2
@@ -618,6 +620,15 @@ def _main_inner(argv=None):
         else:
             args.remove("--ts-suffix")
 
+    output_dir = None
+    if "--output-dir" in args:
+        idx = args.index("--output-dir")
+        if idx + 1 < len(args):
+            output_dir = args[idx + 1]
+            del args[idx:idx + 2]
+        else:
+            args.remove("--output-dir")
+
     # Parse all flags
     parsed = parse_flags(args, config)
     if isinstance(parsed, tuple):
@@ -652,6 +663,10 @@ def _main_inner(argv=None):
     print(command_str)
     start_time = time.time()
     cwd = os.getcwd()
+    if output_dir is None:
+        output_dir = cwd
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
 
     # Determine index mode for display
     _will_use_index = index_exists(cwd) and not no_index
@@ -763,7 +778,7 @@ def _main_inner(argv=None):
         print(f"Warning: Could not read {skipped_name} ({error_msg})")
 
     if skipped_files:
-        error_log_path = os.path.join(cwd, "docsearch_errors.log")
+        error_log_path = os.path.join(output_dir, "docsearch_errors.log")
         with open(error_log_path, "a") as log_f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             for skipped_name, error_msg in skipped_files:
@@ -786,15 +801,15 @@ def _main_inner(argv=None):
         matches = matches[:max_matches]
 
     # Check disk space before writing reports
-    free_space = shutil.disk_usage(cwd).free
+    free_space = shutil.disk_usage(output_dir).free
     if free_space < 10_000_000:
         print(f"\nWarning: Low disk space ({fmt_size(free_space)} free). Cannot write reports.")
         print("Free up disk space and try again.\n")
         return 2
 
     # Generate reports
-    output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.txt")
-    docx_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.docx")
+    output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.txt")
+    docx_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.docx")
 
     total_bytes, size_str = write_txt_report(
         output_path, matches, all_files, search_terms, command_str,
@@ -825,11 +840,11 @@ def _main_inner(argv=None):
     json_output_path = None
 
     if "csv" in output_formats:
-        csv_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.csv")
+        csv_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.csv")
         write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
-        json_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.json")
+        json_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
@@ -837,7 +852,7 @@ def _main_inner(argv=None):
         )
 
     if append_name is not None:
-        append_results(append_name, cwd, output_path, docx_output_path)
+        append_results(append_name, output_dir, output_path, docx_output_path)
 
     elapsed = time.time() - start_time
     print()
@@ -863,7 +878,7 @@ def _main_inner(argv=None):
                 file_counts[key] += 1
             for (_fd, fn), count in file_counts.items():
                 print(f"  {fn}: {count}")
-    print(f"Results ==> {cwd}")
+    print(f"Results ==> {output_dir}")
     print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
     if csv_output_path:
         print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")

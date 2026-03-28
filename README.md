@@ -39,7 +39,7 @@ docsearch is a fast, offline search tool that scans 29 file types — including 
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory, plus an optional `.docsearch.db` index file if you use `--index`, and an optional `.docsearch_collection.json` file if you save searches to a collection for search suites.
+**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory (or a directory you specify with `--output-dir`), plus an optional `.docsearch.db` index file if you use `--index`, and an optional `.docsearch_collection.json` file if you save searches to a collection for search suites.
 
 ## Features
 
@@ -185,6 +185,7 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `whole_word` | true/false | `-W` | false (partial matches allowed) |
 | `timestamp` | true/false | `--timestamp` | true in GUI (add timestamp to report filenames) |
 | `suite_timestamp` | true/false | — | true in GUI (add timestamp to suite/stage report filenames) |
+| `output_dir` | path | `--output-dir` | empty (write to search folder) |
 | `index_search` | true/false | — | false (direct file search) |
 | `search_terms` | text | — | empty (none) |
 | `folder` | path | — | empty (current directory) |
@@ -329,7 +330,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, specific files, save as, append to, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
 **Search Index:**
 
@@ -435,7 +436,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-seven flags that can be mixed and matched:
+docsearch has twenty-eight flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -464,6 +465,7 @@ docsearch has twenty-seven flags that can be mixed and matched:
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
+| `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON) to the specified directory instead of the search folder |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
 
@@ -522,6 +524,9 @@ docsearch has twenty-seven flags that can be mixed and matched:
 - `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `docsearch_results_20260327_143022.txt`)
 - `--timestamp` is on by default in the GUI (via the Timestamp checkbox). Uncheck it to revert to the standard `docsearch_results` filename
 - `--timestamp` and `-s` are independent — `-s` looks for `docsearch_results.txt` by name, so it only works when `--timestamp` is not used
+- `--output-dir` writes all output files to the specified directory instead of the search folder. The search still runs in the current directory — only the output destination changes
+- `--output-dir` creates the directory if it doesn't exist
+- `--output-dir` works with all other flags including `--timestamp`, `-s`, `-sa`, `-o`, and search suites
 - `--inverse` flips the search — instead of showing files WITH matches, it shows files WITHOUT matches
 - `--inverse` works with all search modes (OR, AND, regex, fuzzy, wildcard) and all other flags
 - `--inverse` reports and exports list the files that are missing the search terms
@@ -667,12 +672,15 @@ docsearch has twenty-seven flags that can be mixed and matched:
 | 111 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
 | 112 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
 | 113 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
+| | **Output Directory** | |
+| 114 | Write results to a specific folder | `docsearch --output-dir ~/reports budget` |
+| 115 | Output dir with recursive search | `docsearch --output-dir /tmp/results -r budget` |
 | | **Installation Check** | |
-| 114 | Check installation health | `docsearch --check` |
+| 116 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 115 | Show version | `docsearch -v` |
-| 116 | Show help | `docsearch -h` |
-| 117 | Show help (no arguments) | `docsearch` |
+| 117 | Show version | `docsearch -v` |
+| 118 | Show help | `docsearch -h` |
+| 119 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -948,7 +956,9 @@ The suite results display shows cascade narrowing information:
   [PASS] liability_clauses — 23 match(es) in 45 file(s) (narrowed from 200)
 ```
 
-**Clean Up Suite Files:** Click this button at the bottom of the suite panel to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
+**Output Directory:** The suite panel has its own **Output Dir** field with a Browse button. When set, all suite-generated files (stage reports, suite reports) are written there instead of the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location, so regular searches and suite runs can write to separate destinations.
+
+**Clean Up Suite Files:** Click this button at the bottom of the suite panel to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder and the suite output directory. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
 
 **Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection.
 
