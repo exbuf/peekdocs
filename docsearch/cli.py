@@ -38,9 +38,9 @@ BANNER_TOP = (
     'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
     'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
     'Use option flag -e for boolean expression search. Example: docsearch -e "(bob AND amy) OR fred"\n'
-    'Use option flag -W for whole-word matching. Example: docsearch -W bob (matches "bob" not "bobcat")\n'
     'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
     'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
+    'Use option flag -m to set max matches for reports (0 = no limit). Example: docsearch -m 5000 budget\n'
     'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
     'Use option flag -o to output additional formats (csv, json). Example: docsearch -o csv budget\n'
     'Use option flag -O to enable OCR for scanned PDFs and images. Example: docsearch -O budget\n'
@@ -52,8 +52,10 @@ BANNER_BOTTOM = (
     'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
     'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
     'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
+    'Use option flag --timestamp to add a timestamp to report filenames. Example: docsearch --timestamp budget\n'
     'Use option flag -v for version. Example: docsearch -v\n'
     'Use option flag -w for wildcard pattern matching (* and ?). Example: docsearch -w "budg*"\n'
+    'Use option flag -W for whole-word matching. Example: docsearch -W bob (matches "bob" not "bobcat")\n'
     'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
     'Use option flag -z for fuzzy matching (approximate matches, typo-tolerant). Example: docsearch -z budgt\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
@@ -78,8 +80,8 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse"}
-CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
+CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
@@ -604,6 +606,18 @@ def _main_inner(argv=None):
     if no_index:
         args.remove("--no-index")
 
+    ts_suffix = ""
+    if "--timestamp" in args:
+        args.remove("--timestamp")
+        ts_suffix = "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+    if "--ts-suffix" in args:
+        idx = args.index("--ts-suffix")
+        if idx + 1 < len(args):
+            ts_suffix = "_" + args[idx + 1]
+            del args[idx:idx + 2]
+        else:
+            args.remove("--ts-suffix")
+
     # Parse all flags
     parsed = parse_flags(args, config)
     if isinstance(parsed, tuple):
@@ -763,6 +777,14 @@ def _main_inner(argv=None):
         matched_paths = {os.path.join(fd, fn) for fd, fn, _ln, _tx in matches}
         inverse_files = [f for f in all_files if f not in matched_paths]
 
+    # Cap matches for report generation to avoid minutes-long DOCX writes
+    max_matches = parsed.get("max_matches", 1000)
+    total_match_count = len(matches)
+    capped = False
+    if max_matches > 0 and total_match_count > max_matches:
+        capped = True
+        matches = matches[:max_matches]
+
     # Check disk space before writing reports
     free_space = shutil.disk_usage(cwd).free
     if free_space < 10_000_000:
@@ -771,8 +793,8 @@ def _main_inner(argv=None):
         return 2
 
     # Generate reports
-    output_path = os.path.join(cwd, "docsearch_results.txt")
-    docx_output_path = os.path.join(cwd, "docsearch_results.docx")
+    output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.txt")
+    docx_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.docx")
 
     total_bytes, size_str = write_txt_report(
         output_path, matches, all_files, search_terms, command_str,
@@ -792,6 +814,8 @@ def _main_inner(argv=None):
         output_json="json" in output_formats,
         expression=expression,
         use_whole_word=use_whole_word,
+        total_matches=total_match_count if capped else None,
+        max_matches=max_matches if capped else None,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)
@@ -801,11 +825,11 @@ def _main_inner(argv=None):
     json_output_path = None
 
     if "csv" in output_formats:
-        csv_output_path = os.path.join(cwd, "docsearch_results.csv")
+        csv_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.csv")
         write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
-        json_output_path = os.path.join(cwd, "docsearch_results.json")
+        json_output_path = os.path.join(cwd, f"docsearch_results{ts_suffix}.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
@@ -819,6 +843,8 @@ def _main_inner(argv=None):
     print()
     if inverse:
         print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches.")
+    elif capped:
+        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{total_match_count}{RESET} match(es). Reports capped at {max_matches:,}.")
     else:
         print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
@@ -838,11 +864,11 @@ def _main_inner(argv=None):
             for (_fd, fn), count in file_counts.items():
                 print(f"  {fn}: {count}")
     print(f"Results ==> {cwd}")
-    print(f"  docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})")
+    print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
     if csv_output_path:
-        print(f"  docsearch_results.csv ({fmt_size(os.path.getsize(csv_output_path))})")
+        print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")
     if json_output_path:
-        print(f"  docsearch_results.json ({fmt_size(os.path.getsize(json_output_path))})")
+        print(f"  {os.path.basename(json_output_path)} ({fmt_size(os.path.getsize(json_output_path))})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     if skipped_files:

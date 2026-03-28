@@ -11,7 +11,7 @@ SEARCH_PARAM_KEYS = [
     "search_text", "and_mode", "recursive", "fuzzy", "wildcard",
     "ocr", "regex", "exclude", "file_types", "proximity",
     "context_before", "context_after", "cores", "specific_files",
-    "index_search", "inverse", "expression", "whole_word",
+    "index_search", "inverse", "expression", "whole_word", "max_matches",
 ]
 
 
@@ -64,12 +64,13 @@ def remove_saved_search(folder, name):
     save_collection(folder, data)
 
 
-def add_test_suite(folder, suite_name, description, search_names):
+def add_test_suite(folder, suite_name, description, search_names, cascade=False):
     """Create or overwrite a named search suite."""
     data = load_collection(folder)
     data["test_suites"][suite_name] = {
         "description": description,
         "searches": list(search_names),
+        "cascade": bool(cascade),
     }
     save_collection(folder, data)
 

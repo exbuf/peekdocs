@@ -471,8 +471,6 @@ def _can_use_direct_scan(config):
     """
     if config.get("use_whole_word", False):
         return False  # FTS5 token matching is already whole-word — no need for direct scan
-    if not config.get("match_all", False) and config.get("expression_ast") is None:
-        return False  # simple OR mode — FTS5 fast path is fine
     if config.get("use_regex", False):
         return False
     if config.get("use_fuzzy", False):
@@ -519,9 +517,11 @@ def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
                 matches.append((file_dir, filename, line_num, text))
     else:
         search_terms = config["search_terms"]
+        match_all = config.get("match_all", False)
         exclude_terms = config.get("exclude_terms", [])
+        check = all if match_all else any
         for file_dir, filename, line_num, text in rows:
-            if all(_term_matches(t, text) for t in search_terms):
+            if check(_term_matches(t, text) for t in search_terms):
                 if exclude_terms and any(_term_matches(e, text) for e in exclude_terms):
                     continue
                 matches.append((file_dir, filename, line_num, text))

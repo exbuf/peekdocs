@@ -203,6 +203,23 @@ def parse_flags(args, config):
             return (2, f"Invalid count for -c: {args[idx + 1]}. Must be a positive integer.\n")
         args[:] = args[:idx] + args[idx + 2:]
 
+    max_matches = config.get("max_matches", 1000)
+    if "-m" in args:
+        idx = args.index("-m")
+        if idx + 1 >= len(args):
+            return (2, "No count provided. Usage: docsearch -m 5000 search_term\n")
+        try:
+            val = args[idx + 1]
+            if val == "0":
+                max_matches = 0  # 0 = no limit
+            else:
+                max_matches = int(val)
+                if max_matches < 1:
+                    raise ValueError
+        except ValueError:
+            return (2, f"Invalid count for -m: {args[idx + 1]}. Must be a positive integer or 0 for no limit.\n")
+        args[:] = args[:idx] + args[idx + 2:]
+
     output_formats = []
     if "-o" in args:
         idx = args.index("-o")
@@ -338,6 +355,7 @@ def parse_flags(args, config):
         "use_proximity": use_proximity,
         "append_name": append_name,
         "cores": cores,
+        "max_matches": max_matches,
         "output_formats": output_formats,
         "search_terms": search_terms,
         "inverse": inverse,

@@ -18,6 +18,40 @@ from docsearch.scanner import _wildcard_to_regex
 from docsearch.translator import translate_search
 
 
+def _safe_filename_part(name):
+    """Sanitize a name for use in a filename (replace non-word chars with _)."""
+    return re.sub(r'[^\w\-]', '_', name)
+
+
+def copy_stage_reports(results_dir, suite_name, stage_index, search_name, timestamp_suffix=""):
+    """Copy docsearch_results.* to named stage files (DO_NOT_SEARCH_ prefixed).
+
+    Returns a dict mapping extension to the stage file path.
+    """
+    safe_suite = _safe_filename_part(suite_name)
+    safe_search = _safe_filename_part(search_name)
+    ts = f"_{timestamp_suffix}" if timestamp_suffix else ""
+    prefix = f"DO_NOT_SEARCH_SUITE_{safe_suite}_stage{stage_index:02d}_{safe_search}{ts}"
+
+    copied = {}
+    for ext in ("txt", "docx", "csv", "json"):
+        src = os.path.join(results_dir, f"docsearch_results.{ext}")
+        if os.path.exists(src):
+            dst = os.path.join(results_dir, f"{prefix}.{ext}")
+            shutil.copy2(src, dst)
+            copied[ext] = dst
+    return copied
+
+
+def cleanup_stage_reports(results_dir, suite_name):
+    """Remove any existing stage report files for the given suite name."""
+    safe_suite = _safe_filename_part(suite_name)
+    pattern = f"DO_NOT_SEARCH_SUITE_{safe_suite}_stage"
+    for fname in os.listdir(results_dir):
+        if fname.startswith(pattern):
+            os.remove(os.path.join(results_dir, fname))
+
+
 def fmt_size(b):
     """Format byte count as human-readable string."""
     if b >= 1_000_000:
@@ -41,7 +75,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      context_before=0, context_after=0,
                      specific_files=None, use_index=False,
                      inverse=False, output_csv=False, output_json=False,
-                     expression=None, use_whole_word=False):
+                     expression=None, use_whole_word=False,
+                     total_matches=None, max_matches=None):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -79,7 +114,10 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
         if exclude_terms:
             f.write(f"Exclude Term(s) ==> {' '.join(exclude_terms)}\n")
-        f.write(f"Hits ==> {len(matches)}\n")
+        if total_matches is not None and total_matches > len(matches):
+            f.write(f"Hits ==> {len(matches)} (of {total_matches:,} total — report capped at {max_matches:,}; use -m to change)\n")
+        else:
+            f.write(f"Hits ==> {len(matches)}\n")
 
         # ── Search Settings ──
         on_off = lambda v: "ON" if v else "OFF"
@@ -250,7 +288,9 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
     """
     txt_size = os.path.getsize(txt_path)
     docx_size = os.path.getsize(docx_path)
-    sizes_line = f"Report File Sizes ==> docsearch_results.txt ({fmt_size(txt_size)}), docsearch_results.docx ({fmt_size(docx_size)})"
+    txt_name = os.path.basename(txt_path)
+    docx_name = os.path.basename(docx_path)
+    sizes_line = f"Report File Sizes ==> {txt_name} ({fmt_size(txt_size)}), {docx_name} ({fmt_size(docx_size)})"
 
     # Update txt report
     with open(txt_path, "r") as f:
@@ -402,6 +442,11 @@ def write_suite_report_txt(output_path, suite_name, folder, results, start_time,
         f"Folder: {folder}",
         f"Date: {ts}",
         f"Duration: {elapsed:.1f} seconds",
+    ]
+    has_cascade = any(r.get("cascade_file_count") is not None for r in results)
+    if has_cascade:
+        lines.append("Mode: Cascade (each stage narrows files from previous)")
+    lines += [
         "",
         "Results:",
         "-" * 40,
@@ -415,13 +460,24 @@ def write_suite_report_txt(output_path, suite_name, folder, results, start_time,
             if r.get("inverse"):
                 lines.append(f"    Result: {r['match_count']} file(s) without matches")
             else:
-                lines.append(f"    Result: {r['match_count']} match(es) found")
+                result_str = f"    Result: {r['match_count']} match(es) found"
+                cfc = r.get("cascade_file_count")
+                cic = r.get("cascade_input_count")
+                if cfc is not None:
+                    result_str += f" in {cfc} file(s)"
+                    if cic is not None:
+                        result_str += f" (narrowed from {cic})"
+                lines.append(result_str)
         elif r.get("return_code") == 2:
             lines.append(f"    Result: Error — {r.get('summary', 'unknown error')}")
         elif r.get("inverse"):
             lines.append("    Result: All files matched (none missing)")
         else:
             lines.append("    Result: No matches found")
+        stage_files = r.get("stage_files", {})
+        if stage_files:
+            fnames = ", ".join(os.path.basename(p) for p in sorted(stage_files.values()))
+            lines.append(f"    Stage reports: {fnames}")
         lines.append("")
 
     lines.append("=" * 50)
@@ -441,6 +497,7 @@ def write_suite_report_json(output_path, suite_name, folder, results, start_time
     total = len(results)
     verdict = "PASSED" if passed == total else "FAILED"
 
+    has_cascade = any(r.get("cascade_file_count") is not None for r in results)
     data = {
         "suite_name": suite_name,
         "folder": folder,
@@ -450,6 +507,7 @@ def write_suite_report_json(output_path, suite_name, folder, results, start_time
         "passed": passed,
         "failed": total - passed,
         "overall": verdict,
+        "cascade": has_cascade,
         "tests": [
             {
                 "name": r["name"],
@@ -458,6 +516,12 @@ def write_suite_report_json(output_path, suite_name, folder, results, start_time
                 "passed": r["passed"],
                 "match_count": r["match_count"],
                 "return_code": r["return_code"],
+                "stage_files": {
+                    ext: os.path.basename(path)
+                    for ext, path in r.get("stage_files", {}).items()
+                },
+                "cascade_input_count": r.get("cascade_input_count"),
+                "cascade_file_count": r.get("cascade_file_count"),
             }
             for r in results
         ],

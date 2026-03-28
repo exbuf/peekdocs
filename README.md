@@ -174,12 +174,17 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `ocr` | true/false | `-O` | false (no OCR) |
 | `file_types` | comma-separated | `-t` | all supported types |
 | `proximity` | number | `-p N` | 0 (disabled) |
+| `max_matches` | number | `-m N` | 1000 (cap report matches) |
 | `output_csv` | true/false | `-o csv` | false (no CSV output) |
 | `output_json` | true/false | `-o json` | false (no JSON output) |
 | `exclude` | comma-separated | `-n` | empty (no exclusions) |
 | `specific_files` | comma-separated | `-f` | empty (search all files) |
 | `save_name` | text | `-s` | empty (no custom save) |
 | `append_name` | text | `-sa` | empty (no append) |
+| `inverse` | true/false | `--inverse` | false (normal search) |
+| `whole_word` | true/false | `-W` | false (partial matches allowed) |
+| `timestamp` | true/false | `--timestamp` | true in GUI (add timestamp to report filenames) |
+| `suite_timestamp` | true/false | — | true in GUI (add timestamp to suite/stage report filenames) |
 | `index_search` | true/false | — | false (direct file search) |
 | `search_terms` | text | — | empty (none) |
 | `folder` | path | — | empty (current directory) |
@@ -324,7 +329,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, exclude terms, file type filtering, proximity, context lines, CPU cores, specific files, save as, append to, and additional output formats (CSV, JSON). Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, specific files, save as, append to, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
 **Search Index:**
 
@@ -430,7 +435,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-five flags that can be mixed and matched:
+docsearch has twenty-seven flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -438,6 +443,7 @@ docsearch has twenty-five flags that can be mixed and matched:
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
 | `-e` (expression) | Boolean expression search — use AND, OR, NOT, and parentheses for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
+| `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Additional output formats — `csv`, `json`, or both (`csv,json`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
@@ -447,6 +453,7 @@ docsearch has twenty-five flags that can be mixed and matched:
 | `-s` (save) | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
+| `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `docsearch_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -508,6 +515,13 @@ docsearch has twenty-five flags that can be mixed and matched:
 - `-o csv` creates `docsearch_results.csv` with columns: filename, folder, line_number, matched_text
 - `-o json` creates `docsearch_results.json` with metadata and a matches array
 - `-o csv,json` creates both files
+- `-m` always needs its count immediately after it (e.g., `-m 5000`)
+- `-m 0` disables the match cap entirely — all matches are included in reports
+- `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
+- `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Options panel
+- `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `docsearch_results_20260327_143022.txt`)
+- `--timestamp` is on by default in the GUI (via the Timestamp checkbox). Uncheck it to revert to the standard `docsearch_results` filename
+- `--timestamp` and `-s` are independent — `-s` looks for `docsearch_results.txt` by name, so it only works when `--timestamp` is not used
 - `--inverse` flips the search — instead of showing files WITH matches, it shows files WITHOUT matches
 - `--inverse` works with all search modes (OR, AND, regex, fuzzy, wildcard) and all other flags
 - `--inverse` reports and exports list the files that are missing the search terms
@@ -617,44 +631,48 @@ docsearch has twenty-five flags that can be mixed and matched:
 | 80 | Output results as JSON | `docsearch -o json budget` |
 | 81 | Output both CSV and JSON | `docsearch -o csv,json budget` |
 | 82 | CSV with recursive search | `docsearch -o csv -r budget` |
+| | **Match Cap** | |
+| 83 | Set max matches to 5000 | `docsearch -m 5000 budget` |
+| 84 | Disable match cap (no limit) | `docsearch -m 0 budget` |
+| 85 | Match cap with AND and recursive | `docsearch -m 500 -a -r budget revenue` |
 | | **Saved Settings** | |
-| 83 | View saved settings | `docsearch --config` |
-| 84 | Save a setting | `docsearch --config recursive=true` |
-| 85 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 86 | Remove a saved setting | `docsearch --config recursive=` |
+| 86 | View saved settings | `docsearch --config` |
+| 87 | Save a setting | `docsearch --config recursive=true` |
+| 88 | Save multiple settings | `docsearch --config recursive=true cores=4` |
+| 89 | Remove a saved setting | `docsearch --config recursive=` |
 | | **Search Index** | |
-| 87 | Build index (includes all subfolders) | `docsearch --index` |
-| 88 | Build index with OCR | `docsearch --index -O` |
-| 89 | Show index info | `docsearch --index-status` |
-| 90 | Delete the index | `docsearch --index-clear` |
+| 90 | Build index (includes all subfolders) | `docsearch --index` |
+| 91 | Build index with OCR | `docsearch --index -O` |
+| 92 | Show index info | `docsearch --index-status` |
+| 93 | Delete the index | `docsearch --index-clear` |
 | | **Inverse Search** | |
-| 91 | Find files missing a term | `docsearch --inverse "indemnification"` |
-| 92 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
-| 93 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
-| 94 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| 95 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
-| 96 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
-| 97 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
-| 98 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
+| 94 | Find files missing a term | `docsearch --inverse "indemnification"` |
+| 95 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
+| 96 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
+| 97 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 98 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
+| 99 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
+| 100 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
+| 101 | Inverse with JSON output | `docsearch --inverse -o json "compliance"` |
 | | **Boolean Expression Search** | |
-| 99 | AND expression | `docsearch -e "budget AND revenue"` |
-| 100 | OR expression | `docsearch -e "budget OR revenue"` |
-| 101 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
-| 102 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
-| 103 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
-| 104 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
-| 105 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
-| 106 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
-| 107 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
-| 108 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
-| 109 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
-| 110 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
+| 102 | AND expression | `docsearch -e "budget AND revenue"` |
+| 103 | OR expression | `docsearch -e "budget OR revenue"` |
+| 104 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
+| 105 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
+| 106 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
+| 107 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
+| 108 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
+| 109 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
+| 110 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
+| 111 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
+| 112 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
+| 113 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
 | | **Installation Check** | |
-| 111 | Check installation health | `docsearch --check` |
+| 114 | Check installation health | `docsearch --check` |
 | | **Version and Help** | |
-| 112 | Show version | `docsearch -v` |
-| 113 | Show help | `docsearch -h` |
-| 114 | Show help (no arguments) | `docsearch` |
+| 115 | Show version | `docsearch -v` |
+| 116 | Show help | `docsearch -h` |
+| 117 | Show help (no arguments) | `docsearch` |
 
 ## Output
 
@@ -893,7 +911,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 3. **Run the suite:** Select one or more suites from the **Suites of Searches** list and click **Run Entire Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
-4. **Generate a report:** After the suite finishes, click **Generate Report** to create `docsearch_suite_{name}.txt` and `.json` files in the folder. The report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
+4. **Generate a report:** After the suite finishes, click **Generate Report** to create `DO_NOT_SEARCH_docsearch_suite_{name}.txt` and `.json` files in the folder. The report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
 
 **Pass/fail logic:**
 
@@ -913,6 +931,24 @@ Search suites let you save individual searches, group them into named suites, an
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
 **Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+
+**Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results. The suite report (generated via **Generate Report**) includes the stage file names for each test.
+
+**Cascade mode:** When creating or editing a suite, check the **Cascade mode** checkbox to enable progressive file narrowing. In cascade mode, each stage's matched files become the file filter (`-f`) for the next stage — creating a pipeline that progressively narrows results.
+
+*Example use case:* A three-stage cascade suite for contract review:
+1. Stage 1 searches all documents for "contract" or "agreement" → finds 200 files
+2. Stage 2 searches only those 200 files for "liability" or "indemnification" → narrows to 45 files
+3. Stage 3 searches only those 45 files for specific clause language → finds 12 files with the exact provisions
+
+If a cascade stage finds no matches, the chain breaks — that stage is marked FAIL and subsequent stages run unrestricted (no file filter) so they can still produce results independently. Cascade mode only applies when running a single suite; when multiple suites are selected and combined, cascade is ignored because the deduped searches have no meaningful order.
+
+The suite results display shows cascade narrowing information:
+```
+  [PASS] liability_clauses — 23 match(es) in 45 file(s) (narrowed from 200)
+```
+
+**Clean Up Suite Files:** Click this button at the bottom of the suite panel to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
 
 **Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection.
 
@@ -1053,13 +1089,16 @@ Yes. All user input that reaches the SQLite search index is handled safely. FTS5
 **Is the search case-sensitive?**
 No — all searches are case-insensitive by default.
 
+**Why are my reports capped at 1,000 matches?**
+By default, docsearch caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Options panel.
+
 Every feature in docsearch serves the core mission of finding content in documents:
 
 - **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`, `-W`) — control *how* to match
 - **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
 - **Context flags** (`-A`, `-B`) — control *what to show* around matches
-- **Output flags** (`-s`, `-sa`) — control *what to do* with results
-- **Performance flags** (`-c`, `--index`) — control *how fast* to search
+- **Output flags** (`-s`, `-sa`, `-o`) — control *what to do* with results
+- **Performance flags** (`-c`, `-m`, `--index`) — control *how fast* to search
 - **Settings flag** (`--config`) — manage *saved settings*
 
 ## Troubleshooting

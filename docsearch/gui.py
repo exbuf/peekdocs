@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime
 
 
 def _build_command_from_values(
@@ -33,6 +34,8 @@ def _build_command_from_values(
     inverse=False,
     expression=False,
     whole_word=False,
+    max_matches="",
+    timestamp_suffix="",
 ):
     """Build a docsearch CLI command list from GUI values.
 
@@ -46,7 +49,7 @@ def _build_command_from_values(
         return None
 
     # Block flags typed into the search box
-    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse"}
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--timestamp", "--ts-suffix"}
     if not expression:
         tokens = search_text.strip().split()
         if any(token in _CLI_FLAGS for token in tokens):
@@ -117,6 +120,12 @@ def _build_command_from_values(
     if output_parts:
         cmd.extend(["-o", ",".join(output_parts)])
 
+    if str(max_matches).strip() and str(max_matches).strip() != "1000":
+        cmd.extend(["-m", str(max_matches).strip()])
+
+    if timestamp_suffix:
+        cmd.extend(["--ts-suffix", timestamp_suffix])
+
     if expression:
         pass  # already appended right after -e
     elif regex:
@@ -148,15 +157,20 @@ def _parse_summary_text(stdout):
     files_match = re.search(r"Files searched:\s*(\d+)", clean)
     size_match = re.search(r"Files searched:\s*\d+\s*\(([\d.]+ [KMGT]?B)\)", clean)
     found_match = re.search(r"Found\s+(\d+)\s+match", clean)
-    inverse_match = re.search(r"Found\s+(\d+)\s+file\(s\)\s+WITHOUT\s+matches\s+\(out of (\d+) searched\)", clean)
+    capped_match = re.search(r"Reports capped at ([\d,]+)", clean)
+    inverse_match = re.search(r"Found\s+(\d+)\s+file\(s\)\s+WITHOUT\s+matches", clean)
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
 
     parts = []
     if inverse_match:
-        parts.append(f"Found {inverse_match.group(1)} file(s) WITHOUT matches (of {inverse_match.group(2)})")
+        searched = files_match.group(1) if files_match else "?"
+        parts.append(f"Found {inverse_match.group(1)} file(s) WITHOUT matches (of {searched} searched)")
     elif found_match:
         count = found_match.group(1)
-        parts.append(f"Found {count} match(es)")
+        if capped_match:
+            parts.append(f"Found {count} match(es) — reports capped at {capped_match.group(1)}")
+        else:
+            parts.append(f"Found {count} match(es)")
     if files_match and not inverse_match:
         parts.append(f"in {files_match.group(1)} files")
     if size_match:
@@ -172,9 +186,9 @@ def _parse_summary_text(stdout):
     return " ".join(parts) if parts else ""
 
 
-def _parse_matched_files(results_dir):
+def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
     """Parse docsearch_results.txt and return a list of (filepath, filename, count) tuples."""
-    results_path = os.path.join(results_dir, "docsearch_results.txt")
+    results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
     counts = {}  # filepath -> (filepath, filename, count)
@@ -203,9 +217,9 @@ def _parse_matched_files(results_dir):
     return [counts[fp] for fp in order]
 
 
-def _parse_inverse_files(results_dir):
+def _parse_inverse_files(results_dir, results_filename="docsearch_results.txt"):
     """Parse docsearch_results.txt for inverse search and return (filepath, filename, 0) tuples."""
-    results_path = os.path.join(results_dir, "docsearch_results.txt")
+    results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
     result = []
@@ -412,7 +426,7 @@ def _launch_gui():
             )
             self.suite_toggle.pack(side="left", padx=(0, 5))
 
-            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that.")
+            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
         def _build_folder_row(self):
             self.folder_bar_frame = ctk.CTkFrame(self)
@@ -573,6 +587,11 @@ def _launch_gui():
             self.cores_entry.insert(0, str(self._default_cores))
             self.cores_entry.grid(row=0, column=1)
 
+            ctk.CTkLabel(cores_frame, text="Max Matches:").grid(row=0, column=2, padx=(20, 5))
+            self.max_matches_entry = ctk.CTkEntry(cores_frame, width=60)
+            self.max_matches_entry.insert(0, "1000")
+            self.max_matches_entry.grid(row=0, column=3)
+
             # Row 5: specific files
             ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
                 row=5, column=0, padx=(15, 5), pady=5, sticky="e"
@@ -611,6 +630,13 @@ def _launch_gui():
                 onvalue="on", offvalue="off",
             )
             cb_json.grid(row=0, column=2)
+            self.timestamp_var = ctk.StringVar(value="on")
+            cb_ts = ctk.CTkCheckBox(
+                output_frame, text="Timestamp", variable=self.timestamp_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_ts.grid(row=0, column=3, padx=(15, 0))
+            Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
 
             # Row 8: Save Settings + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -686,6 +712,7 @@ def _launch_gui():
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
             Tooltip(self.cores_entry, f"Number of CPU cores to use. This machine has {os.cpu_count()}, default is {self._default_cores}")
+            Tooltip(self.max_matches_entry, "Maximum matches included in reports. Default 1000. Set to 0 for no limit.")
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
@@ -696,11 +723,14 @@ def _launch_gui():
             self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
             # Starts hidden — shown only during search
 
+            ctk.CTkLabel(
+                self.search_bar_frame, text="Status:", font=ctk.CTkFont(size=13),
+            ).grid(row=3, column=0, padx=(10, 5), pady=(0, 4), sticky="w")
             self.status_label = ctk.CTkLabel(
                 self.search_bar_frame, text="", font=ctk.CTkFont(size=13), anchor="w"
             )
             self.status_label.grid(
-                row=3, column=0, columnspan=3, padx=15, pady=(0, 4), sticky="ew"
+                row=3, column=1, columnspan=2, padx=(0, 15), pady=(0, 4), sticky="ew"
             )
 
             self.matched_files = []
@@ -767,12 +797,12 @@ def _launch_gui():
             ).grid(row=0, column=0, columnspan=6, padx=10, pady=(4, 0), sticky="w")
 
             self.index_search_var = ctk.StringVar(value="off")
-            cb_index_search = ctk.CTkCheckBox(
+            self.cb_index_search = ctk.CTkCheckBox(
                 self.index_frame, text="Search Using Index(es)", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
             )
-            cb_index_search.grid(row=1, column=0, padx=(10, 5), pady=(0, 5), sticky="w")
-            Tooltip(cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results")
+            self.cb_index_search.grid(row=1, column=0, padx=(10, 5), pady=(0, 5), sticky="w")
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results. Disabled when no index exists")
 
             self.build_index_button = ctk.CTkButton(
                 self.index_frame, text="Build Index(es)", width=120,
@@ -821,9 +851,22 @@ def _launch_gui():
             self.suite_frame = ctk.CTkFrame(self.suite_window)
             self.suite_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+            # Header with Help button
+            header_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            header_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            help_btn = ctk.CTkButton(
+                header_frame, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_suite_help,
+            )
+            help_btn.pack(side="right")
+            Tooltip(help_btn, "How Search Suites work")
+
             # Left: Saved Searches
             left = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            left.grid(row=0, column=0, padx=(10, 5), pady=5, sticky="nsew")
+            left.grid(row=1, column=0, padx=(10, 5), pady=5, sticky="nsew")
 
             ctk.CTkLabel(left, text="Saved Searches", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
             search_list_frame = tk.Frame(left)
@@ -836,10 +879,12 @@ def _launch_gui():
 
             search_btn_frame = ctk.CTkFrame(left, fg_color="transparent")
             search_btn_frame.pack(fill="x")
-            ctk.CTkButton(
+            load_btn = ctk.CTkButton(
                 search_btn_frame, text="Load", width=70, font=ctk.CTkFont(size=12),
                 command=self._load_saved_search,
-            ).pack(side="left", padx=(0, 5))
+            )
+            load_btn.pack(side="left", padx=(0, 5))
+            Tooltip(load_btn, "Load the selected saved search into the main GUI so you can review, edit, or re-run it")
             ctk.CTkButton(
                 search_btn_frame, text="Delete", width=70, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
@@ -849,7 +894,7 @@ def _launch_gui():
 
             # Right: Suites
             right = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            right.grid(row=0, column=1, padx=(5, 10), pady=5, sticky="nsew")
+            right.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="nsew")
             self.suite_frame.grid_columnconfigure(0, weight=1)
             self.suite_frame.grid_columnconfigure(1, weight=1)
 
@@ -892,7 +937,7 @@ def _launch_gui():
 
             # Run controls (under Suites column)
             run_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            run_frame.grid(row=1, column=1, padx=(5, 10), pady=(5, 0), sticky="ew")
+            run_frame.grid(row=2, column=1, padx=(5, 10), pady=(5, 0), sticky="ew")
 
             self.run_suite_btn = ctk.CTkButton(
                 run_frame, text="Run Entire Suite", width=140, font=ctk.CTkFont(size=14, weight="bold"),
@@ -905,13 +950,20 @@ def _launch_gui():
                 command=self._cancel_suite,
             )
             # Cancel hidden by default
+            self.suite_timestamp_var = ctk.StringVar(value="on")
+            cb_suite_ts = ctk.CTkCheckBox(
+                run_frame, text="Timestamp", variable=self.suite_timestamp_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_suite_ts.pack(side="left", padx=(10, 0))
+            Tooltip(cb_suite_ts, "Add timestamp to suite and stage report filenames")
             self.suite_status_label = ctk.CTkLabel(run_frame, text="", font=ctk.CTkFont(size=12))
             self.suite_status_label.pack(side="left", padx=10)
 
             # Results area
             results_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            results_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
-            self.suite_frame.grid_rowconfigure(2, weight=1)
+            results_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
+            self.suite_frame.grid_rowconfigure(3, weight=1)
 
             self.suite_results_text = tk.Text(
                 results_frame, height=8, width=60, font=("Courier", 11),
@@ -933,6 +985,95 @@ def _launch_gui():
                 command=self._generate_suite_report,
             )
             # Not gridded yet — shown after suite finishes
+
+            # Clean Up Suite Files button
+            self.cleanup_suite_btn = ctk.CTkButton(
+                self.suite_frame, text="Clean Up Suite Files", width=160, font=ctk.CTkFont(size=13),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._cleanup_suite_files,
+            )
+            self.cleanup_suite_btn.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="w")
+            Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
+
+        def _cleanup_suite_files(self):
+            """Delete all generated suite and stage report files from the search folder."""
+            import glob
+            from tkinter import messagebox
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Select a valid folder first.")
+                return
+
+            # Find suite-generated files only (not user-saved -s/-sa reports)
+            patterns = [
+                os.path.join(folder, "DO_NOT_SEARCH_SUITE_*"),
+                os.path.join(folder, "DO_NOT_SEARCH_docsearch_suite_*"),
+            ]
+            files = []
+            for pat in patterns:
+                files.extend(glob.glob(pat))
+            files = sorted(set(files))
+
+            if not files:
+                self.suite_status_label.configure(text="No suite files found to clean up.")
+                return
+
+            names = "\n".join(os.path.basename(f) for f in files[:20])
+            if len(files) > 20:
+                names += f"\n... and {len(files) - 20} more"
+            if not messagebox.askyesno(
+                "Clean Up Suite Files",
+                f"Delete {len(files)} suite file(s) from:\n{folder}\n\n{names}",
+            ):
+                return
+
+            for f in files:
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+            self.suite_status_label.configure(text=f"Deleted {len(files)} suite file(s).")
+
+        def _show_suite_help(self):
+            """Show an informational popup explaining how Search Suites work."""
+            from tkinter import messagebox
+            messagebox.showinfo("Search Suites — How They Work", (
+                "Search Suites let you save individual searches, group them into named suites, "
+                "and run them as a batch with pass/fail tracking.\n\n"
+
+                "HOW TO USE\n"
+                "1. Save a search: configure a search in the main GUI, then click Save Search "
+                "in the Search Bar. Give it a unique name.\n"
+                "2. Build a suite: click New Suite, name it, and check the saved searches to include.\n"
+                "3. Run: select a suite and click Run Entire Suite. Each search runs sequentially "
+                "with real-time pass/fail results.\n"
+                "4. Report: click Generate Report for a summary of all results.\n\n"
+
+                "WHAT IT'S GOOD FOR\n"
+                "- Compliance audits: run the same checks repeatedly across document sets\n"
+                "- Quality assurance: verify documents contain required terms or clauses\n"
+                "- Sensitive data discovery: batch-search for SSNs, emails, account numbers\n"
+                "- Due diligence: systematic review of contracts or regulatory filings\n\n"
+
+                "CASCADE MODE\n"
+                "Check 'Cascade mode' when creating a suite to enable progressive narrowing. "
+                "Each stage's matched files become the file list for the next stage, "
+                "creating a filtering pipeline.\n\n"
+
+                "FILES GENERATED\n"
+                "- Per-stage reports: DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt/.docx\n"
+                "  Saved in the search folder. Every search in the suite gets its own report\n"
+                "  file — without this, each search would overwrite the previous one's results.\n"
+                "- Suite report: DO_NOT_SEARCH_docsearch_suite_{name}.txt/.json\n"
+                "  Consolidated pass/fail summary generated via Generate Report.\n"
+                "- Collection file: .docsearch_collection.json\n"
+                "  Stores all saved searches and suite definitions for this folder.\n\n"
+
+                "All generated files use the DO_NOT_SEARCH prefix so they are automatically "
+                "excluded from future searches."
+            ))
 
         def _on_suite_window_close(self):
             """Handle the suite window close button."""
@@ -1039,7 +1180,7 @@ def _launch_gui():
             dialog = tk.Toplevel(parent)
             dialog.title("Create Search Suite")
             dialog.resizable(True, True)
-            w, h = 400, 420
+            w, h = 650, 420
             x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
             y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
@@ -1058,6 +1199,12 @@ def _launch_gui():
             )
             desc_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
             desc_entry.pack(padx=15, fill="x")
+
+            cascade_var = tk.BooleanVar(value=False)
+            tk.Checkbutton(
+                dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
+                variable=cascade_var, font=("TkDefaultFont", 11),
+            ).pack(padx=15, pady=(5, 0), anchor="w")
 
             tk.Label(dialog, text="Select searches to include:", font=("TkDefaultFont", 13)).pack(
                 padx=15, pady=(10, 2), anchor="w"
@@ -1095,7 +1242,7 @@ def _launch_gui():
                 if not selected:
                     return
                 desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected)
+                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get())
                 dialog.destroy()
                 self._refresh_suite_panel()
                 # Select the newly created suite
@@ -1129,7 +1276,7 @@ def _launch_gui():
             dialog = tk.Toplevel(parent)
             dialog.title(f"Edit Suite: {suite_name}")
             dialog.resizable(True, True)
-            w, h = 400, 420
+            w, h = 650, 420
             x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
             y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
@@ -1142,6 +1289,12 @@ def _launch_gui():
             desc_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
             desc_entry.pack(padx=15, fill="x")
             desc_entry.insert(0, suite.get("description", ""))
+
+            cascade_var = tk.BooleanVar(value=suite.get("cascade", False))
+            tk.Checkbutton(
+                dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
+                variable=cascade_var, font=("TkDefaultFont", 11),
+            ).pack(padx=15, pady=(5, 0), anchor="w")
 
             tk.Label(dialog, text="Select searches to include:", font=("TkDefaultFont", 13)).pack(
                 padx=15, pady=(10, 2), anchor="w"
@@ -1176,7 +1329,7 @@ def _launch_gui():
                 if not selected:
                     return
                 desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected)
+                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get())
                 dialog.destroy()
                 self._refresh_suite_panel()
                 for i in range(self.suite_selector.size()):
@@ -1254,6 +1407,7 @@ def _launch_gui():
             self._suite_results_data = []
             self._suite_start_time = time.time()
             self._suite_name = suite_label
+            self._suite_names_list = suite_names
 
             self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
 
@@ -1267,8 +1421,21 @@ def _launch_gui():
         def _suite_execution_thread(self, folder, searches):
             """Run each search in sequence in a background thread."""
             import re as _re
+            from docsearch.reporter import copy_stage_reports, cleanup_stage_reports
+
             results = []
             total = len(searches)
+
+            # Clean up stage files from any previous run of this suite
+            cleanup_stage_reports(folder, self._suite_name)
+
+            # Cascade: active only for single-suite runs with cascade=True
+            cascade_active = False
+            if len(self._suite_names_list) == 1:
+                from docsearch.collection import load_collection
+                sd = load_collection(folder)["test_suites"].get(self._suite_names_list[0], {})
+                cascade_active = sd.get("cascade", False)
+            cascade_files = None  # None = no restriction
 
             for i, (name, params) in enumerate(searches):
                 if self.suite_cancel_requested:
@@ -1298,7 +1465,17 @@ def _launch_gui():
                     inverse=params.get("inverse", False),
                     expression=params.get("expression", False),
                     whole_word=params.get("whole_word", False),
+                    max_matches=params.get("max_matches", ""),
                 )
+
+                # Cascade: track input file count and inject file list
+                cascade_input_count = len(cascade_files) if (cascade_active and cascade_files is not None) else None
+                if cascade_active and cascade_files is not None and cmd is not None and cmd != "FLAGS_IN_SEARCH":
+                    # Remove any existing -f flag from saved search params
+                    if "-f" in cmd:
+                        f_idx = cmd.index("-f")
+                        cmd = cmd[:f_idx] + cmd[f_idx + 2:]
+                    cmd.extend(["-f", ",".join(cascade_files)])
 
                 if cmd is None or cmd == "FLAGS_IN_SEARCH":
                     result = {
@@ -1309,7 +1486,12 @@ def _launch_gui():
                         "passed": False,
                         "match_count": 0,
                         "summary": "Invalid search configuration",
+                        "stage_files": {},
+                        "cascade_input_count": cascade_input_count,
+                        "cascade_file_count": None if not cascade_active else 0,
                     }
+                    if cascade_active:
+                        cascade_files = None  # break chain
                     results.append(result)
                     self.after(0, self._suite_test_completed, result)
                     continue
@@ -1331,7 +1513,12 @@ def _launch_gui():
                         "passed": False,
                         "match_count": 0,
                         "summary": str(exc),
+                        "stage_files": {},
+                        "cascade_input_count": cascade_input_count,
+                        "cascade_file_count": None if not cascade_active else 0,
                     }
+                    if cascade_active:
+                        cascade_files = None  # break chain
                     results.append(result)
                     self.after(0, self._suite_test_completed, result)
                     continue
@@ -1348,6 +1535,10 @@ def _launch_gui():
                         if m:
                             match_count = int(m.group(1))
 
+                # Copy per-stage reports before the next search overwrites them
+                stage_ts = datetime.now().strftime("%Y%m%d_%H%M%S") if self.suite_timestamp_var.get() == "on" else ""
+                stage_files = copy_stage_reports(folder, self._suite_name, i + 1, name, timestamp_suffix=stage_ts)
+
                 result = {
                     "name": name,
                     "search_text": params.get("search_text", ""),
@@ -1356,7 +1547,21 @@ def _launch_gui():
                     "passed": returncode == 0,
                     "match_count": match_count,
                     "summary": _parse_summary_text(stdout) if stdout else "",
+                    "stage_files": stage_files,
+                    "cascade_input_count": cascade_input_count,
+                    "cascade_file_count": None,
                 }
+
+                # Cascade: extract matched files for next stage
+                if cascade_active:
+                    if result["passed"] and match_count > 0:
+                        matched = _parse_matched_files(folder)
+                        cascade_files = list({filename for _fp, filename, _count in matched})
+                        result["cascade_file_count"] = len(cascade_files)
+                    else:
+                        cascade_files = None  # break chain
+                        result["cascade_file_count"] = 0
+
                 results.append(result)
                 self.after(0, self._suite_test_completed, result)
 
@@ -1372,7 +1577,14 @@ def _launch_gui():
                 if result["inverse"]:
                     line += f" — {result['match_count']} file(s) without matches"
                 else:
-                    line += f" — {result['match_count']} match(es)"
+                    match_text = f"{result['match_count']} match(es)"
+                    cfc = result.get("cascade_file_count")
+                    cic = result.get("cascade_input_count")
+                    if cfc is not None:
+                        match_text += f" in {cfc} file(s)"
+                        if cic is not None:
+                            match_text += f" (narrowed from {cic})"
+                    line += f" — {match_text}"
             else:
                 if result["return_code"] == 2:
                     line += f" — Error: {result['summary']}"
@@ -1380,6 +1592,10 @@ def _launch_gui():
                     line += " — All files matched (none missing)"
                 else:
                     line += " — No matches found"
+            stage_files = result.get("stage_files", {})
+            if stage_files:
+                fnames = ", ".join(os.path.basename(p) for p in sorted(stage_files.values()))
+                line += f"\n       Reports: {fnames}"
             self.suite_results_text.insert("end", line + "\n", tag)
             self.suite_results_text.see("end")
             self.suite_results_text.configure(state="disabled")
@@ -1414,7 +1630,7 @@ def _launch_gui():
 
             if results:
                 self.generate_report_btn.grid(
-                    row=3, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
+                    row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
                 )
 
         def _cancel_suite(self):
@@ -1429,8 +1645,9 @@ def _launch_gui():
             if not folder or not self._suite_results_data:
                 return
             safe_name = self._suite_name.replace(" ", "_").replace("/", "_")
-            txt_path = os.path.join(folder, f"docsearch_suite_{safe_name}.txt")
-            json_path = os.path.join(folder, f"docsearch_suite_{safe_name}.json")
+            ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}" if self.suite_timestamp_var.get() == "on" else ""
+            txt_path = os.path.join(folder, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
+            json_path = os.path.join(folder, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
             write_suite_report_txt(
                 txt_path, self._suite_name, folder,
                 self._suite_results_data,
@@ -1552,6 +1769,11 @@ def _launch_gui():
                     )
                     return
 
+            if self.timestamp_var.get() == "on":
+                self._last_ts_suffix = datetime.now().strftime("%Y%m%d_%H%M%S")
+            else:
+                self._last_ts_suffix = ""
+
             cmd = _build_command_from_values(
                 search_text=search_text,
                 folder=folder,
@@ -1575,6 +1797,8 @@ def _launch_gui():
                 inverse=self.inverse_var.get() == "on",
                 expression=self.expression_var.get() == "on",
                 whole_word=self.whole_word_var.get() == "on",
+                max_matches=self.max_matches_entry.get(),
+                timestamp_suffix=self._last_ts_suffix,
             )
             if cmd == "FLAGS_IN_SEARCH":
                 self._show_error("Flags go in Advanced Options, not the search box.")
@@ -1584,15 +1808,16 @@ def _launch_gui():
                 return
 
             self.results_dir = folder
-            # Remove stale output files for formats not requested
-            if self.output_csv_var.get() != "on":
-                stale = os.path.join(folder, "docsearch_results.csv")
-                if os.path.exists(stale):
-                    os.remove(stale)
-            if self.output_json_var.get() != "on":
-                stale = os.path.join(folder, "docsearch_results.json")
-                if os.path.exists(stale):
-                    os.remove(stale)
+            # Remove stale output files for formats not requested (skip when timestamps are on)
+            if not self._last_ts_suffix:
+                if self.output_csv_var.get() != "on":
+                    stale = os.path.join(folder, "docsearch_results.csv")
+                    if os.path.exists(stale):
+                        os.remove(stale)
+                if self.output_json_var.get() != "on":
+                    stale = os.path.join(folder, "docsearch_results.json")
+                    if os.path.exists(stale):
+                        os.remove(stale)
             self.search_button.configure(text="Cancel")
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
@@ -1676,11 +1901,13 @@ def _launch_gui():
                         self._show_error(f"Save failed: {e}")
                         return
                 # Populate file list for the popup button
+                ts = getattr(self, '_last_ts_suffix', '')
+                results_fn = f"docsearch_results_{ts}.txt" if ts else "docsearch_results.txt"
                 self._inverse_results = self.inverse_var.get() == "on"
                 if self._inverse_results:
-                    self.matched_files = _parse_inverse_files(self.results_dir)
+                    self.matched_files = _parse_inverse_files(self.results_dir, results_fn)
                 else:
-                    self.matched_files = _parse_matched_files(self.results_dir)
+                    self.matched_files = _parse_matched_files(self.results_dir, results_fn)
                 self._show_action_buttons(inverse=self._inverse_results)
             elif returncode == 1:
                 self.status_label.configure(
@@ -1709,8 +1936,9 @@ def _launch_gui():
             # Check which report formats exist
             report_formats = {}
             if self.results_dir:
+                suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
                 for fmt in ("txt", "docx", "csv", "json"):
-                    path = os.path.join(self.results_dir, f"docsearch_results.{fmt}")
+                    path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
                     report_formats[fmt] = os.path.exists(path)
                 error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
                 has_error_log = os.path.exists(error_log_path)
@@ -1778,9 +2006,10 @@ def _launch_gui():
 
         def _open_report_format(self, fmt):
             """Open the report file for the given format (txt, docx, csv, json)."""
-            path = os.path.join(self.results_dir, f"docsearch_results.{fmt}")
+            suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
+            path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
             if not os.path.exists(path):
-                self._show_error(f"Report file not found: docsearch_results.{fmt}")
+                self._show_error(f"Report file not found: {os.path.basename(path)}")
                 return
             system = platform.system()
             if system == "Darwin":
@@ -1791,14 +2020,21 @@ def _launch_gui():
                 subprocess.Popen(["xdg-open", path])
 
         def _update_index_button_color(self):
-            """Set Build Index(es) button blue if index exists, red if not."""
+            """Set Build Index(es) button blue if index exists, red if not.
+            Also enable/disable the Search Using Index(es) checkbox.
+            """
             folder = self.folder_entry.get().strip()
             if folder and os.path.isdir(folder):
                 index_path = os.path.join(folder, ".docsearch.db")
                 if os.path.exists(index_path):
                     self.build_index_button.configure(fg_color=("#3B8ED0", "#1F6AA5"), hover_color=("#36719F", "#144870"))
+                    self.cb_index_search.configure(state="normal")
+                    if self.index_search_var.get() == "off":
+                        self.index_search_var.set("on")
                     return
             self.build_index_button.configure(fg_color="#CC3333", hover_color="#AA2222")
+            self.cb_index_search.configure(state="disabled")
+            self.index_search_var.set("off")
 
         def build_index_action(self):
             folder = self.folder_entry.get().strip()
@@ -2148,6 +2384,8 @@ def _launch_gui():
                 settings["expression"] = True
             if self.whole_word_var.get() == "on":
                 settings["whole_word"] = True
+            settings["timestamp"] = (self.timestamp_var.get() == "on")
+            settings["suite_timestamp"] = (self.suite_timestamp_var.get() == "on")
             # Integer settings
             cores_val = self.cores_entry.get().strip()
             if cores_val:
@@ -2179,6 +2417,14 @@ def _launch_gui():
                     n = int(prox)
                     if n >= 1:
                         settings["proximity"] = n
+                except ValueError:
+                    pass
+            mm = self.max_matches_entry.get().strip()
+            if mm:
+                try:
+                    n = int(mm)
+                    if n >= 0:
+                        settings["max_matches"] = n
                 except ValueError:
                     pass
             # String settings
@@ -2234,6 +2480,9 @@ def _launch_gui():
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
             self.whole_word_var.set("on" if config.get("whole_word") else "off")
+            self.timestamp_var.set("on" if config.get("timestamp", True) else "off")
+            if hasattr(self, 'suite_timestamp_var'):
+                self.suite_timestamp_var.set("on" if config.get("suite_timestamp", True) else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
             if "cores" in config:
@@ -2247,6 +2496,11 @@ def _launch_gui():
             self.proximity_entry.delete(0, "end")
             if "proximity" in config:
                 self.proximity_entry.insert(0, str(config["proximity"]))
+            self.max_matches_entry.delete(0, "end")
+            if "max_matches" in config:
+                self.max_matches_entry.insert(0, str(config["max_matches"]))
+            else:
+                self.max_matches_entry.insert(0, "1000")
             self.file_types_entry.delete(0, "end")
             if "file_types" in config:
                 self.file_types_entry.insert(0, config["file_types"])
@@ -2286,6 +2540,8 @@ def _launch_gui():
             self.context_after_entry.delete(0, "end")
             self.cores_entry.delete(0, "end")
             self.cores_entry.insert(0, str(self._default_cores))
+            self.max_matches_entry.delete(0, "end")
+            self.max_matches_entry.insert(0, "1000")
             self.specific_files_entry.delete(0, "end")
             self.save_name_entry.delete(0, "end")
             self.append_name_entry.delete(0, "end")
@@ -2295,6 +2551,7 @@ def _launch_gui():
             self.inverse_var.set("off")
             self.expression_var.set("off")
             self.whole_word_var.set("off")
+            self.timestamp_var.set("on")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
@@ -2337,6 +2594,7 @@ def _launch_gui():
                 "context_before": self.context_before_entry.get().strip(),
                 "context_after": self.context_after_entry.get().strip(),
                 "cores": self.cores_entry.get().strip(),
+                "max_matches": self.max_matches_entry.get().strip(),
                 "specific_files": self.specific_files_entry.get().strip(),
                 "index_search": self.index_search_var.get() == "on",
                 "inverse": self.inverse_var.get() == "on",
@@ -2370,6 +2628,8 @@ def _launch_gui():
             self.context_after_entry.insert(0, params.get("context_after", ""))
             self.cores_entry.delete(0, "end")
             self.cores_entry.insert(0, params.get("cores", "") or str(self._default_cores))
+            self.max_matches_entry.delete(0, "end")
+            self.max_matches_entry.insert(0, params.get("max_matches", "") or "1000")
             self.specific_files_entry.delete(0, "end")
             self.specific_files_entry.insert(0, params.get("specific_files", ""))
             self.index_search_var.set("on" if params.get("index_search") else "off")
