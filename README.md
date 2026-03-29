@@ -1884,17 +1884,28 @@ When a scheduled run completes, three things happen automatically:
 
 Both report files are written to the suite's **Output Dir** if set, otherwise to the search folder. The `DO_NOT_SEARCH` prefix ensures they are never re-searched. Click **Open Auto-Run History** in the suite panel to open the log file directly. If the log file is deleted, it is automatically recreated on the next auto-run.
 
-**Email Alerts (optional):** Click **Configure Email Alerts** in the suite panel to set up email notifications. The settings dialog has the following fields:
+**Email Alerts (optional):** Click **Configure Email Alerts** in the suite panel to set up email notifications. To send email, docsearch needs to connect to an **SMTP server** — this is the outgoing mail server that your email provider operates for sending messages. Every email provider has one: Gmail's is `smtp.gmail.com`, Outlook's is `smtp.office365.com`, and corporate email systems have their own (ask your IT department). The **SMTP port** is the door number on that server — port `587` is the standard for secure email sending and works with Gmail, Outlook, and most providers. You don't need to understand the technical details; just enter the values from the table below and click **Send Test Email** to verify it works.
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| SMTP Server | Your email provider's SMTP server | `smtp.gmail.com` or `smtp.office365.com` |
-| SMTP Port | `587` for STARTTLS (Gmail, Outlook), `465` for SSL, `25` for plain | `587` |
+| SMTP Server | Your email provider's outgoing mail server | `smtp.gmail.com` or `smtp.office365.com` |
+| SMTP Port | The port number for the mail server (587 works for most providers) | `587` |
 | Username | Your email login (often your full email address) | `you@gmail.com` |
-| Password | Your email password or app password | For Gmail: generate an app password at myaccount.google.com → Security → App passwords |
+| Password | Your email password or app password (see below) | — |
 | From Address | Sender address (defaults to username if blank) | `you@gmail.com` |
 | To Address | Where alerts are sent | `compliance-team@company.com` |
 | Send alerts | `failure` = only on FAIL results, `always` = every auto-run, `off` = disabled | `failure` |
+
+**Password notes:** Most email providers no longer allow your regular password for SMTP. Instead, you need to generate an **app password** — a special one-time password specifically for applications like docsearch. For Gmail: go to myaccount.google.com → Security → 2-Step Verification → App passwords, and generate one for "Mail." For Outlook/Microsoft 365: go to account.microsoft.com → Security → App passwords. For corporate email: ask your IT department for SMTP credentials or an app password.
+
+**Quick setup for common providers:**
+
+| Provider | SMTP Server | Port | Notes |
+|----------|-------------|------|-------|
+| Gmail | `smtp.gmail.com` | `587` | Requires app password (2-Step Verification must be enabled) |
+| Outlook / Microsoft 365 | `smtp.office365.com` | `587` | Requires app password |
+| Yahoo Mail | `smtp.mail.yahoo.com` | `587` | Requires app password |
+| Corporate / on-premises | Ask your IT department | Usually `587` or `25` | May not require authentication on internal networks |
 
 Click **Send Test Email** to verify your settings before saving. Settings are stored in `~/.docsearchrc`. Email alerts are completely optional — if no SMTP server is configured, no emails are sent. docsearch never modifies your documents; email alerts are outbound notifications about search results only.
 
