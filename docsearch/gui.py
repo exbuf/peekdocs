@@ -3311,11 +3311,15 @@ def _launch_gui():
 
             # Auto-generate suite report
             if results:
-                from docsearch.reporter import write_suite_report_txt, write_suite_report_json
+                from docsearch.reporter import (write_suite_report_txt,
+                                                write_suite_report_json,
+                                                write_suite_report_docx)
+                from docsearch import __version__
                 safe_name = suite_name.replace(" ", "_").replace("/", "_")
                 ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
                 json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
+                docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.docx")
                 write_suite_report_txt(
                     txt_path, suite_name, folder,
                     results, self._suite_start_time, self._suite_end_time,
@@ -3323,6 +3327,11 @@ def _launch_gui():
                 write_suite_report_json(
                     json_path, suite_name, folder,
                     results, self._suite_start_time, self._suite_end_time,
+                )
+                write_suite_report_docx(
+                    docx_path, suite_name, folder,
+                    results, self._suite_start_time, self._suite_end_time,
+                    version=__version__,
                 )
 
             # Append to auto-run log

@@ -1438,7 +1438,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
-4. **Reports:** Suite and stage report files are automatically generated with timestamps (e.g., `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt` and `.json`). Each report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
+4. **Reports:** Suite report files are automatically generated with timestamps in three formats: `.docx`, `.txt`, and `.json` (e.g., `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx`). The `.docx` report is a formatted Word document with a color-coded summary table (green PASS / red FAIL), per-stage details with search criteria, a report fingerprint for audit traceability, and the docsearch version used. Each report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
 
 **Pass Criteria:** By default, a search passes if it finds at least 1 match (`>= 1`). You can set custom pass criteria per-search when creating or editing a suite. Select a search in the right panel of the suite editor and use the **Pass criteria** dropdown and threshold field. Three operators are available:
 
@@ -1508,7 +1508,7 @@ Scheduled runs persist across app restarts — when the app opens, it reads the 
 
 When a scheduled run completes, two things happen automatically:
 
-1. **Suite reports are generated** — `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt` and `.json` are created with full results (always timestamped to avoid overwriting previous runs).
+1. **Suite reports are generated** — `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx`, `.txt`, and `.json` are created with full results (always timestamped to avoid overwriting previous runs). The `.docx` report includes a color-coded summary table and per-stage details.
 2. **An auto-run log entry is appended** — `DO_NOT_SEARCH_autorun_log.txt` records each run with a summary and per-search pass/fail details:
    ```
    [2026-03-28 14:30:00] Suite: quarterly_compliance — 4/5 passed — FAILED
