@@ -1890,8 +1890,8 @@ Both report files are written to the suite's **Output Dir** if set, otherwise to
 |-------|-------------|---------|
 | SMTP Server | Your email provider's outgoing mail server | `smtp.gmail.com` or `smtp.office365.com` |
 | SMTP Port | The port number for the mail server (587 works for most providers) | `587` |
-| Username | Your email login (often your full email address) | `you@gmail.com` |
-| Password | Your email password or app password (see below) | — |
+| Username | Your own email address — the account docsearch will send alerts from | `you@gmail.com` |
+| Password | The app password for that email account (not your regular login password — see below) | — |
 | From Address | Sender address (defaults to username if blank) | `you@gmail.com` |
 | To Address | Where alerts are sent | `compliance-team@company.com` |
 | Send alerts | `failure` = only on FAIL results, `always` = every auto-run, `off` = disabled | `failure` |
