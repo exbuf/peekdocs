@@ -687,6 +687,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
         f for f in glob.glob(glob_prefix + ".json", recursive=recursive)
         if os.path.basename(f) != "docsearch_results.json"
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
+        and os.path.basename(f) != ".docsearch_collection.json"
     )
     rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
     pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
@@ -731,6 +732,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     all_files = sorted(
         f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
+        and os.path.basename(f) not in (".docsearch_collection.json", ".docsearch.db", ".docsearchrc")
     )
 
     if file_types is not None:
