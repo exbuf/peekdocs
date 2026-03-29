@@ -45,9 +45,9 @@
 
 ## Introduction
 
-> Search Word docs, PDFs, spreadsheets, and 26 other file types — all at once, all offline. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule and produce pass/fail audit reports. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
+> Search Word docs, PDFs, spreadsheets, and 29 other file types — all at once, all offline. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule and produce pass/fail audit reports. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
 
-docsearch is a fast, offline search tool that scans 29 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), range queries to filter by dates, dollar amounts, percentages, ages, or file metadata (`-R amount:1000..5000`), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 32 file types — including PDFs, Word documents, spreadsheets, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), range queries to filter by dates, dollar amounts, percentages, ages, or file metadata (`-R amount:1000..5000`), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -91,32 +91,35 @@ All file types can exist in the same folder — no need to separate them into di
 | 1 | `.bmp` | Bitmap image (requires `-O` flag) |
 | 2 | `.cfg` | Configuration file |
 | 3 | `.csv` | Comma-separated values |
-| 4 | `.docx` | Microsoft Word document |
-| 5 | `.epub` | E-book (EPUB format) |
-| 6 | `.html` | HTML web page |
-| 7 | `.ini` | INI configuration file |
-| 8 | `.jpg` / `.jpeg` | JPEG image (requires `-O` flag) |
-| 9 | `.json` | JSON data file |
-| 10 | `.log` | Log file |
-| 11 | `.md` | Markdown document |
-| 12 | `.odp` | OpenDocument Presentation (LibreOffice Impress) |
-| 13 | `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
-| 14 | `.odt` | OpenDocument Text (LibreOffice Writer) |
-| 15 | `.pdf` | PDF document (scanned PDFs require `-O` flag) |
-| 16 | `.png` | PNG image (requires `-O` flag) |
-| 17 | `.pptx` | Microsoft PowerPoint presentation |
-| 18 | `.rst` | reStructuredText document |
-| 19 | `.rtf` | Rich Text Format document |
-| 20 | `.sql` | SQL script |
-| 21 | `.tex` | LaTeX document |
-| 22 | `.tiff` / `.tif` | TIFF image (requires `-O` flag) |
-| 23 | `.toml` | TOML configuration file |
-| 24 | `.tsv` | Tab-separated values |
-| 25 | `.txt` | Plain text file |
-| 26 | `.xlsx` | Microsoft Excel spreadsheet |
-| 27 | `.xml` | XML data file |
-| 28 | `.yaml` | YAML configuration file |
-| 29 | `.yml` | YAML configuration file |
+| 4 | `.doc` | Microsoft Word document (97-2003) |
+| 5 | `.docx` | Microsoft Word document |
+| 6 | `.epub` | E-book (EPUB format) |
+| 7 | `.html` | HTML web page |
+| 8 | `.ini` | INI configuration file |
+| 9 | `.jpg` / `.jpeg` | JPEG image (requires `-O` flag) |
+| 10 | `.json` | JSON data file |
+| 11 | `.log` | Log file |
+| 12 | `.md` | Markdown document |
+| 13 | `.odp` | OpenDocument Presentation (LibreOffice Impress) |
+| 14 | `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
+| 15 | `.odt` | OpenDocument Text (LibreOffice Writer) |
+| 16 | `.pdf` | PDF document (scanned PDFs require `-O` flag) |
+| 17 | `.png` | PNG image (requires `-O` flag) |
+| 18 | `.ppt` | Microsoft PowerPoint presentation (97-2003) |
+| 19 | `.pptx` | Microsoft PowerPoint presentation |
+| 20 | `.rst` | reStructuredText document |
+| 21 | `.rtf` | Rich Text Format document |
+| 22 | `.sql` | SQL script |
+| 23 | `.tex` | LaTeX document |
+| 24 | `.tiff` / `.tif` | TIFF image (requires `-O` flag) |
+| 25 | `.toml` | TOML configuration file |
+| 26 | `.tsv` | Tab-separated values |
+| 27 | `.txt` | Plain text file |
+| 28 | `.xls` | Microsoft Excel spreadsheet (97-2003) |
+| 29 | `.xlsx` | Microsoft Excel spreadsheet |
+| 30 | `.xml` | XML data file |
+| 31 | `.yaml` | YAML configuration file |
+| 32 | `.yml` | YAML configuration file |
 
 ## Benefits and Applications
 
