@@ -36,6 +36,7 @@
   - [Sample compliance suites by industry](#sample-compliance-suites-by-industry)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
+- [Limits and Constraints](#limits-and-constraints)
 - [Troubleshooting](#troubleshooting)
 - [Library API](#library-api)
 - [Running Tests](#running-tests)
@@ -2000,6 +2001,40 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Output flags** (`-s`, `-sa`, `-o`) — control *what to do* with results
 - **Performance flags** (`-c`, `-m`, `--index`) — control *how fast* to search
 - **Settings flag** (`--config`) — manage *saved settings*
+
+## Limits and Constraints
+
+docsearch has very few hard limits. Most constraints are system-dependent (available memory, disk space, OS file descriptor limits) rather than imposed by docsearch itself.
+
+**Configurable limits:**
+
+| Limit | Default | Flag | Notes |
+|-------|---------|------|-------|
+| **Max matches in reports** | 1,000 | `-m N` | Caps the number of matches written to report files. The total match count is always reported accurately in the summary — only the report files are capped. Set `-m 0` for unlimited. Set permanently with `--config max_matches=5000` |
+| **CPU cores used** | Half of available | `-c N` | Balances search speed with keeping your machine responsive. Use `-c 1` for minimal resource usage or `-c` with your full core count for maximum speed |
+| **Fuzzy match threshold** | 80 (out of 100) | — | Minimum similarity score for fuzzy matching (`-z`). Words scoring below 80% similarity are not considered matches. Not user-configurable |
+
+**No limits on:**
+
+| Item | Notes |
+|------|-------|
+| **File size** | docsearch processes whatever the underlying libraries (PyMuPDF, openpyxl, python-docx, etc.) can handle. There is no hardcoded maximum. Very large files (multi-GB PDFs, spreadsheets with millions of rows) may cause high memory usage — use `-c 1` to reduce memory consumption |
+| **Number of files** | No maximum. The only constraint is the operating system's file descriptor limit, which defaults to 256 on macOS and 1024 on Linux. Increase with `ulimit -n 4096` if needed. See the Troubleshooting section for details |
+| **PDF page count** | PDFs are processed page by page with no page count limit |
+| **Excel rows and sheets** | No maximum. openpyxl processes worksheets in read-only mode for memory efficiency |
+| **Number of search terms** | No maximum — you can provide as many terms as needed |
+| **Index database size** | No maximum. The index grows proportionally to the amount of text in your documents (typically 10–20% of original file sizes) |
+| **Number of saved searches or suites** | No maximum per folder |
+
+**System-dependent constraints:**
+
+| Constraint | What happens | How to fix |
+|------------|-------------|------------|
+| **Memory** | Very large files, or many files searched in parallel across multiple cores, can exhaust available RAM. docsearch catches `MemoryError` and suggests reducing cores or limiting file types | Use `-c 1` to search single-threaded, or `-t` to limit file types |
+| **Open files limit** | Searching thousands of files may exceed the OS file descriptor limit, causing "Too many open files" errors | Run `ulimit -n 4096` before searching. See Troubleshooting |
+| **Disk space** | docsearch checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
+| **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See Troubleshooting |
+| **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See Troubleshooting |
 
 ## Troubleshooting
 
