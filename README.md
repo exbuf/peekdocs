@@ -51,7 +51,7 @@ docsearch is a fast, offline search tool that scans 35 file types — including 
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
-**docsearch is read-only. It does not modify, move, or delete any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory (or a directory you specify with `--output-dir`), plus an optional `.docsearch.db` index file if you use `--index`, and an optional `.docsearch_collection.json` file if you save searches to a collection for search suites.
+**docsearch never modifies, moves, or deletes any of your files.** The only files it creates are its own report files (`docsearch_results.txt`, `docsearch_results.docx`, and optionally `.csv` and `.json`) in the current directory (or a directory you specify with `--output-dir`), plus an optional `.docsearch.db` index file if you use `--index`, and an optional `.docsearch_collection.json` file if you save searches to a collection for search suites. If you enable email alerts (optional — off by default), docsearch can send a notification email when a scheduled suite run detects compliance failures. This is an outbound notification about search results, not an action on your files — your documents remain untouched.
 
 ## Features
 
@@ -1862,7 +1862,7 @@ The suite results display shows cascade narrowing information:
 
 Scheduled runs persist across app restarts — when the app opens, it reads the last run time from the collection file, calculates when the next run is due, and resumes the schedule automatically. If a run is overdue (e.g., the app was closed during the interval), it runs shortly after launch. The Suites window does not need to be open for auto-runs to execute. When you reopen the Suites window, the scheduled suite is automatically re-selected and highlighted in the list.
 
-When a scheduled run completes, two things happen automatically:
+When a scheduled run completes, three things happen automatically:
 
 1. **Suite reports are generated** — `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx`, `.txt`, and `.json` are created with full results (always timestamped to avoid overwriting previous runs). The `.docx` report includes a color-coded summary table and per-stage details.
 2. **An auto-run log entry is appended** — `DO_NOT_SEARCH_autorun_log.txt` records each run with a summary and per-search pass/fail details:
@@ -1871,8 +1871,23 @@ When a scheduled run completes, two things happen automatically:
      [PASS] find_contracts — 12 match(es) (need >= 1)
      [FAIL] no_pii — 2 match(es) (need == 0)
    ```
+3. **An email alert is sent** (if configured) — docsearch sends a notification email with the suite name, pass/fail summary, per-test details, and a reference to the .docx report file. By default, alerts are sent only when a suite has FAIL results — you can change this to "always" or "off."
 
-Both files are written to the suite's **Output Dir** if set, otherwise to the search folder. The `DO_NOT_SEARCH` prefix ensures they are never re-searched. Click **Open Auto-Run History** in the suite panel to open the log file directly. If the log file is deleted, it is automatically recreated on the next auto-run.
+Both report files are written to the suite's **Output Dir** if set, otherwise to the search folder. The `DO_NOT_SEARCH` prefix ensures they are never re-searched. Click **Open Auto-Run History** in the suite panel to open the log file directly. If the log file is deleted, it is automatically recreated on the next auto-run.
+
+**Email Alerts (optional):** Click **Configure Email Alerts** in the suite panel to set up email notifications. The settings dialog has the following fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| SMTP Server | Your email provider's SMTP server | `smtp.gmail.com` or `smtp.office365.com` |
+| SMTP Port | `587` for STARTTLS (Gmail, Outlook), `465` for SSL, `25` for plain | `587` |
+| Username | Your email login (often your full email address) | `you@gmail.com` |
+| Password | Your email password or app password | For Gmail: generate an app password at myaccount.google.com → Security → App passwords |
+| From Address | Sender address (defaults to username if blank) | `you@gmail.com` |
+| To Address | Where alerts are sent | `compliance-team@company.com` |
+| Send alerts | `failure` = only on FAIL results, `always` = every auto-run, `off` = disabled | `failure` |
+
+Click **Send Test Email** to verify your settings before saving. Settings are stored in `~/.docsearchrc`. Email alerts are completely optional — if no SMTP server is configured, no emails are sent. docsearch never modifies your documents; email alerts are outbound notifications about search results only.
 
 **Output Directory:** The suite panel has its own **Output Dir** field with a Browse button. When set, all suite-generated files (stage reports, suite reports, auto-run logs) are written there instead of the search folder. This setting is automatically saved to `~/.docsearchrc` when you close the Suites window and restored on next launch.
 

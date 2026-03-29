@@ -1389,6 +1389,16 @@ def _launch_gui():
             autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
             Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
+            # Email Alerts link
+            email_alert_label = ctk.CTkLabel(
+                self.suite_frame, text="Configure Email Alerts",
+                font=ctk.CTkFont(size=12, underline=True),
+                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
+            )
+            email_alert_label.grid(row=7, column=1, padx=10, pady=(10, 0), sticky="e")
+            email_alert_label.bind("<Button-1>", lambda e: self._configure_email_alerts())
+            Tooltip(email_alert_label, "Configure email notifications for suite auto-run results")
+
             # View Suite Report button (hidden until a suite run completes)
             self.view_suite_report_btn = ctk.CTkButton(
                 self.suite_frame, text="View Suite Report", width=160, font=ctk.CTkFont(size=13),
@@ -2677,6 +2687,95 @@ def _launch_gui():
             else:
                 subprocess.Popen(["xdg-open", path])
 
+        def _configure_email_alerts(self):
+            """Open a dialog to configure email alert settings."""
+            from docsearch.cli import _load_config, _save_config
+
+            dialog = ctk.CTkToplevel(self)
+            dialog.title("Email Alert Settings")
+            dialog.geometry("500x420")
+            dialog.transient(self)
+            dialog.grab_set()
+
+            cfg = _load_config()
+
+            ctk.CTkLabel(dialog, text="Email Alert Settings", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(15, 5))
+            ctk.CTkLabel(dialog, text="Send email notifications when scheduled suite runs complete.",
+                         font=ctk.CTkFont(size=11), text_color="gray50").pack(pady=(0, 10))
+
+            form = ctk.CTkFrame(dialog, fg_color="transparent")
+            form.pack(fill="x", padx=20)
+
+            fields = {}
+            row = 0
+            for label, key, default, tooltip in [
+                ("SMTP Server:", "smtp_host", "", "e.g., smtp.gmail.com or smtp.office365.com"),
+                ("SMTP Port:", "smtp_port", "587", "587 for STARTTLS (Gmail, Outlook), 465 for SSL, 25 for plain"),
+                ("Username:", "smtp_user", "", "Your email login (often your full email address)"),
+                ("Password:", "smtp_password", "", "App password (Gmail) or account password"),
+                ("From Address:", "email_from", "", "Sender address (defaults to username if blank)"),
+                ("To Address:", "email_to", "", "Recipient email address for alerts"),
+            ]:
+                ctk.CTkLabel(form, text=label, font=ctk.CTkFont(size=12)).grid(row=row, column=0, padx=(0, 10), pady=4, sticky="e")
+                entry = ctk.CTkEntry(form, width=300,
+                                     show="*" if "password" in key.lower() else "")
+                entry.grid(row=row, column=1, pady=4, sticky="w")
+                val = cfg.get(key, default)
+                if val:
+                    entry.insert(0, str(val))
+                Tooltip(entry, tooltip)
+                fields[key] = entry
+                row += 1
+
+            # Email on: failure only vs always
+            ctk.CTkLabel(form, text="Send alerts:", font=ctk.CTkFont(size=12)).grid(row=row, column=0, padx=(0, 10), pady=4, sticky="e")
+            email_on_var = ctk.StringVar(value=cfg.get("email_on", "failure"))
+            email_on_menu = ctk.CTkOptionMenu(form, variable=email_on_var,
+                                               values=["failure", "always", "off"], width=150)
+            email_on_menu.grid(row=row, column=1, pady=4, sticky="w")
+            Tooltip(email_on_menu, "failure = only when a suite has FAIL results. always = every auto-run. off = no emails")
+            row += 1
+
+            status_label = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11))
+            status_label.pack(pady=(10, 0))
+
+            btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+            btn_frame.pack(pady=(10, 15))
+
+            def _save():
+                cfg_update = _load_config()
+                for key, entry in fields.items():
+                    cfg_update[key] = entry.get().strip()
+                cfg_update["email_on"] = email_on_var.get()
+                _save_config(cfg_update)
+                status_label.configure(text="Settings saved to ~/.docsearchrc", text_color="green")
+
+            def _test():
+                from docsearch.email_alert import send_suite_alert
+                test_cfg = {}
+                for key, entry in fields.items():
+                    test_cfg[key] = entry.get().strip()
+                test_cfg["email_on"] = "always"  # Force send for test
+                status_label.configure(text="Sending test email...", text_color="gray50")
+                dialog.update()
+                err = send_suite_alert(
+                    test_cfg, "Test Suite", "/test/folder",
+                    [{"name": "test_check", "passed": True, "match_count": 5,
+                      "pass_criteria": {"op": ">=", "n": 1}}],
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    1, 1, "PASSED",
+                )
+                if err:
+                    status_label.configure(text=err, text_color="red")
+                else:
+                    status_label.configure(text="Test email sent successfully!", text_color="green")
+
+            ctk.CTkButton(btn_frame, text="Save", width=100, command=_save).pack(side="left", padx=5)
+            ctk.CTkButton(btn_frame, text="Send Test Email", width=140, command=_test).pack(side="left", padx=5)
+            ctk.CTkButton(btn_frame, text="Close", width=100, fg_color="transparent",
+                          text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"),
+                          command=dialog.destroy).pack(side="left", padx=5)
+
         def _build_bottom_row(self):
             self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
             self.bottom_frame.grid(
@@ -3396,6 +3495,27 @@ def _launch_gui():
                     f.write("\n")
             except OSError:
                 pass
+
+            # Send email alert if configured
+            try:
+                from docsearch.cli import _load_config
+                from docsearch.email_alert import send_suite_alert
+                cfg = _load_config()
+                if cfg.get("smtp_host") and cfg.get("email_to"):
+                    docx_report = docx_path if results else None
+                    err = send_suite_alert(
+                        cfg, suite_name, folder, results, run_time,
+                        passed, total, verdict, report_path=docx_report,
+                    )
+                    if err:
+                        # Log email failure to auto-run log
+                        try:
+                            with open(log_path, "a", encoding="utf-8") as f:
+                                f.write(f"  [EMAIL ALERT] {err}\n\n")
+                        except OSError:
+                            pass
+            except Exception:
+                pass  # Never let email failure break the auto-run
 
         def _reschedule_suite(self):
             """Schedule the next suite run tick based on stored interval."""
