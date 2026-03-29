@@ -20,8 +20,11 @@ from pptx import Presentation as PptxPresentation
 import ebooklib
 from ebooklib import epub
 
+import email as email_mod
 import olefile
 import xlrd
+import extract_msg
+import pypff
 
 from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
 from docsearch.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
@@ -244,6 +247,81 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
             raw = rtffile.read()
         plain = rtf_to_text(raw)
         all_lines = [(line_num, line) for line_num, line in enumerate(plain.split("\n"), start=1)]
+
+    elif ext == ".eml":
+        # Standard email format (RFC 822) — one email per file
+        with open(filepath, "rb") as f:
+            msg = email_mod.message_from_bytes(f.read())
+        line_num = 0
+        # Include key headers as searchable lines
+        for hdr in ("From", "To", "Cc", "Subject", "Date"):
+            val = msg.get(hdr)
+            if val:
+                line_num += 1
+                all_lines.append((line_num, f"{hdr}: {val}"))
+        # Extract body text
+        if msg.is_multipart():
+            for part in msg.walk():
+                ctype = part.get_content_type()
+                if ctype == "text/plain":
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        text = payload.decode("utf-8", errors="replace")
+                        for line in text.split("\n"):
+                            line_num += 1
+                            all_lines.append((line_num, line.rstrip("\r")))
+        else:
+            payload = msg.get_payload(decode=True)
+            if payload:
+                text = payload.decode("utf-8", errors="replace")
+                for line in text.split("\n"):
+                    line_num += 1
+                    all_lines.append((line_num, line.rstrip("\r")))
+
+    elif ext == ".msg":
+        # Microsoft Outlook email format — one email per file
+        msg = extract_msg.Message(filepath)
+        line_num = 0
+        for hdr, val in [("From", msg.sender), ("To", msg.to), ("Cc", msg.cc),
+                         ("Subject", msg.subject), ("Date", msg.date)]:
+            if val:
+                line_num += 1
+                all_lines.append((line_num, f"{hdr}: {val}"))
+        body = msg.body
+        if body:
+            for line in body.split("\n"):
+                line_num += 1
+                all_lines.append((line_num, line.rstrip("\r")))
+        msg.close()
+
+    elif ext == ".pst":
+        # Outlook Personal Storage Table — mailbox database with many emails
+        pst = pypff.file()
+        pst.open(filepath)
+        line_num = 0
+
+        def _walk_pst_folder(folder):
+            nonlocal line_num
+            for i in range(folder.number_of_sub_messages):
+                msg = folder.get_sub_message(i)
+                for hdr, val in [("From", msg.sender_name), ("Subject", msg.subject),
+                                 ("Date", str(msg.delivery_time) if msg.delivery_time else None)]:
+                    if val:
+                        line_num += 1
+                        all_lines.append((line_num, f"{hdr}: {val}"))
+                body = msg.plain_text_body
+                if body:
+                    text = body.decode("utf-8", errors="replace") if isinstance(body, bytes) else body
+                    for line in text.split("\n"):
+                        line_num += 1
+                        all_lines.append((line_num, line.rstrip("\r")))
+            for i in range(folder.number_of_sub_folders):
+                _walk_pst_folder(folder.get_sub_folder(i))
+
+        root = pst.get_root_folder()
+        if root:
+            _walk_pst_folder(root)
+        pst.close()
 
     elif ext == ".xlsx":
         wb = load_workbook(filepath, read_only=True, data_only=True)
@@ -587,6 +665,9 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     ini_files = sorted(glob.glob(glob_prefix + ".ini", recursive=recursive))
     cfg_files = sorted(glob.glob(glob_prefix + ".cfg", recursive=recursive))
     sql_files = sorted(glob.glob(glob_prefix + ".sql", recursive=recursive))
+    eml_files = sorted(glob.glob(glob_prefix + ".eml", recursive=recursive))
+    msg_files = sorted(glob.glob(glob_prefix + ".msg", recursive=recursive))
+    pst_files = sorted(glob.glob(glob_prefix + ".pst", recursive=recursive))
     if use_ocr:
         jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
         jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
@@ -598,7 +679,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         image_files = []
     all_files = sorted(
-        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + image_files
+        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 

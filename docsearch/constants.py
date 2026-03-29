@@ -2,7 +2,7 @@
 
 import os
 
-SUPPORTED_TYPES = {".docx", ".doc", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".xls", ".md", ".json", ".rtf", ".pptx", ".ppt", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"}
+SUPPORTED_TYPES = {".docx", ".doc", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".xls", ".md", ".json", ".rtf", ".pptx", ".ppt", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql", ".eml", ".msg", ".pst"}
 
 OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
 

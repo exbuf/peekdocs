@@ -91,8 +91,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types:\n")
-        f.write(".cfg, .csv, .doc, .docx, .epub, .html, .ini, .json, .log, .md, .ods, .odp, .odt, .pdf, .ppt, .pptx,\n")
-        f.write(".rst, .rtf, .sql, .tex, .toml, .tsv, .txt, .xls, .xlsx, .xml, .yaml, .yml\n")
+        f.write(".cfg, .csv, .doc, .docx, .eml, .epub, .html, .ini, .json, .log, .md, .msg, .ods, .odp, .odt,\n")
+        f.write(".pdf, .ppt, .pptx, .pst, .rst, .rtf, .sql, .tex, .toml, .tsv, .txt, .xls, .xlsx, .xml, .yaml, .yml\n")
         if use_ocr:
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
