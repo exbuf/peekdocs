@@ -7,7 +7,7 @@ name = "docsearch"
 version = "0.1.0"
 description = "A CLI tool for searching and retrieving content from documents"
 requires-python = ">=3.10"
-dependencies = ["python-docx", "PyMuPDF", "odfpy", "openpyxl", "striprtf", "python-pptx", "EbookLib", "Pillow", "pytesseract", "rapidfuzz", "customtkinter>=5.2.0"]
+dependencies = ["python-docx", "PyMuPDF", "odfpy", "openpyxl", "striprtf", "python-pptx", "EbookLib", "Pillow", "pytesseract", "rapidfuzz", "customtkinter>=5.2.0", "olefile", "xlrd"]
 
 [project.scripts]
 docsearch = "docsearch.cli:main"

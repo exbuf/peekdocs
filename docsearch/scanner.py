@@ -20,6 +20,9 @@ from pptx import Presentation as PptxPresentation
 import ebooklib
 from ebooklib import epub
 
+import olefile
+import xlrd
+
 from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
 from docsearch.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
 
@@ -85,6 +88,28 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
     if ext == ".docx":
         doc = Document(filepath)
         all_lines = [(i, para.text) for i, para in enumerate(doc.paragraphs, start=1)]
+
+    elif ext == ".doc":
+        # Word 97-2003 binary format — extract text from OLE compound document
+        ole = olefile.OleFileIO(filepath)
+        if ole.exists("WordDocument"):
+            stream = ole.openstream("WordDocument")
+            data = stream.read()
+            stream.close()
+            # Try both UTF-16-LE (Unicode docs) and Latin-1 (ASCII docs),
+            # use whichever produces more readable content
+            candidates = []
+            for encoding in ("utf-16-le", "latin-1"):
+                try:
+                    decoded = data.decode(encoding, errors="ignore")
+                    lines = [l.strip() for l in decoded.split("\r") if l.strip() and len(l.strip()) > 2]
+                    clean = [l for l in lines if sum(1 for c in l if c.isprintable()) / max(len(l), 1) > 0.7]
+                    candidates.append(clean)
+                except Exception:
+                    candidates.append([])
+            best = max(candidates, key=lambda c: sum(len(l) for l in c))
+            all_lines = [(i, line) for i, line in enumerate(best, start=1)]
+        ole.close()
 
     elif ext == ".pdf":
         doc = fitz.open(filepath)
@@ -180,6 +205,40 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                         para_num += 1
                         all_lines.append((para_num, para.text))
 
+    elif ext == ".ppt":
+        # PowerPoint 97-2003 binary format — extract text from OLE streams
+        ole = olefile.OleFileIO(filepath)
+        if ole.exists("PowerPoint Document"):
+            stream = ole.openstream("PowerPoint Document")
+            data = stream.read()
+            stream.close()
+            line_num = 0
+            i = 0
+            while i < len(data) - 8:
+                rec_type = int.from_bytes(data[i+2:i+4], "little")
+                rec_len = int.from_bytes(data[i+4:i+8], "little")
+                if rec_type == 0x0FA8 and 0 < rec_len < 100000:
+                    # TextBytesAtom — ASCII text
+                    text = data[i+8:i+8+rec_len].decode("latin-1", errors="ignore").strip()
+                    if text:
+                        for line in text.split("\r"):
+                            if line.strip():
+                                line_num += 1
+                                all_lines.append((line_num, line.strip()))
+                    i += 8 + rec_len
+                elif rec_type == 0x0FA0 and 0 < rec_len < 100000:
+                    # TextCharsAtom — UTF-16-LE text
+                    text = data[i+8:i+8+rec_len].decode("utf-16-le", errors="ignore").strip()
+                    if text:
+                        for line in text.split("\r"):
+                            if line.strip():
+                                line_num += 1
+                                all_lines.append((line_num, line.strip()))
+                    i += 8 + rec_len
+                else:
+                    i += 1
+        ole.close()
+
     elif ext == ".rtf":
         with open(filepath, encoding="utf-8", errors="replace") as rtffile:
             raw = rtffile.read()
@@ -193,6 +252,16 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                 row_text = ", ".join(str(cell) for cell in row if cell is not None)
                 all_lines.append((row_num, row_text))
         wb.close()
+
+    elif ext == ".xls":
+        # Excel 97-2003 binary format
+        book = xlrd.open_workbook(filepath)
+        for sheet in book.sheets():
+            for row_num in range(sheet.nrows):
+                vals = [str(sheet.cell_value(row_num, col)) for col in range(sheet.ncols) if sheet.cell_value(row_num, col) != ""]
+                row_text = ", ".join(vals)
+                if row_text.strip():
+                    all_lines.append((row_num + 1, row_text))
 
     elif ext in OCR_IMAGE_TYPES:
         from PIL import Image
@@ -476,6 +545,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
         if os.path.basename(f) != "docsearch_results.docx"
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
+    doc_files = sorted(glob.glob(glob_prefix + ".doc", recursive=recursive))
     pdf_files = sorted(glob.glob(glob_prefix + ".pdf", recursive=recursive))
     csv_files = sorted(
         f for f in glob.glob(glob_prefix + ".csv", recursive=recursive)
@@ -490,6 +560,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     )
     html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
     xlsx_files = sorted(glob.glob(glob_prefix + ".xlsx", recursive=recursive))
+    xls_files = sorted(glob.glob(glob_prefix + ".xls", recursive=recursive))
     md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
     json_files = sorted(
         f for f in glob.glob(glob_prefix + ".json", recursive=recursive)
@@ -498,6 +569,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     )
     rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
     pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
+    ppt_files = sorted(glob.glob(glob_prefix + ".ppt", recursive=recursive))
     xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
     log_files = sorted(
         f for f in glob.glob(glob_prefix + ".log", recursive=recursive)
@@ -526,7 +598,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         image_files = []
     all_files = sorted(
-        f for f in docx_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + md_files + json_files + rtf_files + pptx_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + image_files
+        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
