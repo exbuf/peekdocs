@@ -1379,32 +1379,38 @@ def _launch_gui():
             suite_outdir_browse_btn.grid(row=0, column=2)
             Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location")
 
-            # Open Auto-Run History label
+            # Auto-Run History + Email Alerts links row
+            links_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            links_frame.grid(row=7, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="ew")
+
             autorun_label = ctk.CTkLabel(
-                self.suite_frame, text="Open Auto-Run History",
+                links_frame, text="Open Auto-Run History",
                 font=ctk.CTkFont(size=12, underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
-            autorun_label.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
+            autorun_label.pack(side="left")
             autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
             Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
+            sep_label = ctk.CTkLabel(links_frame, text="  |  ", font=ctk.CTkFont(size=12),
+                                     text_color=("gray60", "gray40"))
+            sep_label.pack(side="left")
+
             clear_autorun_label = ctk.CTkLabel(
-                self.suite_frame, text="Clear Auto-Run History",
+                links_frame, text="Clear Auto-Run History",
                 font=ctk.CTkFont(size=12, underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
-            clear_autorun_label.grid(row=7, column=1, padx=10, pady=(10, 0), sticky="w")
+            clear_autorun_label.pack(side="left")
             clear_autorun_label.bind("<Button-1>", lambda e: self._clear_autorun_history())
             Tooltip(clear_autorun_label, "Delete the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
-            # Email Alerts link
             email_alert_label = ctk.CTkLabel(
-                self.suite_frame, text="Configure Email Alerts",
+                links_frame, text="Configure Email Alerts",
                 font=ctk.CTkFont(size=12, underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
-            email_alert_label.grid(row=7, column=1, padx=10, pady=(10, 0), sticky="e")
+            email_alert_label.pack(side="right")
             email_alert_label.bind("<Button-1>", lambda e: self._configure_email_alerts())
             Tooltip(email_alert_label, "Configure email notifications for suite auto-run results")
 
