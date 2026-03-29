@@ -2010,7 +2010,22 @@ docsearch has very few hard limits. Most constraints are system-dependent (avail
 
 | Limit | Default | Flag | Notes |
 |-------|---------|------|-------|
-| **Max matches in reports** | 1,000 | `-m N` | Caps the number of matches written to report files. The total match count is always reported accurately in the summary — only the report files are capped. Set `-m 0` for unlimited. Set permanently with `--config max_matches=5000` |
+| **Max matches in reports** | 1,000 | `-m N` | Caps the number of matches written to report files. The total match count is always reported accurately in the summary — only the report files are capped. Set `-m 0` for unlimited. Set permanently with `--config` (see below) |
+
+**Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.docsearchrc`) so it applies automatically every time you run docsearch — you don't have to type the flag on every search. For example, if you always want a higher match cap:
+
+```bash
+docsearch --config max_matches=5000     # save the setting once
+docsearch budget                         # all future searches use max_matches=5000
+```
+
+You can still override a saved setting on any individual search by passing the flag directly:
+
+```bash
+docsearch -m 0 budget                    # this search only: unlimited matches (overrides saved 5000)
+```
+
+To see all your saved settings: `docsearch --config`. To reset a setting to its default: `docsearch --config max_matches=`. The `--config` flag works for many settings — see the [Saved Settings](#saved-settings-optional) section for the full list.
 | **CPU cores used** | Half of available | `-c N` | Balances search speed with keeping your machine responsive. Use `-c 1` for minimal resource usage or `-c` with your full core count for maximum speed |
 | **Fuzzy match threshold** | 80 (out of 100) | — | Minimum similarity score for fuzzy matching (`-z`). Words scoring below 80% similarity are not considered matches. Not user-configurable |
 
