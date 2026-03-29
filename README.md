@@ -124,6 +124,19 @@ All file types can exist in the same folder — no need to separate them into di
 | 34 | `.yaml` | YAML configuration file |
 | 35 | `.yml` | YAML configuration file |
 
+**How to export emails for searching:**
+
+docsearch searches email files that have been exported from your email client to a folder on your computer. Here's how to get them:
+
+- **Outlook (.msg — individual emails):** Open an email in Outlook, then File → Save As and choose "Outlook Message Format (.msg)." Or simply drag one or more emails from Outlook to a folder on your desktop. Each email becomes a separate .msg file.
+- **Outlook (.pst — entire mailbox or folder):** In Outlook, go to File → Open & Export → Import/Export → Export to a file → Outlook Data File (.pst). Select the mailbox or folder you want to export. The .pst file contains all the emails, subfolders, and attachments in that selection. This is the fastest way to make a large set of emails searchable — export once, then search repeatedly.
+- **Gmail (.eml — individual emails):** Open an email in Gmail, click the three-dot menu (⋮) in the upper right of the email, and select "Download message." Each email is saved as a .eml file.
+- **Gmail (bulk export via Google Takeout):** Go to [takeout.google.com](https://takeout.google.com), select only "Mail," and choose your export format. Google Takeout exports emails in MBOX format, which can be converted to individual .eml files using free tools like `mbox2eml` or by importing into Thunderbird and re-exporting.
+- **Apple Mail (.eml):** Select one or more emails, then File → Save As. Apple Mail saves them as .eml files. You can also drag emails from Apple Mail to a Finder folder.
+- **Thunderbird (.eml):** Select one or more emails, then File → Save As → File. Thunderbird saves them as .eml files. For bulk export, use the ImportExportTools NG add-on.
+
+Once exported, place the email files in a folder and search them like any other document: `docsearch budget` or point the GUI at the folder. docsearch searches the email headers (From, To, Subject, Date) and the message body. For .pst files, docsearch walks all folders in the archive and searches every email inside it.
+
 ## Benefits and Applications
 
 - **Keep sensitive documents private** — medical records, financial info, and legal documents stay on your machine, searchable without uploading to cloud AI services
