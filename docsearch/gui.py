@@ -2384,6 +2384,21 @@ def _launch_gui():
             total = len(searches)
             output_dir = self._suite_output_dir
 
+            # Collect source file manifest for the suite report
+            from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+            all_exts = SUPPORTED_TYPES | OCR_IMAGE_TYPES
+            source_files = []
+            try:
+                for fname in sorted(os.listdir(folder)):
+                    fpath = os.path.join(folder, fname)
+                    if os.path.isfile(fpath) and os.path.splitext(fname)[1].lower() in all_exts:
+                        stat = os.stat(fpath)
+                        mod_time = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                        source_files.append((fpath, stat.st_size, mod_time))
+            except OSError:
+                pass
+            self._suite_source_files = source_files
+
             # Clean up stage files from any previous run of this suite
             cleanup_stage_reports(output_dir, self._suite_name)
 
@@ -2639,6 +2654,7 @@ def _launch_gui():
                 self._suite_results_data,
                 self._suite_start_time, self._suite_end_time,
                 version=__version__,
+                source_files=getattr(self, '_suite_source_files', None),
             )
             self._suite_report_path = docx_path
             suite_open = self._suite_window_open()
@@ -3356,6 +3372,7 @@ def _launch_gui():
                     docx_path, suite_name, folder,
                     results, self._suite_start_time, self._suite_end_time,
                     version=__version__,
+                    source_files=getattr(self, '_suite_source_files', None),
                 )
 
             # Append to auto-run log

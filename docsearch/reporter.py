@@ -538,12 +538,16 @@ def write_suite_report_json(output_path, suite_name, folder, results, start_time
 
 
 def write_suite_report_docx(output_path, suite_name, folder, results,
-                            start_time, end_time, version=None):
+                            start_time, end_time, version=None,
+                            source_files=None):
     """Write a consolidated suite report as a formatted .docx file.
 
     Produces an evidence-grade document with suite metadata, a color-coded
-    summary table (green PASS / red FAIL), per-stage details, and a file-set
-    fingerprint for audit traceability.
+    summary table (green PASS / red FAIL), per-stage details, a file-set
+    fingerprint for audit traceability, and a source file manifest.
+
+    source_files: optional list of (filepath, size_bytes, modified_time_str)
+                  tuples for the documents that were searched.
     """
     import hashlib
 
@@ -714,5 +718,41 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
             _add_line(f"Stage reports: {fnames}")
 
         doc.add_paragraph()  # spacer between stages
+
+    # ── Source file manifest ──
+    if source_files:
+        _add_line("Source File Manifest", bold=True, size=12)
+        _add_line(
+            f"{len(source_files)} file(s) were present in the search folder "
+            f"when this suite ran. This manifest lists every file that was "
+            f"available for searching."
+        )
+        doc.add_paragraph()  # spacer
+
+        manifest_table = doc.add_table(rows=1, cols=4)
+        manifest_table.style = "Light Grid Accent 1"
+        for i, h in enumerate(["#", "File", "Size", "Last Modified"]):
+            cell = manifest_table.rows[0].cells[i]
+            cell.text = ""
+            run = cell.paragraphs[0].add_run(h)
+            run.bold = True
+            run.font.size = Pt(8)
+
+        for idx, (filepath, size_bytes, mod_time) in enumerate(source_files, 1):
+            row = manifest_table.add_row()
+            row.cells[0].text = str(idx)
+            row.cells[1].text = os.path.basename(filepath)
+            row.cells[2].text = fmt_size(size_bytes)
+            row.cells[3].text = mod_time
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    for run in para.runs:
+                        if run.font.size is None:
+                            run.font.size = Pt(8)
+
+        # Manifest summary
+        total_size = sum(s for _, s, _ in source_files)
+        doc.add_paragraph()
+        _add_line(f"Total: {len(source_files)} files, {fmt_size(total_size)}")
 
     doc.save(output_path)
