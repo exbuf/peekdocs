@@ -1662,13 +1662,6 @@ No — all searches are case-insensitive by default.
 **Why are my reports capped at 1,000 matches?**
 By default, docsearch caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Options panel.
 
-**Why can't docsearch read files in my Documents folder (permission denied)?**
-Your operating system may be blocking docsearch (or your terminal) from accessing protected folders like Documents or Downloads. This is a security feature — not a docsearch bug. Here's how to fix it on each platform:
-
-- **macOS:** Go to System Settings → Privacy & Security → Full Disk Access and add your terminal app (Terminal.app, iTerm, etc.). Alternatively, go to System Settings → Privacy & Security → Files and Folders and grant your terminal (or Python) access to the Documents folder. macOS can revoke or prompt for these permissions at any time, so a folder that worked yesterday may stop working today.
-- **Windows:** Right-click your terminal (Command Prompt, PowerShell, or Windows Terminal) and select "Run as administrator." If the folder is under Controlled Folder Access (Windows Security → Virus & threat protection → Ransomware protection), click "Allow an app through Controlled folder access" and add your Python executable (e.g., `python.exe`). You can find its path by running `where python` in a terminal.
-- **Linux:** Check file ownership and permissions with `ls -la` on the folder. If needed, grant read access with `chmod -R u+r /path/to/folder` or take ownership with `chown -R $USER /path/to/folder`. If the folder is on an NTFS or FAT drive, make sure it is mounted with read permissions (check `/etc/fstab` or your mount options).
-
 Every feature in docsearch serves the core mission of finding content in documents:
 
 - **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`, `-W`) — control *how* to match
@@ -1679,6 +1672,16 @@ Every feature in docsearch serves the core mission of finding content in documen
 - **Settings flag** (`--config`) — manage *saved settings*
 
 ## Troubleshooting
+
+**Why can't docsearch read files in my Documents folder (permission denied)?**
+
+Your operating system may be blocking docsearch (or your terminal) from accessing protected folders like Documents or Downloads. This is a security feature — not a docsearch bug. Here's how to fix it on each platform:
+
+- **macOS:** Go to System Settings → Privacy & Security → Full Disk Access and add your terminal app (Terminal.app, iTerm, etc.). Alternatively, go to System Settings → Privacy & Security → Files and Folders and grant your terminal (or Python) access to the Documents folder. macOS can revoke or prompt for these permissions at any time, so a folder that worked yesterday may stop working today.
+- **Windows:** Right-click your terminal (Command Prompt, PowerShell, or Windows Terminal) and select "Run as administrator." If the folder is under Controlled Folder Access (Windows Security → Virus & threat protection → Ransomware protection), click "Allow an app through Controlled folder access" and add your Python executable (e.g., `python.exe`). You can find its path by running `where python` in a terminal.
+- **Linux:** Check file ownership and permissions with `ls -la` on the folder. If needed, grant read access with `chmod -R u+r /path/to/folder` or take ownership with `chown -R $USER /path/to/folder`. If the folder is on an NTFS or FAT drive, make sure it is mounted with read permissions (check `/etc/fstab` or your mount options).
+
+---
 
 **"ModuleNotFoundError: No module named 'fitz'" (or any other module)**
 
