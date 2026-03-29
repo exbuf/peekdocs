@@ -1497,7 +1497,7 @@ docsearch handles all of these with features already built in. Here's how to set
 | Amounts in range | Dollar amounts between $1,000 and $50,000 | At least one match |
 | No SSNs | SSN pattern (XXX-XX-XXXX) in any file | No file has it |
 
-**Step 2: Create saved searches in the GUI.** Open the GUI with `docsearch-gui`, point it at the folder containing your documents, and configure each check as a separate search:
+**Step 2: Create saved searches in the GUI.** Open the GUI by running `docsearch-gui` in your terminal. "Point it at a folder" means clicking the **Browse** button next to the **Search Folder** field at the top of the window and navigating to the folder containing your documents. Once selected, all searches will run against that folder. Now configure each check as a separate search:
 
 - **"has_signature"** — Enter `Authorized\s+Signature` in the search box, check **Regex** and **Inverse**. Inverse mode lists files that do *not* contain the term — if the result is zero files, every document has it.
 - **"has_date"** — Enter `\d{2}/\d{2}/\d{4}` in the search box, check **Regex** and **Inverse**. Same logic: zero files missing a date means all files have one.
