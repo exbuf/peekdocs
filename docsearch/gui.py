@@ -1385,9 +1385,18 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12, underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
-            autorun_label.grid(row=7, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="w")
+            autorun_label.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
             autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
             Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
+
+            clear_autorun_label = ctk.CTkLabel(
+                self.suite_frame, text="Clear Auto-Run History",
+                font=ctk.CTkFont(size=12, underline=True),
+                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
+            )
+            clear_autorun_label.grid(row=7, column=1, padx=10, pady=(10, 0), sticky="w")
+            clear_autorun_label.bind("<Button-1>", lambda e: self._clear_autorun_history())
+            Tooltip(clear_autorun_label, "Delete the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
             # Email Alerts link
             email_alert_label = ctk.CTkLabel(
@@ -1432,6 +1441,26 @@ def _launch_gui():
                 os.startfile(log_path)
             else:
                 subprocess.Popen(["xdg-open", log_path])
+
+        def _clear_autorun_history(self):
+            """Delete the auto-run log file after confirmation."""
+            folder = self.folder_entry.get().strip()
+            report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
+            if not report_dir or not os.path.isdir(report_dir):
+                self._show_error("Select a valid folder first.")
+                return
+            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
+            if not os.path.exists(log_path):
+                self.suite_status_label.configure(text="No auto-run history to clear.")
+                return
+            from tkinter import messagebox
+            if messagebox.askyesno("Clear Auto-Run History",
+                                   f"Delete {os.path.basename(log_path)}?\n\nThis cannot be undone."):
+                try:
+                    os.remove(log_path)
+                    self.suite_status_label.configure(text="Auto-run history cleared.")
+                except OSError as e:
+                    self._show_error(f"Could not delete log file: {e}")
 
         def _cleanup_suite_files(self):
             """Delete all generated suite and stage report files from the search/output folder."""
