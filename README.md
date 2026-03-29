@@ -1537,6 +1537,8 @@ Click **View Suite Report** to open the `.docx` report directly.
 
 docsearch includes a set of 90 sample documents across 9 industries, each with pre-built compliance suites ready to run. These serve as both a demonstration of docsearch's compliance capabilities and a starting point you can adapt for your own use. The sample documents are located in subfolders under a `googledocs/` folder, with each industry in its own subfolder. Each subfolder contains 10 realistic documents — a mix of compliant and non-compliant files — along with a `.docsearch_collection.json` file containing 8 saved searches and 1 compliance suite.
 
+**Where the suites are stored:** The saved searches and suites for each industry are stored in a `.docsearch_collection.json` file inside that industry's folder. This is docsearch's standard approach — the collection file lives alongside the documents it searches. This is best practice for several reasons: the suites travel with the documents (if you copy or move the folder, the suites come with it), each folder has suites tailored to its specific content, and there is no central configuration file to manage or accidentally break. When you point the GUI at a folder, it automatically loads that folder's collection. You can view, edit, or add to the suites from the GUI at any time.
+
 **How to run any industry suite:**
 
 1. Open `docsearch-gui`
