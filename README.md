@@ -33,6 +33,7 @@
   - [Who performs audits](#who-performs-audits)
   - [Industry examples](#industry-examples)
   - [How docsearch fits](#how-docsearch-fits)
+  - [Sample compliance suites by industry](#sample-compliance-suites-by-industry)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -1531,6 +1532,213 @@ Click **View Suite Report** to open the `.docx` report directly.
 - **Repeatable** — The same suite with the same criteria produces consistent results. Save the suite once, run it whenever you need to.
 - **Auditable** — Each report includes a timestamp, the docsearch version, a report fingerprint (proving the reports haven't been tampered with), and a source file manifest (listing every document that was in scope).
 - **Free** — No per-seat licenses, no annual subscriptions, no per-GB processing fees. Commercial compliance tools that offer similar functionality cost $249 to $150,000+ per year.
+
+### Sample compliance suites by industry
+
+docsearch includes a set of 90 sample documents across 9 industries, each with pre-built compliance suites ready to run. These serve as both a demonstration of docsearch's compliance capabilities and a starting point you can adapt for your own use. The sample documents are located in subfolders under a `googledocs/` folder, with each industry in its own subfolder. Each subfolder contains 10 realistic documents — a mix of compliant and non-compliant files — along with a `.docsearch_collection.json` file containing 8 saved searches and 1 compliance suite.
+
+**How to run any industry suite:**
+
+1. Open `docsearch-gui`
+2. In the **Search Folder** field, browse to the industry subfolder (e.g., `googledocs/financial_services`)
+3. Click **Search Suites** (below Advanced Options) to open the suites panel
+4. Select the suite from the **Suites** list
+5. Click **Run Selected Suite**
+6. Watch the results — each check shows PASS (green) or FAIL (red) in real time
+7. When the suite finishes, click **View Suite Report** to open the `.docx` report
+
+Each suite is designed so that some checks will fail — this is intentional. The non-compliant documents demonstrate what failures look like in practice and how the stage reports pinpoint the exact files and lines that caused the failure.
+
+---
+
+#### Financial Services Compliance
+
+**Folder:** `googledocs/financial_services` (10 documents — loan applications, disclosures, audit reports, wire transfer logs, SAR filings)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_ssn | Regex: `\d{3}-\d{2}-\d{4}` | `== 0` | No Social Security numbers in any document |
+| 3 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the folder |
+| 4 | has_date | Regex: `\d{2}/\d{2}/\d{4}` — Inverse: ON | `== 0` | Every file contains a date |
+| 5 | sox_reference | Terms: `SOX` | `>= 1` | At least one document references SOX compliance |
+| 6 | bsa_aml_reference | Expression: `BSA OR AML` | `>= 1` | Anti-money laundering documentation exists |
+| 7 | large_transactions | Terms: `transaction` — Range: `amount:10000..50000` | `>= 1` | Transactions in reportable range are documented |
+| 8 | account_numbers | Regex: `ACCT-\d+` | `>= 1` | Account numbers are traceable |
+
+**Expected failures:** `no_ssn` (2 files contain SSNs), `no_draft` (1 DRAFT memo), `has_signature` (1 file missing signature)
+
+---
+
+#### Healthcare Compliance
+
+**Folder:** `googledocs/healthcare` (10 documents — patient intake forms, HIPAA notices, billing summaries, clinical trial consent, discharge summaries)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_ssn | Regex: `\d{3}-\d{2}-\d{4}` | `== 0` | No SSNs exposed in documents (HIPAA) |
+| 3 | no_draft | Terms: `DRAFT` | `== 0` | No unapproved drafts in the folder |
+| 4 | hipaa_reference | Terms: `HIPAA` | `>= 1` | HIPAA compliance is documented |
+| 5 | diagnosis_codes | Regex: `[A-Z]\d{2}\.\d` | `>= 1` | ICD-10 diagnosis codes are present in clinical docs |
+| 6 | billing_amounts | Terms: `billing` — Range: `amount:100..50000` | `>= 1` | Billing amounts are documented |
+| 7 | mrn_in_transfer | Expression: `MRN AND transfer` | `>= 1` | Medical record numbers accompany transfer requests |
+| 8 | patient_consent | Terms: `consent` | `>= 1` | Consent documentation exists |
+
+**Expected failures:** `no_ssn` (1 file contains a patient SSN), `no_draft` (1 DRAFT training document), `has_signature` (1 file missing signature)
+
+---
+
+#### Legal Document Review
+
+**Folder:** `googledocs/legal` (10 documents — service agreements, settlements, NDAs, employment contracts, court filings, lease agreements)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | has_indemnification | Terms: `indemnif` — Inverse: ON | `== 0` | Every agreement has an indemnification clause |
+| 3 | has_effective_date | Terms: `Effective Date` — Inverse: ON | `== 0` | Every agreement has an effective date |
+| 4 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the active folder |
+| 5 | no_privileged | Terms: `PRIVILEGED` | `== 0` | No privileged documents in a production set |
+| 6 | settlement_amounts | Terms: `settlement` — Range: `amount:1000..1000000` | `>= 1` | Settlement amounts are documented |
+| 7 | case_numbers | Regex: `\d{4}-CV-\d+` | `>= 1` | Case numbers are present and traceable |
+| 8 | nda_exists | Expression: `non-disclosure OR nondisclosure OR NDA` | `>= 1` | Non-disclosure agreements are on file |
+
+**Expected failures:** `has_indemnification` (1 employment contract missing the clause), `has_effective_date` (1 vendor agreement missing the date), `no_draft` (1 DRAFT amendment), `no_privileged` (1 privileged litigation hold)
+
+---
+
+#### Government Records Compliance
+
+**Folder:** `googledocs/government` (10 documents — procurement authorizations, budget allocations, FOIA responses, inspector general reports, grant agreements)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the official folder |
+| 3 | no_classified | Expression: `CONFIDENTIAL OR CLASSIFIED OR SECRET` | `== 0` | No classified markings in an unclassified folder |
+| 4 | has_date | Regex: `\d{2}/\d{2}/\d{4}` — Inverse: ON | `== 0` | Every document contains a date |
+| 5 | procurement_authorized | Expression: `procurement AND authorized` | `>= 1` | Procurement actions have authorization |
+| 6 | budget_amounts | Terms: `budget` — Range: `amount:10000..50000000` | `>= 1` | Budget allocations are documented |
+| 7 | purchase_orders | Regex: `PO-\d{4}` | `>= 1` | Purchase orders are traceable |
+| 8 | foia_compliance | Terms: `FOIA` | `>= 1` | FOIA documentation exists |
+
+**Expected failures:** `has_signature` (1 procurement missing signature), `no_draft` (1 DRAFT policy memo), `no_classified` (1 file with CONFIDENTIAL marking)
+
+---
+
+#### Manufacturing Quality Compliance
+
+**Folder:** `googledocs/manufacturing` (10 documents — batch records, inspection reports, calibration certificates, nonconformance reports, ISO management reviews)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has a quality sign-off |
+| 2 | no_draft | Terms: `DRAFT` | `== 0` | No unapproved drafts in the production folder |
+| 3 | no_expired_certs | Terms: `expired` | `== 0` | No expired certifications in active files |
+| 4 | iso_reference | Terms: `ISO 9001` | `>= 1` | ISO 9001 compliance is documented |
+| 5 | lot_numbers | Regex: `LOT-\d{4}-\d+` | `>= 1` | Lot/batch numbers are traceable |
+| 6 | part_numbers | Regex: `[A-Z]{3}-\d{4}` | `>= 1` | Part numbers are documented |
+| 7 | nonconformance_closed | Expression: `nonconformance AND corrective` | `>= 1` | Nonconformances have corrective actions |
+| 8 | calibration_current | Terms: `calibration` | `>= 1` | Calibration records exist |
+
+**Expected failures:** `has_signature` (1 batch record missing QC signature), `no_draft` (1 DRAFT engineering change order), `no_expired_certs` (1 expired ISO certification)
+
+---
+
+#### Education FERPA Compliance
+
+**Folder:** `googledocs/education` (10 documents — grant agreements, financial aid reports, FERPA policies, accreditation studies, class rosters, scholarship letters)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_ssn | Regex: `\d{3}-\d{2}-\d{4}` | `== 0` | No student SSNs exposed (FERPA violation) |
+| 3 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the official folder |
+| 4 | ferpa_reference | Terms: `FERPA` | `>= 1` | FERPA compliance is documented |
+| 5 | grant_amounts | Terms: `grant` — Range: `amount:1000..10000000` | `>= 1` | Grant amounts are documented |
+| 6 | accreditation_docs | Terms: `accreditation` | `>= 1` | Accreditation documentation exists |
+| 7 | student_ids | Terms: `Student ID` | `>= 1` | Student IDs (not SSNs) are used for identification |
+| 8 | financial_aid | Expression: `financial aid OR scholarship` | `>= 1` | Financial aid records exist |
+
+**Expected failures:** `no_ssn` (1 class roster contains student SSNs), `no_draft` (1 DRAFT curriculum proposal), `has_signature` (1 grant agreement missing signature)
+
+---
+
+#### Real Estate Closing Compliance
+
+**Folder:** `googledocs/real_estate` (10 documents — closing disclosures, lease agreements, inspection reports, title searches, appraisals, purchase agreements)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has a signature |
+| 2 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the closing folder |
+| 3 | has_date | Regex: `\d{2}/\d{2}/\d{4}` — Inverse: ON | `== 0` | Every document contains a date |
+| 4 | disclosure_present | Terms: `disclosure` | `>= 1` | Required disclosures are on file |
+| 5 | property_values | Terms: `property` — Range: `amount:100000..1000000` | `>= 1` | Property values are documented |
+| 6 | square_footage | Regex: `\d[\d,]+ sq ft` | `>= 1` | Square footage is documented |
+| 7 | title_search | Terms: `title` | `>= 1` | Title search documentation exists |
+| 8 | inspection_report | Terms: `inspection` | `>= 1` | Property inspection is on file |
+
+**Expected failures:** `has_signature` (1 closing disclosure missing buyer signature), `no_draft` (1 DRAFT HOA disclosure)
+
+---
+
+#### Insurance Compliance Audit
+
+**Folder:** `googledocs/insurance` (10 documents — homeowners/auto policies, claim reports, underwriting reviews, renewal notices, agent agreements)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the active folder |
+| 3 | no_lapsed_policies | Expression: `lapsed OR expired` | `== 0` | No lapsed policies in the active folder |
+| 4 | state_mandated_language | Terms: `state-mandated` | `>= 1` | Required state-mandated language is present |
+| 5 | premium_amounts | Terms: `premium` — Range: `amount:100..10000` | `>= 1` | Premium amounts are documented |
+| 6 | policy_numbers | Regex: `POL-\d{4}-\d+` | `>= 1` | Policy numbers are traceable |
+| 7 | claim_numbers | Regex: `CLM-\d{4}-\d+` | `>= 1` | Claims have reference numbers |
+| 8 | underwriting_review | Terms: `underwriting` | `>= 1` | Underwriting documentation exists |
+
+**Expected failures:** `has_signature` (1 claim report missing signature), `no_draft` (1 DRAFT agent agreement), `no_lapsed_policies` (1 lapsed auto policy still in active folder)
+
+---
+
+#### HR Compliance Review
+
+**Folder:** `googledocs/human_resources` (10 documents — offer letters, I-9 logs, benefits summaries, performance reviews, termination checklists, payroll memos)
+
+| # | Search Name | Search Configuration | Criteria | What it checks |
+|---|-------------|---------------------|----------|---------------|
+| 1 | has_signature | Terms: `Authorized Signature` — Inverse: ON | `== 0` | Every file has an authorized signature |
+| 2 | no_ssn | Regex: `\d{3}-\d{2}-\d{4}` | `== 0` | No SSNs on shared drives |
+| 3 | no_draft | Terms: `DRAFT` | `== 0` | No draft documents in the official folder |
+| 4 | offer_letters | Terms: `offer` | `>= 1` | Offer letter documentation exists |
+| 5 | i9_verification | Terms: `I-9` | `>= 1` | I-9 employment verification records exist |
+| 6 | salary_amounts | Terms: `salary` — Range: `amount:50000..200000` | `>= 1` | Salary/compensation is documented |
+| 7 | eeoc_compliance | Expression: `EEOC OR EEO-1` | `>= 1` | Equal employment documentation exists |
+| 8 | flsa_reference | Terms: `FLSA` | `>= 1` | Fair Labor Standards Act compliance is documented |
+
+**Expected failures:** `no_ssn` (1 employee list with SSNs on shared drive), `no_draft` (1 DRAFT handbook update), `has_signature` (1 offer letter missing signature)
+
+---
+
+**Summary of expected results across all 9 suites:**
+
+Every suite is designed to produce a mix of passes and failures. The failures demonstrate how docsearch identifies specific compliance gaps:
+
+| Suite | Total checks | Expected PASS | Expected FAIL | Key failures |
+|-------|-------------|---------------|---------------|-------------|
+| Financial Services Compliance | 8 | 5 | 3 | SSNs in loan files, DRAFT memo, unsigned application |
+| Healthcare Compliance | 8 | 5 | 3 | Patient SSN exposed, DRAFT training doc, unsigned intake |
+| Legal Document Review | 8 | 4 | 4 | Missing indemnification, missing date, DRAFT, privileged doc |
+| Government Records Compliance | 8 | 5 | 3 | Unsigned procurement, DRAFT memo, classified marking |
+| Manufacturing Quality Compliance | 8 | 5 | 3 | Unsigned batch record, DRAFT ECO, expired certification |
+| Education FERPA Compliance | 8 | 5 | 3 | Student SSNs in roster, DRAFT proposal, unsigned grant |
+| Real Estate Closing Compliance | 8 | 6 | 2 | Missing buyer signature, DRAFT HOA disclosure |
+| Insurance Compliance Audit | 8 | 5 | 3 | Unsigned claim, DRAFT agreement, lapsed policy |
+| HR Compliance Review | 8 | 5 | 3 | SSNs on shared drive, DRAFT handbook, unsigned offer |
+
+When a check fails, open the stage report (listed in the suite report) to see exactly which files and lines caused the failure. This is the workflow an auditor would follow: run the suite, review the summary, drill into failures, fix the underlying issues, and re-run to confirm.
 
 ## Search Suites
 
