@@ -1460,6 +1460,18 @@ The criteria is displayed next to each search in the suite contents list (e.g., 
 
 With the default criteria (`>= 1`), a search passes if it finds at least one match and fails if it finds none. Custom criteria change this — for example, `== 0` makes a search pass only when there are no matches, and `<= 3` passes when there are 3 or fewer matches.
 
+**Compliance audit patterns:** By combining search modes with pass criteria, you can build document-level compliance checks that flag exactly which files pass or fail:
+
+| Check | How to build it | Criteria | What the report shows |
+|-------|----------------|----------|----------------------|
+| **Every file must contain a term** | Search for "disclaimer" with **Inverse** on | `== 0` | Passes if all files have it. If it fails, the stage report lists every file *missing* the term |
+| **No file should contain a term** | Search for "DRAFT" normally | `== 0` | Passes if no file contains it. If it fails, the stage report lists every file that still has it |
+| **Required clause with complex wording** | Expression: `(signature AND date) AND NOT draft`, **Inverse** on | `== 0` | Flags files missing the required combination |
+| **Limit violations** | Search for "TBD" or "TODO" normally | `<= 3` | Passes if 3 or fewer matches remain across all files |
+| **Sensitive data detection** | Search for SSN/PII patterns with **Regex** on | `== 0` | Flags every file containing sensitive data |
+
+The key technique is **inverse search + `== 0`**: inverse mode lists files that do *not* contain the search terms, and `== 0` means "pass only if no files are missing it." The stage report then serves as a non-compliance report — it lists the exact files that need attention.
+
 **Managing the collection:**
 
 - **Load Settings ▼:** Click the **Load Settings ▼** button in the Search Bar to open a popup listing all saved searches for the current folder. The highlight follows your cursor — click to lock your selection, then click **Select** to load it into the GUI, or **Delete** to remove it from the collection. If a deleted search is referenced by any suites, it's automatically removed from those suites too.
@@ -1490,7 +1502,7 @@ The suite results display shows cascade narrowing information:
 
 **Clean Up Suite Files:** Click this button (next to Delete Suite) to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder and the suite output directory. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
 
-**Suite Scheduling (Auto-Run):** Each suite can be scheduled to run automatically at a set interval. Select a suite, then use the **Auto-Run every:** dropdown to choose an interval: Off, 30 min, 1 hour, 4 hours, 12 hours, or 24 hours. The schedule is stored per-suite in the collection file, so different suites can have different schedules. Safety guards prevent conflicts — a scheduled run is skipped (and retried at the next interval) if a search, index build, index refresh, or another suite run is already in progress. The **Last run** label shows the suite name and timestamp of its most recent run (manual or scheduled). The **Next Auto-Run** label shows a countdown timer (e.g., "4h 22m", "15m", "<1m") that updates every minute.
+**Suite Scheduling (Auto-Run):** Each suite can be scheduled to run automatically at a set interval. Select a suite, then use the **Auto-Run every:** dropdown to choose an interval: Off, 30 min, 1 hour, 4 hours, 12 hours, or 24 hours. The **Auto-Run Suite:** label shows which suite is scheduled — this is independent of the listbox selection, so you can select and run a different suite manually without affecting the auto-run schedule. The schedule is stored per-suite in the collection file, so different suites can have different schedules. Safety guards prevent conflicts — a scheduled run is skipped (and retried at the next interval) if a search, index build, index refresh, or another suite run is already in progress. The **Last run** label shows the suite name and timestamp of its most recent run (manual or scheduled). The **Next Auto-Run** label shows a countdown timer (e.g., "4h 22m", "15m", "<1m") that updates every minute.
 
 Scheduled runs persist across app restarts — when the app opens, it reads the last run time from the collection file, calculates when the next run is due, and resumes the schedule automatically. If a run is overdue (e.g., the app was closed during the interval), it runs shortly after launch. The Suites window does not need to be open for auto-runs to execute. When you reopen the Suites window, the scheduled suite is automatically re-selected and highlighted in the list.
 
@@ -1649,6 +1661,13 @@ No — all searches are case-insensitive by default.
 
 **Why are my reports capped at 1,000 matches?**
 By default, docsearch caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Options panel.
+
+**Why can't docsearch read files in my Documents folder (permission denied)?**
+Your operating system may be blocking docsearch (or your terminal) from accessing protected folders like Documents or Downloads. This is a security feature — not a docsearch bug. Here's how to fix it on each platform:
+
+- **macOS:** Go to System Settings → Privacy & Security → Full Disk Access and add your terminal app (Terminal.app, iTerm, etc.). Alternatively, go to System Settings → Privacy & Security → Files and Folders and grant your terminal (or Python) access to the Documents folder. macOS can revoke or prompt for these permissions at any time, so a folder that worked yesterday may stop working today.
+- **Windows:** Right-click your terminal (Command Prompt, PowerShell, or Windows Terminal) and select "Run as administrator." If the folder is under Controlled Folder Access (Windows Security → Virus & threat protection → Ransomware protection), click "Allow an app through Controlled folder access" and add your Python executable (e.g., `python.exe`). You can find its path by running `where python` in a terminal.
+- **Linux:** Check file ownership and permissions with `ls -la` on the folder. If needed, grant read access with `chmod -R u+r /path/to/folder` or take ownership with `chown -R $USER /path/to/folder`. If the folder is on an NTFS or FAT drive, make sure it is mounted with read permissions (check `/etc/fstab` or your mount options).
 
 Every feature in docsearch serves the core mission of finding content in documents:
 
