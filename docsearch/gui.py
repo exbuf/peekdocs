@@ -356,6 +356,7 @@ def _launch_gui():
             self._scheduled_suite_interval = None
             self._scheduled_next_run_time = None
             self._countdown_timer_id = None
+            self._text_size_var = ctk.StringVar(value="Normal")
 
             self.grid_columnconfigure(1, weight=1)
             self.grid_rowconfigure(8, weight=1)
@@ -1030,18 +1031,6 @@ def _launch_gui():
             )
             reset_btn.pack(side="left", padx=5)
             Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
-
-            # Text Size dropdown
-            ctk.CTkLabel(settings_btn_frame, text="Text Size:", font=ctk.CTkFont(size=12)).pack(side="left", padx=(15, 5))
-            self._text_size_var = ctk.StringVar(value="Normal")
-            text_size_menu = ctk.CTkOptionMenu(
-                settings_btn_frame, variable=self._text_size_var,
-                values=["Small", "Normal", "Large", "Extra Large"],
-                width=110, font=ctk.CTkFont(size=12),
-                command=self._on_text_size_changed,
-            )
-            text_size_menu.pack(side="left")
-            Tooltip(text_size_menu, "Scale all text and widgets in the GUI")
 
             # Row 11: Search Using Index(es)
             self.index_search_var = ctk.StringVar(value="off")
@@ -2882,6 +2871,16 @@ def _launch_gui():
             )
             self.view_error_log_bottom.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
+
+            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="left", padx=(0, 3))
+            text_size_menu = ctk.CTkOptionMenu(
+                self.bottom_frame, variable=self._text_size_var,
+                values=["Small", "Normal", "Large", "Extra Large"],
+                width=110, font=ctk.CTkFont(size=11),
+                command=self._on_text_size_changed,
+            )
+            text_size_menu.pack(side="left")
+            Tooltip(text_size_menu, "Scale all text and widgets in the GUI. Save Settings to keep your choice.")
 
 
         # ── Actions ──────────────────────────────────────────────
