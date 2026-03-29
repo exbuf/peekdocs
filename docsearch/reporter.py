@@ -13,6 +13,7 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.enum.text import WD_COLOR_INDEX
+from docx.shared import Pt, RGBColor, Inches
 
 from docsearch.scanner import _wildcard_to_regex
 from docsearch.translator import translate_search
@@ -534,3 +535,184 @@ def write_suite_report_json(output_path, suite_name, folder, results, start_time
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def write_suite_report_docx(output_path, suite_name, folder, results,
+                            start_time, end_time, version=None):
+    """Write a consolidated suite report as a formatted .docx file.
+
+    Produces an evidence-grade document with suite metadata, a color-coded
+    summary table (green PASS / red FAIL), per-stage details, and a file-set
+    fingerprint for audit traceability.
+    """
+    import hashlib
+
+    ts = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
+    elapsed = end_time - start_time
+    passed = sum(1 for r in results if r["passed"])
+    total = len(results)
+    verdict = "PASSED" if passed == total else "FAILED"
+    has_cascade = any(r.get("cascade_file_count") is not None for r in results)
+
+    doc = Document()
+
+    # ── Styles ──
+    style = doc.styles["Normal"]
+    style.font.size = Pt(10)
+    style.font.name = "Calibri"
+
+    GREEN = RGBColor(0, 128, 0)
+    RED = RGBColor(200, 0, 0)
+
+    def _add_line(text, bold=False, size=None, color=None):
+        para = doc.add_paragraph()
+        run = para.add_run(text)
+        if bold:
+            run.bold = True
+        if size:
+            run.font.size = Pt(size)
+        if color:
+            run.font.color.rgb = color
+        return para
+
+    # ── Title ──
+    _add_line("docsearch Search Suite Report", bold=True, size=16)
+    doc.add_paragraph()  # spacer
+
+    # ── Metadata ──
+    _add_line(f"Suite:     {suite_name}", bold=True)
+    _add_line(f"Folder:    {folder}")
+    _add_line(f"Date:      {ts}")
+    _add_line(f"Duration:  {elapsed:.1f} seconds")
+    if has_cascade:
+        _add_line("Mode:      Cascade (each stage narrows files from previous)")
+    if version:
+        _add_line(f"Version:   docsearch {version}")
+
+    # ── File-set fingerprint ──
+    # Hash sorted (basename, size) of all stage report source files for traceability.
+    file_entries = []
+    for r in results:
+        for path in r.get("stage_files", {}).values():
+            if os.path.exists(path):
+                file_entries.append((os.path.basename(path), os.path.getsize(path)))
+    if file_entries:
+        file_entries.sort()
+        digest = hashlib.sha256(
+            "".join(f"{n}:{s}" for n, s in file_entries).encode()
+        ).hexdigest()[:16]
+        _add_line(f"Report fingerprint: {digest}")
+
+    doc.add_paragraph()  # spacer
+
+    # ── Verdict banner ──
+    verdict_color = GREEN if verdict == "PASSED" else RED
+    para = doc.add_paragraph()
+    run = para.add_run(f"Result: {passed} of {total} tests passed — {verdict}")
+    run.bold = True
+    run.font.size = Pt(13)
+    run.font.color.rgb = verdict_color
+
+    doc.add_paragraph()  # spacer
+
+    # ── Summary table ──
+    _add_line("Summary", bold=True, size=12)
+
+    cols = 5 if has_cascade else 4
+    table = doc.add_table(rows=1, cols=cols)
+    table.style = "Light Grid Accent 1"
+
+    headers = ["#", "Test", "Status", "Matches"]
+    if has_cascade:
+        headers.append("Files")
+    for i, h in enumerate(headers):
+        cell = table.rows[0].cells[i]
+        cell.text = ""
+        run = cell.paragraphs[0].add_run(h)
+        run.bold = True
+        run.font.size = Pt(9)
+
+    for idx, r in enumerate(results, 1):
+        row = table.add_row()
+        row.cells[0].text = str(idx)
+
+        row.cells[1].text = r["name"]
+
+        status = "PASS" if r["passed"] else "FAIL"
+        status_cell = row.cells[2]
+        status_cell.text = ""
+        run = status_cell.paragraphs[0].add_run(status)
+        run.bold = True
+        run.font.color.rgb = GREEN if r["passed"] else RED
+        run.font.size = Pt(9)
+
+        if r.get("inverse"):
+            row.cells[3].text = f"{r['match_count']} file(s)"
+        else:
+            row.cells[3].text = str(r["match_count"])
+
+        if has_cascade:
+            cfc = r.get("cascade_file_count")
+            cic = r.get("cascade_input_count")
+            if cfc is not None:
+                cascade_str = str(cfc)
+                if cic is not None:
+                    cascade_str += f" (of {cic})"
+                row.cells[4].text = cascade_str
+
+        # Set font size on all cells in row
+        for cell in row.cells:
+            for para in cell.paragraphs:
+                for run in para.runs:
+                    if run.font.size is None:
+                        run.font.size = Pt(9)
+
+    doc.add_paragraph()  # spacer
+
+    # ── Stage details ──
+    _add_line("Stage Details", bold=True, size=12)
+
+    for idx, r in enumerate(results, 1):
+        status = "PASS" if r["passed"] else "FAIL"
+        status_color = GREEN if r["passed"] else RED
+
+        para = doc.add_paragraph()
+        run = para.add_run(f"Stage {idx}: {r['name']}  —  ")
+        run.bold = True
+        run.font.size = Pt(10)
+        run = para.add_run(status)
+        run.bold = True
+        run.font.size = Pt(10)
+        run.font.color.rgb = status_color
+
+        # Search description
+        search_desc = f"Search: {_describe_search(r)}"
+        pc = r.get("pass_criteria", {})
+        if pc:
+            search_desc += f"  [criteria: {pc.get('op', '>=')} {pc.get('n', 1)}]"
+        _add_line(search_desc)
+
+        # Result
+        if r.get("return_code") == 2:
+            _add_line(f"Result: Error — {r.get('summary', 'unknown error')}", color=RED)
+        elif r.get("inverse"):
+            _add_line(f"Result: {r['match_count']} file(s) without matches")
+        else:
+            result_str = f"Result: {r['match_count']} match(es) found"
+            cfc = r.get("cascade_file_count")
+            cic = r.get("cascade_input_count")
+            if cfc is not None:
+                result_str += f" in {cfc} file(s)"
+                if cic is not None:
+                    result_str += f" (narrowed from {cic})"
+            _add_line(result_str)
+
+        # Stage report references
+        stage_files = r.get("stage_files", {})
+        if stage_files:
+            fnames = ", ".join(os.path.basename(p) for p in sorted(stage_files.values()))
+            _add_line(f"Stage reports: {fnames}")
+
+        doc.add_paragraph()  # spacer between stages
+
+    doc.save(output_path)

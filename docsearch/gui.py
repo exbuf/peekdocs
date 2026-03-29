@@ -1274,7 +1274,7 @@ def _launch_gui():
             suite_sel_scroll.pack(side="right", fill="y")
             self.suite_selector.bind("<<ListboxSelect>>", lambda e: self._on_suite_selected())
 
-            ctk.CTkLabel(right, text="Searches", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
+            ctk.CTkLabel(right, text="These searches are in the selected suite", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
             suite_contents_frame = tk.Frame(right)
             suite_contents_frame.pack(fill="both", expand=True, pady=(0, 5))
             self.suite_contents_listbox = tk.Listbox(suite_contents_frame, height=8, width=25, font=("TkDefaultFont", 11))
@@ -1350,6 +1350,14 @@ def _launch_gui():
                 text_color=("gray50", "gray50"),
             )
             self.suite_next_run_label.grid(row=0, column=5, padx=(0, 5))
+
+            ctk.CTkLabel(schedule_frame, text="Auto-Run Suite:", font=ctk.CTkFont(size=12)).grid(row=1, column=0, padx=(0, 5), pady=(5, 0))
+            autorun_name = self._scheduled_suite_name or "None"
+            self.suite_autorun_name_label = ctk.CTkLabel(
+                schedule_frame, text=autorun_name, font=ctk.CTkFont(size=12, weight="bold"),
+                text_color=("gray50", "gray50"),
+            )
+            self.suite_autorun_name_label.grid(row=1, column=1, columnspan=5, padx=(0, 5), pady=(5, 0), sticky="w")
 
             # Output Dir row for suites
             suite_outdir_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -1542,6 +1550,34 @@ def _launch_gui():
             b("\u2022 Due diligence: systematic contract review")
             blank()
 
+            h("COMPLIANCE AUDIT PATTERNS")
+            b("Combine search modes with pass criteria to build document-level")
+            b("compliance checks that flag exactly which files pass or fail:")
+            blank()
+            s("Every file must contain a term")
+            b("Search for the term with Inverse on. Set criteria to == 0.")
+            b("Passes if all files have it. If it fails, the stage report")
+            b("lists every file missing the term.")
+            blank()
+            s("No file should contain a term")
+            b("Search for the term normally. Set criteria to == 0.")
+            b("Passes if no file contains it. If it fails, the stage report")
+            b("lists every file that still has it.")
+            blank()
+            s("Required clause with complex wording")
+            b("Use an Expression like (signature AND date) AND NOT draft")
+            b("with Inverse on. Set criteria to == 0.")
+            b("Flags files missing the required combination.")
+            blank()
+            s("Limit violations")
+            b("Search for 'TBD' or 'TODO' normally. Set criteria to <= 3.")
+            b("Passes if 3 or fewer matches remain across all files.")
+            blank()
+            s("Sensitive data detection")
+            b("Search for SSN/PII patterns with Regex on. Set criteria to == 0.")
+            b("Flags every file containing sensitive data.")
+            blank()
+
             h("FILES GENERATED")
             b("All report filenames are automatically timestamped.")
             b("\u2022 Stage reports: \u2026_stage{NN}_{search}_{timestamp}.txt/.docx")
@@ -1563,11 +1599,17 @@ def _launch_gui():
             h("AUTO-RUN SCHEDULING")
             b("Use the Auto-Run every: dropdown to schedule periodic suite runs.")
             b("Intervals: Off, 30 min, 1 hour, 4 hours, 12 hours, 24 hours.")
-            b("The schedule is saved per-suite, so different suites can have")
-            b("different intervals. Safety guards skip a scheduled run if a")
+            b("Only one suite can be scheduled for auto-run at a time.")
+            b("The Auto-Run Suite: label shows which suite is scheduled. This is")
+            b("independent of the listbox selection — you can select and run a")
+            b("different suite manually without affecting the auto-run schedule.")
+            b("To change which suite auto-runs, select it in the list and")
+            b("pick an interval from the dropdown. This replaces any previous schedule.")
+            b("Safety guards skip a scheduled run if a")
             b("search, index build, or another suite is already in progress.")
             blank()
             s("Display")
+            b("\u2022 Auto-Run Suite: shows the name of the scheduled suite.")
             b("\u2022 Last run: shows the suite name and timestamp of the most recent run.")
             b("\u2022 Next Auto-Run: shows a countdown timer (e.g., 4h 22m, 15m, <1m)")
             b("  that updates every minute.")
@@ -1649,6 +1691,8 @@ def _launch_gui():
                 self.suite_toggle.configure(text="\u25b6 Search Suites")
                 self.suite_visible = False
             else:
+                # Guard against schedule reset during panel construction
+                self._restoring_schedule = True
                 self._build_suite_panel()
                 self.suite_toggle.configure(text="\u25bc Search Suites")
                 self.suite_visible = True
@@ -1657,11 +1701,11 @@ def _launch_gui():
                 self._restore_suite_selection()
                 # Refresh schedule display without resetting the timer
                 if self._scheduled_suite_interval:
-                    self._restoring_schedule = True
                     self.suite_schedule_var.set(self._scheduled_suite_interval)
-                    self._restoring_schedule = False
+                self._restoring_schedule = False
                 self._update_last_run_label()
                 self._update_countdown()
+                self._update_autorun_name_label()
 
         def _refresh_suite_panel(self):
             """Reload saved searches and suites from the collection file."""
@@ -1686,9 +1730,7 @@ def _launch_gui():
                 if self.suite_selector.get(i) == name:
                     self.suite_selector.selection_set(i)
                     self.suite_selector.see(i)
-                    self._restoring_schedule = True
                     self._on_suite_selected()
-                    self._restoring_schedule = False
                     break
 
         def _on_suite_selected(self, event=None):
@@ -1712,12 +1754,6 @@ def _launch_gui():
                             pc = suite_pc.get(search_name, {"op": ">=", "n": 1})
                             label = f"{search_name}  ({pc['op']} {pc['n']})"
                             self.suite_contents_listbox.insert("end", label)
-            # Load schedule and last-run for the first selected suite
-            first_suite = get_suite(folder, self.suite_selector.get(sel[0]))
-            if first_suite:
-                schedule = first_suite.get("schedule", "Off")
-                self.suite_schedule_var.set(schedule)
-                self._on_suite_schedule_changed(schedule)
             self._update_last_run_label()
 
         def _open_load_search_popup(self):
@@ -2559,8 +2595,11 @@ def _launch_gui():
             self.suite_status_label.configure(text="Cancelling...")
 
         def _generate_suite_report(self):
-            """Generate TXT and JSON reports for the last suite run."""
-            from docsearch.reporter import write_suite_report_txt, write_suite_report_json
+            """Generate TXT, JSON, and DOCX reports for the last suite run."""
+            from docsearch.reporter import (write_suite_report_txt,
+                                            write_suite_report_json,
+                                            write_suite_report_docx)
+            from docsearch import __version__
             folder = self.folder_entry.get().strip()
             if not folder or not self._suite_results_data:
                 return
@@ -2569,6 +2608,7 @@ def _launch_gui():
             ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
             json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
+            docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.docx")
             write_suite_report_txt(
                 txt_path, self._suite_name, folder,
                 self._suite_results_data,
@@ -2579,17 +2619,23 @@ def _launch_gui():
                 self._suite_results_data,
                 self._suite_start_time, self._suite_end_time,
             )
-            self.suite_status_label.configure(
-                text=f"Reports saved: {os.path.basename(txt_path)}, {os.path.basename(json_path)}"
+            write_suite_report_docx(
+                docx_path, self._suite_name, folder,
+                self._suite_results_data,
+                self._suite_start_time, self._suite_end_time,
+                version=__version__,
             )
-            # Open the TXT report
+            self.suite_status_label.configure(
+                text=f"Reports saved: {os.path.basename(docx_path)} (+txt, json)"
+            )
+            # Open the DOCX report
             system = platform.system()
             if system == "Darwin":
-                subprocess.Popen(["open", txt_path])
+                subprocess.Popen(["open", docx_path])
             elif system == "Windows":
-                os.startfile(txt_path)
+                os.startfile(docx_path)
             else:
-                subprocess.Popen(["xdg-open", txt_path])
+                subprocess.Popen(["xdg-open", docx_path])
 
         def _build_bottom_row(self):
             self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -3172,11 +3218,19 @@ def _launch_gui():
                 ms = minutes * 60 * 1000
                 self._suite_schedule_timer_id = self.after(ms, self._suite_schedule_tick)
                 self._start_countdown()
+                self._update_autorun_name_label()
             else:
                 self._scheduled_suite_name = None
                 self._scheduled_suite_interval = None
                 self._scheduled_next_run_time = None
                 self._stop_countdown()
+                self._update_autorun_name_label()
+
+        def _update_autorun_name_label(self):
+            """Update the Auto-Run Suite label with the scheduled suite name."""
+            if self._suite_label_available() and hasattr(self, 'suite_autorun_name_label'):
+                name = self._scheduled_suite_name or "None"
+                self.suite_autorun_name_label.configure(text=name)
 
         def _start_countdown(self):
             """Start the 1-minute countdown display timer."""
@@ -4076,23 +4130,27 @@ def _launch_gui():
 
             def do_save(_event=None):
                 name = name_entry.get().strip()
+                print(f"[DEBUG] do_save called, name='{name}', folder='{folder}'")
                 if not name:
                     return
-                existing = load_collection(folder)
-                if name in existing["saved_searches"]:
-                    from tkinter import messagebox as mb
-                    if not mb.askyesno("Overwrite?", f"'{name}' already exists. Overwrite?", parent=dialog):
-                        return
-                params = self._collect_gui_params()
-                add_saved_search(folder, name, params)
-                dialog.destroy()
-                self.status_label.configure(
-                    text=f"Search '{name}' saved to collection.",
-                    text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
-                )
-                if self.suite_window is not None and self.suite_visible:
-                    self._refresh_suite_panel()
-                self._refresh_load_search_menu()
+                try:
+                    existing = load_collection(folder)
+                    if name in existing["saved_searches"]:
+                        from tkinter import messagebox as mb
+                        if not mb.askyesno("Overwrite?", f"'{name}' already exists. Overwrite?", parent=dialog):
+                            return
+                    params = self._collect_gui_params()
+                    add_saved_search(folder, name, params)
+                    dialog.destroy()
+                    self.status_label.configure(
+                        text=f"Search '{name}' saved to collection.",
+                        text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
+                    )
+                    if self.suite_window is not None and self.suite_visible:
+                        self._refresh_suite_panel()
+                    self._refresh_load_search_menu()
+                except Exception as exc:
+                    self._show_error(f"Failed to save search: {exc}")
 
             name_entry.bind("<Return>", do_save)
             btn_frame = tk.Frame(dialog)
