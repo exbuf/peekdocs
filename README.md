@@ -26,6 +26,8 @@
 - [Inverse Search](#inverse-search)
 - [Boolean Expression Search](#boolean-expression-search)
 - [Range Queries](#range-queries)
+- [Combining Modes](#combining-modes)
+- [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -316,13 +318,13 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Search Suites** toggle (opens the suites window) |
+| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Settings** button (saves the current search to the folder's collection for reuse in search suites), and **Load Settings ▼** button (opens a popup to load or delete saved searches) |
 | **Folder Bar** | Folder path entry and **Browse** button |
 | **Advanced Options** | Collapsible panel with all search options (click to expand) |
+| **Search Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
+| **Index Options** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** |
 | **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read |
-| **Index Bar** | Index controls — **Build Index(es)**, **Delete Index(es)**, **Index Status**, **About Index**, and the **Search Using Index(es)** checkbox |
-| **Search Suites** | Opens in a standalone window — manage saved searches and search suites, select one or more suites, run them with pass/fail tracking, and generate compliance/audit reports |
-| **Toolbar** | **GitHub-Readme**, **View Error Log**, and **About** buttons |
+| **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
 
 **Your first GUI search:**
 
@@ -335,9 +337,9 @@ The GUI window is organized into these regions, from top to bottom:
 
 Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
-**Search Index:**
+**Index Options:**
 
-The **Index Bar** lets you manage the search index without using the terminal. Click **Build Index(es)** to create the index (all subfolders are included automatically). Check **Search Using Index(es)** to use the index for your next search — uncheck it to search files directly, which is useful for verifying that both methods find identical results. Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work.
+Click "Index Options" below Search Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Options — check it to use the index for your next search, or uncheck it to search files directly.
 
 Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Options** handles the corresponding flag behind the scenes.
 
@@ -467,6 +469,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--index-clear` (index-clear) | Delete the search index |
+| `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
 | `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON) to the specified directory instead of the search folder |
@@ -663,6 +666,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | 91 | Build index with OCR | `docsearch --index -O` |
 | 92 | Show index info | `docsearch --index-status` |
 | 93 | Delete the index | `docsearch --index-clear` |
+| 93a | Incrementally refresh the index | `docsearch --index-refresh` |
 | | **Inverse Search** | |
 | 94 | Find files missing a term | `docsearch --inverse "indemnification"` |
 | 95 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
@@ -851,12 +855,31 @@ The index stays up to date automatically. Each search checks for new, changed, o
 
 ```bash
 docsearch --index-status       # show file count, size, creation date
+docsearch --index-refresh      # incrementally update (add new, re-index changed, remove deleted)
 docsearch --index-clear        # delete the index
+```
+
+**Scheduled refresh:** Use `--index-refresh` with cron or launchd to keep the index up to date automatically:
+
+```bash
+# cron: refresh every 15 minutes
+*/15 * * * * cd /path/to/documents && docsearch --index-refresh
+
+# macOS launchd: create a plist with ProgramArguments pointing to docsearch --index-refresh
 ```
 
 **How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
 
-**In the GUI:** The **Index Bar** at the bottom of the window has **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons, and a **Search Using Index(es)** checkbox to toggle between indexed and direct search. Building an index always includes all subfolders.
+**In the GUI:** Click **▶ Index Options** (below Search Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour) on the left, then **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons. The **Search Using Index(es)** checkbox is inside Advanced Options to toggle between indexed and direct search. Building an index always includes all subfolders. The auto-refresh keeps the index up to date automatically while the app is open — it runs incremental refreshes in the background without interrupting searches. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch.
+
+**Concurrency safety:** The index is safe to use while auto-refresh is running, while multiple searches are happening, or while external tools (cron jobs, other terminals) access the same folder. Protections include:
+
+- **WAL mode with 10-second busy timeout** — SQLite's Write-Ahead Logging allows concurrent reads during writes. If two writers collide (e.g., auto-refresh and a CLI search both trying to refresh), the second waits up to 10 seconds for the lock instead of failing.
+- **Graceful lock handling** — If a search cannot refresh the index (because another process holds the write lock), it searches with the existing index data. Results may be seconds stale but never corrupted or incomplete.
+- **Locked-vs-corrupt distinction** — A locked database is never mistaken for a corrupt one. Only actual corruption (malformed schema, unreadable pages) triggers index deletion and rebuild.
+- **GUI scheduling guards** — Auto-refresh is paused while a search, index build, or suite run is active and resumed when it finishes. Starting a search while a refresh is in progress is blocked until the refresh completes.
+- **Atomic transactions** — All index writes (adds, updates, deletes) happen within a single SQLite transaction. If the process crashes mid-refresh, uncommitted changes are rolled back automatically — the index reverts to its previous consistent state.
+- **Connection cleanup** — All database connections are wrapped in `try/finally` blocks so connections are always closed, even if an error occurs.
 
 ## Inverse Search
 
@@ -1281,10 +1304,127 @@ docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
 - **Long form** — `--range` is the long form of `-R` (e.g., `--range amount:1000..5000`)
 - **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
 - **Index search** — ranges work with the search index. Indexed results are post-filtered by content and metadata ranges
-- **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking Save Search
+- **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking Save Settings
 - **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click Save Settings in the GUI, and restored when the GUI opens or when you click Restore Settings
 
 In the GUI, enter range filters in the **Range** field in Advanced Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
+
+## Combining Modes
+
+You can mix multiple modes together for more powerful searches.
+
+**Regex + AND + Recursive** — Find files containing both an SSN and a dollar amount anywhere in nested subfolders:
+
+```bash
+docsearch -x -a -r "\d{3}-\d{2}-\d{4}" "\$[\d,]+\.\d{2}"
+```
+
+In the GUI:
+
+```
+      Terms:  \d{3}-\d{2}-\d{4}  \$[\d,]+\.\d{2}
+Checkboxes:  Regex, AND mode, Recursive
+```
+
+**Wildcard + File Types** — Find any mention of "report" variations in PDFs only:
+
+```bash
+docsearch -w -t pdf "report*"
+```
+
+In the GUI:
+
+```
+      Terms:  report*
+Checkboxes:  Wildcard       File Types: .pdf
+```
+
+**Expression + Range + Context** — Find lines mentioning budget or revenue (but not draft) with amounts over 10,000, showing surrounding lines:
+
+```bash
+docsearch -e "(budget OR revenue) AND NOT draft" -R amount:10000..999999 -B 2 -A 2
+```
+
+In the GUI:
+
+```
+Expression:  (budget OR revenue) AND NOT draft
+Range:       amount:10000..999999
+Context:     Before=2, After=2
+```
+
+**Whole Word + AND + Proximity** — Find "breach" and "contract" as whole words within 5 words of each other (avoids matching "breached" or "contractor"):
+
+```bash
+docsearch -W -p 5 "breach" "contract"
+```
+
+In the GUI:
+
+```
+      Terms:  breach contract
+Checkboxes:  Whole Word, AND mode     Proximity: 5
+```
+
+**Fuzzy + Recursive + File Types** — Find misspelled names across all Word docs in subfolders:
+
+```bash
+docsearch -z -r -t docx "accommodation" "occurrence"
+```
+
+In the GUI:
+
+```
+      Terms:  accommodation  occurrence
+Checkboxes:  Fuzzy, Recursive   File Types: .docx
+```
+
+**Inverse + Regex** — Find files that do NOT contain a required signature line:
+
+```bash
+docsearch --inverse -x "Authorized\s+Signature"
+```
+
+In the GUI:
+
+```
+      Terms:  Authorized\s+Signature
+Checkboxes:  Regex, Inverse
+```
+
+## Breaking Down Complex Searches
+
+When a single search becomes too complex, break it into several focused searches and combine them in a suite.
+
+**Why this helps:**
+
+- Each search is simpler to configure and understand
+- You see which specific check passed or failed
+- Different criteria per search (>= 1, == 0, <= N)
+- Easy to update one check without affecting others
+- Reusable across multiple suites
+
+**Example: Contract compliance audit** — Instead of one giant search, create these saved searches:
+
+```
+1. "has_signature"     — Regex: Authorized\s+Signature  (>= 1)
+2. "has_date"          — Regex: \d{2}/\d{2}/\d{4}      (>= 1)
+3. "no_draft_stamp"    — Terms: DRAFT                   (== 0)
+4. "amount_in_range"   — Range: amount:1000..50000      (>= 1)
+5. "no_pii"            — Regex: \d{3}-\d{2}-\d{4}      (== 0)
+```
+
+Group them into a "contract_review" suite. Run with one click and get a report showing exactly which checks passed or failed.
+
+**Example: Cascade pipeline** — Use cascade mode to progressively narrow results:
+
+```
+Stage 1: Find all PDFs mentioning "contract"
+Stage 2: Of those, find ones with "termination"
+Stage 3: Of those, find ones with dollar amounts
+```
+
+Each stage searches only the files that matched the previous stage, producing a focused final result set.
 
 ## Search Suites
 
@@ -1292,36 +1432,45 @@ Search suites let you save individual searches, group them into named suites, an
 
 **How it works:**
 
-1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
+1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Settings** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
 
-2. **Build a suite:** Click **Search Suites** in the Search Bar to open the suites window. Click **New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
+2. **Build a suite:** Click **▶ Search Suites** (below Advanced Options) to open the suites window. Click **Build a New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
 
-3. **Run the suite:** Select one or more suites from the **Suites of Searches** list and click **Run Entire Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
+3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
-4. **Generate a report:** After the suite finishes, click **Generate Report** to create `DO_NOT_SEARCH_docsearch_suite_{name}.txt` and `.json` files in the folder. The report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
+4. **Reports:** Suite and stage report files are automatically generated with timestamps (e.g., `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt` and `.json`). Each report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict.
 
-**Pass/fail logic:**
+**Pass Criteria:** By default, a search passes if it finds at least 1 match (`>= 1`). You can set custom pass criteria per-search when creating or editing a suite. Select a search in the right panel of the suite editor and use the **Pass criteria** dropdown and threshold field. Three operators are available:
+
+| Operator | Meaning | Example use case |
+|----------|---------|-----------------|
+| `>= N` | Pass if matches >= N | "Find at least 5 contracts" (`>= 5`) |
+| `<= N` | Pass if matches <= N | "No more than 3 violations allowed" (`<= 3`) |
+| `== N` | Pass if matches == N | "No PII should be found" (`== 0`) |
+
+The criteria is displayed next to each search in the suite contents list (e.g., `find_contracts (>= 1)`) and in the run results (e.g., `[PASS] find_contracts — 12 match(es) (need >= 1)`). Criteria are stored per-search within each suite in the collection file, so different suites can apply different criteria to the same saved search. Suites created before this feature default to `>= 1`.
+
+**Pass/fail logic (with default `>= 1` criteria):**
 
 | Condition | Result |
 |-----------|--------|
-| Search finds at least one match | PASS |
-| Search finds no matches | FAIL |
-| Inverse search finds files without matches | PASS |
-| Inverse search finds all files match | FAIL |
-| Search configuration error | FAIL |
+| Match count satisfies the pass criteria | PASS |
+| Match count does not satisfy the pass criteria | FAIL |
+| Search configuration error | FAIL (always, regardless of criteria) |
+
+With the default criteria (`>= 1`), a search passes if it finds at least one match and fails if it finds none. Custom criteria change this — for example, `== 0` makes a search pass only when there are no matches, and `<= 3` passes when there are 3 or fewer matches.
 
 **Managing the collection:**
 
-- **Load:** Select a saved search in the left panel and click **Load** to populate the GUI with its settings — useful for reviewing or tweaking a saved search before re-saving it.
-- **Delete:** Remove a saved search from the collection. If it's referenced by any suites, it's automatically removed from those suites too.
+- **Load Settings ▼:** Click the **Load Settings ▼** button in the Search Bar to open a popup listing all saved searches for the current folder. The highlight follows your cursor — click to lock your selection, then click **Select** to load it into the GUI, or **Delete** to remove it from the collection. If a deleted search is referenced by any suites, it's automatically removed from those suites too.
 - **Edit Suite:** Modify which searches are included in an existing suite and change their execution order using the same dual-panel selector with Up/Down reordering.
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
-**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Settings** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
 
-**Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Search**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
+**Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Settings**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
 
-**Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results. The suite report (generated via **Generate Report**) includes the stage file names for each test.
+**Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate timestamped files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results.
 
 **Search execution order:** The order of searches in a suite determines the order they run. When creating or editing a suite, use the **▲ Up** and **▼ Down** buttons in the right panel to set the desired execution order. This is especially important for cascade mode, where each stage's output feeds into the next.
 
@@ -1339,11 +1488,27 @@ The suite results display shows cascade narrowing information:
   [PASS] liability_clauses — 23 match(es) in 45 file(s) (narrowed from 200)
 ```
 
-**Output Directory:** The suite panel has its own **Output Dir** field with a Browse button. When set, all suite-generated files (stage reports, suite reports) are written there instead of the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location, so regular searches and suite runs can write to separate destinations.
+**Clean Up Suite Files:** Click this button (next to Delete Suite) to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder and the suite output directory. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
 
-**Clean Up Suite Files:** Click this button at the bottom of the suite panel to delete all generated suite and stage report files (`DO_NOT_SEARCH_SUITE_*` and `DO_NOT_SEARCH_docsearch_suite_*`) from the search folder and the suite output directory. A confirmation dialog lists the files before deletion. User-saved reports from `-s` and `-sa` are never affected.
+**Suite Scheduling (Auto-Run):** Each suite can be scheduled to run automatically at a set interval. Select a suite, then use the **Auto-Run every:** dropdown to choose an interval: Off, 30 min, 1 hour, 4 hours, 12 hours, or 24 hours. The schedule is stored per-suite in the collection file, so different suites can have different schedules. Safety guards prevent conflicts — a scheduled run is skipped (and retried at the next interval) if a search, index build, index refresh, or another suite run is already in progress. The **Last run** label shows the suite name and timestamp of its most recent run (manual or scheduled). The **Next Auto-Run** label shows a countdown timer (e.g., "4h 22m", "15m", "<1m") that updates every minute.
 
-**Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection.
+Scheduled runs persist across app restarts — when the app opens, it reads the last run time from the collection file, calculates when the next run is due, and resumes the schedule automatically. If a run is overdue (e.g., the app was closed during the interval), it runs shortly after launch. The Suites window does not need to be open for auto-runs to execute. When you reopen the Suites window, the scheduled suite is automatically re-selected and highlighted in the list.
+
+When a scheduled run completes, two things happen automatically:
+
+1. **Suite reports are generated** — `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt` and `.json` are created with full results (always timestamped to avoid overwriting previous runs).
+2. **An auto-run log entry is appended** — `DO_NOT_SEARCH_autorun_log.txt` records each run with a summary and per-search pass/fail details:
+   ```
+   [2026-03-28 14:30:00] Suite: quarterly_compliance — 4/5 passed — FAILED
+     [PASS] find_contracts — 12 match(es) (need >= 1)
+     [FAIL] no_pii — 2 match(es) (need == 0)
+   ```
+
+Both files are written to the suite's **Output Dir** if set, otherwise to the search folder. The `DO_NOT_SEARCH` prefix ensures they are never re-searched. Click **Open Auto-Run History** in the suite panel to open the log file directly. If the log file is deleted, it is automatically recreated on the next auto-run.
+
+**Output Directory:** The suite panel has its own **Output Dir** field with a Browse button. When set, all suite-generated files (stage reports, suite reports, auto-run logs) are written there instead of the search folder. This setting is automatically saved to `~/.docsearchrc` when you close the Suites window and restored on next launch.
+
+**Storage:** Each folder has its own collection file (`.docsearch_collection.json`). When you switch folders, the Search Suites window automatically refreshes to show that folder's collection. Suite schedules and last-run timestamps are stored per-suite in this file.
 
 ## FAQ (Frequently Asked Questions)
 

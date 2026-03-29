@@ -219,7 +219,10 @@ def search(
 
     if use_index:
         indexed = True
-        refresh_index(directory, recursive=True, use_ocr=use_ocr)
+        try:
+            refresh_index(directory, recursive=True, use_ocr=use_ocr)
+        except Exception:
+            pass  # Search with existing index if refresh fails (e.g. DB locked)
         idx_matches, idx_skipped, all_files = search_with_index(
             directory, search_config, ft_set, file_names,
         )

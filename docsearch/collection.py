@@ -65,13 +65,17 @@ def remove_saved_search(folder, name):
     save_collection(folder, data)
 
 
-def add_test_suite(folder, suite_name, description, search_names, cascade=False):
+def add_test_suite(folder, suite_name, description, search_names, cascade=False,
+                   schedule="Off", last_run_time=None, pass_criteria=None):
     """Create or overwrite a named search suite."""
     data = load_collection(folder)
     data["test_suites"][suite_name] = {
         "description": description,
         "searches": list(search_names),
         "cascade": bool(cascade),
+        "schedule": schedule,
+        "last_run_time": last_run_time,
+        "pass_criteria": pass_criteria or {},
     }
     save_collection(folder, data)
 
@@ -81,6 +85,14 @@ def remove_test_suite(folder, suite_name):
     data = load_collection(folder)
     data["test_suites"].pop(suite_name, None)
     save_collection(folder, data)
+
+
+def update_suite_field(folder, suite_name, key, value):
+    """Update a single field on an existing suite."""
+    data = load_collection(folder)
+    if suite_name in data["test_suites"]:
+        data["test_suites"][suite_name][key] = value
+        save_collection(folder, data)
 
 
 def get_search_params(folder, name):

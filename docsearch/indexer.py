@@ -27,7 +27,7 @@ def index_exists(directory):
 def _connect(directory):
     """Open a connection to the index database with WAL mode and foreign keys."""
     path = _db_path(directory)
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path, timeout=10)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
@@ -82,7 +82,12 @@ def _validate_db(directory):
         conn.execute("SELECT COUNT(*) FROM paragraphs")
         conn.close()
         return True
-    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+    except sqlite3.DatabaseError:
+        return False
+    except sqlite3.OperationalError as e:
+        # "database is locked" is not corruption — treat as valid
+        if "locked" in str(e).lower():
+            return True
         return False
 
 
@@ -220,8 +225,10 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
     except Exception:
         version = "unknown"
 
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     meta_values = {
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "created_at": now,
+        "last_updated": now,
         "recursive": str(recursive),
         "use_ocr": str(use_ocr),
         "docsearch_version": version,
@@ -260,51 +267,57 @@ def refresh_index(directory, recursive, use_ocr):
         return {"added": 0, "updated": 0, "removed": 0, "elapsed": 0}
 
     conn = _connect(directory)
+    try:
+        # Get current files on disk
+        result = discover_files(directory, recursive, use_ocr)
+        if isinstance(result, tuple):
+            return {"added": 0, "updated": 0, "removed": 0, "elapsed": 0}
 
-    # Get current files on disk
-    result = discover_files(directory, recursive, use_ocr)
-    if isinstance(result, tuple):
+        current_files = set(result)
+
+        # Get indexed files
+        rows = conn.execute("SELECT id, filepath, mtime, size FROM files").fetchall()
+        indexed = {row[1]: (row[0], row[2], row[3]) for row in rows}
+        indexed_paths = set(indexed.keys())
+
+        new_files = sorted(current_files - indexed_paths)
+        deleted_paths = indexed_paths - current_files
+        deleted_file_ids = [indexed[p][0] for p in deleted_paths]
+
+        changed_files = []
+        for filepath in current_files & indexed_paths:
+            file_id, old_mtime, old_size = indexed[filepath]
+            try:
+                stat = os.stat(filepath)
+                if stat.st_mtime != old_mtime or stat.st_size != old_size:
+                    changed_files.append((filepath, file_id))
+            except OSError:
+                deleted_file_ids.append(file_id)
+
+        ocr_func = _ocr_image
+
+        # Remove deleted files (CASCADE deletes paragraphs, triggers update FTS)
+        for file_id in deleted_file_ids:
+            conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
+
+        # Re-index changed files (delete and re-add)
+        for filepath, file_id in changed_files:
+            conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
+            _index_single_file(conn, filepath, use_ocr, ocr_func)
+
+        # Index new files
+        for filepath in new_files:
+            _index_single_file(conn, filepath, use_ocr, ocr_func)
+
+        # Update last_updated timestamp
+        conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+            ("last_updated", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        )
+
+        conn.commit()
+    finally:
         conn.close()
-        return {"added": 0, "updated": 0, "removed": 0, "elapsed": 0}
-
-    current_files = set(result)
-
-    # Get indexed files
-    rows = conn.execute("SELECT id, filepath, mtime, size FROM files").fetchall()
-    indexed = {row[1]: (row[0], row[2], row[3]) for row in rows}
-    indexed_paths = set(indexed.keys())
-
-    new_files = sorted(current_files - indexed_paths)
-    deleted_paths = indexed_paths - current_files
-    deleted_file_ids = [indexed[p][0] for p in deleted_paths]
-
-    changed_files = []
-    for filepath in current_files & indexed_paths:
-        file_id, old_mtime, old_size = indexed[filepath]
-        try:
-            stat = os.stat(filepath)
-            if stat.st_mtime != old_mtime or stat.st_size != old_size:
-                changed_files.append((filepath, file_id))
-        except OSError:
-            deleted_file_ids.append(file_id)
-
-    ocr_func = _ocr_image
-
-    # Remove deleted files (CASCADE deletes paragraphs, triggers update FTS)
-    for file_id in deleted_file_ids:
-        conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
-
-    # Re-index changed files (delete and re-add)
-    for filepath, file_id in changed_files:
-        conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
-        _index_single_file(conn, filepath, use_ocr, ocr_func)
-
-    # Index new files
-    for filepath in new_files:
-        _index_single_file(conn, filepath, use_ocr, ocr_func)
-
-    conn.commit()
-    conn.close()
 
     elapsed = time.time() - start
     return {

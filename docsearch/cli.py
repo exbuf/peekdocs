@@ -48,6 +48,7 @@ BANNER_TOP = (
 )
 
 BANNER_BOTTOM = (
+    'Use option flag --index-refresh to incrementally update the index. Example: docsearch --index-refresh\n'
     'Use option flag -R to filter by value ranges. Example: docsearch -R amount:1000..5000 budget\n'
     '    Fields: date, amount, number, percent, age, time, filesize, filedate. Repeatable.\n'
     '    Use fn: prefix to match filename values. Example: docsearch -R fn:date:2024-01-01..2024-12-31\n'
@@ -86,7 +87,7 @@ REGEX_PATTERNS = (
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "suite_output_dir", "range", "refresh_interval"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
@@ -519,10 +520,24 @@ def _main_inner(argv=None):
         print(f"  Lines indexed:  {status.get('line_count', '?')}")
         print(f"  Database size:  {fmt_size(status.get('db_size', 0))}")
         print(f"  Created:        {status.get('created_at', '?')}")
+        print(f"  Last updated:   {status.get('last_updated', status.get('created_at', '?'))}")
         print(f"  Recursive:      {status.get('recursive', '?')}")
         print(f"  OCR:            {status.get('use_ocr', '?')}")
         print(f"  docsearch ver:  {status.get('docsearch_version', '?')}")
         print()
+        return 0
+
+    if args and args[0] == "--index-refresh":
+        cwd = os.getcwd()
+        if not index_exists(cwd):
+            print("No index found. Build one first with: docsearch --index\n")
+            return 0
+        use_ocr = "-O" in args[1:]
+        print(f"Refreshing index in {cwd} ...")
+        result = refresh_index(cwd, recursive=True, use_ocr=use_ocr)
+        print(f"Index refreshed: {result['added']} added, {result['updated']} updated, "
+              f"{result['removed']} removed")
+        print(f"Elapsed: {result['elapsed']:.2f} seconds\n")
         return 0
 
     if not args:
@@ -834,6 +849,8 @@ def _main_inner(argv=None):
     output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.txt")
     docx_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.docx")
 
+    idx_meta = index_status(cwd) if use_index else None
+
     total_bytes, size_str = write_txt_report(
         output_path, matches, all_files, search_terms, command_str,
         report_mode, use_ocr, exclude_terms, use_context,
@@ -855,6 +872,7 @@ def _main_inner(argv=None):
         total_matches=total_match_count if capped else None,
         max_matches=max_matches if capped else None,
         range_specs=parsed_range_specs or None,
+        index_meta=idx_meta,
     )
 
     result_doc = write_docx_report(docx_output_path, output_path)

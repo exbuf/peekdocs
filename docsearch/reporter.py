@@ -77,7 +77,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      inverse=False, output_csv=False, output_json=False,
                      expression=None, use_whole_word=False,
                      total_matches=None, max_matches=None,
-                     range_specs=None):
+                     range_specs=None, index_meta=None):
     """Write docsearch_results.txt report file.
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -127,6 +127,9 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         f.write(f"  AND mode: {on_off(report_mode == 'ALL')}  |  Recursive: {on_off(recursive)}  |  Inverse: {on_off(inverse)}  |  Expression: {on_off(expression is not None)}\n")
         f.write(f"  Fuzzy: {on_off(use_fuzzy)}  |  Wildcard: {on_off(use_wildcard)}  |  Regex: {on_off(use_regex)}  |  Whole Word: {on_off(use_whole_word)}  |  OCR: {on_off(use_ocr)}\n")
         f.write(f"  Index: {on_off(use_index)}\n")
+        if use_index and index_meta:
+            f.write(f"  Index last updated: {index_meta.get('last_updated', index_meta.get('created_at', '?'))}"
+                    f"  ({index_meta.get('file_count', '?')} files, {index_meta.get('line_count', '?')} lines)\n")
         if file_types:
             f.write(f"  File types: {file_types}\n")
         if specific_files:

@@ -288,6 +288,8 @@ def _launch_gui():
     class Tooltip:
         """Simple hover tooltip for any widget."""
 
+        enabled = True
+
         def __init__(self, widget, text):
             self.widget = widget
             self.text = text
@@ -300,7 +302,7 @@ def _launch_gui():
                 child.bind("<Leave>", self._hide)
 
         def _show(self, event=None):
-            if self.tip_window:
+            if self.tip_window or not Tooltip.enabled:
                 return
             import tkinter as tk
             x = self.widget.winfo_rootx() + 20
@@ -345,9 +347,18 @@ def _launch_gui():
             self.suite_cancel_requested = False
             self.elapsed_timer_id = None
             self.search_start_time = None
+            self._refresh_timer_id = None
+            self._refresh_running = False
+            self._suite_schedule_timer_id = None
+            self._suite_schedule_running = False
+            self._suite_scheduled_run = False
+            self._scheduled_suite_name = None
+            self._scheduled_suite_interval = None
+            self._scheduled_next_run_time = None
+            self._countdown_timer_id = None
 
             self.grid_columnconfigure(1, weight=1)
-            self.grid_rowconfigure(5, weight=1)
+            self.grid_rowconfigure(8, weight=1)
 
             self._build_search_row()
             self._build_folder_row()
@@ -360,6 +371,8 @@ def _launch_gui():
             self._build_bottom_row()
             self._load_saved_settings()
             self._update_index_button_color()
+            self._refresh_load_search_menu()
+            self.after(500, self._resume_suite_schedule)
 
         def _center_window(self, width, height):
             self.update_idletasks()
@@ -376,22 +389,32 @@ def _launch_gui():
             self.search_bar_frame.grid(
                 row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
             )
-            self.search_bar_frame.grid_columnconfigure(0, minsize=120)
+            self.search_bar_frame.grid_columnconfigure(0, minsize=130)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
             self.search_bar_frame.grid_columnconfigure(2, minsize=170)
 
             ctk.CTkLabel(
                 self.search_bar_frame, text="Search Bar",
                 font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
+            ).grid(row=0, column=0, columnspan=2, padx=10, pady=(4, 0), sticky="w")
+
+            search_help_btn = ctk.CTkButton(
+                self.search_bar_frame, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_search_help,
+            )
+            search_help_btn.grid(row=0, column=2, padx=(0, 10), pady=(4, 0), sticky="e")
+            Tooltip(search_help_btn, "Search examples and quick-start guide")
 
             label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=14))
-            label.grid(row=1, column=0, padx=(10, 5), pady=(0, 8), sticky="w")
+            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
 
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
+            self.search_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
             clear_button = ctk.CTkButton(
@@ -399,7 +422,7 @@ def _launch_gui():
                 command=lambda: self.search_entry.delete(0, "end"),
                 font=ctk.CTkFont(size=14),
             )
-            clear_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="w")
+            clear_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
 
             # Row 2: action buttons below the search entry
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
@@ -419,32 +442,310 @@ def _launch_gui():
             Tooltip(self.wizard_button, "Open the Search Wizard to build regex patterns from presets")
 
             self.save_to_collection_btn = ctk.CTkButton(
-                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
+                btn_frame, text="Save Settings", width=100, command=self._save_to_collection,
                 font=ctk.CTkFont(size=14),
             )
             self.save_to_collection_btn.pack(side="left", padx=(0, 5))
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
+            self.load_search_btn = ctk.CTkButton(
+                btn_frame, text="Load Settings ▼", width=140,
+                font=ctk.CTkFont(size=14),
+                command=self._open_load_search_popup,
+            )
+            self.load_search_btn.pack(side="left", padx=(0, 5))
+            Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
+            self._load_search_popup = None
+
             self.suite_toggle = ctk.CTkButton(
-                btn_frame,
+                self,
                 text="\u25b6 Search Suites",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
+                anchor="w",
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            self.suite_toggle.pack(side="left", padx=(0, 5))
+            self.suite_toggle.grid(row=4, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="w")
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+
+        def _show_search_help(self):
+            """Show a quick-start guide with search examples by category."""
+            import tkinter as tk
+            help_win = tk.Toplevel(self)
+            help_win.title("Search Examples & Quick-Start Guide")
+            help_win.geometry("750x520")
+            help_win.resizable(True, True)
+            help_win.transient(self)
+            help_win.grab_set()
+
+            # Scrollable text widget
+            text_frame = tk.Frame(help_win)
+            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+
+            scrollbar = tk.Scrollbar(text_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            txt = tk.Text(
+                text_frame, wrap="word", font=("TkDefaultFont", 12),
+                state="normal", yscrollcommand=scrollbar.set,
+                padx=12, pady=10, spacing3=2,
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            # Configure tags
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=12, spacing3=4)
+            txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 12), lmargin1=20, lmargin2=20)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+
+            def s(text):
+                txt.insert("end", text + "\n", "subhead")
+
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+
+            def blank():
+                txt.insert("end", "\n")
+
+            h("GETTING STARTED")
+            b("All searches are case-insensitive. Type your terms in the Search Bar,")
+            b("pick a folder with Browse, and click Run Search. Use the checkboxes")
+            b("under Advanced Options to change search modes \u2014 do not type flags in")
+            b("the search box. Results are saved to docsearch_results.txt and .docx.")
+            blank()
+
+            h("SIMPLE SEARCH")
+            b("Type one or more terms separated by spaces. By default, any term matches (OR mode).")
+            e("budget                \u2192  finds lines containing \"budget\"")
+            e("budget revenue        \u2192  finds lines with \"budget\" OR \"revenue\"")
+            e("\"annual report\"       \u2192  exact phrase match (use quotes)")
+            blank()
+
+            h("AND MODE")
+            b("Check the AND mode checkbox. All terms must appear in the same line.")
+            e("budget revenue        \u2192  line must contain both words")
+            e("\"Q1\" \"2024\"           \u2192  line must contain both phrases")
+            blank()
+
+            h("BOOLEAN EXPRESSIONS")
+            b("Check the Expression checkbox. Combine AND, OR, NOT with parentheses.")
+            e("budget AND revenue")
+            e("(bob AND amy) OR fred")
+            e("contract NOT draft")
+            e("(salary OR bonus) AND NOT confidential")
+            blank()
+
+            h("FUZZY SEARCH")
+            b("Check the Fuzzy checkbox. Finds approximate/misspelled matches.")
+            e("accomodation          \u2192  finds \"accommodation\"")
+            e("recieve               \u2192  finds \"receive\"")
+            blank()
+
+            h("REGEX")
+            b("Check the Regex checkbox. Use regular expression patterns.")
+            e("\\d{3}-\\d{2}-\\d{4}     \u2192  SSN pattern (123-45-6789)")
+            e("\\$[\\d,]+\\.\\d{2}       \u2192  dollar amounts ($1,234.56)")
+            e("[A-Z]{2}-\\d{4,}       \u2192  ID codes (AB-12345)")
+            b("Tip: Use the Wizard button for pre-built regex patterns.")
+            blank()
+
+            h("WILDCARD")
+            b("Check the Wildcard checkbox. Use * (any characters) and ? (single character).")
+            e("report*               \u2192  report, reports, reporting, ...")
+            e("inv??ce               \u2192  invoice, inv01ce, ...")
+            blank()
+
+            h("WHOLE WORD")
+            b("Check the Whole Word checkbox. Only matches complete words.")
+            e("tax                   \u2192  matches \"tax\" but not \"taxi\" or \"taxation\"")
+            e("US                    \u2192  matches \"US\" but not \"must\" or \"used\"")
+            blank()
+
+            h("PROXIMITY")
+            b("Set a number in the Proximity field. Requires 2+ terms. AND mode is applied automatically.")
+            e("breach contract  (proximity=5)  \u2192  both words within 5 words of each other")
+            blank()
+
+            h("RANGE FILTERS")
+            b("Enter in the Range field. Filter by numeric/date values or filenames.")
+            e("amount:1000..5000     \u2192  lines with amounts between 1000 and 5000")
+            e("date:2024-01..2024-12 \u2192  lines with dates in 2024")
+            e("fn:date:2024-01..12    \u2192  files with 2024 dates in the name")
+            e("filesize:..1M         \u2192  only files under 1 MB")
+            blank()
+
+            h("CONTEXT LINES")
+            b("Set Before and After fields to show surrounding lines with each match.")
+            e("Before=2, After=2     \u2192  shows 2 lines above and below each match")
+            blank()
+
+            h("OTHER USEFUL OPTIONS")
+            s("Recursive")
+            b("Search all subfolders, not just the selected folder.")
+            s("OCR")
+            b("Extract text from scanned PDFs and images (requires Tesseract).")
+            s("File Types")
+            b("Limit to specific extensions: .pdf .docx .xlsx .txt .csv etc.")
+            s("Specific Files")
+            b("Search only named files (comma-separated).")
+            s("Inverse")
+            b("Show files that do NOT contain the search terms.")
+            s("Index")
+            b("Build an index for faster repeated searches. Use Build Index(es) first.")
+            s("Save / Append")
+            b("Archive results with -s (save) or -sa (append across searches).")
+            blank()
+
+            h("COMBINING MODES")
+            b("You can mix multiple modes together for more powerful searches.")
+            blank()
+            s("Regex + AND + Recursive")
+            b("Find files containing both an SSN and a dollar amount anywhere")
+            b("in nested subfolders:")
+            e("      Terms:  \\d{3}-\\d{2}-\\d{4}  \\$[\\d,]+\\.\\d{2}")
+            e("Checkboxes:  Regex, AND mode, Recursive")
+            blank()
+            s("Wildcard + File Types")
+            b("Find any mention of 'report' variations in PDFs only:")
+            e("      Terms:  report*")
+            e("Checkboxes:  Wildcard       File Types: .pdf")
+            blank()
+            s("Expression + Range + Context")
+            b("Find lines mentioning budget or revenue (but not draft)")
+            b("with amounts over 10,000, showing surrounding lines:")
+            e("Expression:  (budget OR revenue) AND NOT draft")
+            e("Range:       amount:10000..999999")
+            e("Context:     Before=2, After=2")
+            blank()
+            s("Whole Word + AND + Proximity")
+            b("Find 'breach' and 'contract' as whole words within 5 words")
+            b("of each other (avoids matching 'breached' or 'contractor'):")
+            e("      Terms:  breach contract")
+            e("Checkboxes:  Whole Word, AND mode     Proximity: 5")
+            blank()
+            s("Fuzzy + Recursive + File Types")
+            b("Find misspelled names across all Word docs in subfolders:")
+            e("      Terms:  accommodation  occurrence")
+            e("Checkboxes:  Fuzzy, Recursive   File Types: .docx")
+            blank()
+            s("Inverse + Regex")
+            b("Find files that do NOT contain a required signature line:")
+            e("      Terms:  Authorized\\s+Signature")
+            e("Checkboxes:  Regex, Inverse")
+            blank()
+
+            h("BREAKING DOWN COMPLEX SEARCHES")
+            b("When a single search becomes too complex, break it into")
+            b("several focused searches and combine them in a suite.")
+            blank()
+            s("Why this helps")
+            b("\u2022 Each search is simpler to configure and understand")
+            b("\u2022 You see which specific check passed or failed")
+            b("\u2022 Different criteria per search (>= 1, == 0, <= N)")
+            b("\u2022 Easy to update one check without affecting others")
+            b("\u2022 Reusable across multiple suites")
+            blank()
+            s("Example: Contract compliance audit")
+            b("Instead of one giant search, create these saved searches:")
+            e("1. \"has_signature\"     \u2014 Regex: Authorized\\s+Signature  (>= 1)")
+            e("2. \"has_date\"          \u2014 Regex: \\d{2}/\\d{2}/\\d{4}      (>= 1)")
+            e("3. \"no_draft_stamp\"    \u2014 Terms: DRAFT                   (== 0)")
+            e("4. \"amount_in_range\"   \u2014 Range: amount:1000..50000      (>= 1)")
+            e("5. \"no_pii\"            \u2014 Regex: \\d{3}-\\d{2}-\\d{4}      (== 0)")
+            b("Group them into a 'contract_review' suite. Run with one click")
+            b("and get a report showing exactly which checks passed or failed.")
+            blank()
+            s("Example: Cascade pipeline")
+            b("Use cascade mode to progressively narrow results:")
+            e("Stage 1: Find all PDFs mentioning \"contract\"")
+            e("Stage 2: Of those, find ones with \"termination\"")
+            e("Stage 3: Of those, find ones with dollar amounts")
+            b("Each stage feeds its matched files into the next stage.")
+            blank()
+
+            h("TIPS")
+            b("\u2022 Use Save Settings to save settings for reuse in Search Suites.")
+            b("\u2022 Click Open Readme.md in the toolbar for full documentation.")
+            blank()
+
+            h("SEARCH SUITES")
+            b("Search Suites let you save individual searches, group them into named")
+            b("suites, and run them as a batch with pass/fail tracking. This turns")
+            b("docsearch into an audit automation tool.")
+            blank()
+            s("How to use")
+            b("1. Configure a search in the main GUI and click Save Settings.")
+            b("2. Click Search Suites in the Search Bar to open the suites window.")
+            b("3. Click Build a New Suite, give it a name, and use the dual-panel selector")
+            b("   to choose and order your saved searches (\u2192/\u2190 to add/remove,")
+            b("   \u25b2/\u25bc to reorder).")
+            b("4. Select a suite and click Run Selected Suite. Each search runs")
+            b("   sequentially with real-time PASS/FAIL indicators.")
+            b("5. Reports are auto-generated with timestamps after each run.")
+            blank()
+            s("Cascade mode")
+            b("Check Cascade when creating a suite to enable progressive narrowing.")
+            b("Each stage's matched files become the input for the next stage,")
+            b("creating a pipeline that narrows results step by step.")
+            e("Stage 1: \"contract\"       \u2192  finds 50 files")
+            e("Stage 2: \"termination\"    \u2192  searches only those 50 files")
+            e("Stage 3: \"penalty\"        \u2192  searches only Stage 2's matches")
+            blank()
+            s("Auto-Run scheduling")
+            b("Select a suite and use the Auto-Run dropdown to schedule it at")
+            b("an interval (30 min, 1 hour, 4 hours, 12 hours, 24 hours).")
+            b("Scheduled runs are skipped if a search or build is in progress.")
+            b("The Last Run label shows the suite name and timestamp of its")
+            b("most recent run (manual or scheduled).")
+            blank()
+            s("Pass criteria")
+            b("By default, a search passes if it finds >= 1 match. You can set")
+            b("custom criteria per-search in the suite editor. Select a search")
+            b("in the right panel and use the Pass criteria dropdown:")
+            e(">= N    Pass if matches >= N   (e.g., >= 5 = at least 5)")
+            e("<= N    Pass if matches <= N   (e.g., <= 3 = at most 3)")
+            e("== N    Pass if matches == N   (e.g., == 0 = no matches)")
+            b("Results show the criteria: [PASS] search \u2014 12 match(es) (need >= 1)")
+            blank()
+            s("Output & cleanup")
+            b("Each search produces its own stage report file. Set Output Dir to")
+            b("write suite files to a separate folder. All generated files use a")
+            b("DO_NOT_SEARCH prefix so they are never re-searched. Use the")
+            b("Clean Up Suite Files button to delete all generated suite files.")
+            blank()
+            s("Use cases")
+            b("\u2022 Compliance audits \u2014 repeat the same checks on document sets")
+            b("\u2022 Quality assurance \u2014 verify required terms exist in deliverables")
+            b("\u2022 Data discovery \u2014 batch-find SSNs, emails, account numbers")
+            b("\u2022 Due diligence \u2014 systematic contract or financial review")
+            b("\u2022 Expressions and range filters are fully preserved in saved searches")
+
+            txt.configure(state="disabled")
+
+            # Close button
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=100,
+                command=help_win.destroy,
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _build_folder_row(self):
             self.folder_bar_frame = ctk.CTkFrame(self)
             self.folder_bar_frame.grid(
                 row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
             )
-            self.folder_bar_frame.grid_columnconfigure(0, minsize=120)
+            self.folder_bar_frame.grid_columnconfigure(0, minsize=130)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
             self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
 
@@ -454,17 +755,17 @@ def _launch_gui():
             ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
 
             label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=14))
-            label.grid(row=1, column=0, padx=(10, 5), pady=(0, 8), sticky="w")
+            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=1, column=1, padx=5, pady=(0, 8), sticky="ew")
+            self.folder_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             self.browse_button = ctk.CTkButton(
                 self.folder_bar_frame, text="Browse", width=90, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
-            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="w")
+            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
 
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
@@ -573,35 +874,41 @@ def _launch_gui():
             self.file_types_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
             # Row 3: proximity + context lines
+            ctk.CTkLabel(self.advanced_frame, text="Proximity:").grid(
+                row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
             num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            num_frame.grid(row=3, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="w")
+            num_frame.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
-            ctk.CTkLabel(num_frame, text="Proximity:").grid(row=0, column=0, padx=(0, 5))
             self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
-            self.proximity_entry.grid(row=0, column=1, padx=(0, 20))
+            self.proximity_entry.grid(row=0, column=0)
 
-            ctk.CTkLabel(num_frame, text="Lines Before:").grid(row=0, column=2, padx=(0, 5))
+            num_frame.grid_columnconfigure(1, minsize=110)
+            ctk.CTkLabel(num_frame, text="Lines Before:").grid(row=0, column=1, padx=(20, 5), sticky="e")
             self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
-            self.context_before_entry.grid(row=0, column=3, padx=(0, 20))
+            self.context_before_entry.grid(row=0, column=2)
 
-            ctk.CTkLabel(num_frame, text="Lines After:").grid(row=0, column=4, padx=(0, 5))
+            ctk.CTkLabel(num_frame, text="Lines After:").grid(row=0, column=3, padx=(20, 5))
             self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
-            self.context_after_entry.grid(row=0, column=5)
+            self.context_after_entry.grid(row=0, column=4)
 
             # Row 4: cores
             self._default_cores = max(1, (os.cpu_count() or 1) // 2)
+            ctk.CTkLabel(self.advanced_frame, text="Cores to Use:").grid(
+                row=4, column=0, padx=(15, 5), pady=5, sticky="e"
+            )
             cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            cores_frame.grid(row=4, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
+            cores_frame.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
-            ctk.CTkLabel(cores_frame, text="Cores to Use:").grid(row=0, column=0, padx=(0, 5))
             self.cores_entry = ctk.CTkEntry(cores_frame, width=60)
             self.cores_entry.insert(0, str(self._default_cores))
-            self.cores_entry.grid(row=0, column=1)
+            self.cores_entry.grid(row=0, column=0)
 
-            ctk.CTkLabel(cores_frame, text="Max Matches:").grid(row=0, column=2, padx=(20, 5))
+            cores_frame.grid_columnconfigure(1, minsize=110)
+            ctk.CTkLabel(cores_frame, text="Max Matches:").grid(row=0, column=1, padx=(20, 5), sticky="e")
             self.max_matches_entry = ctk.CTkEntry(cores_frame, width=60)
             self.max_matches_entry.insert(0, "1000")
-            self.max_matches_entry.grid(row=0, column=3)
+            self.max_matches_entry.grid(row=0, column=2)
 
             # Row 5: range filters
             ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
@@ -623,32 +930,36 @@ def _launch_gui():
             self.specific_files_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
             # Row 7: save as + append to
+            ctk.CTkLabel(self.advanced_frame, text="Save report as:").grid(
+                row=7, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
+            )
             save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            save_frame.grid(row=7, column=0, columnspan=3, padx=15, pady=(5, 10), sticky="w")
+            save_frame.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=(5, 10), sticky="w")
 
-            ctk.CTkLabel(save_frame, text="Save as:").grid(row=0, column=0, padx=(0, 5))
             self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
-            self.save_name_entry.grid(row=0, column=1, padx=(0, 20))
+            self.save_name_entry.grid(row=0, column=0, padx=(0, 20))
 
-            ctk.CTkLabel(save_frame, text="Append to:").grid(row=0, column=2, padx=(0, 5))
+            ctk.CTkLabel(save_frame, text="Append report to:").grid(row=0, column=1, padx=(0, 5))
             self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
-            self.append_name_entry.grid(row=0, column=3)
+            self.append_name_entry.grid(row=0, column=2)
 
             # Row 8: output directory
+            ctk.CTkLabel(self.advanced_frame, text="Output Dir:").grid(
+                row=8, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
+            )
             outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            outdir_frame.grid(row=8, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew")
+            outdir_frame.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
 
-            ctk.CTkLabel(outdir_frame, text="Output Dir:").grid(row=0, column=0, padx=(0, 5))
             self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
-            self.output_dir_entry.grid(row=0, column=1, padx=(0, 5), sticky="ew")
-            outdir_frame.grid_columnconfigure(1, weight=1)
+            self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
+            outdir_frame.grid_columnconfigure(0, weight=1)
 
             outdir_browse_btn = ctk.CTkButton(
                 outdir_frame, text="Browse", width=70,
                 command=self._browse_output_dir,
                 font=ctk.CTkFont(size=12),
             )
-            outdir_browse_btn.grid(row=0, column=2, padx=(0, 0))
+            outdir_browse_btn.grid(row=0, column=1, padx=(0, 0))
             Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder. This is independent from the Output Dir on the Search Suites panel — each can point to a different location")
 
             # Row 9: additional output formats
@@ -670,7 +981,7 @@ def _launch_gui():
             cb_json.grid(row=0, column=2)
             self.timestamp_var = ctk.StringVar(value="on")
             cb_ts = ctk.CTkCheckBox(
-                output_frame, text="Timestamp", variable=self.timestamp_var,
+                output_frame, text="Timestamp Filename", variable=self.timestamp_var,
                 onvalue="on", offvalue="off",
             )
             cb_ts.grid(row=0, column=3, padx=(15, 0))
@@ -720,6 +1031,16 @@ def _launch_gui():
             reset_btn.pack(side="left", padx=5)
             Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
 
+            # Row 11: Search Using Index(es)
+            self.index_search_var = ctk.StringVar(value="off")
+            self.cb_index_search = ctk.CTkCheckBox(
+                self.advanced_frame, text="Search Using Index(es)", variable=self.index_search_var,
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            )
+            self.cb_index_search.grid(row=11, column=0, columnspan=2, padx=15, pady=(5, 10), sticky="w")
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results. Disabled when no index exists")
+
+            self.advanced_frame.grid_columnconfigure(0, minsize=130)
             self.advanced_frame.grid_columnconfigure(1, weight=1)
 
             # Tooltips
@@ -727,7 +1048,7 @@ def _launch_gui():
             Tooltip(cb_rec, "Search subfolders inside the Search Folder")
             Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
             Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
-            Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see GitHub-Readme)")
+            Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see Readme.md)")
             Tooltip(cb_expr, (
                 "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
                 "\n"
@@ -823,58 +1144,94 @@ def _launch_gui():
             Tooltip(self.error_log_button, "Open docsearch_errors.log to see details about files that could not be read")
 
         def _build_index_panel(self):
-            self.index_frame = ctk.CTkFrame(self)
+            # Index panel: frame always visible, contents toggle
+            self.index_frame = ctk.CTkFrame(self, fg_color="transparent")
             self.index_frame.grid(
-                row=7, column=0, columnspan=3, padx=15, pady=(5, 5), sticky="ew"
+                row=5, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="ew"
             )
-            self.index_frame.grid_columnconfigure(1, weight=1)
+
+            # Row 0: toggle button (always visible)
+            self.index_toggle_btn = ctk.CTkButton(
+                self.index_frame,
+                text="\u25b6 Index Options",
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                anchor="w",
+                command=self._toggle_index_options,
+                font=ctk.CTkFont(size=13),
+            )
+            self.index_toggle_btn.grid(
+                row=0, column=0, columnspan=3, sticky="w"
+            )
+
+            # Row 1: collapsible contents (starts hidden)
+            self.index_contents = ctk.CTkFrame(self.index_frame)
+            self.index_visible = False
+
+            # Row 0 inside contents: Auto-Refresh + Build/Delete buttons
+            idx_row0 = ctk.CTkFrame(self.index_contents, fg_color="transparent")
+            idx_row0.grid(row=0, column=0, columnspan=3, padx=0, pady=(5, 5), sticky="ew")
 
             ctk.CTkLabel(
-                self.index_frame, text="Index Bar",
-                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).grid(row=0, column=0, columnspan=6, padx=10, pady=(4, 0), sticky="w")
+                idx_row0, text="Auto-Refresh Index:",
+                font=ctk.CTkFont(size=12),
+            ).grid(row=0, column=0, padx=(0, 2), pady=0, sticky="w")
 
-            self.index_search_var = ctk.StringVar(value="off")
-            self.cb_index_search = ctk.CTkCheckBox(
-                self.index_frame, text="Search Using Index(es)", variable=self.index_search_var,
-                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            self.refresh_interval_var = ctk.StringVar(value="Off")
+            self.refresh_interval_menu = ctk.CTkOptionMenu(
+                idx_row0,
+                values=["Off", "5 min", "15 min", "30 min", "1 hour"],
+                variable=self.refresh_interval_var,
+                command=self._on_refresh_interval_changed,
+                width=100,
+                font=ctk.CTkFont(size=12),
             )
-            self.cb_index_search.grid(row=1, column=0, padx=(10, 5), pady=(0, 5), sticky="w")
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results. Disabled when no index exists")
+            self.refresh_interval_menu.grid(row=0, column=1, padx=(2, 10), pady=0, sticky="w")
+            Tooltip(self.refresh_interval_menu,
+                    "Automatically refresh the index at this interval while the app is open. "
+                    "Adds new files, re-indexes changed files, removes deleted files.")
 
             self.build_index_button = ctk.CTkButton(
-                self.index_frame, text="Build Index(es)", width=120,
+                idx_row0, text="Build Index(es)", width=120,
                 command=self.build_index_action, font=ctk.CTkFont(size=12),
             )
-            self.build_index_button.grid(row=1, column=2, padx=5, pady=(0, 5), sticky="e")
+            self.build_index_button.grid(row=0, column=2, padx=5, pady=0, sticky="e")
             Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically. Warning: Navigate to the right folder (Browse button) before Building Index(es)")
 
             self.delete_index_button = ctk.CTkButton(
-                self.index_frame, text="Delete Index(es)", width=120,
+                idx_row0, text="Delete Index(es)", width=120,
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self.delete_index_action, font=ctk.CTkFont(size=12),
             )
-            self.delete_index_button.grid(row=1, column=3, padx=5, pady=(0, 5), sticky="e")
+            self.delete_index_button.grid(row=0, column=3, padx=5, pady=0, sticky="e")
             Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
 
             self.index_status_button = ctk.CTkButton(
-                self.index_frame, text="Index Status", width=100,
+                idx_row0, text="Index Status", width=100,
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self.index_status_action, font=ctk.CTkFont(size=12),
             )
-            self.index_status_button.grid(row=1, column=4, padx=5, pady=(0, 5), sticky="e")
+            self.index_status_button.grid(row=0, column=4, padx=5, pady=0, sticky="e")
             Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
 
             self.about_index_button = ctk.CTkButton(
-                self.index_frame, text="About Index", width=100,
+                idx_row0, text="About Index", width=100,
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self.about_index_action, font=ctk.CTkFont(size=12),
             )
-            self.about_index_button.grid(row=1, column=5, padx=(5, 10), pady=(0, 5), sticky="e")
+            self.about_index_button.grid(row=0, column=5, padx=5, pady=0, sticky="e")
             Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
+
+            # Row 1: Index last updated
+            self.refresh_status_label = ctk.CTkLabel(
+                self.index_contents, text="", font=ctk.CTkFont(size=11),
+                text_color=("gray50", "gray50"), anchor="w",
+            )
+            self.refresh_status_label.grid(row=1, column=0, columnspan=3, padx=0, pady=(0, 5), sticky="w")
 
         def _build_suite_panel(self):
             """Build the Search Suites window (standalone, shown/hidden)."""
@@ -883,7 +1240,7 @@ def _launch_gui():
 
             self.suite_window = ctk.CTkToplevel(self)
             self.suite_window.title("Search Suites")
-            self.suite_window.geometry("650x500")
+            self.suite_window.geometry("650x580")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
 
             self.suite_frame = ctk.CTkFrame(self.suite_window)
@@ -902,41 +1259,12 @@ def _launch_gui():
             help_btn.pack(side="right")
             Tooltip(help_btn, "How Search Suites work")
 
-            # Left: Saved Searches
-            left = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            left.grid(row=1, column=0, padx=(10, 5), pady=5, sticky="nsew")
-
-            ctk.CTkLabel(left, text="Saved Searches", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
-            search_list_frame = tk.Frame(left)
-            search_list_frame.pack(fill="both", expand=True, pady=(2, 5))
-            self.saved_searches_listbox = tk.Listbox(search_list_frame, height=8, width=25, font=("TkDefaultFont", 11))
-            search_scroll = tk.Scrollbar(search_list_frame, command=self.saved_searches_listbox.yview)
-            self.saved_searches_listbox.configure(yscrollcommand=search_scroll.set)
-            self.saved_searches_listbox.pack(side="left", fill="both", expand=True)
-            search_scroll.pack(side="right", fill="y")
-
-            search_btn_frame = ctk.CTkFrame(left, fg_color="transparent")
-            search_btn_frame.pack(fill="x")
-            load_btn = ctk.CTkButton(
-                search_btn_frame, text="Load", width=70, font=ctk.CTkFont(size=12),
-                command=self._load_saved_search,
-            )
-            load_btn.pack(side="left", padx=(0, 5))
-            Tooltip(load_btn, "Load the selected saved search into the main GUI so you can review, edit, or re-run it")
-            ctk.CTkButton(
-                search_btn_frame, text="Delete", width=70, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._delete_saved_search,
-            ).pack(side="left")
-
-            # Right: Suites
+            # Suites
             right = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            right.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="nsew")
+            right.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
             self.suite_frame.grid_columnconfigure(0, weight=1)
-            self.suite_frame.grid_columnconfigure(1, weight=1)
 
-            ctk.CTkLabel(right, text="Suites of Searches", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
+            ctk.CTkLabel(right, text="Suites", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
             suite_selector_frame = tk.Frame(right)
             suite_selector_frame.pack(fill="x", pady=(2, 5))
             self.suite_selector = tk.Listbox(suite_selector_frame, height=4, selectmode="extended", font=("TkDefaultFont", 11))
@@ -946,6 +1274,7 @@ def _launch_gui():
             suite_sel_scroll.pack(side="right", fill="y")
             self.suite_selector.bind("<<ListboxSelect>>", lambda e: self._on_suite_selected())
 
+            ctk.CTkLabel(right, text="Searches", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
             suite_contents_frame = tk.Frame(right)
             suite_contents_frame.pack(fill="both", expand=True, pady=(0, 5))
             self.suite_contents_listbox = tk.Listbox(suite_contents_frame, height=8, width=25, font=("TkDefaultFont", 11))
@@ -957,7 +1286,7 @@ def _launch_gui():
             suite_btn_frame = ctk.CTkFrame(right, fg_color="transparent")
             suite_btn_frame.pack(fill="x")
             ctk.CTkButton(
-                suite_btn_frame, text="New Suite", width=90, font=ctk.CTkFont(size=12),
+                suite_btn_frame, text="Build a New Suite", width=130, font=ctk.CTkFont(size=12),
                 command=self._create_suite_dialog,
             ).pack(side="left", padx=(0, 5))
             ctk.CTkButton(
@@ -971,40 +1300,67 @@ def _launch_gui():
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._delete_suite,
-            ).pack(side="left")
-
-            # Run controls (under Suites column)
-            run_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            run_frame.grid(row=2, column=1, padx=(5, 10), pady=(5, 0), sticky="ew")
-
-            self.run_suite_btn = ctk.CTkButton(
-                run_frame, text="Run Entire Suite", width=140, font=ctk.CTkFont(size=14, weight="bold"),
-                command=self._run_suite,
+            ).pack(side="left", padx=(0, 5))
+            self.cleanup_suite_btn = ctk.CTkButton(
+                suite_btn_frame, text="Clean Up Suite Files", width=160, font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._cleanup_suite_files,
             )
-            self.run_suite_btn.pack(side="left", padx=(0, 5))
+            self.cleanup_suite_btn.pack(side="left")
+            Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
+
+            # Status label (under Suites column)
+            status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            status_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            ctk.CTkLabel(status_frame, text="Messages:", font=ctk.CTkFont(size=12)).pack(side="left")
+            self.suite_status_label = ctk.CTkLabel(status_frame, text="", font=ctk.CTkFont(size=12))
+            self.suite_status_label.pack(side="left", padx=(5, 10))
             self.cancel_suite_btn = ctk.CTkButton(
-                run_frame, text="Cancel", width=80, font=ctk.CTkFont(size=13),
+                status_frame, text="Cancel", width=80, font=ctk.CTkFont(size=13),
                 fg_color="red", hover_color="darkred",
                 command=self._cancel_suite,
             )
             # Cancel hidden by default
-            self.suite_timestamp_var = ctk.StringVar(value="on")
-            cb_suite_ts = ctk.CTkCheckBox(
-                run_frame, text="Timestamp", variable=self.suite_timestamp_var,
-                onvalue="on", offvalue="off",
+
+            # Schedule + Last Run row
+            schedule_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            schedule_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+
+            ctk.CTkLabel(schedule_frame, text="Auto-Run every:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
+            self.suite_schedule_var = ctk.StringVar(value="Off")
+            self.suite_schedule_menu = ctk.CTkOptionMenu(
+                schedule_frame, variable=self.suite_schedule_var,
+                values=["Off", "30 min", "1 hour", "4 hours", "12 hours", "24 hours"],
+                width=100, font=ctk.CTkFont(size=12),
+                command=self._on_suite_schedule_changed,
             )
-            cb_suite_ts.pack(side="left", padx=(10, 0))
-            Tooltip(cb_suite_ts, "Add timestamp to suite and stage report filenames")
-            self.suite_status_label = ctk.CTkLabel(run_frame, text="", font=ctk.CTkFont(size=12))
-            self.suite_status_label.pack(side="left", padx=10)
+            self.suite_schedule_menu.grid(row=0, column=1, padx=(0, 15))
+
+            ctk.CTkLabel(schedule_frame, text="Last run:", font=ctk.CTkFont(size=12)).grid(row=0, column=2, padx=(0, 5))
+            self.suite_last_run_label = ctk.CTkLabel(
+                schedule_frame, text="Never", font=ctk.CTkFont(size=12),
+                text_color=("gray50", "gray50"),
+            )
+            self.suite_last_run_label.grid(row=0, column=3, padx=(0, 15))
+
+            ctk.CTkLabel(schedule_frame, text="Next Auto-Run:", font=ctk.CTkFont(size=12)).grid(row=0, column=4, padx=(0, 5))
+            self.suite_next_run_label = ctk.CTkLabel(
+                schedule_frame, text="—", font=ctk.CTkFont(size=12),
+                text_color=("gray50", "gray50"),
+            )
+            self.suite_next_run_label.grid(row=0, column=5, padx=(0, 5))
 
             # Output Dir row for suites
             suite_outdir_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            suite_outdir_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            suite_outdir_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(15, 0), sticky="ew")
 
             ctk.CTkLabel(suite_outdir_frame, text="Output Dir:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
             self.suite_output_dir_entry = ctk.CTkEntry(suite_outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
             self.suite_output_dir_entry.grid(row=0, column=1, padx=(0, 5), sticky="ew")
+            saved_sod = getattr(self, '_saved_suite_output_dir', '')
+            if saved_sod:
+                self.suite_output_dir_entry.insert(0, saved_sod)
             suite_outdir_frame.grid_columnconfigure(1, weight=1)
 
             suite_outdir_browse_btn = ctk.CTkButton(
@@ -1015,41 +1371,41 @@ def _launch_gui():
             suite_outdir_browse_btn.grid(row=0, column=2)
             Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location")
 
-            # Results area
-            results_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            results_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
-            self.suite_frame.grid_rowconfigure(4, weight=1)
-
-            self.suite_results_text = tk.Text(
-                results_frame, height=8, width=60, font=("Courier", 11),
-                state="disabled", wrap="word",
+            # Open Auto-Run History label
+            autorun_label = ctk.CTkLabel(
+                self.suite_frame, text="Open Auto-Run History",
+                font=ctk.CTkFont(size=12, underline=True),
+                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
-            results_scroll = tk.Scrollbar(results_frame, command=self.suite_results_text.yview)
-            self.suite_results_text.configure(yscrollcommand=results_scroll.set)
-            self.suite_results_text.pack(side="left", fill="both", expand=True)
-            results_scroll.pack(side="right", fill="y")
+            autorun_label.grid(row=7, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="w")
+            autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
+            Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
-            # Configure tags for color-coded results
-            self.suite_results_text.tag_configure("pass", foreground="green")
-            self.suite_results_text.tag_configure("fail", foreground="red")
-            self.suite_results_text.tag_configure("summary", font=("Courier", 11, "bold"))
-
-            # Generate Report button (hidden until suite finishes)
-            self.generate_report_btn = ctk.CTkButton(
-                self.suite_frame, text="Generate Report", width=130, font=ctk.CTkFont(size=13),
-                command=self._generate_suite_report,
+            # Run Selected Suite button (centered)
+            self.run_suite_btn = ctk.CTkButton(
+                self.suite_frame, text="Run Selected Suite", width=160, font=ctk.CTkFont(size=14, weight="bold"),
+                command=self._run_suite,
             )
-            # Not gridded yet — shown after suite finishes
+            self.run_suite_btn.grid(row=8, column=0, columnspan=2, pady=(10, 10))
 
-            # Clean Up Suite Files button
-            self.cleanup_suite_btn = ctk.CTkButton(
-                self.suite_frame, text="Clean Up Suite Files", width=160, font=ctk.CTkFont(size=13),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._cleanup_suite_files,
-            )
-            self.cleanup_suite_btn.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="w")
-            Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
+        def _open_autorun_history(self):
+            """Open the auto-run log file in the default text editor."""
+            import subprocess, sys
+            folder = self.folder_entry.get().strip()
+            report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
+            if not report_dir or not os.path.isdir(report_dir):
+                self._show_error("Select a valid folder first.")
+                return
+            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
+            if not os.path.exists(log_path):
+                self._show_error("No auto-run history found yet.")
+                return
+            if sys.platform == "darwin":
+                subprocess.Popen(["open", log_path])
+            elif sys.platform == "win32":
+                os.startfile(log_path)
+            else:
+                subprocess.Popen(["xdg-open", log_path])
 
         def _cleanup_suite_files(self):
             """Delete all generated suite and stage report files from the search/output folder."""
@@ -1062,7 +1418,10 @@ def _launch_gui():
                 return
 
             # Scan both search folder and output dir (if different)
-            od = self.suite_output_dir_entry.get().strip() if hasattr(self, 'suite_output_dir_entry') else ""
+            try:
+                od = self.suite_output_dir_entry.get().strip() if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry') else ""
+            except Exception:
+                od = getattr(self, '_saved_suite_output_dir', '')
             dirs_to_scan = [folder]
             if od and od != folder and os.path.isdir(od):
                 dirs_to_scan.append(od)
@@ -1103,93 +1462,178 @@ def _launch_gui():
             import tkinter as tk
             help_win = tk.Toplevel(self.suite_window)
             help_win.title("Search Suites — How They Work")
-            help_win.geometry("820x420")
-            help_win.resizable(False, False)
+            help_win.geometry("750x520")
+            help_win.resizable(True, True)
             help_win.transient(self.suite_window)
             help_win.grab_set()
 
-            # Intro across the top
-            intro = tk.Label(
-                help_win,
-                text="Search Suites let you save individual searches, group them "
-                     "into named suites, and run them as a batch with pass/fail tracking.",
-                wraplength=780, justify="left", anchor="w",
+            # Scrollable text widget
+            text_frame = tk.Frame(help_win)
+            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+
+            scrollbar = tk.Scrollbar(text_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            txt = tk.Text(
+                text_frame, wrap="word", font=("TkDefaultFont", 12),
+                state="normal", yscrollcommand=scrollbar.set,
+                padx=12, pady=10, spacing3=2,
             )
-            intro.pack(fill="x", padx=10, pady=(10, 5))
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
 
-            # Two-column frame
-            cols = tk.Frame(help_win)
-            cols.pack(fill="both", expand=True, padx=10, pady=5)
-            cols.columnconfigure(0, weight=1, uniform="col")
-            cols.columnconfigure(1, weight=1, uniform="col")
+            # Configure tags
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=12, spacing3=4)
+            txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 12), lmargin1=20, lmargin2=20)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
 
-            left_text = (
-                "HOW TO USE\n"
-                "1. Save a search: configure in the main GUI,\n"
-                "   click Save Search, give it a name.\n"
-                "2. Build a suite: click New Suite, name it,\n"
-                "   add searches and set execution order.\n"
-                "3. Run: select a suite, click Run Entire Suite.\n"
-                "4. Report: click Generate Report.\n"
-                "\n"
-                "CASCADE MODE\n"
-                "Check 'Cascade mode' to enable progressive\n"
-                "narrowing — each stage's matched files become\n"
-                "the file list for the next stage. Use the order\n"
-                "controls (▲/▼) to set the pipeline sequence.\n"
-                "\n"
-                "SEARCH ORDER\n"
-                "When creating or editing a suite, use the dual-\n"
-                "panel selector to pick and reorder searches.\n"
-                "→/← move searches between panels; ▲/▼ set\n"
-                "execution order. Order matters for cascade mode."
-            )
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
 
-            right_text = (
-                "WHAT IT'S GOOD FOR\n"
-                "• Compliance audits: repeat checks on doc sets\n"
-                "• Quality assurance: verify required terms\n"
-                "• Data discovery: batch-find SSNs, emails, etc.\n"
-                "• Due diligence: systematic contract review\n"
-                "\n"
-                "FILES GENERATED\n"
-                "• Stage reports: …_stage{NN}_{search}.txt/.docx\n"
-                "  Each search gets its own report file.\n"
-                "• Suite report: …_suite_{name}.txt/.json\n"
-                "  Consolidated pass/fail via Generate Report.\n"
-                "• Collection: .docsearch_collection.json\n"
-                "  Saves searches & suite definitions per folder.\n"
-                "\n"
-                "OUTPUT DIRECTORY\n"
-                "Set Output Dir to write suite files to a separate\n"
-                "folder. Independent from Advanced Options' dir.\n"
-                "All files use DO_NOT_SEARCH prefix to auto-\n"
-                "exclude from future searches."
-            )
+            def s(text):
+                txt.insert("end", text + "\n", "subhead")
 
-            left_lbl = tk.Label(
-                cols, text=left_text, justify="left", anchor="nw",
-                font=("TkDefaultFont", 11),
-            )
-            left_lbl.grid(row=0, column=0, sticky="nw", padx=(0, 10))
+            def e(text):
+                txt.insert("end", text + "\n", "example")
 
-            right_lbl = tk.Label(
-                cols, text=right_text, justify="left", anchor="nw",
-                font=("TkDefaultFont", 11),
-            )
-            right_lbl.grid(row=0, column=1, sticky="nw", padx=(10, 0))
+            def b(text):
+                txt.insert("end", text + "\n", "body")
 
-            # Close button
+            def blank():
+                txt.insert("end", "\n")
+
+            b("Search Suites let you save individual searches, group them into")
+            b("named suites, and run them as a batch with pass/fail tracking.")
+            blank()
+
+            h("HOW TO USE")
+            b("1. Save a search: configure in the main GUI, click Save Settings, give it a name.")
+            b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
+            b("3. Run: select a suite, click Run Selected Suite.")
+            b("4. Reports are generated automatically with timestamps.")
+            blank()
+
+            h("CASCADE MODE")
+            b("Check 'Cascade mode' to enable progressive narrowing \u2014 each stage's")
+            b("matched files become the file list for the next stage. Use the order")
+            b("controls (\u25b2/\u25bc) to set the pipeline sequence.")
+            blank()
+
+            h("SEARCH ORDER")
+            b("When creating or editing a suite, use the dual-panel selector to pick")
+            b("and reorder searches. \u2192/\u2190 move searches between panels; \u25b2/\u25bc set")
+            b("execution order. Order matters for cascade mode.")
+            blank()
+
+            h("PASS CRITERIA")
+            b("Each search in a suite can have its own pass/fail criteria:")
+            e(">= N   pass if match count is at least N (default: >= 1)")
+            e("<= N   pass if match count is at most N")
+            e("== N   pass if match count is exactly N (e.g., == 0 for 'no matches')")
+            b("Set criteria when creating or editing a suite. Searches without")
+            b("explicit criteria default to >= 1 (at least one match to pass).")
+            blank()
+
+            h("WHAT IT'S GOOD FOR")
+            b("\u2022 Compliance audits: repeat checks on document sets")
+            b("\u2022 Quality assurance: verify required terms exist")
+            b("\u2022 Data discovery: batch-find SSNs, emails, etc.")
+            b("\u2022 Due diligence: systematic contract review")
+            blank()
+
+            h("FILES GENERATED")
+            b("All report filenames are automatically timestamped.")
+            b("\u2022 Stage reports: \u2026_stage{NN}_{search}_{timestamp}.txt/.docx")
+            b("  Each search gets its own report file.")
+            b("\u2022 Suite report: \u2026_suite_{name}_{timestamp}.txt/.json")
+            b("  Consolidated pass/fail summary.")
+            b("\u2022 Collection: .docsearch_collection.json")
+            b("  Saves searches & suite definitions per folder.")
+            blank()
+
+            h("OUTPUT DIRECTORY")
+            b("Set Output Dir to write suite files to a separate folder.")
+            b("Independent from the Output Dir in Advanced Options.")
+            b("All files use DO_NOT_SEARCH prefix to auto-exclude from future searches.")
+            b("This setting is automatically saved to ~/.docsearchrc when you close")
+            b("the Suites window and restored on next launch.")
+            blank()
+
+            h("AUTO-RUN SCHEDULING")
+            b("Use the Auto-Run every: dropdown to schedule periodic suite runs.")
+            b("Intervals: Off, 30 min, 1 hour, 4 hours, 12 hours, 24 hours.")
+            b("The schedule is saved per-suite, so different suites can have")
+            b("different intervals. Safety guards skip a scheduled run if a")
+            b("search, index build, or another suite is already in progress.")
+            blank()
+            s("Display")
+            b("\u2022 Last run: shows the suite name and timestamp of the most recent run.")
+            b("\u2022 Next Auto-Run: shows a countdown timer (e.g., 4h 22m, 15m, <1m)")
+            b("  that updates every minute.")
+            blank()
+            s("Persistence")
+            b("Schedules persist across app restarts. On launch, the app reads")
+            b("the last run time from the collection, calculates when the next")
+            b("run is due, and resumes automatically. If a run is overdue (e.g.,")
+            b("the app was closed during the interval), it runs shortly after")
+            b("launch. The Suites window does not need to be open. When you")
+            b("reopen the Suites window, the scheduled suite is automatically")
+            b("re-selected and highlighted in the list.")
+            blank()
+            s("Auto-Run Output")
+            b("When a scheduled run completes, two things happen automatically:")
+            blank()
+            b("1. Suite reports are generated with timestamps:")
+            e("DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt")
+            e("DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.json")
+            blank()
+            b("2. An entry is appended to the auto-run log:")
+            e("DO_NOT_SEARCH_autorun_log.txt")
+            b("Each entry records the suite name, time, pass/fail summary,")
+            b("and per-search results:")
+            e("[2026-03-28 14:30:00] Suite: quarterly_compliance \u2014 4/5 passed \u2014 FAILED")
+            e("  [PASS] find_contracts \u2014 12 match(es) (need >= 1)")
+            e("  [FAIL] no_pii \u2014 2 match(es) (need == 0)")
+            blank()
+            b("Files are written to the suite's Output Dir if set, otherwise")
+            b("to the search folder. The DO_NOT_SEARCH prefix ensures they")
+            b("are never re-searched.")
+            blank()
+            b("Click Open Auto-Run History in the suite panel to open the")
+            b("auto-run log file directly. If the log file is deleted, it is")
+            b("automatically recreated on the next auto-run.")
+
+            txt.configure(state="disabled")
+
             close_btn = ctk.CTkButton(
                 help_win, text="Close", width=100,
                 command=help_win.destroy,
             )
             close_btn.pack(pady=(5, 10))
 
+        def _capture_suite_output_dir(self):
+            """Save the suite output dir entry value and persist to ~/.docsearchrc."""
+            if hasattr(self, 'suite_output_dir_entry'):
+                try:
+                    val = self.suite_output_dir_entry.get().strip()
+                    self._saved_suite_output_dir = val
+                    # Persist to ~/.docsearchrc
+                    from docsearch.cli import _save_config, _load_config
+                    config = _load_config()
+                    if val:
+                        config["suite_output_dir"] = val
+                    else:
+                        config.pop("suite_output_dir", None)
+                    _save_config(config)
+                except Exception:
+                    pass
+
         def _on_suite_window_close(self):
             """Handle the suite window close button."""
             if self.suite_running:
                 return  # Don't close while a suite is running
+            self._capture_suite_output_dir()
             self.suite_window.destroy()
             self.suite_window = None
             self.suite_toggle.configure(text="\u25b6 Search Suites")
@@ -1199,6 +1643,7 @@ def _launch_gui():
             if self.suite_visible:
                 if self.suite_running:
                     return
+                self._capture_suite_output_dir()
                 self.suite_window.destroy()
                 self.suite_window = None
                 self.suite_toggle.configure(text="\u25b6 Search Suites")
@@ -1208,21 +1653,43 @@ def _launch_gui():
                 self.suite_toggle.configure(text="\u25bc Search Suites")
                 self.suite_visible = True
                 self._refresh_suite_panel()
+                # Re-select the scheduled suite if any
+                self._restore_suite_selection()
+                # Refresh schedule display without resetting the timer
+                if self._scheduled_suite_interval:
+                    self._restoring_schedule = True
+                    self.suite_schedule_var.set(self._scheduled_suite_interval)
+                    self._restoring_schedule = False
+                self._update_last_run_label()
+                self._update_countdown()
 
         def _refresh_suite_panel(self):
             """Reload saved searches and suites from the collection file."""
+            if not hasattr(self, "suite_selector"):
+                return
             from docsearch.collection import load_collection
             folder = self.folder_entry.get().strip()
-            self.saved_searches_listbox.delete(0, "end")
             self.suite_selector.delete(0, "end")
             self.suite_contents_listbox.delete(0, "end")
             if not folder or not os.path.isdir(folder):
                 return
             data = load_collection(folder)
-            for name in sorted(data["saved_searches"]):
-                self.saved_searches_listbox.insert("end", name)
             for name in sorted(data["test_suites"]):
                 self.suite_selector.insert("end", name)
+
+        def _restore_suite_selection(self):
+            """Re-select the scheduled suite in the listbox after rebuild."""
+            name = self._scheduled_suite_name
+            if not name or not hasattr(self, 'suite_selector'):
+                return
+            for i in range(self.suite_selector.size()):
+                if self.suite_selector.get(i) == name:
+                    self.suite_selector.selection_set(i)
+                    self.suite_selector.see(i)
+                    self._restoring_schedule = True
+                    self._on_suite_selected()
+                    self._restoring_schedule = False
+                    break
 
         def _on_suite_selected(self, event=None):
             """Populate the suite contents listbox from all selected suites."""
@@ -1231,59 +1698,167 @@ def _launch_gui():
             self.suite_contents_listbox.delete(0, "end")
             sel = self.suite_selector.curselection()
             if not sel or not folder:
+                self._update_last_run_label()
                 return
             seen = set()
             for idx in sel:
                 suite_name = self.suite_selector.get(idx)
                 suite = get_suite(folder, suite_name)
                 if suite:
+                    suite_pc = suite.get("pass_criteria", {})
                     for search_name in suite["searches"]:
                         if search_name not in seen:
                             seen.add(search_name)
-                            self.suite_contents_listbox.insert("end", search_name)
+                            pc = suite_pc.get(search_name, {"op": ">=", "n": 1})
+                            label = f"{search_name}  ({pc['op']} {pc['n']})"
+                            self.suite_contents_listbox.insert("end", label)
+            # Load schedule and last-run for the first selected suite
+            first_suite = get_suite(folder, self.suite_selector.get(sel[0]))
+            if first_suite:
+                schedule = first_suite.get("schedule", "Off")
+                self.suite_schedule_var.set(schedule)
+                self._on_suite_schedule_changed(schedule)
+            self._update_last_run_label()
 
-        def _load_saved_search(self):
-            """Load the selected saved search into the GUI widgets."""
-            from docsearch.collection import get_search_params
-            sel = self.saved_searches_listbox.curselection()
-            if not sel:
+        def _open_load_search_popup(self):
+            """Open a popup with saved searches listbox and Select/Delete buttons."""
+            import tkinter as tk
+            from docsearch.collection import load_collection
+            if self._load_search_popup and self._load_search_popup.winfo_exists():
+                self._load_search_popup.destroy()
+                self._load_search_popup = None
                 return
-            name = self.saved_searches_listbox.get(sel[0])
+
             folder = self.folder_entry.get().strip()
-            params = get_search_params(folder, name)
-            if params:
-                self._apply_params_to_gui(params)
+            names = []
+            if folder and os.path.isdir(folder):
+                data = load_collection(folder)
+                names = sorted(data.get("saved_searches", {}).keys())
+
+            popup = tk.Toplevel(self)
+            popup.title("Load Settings")
+            popup.resizable(False, False)
+            popup.transient(self)
+            self._load_search_popup = popup
+
+            # Position below the button
+            btn = self.load_search_btn
+            x = btn.winfo_rootx()
+            y = btn.winfo_rooty() + btn.winfo_height()
+            popup.geometry(f"+{x}+{y}")
+
+            frame = ctk.CTkFrame(popup)
+            frame.pack(fill="both", expand=True)
+
+            listbox = tk.Listbox(frame, width=30, height=min(len(names), 10) or 1,
+                                 font=("TkDefaultFont", 13), selectmode="browse",
+                                 exportselection=False, activestyle="none")
+            if names:
+                for n in names:
+                    listbox.insert("end", n)
+                listbox.selection_set(0)
+            else:
+                listbox.insert("end", "(no saved searches)")
+            listbox.pack(side="top", fill="both", expand=True, padx=4, pady=(4, 2))
+
+            _motion_active = [True]
+
+            def _on_motion(event):
+                if not _motion_active[0]:
+                    return
+                idx = listbox.nearest(event.y)
+                if idx >= 0:
+                    listbox.selection_clear(0, "end")
+                    listbox.selection_set(idx)
+
+            def _on_click(event):
+                _motion_active[0] = False
+
+            listbox.bind("<Motion>", _on_motion)
+            listbox.bind("<ButtonPress-1>", _on_click)
+
+            btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+            btn_frame.pack(side="top", fill="x", padx=4, pady=(2, 4))
+
+            def on_select():
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                name = listbox.get(sel[0])
+                if name == "(no saved searches)":
+                    return
+                from docsearch.collection import get_search_params
+                params = get_search_params(folder, name)
+                if params:
+                    self._apply_params_to_gui(params)
+                    self.status_label.configure(
+                        text=f"Loaded search '{name}' from collection.",
+                        text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
+                    )
+                popup.destroy()
+                self._load_search_popup = None
+
+            def on_delete():
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                name = listbox.get(sel[0])
+                if name == "(no saved searches)":
+                    return
+                from tkinter import messagebox
+                from docsearch.collection import remove_saved_search
+                if not messagebox.askyesno("Delete Saved Search",
+                                           f"Delete saved search '{name}'?",
+                                           parent=popup):
+                    return
+                remove_saved_search(folder, name)
+                listbox.delete(sel[0])
+                self._refresh_suite_panel()
                 self.status_label.configure(
-                    text=f"Loaded search '{name}' from collection.",
+                    text=f"Deleted saved search '{name}'.",
                     text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
                 )
+                if listbox.size() == 0:
+                    listbox.insert("end", "(no saved searches)")
 
-        def _delete_saved_search(self):
-            """Delete the selected saved search from the collection."""
-            from tkinter import messagebox
-            from docsearch.collection import remove_saved_search
-            sel = self.saved_searches_listbox.curselection()
-            if not sel:
-                return
-            name = self.saved_searches_listbox.get(sel[0])
-            if not messagebox.askyesno("Delete?", f"Delete saved search '{name}'?"):
-                return
-            folder = self.folder_entry.get().strip()
-            remove_saved_search(folder, name)
-            self._refresh_suite_panel()
+            def close_popup(event=None):
+                if self._load_search_popup and self._load_search_popup.winfo_exists():
+                    self._load_search_popup.destroy()
+                    self._load_search_popup = None
 
-        def _build_search_shuttle(self, dialog, available, selected_order):
+            ctk.CTkButton(btn_frame, text="Cancel", width=70, font=ctk.CTkFont(size=12),
+                          command=close_popup).pack(side="left", padx=(0, 5))
+            ctk.CTkButton(btn_frame, text="Select", width=70, font=ctk.CTkFont(size=12),
+                          command=on_select).pack(side="left")
+            ctk.CTkButton(btn_frame, text="Delete", width=70, font=ctk.CTkFont(size=12),
+                          fg_color="firebrick", hover_color="darkred",
+                          command=on_delete).pack(side="right")
+
+            listbox.bind("<Double-1>", lambda e: on_select())
+            popup.bind("<Escape>", close_popup)
+            popup.protocol("WM_DELETE_WINDOW", close_popup)
+            listbox.focus_set()
+
+        def _refresh_load_search_menu(self):
+            """No-op — popup rebuilds its list each time it opens."""
+            pass
+
+
+        def _build_search_shuttle(self, dialog, available, selected_order, criteria=None):
             """Build a dual-listbox shuttle widget for ordering suite searches.
 
             Args:
                 dialog: Parent tk.Toplevel.
                 available: List of search names to show on the left (not yet selected).
                 selected_order: List of search names for the right (pre-selected, in order).
+                criteria: Dict of per-search pass criteria, e.g. {"s1": {"op": ">=", "n": 1}}.
 
             Returns:
-                A callable that returns the ordered list of selected search names.
+                A callable that returns (search_list, criteria_dict).
             """
             import tkinter as tk
+
+            _criteria = dict(criteria) if criteria else {}
 
             # Labels row
             label_frame = tk.Frame(dialog)
@@ -1335,6 +1910,59 @@ def _launch_gui():
             tk.Button(order_frame, text="\u25b2 Up", width=5, command=lambda: _move_up()).pack(pady=2)
             tk.Button(order_frame, text="\u25bc Down", width=5, command=lambda: _move_down()).pack(pady=2)
 
+            # Pass criteria row — below the shuttle
+            criteria_frame = tk.Frame(dialog)
+            criteria_frame.pack(padx=15, fill="x", pady=(5, 0))
+            tk.Label(criteria_frame, text="Pass criteria:", font=("TkDefaultFont", 12)).pack(side="left")
+            criteria_op_var = tk.StringVar(value=">=")
+            op_menu = tk.OptionMenu(criteria_frame, criteria_op_var, ">=", "<=", "==")
+            op_menu.config(font=("TkDefaultFont", 12), width=3)
+            op_menu.pack(side="left", padx=(5, 2))
+            criteria_n_var = tk.StringVar(value="1")
+            criteria_n_entry = tk.Entry(criteria_frame, textvariable=criteria_n_var, width=5, font=("TkDefaultFont", 12))
+            criteria_n_entry.pack(side="left", padx=(0, 5))
+            tk.Label(criteria_frame, text="match(es)", font=("TkDefaultFont", 12)).pack(side="left")
+            criteria_hint = tk.Label(
+                criteria_frame, text="  (select a search on the right to set its criteria)",
+                font=("TkDefaultFont", 10), fg="gray50",
+            )
+            criteria_hint.pack(side="left", padx=(10, 0))
+
+            _current_search = [None]  # track which search's criteria we're editing
+
+            def _save_current_criteria():
+                """Save the current criteria UI values back to the dict."""
+                name = _current_search[0]
+                if name is None:
+                    return
+                op = criteria_op_var.get()
+                try:
+                    n = int(criteria_n_var.get())
+                except ValueError:
+                    n = 1
+                _criteria[name] = {"op": op, "n": n}
+
+            def _load_criteria_for_selection(event=None):
+                """Load criteria for the selected search in the right listbox."""
+                _save_current_criteria()
+                sel = right_lb.curselection()
+                if not sel:
+                    _current_search[0] = None
+                    criteria_hint.config(text="  (select a search on the right to set its criteria)")
+                    return
+                name = right_lb.get(sel[0])
+                _current_search[0] = name
+                pc = _criteria.get(name, {"op": ">=", "n": 1})
+                criteria_op_var.set(pc["op"])
+                criteria_n_var.set(str(pc["n"]))
+                criteria_hint.config(text=f"  for: {name}")
+
+            right_lb.bind("<<ListboxSelect>>", _load_criteria_for_selection)
+
+            # Save criteria when op or n changes
+            criteria_op_var.trace_add("write", lambda *_: _save_current_criteria())
+            criteria_n_var.trace_add("write", lambda *_: _save_current_criteria())
+
             # Populate
             for name in sorted(available):
                 left_lb.insert("end", name)
@@ -1362,6 +1990,11 @@ def _launch_gui():
                 names = [right_lb.get(i) for i in sel]
                 for i in reversed(sel):
                     right_lb.delete(i)
+                # Clean up criteria for removed searches
+                for name in names:
+                    _criteria.pop(name, None)
+                _current_search[0] = None
+                criteria_hint.config(text="  (select a search on the right to set its criteria)")
                 for name in sorted(names):
                     # Insert in alphabetical position (re-read each time)
                     left_items = list(left_lb.get(0, "end"))
@@ -1392,7 +2025,11 @@ def _launch_gui():
                     right_lb.insert(i + 1, text)
                     right_lb.selection_set(i + 1)
 
-            return lambda: list(right_lb.get(0, "end"))
+            def _get_result():
+                _save_current_criteria()
+                return list(right_lb.get(0, "end")), dict(_criteria)
+
+            return _get_result
 
         def _create_suite_dialog(self):
             """Open dialog to create a new search suite."""
@@ -1449,11 +2086,12 @@ def _launch_gui():
                 suite_name = name_entry.get().strip()
                 if not suite_name:
                     return
-                selected = get_selected()
+                selected, criteria = get_selected()
                 if not selected:
                     return
                 desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get())
+                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get(),
+                               pass_criteria=criteria)
                 dialog.destroy()
                 self._refresh_suite_panel()
                 # Select the newly created suite
@@ -1513,14 +2151,18 @@ def _launch_gui():
             btn_frame = tk.Frame(dialog)
             btn_frame.pack(side="bottom", pady=(10, 15))
 
-            get_selected = self._build_search_shuttle(dialog, available, current_order)
+            existing_criteria = suite.get("pass_criteria", {})
+            get_selected = self._build_search_shuttle(dialog, available, current_order, criteria=existing_criteria)
 
             def do_save():
-                selected = get_selected()
+                selected, criteria = get_selected()
                 if not selected:
                     return
                 desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get())
+                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get(),
+                               schedule=suite.get("schedule", "Off"),
+                               last_run_time=suite.get("last_run_time"),
+                               pass_criteria=criteria)
                 dialog.destroy()
                 self._refresh_suite_panel()
                 for i in range(self.suite_selector.size()):
@@ -1546,9 +2188,80 @@ def _launch_gui():
             folder = self.folder_entry.get().strip()
             for name in names:
                 remove_test_suite(folder, name)
+            # Cancel suite schedule if active
+            if self._suite_schedule_timer_id is not None:
+                self.after_cancel(self._suite_schedule_timer_id)
+                self._suite_schedule_timer_id = None
+            self._scheduled_suite_name = None
+            self._scheduled_suite_interval = None
+            self.suite_schedule_var.set("Off")
+            self._update_last_run_label()
             self._refresh_suite_panel()
 
         # ── Suite Execution ────────────────────────────────────
+
+        def _run_suite_by_name(self, folder, suite_name):
+            """Run a suite by name — works even when the Suites window is closed."""
+            from docsearch.collection import load_collection, get_search_params
+            data = load_collection(folder)
+            suite = data["test_suites"].get(suite_name)
+            if not suite:
+                self._suite_schedule_running = False
+                self._suite_scheduled_run = False
+                self._reschedule_suite()
+                return
+
+            searches = []
+            search_criteria = {}
+            suite_pc = suite.get("pass_criteria", {})
+            for name in suite["searches"]:
+                params = get_search_params(folder, name)
+                if params:
+                    searches.append((name, params))
+                if name in suite_pc:
+                    search_criteria[name] = suite_pc[name]
+            if not searches:
+                self._suite_schedule_running = False
+                self._suite_scheduled_run = False
+                self._reschedule_suite()
+                return
+
+            # Set up suite state
+            self.suite_running = True
+            self.suite_cancel_requested = False
+            self.search_button.configure(state="disabled")
+
+            # UI elements — only touch if the suites window is open
+            suite_window_open = hasattr(self, 'suite_window') and self.suite_window is not None
+            if suite_window_open:
+                try:
+                    self.run_suite_btn.configure(state="disabled")
+                    self.cancel_suite_btn.pack(side="left", padx=(0, 5))
+                    self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
+                except Exception:
+                    pass
+
+            self._suite_results_data = []
+            self._suite_start_time = time.time()
+            self._suite_name = suite_name
+            self._suite_names_list = [suite_name]
+            od = ""
+            if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry'):
+                try:
+                    od = self.suite_output_dir_entry.get().strip()
+                except Exception:
+                    pass
+            if not od:
+                od = getattr(self, '_saved_suite_output_dir', '')
+            self._suite_output_dir = od if od else folder
+            self._search_criteria = search_criteria
+
+            thread = threading.Thread(
+                target=self._suite_execution_thread,
+                args=(folder, searches),
+                daemon=True,
+            )
+            thread.start()
 
         def _run_suite(self):
             """Run all searches in the selected suite(s) sequentially."""
@@ -1562,20 +2275,24 @@ def _launch_gui():
                 return
             data = load_collection(folder)
 
-            # Gather searches from all selected suites (dedup, preserve order)
+            # Gather searches and pass criteria from all selected suites (dedup, preserve order)
             suite_names = [self.suite_selector.get(i) for i in sel]
             searches = []
+            search_criteria = {}
             seen = set()
             for sn in suite_names:
                 suite = data["test_suites"].get(sn)
                 if not suite:
                     continue
+                suite_pc = suite.get("pass_criteria", {})
                 for name in suite["searches"]:
                     if name not in seen:
                         seen.add(name)
                         params = get_search_params(folder, name)
                         if params:
                             searches.append((name, params))
+                        if name in suite_pc:
+                            search_criteria[name] = suite_pc[name]
             if not searches:
                 self._show_error("No valid searches found in selected suite(s).")
                 return
@@ -1588,23 +2305,25 @@ def _launch_gui():
             self.run_suite_btn.configure(state="disabled")
             self.cancel_suite_btn.pack(side="left", padx=(0, 5))
             self.search_button.configure(state="disabled")
-            self.generate_report_btn.grid_remove()
-
-            # Clear results
-            self.suite_results_text.configure(state="normal")
-            self.suite_results_text.delete("1.0", "end")
-            self.suite_results_text.configure(state="disabled")
 
             self._suite_results_data = []
             self._suite_start_time = time.time()
             self._suite_name = suite_label
             self._suite_names_list = suite_names
 
-            od = self.suite_output_dir_entry.get().strip() if hasattr(self, 'suite_output_dir_entry') else ""
+            od = ""
+            if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry'):
+                try:
+                    od = self.suite_output_dir_entry.get().strip()
+                except Exception:
+                    pass
+            if not od:
+                od = getattr(self, '_saved_suite_output_dir', '')
             self._suite_output_dir = od if od else folder
 
             self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
 
+            self._search_criteria = search_criteria
             thread = threading.Thread(
                 target=self._suite_execution_thread,
                 args=(folder, searches),
@@ -1685,6 +2404,7 @@ def _launch_gui():
                         "return_code": 2,
                         "passed": False,
                         "match_count": 0,
+                        "pass_criteria": self._search_criteria.get(name, {"op": ">=", "n": 1}),
                         "summary": "Invalid search configuration",
                         "stage_files": {},
                         "cascade_input_count": cascade_input_count,
@@ -1712,6 +2432,7 @@ def _launch_gui():
                         "return_code": 2,
                         "passed": False,
                         "match_count": 0,
+                        "pass_criteria": self._search_criteria.get(name, {"op": ">=", "n": 1}),
                         "summary": str(exc),
                         "stage_files": {},
                         "cascade_input_count": cascade_input_count,
@@ -1736,16 +2457,30 @@ def _launch_gui():
                             match_count = int(m.group(1))
 
                 # Copy per-stage reports before the next search overwrites them
-                stage_ts = datetime.now().strftime("%Y%m%d_%H%M%S") if self.suite_timestamp_var.get() == "on" else ""
+                stage_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name, timestamp_suffix=stage_ts)
+
+                # Evaluate pass/fail using per-search criteria
+                pc = self._search_criteria.get(name, {"op": ">=", "n": 1})
+                if returncode == 2:
+                    passed = False
+                elif pc["op"] == ">=":
+                    passed = match_count >= pc["n"]
+                elif pc["op"] == "<=":
+                    passed = match_count <= pc["n"]
+                elif pc["op"] == "==":
+                    passed = match_count == pc["n"]
+                else:
+                    passed = returncode == 0
 
                 result = {
                     "name": name,
                     "search_text": params.get("search_text", ""),
                     "inverse": params.get("inverse", False),
                     "return_code": returncode,
-                    "passed": returncode == 0,
+                    "passed": passed,
                     "match_count": match_count,
+                    "pass_criteria": pc,
                     "summary": _parse_summary_text(stdout) if stdout else "",
                     "stage_files": stage_files,
                     "cascade_input_count": cascade_input_count,
@@ -1767,41 +2502,18 @@ def _launch_gui():
 
             self.after(0, self._suite_finished, results)
 
+        def _suite_window_open(self):
+            """Check if the suite window and its widgets are available."""
+            return (hasattr(self, 'suite_window') and self.suite_window is not None
+                    and self.suite_window.winfo_exists())
+
         def _suite_test_completed(self, result):
-            """Append one test result to the results text widget."""
-            self.suite_results_text.configure(state="normal")
-            tag = "pass" if result["passed"] else "fail"
-            status = "PASS" if result["passed"] else "FAIL"
-            line = f"  [{status}] {result['name']}"
-            if result["passed"]:
-                if result["inverse"]:
-                    line += f" — {result['match_count']} file(s) without matches"
-                else:
-                    match_text = f"{result['match_count']} match(es)"
-                    cfc = result.get("cascade_file_count")
-                    cic = result.get("cascade_input_count")
-                    if cfc is not None:
-                        match_text += f" in {cfc} file(s)"
-                        if cic is not None:
-                            match_text += f" (narrowed from {cic})"
-                    line += f" — {match_text}"
-            else:
-                if result["return_code"] == 2:
-                    line += f" — Error: {result['summary']}"
-                elif result["inverse"]:
-                    line += " — All files matched (none missing)"
-                else:
-                    line += " — No matches found"
-            stage_files = result.get("stage_files", {})
-            if stage_files:
-                fnames = ", ".join(os.path.basename(p) for p in sorted(stage_files.values()))
-                line += f"\n       Reports: {fnames}"
-            self.suite_results_text.insert("end", line + "\n", tag)
-            self.suite_results_text.see("end")
-            self.suite_results_text.configure(state="disabled")
+            """Record one test result (results text area removed)."""
+            pass
 
         def _suite_finished(self, results):
             """All tests done. Show summary and re-enable UI."""
+            from docsearch.collection import update_suite_field
             self._suite_results_data = results
             self._suite_end_time = time.time()
 
@@ -1809,29 +2521,37 @@ def _launch_gui():
             total = len(results)
             verdict = "PASSED" if passed == total else "FAILED"
 
-            self.suite_results_text.configure(state="normal")
-            self.suite_results_text.insert("end", "\n")
-            summary = f"  {passed} of {total} tests passed. {verdict}\n"
-            self.suite_results_text.insert("end", summary, "summary")
-            self.suite_results_text.see("end")
-            self.suite_results_text.configure(state="disabled")
+            suite_open = self._suite_window_open()
 
             elapsed = self._suite_end_time - self._suite_start_time
-            if self.suite_cancel_requested:
-                self.suite_status_label.configure(text=f"Cancelled after {elapsed:.1f}s")
-            else:
-                self.suite_status_label.configure(text=f"Done in {elapsed:.1f}s — {verdict}")
+            if suite_open:
+                if self.suite_cancel_requested:
+                    self.suite_status_label.configure(text=f"Cancelled after {elapsed:.1f}s")
+                else:
+                    self.suite_status_label.configure(text=f"Done in {elapsed:.1f}s — {verdict}")
+
+            # Record last_run_time for each suite that was run
+            folder = self.folder_entry.get().strip()
+            run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            if folder:
+                for sn in self._suite_names_list:
+                    update_suite_field(folder, sn, "last_run_time", run_time)
+            self._update_last_run_label()
 
             # Re-enable UI
             self.suite_running = False
-            self.run_suite_btn.configure(state="normal")
-            self.cancel_suite_btn.pack_forget()
+            if suite_open:
+                self.run_suite_btn.configure(state="normal")
+                self.cancel_suite_btn.pack_forget()
             self.search_button.configure(state="normal")
 
-            if results:
-                self.generate_report_btn.grid(
-                    row=5, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
-                )
+            # Handle scheduled run completion
+            if self._suite_scheduled_run:
+                self._suite_scheduled_run = False
+                self._suite_schedule_running = False
+                self._log_autorun(folder, results, run_time, passed, total, verdict)
+                self._reschedule_suite()
+
 
         def _cancel_suite(self):
             """Signal the suite execution thread to stop after the current test."""
@@ -1846,7 +2566,7 @@ def _launch_gui():
                 return
             report_dir = getattr(self, '_suite_output_dir', folder)
             safe_name = self._suite_name.replace(" ", "_").replace("/", "_")
-            ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}" if self.suite_timestamp_var.get() == "on" else ""
+            ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
             json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
             write_suite_report_txt(
@@ -1874,7 +2594,7 @@ def _launch_gui():
         def _build_bottom_row(self):
             self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
             self.bottom_frame.grid(
-                row=9, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
+                row=10, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
             )
 
             ctk.CTkLabel(
@@ -1884,7 +2604,7 @@ def _launch_gui():
 
             self.help_button = ctk.CTkButton(
                 self.bottom_frame,
-                text="GitHub-Readme",
+                text="Open Readme.md",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -1906,6 +2626,18 @@ def _launch_gui():
             )
             self.about_button.pack(side="right")
 
+            self.tooltip_toggle_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="Disable Hover Text",
+                width=130,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._toggle_tooltips,
+                font=ctk.CTkFont(size=13),
+            )
+            self.tooltip_toggle_btn.pack(side="right", padx=(0, 5))
+
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
                 text="View Error Log",
@@ -1922,6 +2654,13 @@ def _launch_gui():
 
         # ── Actions ──────────────────────────────────────────────
 
+        def _toggle_tooltips(self):
+            Tooltip.enabled = not Tooltip.enabled
+            if Tooltip.enabled:
+                self.tooltip_toggle_btn.configure(text="Disable Hover Text")
+            else:
+                self.tooltip_toggle_btn.configure(text="Enable Hover Text")
+
         def toggle_advanced(self):
             if self.advanced_visible:
                 self.advanced_frame.grid_remove()
@@ -1933,6 +2672,17 @@ def _launch_gui():
                 self.advanced_toggle.configure(text="\u25bc Advanced Options")
             self.advanced_visible = not self.advanced_visible
 
+        def _toggle_index_options(self):
+            if self.index_visible:
+                self.index_contents.grid_forget()
+                self.index_toggle_btn.configure(text="\u25b6 Index Options")
+            else:
+                self.index_contents.grid(
+                    row=1, column=0, columnspan=3, sticky="ew"
+                )
+                self.index_toggle_btn.configure(text="\u25bc Index Options")
+            self.index_visible = not self.index_visible
+
         def browse_folder(self):
             initial = self.folder_entry.get() or os.path.expanduser("~")
             folder = filedialog.askdirectory(initialdir=initial)
@@ -1940,8 +2690,12 @@ def _launch_gui():
                 self.folder_entry.delete(0, "end")
                 self.folder_entry.insert(0, folder)
                 self._update_index_button_color()
+                self._on_refresh_interval_changed(self.refresh_interval_var.get())
+                # Resume suite schedule from new folder's collection
                 if self.suite_visible:
                     self._refresh_suite_panel()
+                self._refresh_load_search_menu()
+                self._resume_suite_schedule()
 
         def _browse_output_dir(self):
             initial = self.output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
@@ -1963,6 +2717,16 @@ def _launch_gui():
             if self.process is not None:
                 self.process.terminate()
                 return
+
+            # Wait for any in-progress auto-refresh to finish
+            if self._refresh_running:
+                self._show_error("Index refresh in progress — please wait a moment.")
+                return
+
+            # Pause scheduled auto-refresh while search runs
+            if self._refresh_timer_id is not None:
+                self.after_cancel(self._refresh_timer_id)
+                self._refresh_timer_id = None
 
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
@@ -2042,7 +2806,7 @@ def _launch_gui():
             self._clear_action_buttons()
             self._hide_files_list()
             self.progress_bar.grid(
-                row=4, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+                row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
             self.progress_bar.start()
             self.status_label.configure(text="Searching...", text_color=("gray30", "gray70"))
@@ -2145,6 +2909,9 @@ def _launch_gui():
                     font=ctk.CTkFont(size=13),
                 )
 
+            # Resume auto-refresh schedule if active
+            self._reschedule_refresh()
+
         def _show_action_buttons(self, inverse=False):
             """Show Matched Files, View Report buttons, and/or View Error Log."""
             self._clear_action_buttons()
@@ -2175,7 +2942,7 @@ def _launch_gui():
                     label = f"Matched Files ({len(self.matched_files)})"
                 self.matched_files_button.configure(text=label)
                 self.matched_files_button.grid(
-                    row=6, column=col, padx=(15, 5), pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=(15, 5), pady=(5, 0), sticky="w"
                 )
                 col += 1
             if has_any_report:
@@ -2198,12 +2965,12 @@ def _launch_gui():
                             hover_color="#AA2222",
                         )
                 self.report_frame.grid(
-                    row=6, column=col, padx=(10, 5), pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=(10, 5), pady=(5, 0), sticky="w"
                 )
                 col += 1
             if has_error_log:
                 self.error_log_button.grid(
-                    row=6, column=col, padx=5, pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=5, pady=(5, 0), sticky="w"
                 )
 
         def open_error_log(self):
@@ -2240,7 +3007,7 @@ def _launch_gui():
 
         def _update_index_button_color(self):
             """Set Build Index(es) button blue if index exists, red if not.
-            Also enable/disable the Search Using Index(es) checkbox.
+            Also enable/disable the Search Using Index(es) checkbox and show last_updated.
             """
             folder = self.folder_entry.get().strip()
             if folder and os.path.isdir(folder):
@@ -2250,10 +3017,375 @@ def _launch_gui():
                     self.cb_index_search.configure(state="normal")
                     if self.index_search_var.get() == "off":
                         self.index_search_var.set("on")
+                    # Show last_updated if no active refresh status
+                    if hasattr(self, 'refresh_status_label') and not self._refresh_running:
+                        self._show_last_updated(folder)
                     return
             self.build_index_button.configure(fg_color="#CC3333", hover_color="#AA2222")
             self.cb_index_search.configure(state="disabled")
             self.index_search_var.set("off")
+
+        def _show_last_updated(self, folder):
+            """Display the index last_updated timestamp on the refresh status label."""
+            from docsearch.indexer import index_status
+            try:
+                status = index_status(folder)
+                if status:
+                    last = status.get("last_updated", status.get("created_at"))
+                    if last:
+                        self.refresh_status_label.configure(
+                            text=f"Index last updated: {last}",
+                            text_color=("gray50", "gray50"),
+                        )
+                        return
+            except Exception:
+                pass
+
+        # ── Auto-Refresh Scheduler ────────────────────────────
+
+        _REFRESH_INTERVALS = {"Off": 0, "5 min": 5, "15 min": 15, "30 min": 30, "1 hour": 60}
+
+        def _on_refresh_interval_changed(self, value):
+            """Handle auto-refresh interval selection change."""
+            # Cancel any existing timer
+            if self._refresh_timer_id is not None:
+                self.after_cancel(self._refresh_timer_id)
+                self._refresh_timer_id = None
+
+            minutes = self._REFRESH_INTERVALS.get(value, 0)
+
+            if minutes > 0:
+                ms = minutes * 60 * 1000
+                self._refresh_timer_id = self.after(ms, self._auto_refresh_tick)
+                self.refresh_status_label.configure(
+                    text=f"Next refresh in {minutes} min",
+                    text_color=("gray50", "gray50"),
+                )
+            else:
+                self.refresh_status_label.configure(text="")
+
+        def _auto_refresh_tick(self):
+            """Timer callback for auto-refresh."""
+            self._refresh_timer_id = None
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._reschedule_refresh()
+                return
+            if not os.path.exists(os.path.join(folder, ".docsearch.db")):
+                self._reschedule_refresh()
+                return
+            if self.process is not None or self.search_start_time is not None:
+                self._reschedule_refresh()
+                return
+            if self.build_index_button.cget("text") == "Building...":
+                self._reschedule_refresh()
+                return
+            if self.suite_running:
+                self._reschedule_refresh()
+                return
+            if self._refresh_running:
+                self._reschedule_refresh()
+                return
+
+            self._refresh_running = True
+            self.refresh_status_label.configure(
+                text="Refreshing...", text_color=("gray50", "gray50"),
+            )
+            threading.Thread(target=self._run_auto_refresh, args=(folder,), daemon=True).start()
+
+        def _run_auto_refresh(self, folder):
+            """Background thread: run refresh_index and post result to main thread."""
+            from docsearch.indexer import refresh_index
+            try:
+                result = refresh_index(folder, recursive=True, use_ocr=False)
+            except Exception:
+                result = None
+            self.after(0, self._auto_refresh_finished, result)
+
+        def _auto_refresh_finished(self, result):
+            """Main-thread callback after auto-refresh completes."""
+            self._refresh_running = False
+
+            if result is not None:
+                time_str = datetime.now().strftime("%H:%M")
+                changes = result["added"] + result["updated"] + result["removed"]
+                if changes > 0:
+                    self.refresh_status_label.configure(
+                        text=f"Refreshed at {time_str}: {result['added']} added, "
+                             f"{result['updated']} updated, {result['removed']} removed",
+                        text_color=("gray50", "gray50"),
+                    )
+                else:
+                    self.refresh_status_label.configure(
+                        text=f"Refreshed at {time_str}: no changes",
+                        text_color=("gray50", "gray50"),
+                    )
+                self._update_index_button_color()
+            else:
+                self.refresh_status_label.configure(
+                    text="Auto-refresh failed", text_color="red",
+                )
+
+            self._reschedule_refresh()
+
+        def _reschedule_refresh(self):
+            """Schedule the next auto-refresh tick based on current interval."""
+            if self._refresh_timer_id is not None:
+                return
+            minutes = self._REFRESH_INTERVALS.get(self.refresh_interval_var.get(), 0)
+            if minutes > 0:
+                self._refresh_timer_id = self.after(minutes * 60 * 1000, self._auto_refresh_tick)
+
+        # ── Suite Scheduling ───────────────────────────────────
+
+        _SUITE_SCHEDULE_INTERVALS = {
+            "Off": 0, "30 min": 30, "1 hour": 60,
+            "4 hours": 240, "12 hours": 720, "24 hours": 1440,
+        }
+
+        def _on_suite_schedule_changed(self, value):
+            """Handle suite schedule interval change."""
+            if getattr(self, '_restoring_schedule', False):
+                return
+            from docsearch.collection import update_suite_field
+            # Cancel any existing timer
+            if self._suite_schedule_timer_id is not None:
+                self.after_cancel(self._suite_schedule_timer_id)
+                self._suite_schedule_timer_id = None
+
+            minutes = self._SUITE_SCHEDULE_INTERVALS.get(value, 0)
+
+            # Persist schedule to collection for selected suite
+            suite_name = None
+            folder = self.folder_entry.get().strip()
+            if folder and hasattr(self, 'suite_selector'):
+                sel = self.suite_selector.curselection()
+                if sel:
+                    suite_name = self.suite_selector.get(sel[0])
+                    update_suite_field(folder, suite_name, "schedule", value)
+
+            if minutes > 0 and suite_name:
+                self._scheduled_suite_name = suite_name
+                self._scheduled_suite_interval = value
+                self._scheduled_next_run_time = time.time() + minutes * 60
+                ms = minutes * 60 * 1000
+                self._suite_schedule_timer_id = self.after(ms, self._suite_schedule_tick)
+                self._start_countdown()
+            else:
+                self._scheduled_suite_name = None
+                self._scheduled_suite_interval = None
+                self._scheduled_next_run_time = None
+                self._stop_countdown()
+
+        def _start_countdown(self):
+            """Start the 1-minute countdown display timer."""
+            self._stop_countdown()
+            self._update_countdown()
+
+        def _suite_label_available(self):
+            """Check if suite schedule labels are visible (window is open)."""
+            return (self._suite_window_open()
+                    and hasattr(self, 'suite_next_run_label'))
+
+        def _stop_countdown(self):
+            """Stop the countdown display timer."""
+            if self._countdown_timer_id is not None:
+                self.after_cancel(self._countdown_timer_id)
+                self._countdown_timer_id = None
+            if self._suite_label_available():
+                self.suite_next_run_label.configure(text="—")
+
+        def _update_countdown(self):
+            """Update the countdown label and reschedule in 1 minute."""
+            self._countdown_timer_id = None
+            if not self._scheduled_next_run_time:
+                if self._suite_label_available():
+                    self.suite_next_run_label.configure(text="—")
+                return
+            remaining = self._scheduled_next_run_time - time.time()
+            if remaining <= 0:
+                if self._suite_label_available():
+                    self.suite_next_run_label.configure(text="Running...")
+                return
+            hours = int(remaining // 3600)
+            mins = int((remaining % 3600) // 60)
+            if hours > 0:
+                text = f"{hours}h {mins}m"
+            else:
+                text = f"{mins}m" if mins > 0 else "<1m"
+            if self._suite_label_available():
+                self.suite_next_run_label.configure(text=text)
+            # Keep ticking even if window is closed so it's correct when reopened
+            self._countdown_timer_id = self.after(60000, self._update_countdown)
+
+        def _suite_schedule_tick(self):
+            """Timer callback for scheduled suite run."""
+            self._suite_schedule_timer_id = None
+
+            suite_name = self._scheduled_suite_name
+            if not suite_name:
+                return
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._reschedule_suite()
+                return
+            if self.suite_running:
+                self._reschedule_suite()
+                return
+            if self.process is not None or self.search_start_time is not None:
+                self._reschedule_suite()
+                return
+            if self._refresh_running:
+                self._reschedule_suite()
+                return
+            if self._suite_schedule_running:
+                self._reschedule_suite()
+                return
+
+            self._suite_schedule_running = True
+            self._suite_scheduled_run = True
+            self._run_suite_by_name(folder, suite_name)
+
+        def _log_autorun(self, folder, results, run_time, passed, total, verdict):
+            """Log auto-run results to a persistent log file and auto-generate report."""
+            if not folder:
+                return
+            report_dir = getattr(self, '_suite_output_dir', folder)
+            suite_name = getattr(self, '_suite_name', 'unknown')
+
+            # Auto-generate suite report
+            if results:
+                from docsearch.reporter import write_suite_report_txt, write_suite_report_json
+                safe_name = suite_name.replace(" ", "_").replace("/", "_")
+                ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
+                json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
+                write_suite_report_txt(
+                    txt_path, suite_name, folder,
+                    results, self._suite_start_time, self._suite_end_time,
+                )
+                write_suite_report_json(
+                    json_path, suite_name, folder,
+                    results, self._suite_start_time, self._suite_end_time,
+                )
+
+            # Append to auto-run log
+            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
+            try:
+                new_file = not os.path.exists(log_path)
+                empty_file = not new_file and os.path.getsize(log_path) == 0
+                with open(log_path, "a", encoding="utf-8") as f:
+                    if new_file:
+                        f.write(f"Auto-Run History: {log_path}\n")
+                        f.write("=" * len(f"Auto-Run History: {log_path}") + "\n")
+                        f.write(f"(Recreated on {run_time} — previous history file was missing)\n\n")
+                    elif empty_file:
+                        f.write(f"Auto-Run History: {log_path}\n")
+                        f.write("=" * len(f"Auto-Run History: {log_path}") + "\n\n")
+                    f.write(f"[{run_time}] Suite: {suite_name} — {passed}/{total} passed — {verdict}\n")
+                    for r in results:
+                        status = "PASS" if r["passed"] else "FAIL"
+                        pc = r.get("pass_criteria", {"op": ">=", "n": 1})
+                        f.write(f"  [{status}] {r['name']} — {r['match_count']} match(es) (need {pc['op']} {pc['n']})\n")
+                    f.write("\n")
+            except OSError:
+                pass
+
+        def _reschedule_suite(self):
+            """Schedule the next suite run tick based on stored interval."""
+            if self._suite_schedule_timer_id is not None:
+                return
+            if not self._scheduled_suite_interval:
+                return
+            minutes = self._SUITE_SCHEDULE_INTERVALS.get(self._scheduled_suite_interval, 0)
+            if minutes > 0:
+                self._scheduled_next_run_time = time.time() + minutes * 60
+                self._suite_schedule_timer_id = self.after(minutes * 60 * 1000, self._suite_schedule_tick)
+                self._start_countdown()
+
+        def _resume_suite_schedule(self):
+            """On startup or folder change, resume auto-run for any scheduled suite."""
+            from docsearch.collection import load_collection
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                return
+
+            # Cancel any existing schedule
+            if self._suite_schedule_timer_id is not None:
+                self.after_cancel(self._suite_schedule_timer_id)
+                self._suite_schedule_timer_id = None
+            self._stop_countdown()
+
+            data = load_collection(folder)
+            for suite_name, suite in data.get("test_suites", {}).items():
+                schedule = suite.get("schedule", "Off")
+                minutes = self._SUITE_SCHEDULE_INTERVALS.get(schedule, 0)
+                if minutes <= 0:
+                    continue
+
+                # Found a scheduled suite — calculate when next run is due
+                last_run = suite.get("last_run_time")
+                if last_run:
+                    try:
+                        last_dt = datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S")
+                        elapsed_since = (datetime.now() - last_dt).total_seconds()
+                        remaining = (minutes * 60) - elapsed_since
+                    except (ValueError, TypeError):
+                        remaining = 0
+                else:
+                    remaining = 0
+
+                # If overdue, run soon (10 seconds); otherwise schedule the remainder
+                if remaining <= 0:
+                    delay_ms = 10000
+                    self._scheduled_next_run_time = time.time() + 10
+                else:
+                    delay_ms = int(remaining * 1000)
+                    self._scheduled_next_run_time = time.time() + remaining
+
+                self._scheduled_suite_name = suite_name
+                self._scheduled_suite_interval = schedule
+                self._suite_schedule_timer_id = self.after(delay_ms, self._suite_schedule_tick)
+                self._start_countdown()
+
+                # Update the schedule dropdown if suite window is open
+                if hasattr(self, 'suite_schedule_var'):
+                    self._restoring_schedule = True
+                    self.suite_schedule_var.set(schedule)
+                    self._restoring_schedule = False
+                break  # Only one schedule at a time
+
+        def _update_last_run_label(self):
+            """Update the last run label from the selected or scheduled suite."""
+            if not self._suite_label_available():
+                return
+            from docsearch.collection import get_suite
+            folder = self.folder_entry.get().strip()
+            if not folder:
+                self.suite_last_run_label.configure(text="Never")
+                return
+
+            # Try selected suite first, fall back to scheduled suite
+            suite_name = None
+            if self._suite_window_open() and hasattr(self, 'suite_selector'):
+                sel = self.suite_selector.curselection()
+                if sel:
+                    suite_name = self.suite_selector.get(sel[0])
+            if not suite_name:
+                suite_name = self._scheduled_suite_name
+
+            if not suite_name:
+                self.suite_last_run_label.configure(text="Never")
+                return
+            suite = get_suite(folder, suite_name)
+            if suite and suite.get("last_run_time"):
+                self.suite_last_run_label.configure(
+                    text=f"{suite_name} \u2014 {suite['last_run_time']}"
+                )
+            else:
+                self.suite_last_run_label.configure(text="Never")
 
         def build_index_action(self):
             folder = self.folder_entry.get().strip()
@@ -2321,6 +3453,8 @@ def _launch_gui():
                     text_color=("gray30", "gray70"),
                 )
                 self._update_index_button_color()
+                self.refresh_interval_var.set("Off")
+                self._on_refresh_interval_changed("Off")
             except Exception:
                 self._show_error("Failed to delete index.")
 
@@ -2604,7 +3738,6 @@ def _launch_gui():
             if self.whole_word_var.get() == "on":
                 settings["whole_word"] = True
             settings["timestamp"] = (self.timestamp_var.get() == "on")
-            settings["suite_timestamp"] = (self.suite_timestamp_var.get() == "on")
             # Integer settings
             cores_val = self.cores_entry.get().strip()
             if cores_val:
@@ -2671,9 +3804,22 @@ def _launch_gui():
             output_dir = self.output_dir_entry.get().strip()
             if output_dir:
                 settings["output_dir"] = output_dir
+            suite_od = ""
+            if hasattr(self, 'suite_output_dir_entry'):
+                try:
+                    suite_od = self.suite_output_dir_entry.get().strip()
+                except Exception:
+                    pass
+            if not suite_od:
+                suite_od = getattr(self, '_saved_suite_output_dir', '')
+            if suite_od:
+                settings["suite_output_dir"] = suite_od
             range_val = self.range_entry.get().strip()
             if range_val:
                 settings["range"] = range_val
+            refresh_val = self.refresh_interval_var.get()
+            if refresh_val != "Off":
+                settings["refresh_interval"] = refresh_val
 
             if settings:
                 _save_config(settings)
@@ -2706,8 +3852,6 @@ def _launch_gui():
             self.expression_var.set("on" if config.get("expression") else "off")
             self.whole_word_var.set("on" if config.get("whole_word") else "off")
             self.timestamp_var.set("on" if config.get("timestamp", True) else "off")
-            if hasattr(self, 'suite_timestamp_var'):
-                self.suite_timestamp_var.set("on" if config.get("suite_timestamp", True) else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
             if "cores" in config:
@@ -2750,10 +3894,17 @@ def _launch_gui():
             self.output_dir_entry.delete(0, "end")
             if "output_dir" in config:
                 self.output_dir_entry.insert(0, config["output_dir"])
+            self._saved_suite_output_dir = config.get("suite_output_dir", "")
             self.range_entry.delete(0, "end")
             if "range" in config:
                 self.range_entry.insert(0, config["range"])
             self._update_index_button_color()
+            # Restore auto-refresh interval
+            refresh_interval = config.get("refresh_interval", "Off")
+            if refresh_interval not in self._REFRESH_INTERVALS:
+                refresh_interval = "Off"
+            self.refresh_interval_var.set(refresh_interval)
+            self._on_refresh_interval_changed(refresh_interval)
 
         def reset_form(self):
             """Reset all fields to their defaults."""
@@ -2782,9 +3933,15 @@ def _launch_gui():
             self.inverse_var.set("off")
             self.expression_var.set("off")
             self.whole_word_var.set("off")
-            self.timestamp_var.set("on")
+            self.timestamp_var.set("off")
             self.output_dir_entry.delete(0, "end")
             self.range_entry.delete(0, "end")
+            self.refresh_interval_var.set("Off")
+            self._on_refresh_interval_changed("Off")
+            if hasattr(self, 'suite_schedule_var'):
+                self.suite_schedule_var.set("Off")
+                self._on_suite_schedule_changed("Off")
+                self._on_suite_schedule_changed("Off")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
@@ -2838,6 +3995,7 @@ def _launch_gui():
                 "range_filters": self.range_entry.get().strip(),
                 "append_name": self.append_name_entry.get().strip(),
                 "save_name": self.save_name_entry.get().strip(),
+                "timestamp": self.timestamp_var.get() == "on",
             }
 
         def _apply_params_to_gui(self, params):
@@ -2882,6 +4040,7 @@ def _launch_gui():
             self.append_name_entry.insert(0, params.get("append_name", ""))
             self.save_name_entry.delete(0, "end")
             self.save_name_entry.insert(0, params.get("save_name", ""))
+            self.timestamp_var.set("on" if params.get("timestamp") else "off")
 
         def _save_to_collection(self):
             """Save current search config to the folder's collection file."""
@@ -2933,6 +4092,7 @@ def _launch_gui():
                 )
                 if self.suite_window is not None and self.suite_visible:
                     self._refresh_suite_panel()
+                self._refresh_load_search_menu()
 
             name_entry.bind("<Return>", do_save)
             btn_frame = tk.Frame(dialog)
