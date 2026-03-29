@@ -28,6 +28,7 @@
 - [Range Queries](#range-queries)
 - [Combining Modes](#combining-modes)
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
+- [Using docsearch for Compliance and Auditing](#using-docsearch-for-compliance-and-auditing)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -1425,6 +1426,72 @@ Stage 3: Of those, find ones with dollar amounts
 ```
 
 Each stage searches only the files that matched the previous stage, producing a focused final result set.
+
+## Using docsearch for Compliance and Auditing
+
+docsearch can serve as a lightweight compliance and auditing tool. Instead of manually opening documents one at a time to verify that required language is present, prohibited content is absent, or values fall within acceptable ranges, you can automate those checks and produce evidence-grade reports — all offline, without uploading anything to the cloud.
+
+**What compliance and audit teams typically need to verify:**
+
+- Every contract contains a required clause (e.g., indemnification, signature, effective date)
+- No document contains prohibited content (e.g., "DRAFT" watermarks, outdated policy references)
+- Sensitive data like Social Security numbers or account numbers does not appear where it shouldn't
+- Dollar amounts, dates, or percentages fall within acceptable ranges
+- A consistent set of checks runs on a regular schedule with documented results
+
+docsearch handles all of these with features already built in. Here's how to set it up, step by step.
+
+**Step 1: Identify your checks.** Write down what you need to verify. For example, a quarterly contract review might include:
+
+| Check | What to look for | Expected result |
+|-------|-----------------|-----------------|
+| Signature present | "Authorized Signature" in every file | Every file has it |
+| Date present | A date pattern (MM/DD/YYYY) in every file | Every file has it |
+| No DRAFT stamps | The word "DRAFT" in any file | No file has it |
+| Amounts in range | Dollar amounts between $1,000 and $50,000 | At least one match |
+| No SSNs | SSN pattern (XXX-XX-XXXX) in any file | No file has it |
+
+**Step 2: Create saved searches in the GUI.** Open the GUI with `docsearch-gui`, point it at the folder containing your documents, and configure each check as a separate search:
+
+- **"has_signature"** — Enter `Authorized\s+Signature` in the search box, check **Regex** and **Inverse**. Inverse mode lists files that do *not* contain the term — if the result is zero files, every document has it.
+- **"has_date"** — Enter `\d{2}/\d{2}/\d{4}` in the search box, check **Regex** and **Inverse**. Same logic: zero files missing a date means all files have one.
+- **"no_draft"** — Enter `DRAFT` in the search box. A normal (non-inverse) search that should return zero matches.
+- **"amount_in_range"** — Enter `amount:1000..50000` in the Range field. Should return at least one match.
+- **"no_ssn"** — Enter `\d{3}-\d{2}-\d{4}` in the search box, check **Regex**. Should return zero matches.
+
+After configuring each search, click **Save Settings** in the Search Bar and give it a name. The search and all its settings are saved to the folder's collection file.
+
+**Step 3: Build a suite.** Click **Search Suites** to open the suites panel. Click **Build a New Suite**, name it (e.g., "quarterly_contract_review"), and add your saved searches in order. For each search, set the **pass criteria**:
+
+| Search | Criteria | Meaning |
+|--------|----------|---------|
+| has_signature (inverse) | `== 0` | Pass if zero files are missing a signature |
+| has_date (inverse) | `== 0` | Pass if zero files are missing a date |
+| no_draft | `== 0` | Pass if zero files contain "DRAFT" |
+| amount_in_range | `>= 1` | Pass if at least one amount is in range |
+| no_ssn | `== 0` | Pass if zero SSNs are found |
+
+Click **Create**.
+
+**Step 4: Run the suite.** Select your suite and click **Run Selected Suite**. docsearch runs each check in order and evaluates pass/fail against your criteria. When it finishes, three report files are generated automatically:
+
+- **`.docx`** — A formatted Word document with a color-coded summary table (green PASS / red FAIL), per-stage details, a report fingerprint for tamper detection, and a source file manifest listing every document that was in scope. This is the report you hand to a reviewer or attach to an audit workpaper.
+- **`.txt`** — A plain text version of the same report.
+- **`.json`** — A machine-readable version for integration with other tools or scripts.
+
+Click **View Suite Report** to open the `.docx` report directly.
+
+**Step 5: Schedule recurring runs (optional).** If this is a check you need to run regularly, use the **Auto-Run every** dropdown in the suites panel to schedule it (e.g., every 24 hours). docsearch will run the suite automatically at the set interval, generate timestamped reports, and log each run to `DO_NOT_SEARCH_autorun_log.txt`. You don't need to keep the suites window open — auto-runs execute in the background.
+
+**Step 6: Review failures.** When a check fails, the suite report tells you exactly which check failed and how many matches (or missing files) were found. Click the individual stage report (listed in the suite report) to see the specific matches — each one shows the filename, line number, and matched text with yellow highlighting. Fix the issue in the source document and re-run the suite to confirm.
+
+**Why docsearch works well for this:**
+
+- **Offline and read-only** — Your documents never leave your computer. docsearch does not modify, move, or delete any files. This matters for sensitive documents like financial records, legal contracts, medical files, and personnel records.
+- **Portable reports** — The `.docx` report is a standard Word document that anyone can open. No special software, no login, no subscription required to review the results.
+- **Repeatable** — The same suite with the same criteria produces consistent results. Save the suite once, run it whenever you need to.
+- **Auditable** — Each report includes a timestamp, the docsearch version, a report fingerprint (proving the reports haven't been tampered with), and a source file manifest (listing every document that was in scope).
+- **Free** — No per-seat licenses, no annual subscriptions, no per-GB processing fees. Commercial compliance tools that offer similar functionality cost $249 to $150,000+ per year.
 
 ## Search Suites
 
