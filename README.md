@@ -124,6 +124,12 @@ All file types can exist in the same folder — no need to separate them into di
 | 34 | `.yaml` | YAML configuration file |
 | 35 | `.yml` | YAML configuration file |
 
+**Why email search matters for auditors:**
+
+Email is where business actually happens. Contracts get negotiated, approvals get granted, exceptions get authorized, and decisions get made — all in email threads. When an auditor needs to verify that a transaction was properly authorized, that a policy change was communicated, or that a compliance issue was escalated on time, the evidence is almost always in someone's email. A document audit that doesn't include email is incomplete — it catches what was formalized into documents but misses the communications that led to those documents. In legal and regulatory contexts (SOX, HIPAA, EEOC investigations, litigation holds), email is often the primary evidence. This is why commercial eDiscovery tools charge thousands of dollars per year for email search — it's that important.
+
+docsearch lets you search emails alongside your documents in the same pass, with the same search features (regex, Boolean, range queries, fuzzy matching), and include the results in the same compliance suite reports. Export your emails to a folder, point docsearch at it, and search everything together.
+
 **How to export emails for searching:**
 
 docsearch searches email files that have been exported from your email client to a folder on your computer. Here's how to get them:
