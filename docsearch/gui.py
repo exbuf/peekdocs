@@ -3358,12 +3358,16 @@ def _launch_gui():
                 self._suite_schedule_timer_id = self.after(ms, self._suite_schedule_tick)
                 self._start_countdown()
                 self._update_autorun_name_label()
+                self._update_last_run_label()
             else:
+                # Clear schedule but preserve last run info for the suite
+                prev_name = self._scheduled_suite_name or suite_name
                 self._scheduled_suite_name = None
                 self._scheduled_suite_interval = None
                 self._scheduled_next_run_time = None
                 self._stop_countdown()
                 self._update_autorun_name_label()
+                self._update_last_run_label(for_suite=prev_name)
 
         def _update_autorun_name_label(self):
             """Update the Auto-Run Suite label with the scheduled suite name."""
@@ -3581,7 +3585,7 @@ def _launch_gui():
                     self._restoring_schedule = False
                 break  # Only one schedule at a time
 
-        def _update_last_run_label(self):
+        def _update_last_run_label(self, for_suite=None):
             """Update the last run label from the selected or scheduled suite."""
             if not self._suite_label_available():
                 return
@@ -3591,9 +3595,9 @@ def _launch_gui():
                 self.suite_last_run_label.configure(text="Never")
                 return
 
-            # Try selected suite first, fall back to scheduled suite
-            suite_name = None
-            if self._suite_window_open() and hasattr(self, 'suite_selector'):
+            # Try explicit name, then selected suite, then scheduled suite
+            suite_name = for_suite
+            if not suite_name and self._suite_window_open() and hasattr(self, 'suite_selector'):
                 sel = self.suite_selector.curselection()
                 if sel:
                     suite_name = self.suite_selector.get(sel[0])
