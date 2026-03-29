@@ -2496,6 +2496,28 @@ result = search(
     range_filters=["fn:date:2024-01-01..2024-12-31"],
 )
 
+# Search emails for SSNs
+result = search(
+    [r"\d{3}-\d{2}-\d{4}"],
+    directory="/path/to/exported-emails",
+    use_regex=True,
+    file_types=[".eml", ".msg", ".pst"],
+)
+
+# Search inside ZIP archives
+result = search(
+    ["confidential"],
+    directory="/path/to/docs",
+    file_types=[".zip", ".7z"],
+)
+
+# Search legacy and modern Office files together
+result = search(
+    ["budget"],
+    directory="/path/to/docs",
+    file_types=[".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"],
+)
+
 # Progress tracking
 def on_progress(done, total, filename):
     print(f"  [{done}/{total}] {filename}")
