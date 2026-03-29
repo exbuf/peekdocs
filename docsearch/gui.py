@@ -1031,6 +1031,18 @@ def _launch_gui():
             reset_btn.pack(side="left", padx=5)
             Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
 
+            # Text Size dropdown
+            ctk.CTkLabel(settings_btn_frame, text="Text Size:", font=ctk.CTkFont(size=12)).pack(side="left", padx=(15, 5))
+            self._text_size_var = ctk.StringVar(value="Normal")
+            text_size_menu = ctk.CTkOptionMenu(
+                settings_btn_frame, variable=self._text_size_var,
+                values=["Small", "Normal", "Large", "Extra Large"],
+                width=110, font=ctk.CTkFont(size=12),
+                command=self._on_text_size_changed,
+            )
+            text_size_menu.pack(side="left")
+            Tooltip(text_size_menu, "Scale all text and widgets in the GUI")
+
             # Row 11: Search Using Index(es)
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
@@ -3931,6 +3943,18 @@ def _launch_gui():
             tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
             tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack(pady=(0, 15))
 
+        _TEXT_SIZE_SCALES = {
+            "Small": 0.85,
+            "Normal": 1.0,
+            "Large": 1.2,
+            "Extra Large": 1.4,
+        }
+
+        def _on_text_size_changed(self, value):
+            """Scale all GUI widgets based on the selected text size."""
+            scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
+            ctk.set_widget_scaling(scale)
+
         def _inspect_settings(self):
             """Show the current saved settings from ~/.docsearchrc in a read-only popup."""
             from docsearch.cli import _config_path
@@ -4083,6 +4107,9 @@ def _launch_gui():
             refresh_val = self.refresh_interval_var.get()
             if refresh_val != "Off":
                 settings["refresh_interval"] = refresh_val
+            text_size_val = self._text_size_var.get()
+            if text_size_val != "Normal":
+                settings["text_size"] = text_size_val
 
             if settings:
                 _save_config(settings)
@@ -4168,6 +4195,12 @@ def _launch_gui():
                 refresh_interval = "Off"
             self.refresh_interval_var.set(refresh_interval)
             self._on_refresh_interval_changed(refresh_interval)
+            # Restore text size
+            text_size = config.get("text_size", "Normal")
+            if text_size not in self._TEXT_SIZE_SCALES:
+                text_size = "Normal"
+            self._text_size_var.set(text_size)
+            self._on_text_size_changed(text_size)
 
         def reset_form(self):
             """Reset all fields to their defaults."""
