@@ -1892,8 +1892,8 @@ Both report files are written to the suite's **Output Dir** if set, otherwise to
 | SMTP Port | The port number for the mail server (587 works for most providers) | `587` |
 | Username | Your own email address — the account docsearch will send alerts from | `you@gmail.com` |
 | Password | The app password for that email account (not your regular login password — see below) | — |
-| From Address | Sender address (defaults to username if blank) | `you@gmail.com` |
-| To Address | Where alerts are sent | `compliance-team@company.com` |
+| From Address | The "From" line on the alert email (defaults to your username if left blank) | `you@gmail.com` |
+| To Address | The email address that receives the alerts — your own address, your manager's, or a team distribution list | `compliance-team@company.com` |
 | Send alerts | `failure` = only on FAIL results, `always` = every auto-run, `off` = disabled | `failure` |
 
 **Password notes:** Most email providers no longer allow your regular password for SMTP. Instead, you need to generate an **app password** — a special one-time password specifically for applications like docsearch. For Gmail: go to myaccount.google.com → Security → 2-Step Verification → App passwords, and generate one for "Mail." For Outlook/Microsoft 365: go to account.microsoft.com → Security → App passwords. For corporate email: ask your IT department for SMTP credentials or an app password.
