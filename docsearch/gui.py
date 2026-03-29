@@ -1066,7 +1066,7 @@ def _launch_gui():
             ))
             Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
             Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
-            Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: cfg, csv, doc, docx, eml, epub, html, ini, json, log, md, msg, odp, ods, odt, pdf, ppt, pptx, pst, rst, rtf, sql, tex, toml, tsv, txt, xls, xlsx, xml, yaml, yml. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
+            Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: 7z, bz2, cfg, csv, doc, docx, eml, epub, gz, html, ini, json, log, md, msg, odp, ods, odt, pdf, ppt, pptx, pst, rar, rst, rtf, sql, tar, tex, tgz, toml, tsv, txt, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")

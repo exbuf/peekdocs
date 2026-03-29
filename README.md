@@ -45,9 +45,9 @@
 
 ## Introduction
 
-> Search Word docs, PDFs, spreadsheets, emails, and 30 other file types — all at once, all offline. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule, produce pass/fail audit reports, and send email alerts when failures are detected. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule, produce pass/fail audit reports, and send email alerts when failures are detected. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
 
-docsearch is a fast, offline search tool that scans 35 file types — including Word documents, PDFs, spreadsheets, emails, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), range queries to filter by dates, dollar amounts, percentages, ages, or file metadata (`-R amount:1000..5000`), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
+docsearch is a fast, offline search tool that scans 42 file types — including Word documents, PDFs, spreadsheets, emails, presentations, and e-books — all at once, without uploading anything to the cloud. Results are saved to an easy-to-read `.docx` report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Search using plain keywords, or go deeper with AND/OR logic to require all terms or match any of them. Use proximity search to find words that appear near each other, wildcards for simple pattern matching (`budg*` finds "budget", "budgets", "budgeting"), regular expressions for precise pattern matching (like phone numbers, dates, or email addresses), fuzzy matching for typo-tolerant searches and imperfect OCR text, exclude terms to filter out unwanted matches (`-n draft` skips lines containing "draft"), range queries to filter by dates, dollar amounts, percentages, ages, or file metadata (`-R amount:1000..5000`), and context lines to see surrounding text for every hit. With the `-O` flag, docsearch can even read scanned PDFs and image files using OCR (Optical Character Recognition). Results are also highlighted in the terminal and saved to a plain `.txt` file. Prefer not to use the terminal? docsearch includes a point-and-click GUI — just run `docsearch-gui`. Whether you're a home user digging through years of personal documents or a professional searching legal files, research papers, or business records, docsearch handles it in seconds — no internet connection required.
 
 I had hundreds of documents backed up from Google Docs and scattered across folders, along with other documents and files, with no convenient way to search through them. If that sounds familiar, I hope this tool helps you as much as it's helped me.
 
@@ -88,41 +88,50 @@ All file types can exist in the same folder — no need to separate them into di
 
 | # | File Type | Description |
 |---|-----------|-------------|
-| 1 | `.bmp` | Bitmap image (requires `-O` flag) |
-| 2 | `.cfg` | Configuration file |
-| 3 | `.csv` | Comma-separated values |
-| 4 | `.doc` | Microsoft Word document (97-2003) |
-| 5 | `.docx` | Microsoft Word document |
-| 6 | `.eml` | Email message (RFC 822 standard format — one email per file, exported from any email client) |
-| 7 | `.epub` | E-book (EPUB format) |
-| 8 | `.html` | HTML web page |
-| 9 | `.ini` | INI configuration file |
-| 10 | `.jpg` / `.jpeg` | JPEG image (requires `-O` flag) |
-| 11 | `.json` | JSON data file |
-| 12 | `.log` | Log file |
-| 13 | `.md` | Markdown document |
-| 14 | `.msg` | Microsoft Outlook email (one email per file — created by dragging an email out of Outlook) |
-| 15 | `.odp` | OpenDocument Presentation (LibreOffice Impress) |
-| 16 | `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
-| 17 | `.odt` | OpenDocument Text (LibreOffice Writer) |
-| 18 | `.pdf` | PDF document (scanned PDFs require `-O` flag) |
-| 19 | `.png` | PNG image (requires `-O` flag) |
-| 20 | `.ppt` | Microsoft PowerPoint presentation (97-2003) |
-| 21 | `.pptx` | Microsoft PowerPoint presentation |
-| 22 | `.pst` | Microsoft Outlook mailbox archive (Personal Storage Table — contains an entire mailbox of emails, folders, and contacts in one file) |
-| 23 | `.rst` | reStructuredText document |
-| 24 | `.rtf` | Rich Text Format document |
-| 25 | `.sql` | SQL script |
-| 26 | `.tex` | LaTeX document |
-| 27 | `.tiff` / `.tif` | TIFF image (requires `-O` flag) |
-| 28 | `.toml` | TOML configuration file |
-| 29 | `.tsv` | Tab-separated values |
-| 30 | `.txt` | Plain text file |
-| 31 | `.xls` | Microsoft Excel spreadsheet (97-2003) |
-| 32 | `.xlsx` | Microsoft Excel spreadsheet |
-| 33 | `.xml` | XML data file |
-| 34 | `.yaml` | YAML configuration file |
-| 35 | `.yml` | YAML configuration file |
+| 1 | `.7z` | 7-Zip archive (searches all supported files inside the archive) |
+| 2 | `.bmp` | Bitmap image (requires `-O` flag) |
+| 3 | `.bz2` | Bzip2 compressed archive (searches contents) |
+| 4 | `.cfg` | Configuration file |
+| 5 | `.csv` | Comma-separated values |
+| 6 | `.doc` | Microsoft Word document (97-2003) |
+| 7 | `.docx` | Microsoft Word document |
+| 8 | `.eml` | Email message (RFC 822 standard format — one email per file, exported from any email client) |
+| 9 | `.epub` | E-book (EPUB format) |
+| 10 | `.gz` | Gzip compressed archive (searches contents) |
+| 11 | `.html` | HTML web page |
+| 12 | `.ini` | INI configuration file |
+| 13 | `.jpg` / `.jpeg` | JPEG image (requires `-O` flag) |
+| 14 | `.json` | JSON data file |
+| 15 | `.log` | Log file |
+| 16 | `.md` | Markdown document |
+| 17 | `.msg` | Microsoft Outlook email (one email per file — created by dragging an email out of Outlook) |
+| 18 | `.odp` | OpenDocument Presentation (LibreOffice Impress) |
+| 19 | `.ods` | OpenDocument Spreadsheet (LibreOffice Calc) |
+| 20 | `.odt` | OpenDocument Text (LibreOffice Writer) |
+| 21 | `.pdf` | PDF document (scanned PDFs require `-O` flag) |
+| 22 | `.png` | PNG image (requires `-O` flag) |
+| 23 | `.ppt` | Microsoft PowerPoint presentation (97-2003) |
+| 24 | `.pptx` | Microsoft PowerPoint presentation |
+| 25 | `.pst` | Microsoft Outlook mailbox archive (Personal Storage Table — contains an entire mailbox of emails, folders, and contacts in one file) |
+| 26 | `.rar` | RAR archive (searches all supported files inside the archive) |
+| 27 | `.rst` | reStructuredText document |
+| 28 | `.rtf` | Rich Text Format document |
+| 29 | `.sql` | SQL script |
+| 30 | `.tar` | Tar archive (searches all supported files inside the archive) |
+| 31 | `.tex` | LaTeX document |
+| 32 | `.tgz` | Gzipped tar archive (searches contents) |
+| 33 | `.tiff` / `.tif` | TIFF image (requires `-O` flag) |
+| 34 | `.toml` | TOML configuration file |
+| 35 | `.tsv` | Tab-separated values |
+| 36 | `.txt` | Plain text file |
+| 37 | `.xls` | Microsoft Excel spreadsheet (97-2003) |
+| 38 | `.xlsx` | Microsoft Excel spreadsheet |
+| 39 | `.xml` | XML data file |
+| 40 | `.yaml` | YAML configuration file |
+| 41 | `.yml` | YAML configuration file |
+| 42 | `.zip` | ZIP archive (searches all supported files inside the archive) |
+
+**How archive search works:** When docsearch encounters an archive file (.zip, .tar, .gz, .bz2, .tgz, .7z, .rar), it extracts the contents to a temporary directory, searches each supported file inside the archive, and cleans up automatically. Each match in the report shows which file inside the archive it came from (e.g., `[contract_alpha.txt] This agreement is between...`). This means you don't need to extract archives before searching — docsearch handles it transparently. Nested archives (archives inside archives) are skipped to avoid infinite recursion. Password-protected archives will produce an error for that file; docsearch will continue searching other files.
 
 **Why email search matters for auditors:**
 

@@ -21,10 +21,15 @@ import ebooklib
 from ebooklib import epub
 
 import email as email_mod
+import tempfile
+import zipfile
+import tarfile
 import olefile
 import xlrd
 import extract_msg
 import pypff
+import py7zr
+import rarfile
 
 from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
 from docsearch.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
@@ -348,6 +353,44 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
         if text and text.strip():
             all_lines = [(line_num, line) for line_num, line in enumerate(text.split("\n"), start=1) if line.strip()]
 
+    elif ext in (".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar"):
+        # Archive formats — extract to temp dir and process each contained file
+        all_supported = SUPPORTED_TYPES | OCR_IMAGE_TYPES
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Extract archive contents
+            if ext == ".zip":
+                with zipfile.ZipFile(filepath, "r") as zf:
+                    zf.extractall(tmpdir)
+            elif ext in (".tar", ".gz", ".bz2", ".tgz"):
+                with tarfile.open(filepath, "r:*") as tf:
+                    tf.extractall(tmpdir, filter="data")
+            elif ext == ".7z":
+                with py7zr.SevenZipFile(filepath, "r") as sz:
+                    sz.extractall(tmpdir)
+            elif ext == ".rar":
+                with rarfile.RarFile(filepath, "r") as rf:
+                    rf.extractall(tmpdir)
+
+            # Walk extracted files and process each supported type
+            line_num = 0
+            for root, _dirs, files in os.walk(tmpdir):
+                for fname in sorted(files):
+                    inner_ext = os.path.splitext(fname)[1].lower()
+                    if inner_ext not in all_supported:
+                        continue
+                    # Skip nested archives to avoid infinite recursion
+                    if inner_ext in (".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar"):
+                        continue
+                    inner_path = os.path.join(root, fname)
+                    try:
+                        inner_lines = _extract_lines(inner_path, use_ocr, ocr_func)
+                        for _ln, text in inner_lines:
+                            if text.strip():
+                                line_num += 1
+                                all_lines.append((line_num, f"[{fname}] {text}"))
+                    except Exception:
+                        continue  # Skip files that fail inside the archive
+
     return all_lines
 
 
@@ -668,6 +711,13 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     eml_files = sorted(glob.glob(glob_prefix + ".eml", recursive=recursive))
     msg_files = sorted(glob.glob(glob_prefix + ".msg", recursive=recursive))
     pst_files = sorted(glob.glob(glob_prefix + ".pst", recursive=recursive))
+    zip_files = sorted(glob.glob(glob_prefix + ".zip", recursive=recursive))
+    tar_files = sorted(glob.glob(glob_prefix + ".tar", recursive=recursive))
+    gz_files = sorted(glob.glob(glob_prefix + ".gz", recursive=recursive))
+    bz2_files = sorted(glob.glob(glob_prefix + ".bz2", recursive=recursive))
+    tgz_files = sorted(glob.glob(glob_prefix + ".tgz", recursive=recursive))
+    sevenz_files = sorted(glob.glob(glob_prefix + ".7z", recursive=recursive))
+    rar_files = sorted(glob.glob(glob_prefix + ".rar", recursive=recursive))
     if use_ocr:
         jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
         jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
@@ -679,7 +729,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         image_files = []
     all_files = sorted(
-        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + image_files
+        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
     )
 
