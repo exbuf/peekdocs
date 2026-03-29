@@ -786,8 +786,19 @@ def _launch_gui():
             )
 
         def _build_advanced_panel(self):
-            self.advanced_frame = ctk.CTkFrame(self)
-            # Don't grid it yet — starts collapsed
+            # Create popup window for Advanced Options
+            self.advanced_window = ctk.CTkToplevel(self)
+            self.advanced_window.title("Advanced Options")
+            self.advanced_window.geometry("720x520")
+            self.advanced_window.resizable(True, True)
+            self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
+            # Withdraw after event loop starts to avoid flash
+            self.advanced_window.withdraw()
+            self.after(10, self.advanced_window.withdraw)
+
+            self.advanced_frame = ctk.CTkFrame(self.advanced_window)
+            self.advanced_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            # Build all widgets into advanced_frame
 
             # Rows 0-1: checkboxes in own frame so entry columns don't stretch them
             cb_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -2929,14 +2940,17 @@ def _launch_gui():
 
         def toggle_advanced(self):
             if self.advanced_visible:
-                self.advanced_frame.grid_remove()
-                self.advanced_toggle.configure(text="\u25b6 Advanced Options")
+                self._close_advanced_window()
             else:
-                self.advanced_frame.grid(
-                    row=3, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="ew"
-                )
+                self.advanced_window.deiconify()
+                self.advanced_window.lift()
                 self.advanced_toggle.configure(text="\u25bc Advanced Options")
-            self.advanced_visible = not self.advanced_visible
+                self.advanced_visible = True
+
+        def _close_advanced_window(self):
+            self.advanced_window.withdraw()
+            self.advanced_toggle.configure(text="\u25b6 Advanced Options")
+            self.advanced_visible = False
 
         def _toggle_index_options(self):
             if self.index_visible:
