@@ -2093,6 +2093,223 @@ A file could not be read because it's open in another application (common on Win
 2. Run `docsearch --check` to verify your Python version and all dependencies
 3. If the problem persists, [report it on GitHub](https://github.com/exbuf/docsearch/issues) and include the contents of `docsearch_errors.log`
 
+---
+
+**"docsearch: command not found" after installation**
+
+pip installed the `docsearch` console script to a directory not in your `$PATH`. This commonly happens when installing with `--user` or when the virtual environment is not activated.
+
+- Check where it was installed: `pip show -f docsearch | grep docsearch`
+- On Linux: scripts go to `~/.local/bin` — add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`
+- On macOS with Homebrew: scripts go to `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel) — add to `~/.zshrc`
+- On Windows: scripts go to `%APPDATA%\Python\Scripts` — add this to your system PATH
+- As a fallback, you can always run `python -m docsearch` instead
+
+---
+
+**Wrong Python or wrong pip (multiple Python installations)**
+
+After installing docsearch, running it gives `ModuleNotFoundError` because pip installed into a different Python than the one running docsearch. This is common when system Python, Homebrew, pyenv, conda, or WSL Python coexist.
+
+- Always install with `python -m pip install docsearch` (not just `pip install`) to ensure pip matches your Python
+- Verify: `python -m pip show docsearch` and `python -m docsearch --version`
+- In virtual environments, ensure the venv is activated: `which python` should point to the venv's Python
+
+---
+
+**Regex patterns behave differently in PowerShell vs CMD (Windows)**
+
+Regex patterns with special characters (`$`, `(`, `)`, `|`, `{`, `}`) produce unexpected results or errors in PowerShell because PowerShell interprets these characters before they reach Python.
+
+- In PowerShell, use **single quotes** for search terms: `docsearch -x '\d{3}-\d{3}-\d{4}'`
+- In CMD, double quotes work normally: `docsearch -x "\d{3}-\d{3}-\d{4}"`
+- PowerShell also interprets backticks as escape characters — avoid them in search terms
+
+---
+
+**Windows antivirus blocks docsearch or quarantines report files**
+
+Windows Defender or third-party antivirus may flag docsearch's rapid file scanning as suspicious, quarantine report files immediately after creation, or block the `.docsearch.db` index file.
+
+- Add the search folder and Python's installation path to your antivirus exclusion list
+- In Windows Security → Virus & threat protection → Manage settings → Exclusions, add the folder being searched
+- If report files disappear after generation, check your antivirus quarantine
+
+---
+
+**Windows path length limit (260 characters) causes files to be skipped**
+
+Deeply nested directories with long filenames may exceed Windows' default 260-character path limit, causing files to be silently skipped during recursive search.
+
+- Enable long paths: run as Administrator: `reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f` and restart
+- Alternatively, move files to a shorter base path
+
+---
+
+**Windows console shows garbled non-ASCII characters**
+
+Search results with accented letters, CJK characters, or symbols display as garbled text in the legacy Windows console (cmd.exe).
+
+- Run `chcp 65001` before running docsearch to switch the console to UTF-8
+- Or use Windows Terminal (included with Windows 11) which handles UTF-8 natively
+- Setting `PYTHONIOENCODING=utf-8` as an environment variable also helps
+
+---
+
+**macOS Gatekeeper blocks Tesseract**
+
+OCR with `-O` fails with "tesseract cannot be opened because the developer cannot be verified."
+
+- Prefer installing via Homebrew: `brew install tesseract`
+- For manually installed Tesseract: run `xattr -d com.apple.quarantine $(which tesseract)` to remove the quarantine flag
+- Or go to System Settings → Privacy & Security and click "Allow Anyway" after the first blocked attempt
+
+---
+
+**Apple Silicon (M1/M2/M3) pip install fails with compilation errors**
+
+`pip install docsearch` fails with build errors for PyMuPDF, rapidfuzz, or other C-extension packages on Apple Silicon Macs.
+
+- Ensure you are using a native arm64 Python: `python3 -c "import platform; print(platform.machine())"` should print `arm64`
+- Install Xcode Command Line Tools: `xcode-select --install`
+- Update pip first: `pip install --upgrade pip` (newer pip finds pre-built wheels more reliably)
+- Force pre-built wheels: `pip install --only-binary :all: pymupdf rapidfuzz`
+
+---
+
+**Homebrew Python vs system Python confusion (macOS)**
+
+docsearch is installed but `docsearch` says "command not found", or it runs with the wrong Python.
+
+- macOS ships a system Python at `/usr/bin/python3` but Homebrew installs its own at `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
+- Check which Python you are using: `which python3`
+- Ensure Homebrew's bin is in your PATH: add `export PATH="/opt/homebrew/bin:$PATH"` to `~/.zshrc`
+- Install explicitly: `python3 -m pip install docsearch`
+
+---
+
+**GUI fails on headless Linux (no display server)**
+
+Running `docsearch-gui` on a Linux server or SSH session produces `TclError: no display name and no $DISPLAY environment variable`.
+
+- Use the CLI (`docsearch`) instead of the GUI on headless systems
+- For remote GUI access, use SSH with X forwarding: `ssh -X user@host`
+- Or set up a virtual framebuffer: `sudo apt install xvfb && xvfb-run docsearch-gui`
+
+---
+
+**Missing Tkinter on Linux**
+
+`docsearch-gui` fails with `ModuleNotFoundError: No module named '_tkinter'` even though customtkinter is installed.
+
+Tkinter's C binding is a system-level dependency not included with pip:
+
+- Ubuntu/Debian: `sudo apt install python3-tk`
+- Fedora: `sudo dnf install python3-tkinter`
+- Arch: `sudo pacman -S tk`
+- If using pyenv: install `tk-dev` first, then rebuild Python: `sudo apt install tk-dev && pyenv install 3.12`
+
+---
+
+**GUI display issues on Linux with Wayland**
+
+The GUI has rendering artifacts, blank areas, or input problems on modern Linux desktops using Wayland (GNOME 41+, Fedora, Ubuntu 22.04+).
+
+- Force X11 backend: `GDK_BACKEND=x11 docsearch-gui`
+- Or log in using an "Xorg" or "GNOME on Xorg" session instead of the default Wayland session
+
+---
+
+**GUI text is too small or too large (high-DPI / display scaling)**
+
+On 4K monitors or Retina displays, GUI text and buttons may appear microscopic or oversized.
+
+- Windows: right-click the Python executable → Properties → Compatibility → Change high DPI settings → Override high DPI scaling behavior (Application)
+- Linux: set `TK_SCALING=2.0` as an environment variable before launching
+- macOS: generally handled automatically, but mixed-DPI multi-monitor setups may have issues
+
+---
+
+**Scanned PDFs return no results (without OCR flag)**
+
+PDFs that are scanned images (no selectable text layer) return zero matches in a normal search.
+
+- Use the `-O` flag to enable OCR: `docsearch -O search_term`
+- Tesseract must be installed (see the OCR troubleshooting entry above)
+- OCR is slower than text extraction — consider building an index with OCR: `docsearch --index -O`
+
+---
+
+**Encrypted or password-protected PDFs produce no results**
+
+Password-protected PDFs are processed without error but yield no matches because the content cannot be extracted.
+
+- Remove PDF encryption before searching: `qpdf --decrypt input.pdf output.pdf` (requires the password)
+- docsearch does not currently support supplying PDF passwords
+- The file appears in the "files searched" count but produces no matches — check `docsearch_errors.log` for details
+
+---
+
+**Non-ASCII filenames cause errors on Linux**
+
+Files with accented letters, Chinese/Japanese/Korean characters, or other non-ASCII characters in their names are skipped or cause errors.
+
+- This typically happens when the system locale is set to `C` or `POSIX` (common in Docker containers and minimal server installations)
+- Fix: `export LANG=en_US.UTF-8` (install the locale first if needed: `sudo apt install locales && sudo locale-gen en_US.UTF-8`)
+
+---
+
+**Search is very slow on network drives (SMB/NFS)**
+
+docsearch is unusably slow when searching files on a mapped network drive.
+
+- Copy files to a local directory before searching — network latency multiplied by thousands of file operations creates massive cumulative delay
+- If copying is not feasible, build the index locally after copying, then search with `--index-search`
+- Use `-c 1` to avoid multiplying network I/O across multiple processes
+- Do not place the `.docsearch.db` index file on a network drive — SQLite does not officially support network filesystems
+
+---
+
+**"Too many open files" error on macOS or Linux**
+
+docsearch crashes with `OSError: [Errno 24] Too many open files` during large searches.
+
+- Increase the file descriptor limit: run `ulimit -n 4096` before searching
+- Use `-c 1` to reduce concurrent file opens
+- For a permanent fix on macOS, see Apple's documentation on raising the `maxfiles` limit
+- On Linux, edit `/etc/security/limits.conf` to increase the `nofile` limit
+
+---
+
+**"database is locked" error during indexing**
+
+Building or refreshing the index fails with `sqlite3.OperationalError: database is locked`.
+
+- Close all other docsearch instances (CLI and GUI)
+- If no other instances are running, a previous crash may have left stale lock files — delete `.docsearch.db-wal` and `.docsearch.db-shm` from the directory (use `ls -a` to see them)
+- Then rebuild: `docsearch --index-clear && docsearch --index`
+
+---
+
+**pip install fails with C compiler errors**
+
+`pip install docsearch` fails with "Microsoft Visual C++ 14.0 or greater is required" (Windows) or `gcc: error` (Linux) during installation of native extensions.
+
+- Windows: install [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+- Linux: `sudo apt install build-essential python3-dev` (Ubuntu/Debian) or `sudo dnf install gcc python3-devel` (Fedora)
+- macOS: `xcode-select --install`
+- Upgrade pip first: `pip install --upgrade pip` — newer pip is better at finding pre-built wheels that avoid compilation entirely
+
+---
+
+**openpyxl warnings flood the console when searching Excel files**
+
+Searching directories with many `.xlsx` files produces repeated `UserWarning: Data Validation extension not supported` messages.
+
+- Upgrade openpyxl: `pip install --upgrade openpyxl`
+- If warnings persist, set `PYTHONWARNINGS=ignore` as an environment variable before running docsearch
+- These warnings do not affect search results — they are cosmetic only
+
 ## Library API
 
 docsearch can be called directly from Python code, making it easy to integrate into automated workflows, compliance pipelines, or custom applications.
