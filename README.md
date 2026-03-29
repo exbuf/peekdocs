@@ -29,6 +29,10 @@
 - [Combining Modes](#combining-modes)
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Using docsearch for Compliance and Auditing](#using-docsearch-for-compliance-and-auditing)
+  - [Why audits exist](#why-audits-exist)
+  - [Who performs audits](#who-performs-audits)
+  - [Industry examples](#industry-examples)
+  - [How docsearch fits](#how-docsearch-fits)
 - [Search Suites](#search-suites)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
@@ -1428,6 +1432,41 @@ Stage 3: Of those, find ones with dollar amounts
 Each stage searches only the files that matched the previous stage, producing a focused final result set.
 
 ## Using docsearch for Compliance and Auditing
+
+### Why audits exist
+
+An audit is a systematic review of documents, records, or processes to verify that they meet a set of requirements — legal, regulatory, contractual, or internal. Organizations perform audits because the consequences of non-compliance can be severe: fines, lawsuits, lost licenses, data breaches, or failed certifications. Audits answer a simple question: *are we doing what we said we would do, and can we prove it?*
+
+Most audits are not triggered by suspicion of wrongdoing. They are routine, scheduled activities — the organizational equivalent of a regular checkup. The goal is to catch problems early, before they become expensive.
+
+### Who performs audits
+
+- **Internal auditors** — employees (or a dedicated department) who review their own organization's processes. They report to management or an audit committee and focus on risk, controls, and operational efficiency. Many organizations have a Chief Audit Executive or an internal audit team.
+- **External auditors** — independent firms (e.g., accounting firms, consulting firms, or government inspectors) hired to provide an objective assessment. Financial statement audits, SOX compliance audits, and regulatory inspections are typically performed by external auditors.
+- **Compliance officers** — staff responsible for ensuring the organization follows applicable laws and regulations. They often design the compliance program and monitor adherence on an ongoing basis.
+- **IT and security teams** — review systems, access controls, and data handling practices. They perform audits related to data privacy (GDPR, HIPAA), cybersecurity frameworks (SOC 2, ISO 27001), and internal security policies.
+- **Contract managers and legal teams** — review agreements to verify that required clauses are present, terms are current, and obligations are being met.
+- **Quality assurance teams** — verify that processes and outputs meet defined standards (ISO 9001, FDA regulations, industry-specific requirements).
+
+In smaller organizations, audits are often performed by a single person wearing multiple hats — a controller who also handles compliance, or an office manager responsible for records management.
+
+### Industry examples
+
+| Industry | What gets audited | Why | Typical requirements |
+|----------|------------------|-----|---------------------|
+| **Financial services** | Loan documents, account records, transaction logs | Banking regulations (SOX, Dodd-Frank, BSA/AML) require documented controls and regular review | Every loan file must contain signed disclosures; no account should have unauthorized transactions above reporting thresholds |
+| **Healthcare** | Patient records, billing documents, policy manuals | HIPAA requires protection of patient data; CMS requires accurate billing documentation | No patient SSN or medical record number in unsecured documents; every billing record must reference a valid diagnosis code |
+| **Legal** | Contracts, court filings, discovery documents | Bar associations, courts, and clients require accurate document handling and retention | Every contract must contain an indemnification clause and an effective date; no privileged documents in production sets |
+| **Government** | Policy documents, procurement records, correspondence | Freedom of Information laws, records retention schedules, and inspector general reviews | Every procurement file must contain a signed authorization; no classified markings in unclassified folders |
+| **Manufacturing** | Quality records, inspection reports, certifications | ISO 9001, FDA, and industry standards require documented quality processes | Every batch record must reference an approved specification; no expired certifications in the active file |
+| **Education** | Student records, accreditation documents, grant files | FERPA protects student data; accreditation bodies require documented compliance | No student SSN in publicly accessible files; every grant file must contain a signed agreement |
+| **Real estate** | Lease agreements, inspection reports, closing documents | State licensing boards and lenders require complete documentation | Every closing file must contain a signed disclosure; all lease amounts must fall within approved ranges |
+| **Insurance** | Policy documents, claims files, underwriting records | State insurance regulators require documented underwriting and claims processes | Every policy must contain required state-mandated language; no lapsed policies in the active portfolio |
+| **Human resources** | Employee files, benefit documents, I-9 forms | Employment law (EEOC, FLSA, ACA) and immigration law (USCIS) require documented compliance | Every employee file must contain a signed offer letter and I-9; no SSNs in shared drive folders |
+
+In each of these industries, the core task is the same: search a set of documents, verify that specific content is present (or absent), and produce a report proving the results. This is exactly what docsearch does.
+
+### How docsearch fits
 
 docsearch can serve as a lightweight compliance and auditing tool. Instead of manually opening documents one at a time to verify that required language is present, prohibited content is absent, or values fall within acceptable ranges, you can automate those checks and produce evidence-grade reports — all offline, without uploading anything to the cloud.
 
