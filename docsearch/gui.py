@@ -1389,6 +1389,14 @@ def _launch_gui():
             autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
             Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
 
+            # View Suite Report button (hidden until a suite run completes)
+            self.view_suite_report_btn = ctk.CTkButton(
+                self.suite_frame, text="View Suite Report", width=160, font=ctk.CTkFont(size=13),
+                command=self._open_suite_report,
+            )
+            self._suite_report_path = None
+            Tooltip(self.view_suite_report_btn, "Open the .docx suite report from the last run")
+
             # Run Selected Suite button (centered)
             self.run_suite_btn = ctk.CTkButton(
                 self.suite_frame, text="Run Selected Suite", width=160, font=ctk.CTkFont(size=14, weight="bold"),
@@ -2574,11 +2582,18 @@ def _launch_gui():
                     update_suite_field(folder, sn, "last_run_time", run_time)
             self._update_last_run_label()
 
+            # Auto-generate suite reports
+            if results and not self.suite_cancel_requested:
+                self._generate_suite_report()
+
             # Re-enable UI
             self.suite_running = False
             if suite_open:
                 self.run_suite_btn.configure(state="normal")
                 self.cancel_suite_btn.pack_forget()
+                # Show View Suite Report button if a report was generated
+                if self._suite_report_path and os.path.exists(self._suite_report_path):
+                    self.view_suite_report_btn.grid(row=9, column=0, columnspan=2, pady=(0, 10))
             self.search_button.configure(state="normal")
 
             # Handle scheduled run completion
@@ -2625,17 +2640,26 @@ def _launch_gui():
                 self._suite_start_time, self._suite_end_time,
                 version=__version__,
             )
-            self.suite_status_label.configure(
-                text=f"Reports saved: {os.path.basename(docx_path)} (+txt, json)"
-            )
-            # Open the DOCX report
+            self._suite_report_path = docx_path
+            suite_open = self._suite_window_open()
+            if suite_open:
+                self.suite_status_label.configure(
+                    text=f"Reports saved: {os.path.basename(docx_path)} (+txt, json)"
+                )
+
+        def _open_suite_report(self):
+            """Open the .docx suite report from the last run."""
+            path = self._suite_report_path
+            if not path or not os.path.exists(path):
+                self.suite_status_label.configure(text="No suite report found.")
+                return
             system = platform.system()
             if system == "Darwin":
-                subprocess.Popen(["open", docx_path])
+                subprocess.Popen(["open", path])
             elif system == "Windows":
-                os.startfile(docx_path)
+                os.startfile(path)
             else:
-                subprocess.Popen(["xdg-open", docx_path])
+                subprocess.Popen(["xdg-open", path])
 
         def _build_bottom_row(self):
             self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
