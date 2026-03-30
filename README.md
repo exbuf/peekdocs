@@ -52,6 +52,15 @@
 
 ### Option A: Quick Install with pipx (recommended)
 
+First, check if pipx is installed by typing `pipx --version`. If it says "not recognized" or "command not found," install it:
+
+```bash
+pip install pipx          # Windows: if pip isn't recognized, use: python -m pip install pipx
+pipx ensurepath           # adds pipx to your PATH
+```
+
+**Close and reopen your terminal** after running `ensurepath` (it only takes effect in a new window). Then install docsearch:
+
 ```bash
 pipx install git+https://github.com/exbuf/docsearch.git
 ```
