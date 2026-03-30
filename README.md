@@ -147,7 +147,7 @@ docsearch is free and matches or exceeds commercial tools costing $79–$150,000
 
 ## Author
 
-Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer and solo developer.
+Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer.
 
 ## License
 
