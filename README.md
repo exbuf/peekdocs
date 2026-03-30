@@ -73,7 +73,7 @@ pipx install https://github.com/exbuf/docsearch/archive/refs/heads/main.zip
 
 After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install. docsearch is installed in its own private workspace — it will not affect your existing Python installation or any other programs. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
 
-### Option B: Manual Install
+### Option B: Manual Install (with git)
 
 ```bash
 git clone https://github.com/exbuf/docsearch.git
@@ -84,6 +84,34 @@ pip install -e .
 ```
 
 **Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `docsearch`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
+
+### Option C: Manual Install (no git, no sign-up)
+
+No git? No problem. Download docsearch as a ZIP file directly from your browser:
+
+1. Go to [github.com/exbuf/docsearch](https://github.com/exbuf/docsearch)
+2. Click the green **Code** button
+3. Click **Download ZIP**
+4. Extract the ZIP file to a folder on your computer
+5. Open a terminal and navigate to the extracted folder:
+
+   **Windows:**
+   ```cmd
+   cd C:\Users\YourName\Downloads\docsearch-main
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -e .
+   ```
+
+   **macOS/Linux:**
+   ```bash
+   cd ~/Downloads/docsearch-main
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -e .
+   ```
+
+**Important:** Same as Option B — you must activate the virtual environment each time you open a new terminal. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
 
 ## Quick Start
 
