@@ -1331,6 +1331,40 @@ def _launch_gui():
             self.matched_files = []
             self._inverse_results = False
 
+            # Results preview pane — hidden until search completes
+            self.preview_frame = ctk.CTkFrame(self)
+            # Don't grid yet — shown by _show_preview after search
+
+            import tkinter as tk
+            preview_header = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
+            preview_header.pack(fill="x", padx=5, pady=(5, 0))
+            ctk.CTkLabel(preview_header, text="Results Preview:",
+                         font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
+            self._preview_count_label = ctk.CTkLabel(
+                preview_header, text="", font=ctk.CTkFont(size=12),
+                text_color=("gray50", "gray50"))
+            self._preview_count_label.pack(side="left", padx=(8, 0))
+
+            preview_text_frame = tk.Frame(self.preview_frame)
+            preview_text_frame.pack(fill="both", expand=True, padx=5, pady=(2, 5))
+
+            preview_scroll = tk.Scrollbar(preview_text_frame)
+            preview_scroll.pack(side="right", fill="y")
+
+            self.preview_text = tk.Text(
+                preview_text_frame, wrap="word", font=("Courier", 11),
+                state="disabled", yscrollcommand=preview_scroll.set,
+                padx=8, pady=5, height=10,
+            )
+            self.preview_text.pack(side="left", fill="both", expand=True)
+            preview_scroll.config(command=self.preview_text.yview)
+
+            # Configure tags for highlighting
+            self.preview_text.tag_configure("filename", font=("Courier", 11, "bold"),
+                                            foreground="#1a73e8")
+            self.preview_text.tag_configure("match", background="#FFFF00")
+            self.preview_text.tag_configure("line_num", foreground="#888888")
+
         def _build_open_report(self):
             # Buttons are children of the main window, gridded directly at row 6
             self.matched_files_button = ctk.CTkButton(
@@ -3325,6 +3359,7 @@ def _launch_gui():
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
             self._hide_files_list()
+            self._hide_preview()
             # Use indeterminate for indexed searches (no file-by-file progress),
             # determinate for direct file scanning
             is_indexed = self.index_search_var.get() == "on"
@@ -3401,6 +3436,78 @@ def _launch_gui():
 
             self.after(0, self._search_finished, stdout, returncode)
 
+        def _show_preview(self, stdout):
+            """Populate the results preview pane from search output."""
+            import re as _re
+            self.preview_text.configure(state="normal")
+            self.preview_text.delete("1.0", "end")
+
+            # Parse the results file for cleaner output
+            results_path = None
+            if self.results_dir:
+                suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
+                results_path = os.path.join(self.results_dir, f"docsearch_results{suffix}.txt")
+
+            lines_added = 0
+            max_preview_lines = 500  # Cap to keep the GUI responsive
+
+            if results_path and os.path.exists(results_path):
+                in_results = False
+                with open(results_path, "r", encoding="utf-8", errors="replace") as f:
+                    for line in f:
+                        line = line.rstrip("\n")
+                        if line == "Results:":
+                            in_results = True
+                            continue
+                        if not in_results:
+                            continue
+                        if lines_added >= max_preview_lines:
+                            self.preview_text.insert("end", f"\n... (showing first {max_preview_lines} lines — open the report for full results)\n")
+                            break
+                        if line.startswith("Document:"):
+                            self.preview_text.insert("end", "\n")
+                            self.preview_text.insert("end", line + "\n", "filename")
+                        elif line.startswith("(") and line.endswith(")"):
+                            # Directory path
+                            self.preview_text.insert("end", line + "\n", "line_num")
+                        elif line.startswith("Files WITHOUT matches:"):
+                            self.preview_text.insert("end", line + "\n", "filename")
+                        elif "**" in line:
+                            # Line with highlighted matches — render highlights
+                            parts = _re.split(r'(\*\*.*?\*\*)', line)
+                            for part in parts:
+                                if part.startswith("**") and part.endswith("**"):
+                                    self.preview_text.insert("end", part[2:-2], "match")
+                                else:
+                                    self.preview_text.insert("end", part)
+                            self.preview_text.insert("end", "\n")
+                        else:
+                            self.preview_text.insert("end", line + "\n")
+                        lines_added += 1
+
+            if lines_added == 0:
+                self.preview_text.insert("end", "(No results to preview)")
+
+            self.preview_text.configure(state="disabled")
+            self.preview_text.see("1.0")
+
+            # Update count label
+            match_count = len(self.matched_files)
+            if self._inverse_results:
+                self._preview_count_label.configure(text=f"{match_count} file(s) without matches")
+            else:
+                total_matches = sum(c for _, _, c in self.matched_files)
+                self._preview_count_label.configure(text=f"{total_matches} match(es) in {match_count} file(s)")
+
+            # Show the preview frame
+            self.preview_frame.grid(
+                row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
+            )
+
+        def _hide_preview(self):
+            """Hide the results preview pane."""
+            self.preview_frame.grid_remove()
+
         def _update_search_progress(self, done, total):
             """Update the determinate progress bar during search."""
             pct = done / total if total > 0 else 0
@@ -3458,6 +3565,7 @@ def _launch_gui():
                 else:
                     self.matched_files = _parse_matched_files(self.results_dir, results_fn)
                 self._show_action_buttons(inverse=self._inverse_results)
+                self._show_preview(stdout)
             elif returncode == 1:
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
