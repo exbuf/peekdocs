@@ -988,9 +988,19 @@ Your saved default settings.
 |------|---------|----------|
 | `~/.docsearchrc` | Default values for all CLI flags and GUI settings, plus email alert configuration | Home directory (`~` = `/Users/you` on Mac, `C:\Users\you` on Windows, `/home/you` on Linux) |
 
+**What does "rc" mean?** The "rc" in `.docsearchrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.docsearchrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
+
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
 **How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Options and then **Save Settings** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Options to view its current contents.
-**How to recover:** docsearch recreates it the next time you save settings. If you lose email alert configuration, you'll need to re-enter it via **Configure Email Alerts**.
+**What happens if it's deleted?** docsearch runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
+**How to recover:**
+1. Open the GUI (`docsearch-gui`)
+2. Open **Advanced Options** and configure your preferred settings (recursive, file types, cores, max matches, etc.)
+3. Click **Save Settings** — this recreates the file
+4. If you had email alerts configured, click **Configure Email Alerts** in the Search Suites panel and re-enter your SMTP settings
+5. Change the **Text Size** dropdown if you had a non-default size — it auto-saves immediately
+
+The file is a plain text list of key-value pairs. You can also recreate it from the terminal: `docsearch --config recursive=true` saves a single setting, and each subsequent `--config` call adds to it.
 
 ### Summary
 
