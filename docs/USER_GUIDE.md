@@ -1418,7 +1418,70 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 
 Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into an audit automation tool — run the same compliance checks repeatedly and get a report showing which checks passed and which failed.
 
-**How it works:**
+### Your First Suite — Step by Step
+
+This walkthrough creates a simple 2-check compliance suite that verifies every document has an authorized signature and no documents contain the word "DRAFT." Follow along with any folder containing a few test documents.
+
+**1. Open the GUI and select a folder**
+
+Run `docsearch-gui`. Click the **Browse** button next to the Search Folder field and navigate to the folder containing your documents.
+
+**2. Create your first saved search: "has_signature"**
+
+This search checks that every file contains "Authorized Signature."
+
+- In the **Search Terms** field, type: `Authorized Signature`
+- Open **Advanced Options** and check the **Inverse** checkbox (this flips the search — instead of finding files WITH the term, it finds files WITHOUT it)
+- Click **Run Search** to verify it works. The results preview should show any files missing the signature. If all files have it, you'll see "0 matches" — that's correct
+- Now click **Save Search** in the Search Bar
+- When prompted for a name, type: `has_signature`
+- Click OK
+
+**3. Create your second saved search: "no_draft"**
+
+This search checks that no file contains "DRAFT."
+
+- Clear the search box and type: `DRAFT`
+- Open **Advanced Options** and **uncheck** Inverse (you want to find files that DO contain DRAFT)
+- Click **Run Search** to verify. If any files contain DRAFT, they'll appear in the results
+- Click **Save Search** in the Search Bar
+- Name it: `no_draft`
+- Click OK
+
+**4. Build the suite**
+
+- Click **Search Suites** (on the same row as Advanced Options) to open the suites window
+- Click **Build a New Suite**
+- Name it: `my_first_suite`
+- In the left panel, you'll see your two saved searches: `has_signature` and `no_draft`
+- Click `has_signature`, then click the **→** button to add it to the right panel
+- Click `no_draft`, then click **→** to add it too
+- Now set the pass criteria for each search:
+  - Select `has_signature` in the right panel. Set the criteria dropdown to **==** and the number to **0** (meaning: pass if zero files are missing the signature)
+  - Select `no_draft` in the right panel. Set the criteria dropdown to **==** and the number to **0** (meaning: pass if zero files contain DRAFT)
+- Click **Create**
+
+**5. Run the suite**
+
+- Select `my_first_suite` in the Suites list
+- Click **Run Selected Suite**
+- Watch the status label — it shows each search running in sequence
+- When finished, you'll see "Done in Xs — PASSED" or "Done in Xs — FAILED"
+- Click **View Suite Report** to open the `.docx` report with color-coded pass/fail results
+
+**6. Understand the results**
+
+- If both checks show **PASS** (green): every file has a signature and no file contains DRAFT
+- If `has_signature` shows **FAIL** (red): some files are missing "Authorized Signature" — open the stage report to see which ones
+- If `no_draft` shows **FAIL** (red): some files contain "DRAFT" — open the stage report to see which ones
+
+You now have a reusable compliance suite. Run it again anytime — same folder, same checks, one click. Add more searches to the suite as needed by clicking **Edit Suite**.
+
+For a more detailed compliance walkthrough with 9 industry examples, see the [Compliance Guide](COMPLIANCE_GUIDE.md).
+
+---
+
+**How it works (reference):**
 
 1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
 
