@@ -371,6 +371,9 @@ def _launch_gui():
             self.suite_window = None
             self._build_bottom_row()
             self._load_saved_settings()
+            # Re-apply settings after event loop starts (CTkToplevel widgets may
+            # reset their variables during initialization)
+            self.after(100, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
             self.after(500, self._resume_suite_schedule)
