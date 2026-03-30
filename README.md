@@ -52,6 +52,8 @@
 pipx install git+https://github.com/exbuf/docsearch.git
 ```
 
+After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
+
 ### Option B: Manual Install
 
 ```bash
@@ -61,6 +63,8 @@ python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -e .
 ```
+
+**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `docsearch`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
 
 ## Quick Start
 
