@@ -382,6 +382,7 @@ def _launch_gui():
             self.after(100, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
+            self.after(300, self._check_first_run)
             self.after(500, self._resume_suite_schedule)
 
         def _center_window(self, width, height):
@@ -481,6 +482,117 @@ def _launch_gui():
             self.suite_toggle.pack(side="left", padx=(10, 0))
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+
+        def _check_first_run(self):
+            """Show welcome dialog on first launch (no ~/.docsearchrc yet)."""
+            from docsearch.cli import _config_path
+            if not os.path.exists(_config_path()):
+                self._show_welcome()
+
+        def _show_welcome(self):
+            """Show a getting-started guide for first-time users."""
+            import tkinter as tk
+            win = tk.Toplevel(self)
+            win.title("Welcome to docsearch")
+            win.geometry("620x480")
+            win.resizable(True, True)
+            win.transient(self)
+            win.grab_set()
+
+            text_frame = tk.Frame(win)
+            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+
+            scrollbar = tk.Scrollbar(text_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            txt = tk.Text(
+                text_frame, wrap="word", font=("TkDefaultFont", 12),
+                state="normal", yscrollcommand=scrollbar.set,
+                padx=12, pady=10, spacing3=2,
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"), spacing1=8, spacing3=4)
+            txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=8, spacing3=2)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
+            txt.tag_configure("step", font=("TkDefaultFont", 12, "bold"), lmargin1=20, lmargin2=40)
+            txt.tag_configure("example", font=("Courier", 12), lmargin1=30, lmargin2=30)
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+            def s(text):
+                txt.insert("end", text + "\n", "subhead")
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+            def st(text):
+                txt.insert("end", text + "\n", "step")
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+            def blank():
+                txt.insert("end", "\n")
+
+            h("Welcome to docsearch!")
+            b("docsearch lets you search Word docs, PDFs, spreadsheets,")
+            b("emails, and 38 other file types \u2014 all at once, all offline.")
+            b("Results are saved to a highlighted Word report.")
+            blank()
+
+            h("Quick Start \u2014 Your First Search")
+            blank()
+            st("Step 1: Choose a folder")
+            b("Click the Browse button next to the Search Folder field")
+            b("and navigate to the folder containing your documents.")
+            blank()
+            st("Step 2: Type your search terms")
+            b("In the Search Terms field, type what you're looking for.")
+            b("Separate multiple terms with spaces.")
+            e("budget revenue")
+            blank()
+            st("Step 3: Click Run Search")
+            b("docsearch scans every supported file in the folder and")
+            b("shows a summary when finished. Your results appear in")
+            b("a preview below, and are saved to two report files:")
+            e("docsearch_results.txt   (plain text)")
+            e("docsearch_results.docx  (Word, with highlights)")
+            blank()
+            st("Step 4: View your results")
+            b("Click the DOCX button next to View Report to open the")
+            b("Word report with your matches highlighted in yellow.")
+            blank()
+
+            h("What's Next?")
+            blank()
+            s("Search subfolders")
+            b("Open Advanced Options and check Recursive to search")
+            b("all subfolders, not just the selected folder.")
+            blank()
+            s("Use advanced search modes")
+            b("Open Advanced Options for regex, fuzzy matching,")
+            b("wildcards, Boolean expressions, range queries, and more.")
+            b("Click the ? button inside Advanced Options for help.")
+            blank()
+            s("Build compliance suites")
+            b("Save individual searches and group them into suites")
+            b("that run as a batch with pass/fail tracking. Click")
+            b("Search Suites to get started.")
+            blank()
+            s("Get help anytime")
+            b("Click the ? button in the bottom-left corner for the")
+            b("full search guide with examples.")
+            blank()
+
+            b("This welcome screen appears only on first launch.")
+            b("You won't see it again.")
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                win, text="Get Started", width=120,
+                command=win.destroy,
+                font=ctk.CTkFont(size=14),
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _show_search_help(self):
             """Show a quick-start guide with search examples by category."""
