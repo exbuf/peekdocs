@@ -65,6 +65,12 @@ pipx ensurepath           # adds pipx to your PATH
 pipx install git+https://github.com/exbuf/docsearch.git
 ```
 
+**Getting a git error?** If you see "do you have git installed," use this instead (downloads as a ZIP — no git required):
+
+```bash
+pipx install https://github.com/exbuf/docsearch/archive/refs/heads/main.zip
+```
+
 After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install. docsearch is installed in its own private workspace — it will not affect your existing Python installation or any other programs. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
 
 ### Option B: Manual Install
