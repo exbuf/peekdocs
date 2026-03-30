@@ -944,11 +944,26 @@ def _launch_gui():
 
             self.advanced_frame = ctk.CTkFrame(self.advanced_window)
             self.advanced_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+            # ? help button in upper-right corner
+            adv_header_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+            adv_header_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=(0, 0), sticky="ew")
+            adv_header_frame.grid_columnconfigure(0, weight=1)
+            adv_help_btn = ctk.CTkButton(
+                adv_header_frame, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_advanced_help,
+            )
+            adv_help_btn.grid(row=0, column=1, sticky="e")
+            Tooltip(adv_help_btn, "Help — explains every Advanced Option with examples")
+
             # Build all widgets into advanced_frame
 
             # Rows 0-1: checkboxes in own frame so entry columns don't stretch them
             cb_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            cb_frame.grid(row=0, column=0, columnspan=3, padx=15, pady=(10, 5), sticky="w")
+            cb_frame.grid(row=1, column=0, columnspan=3, padx=15, pady=(10, 5), sticky="w")
 
             self.and_mode_var = ctk.StringVar(value="off")
             self.recursive_var = ctk.StringVar(value="off")
@@ -1015,12 +1030,12 @@ def _launch_gui():
 
             # Row 1: exclude
             ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
-                row=1, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=7, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.exclude_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: draft,obsolete"
             )
-            self.exclude_entry.grid(row=1, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.exclude_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
             # Row 2: file types
             ctk.CTkLabel(self.advanced_frame, text="File types:").grid(
@@ -1036,7 +1051,7 @@ def _launch_gui():
                 row=3, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            num_frame.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+            num_frame.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
             self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
             self.proximity_entry.grid(row=0, column=0)
@@ -1075,7 +1090,7 @@ def _launch_gui():
             self.range_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
             )
-            self.range_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.range_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
             Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
 
             # Row 6: specific files
@@ -1089,10 +1104,10 @@ def _launch_gui():
 
             # Row 7: save as + append to
             ctk.CTkLabel(self.advanced_frame, text="Save report as:").grid(
-                row=7, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
+                row=8, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
             )
             save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            save_frame.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=(5, 10), sticky="w")
+            save_frame.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=(5, 10), sticky="w")
 
             self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
             self.save_name_entry.grid(row=0, column=0, padx=(0, 20))
@@ -1103,10 +1118,10 @@ def _launch_gui():
 
             # Row 8: output directory
             ctk.CTkLabel(self.advanced_frame, text="Output Dir:").grid(
-                row=8, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
+                row=9, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
             )
             outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            outdir_frame.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
+            outdir_frame.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
 
             self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
             self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
@@ -1122,7 +1137,7 @@ def _launch_gui():
 
             # Row 9: additional output formats
             output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            output_frame.grid(row=9, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+            output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
 
             ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
             self.output_csv_var = ctk.StringVar(value="off")
@@ -1147,7 +1162,7 @@ def _launch_gui():
 
             # Row 10: Save Settings + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            settings_btn_frame.grid(row=10, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+            settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
             inspect_settings_btn = ctk.CTkButton(
                 settings_btn_frame, text="Inspect .docsearchrc", width=155,
@@ -1189,13 +1204,6 @@ def _launch_gui():
             reset_btn.pack(side="left", padx=5)
             Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
 
-            adv_help_btn = ctk.CTkButton(
-                settings_btn_frame, text="?", width=30,
-                command=self._show_advanced_help,
-                font=ctk.CTkFont(size=13, weight="bold"),
-            )
-            adv_help_btn.pack(side="left", padx=(15, 5))
-            Tooltip(adv_help_btn, "Help — explains every Advanced Option with examples")
 
             # Row 11: Search Using Index(es)
             self.index_search_var = ctk.StringVar(value="off")
@@ -1203,7 +1211,7 @@ def _launch_gui():
                 self.advanced_frame, text="Search Using Index(es)", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
             )
-            self.cb_index_search.grid(row=11, column=0, columnspan=2, padx=15, pady=(5, 10), sticky="w")
+            self.cb_index_search.grid(row=12, column=0, columnspan=2, padx=15, pady=(5, 10), sticky="w")
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results. Disabled when no index exists")
 
             self.advanced_frame.grid_columnconfigure(0, minsize=130)
