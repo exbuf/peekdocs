@@ -376,13 +376,17 @@ def _launch_gui():
             self._build_index_panel()
             self.suite_window = None
             self._build_bottom_row()
+            # Check for first run before loading settings (which creates the config file)
+            from docsearch.cli import _config_path
+            self._is_first_run = not os.path.exists(_config_path())
             self._load_saved_settings()
             # Re-apply settings after event loop starts (CTkToplevel widgets may
             # reset their variables during initialization)
             self.after(100, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
-            self.after(300, self._check_first_run)
+            if self._is_first_run:
+                self.after(300, self._show_welcome)
             self.after(500, self._resume_suite_schedule)
 
         def _center_window(self, width, height):
@@ -482,12 +486,6 @@ def _launch_gui():
             self.suite_toggle.pack(side="left", padx=(10, 0))
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
-
-        def _check_first_run(self):
-            """Show welcome dialog on first launch (no ~/.docsearchrc yet)."""
-            from docsearch.cli import _config_path
-            if not os.path.exists(_config_path()):
-                self._show_welcome()
 
         def _show_welcome(self):
             """Show a getting-started guide for first-time users."""
