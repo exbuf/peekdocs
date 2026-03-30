@@ -685,8 +685,10 @@ def _launch_gui():
             b("2. Click Index Options (below Search Suites)")
             b("3. Click Build Index(es)")
             b("4. Check Search Using Index(es) in Advanced Options")
+            b("The index automatically includes all subfolders \u2014 one")
+            b("index in your top folder covers everything underneath it.")
+            b("You don't need to build separate indexes in each subfolder.")
             b("The index speeds up repeated searches on large folders.")
-            b("Each folder gets its own .docsearch.db index file.")
             b("\u2022 See the full file reference in the README for details on each file")
 
             txt.configure(state="disabled")

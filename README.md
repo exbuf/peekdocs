@@ -1025,10 +1025,10 @@ docsearch --index -O           # same, with OCR for scanned PDFs and images
 1. Open `docsearch-gui`
 2. In the **Search Folder** field, browse to the folder you want to index
 3. Click **Index Options** (below Search Suites on the main screen) to expand the index panel
-4. Click **Build Index(es)** — this indexes all files in the folder and all subfolders
+4. Click **Build Index(es)** — this indexes all files in the folder **and all subfolders** automatically (recursive is always on for index builds)
 5. Once built, check **Search Using Index(es)** in Advanced Options to use it
 
-The index is stored as a `.docsearch.db` file inside the folder you indexed. Each folder gets its own separate index. You can see the index status (file count, size, last updated) by clicking **Index Status** in the index panel.
+The index is stored as a single `.docsearch.db` file inside the folder you indexed. It contains the extracted text from every supported file in that folder and all its subfolders. This means if you build an index in your top-level documents folder, one index covers everything — you don't need to build separate indexes in each subfolder. Each folder can have its own index if you prefer, but a single top-level index is the simplest approach for most users. You can see the index status (file count, size, last updated) by clicking **Index Status** in the index panel.
 
 **Using the index:**
 
