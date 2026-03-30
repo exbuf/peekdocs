@@ -3055,6 +3055,15 @@ def _launch_gui():
             )
             self.about_button.pack(side="right")
 
+            text_size_menu = ctk.CTkOptionMenu(
+                self.bottom_frame, variable=self._text_size_var,
+                values=["Small", "Normal", "Large", "Extra Large"],
+                width=110, font=ctk.CTkFont(size=11),
+                command=self._on_text_size_changed,
+            )
+            text_size_menu.pack(side="right", padx=(5, 0))
+            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(5, 3))
+
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
                 text="Disable Hover Text",
@@ -3079,15 +3088,6 @@ def _launch_gui():
             )
             self.view_error_log_bottom.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
-
-            text_size_menu = ctk.CTkOptionMenu(
-                self.bottom_frame, variable=self._text_size_var,
-                values=["Small", "Normal", "Large", "Extra Large"],
-                width=110, font=ctk.CTkFont(size=11),
-                command=self._on_text_size_changed,
-            )
-            text_size_menu.pack(side="right", padx=(5, 0))
-            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
 
 
         # ── Actions ──────────────────────────────────────────────
