@@ -31,40 +31,70 @@ from docsearch.constants import (  # noqa: E402
 )
 
 BANNER_TOP = (
-    '\n OR search — finds paragraphs containing ANY of the search terms. Example: docsearch term1 term2 term3\n'
-    'AND search — finds paragraphs containing ALL of the search terms. Example: docsearch -a term1 term2 term3\n'
-    'Use option flag -a for AND searches. Example: docsearch -a term1 term2 term3\n'
-    'Use option flag -A to show lines after each match. Example: docsearch -A 5 term1\n'
-    'Use option flag -B to show lines before each match. Example: docsearch -B 5 term1\n'
-    'Use option flag -c to set number of CPU cores. Example: docsearch -c 4 budget revenue\n'
-    'Use option flag -e for boolean expression search. Example: docsearch -e "(bob AND amy) OR fred"\n'
-    'Use option flag -f to search specific files. Example: docsearch -f report.pdf,notes.txt term1\n'
-    'Use option flag -h for help. Example: docsearch -h     (Also displays common Regex patterns)\n'
-    'Use option flag -m to set max matches for reports (0 = no limit). Example: docsearch -m 5000 budget\n'
-    'Use option flag -n to exclude lines matching specified terms. Example: docsearch -n draft budget\n'
-    'Use option flag -o to output additional formats (csv, json). Example: docsearch -o csv budget\n'
-    'Use option flag -O to enable OCR for scanned PDFs and images. Example: docsearch -O budget\n'
-    'Use option flag -p to find terms within N words of each other. Example: docsearch -p 5 budget revenue'
+    '\ndocsearch — search Word docs, PDFs, spreadsheets, emails, and 38 other file types, all at once, all offline.\n'
+    'Results are saved to highlighted .docx and .txt reports. GUI available: run docsearch-gui\n'
+    '\n'
+    'Usage: docsearch [OPTIONS] TERM [TERM ...]\n'
+    '\n'
+    'Supported file types:\n'
+    '  Documents:  .doc .docx .pdf .odt .rtf .epub .pptx .ppt .html .md .rst .tex\n'
+    '  Spreadsheets: .xlsx .xls .ods .csv .tsv\n'
+    '  Email:      .eml .msg .pst\n'
+    '  Archives:   .zip .tar .gz .bz2 .tgz .7z .rar\n'
+    '  Data/Config: .json .xml .yaml .yml .toml .ini .cfg .sql .log .txt\n'
+    '  Images (OCR): .bmp .jpg .jpeg .png .tif .tiff (requires -O flag)\n'
+    '\n'
+    '── Search Modes ─────────────────────────────────────────────────\n'
+    '  docsearch term1 term2           OR search (any term matches)\n'
+    '  docsearch -a term1 term2        AND search (all terms required in same line)\n'
+    '  docsearch -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
+    '  docsearch -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
+    '  docsearch -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
+    '  docsearch -z budgt              Fuzzy matching (typo-tolerant)\n'
+    '  docsearch -W bob                Whole-word only (not "bobcat")\n'
+    '  docsearch -p 5 budget revenue   Proximity (terms within 5 words of each other)'
 )
 
 BANNER_BOTTOM = (
-    'Use option flag --index-refresh to incrementally update the index. Example: docsearch --index-refresh\n'
-    'Use option flag -R to filter by value ranges. Example: docsearch -R amount:1000..5000 budget\n'
-    '    Fields: date, amount, number, percent, age, time, filesize, filedate. Repeatable.\n'
-    '    Use fn: prefix to match filename values. Example: docsearch -R fn:date:2024-01-01..2024-12-31\n'
-    'Use option flag -r to search subdirectories. Example: docsearch -r term1 term2 term3\n'
-    'Use option flag -s to save the last search report. Example: docsearch -s name_of_my_file\n'
-    'Use option flag -sa to search and auto-append results to a named file. Example: docsearch -sa my_report budget revenue\n'
-    'Use option flag -t to filter by file type. Example: docsearch -t pdf,docx term1 term2\n'
-    'Use option flag --output-dir to write results to a specific folder. Example: docsearch --output-dir ~/reports budget\n'
-    'Use option flag --timestamp to add a timestamp to report filenames. Example: docsearch --timestamp budget\n'
-    'Use option flag -v for version. Example: docsearch -v\n'
-    'Use option flag -w for wildcard pattern matching (* and ?). Example: docsearch -w "budg*"\n'
-    'Use option flag -W for whole-word matching. Example: docsearch -W bob (matches "bob" not "bobcat")\n'
-    'Use option flag -x for regex searches. Example: docsearch -x "\\d{3}-\\d{3}-\\d{4}"\n'
-    'Use option flag -z for fuzzy matching (approximate matches, typo-tolerant). Example: docsearch -z budgt\n'
-    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes\n'
-    'More details here: https://github.com/exbuf/docsearch/blob/main/README.md'
+    '\n── Filters ──────────────────────────────────────────────────────\n'
+    '  -t pdf,docx        Search only these file types\n'
+    '  -f report.pdf      Search only specific files (comma-separated)\n'
+    '  -r                 Search subdirectories recursively\n'
+    '  -n draft           Exclude lines matching these terms\n'
+    '  -R amount:1000..5000  Range filter (fields: date, amount, number, percent,\n'
+    '                        age, time, filesize, filedate). Repeatable.\n'
+    '                        Use fn: prefix for filename values\n'
+    '  --inverse          List files that do NOT contain the search terms\n'
+    '  -O                 Enable OCR for scanned PDFs and images\n'
+    '\n'
+    '── Output ───────────────────────────────────────────────────────\n'
+    '  -A 5               Show 5 lines after each match\n'
+    '  -B 5               Show 5 lines before each match\n'
+    '  -m 5000            Max matches in reports (0 = no limit, default: 1000)\n'
+    '  -o csv,json        Additional output formats (csv, json, or both)\n'
+    '  -s my_report       Save/archive the report with a name\n'
+    '  -sa my_report      Append results to a named file across searches\n'
+    '  --output-dir PATH  Write all output files to a specific folder\n'
+    '  --timestamp        Add timestamp to report filenames\n'
+    '\n'
+    '── Index (optional, for faster repeated searches) ──────────────\n'
+    '  --index            Build/rebuild the search index (includes all subfolders)\n'
+    '  --index-refresh    Incrementally update the index\n'
+    '  --index-status     Show index file count, size, last updated\n'
+    '  --index-clear      Delete the search index\n'
+    '  --no-index         Skip the index for this search (direct scan)\n'
+    '\n'
+    '── Settings & Info ──────────────────────────────────────────────\n'
+    '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
+    '  --config           Show all saved settings\n'
+    '  --check            Verify Python, dependencies, Tesseract, and disk space\n'
+    '  -c 4               Number of CPU cores to use\n'
+    '  -q                 Suppress the output banner\n'
+    '  -v                 Show version\n'
+    '  -h                 Show this help\n'
+    '\n'
+    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
+    'Full documentation: https://github.com/exbuf/docsearch/blob/main/README.md'
 )
 
 REGEX_PATTERNS = (
@@ -365,10 +395,6 @@ def _main_inner(argv=None):
     is_help = args and args[0] in ("-h", "-help", "--help")
     if not quiet:
         print(BANNER_TOP)
-        if is_help:
-            print('Use option flag -q to suppress the output banner. Example: docsearch -q budget revenue')
-        else:
-            print('Use option flag -q to suppress this output banner. Example: docsearch -q budget revenue')
         print(BANNER_BOTTOM)
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print()
@@ -380,7 +406,6 @@ def _main_inner(argv=None):
     if is_help:
         if quiet:
             print(BANNER_TOP)
-            print('Use option flag -q to suppress the output banner. Example: docsearch -q budget revenue')
             print(BANNER_BOTTOM)
             print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
             print()
