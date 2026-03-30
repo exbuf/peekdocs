@@ -134,20 +134,21 @@ See the [API Reference](docs/API.md) for all parameters and options.
 - **HR** — verify employee files have required documents, detect SSNs on shared drives
 - **Research** — search across papers, notes, and datasets in any format
 
-## How It Compares
+## What You Get at Each Price Point
 
-docsearch is free and matches or exceeds commercial tools costing $79–$150,000+/year:
-
-| Feature | docsearch | dtSearch ($249) | Copernic ($29-96/yr) | Relativity ($80K+/yr) |
-|---------|-----------|----------------|---------------------|----------------------|
-| File types | 42 | Hundreds | 170+ | Hundreds |
-| CLI + GUI + API | All three | GUI only | GUI only | Web only |
-| Cross-platform | Win/Mac/Linux | Windows | Windows | Web |
-| Highlighted .docx reports | Yes | No | No | Custom |
-| Search suites with pass/fail | Yes | No | No | No |
-| Range queries (dates, $, %) | Yes | Numeric only | No | Yes |
-| Email alerts | Yes | No | No | Yes |
-| Price | Free | $249 | $29-96/yr | $80K+/yr |
+| Feature | Free (docsearch) | $29-96/yr (Copernic) | $249 (dtSearch) |
+|---------|-----------------|---------------------|----------------|
+| File types | 42 | 170+ | Hundreds |
+| CLI + GUI + API | All three | GUI only | GUI only |
+| Cross-platform | Win/Mac/Linux | Windows only | Windows only |
+| Highlighted .docx reports | Yes | No | No |
+| Search suites with pass/fail | Yes | No | No |
+| Range queries (dates, $, %) | Yes | No | Numeric only |
+| Email alerts | Yes | No | No |
+| OCR (scanned PDFs/images) | Yes | Elite tier only | Reads OCR text |
+| Email search (.eml/.msg/.pst) | Yes | Yes | Yes |
+| Archive search (.zip/.7z/.rar) | Yes | No | No |
+| Open source | Yes | No | No |
 
 ## Author
 
