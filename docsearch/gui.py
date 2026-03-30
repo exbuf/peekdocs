@@ -462,7 +462,7 @@ def _launch_gui():
             self._load_search_popup = None
 
             self.suite_toggle = ctk.CTkButton(
-                self,
+                self._toggle_row,
                 text="\u25b6 Search Suites",
                 width=110,
                 fg_color="transparent",
@@ -472,7 +472,7 @@ def _launch_gui():
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            self.suite_toggle.grid(row=4, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="w")
+            self.suite_toggle.pack(side="left", padx=(10, 0))
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -981,8 +981,13 @@ def _launch_gui():
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
         def _build_advanced_toggle(self):
+            self._toggle_row = ctk.CTkFrame(self, fg_color="transparent")
+            self._toggle_row.grid(
+                row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            )
+
             self.advanced_toggle = ctk.CTkButton(
-                self,
+                self._toggle_row,
                 text="\u25b6 Advanced Options",
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -991,9 +996,7 @@ def _launch_gui():
                 command=self.toggle_advanced,
                 font=ctk.CTkFont(size=13),
             )
-            self.advanced_toggle.grid(
-                row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="w"
-            )
+            self.advanced_toggle.pack(side="left")
 
         def _build_advanced_panel(self):
             # Create popup window for Advanced Options
@@ -1405,15 +1408,9 @@ def _launch_gui():
             )
 
         def _build_index_panel(self):
-            # Index panel: frame always visible, contents toggle
-            self.index_frame = ctk.CTkFrame(self, fg_color="transparent")
-            self.index_frame.grid(
-                row=5, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="ew"
-            )
-
-            # Row 0: toggle button (always visible)
+            # Index toggle button — in the shared toggle row
             self.index_toggle_btn = ctk.CTkButton(
-                self.index_frame,
+                self._toggle_row,
                 text="\u25b6 Index Options",
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -1422,11 +1419,12 @@ def _launch_gui():
                 command=self._toggle_index_options,
                 font=ctk.CTkFont(size=13),
             )
-            self.index_toggle_btn.grid(
-                row=0, column=0, columnspan=3, sticky="w"
-            )
+            self.index_toggle_btn.pack(side="left", padx=(10, 0))
 
-            # Row 1: collapsible contents (starts hidden)
+            # Index contents frame — collapsible, on its own row
+            self.index_frame = ctk.CTkFrame(self, fg_color="transparent")
+            # Don't grid yet — shown when toggled
+
             self.index_contents = ctk.CTkFrame(self.index_frame)
             self.index_visible = False
 
@@ -3231,11 +3229,13 @@ def _launch_gui():
 
         def _toggle_index_options(self):
             if self.index_visible:
-                self.index_contents.grid_forget()
+                self.index_frame.grid_remove()
                 self.index_toggle_btn.configure(text="\u25b6 Index Options")
             else:
-                self.index_contents.grid(
-                    row=1, column=0, columnspan=3, sticky="ew"
+                if not self.index_contents.winfo_ismapped():
+                    self.index_contents.pack(fill="x", expand=True, padx=5, pady=5)
+                self.index_frame.grid(
+                    row=5, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="ew"
                 )
                 self.index_toggle_btn.configure(text="\u25bc Index Options")
             self.index_visible = not self.index_visible
