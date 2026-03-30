@@ -1418,6 +1418,10 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 
 Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into an audit automation tool — run the same compliance checks repeatedly and get a report showing which checks passed and which failed.
 
+**Before you start:** Suites are built from saved searches. A saved search is just a regular search that you've given a name so you can reuse it. Before saving a search, always **run it first** to verify it finds what you expect. If a search doesn't produce the right results as a standalone search, it won't produce the right results inside a suite either. Think of it like writing a recipe — test each step before combining them.
+
+**Want a real-world compliance example?** The [Compliance Guide](COMPLIANCE_GUIDE.md) walks through building a full contract review suite with 5 checks across 9 industries, including which search modes to use, what pass criteria to set, and what the results mean. If you're building suites for auditing or compliance, read that guide alongside this one.
+
 ### Your First Suite — Step by Step
 
 This walkthrough creates a simple 2-check compliance suite that verifies every document has an authorized signature and no documents contain the word "DRAFT." Follow along with any folder containing a few test documents.
@@ -1432,8 +1436,11 @@ This search checks that every file contains "Authorized Signature."
 
 - In the **Search Terms** field, type: `Authorized Signature`
 - Open **Advanced Options** and check the **Inverse** checkbox (this flips the search — instead of finding files WITH the term, it finds files WITHOUT it)
-- Click **Run Search** to verify it works. The results preview should show any files missing the signature. If all files have it, you'll see "0 matches" — that's correct
-- Now click **Save Search** in the Search Bar
+- Click **Run Search** to test it first. Look at the results preview:
+  - If some files are missing the signature, they'll be listed — that means the search is working correctly
+  - If all files have it, you'll see "0 matches" — that's also correct, it means every file passed
+  - If the results don't look right, adjust your search terms before saving
+- Once you're satisfied the search finds what you want, click **Save Search** in the Search Bar
 - When prompted for a name, type: `has_signature`
 - Click OK
 
@@ -1443,8 +1450,11 @@ This search checks that no file contains "DRAFT."
 
 - Clear the search box and type: `DRAFT`
 - Open **Advanced Options** and **uncheck** Inverse (you want to find files that DO contain DRAFT)
-- Click **Run Search** to verify. If any files contain DRAFT, they'll appear in the results
-- Click **Save Search** in the Search Bar
+- Click **Run Search** to test it first. Look at the results preview:
+  - If any files contain DRAFT, they'll appear — the search is working
+  - If no files contain DRAFT, you'll see "0 matches" — also correct
+  - This is the result you want to see inside the suite later
+- Once you're satisfied, click **Save Search** in the Search Bar
 - Name it: `no_draft`
 - Click OK
 
