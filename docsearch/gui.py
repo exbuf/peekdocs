@@ -1305,18 +1305,6 @@ def _launch_gui():
                 command=lambda: self._open_report_format("json"),
             )
 
-            self.error_log_button = ctk.CTkButton(
-                self,
-                text="View Error Log",
-                width=140,
-                command=self.open_error_log,
-                font=ctk.CTkFont(size=13),
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-            )
-            Tooltip(self.error_log_button, "Open docsearch_errors.log to see details about files that could not be read")
-
         def _build_index_panel(self):
             # Index panel: frame always visible, contents toggle
             self.index_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -3366,10 +3354,9 @@ def _launch_gui():
             self._reschedule_refresh()
 
         def _show_action_buttons(self, inverse=False):
-            """Show Matched Files, View Report buttons, and/or View Error Log."""
+            """Show Matched Files and View Report buttons."""
             self._clear_action_buttons()
 
-            has_error_log = False
             has_matched = bool(self.matched_files)
 
             # Check which report formats exist
@@ -3379,12 +3366,10 @@ def _launch_gui():
                 for fmt in ("txt", "docx", "csv", "json"):
                     path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
                     report_formats[fmt] = os.path.exists(path)
-                error_log_path = os.path.join(self.results_dir, "docsearch_errors.log")
-                has_error_log = os.path.exists(error_log_path)
 
             has_any_report = any(report_formats.values())
 
-            if not has_any_report and not has_error_log and not has_matched:
+            if not has_any_report and not has_matched:
                 return
 
             col = 0
@@ -3421,11 +3406,6 @@ def _launch_gui():
                     row=9, column=col, padx=(10, 5), pady=(5, 45), sticky="w"
                 )
                 col += 1
-            if has_error_log:
-                self.error_log_button.grid(
-                    row=9, column=col, padx=5, pady=(5, 45), sticky="w"
-                )
-
         def open_error_log(self):
             folder = self.results_dir or self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
@@ -4503,7 +4483,6 @@ def _launch_gui():
             self.report_btn_docx.pack_forget()
             self.report_btn_csv.pack_forget()
             self.report_btn_json.pack_forget()
-            self.error_log_button.grid_remove()
 
         def _show_error(self, message):
             self.status_label.configure(
