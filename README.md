@@ -362,7 +362,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Settings** button (saves the current search to the folder's collection for reuse in search suites), and **Load Settings ▼** button (opens a popup to load or delete saved searches) |
+| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Settings ▼** button (opens a popup to load or delete saved searches) |
 | **Folder Bar** | Folder path entry and **Browse** button |
 | **Advanced Options** | Collapsible panel with all search options (click to expand) |
 | **Search Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
@@ -379,7 +379,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Advanced Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Settings** saves your current search terms, folder, and all options as defaults — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
+Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state.
 
 **Index Options:**
 
@@ -991,12 +991,12 @@ Your saved default settings.
 **What does "rc" mean?** The "rc" in `.docsearchrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.docsearchrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
 
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
-**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Options and then **Save Settings** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Options to view its current contents.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Options to view its current contents.
 **What happens if it's deleted?** docsearch runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
 **How to recover:**
 1. Open the GUI (`docsearch-gui`)
 2. Open **Advanced Options** and configure your preferred settings (recursive, file types, cores, max matches, etc.)
-3. Click **Save Settings** — this recreates the file
+3. Click **Save Defaults** — this recreates the file
 4. If you had email alerts configured, click **Configure Email Alerts** in the Search Suites panel and re-enter your SMTP settings
 5. Change the **Text Size** dropdown if you had a non-default size — it auto-saves immediately
 
@@ -1509,8 +1509,8 @@ docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
 - **Long form** — `--range` is the long form of `-R` (e.g., `--range amount:1000..5000`)
 - **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
 - **Index search** — ranges work with the search index. Indexed results are post-filtered by content and metadata ranges
-- **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking Save Settings
-- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click Save Settings in the GUI, and restored when the GUI opens or when you click Restore Settings
+- **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking **Save Search**
+- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click **Save Defaults** in Advanced Options, and restored when the GUI opens or when you click Restore Settings
 
 In the GUI, enter range filters in the **Range** field in Advanced Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
 
@@ -1698,7 +1698,7 @@ docsearch handles all of these with features already built in. Here's how to set
 - **"amount_in_range"** — Enter `amount:1000..50000` in the Range field. Should return at least one match.
 - **"no_ssn"** — Enter `\d{3}-\d{2}-\d{4}` in the search box, check **Regex**. Should return zero matches.
 
-After configuring each search, click **Save Settings** in the Search Bar and give it a name. The search and all its settings are saved to the folder's collection file.
+After configuring each search, click **Save Search** in the Search Bar and give it a name. The search and all its settings are saved to the folder's collection file.
 
 **Step 3: Build a suite.** Click **Search Suites** to open the suites panel. Click **Build a New Suite**, name it (e.g., "quarterly_contract_review"), and add your saved searches in order. For each search, set the **pass criteria**:
 
@@ -1949,7 +1949,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 **How it works:**
 
-1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Settings** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
+1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
 
 2. **Build a suite:** Click **▶ Search Suites** (below Advanced Options) to open the suites window. Click **Build a New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
 
@@ -1959,7 +1959,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 **How the collection file works:** When you save a search or build a suite, docsearch stores everything in a file called `.docsearch_collection.json` inside the search folder. Here is the full lifecycle of this file:
 
-1. **Created automatically** — the first time you click **Save Settings** in the Search Bar for a folder, docsearch creates `.docsearch_collection.json` in that folder. You don't create it manually.
+1. **Created automatically** — the first time you click **Save Search** in the Search Bar for a folder, docsearch creates `.docsearch_collection.json` in that folder. You don't create it manually.
 2. **One per folder** — each folder has its own collection file. When you browse to a different folder in the GUI, docsearch loads that folder's collection. If no collection file exists yet, the suites panel is empty.
 3. **Lives with your documents** — the collection file is stored inside the search folder alongside the documents it searches, not in a central location. This means if you copy or move a folder, the saved searches and suites travel with it.
 4. **Contains saved searches + suites** — inside the file are two things: your saved searches (each with a name and all its settings — terms, flags, file types, range filters, etc.) and your suites (each with a name, an ordered list of searches, pass/fail criteria, cascade setting, and schedule). All of this is managed through the GUI — you never need to edit the file directly.
@@ -2012,9 +2012,9 @@ The key technique is **inverse search + `== 0`**: inverse mode lists files that 
 - **Edit Suite:** Modify which searches are included in an existing suite and change their execution order using the same dual-panel selector with Up/Down reordering.
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
-**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Settings** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
 
-**Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Settings**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
+**Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Search**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
 
 **Per-stage reports:** When a suite runs — in both normal and cascade mode — each search's results are automatically preserved as separate timestamped files named `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.txt` (and `.docx`, `.csv`, `.json` if those formats were generated). Without this, each search would overwrite the previous one's `docsearch_results` files, leaving only the last search's report. The `DO_NOT_SEARCH_` prefix ensures these files are never re-searched in future searches. Previous run's stage files are cleaned up automatically before each new run, so you always see fresh results.
 

@@ -443,7 +443,7 @@ def _launch_gui():
             Tooltip(self.wizard_button, "Open the Search Wizard to build regex patterns from presets")
 
             self.save_to_collection_btn = ctk.CTkButton(
-                btn_frame, text="Save Settings", width=100, command=self._save_to_collection,
+                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
                 font=ctk.CTkFont(size=14),
             )
             self.save_to_collection_btn.pack(side="left", padx=(0, 5))
@@ -582,7 +582,7 @@ def _launch_gui():
             blank()
 
             h("TIPS")
-            b("\u2022 Use Save Settings to save settings for reuse in Search Suites.")
+            b("\u2022 Use Save Search to save a search for reuse in Search Suites.")
             b("\u2022 Click Open Readme.md in the toolbar for full documentation.")
             blank()
 
@@ -592,7 +592,7 @@ def _launch_gui():
             b("docsearch into an audit automation tool.")
             blank()
             s("How to use")
-            b("1. Configure a search in the main GUI and click Save Settings.")
+            b("1. Configure a search in the main GUI and click Save Search.")
             b("2. Click Search Suites in the Search Bar to open the suites window.")
             b("3. Click Build a New Suite, give it a name, and use the dual-panel selector")
             b("   to choose and order your saved searches (\u2192/\u2190 to add/remove,")
@@ -682,7 +682,7 @@ def _launch_gui():
             blank()
             s("If ~/.docsearchrc is deleted")
             b("Nothing breaks \u2014 docsearch uses built-in defaults. To recover:")
-            b("1. Open Advanced Options, set your preferences, click Save Settings")
+            b("1. Open Advanced Options, set your preferences, click Save Defaults")
             b("2. Re-enter email alerts via Configure Email Alerts in Search Suites")
             b("3. Change Text Size dropdown if needed (auto-saves immediately)")
             b("\u2022 Use Clean Up Suite Files, Clear Auto-Run History, Clear Error Log,")
@@ -932,7 +932,7 @@ def _launch_gui():
             h("SETTINGS BUTTONS")
             s("Inspect .docsearchrc")
             b("View the current saved settings file (read-only).")
-            s("Save Settings")
+            s("Save Defaults")
             b("Save all current Advanced Options as defaults to ~/.docsearchrc.")
             b("These are restored automatically when docsearch starts.")
             s("Restore Settings")
@@ -1221,7 +1221,7 @@ def _launch_gui():
             cb_ts.grid(row=0, column=3, padx=(15, 0))
             Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
 
-            # Row 10: Save Settings + Restore Settings buttons
+            # Row 10: Save Defaults + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
             settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
@@ -1236,7 +1236,7 @@ def _launch_gui():
             Tooltip(inspect_settings_btn, "View the current saved settings in ~/.docsearchrc (read-only)")
 
             save_settings_btn = ctk.CTkButton(
-                settings_btn_frame, text="Save Settings", width=120,
+                settings_btn_frame, text="Save Defaults", width=120,
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._save_current_settings,
@@ -1263,7 +1263,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             reset_btn.pack(side="left", padx=5)
-            Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Settings writes to it")
+            Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it")
 
 
             # Row 11: Search Using Index(es)
@@ -1792,7 +1792,7 @@ def _launch_gui():
             blank()
 
             h("HOW TO USE")
-            b("1. Save a search: configure in the main GUI, click Save Settings, give it a name.")
+            b("1. Save a search: configure in the main GUI, click Save Search, give it a name.")
             b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
             b("3. Run: select a suite, click Run Selected Suite.")
             b("4. Reports are generated automatically with timestamps.")
