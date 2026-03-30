@@ -34,6 +34,36 @@ If you've never used a terminal before, this section walks you through everythin
 
 **Prefer not to use the terminal?** That's completely fine — run `docsearch-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
 
+### Which installation method did you use?
+
+This matters for how you launch docsearch:
+
+- **If you installed with pipx** (`pipx install docsearch`): you're all set. `docsearch` and `docsearch-gui` work from any terminal, any folder, every time. Just open a terminal and start searching. Skip to [Step 1: Open your terminal](#step-1-open-your-terminal).
+
+- **If you installed manually** (git clone + virtual environment): you need to **activate the virtual environment** every time you open a new terminal before docsearch will work. If you close your terminal and open a new one, typing `docsearch` will say "command not found" — this doesn't mean it's broken, it means the virtual environment isn't active. To fix it:
+
+  **macOS/Linux:**
+  ```bash
+  cd /path/to/docsearch      # navigate to where you cloned docsearch
+  source venv/bin/activate    # activate the virtual environment
+  ```
+
+  **Windows (Command Prompt):**
+  ```cmd
+  cd C:\path\to\docsearch
+  venv\Scripts\activate
+  ```
+
+  **Windows (PowerShell):**
+  ```powershell
+  cd C:\path\to\docsearch
+  venv\Scripts\Activate.ps1
+  ```
+
+  You'll see `(venv)` appear at the beginning of your command line — that means docsearch is ready. You need to do this activation step each time you open a new terminal window.
+
+  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install docsearch`. After restarting your terminal, docsearch works everywhere without activation.
+
 ### What is a terminal?
 
 A terminal (also called "command line," "command prompt," or "shell") is a text-based way to tell your computer what to do. Instead of clicking buttons, you type commands and press Enter. It looks intimidating at first, but you only need to learn a few commands to use docsearch.
