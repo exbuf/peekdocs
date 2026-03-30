@@ -4,6 +4,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 
 ## Table of Contents
 
+- [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [GUI Mode](#gui-mode)
 - [Usage](#usage)
   - [Regex search](#regex-search)
@@ -26,6 +27,156 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Search Suites](#search-suites)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
+
+## Getting Started with the Terminal
+
+If you've never used a terminal before, this section walks you through everything from opening it to running your first search. If you're already comfortable with the command line, skip ahead to [GUI Mode](#gui-mode) or [Usage](#usage).
+
+**Prefer not to use the terminal?** That's completely fine — run `docsearch-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
+
+### What is a terminal?
+
+A terminal (also called "command line," "command prompt," or "shell") is a text-based way to tell your computer what to do. Instead of clicking buttons, you type commands and press Enter. It looks intimidating at first, but you only need to learn a few commands to use docsearch.
+
+### Step 1: Open your terminal
+
+- **Windows:** Press the Windows key, type `cmd`, and click **Command Prompt**. Or type `powershell` and click **Windows PowerShell**. Either works.
+- **macOS:** Open **Finder** → **Applications** → **Utilities** → **Terminal**. Or press Cmd+Space, type `terminal`, and press Enter.
+- **Linux:** Press Ctrl+Alt+T, or find **Terminal** in your applications menu.
+
+You'll see a window with a blinking cursor waiting for you to type something. This is your terminal.
+
+### Step 2: Navigate to your documents folder
+
+Your terminal starts in your home directory. You need to tell it where your documents are. Use the `cd` command (short for "change directory"):
+
+**Windows:**
+```cmd
+cd C:\Users\YourName\Documents
+```
+
+**macOS:**
+```bash
+cd ~/Documents
+```
+
+**Linux:**
+```bash
+cd ~/Documents
+```
+
+Replace the path with wherever your actual documents are. If the folder name has spaces, wrap it in quotes:
+
+```bash
+cd "/Users/YourName/My Documents"
+```
+
+**Tip:** You can drag a folder from your file manager onto the terminal window — most terminals will paste the full path for you.
+
+### Step 3: Run your first search
+
+Type this and press Enter:
+
+```bash
+docsearch budget
+```
+
+docsearch will scan every supported file in the folder and show a summary:
+
+```
+Files searched: 47 (12.34 MB) — Found 23 match(es).
+Elapsed time: 1.2 seconds, Cores used: 4 of 8
+Results ==> /Users/YourName/Documents
+  docsearch_results.txt (5.67 KB), docsearch_results.docx (42.31 KB)
+```
+
+That's it — you just searched 47 files in 1.2 seconds. Your results are saved in two files.
+
+### Step 4: Open your results
+
+The results are saved in the same folder where you ran the search. Open the Word report to see your matches highlighted in yellow:
+
+**Windows:**
+```cmd
+start docsearch_results.docx
+```
+
+**macOS:**
+```bash
+open docsearch_results.docx
+```
+
+**Linux:**
+```bash
+xdg-open docsearch_results.docx
+```
+
+Or simply navigate to the folder in your file manager and double-click `docsearch_results.docx`.
+
+### Step 5: Try a few more searches
+
+Now that you know the basics, try these:
+
+**Search for multiple words (finds files containing any of them):**
+```bash
+docsearch budget revenue expenses
+```
+
+**Search for files containing ALL of the words:**
+```bash
+docsearch -a budget revenue
+```
+
+**Search subfolders too:**
+```bash
+docsearch -r budget
+```
+
+**Search only PDFs and Word documents:**
+```bash
+docsearch -t pdf,docx budget
+```
+
+**Search for a pattern (like Social Security numbers):**
+```bash
+docsearch -x "\d{3}-\d{2}-\d{4}"
+```
+
+**Find files that are MISSING a required term:**
+```bash
+docsearch --inverse "Authorized Signature"
+```
+
+**Find dollar amounts in a range:**
+```bash
+docsearch -R amount:1000..5000 budget
+```
+
+### Step 6: Get help
+
+To see all available options with examples:
+
+```bash
+docsearch -h
+```
+
+This shows every flag, organized by category (Search Modes, Filters, Output, Index, Settings), with examples for each one.
+
+### Useful terminal tips
+
+- **Up arrow** — press it to recall your previous command. Press it again to go further back. This is how you re-run or modify a previous search without retyping it.
+- **Tab completion** — start typing a folder or file name and press Tab. The terminal fills in the rest. This saves typing and avoids typos.
+- **Ctrl+C** — cancels a search in progress. docsearch stops cleanly.
+- **History** — your terminal remembers every command you've typed. Use the up/down arrows to scroll through them.
+
+### What's next?
+
+- See the [Flag Use Summary](#flag-use-summary) for a complete table of all options
+- See the [Command Examples](#command-examples) table for 150+ example commands
+- Try the GUI for a visual interface: just type `docsearch-gui`
+- Read [Your First Advanced Search](#your-first-advanced-search--step-by-step) for guided walkthroughs of regex, fuzzy, range queries, and more
+
+---
 
 ## GUI Mode
 
