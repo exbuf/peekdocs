@@ -22,6 +22,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Files Created by docsearch](#files-created-by-docsearch)
 - [Limits and Constraints](#limits-and-constraints)
+- [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Search Suites](#search-suites)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
@@ -1413,6 +1414,138 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 | **Disk space** | docsearch checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
 | **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See Troubleshooting |
 | **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See Troubleshooting |
+
+## Your First Advanced Search — Step by Step
+
+You know how to do a basic search — type a word, click Run Search, see results. This section walks you through the most useful advanced features one at a time. Each example is a complete walkthrough: what to type, what to check, and what you'll see.
+
+All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a folder with some documents, and follow along.
+
+### Example 1: Find Social Security numbers with regex
+
+**Goal:** Find any document containing a Social Security number (format: 123-45-6789).
+
+1. Open **Advanced Options** and check the **Regex** checkbox
+2. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
+   - This is a regex pattern: `\d` means "any digit" and `{3}` means "exactly 3 of them"
+   - You don't need to memorize regex — click the **Wizard** button next to the search box for a list of pre-built patterns you can insert with one click
+3. Click **Run Search**
+4. Look at the results preview:
+   - Each match shows the filename, line number, and the actual SSN found, highlighted in yellow
+   - If no matches appear, your documents don't contain SSNs — that's good
+5. Open **Advanced Options** and uncheck **Regex** when you're done
+
+**Tip:** The Wizard button has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
+
+### Example 2: Find misspelled words with fuzzy matching
+
+**Goal:** Find documents containing "compliance" even if it's misspelled (common in scanned/OCR documents).
+
+1. Open **Advanced Options** and check the **Fuzzy** checkbox
+2. In the **Search Terms** field, type: `compliance`
+3. Click **Run Search**
+4. Look at the results preview:
+   - You'll see matches for "compliance" (exact) but also "complience", "compliancce", "comp1iance" (OCR error), and other approximate matches
+   - Fuzzy matching uses a similarity score — words that are at least 80% similar to your search term are considered matches
+5. Uncheck **Fuzzy** when you're done
+
+**When to use this:** Searching documents that were scanned (OCR introduces errors), documents written by non-native English speakers, or any collection where spelling is inconsistent.
+
+### Example 3: Find dollar amounts in a specific range
+
+**Goal:** Find documents mentioning dollar amounts between $10,000 and $50,000.
+
+1. In the **Search Terms** field, type: `payment` (or any related keyword, or leave it empty for a range-only search)
+2. Open **Advanced Options** and find the **Range** field
+3. In the Range field, type: `amount:10000..50000`
+   - This tells docsearch: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
+4. Click **Run Search**
+5. Look at the results preview:
+   - Each match shows a line containing both your keyword and a dollar amount in the specified range
+   - Dollar amounts outside the range (like $500 or $100,000) are filtered out
+
+**Other range types you can try:**
+- `date:2025-01-01..2025-12-31` — dates in 2025
+- `percent:5..15` — percentages between 5% and 15%
+- `age:18..65` — ages between 18 and 65
+- `amount:10000..` — amounts of $10,000 or more (open-ended)
+
+### Example 4: Find files missing required content with inverse search
+
+**Goal:** Find which contracts are missing an "Authorized Signature" line.
+
+1. In the **Search Terms** field, type: `Authorized Signature`
+2. Open **Advanced Options** and check the **Inverse** checkbox
+   - Normal search finds files WITH your terms. Inverse flips it — it finds files WITHOUT your terms
+3. Click **Run Search**
+4. Look at the results preview:
+   - Instead of showing matches, it lists every file that does NOT contain "Authorized Signature"
+   - These are the files that need attention
+   - If the list is empty (0 matches), every file contains the required text
+5. Uncheck **Inverse** when you're done
+
+**Why this matters:** This is one of the most powerful features for compliance. Instead of searching for problems, you're verifying that requirements are met — and the report lists exactly which files fail.
+
+### Example 5: Find words near each other with proximity search
+
+**Goal:** Find documents where "breach" and "contract" appear within 5 words of each other (not just anywhere in the same file).
+
+1. In the **Search Terms** field, type: `breach contract`
+2. Open **Advanced Options** and find the **Proximity** field
+3. In the Proximity field, type: `5`
+   - This means both words must appear within 5 words of each other on the same line
+   - AND mode is applied automatically when you use proximity
+4. Click **Run Search**
+5. Look at the results preview:
+   - You'll only see matches where "breach" and "contract" are close together — like "breach of contract" or "contract breach notification"
+   - Lines where both words appear far apart (like "The contract was signed in January. The breach occurred in March.") are excluded
+6. Clear the Proximity field when you're done
+
+### Example 6: Search only specific file types
+
+**Goal:** Search only PDFs and Word documents, ignoring everything else.
+
+1. In the **Search Terms** field, type your search term
+2. Open **Advanced Options** and find the **File types** field
+3. In the File types field, type: `pdf,docx`
+   - No dots, no spaces — just the extensions separated by commas
+   - Other file types in the folder are ignored
+4. Click **Run Search**
+
+**Common combinations:**
+- `pdf,docx,doc` — all Word and PDF documents
+- `xlsx,xls,csv` — all spreadsheet formats
+- `eml,msg,pst` — all email formats
+- `txt,md,log` — all plain text formats
+
+### Example 7: Combine multiple features together
+
+**Goal:** Find SSNs in PDF files across all subfolders, showing 2 lines of context before and after each match.
+
+1. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
+2. Open **Advanced Options** and set:
+   - Check **Regex**
+   - Check **Recursive** (searches subfolders)
+   - **File types:** `pdf`
+   - **Lines Before:** `2`
+   - **Lines After:** `2`
+3. Click **Run Search**
+4. The results show each SSN match with 2 lines above and below for context, from PDF files only, across all subfolders
+
+**You can mix and match almost any combination of features.** The main restrictions:
+- Regex and Fuzzy can't be used together
+- Regex and Wildcard can't be used together
+- Fuzzy and Wildcard can't be used together
+- Expression mode replaces AND mode, Exclude, and Proximity (use AND/OR/NOT in the expression instead)
+
+### What's next?
+
+Now that you're comfortable with individual advanced searches, you can:
+- **Save searches for reuse** — click **Save Search** to name and store any search you've configured
+- **Build compliance suites** — group saved searches into suites with pass/fail criteria (see below)
+- **Read the [Compliance Guide](COMPLIANCE_GUIDE.md)** for 9 industry-specific audit examples
+
+---
 
 ## Search Suites
 
