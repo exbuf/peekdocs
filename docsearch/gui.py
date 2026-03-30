@@ -3383,7 +3383,7 @@ def _launch_gui():
                     label = f"Matched Files ({len(self.matched_files)})"
                 self.matched_files_button.configure(text=label)
                 self.matched_files_button.grid(
-                    row=9, column=col, padx=(15, 5), pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=(15, 5), pady=(5, 15), sticky="w"
                 )
                 col += 1
             if has_any_report:
@@ -3406,12 +3406,12 @@ def _launch_gui():
                             hover_color="#AA2222",
                         )
                 self.report_frame.grid(
-                    row=9, column=col, padx=(10, 5), pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=(10, 5), pady=(5, 15), sticky="w"
                 )
                 col += 1
             if has_error_log:
                 self.error_log_button.grid(
-                    row=9, column=col, padx=5, pady=(5, 0), sticky="w"
+                    row=9, column=col, padx=5, pady=(5, 15), sticky="w"
                 )
 
         def open_error_log(self):
