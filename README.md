@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are saved to a Word report with every match highlighted in yellow. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule, produce pass/fail audit reports, and send email alerts when failures are detected. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are saved to a Word report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file. Use plain keywords, regex, Boolean logic, fuzzy matching, or range queries to find exactly what you need. Build compliance suites that run the same checks on a schedule, produce pass/fail audit reports, and send email alerts when failures are detected. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
 
 <!-- Add screenshots here when available:
 ![docsearch GUI](screenshots/main-window.png)
