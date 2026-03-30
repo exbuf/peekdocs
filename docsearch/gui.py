@@ -1314,7 +1314,8 @@ def _launch_gui():
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
 
         def _build_progress_area(self):
-            self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
+            self.progress_bar = ctk.CTkProgressBar(self, mode="determinate")
+            self.progress_bar.set(0)
             # Starts hidden — shown only during search
 
             ctk.CTkLabel(
@@ -3324,10 +3325,10 @@ def _launch_gui():
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
             self._hide_files_list()
+            self.progress_bar.set(0)
             self.progress_bar.grid(
                 row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
-            self.progress_bar.start()
             self.status_label.configure(text="Searching...", text_color=("gray30", "gray70"))
             self.search_start_time = time.time()
             self._start_elapsed_timer()
@@ -3349,6 +3350,7 @@ def _launch_gui():
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
         def _run_search(self, cmd, folder):
+            import re as _re
             try:
                 self.process = subprocess.Popen(
                     cmd,
@@ -3357,7 +3359,29 @@ def _launch_gui():
                     stderr=subprocess.STDOUT,
                     text=True,
                 )
-                stdout, _ = self.process.communicate()
+                stdout_lines = []
+                current_line = []
+                progress_re = _re.compile(r'(\d+)/(\d+)\s')
+                for char in iter(lambda: self.process.stdout.read(1), ''):
+                    if char == '\r':
+                        # Carriage return — parse progress from current line
+                        line = ''.join(current_line)
+                        m = progress_re.search(line)
+                        if m:
+                            done = int(m.group(1))
+                            total = int(m.group(2))
+                            if total > 0:
+                                self.after(0, self._update_search_progress, done, total)
+                        current_line = []
+                    elif char == '\n':
+                        stdout_lines.append(''.join(current_line))
+                        current_line = []
+                    else:
+                        current_line.append(char)
+                if current_line:
+                    stdout_lines.append(''.join(current_line))
+                stdout = '\n'.join(stdout_lines)
+                self.process.wait()
                 returncode = self.process.returncode
             except Exception:
                 stdout = ""
@@ -3367,8 +3391,18 @@ def _launch_gui():
 
             self.after(0, self._search_finished, stdout, returncode)
 
+        def _update_search_progress(self, done, total):
+            """Update the determinate progress bar during search."""
+            pct = done / total if total > 0 else 0
+            self.progress_bar.set(pct)
+            if self.search_start_time is not None:
+                elapsed = time.time() - self.search_start_time
+                self.status_label.configure(
+                    text=f"Searching... {done}/{total} files ({elapsed:.0f}s)"
+                )
+
         def _search_finished(self, stdout, returncode):
-            self.progress_bar.stop()
+            self.progress_bar.set(1)
             self.progress_bar.grid_remove()
             self.search_start_time = None
             if self.elapsed_timer_id:
