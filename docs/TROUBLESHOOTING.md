@@ -1,0 +1,472 @@
+# docsearch FAQ and Troubleshooting
+
+Common questions and solutions for docsearch issues. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
+
+## Table of Contents
+
+- [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
+- [Troubleshooting](#troubleshooting)
+
+## FAQ (Frequently Asked Questions)
+
+**Where are my search results saved and what information is printed on the search report?**
+Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
+
+**What happens when a file can't be read?**
+Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file — see the [Output](#output) section for details.
+
+**How do I recall a previous command?**
+Press the up arrow key in your terminal to scroll through previous commands. This is a built-in feature of all terminals (macOS, Windows, and Linux) — not specific to docsearch. You can press up repeatedly to go further back, then press Enter to re-run the command.
+
+**How do I cancel a search in progress?**
+Press Ctrl+C. docsearch will stop cleanly and print "Search cancelled." This works on macOS, Windows, and Linux.
+
+**How do I check if docsearch is installed correctly?**
+Run `docsearch --check`. This verifies your Python version, checks that all required dependencies are installed, reports whether Tesseract is available for OCR, and checks available disk space. If anything is missing, it tells you exactly how to fix it.
+
+**How do I save my preferred settings?**
+Use the `--config` flag. For example, `docsearch --config recursive=true` saves that setting so it applies automatically every time. See the [Saved Settings](#saved-settings-optional) section for details.
+
+**Can I search all subfolders?**
+Yes — use the `-r` flag.<br>
+Example: `docsearch -r budget`
+
+**Can I search only PDFs (etc)?**
+Yes — use the `-t` flag.<br>
+Example: `docsearch -t pdf budget`
+
+**Can I search a specific file?**
+Yes — use the `-f` flag.<br>
+Example: `docsearch -f report.pdf budget`<br>
+You can focus on one file or several, comma-separated: `docsearch -f report.pdf,notes.txt budget`
+
+**Can I find terms near each other?**
+Yes — use the `-p` flag.<br>
+Example: `docsearch -p 5 budget revenue`<br>
+The number 5 means the terms must appear within 5 words of each other.
+
+**Can I save these results?**
+Yes — use the `-s` flag.<br>
+Example: `docsearch -s my_report`<br>
+The saved/archived file is never re-searched because of its `DO_NOT_SEARCH` prefix.
+
+**Can I accumulate results from multiple searches?**
+Yes — use the `-sa` flag.<br>
+Example: `docsearch -sa my_report budget revenue`<br>
+Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time. The accumulated file is never re-searched because of its `DO_NOT_SEARCH` prefix.
+
+**Can I find approximate matches or handle typos?**
+Yes — use the `-z` flag. This enables fuzzy matching, which finds words that are similar to your search terms even if they're not spelled exactly the same. For example, searching for "budget" with `-z` will also match "budgt", "buget", or "budjet". This is especially useful when searching OCR text (combine with `-O`), which often contains recognition errors.<br>
+Example: `docsearch -z budget`
+
+**Can I use wildcards instead of regex?**
+Yes — use the `-w` flag. Wildcards are simpler than regex: `*` matches any characters and `?` matches exactly one character. For example, `budg*` matches "budget", "budgets", and "budgeting", while `te?t` matches "test" and "text". Wildcards match whole words only, so `budg*` won't match the "budg" inside "debugging".<br>
+Example: `docsearch -w "budg*"`
+
+**How do I search for exact word matches only?**
+Use the `-W` flag. This enables whole-word matching using word boundaries, so only complete words are matched — `bob` matches "bob" but not "bobcat", "bobby", etc.<br>
+Example: `docsearch -W bob`
+
+**Can I exclude certain terms from results?**
+Yes — use the `-n` flag. This filters out any lines that contain the specified terms, even if they match your search. Use commas for multiple exclude terms. The exclude check follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, they are wildcard-matched.<br>
+Example: `docsearch -n draft budget`<br>
+Example with multiple excludes: `docsearch -n draft,obsolete budget`
+
+**Can I search scanned PDFs or images?**
+Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [Installation](#installation) section for instructions. OCR is slower than regular text search, so it's opt-in.<br>
+Example: `docsearch -O budget`
+
+**Can I use regex patterns?**
+Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
+Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
+
+**Can I see lines before and after each match?**
+Yes — use the `-B` and `-A` flags.<br>
+Example: `docsearch -B 3 -A 3 budget`<br>
+This captures 3 lines before (-B) and 3 lines after (-A) each match. The numbers can be different, e.g., `-B 2 -A 5`.
+
+**Can I require all terms to appear in the same paragraph?**
+Yes — use the `-a` flag.<br>
+Example: `docsearch -a budget revenue expenses`
+
+**Can I combine AND, OR, and NOT in a single query?**
+Yes — use the `-e` flag for boolean expression search. This lets you write complex logic with AND, OR, NOT, and parentheses.<br>
+Example: `docsearch -e "(budget OR revenue) AND NOT draft"`<br>
+Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. Range specs (`field:min..max`) can be embedded directly in expressions (e.g., `"budget AND amount:1000..5000"`). See [Boolean Expression Search](#boolean-expression-search) for details.
+
+**How many CPU cores does docsearch use?**
+By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
+Example: `docsearch -c 4 budget`<br>
+For small numbers of files (fewer than 10), single-threaded mode is used automatically to avoid overhead.<br>
+docsearch displays your core count and default `-c` value in the banner every time it runs (also visible with `docsearch -h`). You can also check manually:<br>
+- **macOS:** Open Terminal and run `sysctl -n hw.ncpu`<br>
+- **Windows:** Open Command Prompt and run `echo %NUMBER_OF_PROCESSORS%`<br>
+- **Linux:** Open Terminal and run `nproc`
+
+You can set `-c` to any value from 1 to your maximum core count. Using more cores speeds up searches but uses more memory and CPU, which can slow down other applications and drain laptop batteries faster. The default (half of available cores) balances speed with keeping your machine responsive. Use `-c 1` for minimal resource usage, or `-c` with your full core count (e.g., `-c 8` on an 8-core machine) for maximum speed at the cost of heavier system load.
+
+**Can I use multiple flags at the same time?**
+Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
+Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
+
+**Do I have to use the terminal, or is there a GUI?**
+Both. If you prefer a graphical interface, run `docsearch-gui` for a point-and-click window with a search box, folder picker, and all the advanced options. If you're comfortable in the terminal, `docsearch` gives you the same search power in a single command.
+
+Never used a terminal before? It's simpler than it looks — type `docsearch` followed by what you're looking for, press Enter, and you're done. No menus, no buttons, no settings buried three screens deep. The terminal also launches instantly, runs identically on Mac, Windows, and Linux, and keeps a history of your commands so you can press the up arrow to repeat or tweak a previous search.
+
+**What operating systems does docsearch run on?**
+docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is installed.
+
+**Does it search inside ZIP or RAR files?**
+No — docsearch searches uncompressed files only.
+
+**Does it work offline?**
+Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
+
+**What if I upgrade Python and docsearch stops working?**
+Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, run `docsearch --check` to see which dependencies need updating, then reinstall: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. docsearch will also print a warning at startup if your Python version is outside the tested range. Most dependency updates are available within a few weeks of a new Python release.
+
+**What is the search index and when should I use it?**
+The search index is an optional SQLite database (`.docsearch.db`) that stores extracted text from your documents. Build it with `docsearch --index` in any folder where you search frequently. After that, every search in that folder uses the index automatically — skipping file parsing entirely — making repeated searches much faster. You don't need the index for one-off searches or small folders. See [Search Index](#search-index-optional) for details.
+
+**How much disk space does the index use?**
+The index is typically 10–20% the size of the original files. Text-heavy documents (PDFs, Word docs) produce smaller indexes relative to file size since the index stores only the extracted text. You can check the exact size with `docsearch --index-status` and delete it anytime with `docsearch --index-clear`.
+
+**Does the index stay up to date?**
+Yes — each search automatically detects new, changed, or deleted files and refreshes the index incrementally before searching. You only need to rebuild manually (`docsearch --index`) if you want a full rebuild, such as after changing OCR or recursive settings.
+
+**Does it modify my files?**
+No — docsearch only reads your files. It never changes, moves, or deletes them.
+
+**Is docsearch safe from SQL injection?**
+Yes. All user input that reaches the SQLite search index is handled safely. FTS5 search terms are escaped and passed via parameterized queries (`?` placeholders) — never interpolated into SQL strings. File type and filename filters also use parameterized queries. The direct-scan and parse-cache code paths load data with static SQL and filter entirely in Python, so user input never touches SQL at all. Malformed FTS5 expressions are caught and handled gracefully with a fallback to the parse-cache path.
+
+**Is the search case-sensitive?**
+No — all searches are case-insensitive by default.
+
+**Why are my reports capped at 1,000 matches?**
+By default, docsearch caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Options panel.
+
+Every feature in docsearch serves the core mission of finding content in documents:
+
+- **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`, `-W`) — control *how* to match
+- **Filter flags** (`-t`, `-f`, `-r`, `-n`) — control *where* to search
+- **Context flags** (`-A`, `-B`) — control *what to show* around matches
+- **Output flags** (`-s`, `-sa`, `-o`) — control *what to do* with results
+- **Performance flags** (`-c`, `-m`, `--index`) — control *how fast* to search
+- **Settings flag** (`--config`) — manage *saved settings*
+
+## Troubleshooting
+
+**Why can't docsearch read files in my Documents folder (permission denied)?**
+
+Your operating system may be blocking docsearch (or your terminal) from accessing protected folders like Documents or Downloads. This is a security feature — not a docsearch bug. The fix below is a one-time setup that permanently allows access on each platform. These changes are narrowly scoped — they only grant read access to your terminal or Python for the folders you specify. All other OS security features (antivirus, firewall, app sandboxing, etc.) continue to work normally.
+
+- **macOS:** Open System Settings → Privacy & Security → Full Disk Access. Click the `+` button, navigate to your terminal app (Terminal.app, iTerm, etc.), and add it. You may need to unlock the settings with your password first. Once added, the permission is permanent — it survives reboots and app updates. However, a major macOS upgrade (e.g., Ventura → Sonoma) can reset privacy permissions, so you may need to re-add it after upgrading. If you prefer narrower access, use Privacy & Security → Files and Folders instead and grant your terminal access to just the Documents folder.
+- **Windows:** Open Windows Security → Virus & threat protection → Ransomware protection → Controlled folder access. If Controlled folder access is on, click "Allow an app through Controlled folder access," then click "Add an allowed app" → "Browse all apps" and select your Python executable. To find its path, run `where python` in a terminal. Once added, the allowlist entry is permanent. If you don't use Controlled folder access (it's off by default), this step is unnecessary — check your folder permissions instead: right-click the folder → Properties → Security tab and make sure your user account has Read access. Alternatively, running your terminal as administrator bypasses most access restrictions, but this is a per-session workaround, not a permanent fix.
+- **Linux:** Run `chmod -R u+r /path/to/folder` to grant yourself read access, or `chown -R $USER /path/to/folder` to take ownership. These changes are permanent. If the folder is on an NTFS or FAT external drive, set the permissions at mount time by adding `uid=$USER,gid=$(id -g),dmask=022,fmask=133` to the mount options in `/etc/fstab`, then remount. This ensures the drive is always accessible when plugged in.
+
+---
+
+**"ModuleNotFoundError: No module named 'fitz'" (or any other module)**
+
+A required dependency is missing. This can happen after a Python upgrade or if the install was interrupted.
+
+```bash
+pip install --upgrade docsearch       # reinstalls docsearch and all dependencies
+docsearch --check                      # verify everything is installed
+```
+
+If you used pipx: `pipx reinstall docsearch`
+
+---
+
+**"Error: docsearch requires Python 3.10 or later"**
+
+docsearch needs Python 3.10+. Check your version with `python3 --version`, then upgrade:
+
+- macOS: `brew install python@3.12`
+- Ubuntu: `sudo apt install python3.12`
+- Windows: Download from [python.org/downloads](https://www.python.org/downloads/)
+
+After upgrading, reinstall docsearch with the new Python.
+
+---
+
+**"Fuzzy search requires the rapidfuzz Python package"**
+
+The `-z` (fuzzy) flag needs the `rapidfuzz` package:
+
+```bash
+pip install rapidfuzz
+```
+
+Or reinstall docsearch: `pip install --upgrade docsearch`
+
+---
+
+**"OCR requires the pytesseract and Pillow packages" / "Tesseract OCR is not installed"**
+
+The `-O` (OCR) flag needs three things:
+
+1. **Tesseract binary** (the OCR engine):
+   - macOS: `brew install tesseract`
+   - Ubuntu: `sudo apt install tesseract-ocr`
+   - Windows: [Download from GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
+
+2. **Python packages**: `pip install pytesseract Pillow`
+
+---
+
+**"Index database was corrupted and has been removed"**
+
+docsearch detected that the `.docsearch.db` file was damaged and automatically deleted it. This can happen if a previous indexing operation was interrupted. Simply rebuild:
+
+```bash
+docsearch --index
+```
+
+---
+
+**"docsearch stopped working after upgrading Python"**
+
+Python upgrades can break installed packages. Fix it by reinstalling:
+
+```bash
+pip install --upgrade docsearch       # if installed with pip
+pipx reinstall docsearch              # if installed with pipx
+docsearch --check                      # verify the fix
+```
+
+Check `docsearch_errors.log` in the current directory for a crash report with a diagnosis of the specific issue.
+
+---
+
+**"Permission denied" or "file is locked"**
+
+A file could not be read because it's open in another application (common on Windows) or you don't have read permissions. docsearch will skip the file and continue searching. Check `docsearch_errors.log` for the specific file.
+
+---
+
+**"An unexpected error occurred"**
+
+1. Check `docsearch_errors.log` in the current directory — it contains a diagnosis with the likely cause and a suggested fix
+2. Run `docsearch --check` to verify your Python version and all dependencies
+3. If the problem persists, [report it on GitHub](https://github.com/exbuf/docsearch/issues) and include the contents of `docsearch_errors.log`
+
+---
+
+**"docsearch: command not found" after installation**
+
+pip installed the `docsearch` console script to a directory not in your `$PATH`. This commonly happens when installing with `--user` or when the virtual environment is not activated.
+
+- Check where it was installed: `pip show -f docsearch | grep docsearch`
+- On Linux: scripts go to `~/.local/bin` — add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`
+- On macOS with Homebrew: scripts go to `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel) — add to `~/.zshrc`
+- On Windows: scripts go to `%APPDATA%\Python\Scripts` — add this to your system PATH
+- As a fallback, you can always run `python -m docsearch` instead
+
+---
+
+**Wrong Python or wrong pip (multiple Python installations)**
+
+After installing docsearch, running it gives `ModuleNotFoundError` because pip installed into a different Python than the one running docsearch. This is common when system Python, Homebrew, pyenv, conda, or WSL Python coexist.
+
+- Always install with `python -m pip install docsearch` (not just `pip install`) to ensure pip matches your Python
+- Verify: `python -m pip show docsearch` and `python -m docsearch --version`
+- In virtual environments, ensure the venv is activated: `which python` should point to the venv's Python
+
+---
+
+**Regex patterns behave differently in PowerShell vs CMD (Windows)**
+
+Regex patterns with special characters (`$`, `(`, `)`, `|`, `{`, `}`) produce unexpected results or errors in PowerShell because PowerShell interprets these characters before they reach Python.
+
+- In PowerShell, use **single quotes** for search terms: `docsearch -x '\d{3}-\d{3}-\d{4}'`
+- In CMD, double quotes work normally: `docsearch -x "\d{3}-\d{3}-\d{4}"`
+- PowerShell also interprets backticks as escape characters — avoid them in search terms
+
+---
+
+**Windows antivirus blocks docsearch or quarantines report files**
+
+Windows Defender or third-party antivirus may flag docsearch's rapid file scanning as suspicious, quarantine report files immediately after creation, or block the `.docsearch.db` index file.
+
+- Add the search folder and Python's installation path to your antivirus exclusion list
+- In Windows Security → Virus & threat protection → Manage settings → Exclusions, add the folder being searched
+- If report files disappear after generation, check your antivirus quarantine
+
+---
+
+**Windows path length limit (260 characters) causes files to be skipped**
+
+Deeply nested directories with long filenames may exceed Windows' default 260-character path limit, causing files to be silently skipped during recursive search.
+
+- Enable long paths: run as Administrator: `reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f` and restart
+- Alternatively, move files to a shorter base path
+
+---
+
+**Windows console shows garbled non-ASCII characters**
+
+Search results with accented letters, CJK characters, or symbols display as garbled text in the legacy Windows console (cmd.exe).
+
+- Run `chcp 65001` before running docsearch to switch the console to UTF-8
+- Or use Windows Terminal (included with Windows 11) which handles UTF-8 natively
+- Setting `PYTHONIOENCODING=utf-8` as an environment variable also helps
+
+---
+
+**macOS Gatekeeper blocks Tesseract**
+
+OCR with `-O` fails with "tesseract cannot be opened because the developer cannot be verified."
+
+- Prefer installing via Homebrew: `brew install tesseract`
+- For manually installed Tesseract: run `xattr -d com.apple.quarantine $(which tesseract)` to remove the quarantine flag
+- Or go to System Settings → Privacy & Security and click "Allow Anyway" after the first blocked attempt
+
+---
+
+**Apple Silicon (M1/M2/M3) pip install fails with compilation errors**
+
+`pip install docsearch` fails with build errors for PyMuPDF, rapidfuzz, or other C-extension packages on Apple Silicon Macs.
+
+- Ensure you are using a native arm64 Python: `python3 -c "import platform; print(platform.machine())"` should print `arm64`
+- Install Xcode Command Line Tools: `xcode-select --install`
+- Update pip first: `pip install --upgrade pip` (newer pip finds pre-built wheels more reliably)
+- Force pre-built wheels: `pip install --only-binary :all: pymupdf rapidfuzz`
+
+---
+
+**Homebrew Python vs system Python confusion (macOS)**
+
+docsearch is installed but `docsearch` says "command not found", or it runs with the wrong Python.
+
+- macOS ships a system Python at `/usr/bin/python3` but Homebrew installs its own at `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
+- Check which Python you are using: `which python3`
+- Ensure Homebrew's bin is in your PATH: add `export PATH="/opt/homebrew/bin:$PATH"` to `~/.zshrc`
+- Install explicitly: `python3 -m pip install docsearch`
+
+---
+
+**GUI fails on headless Linux (no display server)**
+
+Running `docsearch-gui` on a Linux server or SSH session produces `TclError: no display name and no $DISPLAY environment variable`.
+
+- Use the CLI (`docsearch`) instead of the GUI on headless systems
+- For remote GUI access, use SSH with X forwarding: `ssh -X user@host`
+- Or set up a virtual framebuffer: `sudo apt install xvfb && xvfb-run docsearch-gui`
+
+---
+
+**Missing Tkinter on Linux**
+
+`docsearch-gui` fails with `ModuleNotFoundError: No module named '_tkinter'` even though customtkinter is installed.
+
+Tkinter's C binding is a system-level dependency not included with pip:
+
+- Ubuntu/Debian: `sudo apt install python3-tk`
+- Fedora: `sudo dnf install python3-tkinter`
+- Arch: `sudo pacman -S tk`
+- If using pyenv: install `tk-dev` first, then rebuild Python: `sudo apt install tk-dev && pyenv install 3.12`
+
+---
+
+**GUI display issues on Linux with Wayland**
+
+The GUI has rendering artifacts, blank areas, or input problems on modern Linux desktops using Wayland (GNOME 41+, Fedora, Ubuntu 22.04+).
+
+- Force X11 backend: `GDK_BACKEND=x11 docsearch-gui`
+- Or log in using an "Xorg" or "GNOME on Xorg" session instead of the default Wayland session
+
+---
+
+**GUI text is too small or too large (high-DPI / display scaling)**
+
+On 4K monitors or Retina displays, GUI text and buttons may appear microscopic or oversized.
+
+- Windows: right-click the Python executable → Properties → Compatibility → Change high DPI settings → Override high DPI scaling behavior (Application)
+- Linux: set `TK_SCALING=2.0` as an environment variable before launching
+- macOS: generally handled automatically, but mixed-DPI multi-monitor setups may have issues
+
+---
+
+**Scanned PDFs return no results (without OCR flag)**
+
+PDFs that are scanned images (no selectable text layer) return zero matches in a normal search.
+
+- Use the `-O` flag to enable OCR: `docsearch -O search_term`
+- Tesseract must be installed (see the OCR troubleshooting entry above)
+- OCR is slower than text extraction — consider building an index with OCR: `docsearch --index -O`
+
+---
+
+**Encrypted or password-protected PDFs produce no results**
+
+Password-protected PDFs are processed without error but yield no matches because the content cannot be extracted.
+
+- Remove PDF encryption before searching: `qpdf --decrypt input.pdf output.pdf` (requires the password)
+- docsearch does not currently support supplying PDF passwords
+- The file appears in the "files searched" count but produces no matches — check `docsearch_errors.log` for details
+
+---
+
+**Non-ASCII filenames cause errors on Linux**
+
+Files with accented letters, Chinese/Japanese/Korean characters, or other non-ASCII characters in their names are skipped or cause errors.
+
+- This typically happens when the system locale is set to `C` or `POSIX` (common in Docker containers and minimal server installations)
+- Fix: `export LANG=en_US.UTF-8` (install the locale first if needed: `sudo apt install locales && sudo locale-gen en_US.UTF-8`)
+
+---
+
+**Search is very slow on network drives (SMB/NFS)**
+
+docsearch is unusably slow when searching files on a mapped network drive.
+
+- Copy files to a local directory before searching — network latency multiplied by thousands of file operations creates massive cumulative delay
+- If copying is not feasible, build the index locally after copying, then search with `--index-search`
+- Use `-c 1` to avoid multiplying network I/O across multiple processes
+- Do not place the `.docsearch.db` index file on a network drive — SQLite does not officially support network filesystems
+
+---
+
+**"Too many open files" error on macOS or Linux**
+
+docsearch crashes with `OSError: [Errno 24] Too many open files` during large searches.
+
+- Increase the file descriptor limit: run `ulimit -n 4096` before searching
+- Use `-c 1` to reduce concurrent file opens
+- For a permanent fix on macOS, see Apple's documentation on raising the `maxfiles` limit
+- On Linux, edit `/etc/security/limits.conf` to increase the `nofile` limit
+
+---
+
+**"database is locked" error during indexing**
+
+Building or refreshing the index fails with `sqlite3.OperationalError: database is locked`.
+
+- Close all other docsearch instances (CLI and GUI)
+- If no other instances are running, a previous crash may have left stale lock files — delete `.docsearch.db-wal` and `.docsearch.db-shm` from the directory (use `ls -a` to see them)
+- Then rebuild: `docsearch --index-clear && docsearch --index`
+
+---
+
+**pip install fails with C compiler errors**
+
+`pip install docsearch` fails with "Microsoft Visual C++ 14.0 or greater is required" (Windows) or `gcc: error` (Linux) during installation of native extensions.
+
+- Windows: install [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+- Linux: `sudo apt install build-essential python3-dev` (Ubuntu/Debian) or `sudo dnf install gcc python3-devel` (Fedora)
+- macOS: `xcode-select --install`
+- Upgrade pip first: `pip install --upgrade pip` — newer pip is better at finding pre-built wheels that avoid compilation entirely
+
+---
+
+**openpyxl warnings flood the console when searching Excel files**
+
+Searching directories with many `.xlsx` files produces repeated `UserWarning: Data Validation extension not supported` messages.
+
+- Upgrade openpyxl: `pip install --upgrade openpyxl`
+- If warnings persist, set `PYTHONWARNINGS=ignore` as an environment variable before running docsearch
+- These warnings do not affect search results — they are cosmetic only
