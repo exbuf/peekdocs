@@ -22,6 +22,7 @@
   - [Command Examples](#command-examples)
 - [Output](#output)
   - [Command Translation](#command-translation)
+- [Files Created by docsearch](#files-created-by-docsearch)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
 - [Boolean Expression Search](#boolean-expression-search)
@@ -869,6 +870,143 @@ Elapsed time: 0.45 seconds, Cores used: 4 of 8
   summary.docx: 1
 Results ==> /Users/bob/GoogleDocs
 ```
+
+## Files Created by docsearch
+
+docsearch creates several types of files during normal operation. Understanding what each file is, where it lives, and how to manage it helps you keep your folders clean and troubleshoot issues.
+
+**Important:** docsearch never modifies, moves, or deletes your original documents. All files listed below are created by docsearch itself.
+
+### Search reports
+
+These are your search results. They are overwritten each time you run a new search (unless you use `-s` to save or `--timestamp` to add a timestamp).
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `docsearch_results.txt` | Plain text report with `**highlighted**` matches | Search folder (or `--output-dir`) |
+| `docsearch_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
+| `docsearch_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
+| `docsearch_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
+
+**Protected from searching:** Yes — these filenames are explicitly excluded so docsearch never searches its own reports.
+**How to delete:** Delete them manually at any time. They are recreated on the next search.
+
+### Saved and accumulated reports
+
+Created when you use `-s` (save) or `-sa` (append) to archive results with a name you choose.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `DO_NOT_SEARCH_{name}.txt` | Named archive of search results (text) | Search folder (or `--output-dir`) |
+| `DO_NOT_SEARCH_{name}.docx` | Named archive of search results (Word) | Search folder (or `--output-dir`) |
+| `DO_NOT_SEARCH_ACCUMULATED_{name}.txt` | Accumulated results from multiple searches (text) | Search folder (or `--output-dir`) |
+| `DO_NOT_SEARCH_ACCUMULATED_{name}.docx` | Accumulated results from multiple searches (Word) | Search folder (or `--output-dir`) |
+
+**Protected from searching:** Yes — the `DO_NOT_SEARCH_` prefix ensures these are never included in future searches.
+**How to delete:** Delete them manually at any time. Use the **Clean Up Suite Files** button in the suites panel to bulk-delete suite-related files.
+
+### Suite stage reports
+
+Created automatically during suite runs. Each search in the suite gets its own timestamped report files.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.txt` | Individual stage text results | Suite output dir (or search folder) |
+| `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.docx` | Individual stage Word results | Suite output dir (or search folder) |
+| `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.csv` | Individual stage CSV results (if CSV output enabled) | Suite output dir (or search folder) |
+| `DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}_{timestamp}.json` | Individual stage JSON results (if JSON output enabled) | Suite output dir (or search folder) |
+
+**Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
+**How to delete:** Click **Clean Up Suite Files** in the suites panel, or delete manually. Previous run's stage files are automatically cleaned up before each new suite run.
+
+### Suite summary reports
+
+Created automatically when a suite run completes (manual or scheduled).
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx` | Formatted Word report with color-coded pass/fail table, stage details, fingerprint, and source file manifest | Suite output dir (or search folder) |
+| `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt` | Plain text summary | Suite output dir (or search folder) |
+| `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.json` | Machine-readable summary | Suite output dir (or search folder) |
+
+**Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
+**How to delete:** Click **Clean Up Suite Files** in the suites panel, or delete manually. Each run creates new timestamped files, so old reports accumulate unless cleaned up.
+
+### Auto-run log
+
+A persistent, append-only history of all scheduled suite runs.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `DO_NOT_SEARCH_autorun_log.txt` | Timestamped log of every auto-run with pass/fail summary | Suite output dir (or search folder) |
+
+**Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
+**How to delete:** Click **Clear Auto-Run History** in the suites panel. The file is automatically recreated on the next scheduled run.
+
+### Error log
+
+An append-only log of file processing errors and crash reports.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `docsearch_errors.log` | Records files that couldn't be read (permission denied, corrupted, locked) and crash diagnostics | Search folder (or `--output-dir`) |
+
+**Protected from searching:** Yes — this filename is explicitly excluded.
+**How to delete:** Click **Clear Error Log** on the bottom toolbar, or delete manually. The file is automatically recreated the next time a file error occurs. If docsearch runs cleanly with no errors, no error log is created.
+
+### Search index
+
+An optional SQLite database that stores extracted text for faster repeated searches.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `.docsearch.db` | SQLite FTS5 full-text search index | Search folder |
+| `.docsearch.db-wal` | Write-Ahead Log (temporary, for concurrent access) | Search folder |
+| `.docsearch.db-shm` | Shared memory file (temporary, for concurrent access) | Search folder |
+
+**Protected from searching:** Yes — excluded by filename.
+**How to delete:** Use `docsearch --index-clear` or the **Delete Index(es)** button in the GUI. This removes all three files. The index can be rebuilt at any time with `docsearch --index`. The `-wal` and `-shm` files are created and removed automatically by SQLite — if they persist after a crash, they are safe to delete manually.
+**How to recover:** If the index becomes corrupted, docsearch detects it automatically, deletes it, and falls back to direct file scanning. Rebuild with `docsearch --index`.
+
+### Collection file
+
+Stores your saved searches and suite definitions for each folder.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `.docsearch_collection.json` | Saved searches, suite definitions, pass criteria, schedules | Each search folder |
+
+**Protected from searching:** Yes — excluded by filename.
+**How to delete:** Delete it manually if you want to clear all saved searches and suites for a folder. There is no undo — the searches and suites are gone. To recover, you would need to recreate them in the GUI.
+**How to back up:** Copy the file to a safe location. It's a standard JSON file that can be viewed in any text editor.
+
+### Configuration file
+
+Your saved default settings.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `~/.docsearchrc` | Default values for all CLI flags and GUI settings, plus email alert configuration | Home directory (`~` = `/Users/you` on Mac, `C:\Users\you` on Windows, `/home/you` on Linux) |
+
+**Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Options and then **Save Settings** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Options to view its current contents.
+**How to recover:** docsearch recreates it the next time you save settings. If you lose email alert configuration, you'll need to re-enter it via **Configure Email Alerts**.
+
+### Summary
+
+| Category | File count | Auto-excluded from searches | Can safely delete |
+|----------|-----------|----------------------------|-------------------|
+| Search reports | 2-4 per search | Yes | Yes — recreated on next search |
+| Saved/accumulated reports | 2 per save | Yes | Yes — user's choice |
+| Suite stage reports | 2-4 per stage per run | Yes | Yes — auto-cleaned before next run |
+| Suite summary reports | 3 per run | Yes | Yes — use Clean Up Suite Files |
+| Auto-run log | 1 per folder | Yes | Yes — use Clear Auto-Run History |
+| Error log | 0-1 per folder | Yes | Yes — use Clear Error Log |
+| Search index | 1-3 per folder | Yes | Yes — use Delete Index or --index-clear |
+| Collection file | 1 per folder | Yes | Yes — but loses all saved searches/suites |
+| Config file | 1 (home dir) | N/A | Yes — but loses all saved settings |
+
+**None of these files are required for docsearch to run.** If any file is missing, docsearch either recreates it automatically or operates without it. Deleting all generated files returns a folder to its original state — only your source documents remain.
 
 ## Search Index (Optional)
 
