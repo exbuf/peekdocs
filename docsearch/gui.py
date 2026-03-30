@@ -361,6 +361,12 @@ def _launch_gui():
             self.grid_columnconfigure(1, weight=1)
             self.grid_rowconfigure(8, weight=1)
 
+            # Shared toggle row for Advanced Options, Search Suites, Index Options
+            self._toggle_row = ctk.CTkFrame(self, fg_color="transparent")
+            self._toggle_row.grid(
+                row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            )
+
             self._build_search_row()
             self._build_folder_row()
             self._build_advanced_toggle()
@@ -981,11 +987,6 @@ def _launch_gui():
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
         def _build_advanced_toggle(self):
-            self._toggle_row = ctk.CTkFrame(self, fg_color="transparent")
-            self._toggle_row.grid(
-                row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
-            )
-
             self.advanced_toggle = ctk.CTkButton(
                 self._toggle_row,
                 text="\u25b6 Advanced Options",
