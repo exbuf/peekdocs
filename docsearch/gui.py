@@ -3080,15 +3080,14 @@ def _launch_gui():
             self.view_error_log_bottom.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
 
-            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="left", padx=(0, 3))
             text_size_menu = ctk.CTkOptionMenu(
                 self.bottom_frame, variable=self._text_size_var,
                 values=["Small", "Normal", "Large", "Extra Large"],
                 width=110, font=ctk.CTkFont(size=11),
                 command=self._on_text_size_changed,
             )
-            text_size_menu.pack(side="left")
-            Tooltip(text_size_menu, "Scale all text and widgets in the GUI. Save Settings to keep your choice.")
+            text_size_menu.pack(side="right", padx=(5, 0))
+            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
 
 
         # ── Actions ──────────────────────────────────────────────
@@ -4161,9 +4160,20 @@ def _launch_gui():
         }
 
         def _on_text_size_changed(self, value):
-            """Scale all GUI widgets based on the selected text size."""
+            """Scale all GUI widgets and auto-save the setting."""
             scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
             ctk.set_widget_scaling(scale)
+            # Auto-save so it persists between app invocations
+            try:
+                from docsearch.cli import _load_config, _save_config
+                cfg = _load_config()
+                if value == "Normal":
+                    cfg.pop("text_size", None)
+                else:
+                    cfg["text_size"] = value
+                _save_config(cfg)
+            except Exception:
+                pass
 
         def _inspect_settings(self):
             """Show the current saved settings from ~/.docsearchrc in a read-only popup."""
