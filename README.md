@@ -136,19 +136,19 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 ## What You Get at Each Price Point
 
-| Feature | Free (docsearch) | $29-96/yr (Copernic) | $249 (dtSearch) |
-|---------|-----------------|---------------------|----------------|
-| File types | 42 | 170+ | Hundreds |
-| CLI + GUI + API | All three | GUI only | GUI only |
-| Cross-platform | Win/Mac/Linux | Windows only | Windows only |
-| Highlighted .docx reports | Yes | No | No |
-| Search suites with pass/fail | Yes | No | No |
-| Range queries (dates, $, %) | Yes | No | Numeric only |
-| Email alerts | Yes | No | No |
-| OCR (scanned PDFs/images) | Yes | Elite tier only | Reads OCR text |
-| Email search (.eml/.msg/.pst) | Yes | Yes | Yes |
-| Archive search (.zip/.7z/.rar) | Yes | No | No |
-| Open source | Yes | No | No |
+| Feature | docsearch (free) | Paid competitors ($29-249/yr) |
+|---------|-----------------|-------------------------------|
+| File types | 42 | 170+ |
+| CLI + GUI + API | All three | GUI only |
+| Cross-platform | Win/Mac/Linux | Windows only |
+| Highlighted .docx reports | Yes | No |
+| Search suites with pass/fail | Yes | No |
+| Range queries (dates, $, %) | Yes | Limited or none |
+| Email alerts | Yes | No |
+| OCR (scanned PDFs/images) | Yes | Varies |
+| Email search (.eml/.msg/.pst) | Yes | Yes |
+| Archive search (.zip/.7z/.rar) | Yes | No |
+| Open source | Yes | No |
 
 ## Author
 
