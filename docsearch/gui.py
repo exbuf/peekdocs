@@ -3086,7 +3086,19 @@ def _launch_gui():
                 command=self.open_error_log,
                 font=ctk.CTkFont(size=13),
             )
-            self.view_error_log_bottom.pack(side="right", padx=5)
+            self.view_error_log_bottom.pack(side="right", padx=(5, 0))
+
+            self.clear_error_log_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="Clear Error Log",
+                width=115,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._clear_error_log,
+                font=ctk.CTkFont(size=13),
+            )
+            self.clear_error_log_btn.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
 
 
@@ -3430,6 +3442,24 @@ def _launch_gui():
                 os.startfile(error_log_path)  # type: ignore[attr-defined]
             else:
                 subprocess.Popen(["xdg-open", error_log_path])
+
+        def _clear_error_log(self):
+            folder = self.results_dir or self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a folder first.")
+                return
+            error_log_path = os.path.join(folder, "docsearch_errors.log")
+            if not os.path.exists(error_log_path):
+                self.status_label.configure(text="No error log to clear.")
+                return
+            from tkinter import messagebox
+            if messagebox.askyesno("Clear Error Log",
+                                   f"Delete {os.path.basename(error_log_path)}?\n\nThis cannot be undone."):
+                try:
+                    os.remove(error_log_path)
+                    self.status_label.configure(text="Error log cleared.")
+                except OSError as e:
+                    self._show_error(f"Could not delete error log: {e}")
 
         def _open_report_format(self, fmt):
             """Open the report file for the given format (txt, docx, csv, json)."""
