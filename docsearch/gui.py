@@ -3041,7 +3041,7 @@ def _launch_gui():
                 command=self.show_about,
                 font=ctk.CTkFont(size=13),
             )
-            self.about_button.pack(side="right")
+            self.about_button.pack(side="right", padx=5)
 
             text_size_menu = ctk.CTkOptionMenu(
                 self.bottom_frame, variable=self._text_size_var,
@@ -3049,8 +3049,8 @@ def _launch_gui():
                 width=110, font=ctk.CTkFont(size=11),
                 command=self._on_text_size_changed,
             )
-            text_size_menu.pack(side="right", padx=(5, 0))
-            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(5, 3))
+            text_size_menu.pack(side="right", padx=5)
+            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right")
 
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -3062,19 +3062,7 @@ def _launch_gui():
                 command=self._toggle_tooltips,
                 font=ctk.CTkFont(size=13),
             )
-            self.tooltip_toggle_btn.pack(side="right", padx=(0, 5))
-
-            self.view_error_log_bottom = ctk.CTkButton(
-                self.bottom_frame,
-                text="View Error Log",
-                width=110,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.open_error_log,
-                font=ctk.CTkFont(size=13),
-            )
-            self.view_error_log_bottom.pack(side="right", padx=(5, 0))
+            self.tooltip_toggle_btn.pack(side="right", padx=5)
 
             self.clear_error_log_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -3087,6 +3075,18 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.clear_error_log_btn.pack(side="right", padx=5)
+
+            self.view_error_log_bottom = ctk.CTkButton(
+                self.bottom_frame,
+                text="View Error Log",
+                width=110,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.open_error_log,
+                font=ctk.CTkFont(size=13),
+            )
+            self.view_error_log_bottom.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
 
 
