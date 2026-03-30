@@ -52,7 +52,7 @@
 pipx install git+https://github.com/exbuf/docsearch.git
 ```
 
-After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
+After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install. docsearch is installed in its own private workspace — it will not affect your existing Python installation or any other programs. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
 
 ### Option B: Manual Install
 

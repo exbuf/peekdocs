@@ -4,6 +4,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 
 ## Table of Contents
 
+- [Will docsearch affect my existing Python installation?](#will-docsearch-affect-my-existing-python-installation)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [GUI Mode](#gui-mode)
 - [Usage](#usage)
@@ -27,6 +28,29 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Search Suites](#search-suites)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
+
+## Will docsearch affect my existing Python installation?
+
+No. Both installation methods keep docsearch completely isolated from your existing Python setup, your other Python programs, and your system.
+
+**With pipx** (`pipx install docsearch`): pipx creates a private workspace for docsearch behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. docsearch's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`docsearch` and `docsearch-gui`) are added to your PATH so you can type them in any terminal.
+
+**With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything docsearch installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if docsearch doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
+
+**What docsearch will NOT do:**
+
+- It will not upgrade or downgrade your existing Python packages
+- It will not break other Python programs on your computer
+- It will not modify your system Python installation
+- It will not interfere with conda, pyenv, Anaconda, or other Python environments
+- It will not install anything outside its private workspace (except the two command names on your PATH if you use pipx)
+
+**If you want to uninstall completely:**
+
+- **pipx:** `pipx uninstall docsearch` — removes everything, including the private workspace
+- **Manual install:** delete the `docsearch` folder you cloned. That's it — nothing else was changed on your system
+
+---
 
 ## Getting Started with the Terminal
 
