@@ -145,6 +145,10 @@ docsearch is free and matches or exceeds commercial tools costing $79–$150,000
 | Email alerts | Yes | No | No | Yes |
 | Price | Free | $249 | $29-96/yr | $80K+/yr |
 
+## Author
+
+Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer and solo developer.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
