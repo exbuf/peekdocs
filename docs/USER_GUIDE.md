@@ -707,7 +707,9 @@ Results ==> /Users/bob/GoogleDocs
 
 ## Search Index (Optional)
 
-By default, docsearch opens and parses every file on each search. For large folders with many documents, you can build an optional search index to make repeated searches much faster. The index stores extracted text in a SQLite FTS5 database so subsequent searches skip file I/O and parsing entirely.
+An index is like a book's index — instead of reading every page to find a word, you look it up in the back and go straight to the right page. Without an index, docsearch opens and reads every file from scratch each time you search. With an index, docsearch reads the files once, stores the extracted text in a database, and searches that database on every subsequent search. The result is the same — you get the same matches — but repeated searches are much faster, especially on large folders with hundreds or thousands of files.
+
+You don't need an index for small folders or one-off searches. It's most useful when you search the same folder repeatedly (like a compliance team running weekly audits on the same document set).
 
 **Building the index from the terminal:**
 
