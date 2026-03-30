@@ -977,8 +977,8 @@ Stores your saved searches and suite definitions for each folder.
 | `.docsearch_collection.json` | Saved searches, suite definitions, pass criteria, schedules | Each search folder |
 
 **Protected from searching:** Yes — excluded by filename.
-**How to delete:** Delete it manually if you want to clear all saved searches and suites for a folder. There is no undo — the searches and suites are gone. To recover, you would need to recreate them in the GUI.
-**How to back up:** Copy the file to a safe location. It's a standard JSON file that can be viewed in any text editor.
+**Caution:** This file contains all your saved searches and suite definitions for the folder. **Do not delete it unless you intend to lose all your suites.** If you spent time building compliance suites with pass/fail criteria and scheduling, deleting this file erases all of that work. There is no undo — you would need to recreate every saved search and every suite from scratch in the GUI.
+**How to back up:** Copy the file to a safe location. It's a standard JSON file that can be viewed in any text editor. Consider backing it up before major changes.
 
 ### Configuration file
 
@@ -1003,16 +1003,16 @@ Your saved default settings.
 | Auto-run log | 1 per folder | Yes | Yes — use Clear Auto-Run History |
 | Error log | 0-1 per folder | Yes | Yes — use Clear Error Log |
 | Search index | 1-3 per folder | Yes | Yes — use Delete Index or --index-clear |
-| Collection file | 1 per folder | Yes | Yes — but loses all saved searches/suites |
-| Config file | 1 (home dir) | N/A | Yes — but loses all saved settings |
+| Collection file | 1 per folder | Yes | **No** — contains your saved searches and suites. Back up before deleting |
+| Config file | 1 (home dir) | N/A | With caution — loses saved settings and email config |
 
-**None of these files are required for docsearch to run.** If any file is missing, docsearch either recreates it automatically or operates without it. Deleting all generated files returns a folder to its original state — only your source documents remain.
+**Most of these files are safe to delete** — docsearch recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.docsearch_collection.json`), which contains your saved searches and suites, and the **config file** (`~/.docsearchrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
 
 ## Search Index (Optional)
 
 By default, docsearch opens and parses every file on each search. For large folders with many documents, you can build an optional search index to make repeated searches much faster. The index stores extracted text in a SQLite FTS5 database so subsequent searches skip file I/O and parsing entirely.
 
-**Building the index:**
+**Building the index from the terminal:**
 
 ```bash
 cd /path/to/your/documents
@@ -1020,9 +1020,19 @@ docsearch --index              # index files in current folder and all subfolder
 docsearch --index -O           # same, with OCR for scanned PDFs and images
 ```
 
+**Building the index from the GUI:**
+
+1. Open `docsearch-gui`
+2. In the **Search Folder** field, browse to the folder you want to index
+3. Click **Index Options** (below Search Suites on the main screen) to expand the index panel
+4. Click **Build Index(es)** — this indexes all files in the folder and all subfolders
+5. Once built, check **Search Using Index(es)** in Advanced Options to use it
+
+The index is stored as a `.docsearch.db` file inside the folder you indexed. Each folder gets its own separate index. You can see the index status (file count, size, last updated) by clicking **Index Status** in the index panel.
+
 **Using the index:**
 
-Once built, the index is used automatically — just search as usual:
+Once built, the index is used automatically in the CLI — just search as usual. In the GUI, make sure **Search Using Index(es)** is checked in Advanced Options:
 
 ```bash
 docsearch budget               # uses the index automatically (faster)
