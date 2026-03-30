@@ -3325,7 +3325,15 @@ def _launch_gui():
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
             self._hide_files_list()
-            self.progress_bar.set(0)
+            # Use indeterminate for indexed searches (no file-by-file progress),
+            # determinate for direct file scanning
+            is_indexed = self.index_search_var.get() == "on"
+            if is_indexed:
+                self.progress_bar.configure(mode="indeterminate")
+                self.progress_bar.start()
+            else:
+                self.progress_bar.configure(mode="determinate")
+                self.progress_bar.set(0)
             self.progress_bar.grid(
                 row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
@@ -3404,7 +3412,10 @@ def _launch_gui():
                 )
 
         def _search_finished(self, stdout, returncode):
-            self.progress_bar.set(1)
+            try:
+                self.progress_bar.stop()
+            except Exception:
+                pass
             self.progress_bar.grid_remove()
             self.search_start_time = None
             if self.elapsed_timer_id:
