@@ -4410,15 +4410,13 @@ def _launch_gui():
                 try:
                     result = subprocess.run(
                         cmd, cwd=folder,
-                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                         env=env,
                     )
-                    stdout = result.stdout.decode("utf-8", errors="replace")
                     returncode = result.returncode
-                except Exception as e:
-                    stdout = str(e)
+                except Exception:
                     returncode = -1
-                self.after(0, _finished, stdout, returncode)
+                self.after(0, _finished, "", returncode)
 
             def _finished(stdout, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
