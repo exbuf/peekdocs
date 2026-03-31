@@ -45,10 +45,30 @@ No. Both installation methods keep docsearch completely isolated from your exist
 - It will not interfere with conda, pyenv, Anaconda, or other Python environments
 - It will not install anything outside its private workspace (except the two command names on your PATH if you use pipx)
 
+**Upgrading to a new version — your data is preserved:**
+
+All your settings, saved searches, suites, indexes, and reports are stored outside the docsearch installation — either in your home directory or in the folders where your documents are. When you upgrade, none of this is touched:
+
+| Your data | Where it lives | Preserved on upgrade? |
+|-----------|---------------|----------------------|
+| Settings | `~/.docsearchrc` (home directory) | Yes |
+| Saved searches & suites | `.docsearch_collection.json` (each search folder) | Yes |
+| Search index | `.docsearch.db` (each search folder) | Yes |
+| Search reports | `docsearch_results.*` (each search folder) | Yes |
+| Saved/suite reports | `DO_NOT_SEARCH_*` (each search folder) | Yes |
+| Error log | `docsearch_errors.log` (each search folder) | Yes |
+
+**How to upgrade:**
+
+- **pipx:** `pipx upgrade docsearch` — replaces the code, preserves all your data
+- **Manual install:** download the new ZIP, replace the `docsearch-main` folder, run `pip install -e .` — your data is untouched
+
+No migration, no export/import, no reconfiguration. Everything just works with the new version.
+
 **If you want to uninstall completely:**
 
-- **pipx:** `pipx uninstall docsearch` — removes everything, including the private workspace
-- **Manual install:** delete the `docsearch` folder you cloned. That's it — nothing else was changed on your system
+- **pipx:** `pipx uninstall docsearch` — removes the docsearch code and its private workspace. Your settings (`~/.docsearchrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
+- **Manual install:** delete the `docsearch-main` folder you downloaded. Your settings and data in document folders remain.
 
 ---
 
