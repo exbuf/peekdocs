@@ -4526,6 +4526,13 @@ def _launch_gui():
             """Scale all GUI widgets and auto-save the setting."""
             scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
             ctk.set_widget_scaling(scale)
+            # Scale the preview text widget (standard tk.Text, not affected by ctk scaling)
+            base_size = 11
+            scaled_size = max(8, int(base_size * scale))
+            if hasattr(self, 'preview_text'):
+                self.preview_text.configure(font=("Courier", scaled_size))
+                self.preview_text.tag_configure("filename", font=("Courier", scaled_size, "bold"))
+                self.preview_text.tag_configure("line_num", font=("Courier", scaled_size))
             # Auto-save so it persists between app invocations
             try:
                 from docsearch.cli import _load_config, _save_config
