@@ -3543,6 +3543,52 @@ def _launch_gui():
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
 
+            # Build highlight pattern from current search settings
+            highlight_pattern = None
+            search_text = self.search_entry.get().strip()
+            use_regex = self.regex_var.get() == "on"
+            use_wildcard = self.wildcard_var.get() == "on"
+            use_whole_word = self.whole_word_var.get() == "on"
+            use_fuzzy = self.fuzzy_var.get() == "on"
+            is_expression = self.expression_var.get() == "on"
+
+            if search_text and not use_fuzzy:
+                patterns = []
+                if is_expression:
+                    from docsearch.expr_parser import parse_expression, extract_positive_terms
+                    terms = extract_positive_terms(parse_expression(search_text))
+                else:
+                    terms = search_text.split()
+                for term in terms:
+                    if use_wildcard:
+                        from docsearch.scanner import _wildcard_to_regex
+                        patterns.append(_wildcard_to_regex(term))
+                    elif use_regex:
+                        patterns.append(term)
+                    elif use_whole_word:
+                        patterns.append(r'\b' + _re.escape(term) + r'\b')
+                    else:
+                        patterns.append(_re.escape(term))
+                if patterns:
+                    try:
+                        highlight_pattern = _re.compile("|".join(patterns), _re.IGNORECASE)
+                    except _re.error:
+                        highlight_pattern = None
+
+            def _insert_highlighted(line):
+                """Insert a line with yellow highlighting on matched terms."""
+                if highlight_pattern:
+                    parts = highlight_pattern.split(line)
+                    matches = highlight_pattern.findall(line)
+                    for i, part in enumerate(parts):
+                        if part:
+                            self.preview_text.insert("end", part)
+                        if i < len(matches):
+                            self.preview_text.insert("end", matches[i], "match")
+                else:
+                    self.preview_text.insert("end", line)
+                self.preview_text.insert("end", "\n")
+
             # Parse the results file for cleaner output
             results_path = None
             if self.results_dir:
@@ -3569,21 +3615,11 @@ def _launch_gui():
                             self.preview_text.insert("end", "\n")
                             self.preview_text.insert("end", line + "\n", "filename")
                         elif line.startswith("(") and line.endswith(")"):
-                            # Directory path
                             self.preview_text.insert("end", line + "\n", "line_num")
                         elif line.startswith("Files WITHOUT matches:"):
                             self.preview_text.insert("end", line + "\n", "filename")
-                        elif "**" in line:
-                            # Line with highlighted matches — render highlights
-                            parts = _re.split(r'(\*\*.*?\*\*)', line)
-                            for part in parts:
-                                if part.startswith("**") and part.endswith("**"):
-                                    self.preview_text.insert("end", part[2:-2], "match")
-                                else:
-                                    self.preview_text.insert("end", part)
-                            self.preview_text.insert("end", "\n")
                         else:
-                            self.preview_text.insert("end", line + "\n")
+                            _insert_highlighted(line)
                         lines_added += 1
 
             if lines_added == 0:
