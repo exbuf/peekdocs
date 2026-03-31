@@ -479,6 +479,14 @@ def _launch_gui():
             Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
 
+            self.index_search_var = ctk.StringVar(value="off")
+            self.cb_index_search = ctk.CTkCheckBox(
+                btn_frame, text="Use Index", variable=self.index_search_var,
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
+            )
+            self.cb_index_search.pack(side="left", padx=(10, 0))
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Index Options")
+
             self.suite_toggle = ctk.CTkButton(
                 self._toggle_row,
                 text="\u25b6 Search Suites",
@@ -1124,7 +1132,7 @@ def _launch_gui():
             # Create popup window for Advanced Options
             self.advanced_window = ctk.CTkToplevel(self)
             self.advanced_window.title("Advanced Options")
-            self.advanced_window.geometry("720x520")
+            self.advanced_window.geometry("720x620")
             self.advanced_window.resizable(True, True)
             self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
             # Withdraw after event loop starts to avoid flash
@@ -1402,13 +1410,7 @@ def _launch_gui():
 
 
             # Row 11: Search Using Index(es)
-            self.index_search_var = ctk.StringVar(value="off")
-            self.cb_index_search = ctk.CTkCheckBox(
-                self.advanced_frame, text="Search Using Index(es)", variable=self.index_search_var,
-                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
-            )
-            self.cb_index_search.grid(row=12, column=0, columnspan=2, padx=15, pady=(5, 10), sticky="w")
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly — useful for verifying that both methods find identical results. Disabled when no index exists")
+            # Index checkbox moved to main panel (next to Load Settings)
 
             self.advanced_frame.grid_columnconfigure(0, minsize=130)
             self.advanced_frame.grid_columnconfigure(1, weight=1)
