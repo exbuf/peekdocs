@@ -27,7 +27,10 @@ import tarfile
 import olefile
 import xlrd
 import extract_msg
-import pypff
+try:
+    import pypff
+except ImportError:
+    pypff = None
 import py7zr
 import rarfile
 
@@ -301,6 +304,12 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
 
     elif ext == ".pst":
         # Outlook Personal Storage Table — mailbox database with many emails
+        if pypff is None:
+            raise ImportError(
+                "PST support requires the libpff-python package. "
+                "Install it with: pip install libpff-python "
+                "(requires a C compiler — see Troubleshooting in the docs)"
+            )
         pst = pypff.file()
         pst.open(filepath)
         line_num = 0
