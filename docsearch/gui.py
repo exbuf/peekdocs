@@ -4399,24 +4399,22 @@ def _launch_gui():
                 self._show_error("Please select a valid folder.")
                 return
 
-            cmd = [sys.executable, "-m", "docsearch", "-q", "--index", "-r"]
-            env = os.environ.copy()
-            env["PYTHONIOENCODING"] = "utf-8"
-
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
             self.status_label.configure(text="Building index...", text_color=("gray30", "gray70"))
 
             def _run():
                 try:
-                    result = subprocess.run(
-                        cmd, cwd=folder,
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                        env=env,
-                    )
-                    returncode = result.returncode
-                except Exception:
+                    from docsearch.indexer import build_index
+                    use_ocr = self.ocr_var.get() == "on"
+                    result = build_index(folder, recursive=True, use_ocr=use_ocr)
+                    returncode = 0
+                    stdout = f"Index built: {result['file_count']} files, {result['line_count']} lines"
+                    if result.get('errors'):
+                        stdout += f" ({len(result['errors'])} errors)"
+                except Exception as e:
                     returncode = -1
-                self.after(0, _finished, "", returncode)
+                    stdout = str(e)
+                self.after(0, _finished, stdout, returncode)
 
             def _finished(stdout, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
