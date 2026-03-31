@@ -666,20 +666,20 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
 
     docx_files = sorted(
         f for f in glob.glob(glob_prefix + ".docx", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.docx"
+        if not os.path.basename(f).startswith("docsearch_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     doc_files = sorted(glob.glob(glob_prefix + ".doc", recursive=recursive))
     pdf_files = sorted(glob.glob(glob_prefix + ".pdf", recursive=recursive))
     csv_files = sorted(
         f for f in glob.glob(glob_prefix + ".csv", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.csv"
+        if not os.path.basename(f).startswith("docsearch_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     odt_files = sorted(glob.glob(glob_prefix + ".odt", recursive=recursive))
     txt_files = sorted(
         f for f in glob.glob(glob_prefix + ".txt", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.txt"
+        if not os.path.basename(f).startswith("docsearch_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
@@ -688,7 +688,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
     json_files = sorted(
         f for f in glob.glob(glob_prefix + ".json", recursive=recursive)
-        if os.path.basename(f) != "docsearch_results.json"
+        if not os.path.basename(f).startswith("docsearch_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
         and os.path.basename(f) != ".docsearch_collection.json"
     )
