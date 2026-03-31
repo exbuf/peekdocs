@@ -787,6 +787,8 @@ An index is like a book's index — instead of reading every page to find a word
 
 You don't need an index for small folders or one-off searches. It's most useful when you search the same folder repeatedly (like a compliance team running weekly audits on the same document set).
 
+**When the index may be slower:** If your folder contains very large files (long PDFs, huge spreadsheets) that produce millions of extracted text lines, the index can actually be slower than direct scanning. Direct scanning stops reading a file as soon as it finds enough matches, while the index searches all stored text. If you notice indexed searches taking longer than non-indexed searches, uncheck **Search Using Index(es)** in Advanced Options. The index is most beneficial for folders with many small-to-medium files, not folders with a few very large files.
+
 **Building the index from the terminal:**
 
 ```bash

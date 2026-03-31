@@ -4400,7 +4400,10 @@ def _launch_gui():
                 return
 
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
-            self.status_label.configure(text="Building index...", text_color=("gray30", "gray70"))
+            self.status_label.configure(
+                text="Building index... this may take a few minutes for large folders. Please wait.",
+                text_color=("gray30", "gray70"),
+            )
 
             def _run():
                 try:
