@@ -129,7 +129,7 @@ docsearch -e "(budget OR revenue) AND NOT draft"   # Boolean expression
 docsearch -R amount:1000..5000 budget # range query
 ```
 
-Results are saved to `docsearch_results.txt` and `docsearch_results.docx` (highlighted).
+Results are saved to `docsearch_results.txt` and `docsearch_results.docx` (highlighted). The .docx report opens with whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
 Run `docsearch -h` for the full flag reference with examples.
 
