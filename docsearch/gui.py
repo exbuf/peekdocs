@@ -3512,12 +3512,17 @@ def _launch_gui():
         def _run_search(self, cmd, folder):
             import re as _re
             try:
+                env = os.environ.copy()
+                env["PYTHONIOENCODING"] = "utf-8"
                 self.process = subprocess.Popen(
                     cmd,
                     cwd=folder,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    env=env,
                 )
                 stdout, stderr = self.process.communicate()
                 returncode = self.process.returncode
