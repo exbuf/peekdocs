@@ -1462,6 +1462,17 @@ def _launch_gui():
                 text_color=("gray50", "gray50"))
             self._preview_count_label.pack(side="left", padx=(8, 0))
 
+            self._preview_font_size = 11
+            self._preview_size_var = ctk.StringVar(value="11")
+            preview_size_menu = ctk.CTkOptionMenu(
+                preview_header, variable=self._preview_size_var,
+                values=["8", "9", "10", "11", "12", "13", "14", "16", "18", "20"],
+                width=65, font=ctk.CTkFont(size=11),
+                command=self._on_preview_size_changed,
+            )
+            preview_size_menu.pack(side="right")
+            ctk.CTkLabel(preview_header, text="Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
+
             preview_text_frame = tk.Frame(self.preview_frame)
             preview_text_frame.pack(fill="both", expand=True, padx=5, pady=(2, 5))
 
@@ -4576,17 +4587,33 @@ def _launch_gui():
             "Extra Large": 1.4,
         }
 
+        def _on_preview_size_changed(self, value):
+            """Change the Results Preview font size."""
+            try:
+                size = int(value)
+            except ValueError:
+                return
+            self._preview_font_size = size
+            self._apply_preview_font(size)
+
+        def _apply_preview_font(self, size):
+            """Apply a font size to the preview text widget and its tags."""
+            if hasattr(self, 'preview_text'):
+                self.preview_text.configure(font=("Courier", size))
+                self.preview_text.tag_configure("filename", font=("Courier", size, "bold"))
+                self.preview_text.tag_configure("line_num", font=("Courier", size))
+
         def _on_text_size_changed(self, value):
             """Scale all GUI widgets and auto-save the setting."""
             scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
             ctk.set_widget_scaling(scale)
-            # Scale the preview text widget (standard tk.Text, not affected by ctk scaling)
-            base_size = 11
-            scaled_size = max(8, int(base_size * scale))
-            if hasattr(self, 'preview_text'):
-                self.preview_text.configure(font=("Courier", scaled_size))
-                self.preview_text.tag_configure("filename", font=("Courier", scaled_size, "bold"))
-                self.preview_text.tag_configure("line_num", font=("Courier", scaled_size))
+            # Update preview size dropdown to match the scaled size
+            if hasattr(self, '_preview_size_var'):
+                base_size = 11
+                scaled_size = max(8, int(base_size * scale))
+                self._preview_font_size = scaled_size
+                self._preview_size_var.set(str(scaled_size))
+                self._apply_preview_font(scaled_size)
             # Auto-save so it persists between app invocations
             try:
                 from docsearch.cli import _load_config, _save_config
