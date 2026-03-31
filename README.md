@@ -71,7 +71,9 @@ pipx install git+https://github.com/exbuf/docsearch.git
 pipx install https://github.com/exbuf/docsearch/archive/refs/heads/main.zip
 ```
 
-After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install. docsearch is installed in its own private workspace — it will not affect your existing Python installation or any other programs. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
+After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
+
+**Fully isolated.** pipx installs docsearch in its own private environment, completely separate from your system Python and all other programs. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`docsearch` and `docsearch-gui`). To uninstall completely: `pipx uninstall docsearch`. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
 
 ### Option B: Manual Install (with git)
 
