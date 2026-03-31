@@ -3516,37 +3516,16 @@ def _launch_gui():
                     cmd,
                     cwd=folder,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
-                stdout_lines = []
-                current_line = []
-                progress_re = _re.compile(r'(\d+)/(\d+)\s')
-                while True:
-                    byte = self.process.stdout.read(1)
-                    if not byte:
-                        break
-                    if byte == b'\r':
-                        # Carriage return — parse progress from current line
-                        line = b''.join(current_line).decode('utf-8', errors='replace')
-                        m = progress_re.search(line)
-                        if m:
-                            done = int(m.group(1))
-                            total = int(m.group(2))
-                            if total > 0:
-                                self.after(0, self._update_search_progress, done, total)
-                        current_line = []
-                    elif byte == b'\n':
-                        stdout_lines.append(b''.join(current_line).decode('utf-8', errors='replace'))
-                        current_line = []
-                    else:
-                        current_line.append(byte)
-                if current_line:
-                    stdout_lines.append(b''.join(current_line).decode('utf-8', errors='replace'))
-                stdout = '\n'.join(stdout_lines)
-                self.process.wait()
+                stdout, stderr = self.process.communicate()
                 returncode = self.process.returncode
-            except Exception:
-                stdout = ""
+                # Include stderr in output if stdout is empty
+                if not stdout.strip() and stderr.strip():
+                    stdout = stderr
+            except Exception as e:
+                stdout = str(e)
                 returncode = -1
             finally:
                 self.process = None
