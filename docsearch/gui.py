@@ -382,7 +382,8 @@ def _launch_gui():
             self._load_saved_settings()
             # Re-apply settings after event loop starts (CTkToplevel widgets may
             # reset their variables during initialization)
-            self.after(100, self._load_saved_settings)
+            self.after(200, self._load_saved_settings)
+            self.after(1000, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
             if self._is_first_run:
@@ -4716,31 +4717,19 @@ def _launch_gui():
             from docsearch.cli import _save_config, _config_path
 
             settings = {}
-            # Boolean settings
-            if self.recursive_var.get() == "on":
-                settings["recursive"] = True
-            if self.and_mode_var.get() == "on":
-                settings["match_all"] = True
-            if self.fuzzy_var.get() == "on":
-                settings["fuzzy"] = True
-            if self.wildcard_var.get() == "on":
-                settings["wildcard"] = True
-            if self.regex_var.get() == "on":
-                settings["regex"] = True
-            if self.ocr_var.get() == "on":
-                settings["ocr"] = True
-            if self.index_search_var.get() == "on":
-                settings["index_search"] = True
-            if self.output_csv_var.get() == "on":
-                settings["output_csv"] = True
-            if self.output_json_var.get() == "on":
-                settings["output_json"] = True
-            if self.inverse_var.get() == "on":
-                settings["inverse"] = True
-            if self.expression_var.get() == "on":
-                settings["expression"] = True
-            if self.whole_word_var.get() == "on":
-                settings["whole_word"] = True
+            # Boolean settings — always save both True and False
+            settings["recursive"] = (self.recursive_var.get() == "on")
+            settings["match_all"] = (self.and_mode_var.get() == "on")
+            settings["fuzzy"] = (self.fuzzy_var.get() == "on")
+            settings["wildcard"] = (self.wildcard_var.get() == "on")
+            settings["regex"] = (self.regex_var.get() == "on")
+            settings["ocr"] = (self.ocr_var.get() == "on")
+            settings["index_search"] = (self.index_search_var.get() == "on")
+            settings["output_csv"] = (self.output_csv_var.get() == "on")
+            settings["output_json"] = (self.output_json_var.get() == "on")
+            settings["inverse"] = (self.inverse_var.get() == "on")
+            settings["expression"] = (self.expression_var.get() == "on")
+            settings["whole_word"] = (self.whole_word_var.get() == "on")
             settings["timestamp"] = (self.timestamp_var.get() == "on")
             # Integer settings
             cores_val = self.cores_entry.get().strip()
