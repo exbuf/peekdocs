@@ -3691,7 +3691,7 @@ def _launch_gui():
                 )
                 self._show_action_buttons()
             elif returncode == 2:
-                error_msg = stdout.strip().split("\n")[-1] if stdout.strip() else "Invalid input."
+                error_msg = stdout.strip() if stdout.strip() else f"Search failed (exit code 2). No output captured."
                 self._show_error(error_msg)
                 self._show_action_buttons()
             else:
