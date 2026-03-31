@@ -3675,9 +3675,28 @@ def _launch_gui():
                 )
                 self._show_action_buttons()
             elif returncode == 2:
-                error_msg = stdout.strip() if stdout.strip() else f"Search failed (exit code 2). No output captured."
-                self._show_error(error_msg)
-                self._show_action_buttons()
+                # Check if results were produced despite the error (e.g., .docx generation failed)
+                ts = getattr(self, '_last_ts_suffix', '')
+                results_fn = f"docsearch_results_{ts}.txt" if ts else "docsearch_results.txt"
+                results_path = os.path.join(self.results_dir or folder, results_fn)
+                if os.path.exists(results_path):
+                    # Search succeeded but something else failed (likely report generation)
+                    self.status_label.configure(
+                        text=summary or "Search complete (with warnings — check error log).",
+                        text_color=("orange",) * 2,
+                        font=ctk.CTkFont(size=13),
+                    )
+                    self._inverse_results = self.inverse_var.get() == "on"
+                    if self._inverse_results:
+                        self.matched_files = _parse_inverse_files(self.results_dir or folder, results_fn)
+                    else:
+                        self.matched_files = _parse_matched_files(self.results_dir or folder, results_fn)
+                    self._show_action_buttons(inverse=self._inverse_results)
+                    self._show_preview(stdout)
+                else:
+                    error_msg = stdout.strip() if stdout.strip() else "Search failed (exit code 2). No output captured."
+                    self._show_error(error_msg)
+                    self._show_action_buttons()
             else:
                 self.status_label.configure(
                     text="Search was cancelled.", text_color=("gray30", "gray70"),
