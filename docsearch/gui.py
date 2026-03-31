@@ -4404,28 +4404,29 @@ def _launch_gui():
 
             def _run():
                 try:
-                    import io
-                    from docsearch.cli import main as cli_main
-                    # Call the CLI main() which handles all setup correctly
-                    # Redirect stdout/stderr to capture output
-                    old_stdout = sys.stdout
-                    old_stderr = sys.stderr
-                    captured = io.StringIO()
-                    sys.stdout = captured
-                    sys.stderr = captured
-                    old_cwd = os.getcwd()
-                    os.chdir(folder)
-                    try:
-                        returncode = cli_main(["--index", "-r", "-q"]) or 0
-                    finally:
-                        os.chdir(old_cwd)
-                        sys.stdout = old_stdout
-                        sys.stderr = old_stderr
-                    stdout = captured.getvalue()
+                    import subprocess as _sp
+                    # Use a separate Python script to avoid all encoding/pipe issues
+                    script = (
+                        "import sys, os; "
+                        "sys.stdout = sys.stderr = open(os.devnull, 'w'); "
+                        f"os.chdir({folder!r}); "
+                        "from docsearch.cli import main; "
+                        "rc = main(['--index', '-r', '-q']); "
+                        "sys.exit(rc or 0)"
+                    )
+                    kwargs = {}
+                    if sys.platform == "win32":
+                        kwargs["creationflags"] = _sp.CREATE_NO_WINDOW
+                    proc = _sp.Popen(
+                        [sys.executable, "-c", script],
+                        stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
+                        **kwargs,
+                    )
+                    proc.wait()
+                    returncode = proc.returncode
                 except Exception as e:
                     returncode = -1
-                    stdout = str(e)
-                self.after(0, _finished, stdout, returncode)
+                self.after(0, _finished, "", returncode)
 
             def _finished(stdout, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
