@@ -3600,6 +3600,7 @@ def _launch_gui():
 
             if results_path and os.path.exists(results_path):
                 in_results = False
+                in_match_text = False
                 with open(results_path, "r", encoding="utf-8", errors="replace") as f:
                     for line in f:
                         line = line.rstrip("\n")
@@ -3612,12 +3613,29 @@ def _launch_gui():
                             self.preview_text.insert("end", f"\n... (showing first {max_preview_lines} lines — open the report for full results)\n")
                             break
                         if line.startswith("Document:"):
+                            in_match_text = False
                             self.preview_text.insert("end", "\n")
                             self.preview_text.insert("end", line + "\n", "filename")
-                        elif line.startswith("(") and line.endswith(")"):
+                        elif line.startswith("(") and not in_match_text:
                             self.preview_text.insert("end", line + "\n", "line_num")
                         elif line.startswith("Files WITHOUT matches:"):
                             self.preview_text.insert("end", line + "\n", "filename")
+                        elif line.startswith('"') or in_match_text:
+                            # Match text block — may span multiple wrapped lines
+                            in_match_text = True
+                            # Strip leading/trailing quotes
+                            display = line
+                            if display.startswith('"'):
+                                display = display[1:]
+                            if display.endswith('"'):
+                                display = display[:-1]
+                                in_match_text = False
+                            _insert_highlighted(display)
+                        elif line == "---":
+                            self.preview_text.insert("end", "---\n")
+                        elif line.strip() == "":
+                            if not in_match_text:
+                                continue  # Skip blank lines between matches
                         else:
                             _insert_highlighted(line)
                         lines_added += 1
