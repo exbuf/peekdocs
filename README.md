@@ -92,7 +92,7 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
 1. Go to [github.com/exbuf/docsearch](https://github.com/exbuf/docsearch)
 2. Click the green **Code** button
 3. Click **Download ZIP**
-4. Extract the ZIP file to a folder on your computer
+4. Extract the ZIP file, copy the `docsearch-main` folder inside and paste it to where you want it
 5. Open a terminal and navigate to the extracted folder:
 
    **Windows:**
