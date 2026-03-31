@@ -3396,7 +3396,7 @@ def _launch_gui():
                 self.after_cancel(self._refresh_timer_id)
                 self._refresh_timer_id = None
 
-            folder = self.folder_entry.get().strip()
+            folder = os.path.normpath(self.folder_entry.get().strip())
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder.")
                 return
