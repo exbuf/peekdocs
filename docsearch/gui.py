@@ -204,7 +204,7 @@ def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
         return []
     counts = {}  # filepath -> (filepath, filename, count)
     order = []   # preserve first-appearance order
-    with open(results_path, "r") as f:
+    with open(results_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     i = 0
     while i < len(lines):
@@ -234,7 +234,7 @@ def _parse_inverse_files(results_dir, results_filename="docsearch_results.txt"):
     if not os.path.exists(results_path):
         return []
     result = []
-    with open(results_path, "r") as f:
+    with open(results_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     in_inverse = False
     i = 0
@@ -4545,7 +4545,7 @@ def _launch_gui():
 
             path = _config_path()
             if os.path.exists(path):
-                with open(path, "r") as f:
+                with open(path, "r", encoding="utf-8") as f:
                     content = f.read().strip()
             else:
                 content = "(No settings file found)"

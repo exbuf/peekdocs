@@ -158,7 +158,7 @@ def _load_config():
 def _save_config(settings):
     """Write settings dict to ~/.docsearchrc."""
     path = _config_path()
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write("# ~/.docsearchrc - docsearch defaults\n")
         f.write("# Command-line flags always override these settings\n\n")
         for key in sorted(settings):
@@ -330,7 +330,7 @@ def main(argv=None):
         error_log_path = os.path.join(os.getcwd(), "docsearch_errors.log")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         diagnosis = _diagnose(exc)
-        with open(error_log_path, "a") as log_f:
+        with open(error_log_path, "a", encoding="utf-8") as log_f:
             log_f.write(f"\n{'='*60}\n")
             log_f.write(f"{timestamp}  CRASH REPORT\n")
             log_f.write(f"docsearch {VERSION}\n")
@@ -842,7 +842,7 @@ def _main_inner(argv=None):
 
     if skipped_files:
         error_log_path = os.path.join(output_dir, "docsearch_errors.log")
-        with open(error_log_path, "a") as log_f:
+        with open(error_log_path, "a", encoding="utf-8") as log_f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             for skipped_name, error_msg in skipped_files:
                 log_f.write(f"{timestamp}  Could not read {skipped_name} ({error_msg})\n")

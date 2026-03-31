@@ -85,7 +85,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
     """
     if os.path.exists(output_path):
         os.remove(output_path)
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write("Header:\n\n")
         f.write("Program name: docsearch\n")
         f.write("Program Source: https://github.com/exbuf\n")
@@ -221,7 +221,7 @@ def write_docx_report(docx_path, txt_path):
     if os.path.exists(docx_path):
         os.remove(docx_path)
     result_doc = Document()
-    with open(txt_path, "r") as f:
+    with open(txt_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.rstrip("\n")
             para = result_doc.add_paragraph()
@@ -300,14 +300,14 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
     sizes_line = f"Report File Sizes ==> {txt_name} ({fmt_size(txt_size)}), {docx_name} ({fmt_size(docx_size)})"
 
     # Update txt report
-    with open(txt_path, "r") as f:
+    with open(txt_path, "r", encoding="utf-8") as f:
         content = f.read()
     content = content.replace(
         "\nCommand ==>",
         f"\n{sizes_line}\nCommand ==>",
         1,
     )
-    with open(txt_path, "w") as f:
+    with open(txt_path, "w", encoding="utf-8") as f:
         f.write(content)
 
     # Update docx report — insert sizes paragraph after timestamp
@@ -330,7 +330,7 @@ def write_csv_report(output_path, matches, inverse_files=None):
     """Write docsearch_results.csv."""
     if os.path.exists(output_path):
         os.remove(output_path)
-    with open(output_path, "w", newline="") as f:
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if inverse_files is not None:
             writer.writerow(["filename", "folder"])
@@ -395,17 +395,17 @@ def write_json_report(output_path, matches, search_terms, report_mode,
                 for file_dir, filename, line_num, text in matches
             ],
         }
-    with open(output_path, "w") as f:
-        json.dump(json_data, f, indent=2)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(json_data, f, indent=2, ensure_ascii=False)
 
 
 def append_results(append_name, output_dir, txt_path, docx_path):
     """Append current results to accumulated DO_NOT_SEARCH files."""
     append_txt_path = os.path.join(output_dir, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")
     append_docx_path = os.path.join(output_dir, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
-    with open(txt_path, "r") as src:
+    with open(txt_path, "r", encoding="utf-8") as src:
         results_content = src.read()
-    with open(append_txt_path, "a") as dst:
+    with open(append_txt_path, "a", encoding="utf-8") as dst:
         dst.write(results_content)
     if os.path.exists(append_docx_path):
         existing_doc = Document(append_docx_path)
