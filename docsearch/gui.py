@@ -3776,7 +3776,7 @@ def _launch_gui():
                 if save_name:
                     save_cmd = [sys.executable, "-m", "docsearch", "-s", save_name]
                     try:
-                        result = subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True)
+                        result = subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
                         if result.returncode != 0:
                             self._show_error(f"Save failed: {result.stdout.strip() or 'unknown error'}")
                             return
@@ -4400,6 +4400,8 @@ def _launch_gui():
                 return
 
             cmd = [sys.executable, "-m", "docsearch", "-q", "--index", "-r"]
+            env = os.environ.copy()
+            env["PYTHONIOENCODING"] = "utf-8"
 
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
             self.status_label.configure(text="Building index...", text_color=("gray30", "gray70"))
@@ -4408,6 +4410,7 @@ def _launch_gui():
                 try:
                     result = subprocess.run(
                         cmd, cwd=folder, capture_output=True, text=True,
+                        encoding="utf-8", errors="replace", env=env,
                     )
                     stdout = result.stdout
                     returncode = result.returncode
@@ -4452,7 +4455,7 @@ def _launch_gui():
 
             cmd = [sys.executable, "-m", "docsearch", "-q", "--index-clear"]
             try:
-                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True)
+                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
                 msg = result.stdout.strip()
                 self.status_label.configure(
                     text=msg or "Index removed.",
@@ -4472,7 +4475,7 @@ def _launch_gui():
 
             cmd = [sys.executable, "-m", "docsearch", "-q", "--index-status"]
             try:
-                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True)
+                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
                 stdout = result.stdout.strip()
             except Exception:
                 self._show_error("Failed to get index status.")
