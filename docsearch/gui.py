@@ -4409,13 +4409,14 @@ def _launch_gui():
             def _run():
                 try:
                     result = subprocess.run(
-                        cmd, cwd=folder, capture_output=True, text=True,
-                        encoding="utf-8", errors="replace", env=env,
+                        cmd, cwd=folder,
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        env=env,
                     )
-                    stdout = result.stdout
+                    stdout = result.stdout.decode("utf-8", errors="replace")
                     returncode = result.returncode
-                except Exception:
-                    stdout = ""
+                except Exception as e:
+                    stdout = str(e)
                     returncode = -1
                 self.after(0, _finished, stdout, returncode)
 
