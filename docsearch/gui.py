@@ -3454,7 +3454,9 @@ def _launch_gui():
                 self._show_error("Flags go in Advanced Options, not the search box.")
                 return
             if cmd is None:
-                self._show_error("Invalid input. Check your search terms and options.")
+                # Debug: show what values were passed
+                dbg = f"folder='{folder}' search='{search_text}' isdir={os.path.isdir(folder)}"
+                self._show_error(f"Invalid input. Debug: {dbg}")
                 return
 
             od = self.output_dir_entry.get().strip()
