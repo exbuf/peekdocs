@@ -4405,34 +4405,23 @@ def _launch_gui():
             def _run():
                 try:
                     import io
-                    from docsearch.indexer import build_index
-                    use_ocr = self.ocr_var.get() == "on"
-                    # Redirect stdout/stderr to suppress print() calls that
-                    # crash on Windows due to encoding issues
+                    from docsearch.cli import main as cli_main
+                    # Call the CLI main() which handles all setup correctly
+                    # Redirect stdout/stderr to capture output
                     old_stdout = sys.stdout
                     old_stderr = sys.stderr
-                    sys.stdout = io.StringIO()
-                    sys.stderr = io.StringIO()
+                    captured = io.StringIO()
+                    sys.stdout = captured
+                    sys.stderr = captured
+                    old_cwd = os.getcwd()
+                    os.chdir(folder)
                     try:
-                        result = build_index(folder, recursive=True, use_ocr=use_ocr)
+                        returncode = cli_main(["--index", "-r", "-q"]) or 0
                     finally:
+                        os.chdir(old_cwd)
                         sys.stdout = old_stdout
                         sys.stderr = old_stderr
-                    returncode = 0
-                    stdout = f"Index built: {result['file_count']} files, {result['line_count']} lines"
-                    errors = result.get('errors', [])
-                    if errors:
-                        stdout += f" ({len(errors)} errors)"
-                        from datetime import datetime as _dt
-                        log_path = os.path.join(folder, "docsearch_errors.log")
-                        try:
-                            with open(log_path, "a", encoding="utf-8") as log_f:
-                                log_f.write(f"\n{'='*60}\n")
-                                log_f.write(f"{_dt.now().strftime('%Y-%m-%d %H:%M:%S')}  INDEX BUILD ERRORS\n")
-                                for fname, err_msg in errors:
-                                    log_f.write(f"  {fname}: {err_msg}\n")
-                        except OSError:
-                            pass
+                    stdout = captured.getvalue()
                 except Exception as e:
                     returncode = -1
                     stdout = str(e)
