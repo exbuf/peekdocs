@@ -574,10 +574,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         first_match_num = next(ln for ln, _, is_match in group if is_match)
         parts = []
         for ln, text, is_match in group:
-            if is_match:
-                parts.append(highlight_text(text))
-            else:
-                parts.append(text)
+            parts.append(text)
         return (file_dir, filename, first_match_num, "\n".join(parts))
 
     matches = []
@@ -603,10 +600,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     else:
         for line_num, text in all_lines:
             if _line_passes(text):
-                if use_fuzzy and not range_only:
-                    matches.append((file_dir, filename, line_num, highlight_text(text)))
-                else:
-                    matches.append((file_dir, filename, line_num, text))
+                matches.append((file_dir, filename, line_num, text))
 
     return (matches, [])
 

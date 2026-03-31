@@ -900,7 +900,15 @@ def _main_inner(argv=None):
         index_meta=idx_meta,
     )
 
-    result_doc = write_docx_report(docx_output_path, output_path)
+    result_doc = write_docx_report(
+        docx_output_path, output_path,
+        search_terms=search_terms,
+        use_regex=use_regex,
+        use_wildcard=use_wildcard,
+        use_whole_word=use_whole_word,
+        use_fuzzy=use_fuzzy,
+        expression=expression,
+    )
     txt_size, docx_size = insert_file_sizes(output_path, docx_output_path, result_doc)
 
     csv_output_path = None

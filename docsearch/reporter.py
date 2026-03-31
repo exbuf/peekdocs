@@ -187,40 +187,76 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                 wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
                 wrapped = "\n".join(wrapped_lines)
             else:
-                if use_fuzzy:
-                    wrapped = textwrap.fill(text, width=80)
-                else:
-                    if expression:
-                        from docsearch.expr_parser import parse_expression, extract_positive_terms
-                        highlight_terms = extract_positive_terms(parse_expression(expression))
-                    else:
-                        highlight_terms = search_terms
-                    highlighted = text
-                    for term in highlight_terms:
-                        if use_wildcard:
-                            pattern = _wildcard_to_regex(term)
-                        elif use_regex:
-                            pattern = term
-                        elif use_whole_word:
-                            pattern = r'\b' + re.escape(term) + r'\b'
-                        else:
-                            pattern = re.escape(term)
-                        highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)
-                    wrapped = textwrap.fill(highlighted, width=80)
+                wrapped = textwrap.fill(text, width=80)
             fc = file_counts.get((file_dir, filename), 1)
             f.write(f'Document: {filename} ({fc} match{"es" if fc != 1 else ""}), Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     return (total_bytes, size_str)
 
 
-def write_docx_report(docx_path, txt_path):
+def write_docx_report(docx_path, txt_path, search_terms=None,
+                      use_regex=False, use_wildcard=False,
+                      use_whole_word=False, use_fuzzy=False,
+                      expression=None):
     """Create docsearch_results.docx from the .txt report with yellow highlighting.
 
-    Returns the Document object for further modification.
+    Highlights matched terms directly using the search parameters rather than
+    parsing markers from the text. Returns the Document object for further
+    modification.
     """
     if os.path.exists(docx_path):
         os.remove(docx_path)
+
+    # Build highlight patterns from search terms
+    highlight_patterns = []
+    if not use_fuzzy:
+        if expression:
+            from docsearch.expr_parser import parse_expression, extract_positive_terms
+            highlight_terms = extract_positive_terms(parse_expression(expression))
+        elif search_terms:
+            highlight_terms = search_terms
+        else:
+            highlight_terms = []
+        for term in highlight_terms:
+            if use_wildcard:
+                highlight_patterns.append(_wildcard_to_regex(term))
+            elif use_regex:
+                highlight_patterns.append(term)
+            elif use_whole_word:
+                highlight_patterns.append(r'\b' + re.escape(term) + r'\b')
+            else:
+                highlight_patterns.append(re.escape(term))
+
+    # Combine into one pattern for efficient matching
+    combined_pattern = None
+    if highlight_patterns:
+        try:
+            combined_pattern = re.compile("|".join(highlight_patterns), re.IGNORECASE)
+        except re.error:
+            combined_pattern = None
+
+    def _add_highlighted_line(para, line, bold=False):
+        """Add a line to a paragraph with yellow highlighting on matched terms."""
+        if combined_pattern:
+            parts = combined_pattern.split(line)
+            matches = combined_pattern.findall(line)
+            for i, part in enumerate(parts):
+                if part:
+                    run = para.add_run(part)
+                    if bold:
+                        run.bold = True
+                if i < len(matches):
+                    run = para.add_run(matches[i])
+                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                    if bold:
+                        run.bold = True
+        else:
+            run = para.add_run(line)
+            if bold:
+                run.bold = True
+
     result_doc = Document()
+    in_results = False
     with open(txt_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.rstrip("\n")
@@ -255,7 +291,6 @@ def write_docx_report(docx_path, txt_path):
             if line.startswith("Search Term(s) ==> "):
                 prefix = "Search Term(s) ==> "
                 rest = line[len(prefix):]
-                # rest looks like "budget, revenue (match: ANY)"
                 match = re.match(r"(.+?)( \(match: [A-Z+]+\))$", rest)
                 if match:
                     terms_str, mode_str = match.group(1), match.group(2)
@@ -270,20 +305,18 @@ def write_docx_report(docx_path, txt_path):
             if line in ("Header:", "Results:"):
                 run = para.add_run(line)
                 run.bold = True
+                in_results = (line == "Results:")
                 continue
 
             is_doc_line = line.startswith("Document:")
-            parts = re.split(r"(\*\*.*?\*\*)", line)
-            for part in parts:
-                if part.startswith("**") and part.endswith("**"):
-                    run = para.add_run(part[2:-2])
-                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
-                    if is_doc_line:
-                        run.bold = True
-                else:
-                    run = para.add_run(part)
-                    if is_doc_line:
-                        run.bold = True
+            if in_results and not is_doc_line and not line.startswith("(") and not line.startswith("Files WITHOUT"):
+                # Match line in results section — apply highlighting
+                _add_highlighted_line(para, line)
+            elif is_doc_line:
+                _add_highlighted_line(para, line, bold=True)
+            else:
+                para.add_run(line)
+
     result_doc.save(docx_path)
     return result_doc
 

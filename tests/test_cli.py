@@ -53,8 +53,8 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     assert results_file.exists()
     content = results_file.read_text()
     assert "Search Term(s) ==> hello (match: ANY)" in content
-    assert f'Document: sample.docx (2 matches), Line: 1, Match:\n({tmp_path})\n"**Hello** world"\n\n' in content
-    assert f'Document: sample.docx (2 matches), Line: 3, Match:\n({tmp_path})\n"**Hello** again"\n\n' in content
+    assert f'Document: sample.docx (2 matches), Line: 1, Match:\n({tmp_path})\n"Hello world"\n\n' in content
+    assert f'Document: sample.docx (2 matches), Line: 3, Match:\n({tmp_path})\n"Hello again"\n\n' in content
 
     # Check docsearch_results.docx was created with yellow highlighting
     docx_results = tmp_path / "docsearch_results.docx"
@@ -96,7 +96,7 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     main(["PYTHON"])
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert f'Document: test.docx (1 match), Line: 1, Match:\n({tmp_path})\n"**Python** is great"' in content
+    assert f'Document: test.docx (1 match), Line: 1, Match:\n({tmp_path})\n"Python is great"' in content
 
 
 def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
@@ -114,7 +114,7 @@ def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "**Hello world**" in content
+    assert "Hello world" in content
 
 
 def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
@@ -134,8 +134,8 @@ def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Search Term(s) ==> Hello Goodbye (match: ANY)" in content
-    assert "**Hello**" in content
-    assert "**Goodbye**" in content
+    assert "Hello" in content
+    assert "Goodbye" in content
 
 
 def test_search_all_terms(tmp_path, monkeypatch, capsys):
@@ -155,7 +155,7 @@ def test_search_all_terms(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Search Term(s) ==> Hello Goodbye (match: ALL)" in content
-    assert "**Hello** **Goodbye**" in content
+    assert "Hello Goodbye" in content
 
 
 def test_search_pdf(tmp_path, monkeypatch, capsys):
@@ -178,7 +178,7 @@ def test_search_pdf(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.pdf" in content
-    assert "**budget**" in content or "**Budget**" in content
+    assert "budget" in content or "Budget" in content
 
 
 def test_search_docx(tmp_path, monkeypatch, capsys):
@@ -197,7 +197,7 @@ def test_search_docx(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.docx" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_csv(tmp_path, monkeypatch, capsys):
@@ -213,7 +213,7 @@ def test_search_csv(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.csv" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_odt(tmp_path, monkeypatch, capsys):
@@ -236,7 +236,7 @@ def test_search_odt(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "test.odt" in content
-    assert "**Hello**" in content
+    assert "Hello" in content
 
 
 def test_search_txt(tmp_path, monkeypatch, capsys):
@@ -252,7 +252,7 @@ def test_search_txt(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_html(tmp_path, monkeypatch, capsys):
@@ -268,7 +268,7 @@ def test_search_html(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "page.html" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_xlsx(tmp_path, monkeypatch, capsys):
@@ -289,7 +289,7 @@ def test_search_xlsx(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.xlsx" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_version_flag(capsys):
@@ -329,7 +329,7 @@ def test_search_recursive(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert str(tmp_path / "sub" / "deep") in content
     assert "nested.txt" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_no_recursive_skips_subdirs(tmp_path, monkeypatch, capsys):
@@ -409,7 +409,7 @@ def test_search_md(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.md" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_regex(tmp_path, monkeypatch, capsys):
@@ -426,8 +426,8 @@ def test_search_regex(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "contacts.txt" in content
-    assert "**555-123-4567**" in content
-    assert "**555-987-6543**" in content
+    assert "555-123-4567" in content
+    assert "555-987-6543" in content
 
 
 def test_search_regex_with_and(tmp_path, monkeypatch, capsys):
@@ -469,7 +469,7 @@ def test_search_json(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.json" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_context_after(tmp_path, monkeypatch, capsys):
@@ -485,7 +485,7 @@ def test_search_context_after(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "**Line 3**" in content
+    assert "Line 3" in content
     assert "Line 4" in content
     assert "Line 5" in content
     assert "Line 6" not in content
@@ -506,7 +506,7 @@ def test_search_context_before(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Line 1" in content
     assert "Line 2" in content
-    assert "**Line 3**" in content
+    assert "Line 3" in content
     assert "Line 4" not in content
 
 
@@ -525,7 +525,7 @@ def test_search_context_both(tmp_path, monkeypatch, capsys):
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "Line 1" not in content
     assert "Line 2" in content
-    assert "**Line 3**" in content
+    assert "Line 3" in content
     assert "Line 4" in content
     assert "Line 5" not in content
 
@@ -546,9 +546,9 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "beta" in content
-    assert "**MATCH**_ONE" in content
+    assert "MATCH_ONE" in content
     assert "gamma" in content
-    assert "**MATCH**_TWO" in content
+    assert "MATCH_TWO" in content
     assert "delta" in content
     # gamma should appear exactly once (no duplicates from overlap)
     results_section = content.split("Results:")[1]  # only look in results
@@ -584,7 +584,7 @@ def test_search_ods(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.ods" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_odp(tmp_path, monkeypatch, capsys):
@@ -611,7 +611,7 @@ def test_search_odp(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "slides.odp" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_toml(tmp_path, monkeypatch, capsys):
@@ -627,7 +627,7 @@ def test_search_toml(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.toml" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_rst(tmp_path, monkeypatch, capsys):
@@ -643,7 +643,7 @@ def test_search_rst(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "docs.rst" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_tex(tmp_path, monkeypatch, capsys):
@@ -659,7 +659,7 @@ def test_search_tex(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "paper.tex" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_ini(tmp_path, monkeypatch, capsys):
@@ -675,7 +675,7 @@ def test_search_ini(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "settings.ini" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_cfg(tmp_path, monkeypatch, capsys):
@@ -691,7 +691,7 @@ def test_search_cfg(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "app.cfg" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_sql(tmp_path, monkeypatch, capsys):
@@ -707,7 +707,7 @@ def test_search_sql(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "queries.sql" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_tsv(tmp_path, monkeypatch, capsys):
@@ -723,7 +723,7 @@ def test_search_tsv(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "data.tsv" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_epub(tmp_path, monkeypatch, capsys):
@@ -749,7 +749,7 @@ def test_search_epub(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "book.epub" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_yaml(tmp_path, monkeypatch, capsys):
@@ -765,7 +765,7 @@ def test_search_yaml(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.yaml" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_yml(tmp_path, monkeypatch, capsys):
@@ -781,7 +781,7 @@ def test_search_yml(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "settings.yml" in content
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_xml(tmp_path, monkeypatch, capsys):
@@ -797,7 +797,7 @@ def test_search_xml(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "config.xml" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_log(tmp_path, monkeypatch, capsys):
@@ -813,7 +813,7 @@ def test_search_log(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "app.log" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_pptx(tmp_path, monkeypatch, capsys):
@@ -836,7 +836,7 @@ def test_search_pptx(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.pptx" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_rtf(tmp_path, monkeypatch, capsys):
@@ -853,7 +853,7 @@ def test_search_rtf(tmp_path, monkeypatch, capsys):
 
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "report.rtf" in content
-    assert "**Budget**" in content
+    assert "Budget" in content
 
 
 def test_search_context_invalid(tmp_path, monkeypatch, capsys):
@@ -1484,7 +1484,7 @@ def test_search_fuzzy_match(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
     assert "notes.txt" in content
-    assert "**budgt**" in content
+    assert "budgt" in content
 
 
 def test_search_fuzzy_no_match(tmp_path, monkeypatch, capsys):
@@ -1706,7 +1706,7 @@ def test_search_wildcard_star(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "**budget**" in content
+    assert "budget" in content
 
 
 def test_search_wildcard_question(tmp_path, monkeypatch, capsys):
@@ -1720,7 +1720,7 @@ def test_search_wildcard_question(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     content = (tmp_path / "docsearch_results.txt").read_text()
-    assert "**test**" in content or "**text**" in content
+    assert "test" in content or "text" in content
 
 
 def test_search_wildcard_no_match(tmp_path, monkeypatch, capsys):
@@ -2039,8 +2039,8 @@ def test_indexed_search_keyword(tmp_path, monkeypatch, capsys):
     indexed_content = (tmp_path / "docsearch_results.txt").read_text()
 
     # Both should find "Budget overview" with highlighting
-    assert "**Budget** overview" in direct_content
-    assert "**Budget** overview" in indexed_content
+    assert "Budget overview" in direct_content
+    assert "Budget overview" in indexed_content
 
 
 def test_indexed_search_and(tmp_path, monkeypatch, capsys):
@@ -2861,7 +2861,7 @@ def test_whole_word_basic(tmp_path, monkeypatch, capsys):
     # Verify report only has the whole-word match
     report_path = tmp_path / "docsearch_results.txt"
     report = report_path.read_text()
-    assert "**bob** is here" in report
+    assert "bob is here" in report
     assert "bobcat" not in report
     assert "bobby" not in report
 
