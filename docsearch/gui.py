@@ -3355,6 +3355,7 @@ def _launch_gui():
             initial = self.folder_entry.get() or os.path.expanduser("~")
             folder = filedialog.askdirectory(initialdir=initial)
             if folder:
+                folder = os.path.normpath(folder)
                 self.folder_entry.delete(0, "end")
                 self.folder_entry.insert(0, folder)
                 self._update_index_button_color()
