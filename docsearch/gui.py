@@ -484,7 +484,7 @@ def _launch_gui():
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            self.suite_toggle.pack(side="left", padx=(10, 0))
+            # Packed later in _build_advanced_toggle so Advanced Options appears first
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -1109,6 +1109,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.advanced_toggle.pack(side="left")
+            self.suite_toggle.pack(side="left", padx=(10, 0))
 
         def _build_advanced_panel(self):
             # Create popup window for Advanced Options
