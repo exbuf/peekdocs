@@ -321,6 +321,19 @@ def _diagnose(exc):
 
 
 def main(argv=None):
+    # Force UTF-8 output on Windows to prevent UnicodeEncodeError
+    # when printing Unicode characters (progress bars, filenames, etc.)
+    import sys as _sys
+    if _sys.stdout and hasattr(_sys.stdout, 'reconfigure'):
+        try:
+            _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+    if _sys.stderr and hasattr(_sys.stderr, 'reconfigure'):
+        try:
+            _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
     try:
         return _main_inner(argv)
     except KeyboardInterrupt:
