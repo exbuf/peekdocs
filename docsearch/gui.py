@@ -1330,7 +1330,7 @@ def _launch_gui():
                 onvalue="on", offvalue="off",
             )
             cb_json.grid(row=0, column=2)
-            self.timestamp_var = ctk.StringVar(value="on")
+            self.timestamp_var = ctk.StringVar(value="off")
             cb_ts = ctk.CTkCheckBox(
                 output_frame, text="Timestamp Filename", variable=self.timestamp_var,
                 onvalue="on", offvalue="off",
@@ -3325,6 +3325,19 @@ def _launch_gui():
             self.view_error_log_bottom.pack(side="right", padx=5)
             Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
 
+            self.clear_results_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="Clear Results",
+                width=110,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._clear_results_files,
+                font=ctk.CTkFont(size=13),
+            )
+            self.clear_results_btn.pack(side="right", padx=5)
+            Tooltip(self.clear_results_btn, "Delete all docsearch_results files from the search folder (including timestamped versions)")
+
 
         # ── Actions ──────────────────────────────────────────────
 
@@ -3840,6 +3853,39 @@ def _launch_gui():
                 os.startfile(error_log_path)  # type: ignore[attr-defined]
             else:
                 subprocess.Popen(["xdg-open", error_log_path])
+
+        def _clear_results_files(self):
+            """Delete all docsearch_results* files from the search folder."""
+            folder = self.results_dir or self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a folder first.")
+                return
+            # Find all docsearch_results* files
+            results_files = [
+                f for f in os.listdir(folder)
+                if f.startswith("docsearch_results") and not f.startswith("docsearch_results_dir")
+            ]
+            if not results_files:
+                self.status_label.configure(text="No results files to clear.")
+                return
+            from tkinter import messagebox
+            msg = f"Delete {len(results_files)} results file(s)?\n\n"
+            if len(results_files) <= 10:
+                msg += "\n".join(results_files)
+            else:
+                msg += "\n".join(results_files[:10]) + f"\n... and {len(results_files) - 10} more"
+            msg += "\n\nThis cannot be undone."
+            if messagebox.askyesno("Clear Results", msg):
+                deleted = 0
+                for fname in results_files:
+                    try:
+                        os.remove(os.path.join(folder, fname))
+                        deleted += 1
+                    except OSError:
+                        pass
+                self.status_label.configure(text=f"Deleted {deleted} results file(s).")
+                self._hide_preview()
+                self._clear_action_buttons()
 
         def _clear_error_log(self):
             folder = self.results_dir or self.folder_entry.get().strip()
@@ -4812,7 +4858,7 @@ def _launch_gui():
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
             self.whole_word_var.set("on" if config.get("whole_word") else "off")
-            self.timestamp_var.set("on" if config.get("timestamp", True) else "off")
+            self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
             if "cores" in config:

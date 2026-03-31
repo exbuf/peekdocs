@@ -463,7 +463,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
 - `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Options panel
 - `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `docsearch_results_20260327_143022.txt`)
-- `--timestamp` is on by default in the GUI (via the Timestamp checkbox). Uncheck it to revert to the standard `docsearch_results` filename
+- `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
 - `--timestamp` and `-s` are independent — `-s` looks for `docsearch_results.txt` by name, so it only works when `--timestamp` is not used
 - `--output-dir` writes all output files to the specified directory instead of the search folder. The search still runs in the current directory — only the output destination changes
 - `--output-dir` creates the directory if it doesn't exist
@@ -1416,7 +1416,7 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `append_name` | text | `-sa` | empty (no append) |
 | `inverse` | true/false | `--inverse` | false (normal search) |
 | `whole_word` | true/false | `-W` | false (partial matches allowed) |
-| `timestamp` | true/false | `--timestamp` | true in GUI (add timestamp to report filenames) |
+| `timestamp` | true/false | `--timestamp` | false (overwrite previous results) |
 | `suite_timestamp` | true/false | — | true in GUI (add timestamp to suite/stage report filenames) |
 | `output_dir` | path | `--output-dir` | empty (write to search folder) |
 | `range` | spec list | `-R` | empty (no range filtering) |
@@ -1436,17 +1436,17 @@ docsearch creates several types of files during normal operation. Understanding 
 
 ### Search reports
 
-These are your search results. They are overwritten each time you run a new search (unless you use `-s` to save or `--timestamp` to add a timestamp).
+These are your search results. By default, they are overwritten each time you run a new search. If you enable the Timestamp checkbox in Advanced Options, each search creates uniquely named files (e.g., `docsearch_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `docsearch_results.txt` | Plain text report with `**highlighted**` matches | Search folder (or `--output-dir`) |
+| `docsearch_results.txt` | Plain text report | Search folder (or `--output-dir`) |
 | `docsearch_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
 | `docsearch_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
 | `docsearch_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
 
-**Protected from searching:** Yes — these filenames are explicitly excluded so docsearch never searches its own reports.
-**How to delete:** Delete them manually at any time. They are recreated on the next search.
+**Protected from searching:** Yes — all filenames starting with `docsearch_results` are excluded so docsearch never searches its own reports (including timestamped versions).
+**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `docsearch_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search.
 
 ### Saved and accumulated reports
 
