@@ -4409,8 +4409,20 @@ def _launch_gui():
                     result = build_index(folder, recursive=True, use_ocr=use_ocr)
                     returncode = 0
                     stdout = f"Index built: {result['file_count']} files, {result['line_count']} lines"
-                    if result.get('errors'):
-                        stdout += f" ({len(result['errors'])} errors)"
+                    errors = result.get('errors', [])
+                    if errors:
+                        stdout += f" ({len(errors)} errors)"
+                        # Write errors to log file
+                        from datetime import datetime as _dt
+                        log_path = os.path.join(folder, "docsearch_errors.log")
+                        try:
+                            with open(log_path, "a", encoding="utf-8") as log_f:
+                                log_f.write(f"\n{'='*60}\n")
+                                log_f.write(f"{_dt.now().strftime('%Y-%m-%d %H:%M:%S')}  INDEX BUILD ERRORS\n")
+                                for fname, err_msg in errors:
+                                    log_f.write(f"  {fname}: {err_msg}\n")
+                        except OSError:
+                            pass
                 except Exception as e:
                     returncode = -1
                     stdout = str(e)
