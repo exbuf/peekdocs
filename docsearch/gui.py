@@ -291,6 +291,7 @@ def _launch_gui():
         enabled = True
 
         def __init__(self, widget, text):
+            """Bind hover tooltip with the given text to a widget."""
             self.widget = widget
             self.text = text
             self.tip_window = None
@@ -302,6 +303,7 @@ def _launch_gui():
                 child.bind("<Leave>", self._hide)
 
         def _show(self, event=None):
+            """Display the tooltip window near the widget on mouse enter."""
             if self.tip_window or not Tooltip.enabled:
                 return
             import tkinter as tk
@@ -318,12 +320,14 @@ def _launch_gui():
             label.pack()
 
         def _hide(self, event=None):
+            """Destroy the tooltip window on mouse leave."""
             if self.tip_window:
                 self.tip_window.destroy()
                 self.tip_window = None
 
     class DocSearchApp(ctk.CTk):
         def __init__(self):
+            """Initialize the main application window, widgets, and saved settings."""
             super().__init__()
 
             try:
@@ -391,6 +395,7 @@ def _launch_gui():
             self.after(500, self._resume_suite_schedule)
 
         def _center_window(self, width, height):
+            """Center the application window on screen with the given dimensions."""
             self.update_idletasks()
             screen_w = self.winfo_screenwidth()
             screen_h = self.winfo_screenheight()
@@ -401,6 +406,7 @@ def _launch_gui():
         # ── Layout builders ──────────────────────────────────────
 
         def _build_search_row(self):
+            """Build the search bar with entry field, action buttons, and tooltips."""
             self.search_bar_frame = ctk.CTkFrame(self)
             self.search_bar_frame.grid(
                 row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
@@ -1069,6 +1075,7 @@ def _launch_gui():
             close_btn.pack(pady=(5, 10))
 
         def _build_folder_row(self):
+            """Build the folder selection row with entry field and Browse button."""
             self.folder_bar_frame = ctk.CTkFrame(self)
             self.folder_bar_frame.grid(
                 row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
@@ -1098,6 +1105,7 @@ def _launch_gui():
             Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
 
         def _build_advanced_toggle(self):
+            """Build the toggle buttons for Advanced Options and Search Suites."""
             self.advanced_toggle = ctk.CTkButton(
                 self._toggle_row,
                 text="\u25b6 Advanced Options",
@@ -1112,6 +1120,7 @@ def _launch_gui():
             self.suite_toggle.pack(side="left", padx=(10, 0))
 
         def _build_advanced_panel(self):
+            """Build the Advanced Options popup window with all search mode checkboxes and fields."""
             # Create popup window for Advanced Options
             self.advanced_window = ctk.CTkToplevel(self)
             self.advanced_window.title("Advanced Options")
@@ -1125,10 +1134,17 @@ def _launch_gui():
             self.advanced_frame = ctk.CTkFrame(self.advanced_window)
             self.advanced_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-            # ? help button in upper-right corner
+            # Header with description and ? help button
             adv_header_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            adv_header_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=(0, 0), sticky="ew")
+            adv_header_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=(0, 5), sticky="ew")
             adv_header_frame.grid_columnconfigure(0, weight=1)
+            ctk.CTkLabel(
+                adv_header_frame,
+                text="Configure search options below. Settings take effect on your next search.\nClick Save Defaults to keep them for future sessions.",
+                font=ctk.CTkFont(size=11),
+                text_color=("gray50", "gray50"),
+                justify="left",
+            ).grid(row=0, column=0, sticky="w")
             adv_help_btn = ctk.CTkButton(
                 adv_header_frame, text="?", width=28, height=28,
                 font=ctk.CTkFont(size=14, weight="bold"),
@@ -1432,7 +1448,27 @@ def _launch_gui():
             Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
 
+            # Bottom buttons for the Advanced Options window
+            adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
+            adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+            ctk.CTkButton(
+                adv_bottom_frame, text="Save Defaults", width=120,
+                command=self._save_current_settings,
+                font=ctk.CTkFont(size=13),
+            ).pack(side="right", padx=5)
+            Tooltip(adv_bottom_frame.winfo_children()[-1], "Save all current options as defaults to ~/.docsearchrc")
+
+            ctk.CTkButton(
+                adv_bottom_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._close_advanced_window,
+                font=ctk.CTkFont(size=13),
+            ).pack(side="right", padx=5)
+
         def _build_progress_area(self):
+            """Build the progress bar, status label, and results preview pane."""
             self.progress_bar = ctk.CTkProgressBar(self, mode="determinate")
             self.progress_bar.set(0)
             # Starts hidden — shown only during search
@@ -1496,6 +1532,7 @@ def _launch_gui():
             self.preview_text.tag_configure("line_num", foreground="#888888")
 
         def _build_open_report(self):
+            """Build the Matched Files and View Report buttons."""
             # Buttons are children of the main window, gridded directly at row 6
             self.matched_files_button = ctk.CTkButton(
                 self,
@@ -1532,6 +1569,7 @@ def _launch_gui():
             )
 
         def _build_index_panel(self):
+            """Build the Index Options panel with build, delete, status, and auto-refresh controls."""
             # Index toggle button — in the shared toggle row
             self.index_toggle_btn = ctk.CTkButton(
                 self._toggle_row,
@@ -1629,9 +1667,16 @@ def _launch_gui():
             self.suite_frame = ctk.CTkFrame(self.suite_window)
             self.suite_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-            # Header with Help button
+            # Header with description and Help button
             header_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
             header_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            ctk.CTkLabel(
+                header_frame,
+                text="Save searches, group them into suites, and run them with pass/fail tracking.\nUse for compliance audits, quality checks, and repeatable document reviews.",
+                font=ctk.CTkFont(size=11),
+                text_color=("gray50", "gray50"),
+                justify="left",
+            ).pack(side="left")
             help_btn = ctk.CTkButton(
                 header_frame, text="?", width=28, height=28,
                 font=ctk.CTkFont(size=14, weight="bold"),
@@ -3247,6 +3292,7 @@ def _launch_gui():
                           command=dialog.destroy).pack(side="left", padx=5)
 
         def _build_bottom_row(self):
+            """Build the bottom toolbar with help, about, text size, and utility buttons."""
             self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
             self.bottom_frame.grid(
                 row=10, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
