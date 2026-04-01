@@ -1571,7 +1571,7 @@ def _launch_gui():
             )
 
         def _build_index_panel(self):
-            """Build the Index Options panel with build, delete, status, and auto-refresh controls."""
+            """Build the Index Options popup window with build, delete, status, and auto-refresh controls."""
             # Index toggle button — in the shared toggle row
             self.index_toggle_btn = ctk.CTkButton(
                 self._toggle_row,
@@ -1585,76 +1585,114 @@ def _launch_gui():
             )
             self.index_toggle_btn.pack(side="left", padx=(10, 0))
 
-            # Index contents frame — collapsible, on its own row
-            self.index_frame = ctk.CTkFrame(self, fg_color="transparent")
-            # Don't grid yet — shown when toggled
-
-            self.index_contents = ctk.CTkFrame(self.index_frame)
+            # Create popup window for Index Options
+            self.index_window = ctk.CTkToplevel(self)
+            self.index_window.title("Index Options")
+            self.index_window.geometry("650x200")
+            self.index_window.resizable(True, True)
+            self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
+            self.index_window.withdraw()
+            self.after(10, self.index_window.withdraw)
             self.index_visible = False
 
-            # Row 0 inside contents: Auto-Refresh + Build/Delete buttons
-            idx_row0 = ctk.CTkFrame(self.index_contents, fg_color="transparent")
-            idx_row0.grid(row=0, column=0, columnspan=3, padx=0, pady=(5, 5), sticky="ew")
+            idx_frame = ctk.CTkFrame(self.index_window)
+            idx_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+            # Header
+            ctk.CTkLabel(
+                idx_frame,
+                text="Build a search index for faster repeated searches. The index includes all subfolders.",
+                font=ctk.CTkFont(size=11),
+                text_color=("gray50", "gray50"),
+            ).pack(anchor="w", padx=5, pady=(0, 10))
+
+            # Buttons row
+            btn_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
+            btn_frame.pack(fill="x", padx=5)
+
+            self.build_index_button = ctk.CTkButton(
+                btn_frame, text="Build Index(es)", width=120,
+                command=self.build_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.build_index_button.pack(side="left", padx=(0, 5))
+            Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically")
+
+            self.cancel_index_button = ctk.CTkButton(
+                btn_frame, text="Cancel Build", width=100,
+                fg_color="red", hover_color="darkred",
+                command=self._cancel_index_build, font=ctk.CTkFont(size=12),
+            )
+            # Hidden by default — shown during build
+            Tooltip(self.cancel_index_button, "Cancel the index build in progress")
+
+            self.delete_index_button = ctk.CTkButton(
+                btn_frame, text="Delete Index(es)", width=120,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.delete_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.delete_index_button.pack(side="left", padx=5)
+            Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
+
+            self.index_status_button = ctk.CTkButton(
+                btn_frame, text="Index Status", width=100,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.index_status_action, font=ctk.CTkFont(size=12),
+            )
+            self.index_status_button.pack(side="left", padx=5)
+            Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
+
+            self.about_index_button = ctk.CTkButton(
+                btn_frame, text="About Index", width=100,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.about_index_action, font=ctk.CTkFont(size=12),
+            )
+            self.about_index_button.pack(side="left", padx=5)
+            Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
+
+            # Auto-refresh row
+            refresh_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
+            refresh_frame.pack(fill="x", padx=5, pady=(10, 0))
 
             ctk.CTkLabel(
-                idx_row0, text="Auto-Refresh Index:",
+                refresh_frame, text="Auto-Refresh Index:",
                 font=ctk.CTkFont(size=12),
-            ).grid(row=0, column=0, padx=(0, 2), pady=0, sticky="w")
+            ).pack(side="left", padx=(0, 5))
 
             self.refresh_interval_var = ctk.StringVar(value="Off")
             self.refresh_interval_menu = ctk.CTkOptionMenu(
-                idx_row0,
+                refresh_frame,
                 values=["Off", "5 min", "15 min", "30 min", "1 hour"],
                 variable=self.refresh_interval_var,
                 command=self._on_refresh_interval_changed,
                 width=100,
                 font=ctk.CTkFont(size=12),
             )
-            self.refresh_interval_menu.grid(row=0, column=1, padx=(2, 10), pady=0, sticky="w")
+            self.refresh_interval_menu.pack(side="left")
             Tooltip(self.refresh_interval_menu,
                     "Automatically refresh the index at this interval while the app is open. "
                     "Adds new files, re-indexes changed files, removes deleted files.")
 
-            self.build_index_button = ctk.CTkButton(
-                idx_row0, text="Build Index(es)", width=120,
-                command=self.build_index_action, font=ctk.CTkFont(size=12),
-            )
-            self.build_index_button.grid(row=0, column=2, padx=5, pady=0, sticky="e")
-            Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically. Warning: Navigate to the right folder (Browse button) before Building Index(es)")
-
-            self.delete_index_button = ctk.CTkButton(
-                idx_row0, text="Delete Index(es)", width=120,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.delete_index_action, font=ctk.CTkFont(size=12),
-            )
-            self.delete_index_button.grid(row=0, column=3, padx=5, pady=0, sticky="e")
-            Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
-
-            self.index_status_button = ctk.CTkButton(
-                idx_row0, text="Index Status", width=100,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.index_status_action, font=ctk.CTkFont(size=12),
-            )
-            self.index_status_button.grid(row=0, column=4, padx=5, pady=0, sticky="e")
-            Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
-
-            self.about_index_button = ctk.CTkButton(
-                idx_row0, text="About Index", width=100,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.about_index_action, font=ctk.CTkFont(size=12),
-            )
-            self.about_index_button.grid(row=0, column=5, padx=5, pady=0, sticky="e")
-            Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
-
-            # Row 1: Index last updated
+            # Status label
             self.refresh_status_label = ctk.CTkLabel(
-                self.index_contents, text="", font=ctk.CTkFont(size=11),
+                idx_frame, text="", font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"), anchor="w",
             )
-            self.refresh_status_label.grid(row=1, column=0, columnspan=3, padx=0, pady=(0, 5), sticky="w")
+            self.refresh_status_label.pack(anchor="w", padx=5, pady=(5, 0))
+
+            # Close button
+            ctk.CTkButton(
+                idx_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._close_index_window,
+                font=ctk.CTkFont(size=12),
+            ).pack(side="right", padx=5, pady=(5, 0))
+
+            # For index_frame compatibility with _update_index_button_color
+            self.index_frame = idx_frame
 
         def _build_suite_panel(self):
             """Build the Search Suites window (standalone, shown/hidden)."""
@@ -3414,16 +3452,31 @@ def _launch_gui():
 
         def _toggle_index_options(self):
             if self.index_visible:
-                self.index_frame.grid_remove()
-                self.index_toggle_btn.configure(text="\u25b6 Index Options")
+                self._close_index_window()
             else:
-                if not self.index_contents.winfo_ismapped():
-                    self.index_contents.pack(fill="x", expand=True, padx=5, pady=5)
-                self.index_frame.grid(
-                    row=5, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="ew"
-                )
+                self.index_window.deiconify()
+                self.index_window.lift()
                 self.index_toggle_btn.configure(text="\u25bc Index Options")
-            self.index_visible = not self.index_visible
+                self.index_visible = True
+                self._update_index_button_color()
+
+        def _close_index_window(self):
+            self.index_window.withdraw()
+            self.index_toggle_btn.configure(text="\u25b6 Index Options")
+            self.index_visible = False
+
+        def _cancel_index_build(self):
+            """Cancel an in-progress index build."""
+            if hasattr(self, '_index_process') and self._index_process is not None:
+                try:
+                    self._index_process.terminate()
+                except Exception:
+                    pass
+                self._index_process = None
+            self.build_index_button.configure(state="normal", text="Build Index(es)")
+            self.cancel_index_button.pack_forget()
+            self.status_label.configure(text="Index build cancelled.")
+            self._update_index_button_color()
 
         def browse_folder(self):
             initial = self.folder_entry.get() or os.path.expanduser("~")
@@ -4402,6 +4455,7 @@ def _launch_gui():
                 return
 
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
+            self.cancel_index_button.pack(side="left", padx=5)
             self.status_label.configure(
                 text="Building index... this may take a few minutes for large folders. Please wait.",
                 text_color=("gray30", "gray70"),
@@ -4427,7 +4481,9 @@ def _launch_gui():
                         stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
                         **kwargs,
                     )
+                    self._index_process = proc
                     proc.wait()
+                    self._index_process = None
                     returncode = proc.returncode
                 except Exception as e:
                     returncode = -1
@@ -4435,6 +4491,7 @@ def _launch_gui():
 
             def _finished(stdout, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
+                self.cancel_index_button.pack_forget()
                 self._update_index_button_color()
                 if returncode == 0:
                     summary = ""
