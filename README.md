@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are saved to a Word report with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
 >
 > **Built for compliance and auditing.** Create search suites that check every document for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within policy ranges — then run those checks on a schedule with pass/fail reports and email alerts when failures are detected. No other free tool does this.
 >
