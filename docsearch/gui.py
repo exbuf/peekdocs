@@ -1714,6 +1714,7 @@ def _launch_gui():
             self.suite_window.title("Search Suites")
             self.suite_window.geometry("650x680")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
+            self.suite_window.after(50, self.suite_window.lift)
 
             self.suite_frame = ctk.CTkFrame(self.suite_window)
             self.suite_frame.pack(fill="both", expand=True, padx=10, pady=10)
