@@ -1588,7 +1588,7 @@ def _launch_gui():
             # Create popup window for Index Options
             self.index_window = ctk.CTkToplevel(self)
             self.index_window.title("Index Options")
-            self.index_window.geometry("650x200")
+            self.index_window.geometry("650x240")
             self.index_window.resizable(True, True)
             self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
             self.index_window.withdraw()
@@ -1598,13 +1598,24 @@ def _launch_gui():
             idx_frame = ctk.CTkFrame(self.index_window)
             idx_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-            # Header
+            # Header with description and ? help
+            idx_header = ctk.CTkFrame(idx_frame, fg_color="transparent")
+            idx_header.pack(fill="x", padx=5, pady=(0, 10))
             ctk.CTkLabel(
-                idx_frame,
+                idx_header,
                 text="Build a search index for faster repeated searches. The index includes all subfolders.",
                 font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"),
-            ).pack(anchor="w", padx=5, pady=(0, 10))
+            ).pack(side="left")
+            idx_help_btn = ctk.CTkButton(
+                idx_header, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_index_help,
+            )
+            idx_help_btn.pack(side="right")
+            Tooltip(idx_help_btn, "Help — explains what indexes are and when to use them")
 
             # Buttons row
             btn_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
@@ -1701,7 +1712,7 @@ def _launch_gui():
 
             self.suite_window = ctk.CTkToplevel(self)
             self.suite_window.title("Search Suites")
-            self.suite_window.geometry("650x580")
+            self.suite_window.geometry("650x680")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
 
             self.suite_frame = ctk.CTkFrame(self.suite_window)
@@ -4576,6 +4587,123 @@ def _launch_gui():
                 status_win, text=stdout, font=("TkDefaultFont", 12),
                 justify="left", anchor="nw", padx=15, pady=15,
             ).pack(fill="both", expand=True)
+
+        def _show_index_help(self):
+            """Show help explaining what indexes are and when to use them."""
+            import tkinter as tk
+            help_win = tk.Toplevel(self.index_window or self)
+            help_win.title("Index Options — Help")
+            help_win.geometry("650x480")
+            help_win.resizable(True, True)
+            if self.index_window:
+                help_win.transient(self.index_window)
+
+            text_frame = tk.Frame(help_win)
+            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+            scrollbar = tk.Scrollbar(text_frame)
+            scrollbar.pack(side="right", fill="y")
+            txt = tk.Text(
+                text_frame, wrap="word", font=("TkDefaultFont", 12),
+                state="normal", yscrollcommand=scrollbar.set,
+                padx=12, pady=10, spacing3=2,
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=12, spacing3=4)
+            txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=10, spacing3=2)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
+            txt.tag_configure("example", font=("Courier", 12), lmargin1=30, lmargin2=30)
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+            def s(text):
+                txt.insert("end", text + "\n", "subhead")
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+            def blank():
+                txt.insert("end", "\n")
+
+            h("WHAT IS AN INDEX?")
+            b("An index is like a book's index \u2014 instead of reading every")
+            b("page to find a word, you look it up in the back and go")
+            b("straight to the right page. Without an index, docsearch")
+            b("opens and reads every file each time you search. With an")
+            b("index, docsearch reads files once, stores the text in a")
+            b("database, and searches that database on every subsequent")
+            b("search. The result is the same \u2014 you get the same matches")
+            b("\u2014 but repeated searches are much faster.")
+            blank()
+
+            h("WHEN TO USE AN INDEX")
+            s("Good for:")
+            b("\u2022 Large folders with hundreds or thousands of files")
+            b("\u2022 Folders you search repeatedly (compliance audits, etc.)")
+            b("\u2022 Running search suites on a schedule")
+            blank()
+            s("Not needed for:")
+            b("\u2022 Small folders (under 50 files) \u2014 direct scanning is fast")
+            b("\u2022 One-off searches you won't repeat")
+            blank()
+            s("May be slower than direct scanning when:")
+            b("\u2022 Your folder has a few very large files (long PDFs, huge")
+            b("  spreadsheets) that produce millions of text lines")
+            b("\u2022 The index becomes very large (check with Index Status)")
+            b("If indexed searches feel slow, uncheck Use Index on the")
+            b("main screen and search directly instead.")
+            blank()
+
+            h("HOW TO BUILD AN INDEX")
+            b("1. Browse to the folder you want to index")
+            b("2. Click Index Options on the main screen")
+            b("3. Click Build Index(es)")
+            b("4. Wait \u2014 large folders may take a few minutes")
+            b("5. Check Use Index on the main screen to use it")
+            blank()
+            b("The index automatically includes all subfolders. One index")
+            b("in your top folder covers everything underneath it.")
+            blank()
+
+            h("HOW THE INDEX STAYS CURRENT")
+            b("Use Auto-Refresh to keep the index up to date while the")
+            b("app is open. It checks for new, changed, and deleted files")
+            b("at the interval you choose (5 min, 15 min, 30 min, 1 hour).")
+            b("You can also rebuild manually anytime with Build Index(es).")
+            blank()
+
+            h("INDEX FILES")
+            b("The index is stored as .docsearch.db in the search folder.")
+            b("It also creates temporary .docsearch.db-wal and -shm files")
+            b("for concurrent access. All are safe to delete \u2014 rebuild")
+            b("with Build Index(es) anytime.")
+            blank()
+            b("To remove the index completely, click Delete Index(es).")
+            blank()
+
+            h("INDEXES AND SUBFOLDERS")
+            b("Each folder can have its own index. If you build an index")
+            b("in a top folder, it covers all subfolders. If you also")
+            b("build indexes in subfolders, they are independent \u2014 they")
+            b("don't interfere with each other. The simplest approach is")
+            b("one index in your top folder.")
+            blank()
+
+            h("INDEXES AND SEARCH SUITES")
+            b("The Use Index setting is saved per search when you click")
+            b("Save Search. When a suite runs, each search uses whatever")
+            b("index setting it was saved with. If a saved search has")
+            b("indexing enabled but no index exists, it falls back to")
+            b("direct scanning automatically.")
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=100,
+                command=help_win.destroy,
+            )
+            close_btn.pack(pady=(5, 10))
 
         def about_index_action(self):
             import tkinter as tk
