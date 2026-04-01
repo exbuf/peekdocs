@@ -14,19 +14,19 @@
 
 ## Features
 
+- **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
 - **42 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, HTML, and 30+ more
+- **Highlighted reports** — results saved to `.docx` with yellow-highlighted matches and `.txt` with full context
+- **Results preview** — see matches inline in the GUI with highlighted terms
+- **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs
+- **Email alerts** — get notified when scheduled suites detect compliance failures
+- **Inverse search** — find files that are *missing* required content
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
-- **Highlighted reports** — results saved to `.docx` with yellow-highlighted matches and `.txt` with full context
-- **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs
-- **Email alerts** — get notified when scheduled suites detect compliance failures
-- **Results preview** — see matches inline in the GUI with highlighted terms
-- **Search index** — optional SQLite FTS5 index for faster repeated searches
-- **Inverse search** — find files that are *missing* required content
-- **Cross-platform** — Windows, macOS, Linux
 - **Three interfaces** — terminal CLI, point-and-click GUI (`docsearch-gui`), Python API
-- **Offline and private** — your documents never leave your computer
+- **Cross-platform** — Windows, macOS, Linux
+- **Search index** — optional SQLite FTS5 index for faster repeated searches
 - **Read-only** — docsearch never modifies, moves, or deletes your files
 
 ### Supported File Types
