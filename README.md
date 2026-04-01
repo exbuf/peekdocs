@@ -10,9 +10,7 @@
 >
 > Also a powerful everyday search tool — use plain keywords, regex, Boolean logic, fuzzy matching, wildcards, proximity search, or range queries. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
 
-<!-- Add screenshots here when available:
-![docsearch GUI](screenshots/main-window.png)
--->
+**[See docsearch in action →](https://robertdschoening.com/docsearch)**
 
 ## Features
 
