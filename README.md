@@ -6,7 +6,7 @@
 
 > Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
 >
-> **Built for compliance and auditing.** Create search suites that check every document for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within policy ranges — then run those checks on a schedule with pass/fail reports and email alerts when failures are detected. No other free tool does this.
+> **Built for compliance and auditing.** Create search suites that check every document for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within policy ranges — then run those checks on a schedule with pass/fail reports and email alerts when failures are detected. Includes ready-to-use examples for financial services, healthcare, legal, government, manufacturing, education, real estate, insurance, and HR — copy, paste, and adapt to your needs. No other free tool does this.
 >
 > Also a powerful everyday search tool — use plain keywords, regex, Boolean logic, fuzzy matching, wildcards, proximity search, or range queries. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
 
