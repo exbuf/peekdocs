@@ -1908,6 +1908,14 @@ def _launch_gui():
             )
             self.run_suite_btn.grid(row=8, column=0, columnspan=2, pady=(10, 10))
 
+            ctk.CTkButton(
+                self.suite_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._on_suite_window_close,
+                font=ctk.CTkFont(size=12),
+            ).grid(row=9, column=0, columnspan=2, pady=(0, 10))
+
         def _open_autorun_history(self):
             """Open the auto-run log file in the default text editor."""
             import subprocess, sys
