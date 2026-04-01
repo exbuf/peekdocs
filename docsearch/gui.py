@@ -2278,6 +2278,7 @@ def _launch_gui():
             self.suite_visible = False
 
         def _toggle_suite_panel(self):
+            """Toggle the Search Suites window open or closed."""
             if self.suite_visible:
                 if self.suite_running:
                     return
@@ -3453,6 +3454,7 @@ def _launch_gui():
         # ── Actions ──────────────────────────────────────────────
 
         def _toggle_tooltips(self):
+            """Toggle hover tooltip visibility on or off."""
             Tooltip.enabled = not Tooltip.enabled
             if Tooltip.enabled:
                 self.tooltip_toggle_btn.configure(text="Disable Hover Text")
@@ -3460,6 +3462,7 @@ def _launch_gui():
                 self.tooltip_toggle_btn.configure(text="Enable Hover Text")
 
         def toggle_advanced(self):
+            """Toggle the Advanced Options window open or closed."""
             if self.advanced_visible:
                 self._close_advanced_window()
             else:
@@ -3469,11 +3472,13 @@ def _launch_gui():
                 self.advanced_visible = True
 
         def _close_advanced_window(self):
+            """Hide the Advanced Options window and update the toggle button."""
             self.advanced_window.withdraw()
             self.advanced_toggle.configure(text="\u25b6 Advanced Options")
             self.advanced_visible = False
 
         def _toggle_index_options(self):
+            """Toggle the Index Options window open or closed."""
             if self.index_visible:
                 self._close_index_window()
             else:
@@ -3484,6 +3489,7 @@ def _launch_gui():
                 self._update_index_button_color()
 
         def _close_index_window(self):
+            """Hide the Index Options window and update the toggle button."""
             self.index_window.withdraw()
             self.index_toggle_btn.configure(text="\u25b6 Index Options")
             self.index_visible = False
@@ -3502,6 +3508,7 @@ def _launch_gui():
             self._update_index_button_color()
 
         def browse_folder(self):
+            """Open a folder picker and update the search folder entry."""
             initial = self.folder_entry.get() or os.path.expanduser("~")
             folder = filedialog.askdirectory(initialdir=initial)
             if folder:
@@ -3517,6 +3524,7 @@ def _launch_gui():
                 self._resume_suite_schedule()
 
         def _browse_output_dir(self):
+            """Open a folder picker for the search output directory."""
             initial = self.output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
             folder = filedialog.askdirectory(initialdir=initial)
             if folder:
@@ -3524,6 +3532,7 @@ def _launch_gui():
                 self.output_dir_entry.insert(0, folder)
 
         def _browse_suite_output_dir(self):
+            """Open a folder picker for the suite output directory."""
             initial = self.suite_output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
             folder = filedialog.askdirectory(initialdir=initial)
             if folder:
@@ -3531,6 +3540,7 @@ def _launch_gui():
                 self.suite_output_dir_entry.insert(0, folder)
 
         def start_search(self):
+            """Validate inputs, build the CLI command, and launch a search thread."""
             if self.suite_running:
                 return
             if self.process is not None:
@@ -3649,9 +3659,11 @@ def _launch_gui():
             self.search_thread.start()
 
         def _start_elapsed_timer(self):
+            """Start the repeating timer that updates the elapsed-time display."""
             self._update_elapsed()
 
         def _update_elapsed(self):
+            """Update the status label with the current elapsed search time."""
             if self.process is None and self.search_start_time is None:
                 return
             if self.search_start_time is not None:
@@ -3660,6 +3672,7 @@ def _launch_gui():
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
         def _run_search(self, cmd, folder):
+            """Run the docsearch subprocess in a background thread and post results."""
             import re as _re
             try:
                 env = os.environ.copy()
@@ -3824,6 +3837,7 @@ def _launch_gui():
                 )
 
         def _search_finished(self, stdout, returncode):
+            """Handle search completion by updating status, reports, and preview."""
             try:
                 self.progress_bar.stop()
             except Exception:
@@ -3964,6 +3978,7 @@ def _launch_gui():
                 )
                 col += 1
         def open_error_log(self):
+            """Open the docsearch error log file in the default text editor."""
             folder = self.results_dir or self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a folder first.")
@@ -4014,6 +4029,7 @@ def _launch_gui():
                 self._clear_action_buttons()
 
         def _clear_error_log(self):
+            """Delete the docsearch error log file after confirmation."""
             folder = self.results_dir or self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a folder first.")
@@ -4472,6 +4488,7 @@ def _launch_gui():
                 self.suite_last_run_label.configure(text="Never")
 
         def build_index_action(self):
+            """Build a search index for the selected folder in a background thread."""
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder.")
@@ -4542,6 +4559,7 @@ def _launch_gui():
             threading.Thread(target=_run, daemon=True).start()
 
         def delete_index_action(self):
+            """Delete the search index from the selected folder."""
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder.")
@@ -4562,6 +4580,7 @@ def _launch_gui():
                 self._show_error("Failed to delete index.")
 
         def index_status_action(self):
+            """Display index status information in a popup window."""
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder.")
@@ -4718,6 +4737,7 @@ def _launch_gui():
             close_btn.pack(pady=(5, 10))
 
         def about_index_action(self):
+            """Show an informational popup explaining how indexes work."""
             import tkinter as tk
             about_win = tk.Toplevel(self)
             about_win.title("About Index")
@@ -4778,6 +4798,7 @@ def _launch_gui():
             text.configure(state="disabled")
 
         def _open_selected_file(self):
+            """Open the selected file from the matched files list in the default app."""
             selection = self.files_listbox.curselection()
             if not selection:
                 return
@@ -4794,6 +4815,7 @@ def _launch_gui():
                 subprocess.Popen(["xdg-open", filepath])
 
         def _hide_files_list(self):
+            """Clear the matched files list."""
             self.matched_files = []
 
         def _show_matched_files_popup(self):
@@ -4866,9 +4888,11 @@ def _launch_gui():
             tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(0, 10))
 
         def open_help(self):
+            """Open the docsearch README in the default web browser."""
             webbrowser.open("https://github.com/exbuf/docsearch#readme")
 
         def show_about(self):
+            """Show the About dialog with version and author information."""
             import tkinter as tk
             about_win = tk.Toplevel(self)
             about_win.title("About docsearch")
@@ -5222,6 +5246,7 @@ def _launch_gui():
             self.report_btn_json.pack_forget()
 
         def _show_error(self, message):
+            """Display an error message in the status label and a modal dialog."""
             self.status_label.configure(
                 text=message, text_color="red", font=ctk.CTkFont(size=13, weight="bold")
             )
@@ -5604,21 +5629,25 @@ def _launch_gui():
         # ── Mutual exclusion for search modes ────────────────────
 
         def _on_fuzzy_toggle(self):
+            """Handle fuzzy toggle by disabling conflicting regex and wildcard modes."""
             if self.fuzzy_var.get() == "on":
                 self.regex_var.set("off")
                 self.wildcard_var.set("off")
 
         def _on_regex_toggle(self):
+            """Handle regex toggle by disabling conflicting fuzzy and wildcard modes."""
             if self.regex_var.get() == "on":
                 self.fuzzy_var.set("off")
                 self.wildcard_var.set("off")
 
         def _on_wildcard_toggle(self):
+            """Handle wildcard toggle by disabling conflicting fuzzy and regex modes."""
             if self.wildcard_var.get() == "on":
                 self.fuzzy_var.set("off")
                 self.regex_var.set("off")
 
         def _on_expression_toggle(self):
+            """Handle expression toggle by disabling AND mode, exclude, and proximity."""
             if self.expression_var.get() == "on":
                 self.and_mode_var.set("off")
                 self.exclude_entry.delete(0, "end")
@@ -5628,6 +5657,7 @@ def _launch_gui():
                 self.search_entry.configure(placeholder_text="Enter search terms...")
 
         def _on_and_toggle(self):
+            """Handle AND mode toggle by disabling the expression mode."""
             if self.and_mode_var.get() == "on":
                 self.expression_var.set("off")
                 self.search_entry.configure(placeholder_text="Enter search terms...")
@@ -5637,6 +5667,7 @@ def _launch_gui():
 
 
 def main():
+    """Launch the docsearch graphical interface."""
     _launch_gui()
 
 
