@@ -1132,6 +1132,7 @@ def _launch_gui():
             # Create popup window for Advanced Options
             self.advanced_window = ctk.CTkToplevel(self)
             self.advanced_window.title("Advanced Options")
+            self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Options"))
             self.advanced_window.geometry("720x620")
             self.advanced_window.resizable(True, True)
             self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
@@ -1588,6 +1589,7 @@ def _launch_gui():
             # Create popup window for Index Options
             self.index_window = ctk.CTkToplevel(self)
             self.index_window.title("Index Options")
+            self.index_window.after(100, lambda: self.index_window.title("Index Options"))
             self.index_window.geometry("650x240")
             self.index_window.resizable(True, True)
             self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
@@ -1712,6 +1714,7 @@ def _launch_gui():
 
             self.suite_window = ctk.CTkToplevel(self)
             self.suite_window.title("Search Suites")
+            self.suite_window.after(100, lambda: self.suite_window.title("Search Suites"))
             self.suite_window.geometry("650x680")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
             self.suite_window.after(50, self.suite_window.lift)
