@@ -1633,12 +1633,21 @@ def _launch_gui():
             ctk.CTkLabel(
                 self.search_bar_frame, text="Status:", font=ctk.CTkFont(size=13),
             ).grid(row=3, column=0, padx=(10, 5), pady=(0, 4), sticky="w")
+            status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
+            status_row.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=(0, 4), sticky="ew")
+
             self.status_label = ctk.CTkLabel(
-                self.search_bar_frame, text="", font=ctk.CTkFont(size=13), anchor="w"
+                status_row, text="", font=ctk.CTkFont(size=13), anchor="w"
             )
-            self.status_label.grid(
-                row=3, column=1, columnspan=2, padx=(0, 15), pady=(0, 4), sticky="ew"
+            self.status_label.pack(side="left")
+
+            self._matched_files_link = ctk.CTkLabel(
+                status_row, text="", font=ctk.CTkFont(size=13, underline=True),
+                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
+            self._matched_files_link.pack(side="left", padx=(8, 0))
+            self._matched_files_link.bind("<Button-1>", lambda e: self._show_matched_files_popup())
+            self._matched_files_link.pack_forget()  # Hidden until matches found
 
             self.matched_files = []
             self._inverse_results = False
@@ -3803,6 +3812,7 @@ def _launch_gui():
             self._clear_action_buttons()
             self._hide_files_list()
             self._hide_preview()
+            self._matched_files_link.pack_forget()
             # Use indeterminate for indexed searches (no file-by-file progress),
             # determinate for direct file scanning
             is_indexed = self.index_search_var.get() == "on"
@@ -4051,6 +4061,14 @@ def _launch_gui():
                     self.matched_files = _parse_matched_files(self.results_dir, results_fn)
                 self._show_action_buttons(inverse=self._inverse_results)
                 self._show_preview(stdout)
+                # Show matched files link on status line
+                if self.matched_files:
+                    if self._inverse_results:
+                        link_text = f"View {len(self.matched_files)} file(s) without matches"
+                    else:
+                        link_text = f"View {len(self.matched_files)} matched file(s)"
+                    self._matched_files_link.configure(text=link_text)
+                    self._matched_files_link.pack(side="left", padx=(8, 0))
             elif returncode == 1:
                 self.status_label.configure(
                     text=summary or "Search complete. No matches found.",
@@ -4106,42 +4124,30 @@ def _launch_gui():
 
             has_any_report = any(report_formats.values())
 
-            if not has_any_report and not has_matched:
+            if not has_any_report:
                 return
 
-            col = 0
-            if has_any_report:
-                # Pack report format buttons
-                for fmt, btn in [
-                    ("txt", self.report_btn_txt),
-                    ("docx", self.report_btn_docx),
-                    ("csv", self.report_btn_csv),
-                    ("json", self.report_btn_json),
-                ]:
-                    btn.pack(side="left", padx=(0, 2))
-                    if report_formats.get(fmt):
-                        btn.configure(
-                            fg_color="green",
-                            hover_color="darkgreen",
-                        )
-                    else:
-                        btn.configure(
-                            fg_color="#CC3333",
-                            hover_color="#AA2222",
-                        )
-                self.report_frame.grid(
-                    row=9, column=col, padx=(15, 5), pady=(5, 45), sticky="w"
-                )
-                col += 1
-            if has_matched:
-                if inverse:
-                    label = f"Files Without Matches ({len(self.matched_files)})"
+            # Pack report format buttons
+            for fmt, btn in [
+                ("txt", self.report_btn_txt),
+                ("docx", self.report_btn_docx),
+                ("csv", self.report_btn_csv),
+                ("json", self.report_btn_json),
+            ]:
+                btn.pack(side="left", padx=(0, 2))
+                if report_formats.get(fmt):
+                    btn.configure(
+                        fg_color="green",
+                        hover_color="darkgreen",
+                    )
                 else:
-                    label = f"Matched Files ({len(self.matched_files)})"
-                self.matched_files_button.configure(text=label)
-                self.matched_files_button.grid(
-                    row=9, column=2, padx=(5, 15), pady=(5, 45), sticky="e"
-                )
+                    btn.configure(
+                        fg_color="#CC3333",
+                        hover_color="#AA2222",
+                    )
+            self.report_frame.grid(
+                row=9, column=0, padx=(15, 5), pady=(5, 45), sticky="w"
+            )
         def open_error_log(self):
             """Open the docsearch error log file in the default text editor."""
             folder = self.results_dir or self.folder_entry.get().strip()
