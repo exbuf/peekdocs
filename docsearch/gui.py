@@ -662,6 +662,8 @@ def _launch_gui():
             chat_text.insert("end", "  find dollar amounts between 1000 and 5000\n", "hint")
             chat_text.insert("end", "  find misspelled compliance in Word docs\n", "hint")
             chat_text.insert("end", "  find breach and contract within 5 words\n", "hint")
+            chat_text.insert("end", "  find people not chen\n", "hint")
+            chat_text.insert("end", "  find dollar amounts 10k - 50k\n", "hint")
             chat_text.insert("end", "\n", "hint")
             chat_text.configure(state="disabled")
 
