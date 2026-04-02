@@ -653,51 +653,55 @@ def _launch_gui():
             canvas.pack(side="left", fill="both", expand=True)
 
             patterns = [
-                ("Find a keyword", "Search for a word or phrase",
-                 [("Keyword:", "keyword", "budget")],
+                ("Find keywords (OR — any match)", "Lines containing any of the terms (space-separated)",
+                 [("Keywords:", "keyword", "budget revenue expenses")],
                  lambda v: self._apply_wizard(search_text=v["keyword"])),
 
-                ("Find keyword (exclude term)", "Find keyword but skip lines with another term",
-                 [("Keyword:", "keyword", "budget"), ("Exclude:", "exclude", "draft")],
+                ("Find keywords (AND — all must match)", "Lines containing ALL of the terms",
+                 [("Keywords:", "keyword", "budget approved Q1")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], and_mode=True)),
+
+                ("Find keywords (exclude terms)", "Find keywords but skip lines with excluded terms",
+                 [("Keywords:", "keyword", "budget revenue"), ("Exclude:", "exclude", "draft,preliminary")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], exclude=v["exclude"])),
 
-                ("Find files MISSING a term", "List files that do NOT contain the term",
-                 [("Required term:", "term", "Authorized Signature")],
+                ("Find files MISSING terms", "List files that do NOT contain ANY of these terms",
+                 [("Required terms:", "term", "Authorized Signature")],
                  lambda v: self._apply_wizard(search_text=v["term"], inverse=True)),
 
                 ("Find SSNs", "Social Security numbers (XXX-XX-XXXX)",
                  [],
                  lambda v: self._apply_wizard(search_text=r"\d{3}-\d{2}-\d{4}", regex=True)),
 
-                ("Find phone numbers", "US phone numbers",
+                ("Find phone numbers", "US phone numbers in various formats",
                  [],
                  lambda v: self._apply_wizard(search_text=r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", regex=True)),
 
-                ("Find email addresses", "Email address pattern",
+                ("Find email addresses", "Email addresses in any format",
                  [],
                  lambda v: self._apply_wizard(search_text=r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}", regex=True)),
 
                 ("Find dollar amounts in range", "Lines with dollar amounts in a specific range",
-                 [("Min ($):", "lo", "1000"), ("Max ($):", "hi", "5000")],
+                 [("Min ($):", "lo", "10000"), ("Max ($):", "hi", "50000")],
                  lambda v: self._apply_wizard(search_text=r"\$[\d,.]+", regex=True, range_filters=f"amount:{v['lo']}..{v['hi']}")),
 
-                ("Find keyword with dollar amounts", "Lines with both a keyword and a dollar sign",
-                 [("Keyword:", "keyword", "cloudnine")],
+                ("Find keywords with dollar amounts", "Lines with both keywords AND a dollar sign",
+                 [("Keywords:", "keyword", "cloudnine hosting")],
                  lambda v: self._apply_wizard(search_text=f"{v['keyword']} $", and_mode=True)),
 
-                ("Find keyword in file types", "Search only certain file formats",
-                 [("Keyword:", "keyword", "budget"), ("Types:", "types", "pdf,docx")],
+                ("Find keywords in file types", "Search only certain file formats",
+                 [("Keywords:", "keyword", "budget revenue"), ("Types:", "types", "pdf,docx,xlsx")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], file_types=v["types"])),
 
-                ("Find keyword in subfolders", "Search the folder and all subfolders",
-                 [("Keyword:", "keyword", "budget")],
+                ("Find keywords in subfolders", "Search the folder and all subfolders",
+                 [("Keywords:", "keyword", "compliance audit SOX")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], recursive=True)),
 
-                ("Find misspelled term", "Fuzzy match for typos or OCR errors",
-                 [("Term:", "term", "compliance")],
+                ("Find misspelled terms (fuzzy)", "Fuzzy match for typos or OCR errors",
+                 [("Terms:", "term", "compliance accommodation")],
                  lambda v: self._apply_wizard(search_text=v["term"], fuzzy=True)),
 
-                ("Find words near each other", "Two terms within N words",
+                ("Find words near each other", "Two terms within N words of each other",
                  [("Term 1:", "t1", "breach"), ("Term 2:", "t2", "contract"), ("N words:", "n", "5")],
                  lambda v: self._apply_wizard(search_text=f"{v['t1']} {v['t2']}", proximity=v["n"])),
 
