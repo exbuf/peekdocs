@@ -1702,7 +1702,7 @@ def _launch_gui():
 
             self.report_frame = ctk.CTkFrame(self, fg_color=self.cget("fg_color"))
             report_lbl = ctk.CTkLabel(
-                self.report_frame, text="View Report:", font=ctk.CTkFont(size=13),
+                self.report_frame, text="View Report:", font=ctk.CTkFont(size=28, weight="bold"),
             )
             report_lbl.pack(side="left", padx=(0, 4))
 
