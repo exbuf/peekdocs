@@ -465,8 +465,8 @@ def _launch_gui():
             self.search_button.pack(side="left", padx=(0, 5))
 
             ctk.CTkButton(
-                btn_frame, text="Search Assistant", width=130,
-                command=self._open_search_assistant,
+                btn_frame, text="Search Wizard", width=120,
+                command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=14),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             ).pack(side="left", padx=(0, 5))
@@ -623,209 +623,119 @@ def _launch_gui():
             )
             close_btn.pack(pady=(5, 10))
 
-        def _open_search_assistant(self):
-            """Open the Search Assistant chatbot dialog."""
+        def _open_search_wizard_guide(self):
+            """Open a guided Search Wizard with predefined search patterns."""
             import tkinter as tk
-            from docsearch.search_assistant import parse_natural_query
 
             win = ctk.CTkToplevel(self)
-            win.title("Search Assistant")
-            win.geometry("600x460")
+            win.title("Search Wizard")
+            win.geometry("580x520")
             win.resizable(True, True)
             win.after(50, win.lift)
 
             ctk.CTkLabel(
                 win,
-                text="Describe what you want to find in plain English.",
+                text="Choose a search type, fill in your values, and click Apply.",
                 font=ctk.CTkFont(size=12),
                 text_color=("gray50", "gray50"),
-            ).pack(padx=15, pady=(10, 5), anchor="w")
+            ).pack(padx=15, pady=(10, 10), anchor="w")
 
-            # Chat history
-            chat_frame = tk.Frame(win)
-            chat_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
-            chat_scroll = tk.Scrollbar(chat_frame)
-            chat_scroll.pack(side="right", fill="y")
-            chat_text = tk.Text(
-                chat_frame, wrap="word", font=("TkDefaultFont", 12),
-                state="disabled", yscrollcommand=chat_scroll.set,
-                padx=10, pady=8, spacing3=4, height=12,
-            )
-            chat_text.pack(side="left", fill="both", expand=True)
-            chat_scroll.config(command=chat_text.yview)
+            # Scrollable frame for patterns
+            canvas_frame = tk.Frame(win)
+            canvas_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            canvas = tk.Canvas(canvas_frame)
+            scrollbar = tk.Scrollbar(canvas_frame, command=canvas.yview)
+            scroll_inner = tk.Frame(canvas)
+            scroll_inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=scroll_inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
 
-            chat_text.tag_configure("user", foreground="#1a73e8", font=("TkDefaultFont", 12, "bold"))
-            chat_text.tag_configure("assistant", foreground="#333333")
-            chat_text.tag_configure("config", foreground="#059669", font=("Courier", 11))
-            chat_text.tag_configure("error", foreground="#DC2626")
-            chat_text.tag_configure("hint", foreground="#888888", font=("TkDefaultFont", 11))
+            patterns = [
+                ("Find a keyword", "Search for a word or phrase",
+                 [("Keyword:", "keyword", "budget")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"])),
 
-            # Show initial hints
-            chat_text.configure(state="normal")
-            chat_text.insert("end", "Try something like:\n", "hint")
-            chat_text.insert("end", "  find SSNs in all PDFs in subfolders\n", "hint")
-            chat_text.insert("end", "  search for budget but not draft\n", "hint")
-            chat_text.insert("end", "  find files missing an authorized signature\n", "hint")
-            chat_text.insert("end", "  find dollar amounts between 1000 and 5000\n", "hint")
-            chat_text.insert("end", "  find misspelled compliance in Word docs\n", "hint")
-            chat_text.insert("end", "  find breach and contract within 5 words\n", "hint")
-            chat_text.insert("end", "  find people not chen\n", "hint")
-            chat_text.insert("end", "  find dollar amounts 10k - 50k\n", "hint")
-            chat_text.insert("end", "  show me all sales over $10,000\n", "hint")
-            chat_text.insert("end", "  find rows where status is pending\n", "hint")
-            chat_text.insert("end", "  show me orders that are overdue and unpaid\n", "hint")
-            chat_text.insert("end", "  find cloudnine with dollar amounts\n", "hint")
-            chat_text.insert("end", "  show me everything from March\n", "hint")
-            chat_text.insert("end", "\n", "hint")
-            chat_text.configure(state="disabled")
+                ("Find keyword (exclude term)", "Find keyword but skip lines with another term",
+                 [("Keyword:", "keyword", "budget"), ("Exclude:", "exclude", "draft")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], exclude=v["exclude"])),
 
-            # Input row
-            input_frame = ctk.CTkFrame(win, fg_color="transparent")
-            input_frame.pack(fill="x", padx=10, pady=(0, 10))
+                ("Find files MISSING a term", "List files that do NOT contain the term",
+                 [("Required term:", "term", "Authorized Signature")],
+                 lambda v: self._apply_wizard(search_text=v["term"], inverse=True)),
 
-            input_entry = tk.Entry(
-                input_frame, font=("TkDefaultFont", 13),
-            )
-            input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+                ("Find SSNs", "Social Security numbers (XXX-XX-XXXX)",
+                 [],
+                 lambda v: self._apply_wizard(search_text=r"\d{3}-\d{2}-\d{4}", regex=True)),
 
-            # Prompt history for up/down arrow navigation (persists across app invocations)
-            if not hasattr(self, '_assistant_history'):
-                try:
-                    from docsearch.cli import _load_config
-                    import json as _json
-                    cfg = _load_config()
-                    raw = cfg.get("assistant_history", "[]")
-                    self._assistant_history = _json.loads(raw) if isinstance(raw, str) else []
-                except Exception:
-                    self._assistant_history = []
-            prompt_history = self._assistant_history
-            history_index = [len(prompt_history)]
+                ("Find phone numbers", "US phone numbers",
+                 [],
+                 lambda v: self._apply_wizard(search_text=r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", regex=True)),
 
-            def _history_up(event=None):
-                if not prompt_history:
-                    return
-                if history_index[0] > 0:
-                    history_index[0] -= 1
-                input_entry.delete(0, "end")
-                input_entry.insert(0, prompt_history[history_index[0]])
+                ("Find email addresses", "Email address pattern",
+                 [],
+                 lambda v: self._apply_wizard(search_text=r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}", regex=True)),
 
-            def _history_down(event=None):
-                if not prompt_history:
-                    return
-                if history_index[0] < len(prompt_history) - 1:
-                    history_index[0] += 1
-                    input_entry.delete(0, "end")
-                    input_entry.insert(0, prompt_history[history_index[0]])
-                else:
-                    history_index[0] = len(prompt_history)
-                    input_entry.delete(0, "end")
+                ("Find dollar amounts in range", "Lines with dollar amounts in a specific range",
+                 [("Min ($):", "lo", "1000"), ("Max ($):", "hi", "5000")],
+                 lambda v: self._apply_wizard(search_text=r"\$[\d,.]+", regex=True, range_filters=f"amount:{v['lo']}..{v['hi']}")),
 
-            input_entry.bind("<Up>", _history_up)
-            input_entry.bind("<Down>", _history_down)
+                ("Find keyword with dollar amounts", "Lines with both a keyword and a dollar sign",
+                 [("Keyword:", "keyword", "cloudnine")],
+                 lambda v: self._apply_wizard(search_text=f"{v['keyword']} $", and_mode=True)),
 
-            # Pre-fill with last search
-            if prompt_history:
-                input_entry.insert(0, prompt_history[-1])
-                input_entry.select_range(0, "end")
+                ("Find keyword in file types", "Search only certain file formats",
+                 [("Keyword:", "keyword", "budget"), ("Types:", "types", "pdf,docx")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], file_types=v["types"])),
 
-            def _submit(event=None):
-                query = input_entry.get().strip()
-                if not query:
-                    return
-                prompt_history.append(query)
-                # Keep only last 10 and save to config
-                while len(prompt_history) > 10:
-                    prompt_history.pop(0)
-                try:
-                    from docsearch.cli import _load_config, _save_config
-                    import json as _json
-                    cfg = _load_config()
-                    cfg["assistant_history"] = _json.dumps(prompt_history)
-                    _save_config(cfg)
-                except Exception:
-                    pass
-                history_index[0] = len(prompt_history)
-                input_entry.delete(0, "end")
+                ("Find keyword in subfolders", "Search the folder and all subfolders",
+                 [("Keyword:", "keyword", "budget")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], recursive=True)),
 
-                # Show user message
-                chat_text.configure(state="normal")
-                chat_text.insert("end", f"You: {query}\n", "user")
+                ("Find misspelled term", "Fuzzy match for typos or OCR errors",
+                 [("Term:", "term", "compliance")],
+                 lambda v: self._apply_wizard(search_text=v["term"], fuzzy=True)),
 
-                # Parse the query
-                result = parse_natural_query(query)
+                ("Find words near each other", "Two terms within N words",
+                 [("Term 1:", "t1", "breach"), ("Term 2:", "t2", "contract"), ("N words:", "n", "5")],
+                 lambda v: self._apply_wizard(search_text=f"{v['t1']} {v['t2']}", proximity=v["n"])),
 
-                # Show what we understood
-                if result["unsupported"]:
-                    chat_text.insert("end", f"\n{result['unsupported']}\n\n", "error")
+                ("Boolean expression", "Combine AND, OR, NOT with parentheses",
+                 [("Expression:", "expr", "(budget OR revenue) AND NOT draft")],
+                 lambda v: self._apply_wizard(search_text=v["expr"], expression=True)),
 
-                if result["explanation"]:
-                    chat_text.insert("end", "\nI'll set up this search:\n", "assistant")
-                    for line in result["explanation"].split("\n"):
-                        chat_text.insert("end", f"  {line}\n", "config")
+                ("Find dates in range", "Lines with dates in a specific range",
+                 [("From:", "lo", "2026-01-01"), ("To:", "hi", "2026-12-31")],
+                 lambda v: self._apply_wizard(search_text=r"\d{2}/\d{2}/\d{4}", regex=True, range_filters=f"date:{v['lo']}..{v['hi']}")),
+            ]
 
-                    chat_text.insert("end", "\n", "assistant")
+            for title, desc, fields, apply_fn in patterns:
+                frame = tk.LabelFrame(scroll_inner, text=title, font=("TkDefaultFont", 12, "bold"), padx=8, pady=5)
+                frame.pack(fill="x", padx=5, pady=(0, 8))
 
-                    if not result["unsupported"]:
-                        # Show the assistant's interpretation above the search box
-                        self._assistant_label.configure(text=f"Search Assistant: {query}")
+                tk.Label(frame, text=desc, font=("TkDefaultFont", 10), fg="gray").pack(anchor="w")
+
+                entries = {}
+                if fields:
+                    field_frame = tk.Frame(frame)
+                    field_frame.pack(fill="x", pady=(3, 0))
+                    for i, (label, key, placeholder) in enumerate(fields):
+                        tk.Label(field_frame, text=label, font=("TkDefaultFont", 11)).grid(row=0, column=i*2, padx=(0, 3), sticky="e")
+                        e = tk.Entry(field_frame, font=("TkDefaultFont", 11), width=15)
+                        e.insert(0, placeholder)
+                        e.grid(row=0, column=i*2+1, padx=(0, 10))
+                        entries[key] = e
+
+                def _make_apply(fn, ents, t):
+                    def _click():
+                        vals = {k: e.get().strip() for k, e in ents.items()}
+                        fn(vals)
+                        self._assistant_label.configure(text=f"Search Wizard: {t}")
                         self._assistant_label.grid(row=0, column=1, columnspan=2, padx=(5, 105), pady=(0, 0), sticky="sw")
+                    return _click
 
-                        # Apply to GUI
-                        self.search_entry.delete(0, "end")
-                        if result["search_text"]:
-                            self.search_entry.insert(0, result["search_text"])
-
-                        # Set checkboxes
-                        self.and_mode_var.set("on" if result.get("and_mode") else "off")
-                        self.recursive_var.set("on" if result["recursive"] else "off")
-                        self.regex_var.set("on" if result["regex"] else "off")
-                        self.fuzzy_var.set("on" if result["fuzzy"] else "off")
-                        self.wildcard_var.set("on" if result["wildcard"] else "off")
-                        self.inverse_var.set("on" if result["inverse"] else "off")
-                        self.whole_word_var.set("on" if result["whole_word"] else "off")
-                        self.expression_var.set("on" if result["expression"] else "off")
-
-                        # Set text fields
-                        self.file_types_entry.delete(0, "end")
-                        if result["file_types"]:
-                            self.file_types_entry.insert(0, result["file_types"])
-
-                        self.exclude_entry.delete(0, "end")
-                        if result["exclude"]:
-                            self.exclude_entry.insert(0, result["exclude"])
-
-                        self.proximity_entry.delete(0, "end")
-                        if result["proximity"]:
-                            self.proximity_entry.insert(0, result["proximity"])
-
-                        self.range_entry.delete(0, "end")
-                        if result["range_filters"]:
-                            self.range_entry.insert(0, result["range_filters"])
-                            chat_text.insert("end", f"  Range field set to: {result['range_filters']}\n", "config")
-
-                        self.context_before_entry.delete(0, "end")
-                        if result["context_before"]:
-                            self.context_before_entry.insert(0, result["context_before"])
-
-                        self.context_after_entry.delete(0, "end")
-                        if result["context_after"]:
-                            self.context_after_entry.insert(0, result["context_after"])
-
-                        if not result["search_text"] and result["range_filters"]:
-                            chat_text.insert("end", "Range-only search configured. The Search Terms field is empty — that's correct.\nThe range filter is in Advanced Options. Click Run Search.\n\n", "assistant")
-                        else:
-                            chat_text.insert("end", "Search configured! Click Run Search or type another query.\n\n", "assistant")
-
-                chat_text.configure(state="disabled")
-                chat_text.see("end")
-
-            input_entry.bind("<Return>", _submit)
-
-            ctk.CTkButton(
-                input_frame, text="Go", width=60,
-                command=_submit,
-                font=ctk.CTkFont(size=13),
-            ).pack(side="left")
+                tk.Button(frame, text="Apply", width=8, command=_make_apply(apply_fn, entries, title)).pack(anchor="e", pady=(3, 0))
 
             ctk.CTkButton(
                 win, text="Close", width=80,
@@ -833,9 +743,43 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=win.destroy,
                 font=ctk.CTkFont(size=12),
-            ).pack(pady=(0, 10))
+            ).pack(pady=(5, 10))
 
-            win.after(200, input_entry.focus_set)
+        def _apply_wizard(self, search_text="", regex=False, fuzzy=False,
+                          wildcard=False, inverse=False, whole_word=False,
+                          expression=False, and_mode=False, recursive=False,
+                          file_types="", exclude="", proximity="",
+                          range_filters="", context_before="", context_after=""):
+            """Apply Search Wizard settings to the GUI fields."""
+            self.search_entry.delete(0, "end")
+            if search_text:
+                self.search_entry.insert(0, search_text)
+            self.and_mode_var.set("on" if and_mode else "off")
+            self.recursive_var.set("on" if recursive else "off")
+            self.regex_var.set("on" if regex else "off")
+            self.fuzzy_var.set("on" if fuzzy else "off")
+            self.wildcard_var.set("on" if wildcard else "off")
+            self.inverse_var.set("on" if inverse else "off")
+            self.whole_word_var.set("on" if whole_word else "off")
+            self.expression_var.set("on" if expression else "off")
+            self.file_types_entry.delete(0, "end")
+            if file_types:
+                self.file_types_entry.insert(0, file_types)
+            self.exclude_entry.delete(0, "end")
+            if exclude:
+                self.exclude_entry.insert(0, exclude)
+            self.proximity_entry.delete(0, "end")
+            if proximity:
+                self.proximity_entry.insert(0, proximity)
+            self.range_entry.delete(0, "end")
+            if range_filters:
+                self.range_entry.insert(0, range_filters)
+            self.context_before_entry.delete(0, "end")
+            if context_before:
+                self.context_before_entry.insert(0, context_before)
+            self.context_after_entry.delete(0, "end")
+            if context_after:
+                self.context_after_entry.insert(0, context_after)
 
         def _show_search_help(self):
             """Show a quick-start guide with search examples by category."""
