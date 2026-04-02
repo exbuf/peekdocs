@@ -481,7 +481,7 @@ def _launch_gui():
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Index Options")
 
             self.load_search_btn = ctk.CTkButton(
-                btn_frame, text="Load Settings \u25bc", width=140,
+                btn_frame, text="Load Saved Search \u25bc", width=155,
                 font=ctk.CTkFont(size=14),
                 command=self._open_load_search_popup,
             )
