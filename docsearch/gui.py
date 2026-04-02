@@ -3741,6 +3741,10 @@ def _launch_gui():
                 self.recursive_var.set("off")
                 self._update_index_button_color()
                 self._refresh_load_search_menu()
+                self.status_label.configure(
+                    text=f"File selected: {filename} in {folder}",
+                    text_color=("gray30", "gray70"),
+                )
 
         def browse_folder(self):
             """Open a folder picker and update the search folder entry."""
