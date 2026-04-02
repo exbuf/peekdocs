@@ -411,7 +411,7 @@ def _launch_gui():
             self.search_bar_frame.grid(
                 row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
             )
-            self.search_bar_frame.grid_columnconfigure(0, minsize=130)
+            self.search_bar_frame.grid_columnconfigure(0, minsize=260)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
             self.search_bar_frame.grid_columnconfigure(2, minsize=170)
 
@@ -1089,7 +1089,7 @@ def _launch_gui():
             self.folder_bar_frame.grid(
                 row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
             )
-            self.folder_bar_frame.grid_columnconfigure(0, minsize=130)
+            self.folder_bar_frame.grid_columnconfigure(0, minsize=260)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
             self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
 
@@ -1098,7 +1098,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
             ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
 
-            label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=14))
+            label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=28, weight="bold"))
             label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
