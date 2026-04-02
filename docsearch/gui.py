@@ -1279,13 +1279,26 @@ def _launch_gui():
             self.folder_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
+            browse_frame = ctk.CTkFrame(self.folder_bar_frame, fg_color="transparent")
+            browse_frame.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
+
             self.browse_button = ctk.CTkButton(
-                self.folder_bar_frame, text="Browse", width=90, command=self.browse_folder,
+                browse_frame, text="Folder", width=60, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
-            self.browse_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
+            self.browse_button.pack(side="left", padx=(0, 3))
+            Tooltip(self.browse_button, "Browse for a folder to search")
 
-            Tooltip(self.folder_entry, "The folder to search. Click Browse to choose a different folder")
+            self.browse_file_button = ctk.CTkButton(
+                browse_frame, text="File", width=50, command=self._browse_file,
+                font=ctk.CTkFont(size=14),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+            )
+            self.browse_file_button.pack(side="left")
+            Tooltip(self.browse_file_button, "Browse for a specific file to search")
+
+            Tooltip(self.folder_entry, "The folder or file to search. Use Folder to pick a folder, File to pick a specific file")
 
         def _build_advanced_toggle(self):
             """Build the toggle buttons for Advanced Options and Search Suites."""
@@ -3702,6 +3715,31 @@ def _launch_gui():
             self.cancel_index_button.pack_forget()
             self.status_label.configure(text="Index build cancelled.")
             self._update_index_button_color()
+
+        def _browse_file(self):
+            """Open a file picker, set the folder to the file's directory and specific file to search."""
+            initial = self.folder_entry.get() or os.path.expanduser("~")
+            filepath = filedialog.askopenfilename(
+                initialdir=initial,
+                title="Select a file to search",
+                filetypes=[
+                    ("All supported", "*.doc *.docx *.pdf *.xlsx *.xls *.csv *.tsv *.pptx *.ppt "
+                     "*.odt *.ods *.odp *.rtf *.epub *.html *.txt *.md *.json *.xml *.yaml *.yml "
+                     "*.toml *.ini *.cfg *.sql *.log *.rst *.tex *.eml *.msg *.pst "
+                     "*.zip *.tar *.gz *.bz2 *.tgz *.7z *.rar"),
+                    ("All files", "*.*"),
+                ],
+            )
+            if filepath:
+                filepath = os.path.normpath(filepath)
+                folder = os.path.dirname(filepath)
+                filename = os.path.basename(filepath)
+                self.folder_entry.delete(0, "end")
+                self.folder_entry.insert(0, folder)
+                self.specific_files_entry.delete(0, "end")
+                self.specific_files_entry.insert(0, filename)
+                self._update_index_button_color()
+                self._refresh_load_search_menu()
 
         def browse_folder(self):
             """Open a folder picker and update the search folder entry."""
