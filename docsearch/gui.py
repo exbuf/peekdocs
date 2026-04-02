@@ -430,7 +430,7 @@ def _launch_gui():
             search_help_btn.grid(row=0, column=2, padx=(0, 10), pady=(4, 0), sticky="e")
             Tooltip(search_help_btn, "Search examples and quick-start guide")
 
-            label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=14))
+            label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=28, weight="bold"))
             label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
 
             self.search_entry = ctk.CTkEntry(
@@ -453,6 +453,7 @@ def _launch_gui():
             self.search_button = ctk.CTkButton(
                 btn_frame, text="Run Search", width=100, command=self.start_search,
                 font=ctk.CTkFont(size=14),
+                fg_color="green", hover_color="darkgreen",
             )
             self.search_button.pack(side="left", padx=(0, 5))
 
