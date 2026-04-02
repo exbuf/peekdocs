@@ -757,6 +757,7 @@ def _launch_gui():
                         self.range_entry.delete(0, "end")
                         if result["range_filters"]:
                             self.range_entry.insert(0, result["range_filters"])
+                            chat_text.insert("end", f"  Range field set to: {result['range_filters']}\n", "config")
 
                         self.context_before_entry.delete(0, "end")
                         if result["context_before"]:
