@@ -448,7 +448,7 @@ def _launch_gui():
 
             # Row 2: action buttons below the search entry
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=2, column=1, columnspan=3, padx=5, pady=(0, 8), sticky="w")
+            btn_frame.grid(row=2, column=1, columnspan=2, padx=5, pady=(0, 8), sticky="ew")
 
             self.search_button = ctk.CTkButton(
                 btn_frame, text="Run Search", width=100, command=self.start_search,
@@ -457,36 +457,37 @@ def _launch_gui():
             )
             self.search_button.pack(side="left", padx=(0, 5))
 
-            self.wizard_button = ctk.CTkButton(
-                btn_frame, text="Wizard", width=80, command=self._open_search_wizard,
-                font=ctk.CTkFont(size=14),
-            )
-            self.wizard_button.pack(side="left", padx=(0, 5))
-            Tooltip(self.wizard_button, "Open the Search Wizard to build regex patterns from presets")
-
-            self.save_to_collection_btn = ctk.CTkButton(
-                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
-                font=ctk.CTkFont(size=14),
-            )
-            self.save_to_collection_btn.pack(side="left", padx=(0, 5))
-            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
-
-            self.load_search_btn = ctk.CTkButton(
-                btn_frame, text="Load Settings ▼", width=140,
-                font=ctk.CTkFont(size=14),
-                command=self._open_load_search_popup,
-            )
-            self.load_search_btn.pack(side="left", padx=(0, 5))
-            Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
-            self._load_search_popup = None
-
+            # Right-aligned buttons — packed right-to-left so Use Index is rightmost
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
             )
-            self.cb_index_search.pack(side="left", padx=(10, 0))
+            self.cb_index_search.pack(side="right", padx=(5, 0))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Index Options")
+
+            self.load_search_btn = ctk.CTkButton(
+                btn_frame, text="Load Settings \u25bc", width=140,
+                font=ctk.CTkFont(size=14),
+                command=self._open_load_search_popup,
+            )
+            self.load_search_btn.pack(side="right", padx=5)
+            Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
+            self._load_search_popup = None
+
+            self.save_to_collection_btn = ctk.CTkButton(
+                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
+                font=ctk.CTkFont(size=14),
+            )
+            self.save_to_collection_btn.pack(side="right", padx=5)
+            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
+
+            self.wizard_button = ctk.CTkButton(
+                btn_frame, text="Regex Wizard", width=110, command=self._open_search_wizard,
+                font=ctk.CTkFont(size=14),
+            )
+            self.wizard_button.pack(side="right", padx=5)
+            Tooltip(self.wizard_button, "Open the Regex Wizard to build regex patterns from presets")
 
             self.suite_toggle = ctk.CTkButton(
                 self._toggle_row,
