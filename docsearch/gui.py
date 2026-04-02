@@ -3633,7 +3633,7 @@ def _launch_gui():
                     stale = os.path.join(self.results_dir, "docsearch_results.json")
                     if os.path.exists(stale):
                         os.remove(stale)
-            self.search_button.configure(text="Cancel")
+            self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
             self._hide_files_list()
@@ -3849,7 +3849,7 @@ def _launch_gui():
                 self.after_cancel(self.elapsed_timer_id)
                 self.elapsed_timer_id = None
 
-            self.search_button.configure(text="Search")
+            self.search_button.configure(text="Search", fg_color="green", hover_color="darkgreen")
             self.search_entry.configure(state="normal")
 
             if returncode == -1:
