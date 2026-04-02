@@ -463,7 +463,7 @@ def _launch_gui():
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
             )
-            self.cb_index_search.pack(side="right", padx=(5, 0))
+            self.cb_index_search.pack(side="right", padx=(5, 30))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Index Options")
 
             self.load_search_btn = ctk.CTkButton(
