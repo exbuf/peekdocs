@@ -4109,12 +4109,9 @@ def _launch_gui():
             if not has_any_report and not has_matched:
                 return
 
-            # Use a single row frame: View Report on left, Matched Files on right
-            self._action_row = ctk.CTkFrame(self, fg_color="transparent")
-            self._action_row.grid(row=9, column=0, columnspan=3, padx=15, pady=(5, 45), sticky="ew")
-
+            col = 0
             if has_any_report:
-                # Pack report frame on the left
+                # Pack report format buttons
                 for fmt, btn in [
                     ("txt", self.report_btn_txt),
                     ("docx", self.report_btn_docx),
@@ -4132,15 +4129,19 @@ def _launch_gui():
                             fg_color="#CC3333",
                             hover_color="#AA2222",
                         )
-                self.report_frame.pack(in_=self._action_row, side="left")
-
+                self.report_frame.grid(
+                    row=9, column=col, padx=(15, 5), pady=(5, 45), sticky="w"
+                )
+                col += 1
             if has_matched:
                 if inverse:
                     label = f"Files Without Matches ({len(self.matched_files)})"
                 else:
                     label = f"Matched Files ({len(self.matched_files)})"
                 self.matched_files_button.configure(text=label)
-                self.matched_files_button.pack(in_=self._action_row, side="right", padx=(5, 0))
+                self.matched_files_button.grid(
+                    row=9, column=2, padx=(5, 15), pady=(5, 45), sticky="e"
+                )
         def open_error_log(self):
             """Open the docsearch error log file in the default text editor."""
             folder = self.results_dir or self.folder_entry.get().strip()
@@ -5402,16 +5403,12 @@ def _launch_gui():
 
         def _clear_action_buttons(self):
             """Hide all action buttons."""
-            self.matched_files_button.pack_forget()
-            self.report_frame.pack_forget()
+            self.matched_files_button.grid_remove()
+            self.report_frame.grid_remove()
             self.report_btn_txt.pack_forget()
             self.report_btn_docx.pack_forget()
             self.report_btn_csv.pack_forget()
             self.report_btn_json.pack_forget()
-            if hasattr(self, '_action_row') and self._action_row:
-                self._action_row.grid_remove()
-                self._action_row.destroy()
-                self._action_row = None
 
         def _show_error(self, message):
             """Display an error message in the status label and a modal dialog."""
