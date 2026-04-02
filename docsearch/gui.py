@@ -653,11 +653,11 @@ def _launch_gui():
             canvas.pack(side="left", fill="both", expand=True)
 
             patterns = [
-                ("Find keywords (OR — any match)", "Lines containing any of the terms (space-separated)",
+                ("Find keywords (OR — any match)", "Lines containing any of the terms. For AND+OR combos use Boolean below",
                  [("Keywords:", "keyword", "budget revenue expenses")],
                  lambda v: self._apply_wizard(search_text=v["keyword"])),
 
-                ("Find keywords (AND — all must match)", "Lines containing ALL of the terms",
+                ("Find keywords (AND — all must match)", "Lines containing ALL terms. For AND+OR combos use Boolean below",
                  [("Keywords:", "keyword", "budget approved Q1")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], and_mode=True)),
 
@@ -705,7 +705,11 @@ def _launch_gui():
                  [("Term 1:", "t1", "breach"), ("Term 2:", "t2", "contract"), ("N words:", "n", "5")],
                  lambda v: self._apply_wizard(search_text=f"{v['t1']} {v['t2']}", proximity=v["n"])),
 
-                ("Boolean expression", "Combine AND, OR, NOT with parentheses",
+                ("Boolean expression (AND + OR + NOT)", "Combine AND, OR, NOT with parentheses. Examples:\n"
+                 "(budget OR revenue) AND approved\n"
+                 "(salary OR bonus) AND NOT confidential\n"
+                 "(contract AND signed) OR (agreement AND executed)\n"
+                 "budget AND revenue AND NOT (draft OR preliminary)",
                  [("Expression:", "expr", "(budget OR revenue) AND NOT draft")],
                  lambda v: self._apply_wizard(search_text=v["expr"], expression=True)),
 
