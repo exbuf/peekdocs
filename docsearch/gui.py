@@ -411,7 +411,7 @@ def _launch_gui():
             self.search_bar_frame.grid(
                 row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
             )
-            self.search_bar_frame.grid_columnconfigure(0, minsize=260)
+            self.search_bar_frame.grid_columnconfigure(0)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
             self.search_bar_frame.grid_columnconfigure(2, minsize=170)
 
@@ -1089,7 +1089,7 @@ def _launch_gui():
             self.folder_bar_frame.grid(
                 row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
             )
-            self.folder_bar_frame.grid_columnconfigure(0, minsize=260)
+            self.folder_bar_frame.grid_columnconfigure(0)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
             self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
 
