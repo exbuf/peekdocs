@@ -124,27 +124,49 @@ def parse_natural_query(query):
         explanation_parts.append(f"Proximity: terms within {n} words of each other")
 
     # ── Detect range queries ──────────────────────────────────
+    # Helper to convert "10k" → "10000", "1.5m" → "1500000"
+    def _expand_number(s):
+        s = s.replace(",", "")
+        m = re.match(r"([\d.]+)\s*([km])?", s.lower())
+        if not m:
+            return s
+        num = float(m.group(1))
+        suffix = m.group(2)
+        if suffix == "k":
+            num *= 1000
+        elif suffix == "m":
+            num *= 1000000
+        return str(int(num))
+
     # Dollar amounts
-    range_match = re.search(r"(?:between|from)\s*\$?([\d,]+)\s*(?:and|to)\s*\$?([\d,]+)", q_lower)
+    has_amount_range = False
+    range_match = re.search(r"(?:between|from)\s*\$?([\d,.]+[km]?)\s*(?:and|to)\s*\$?([\d,.]+[km]?)", q_lower)
     if range_match:
-        lo = range_match.group(1).replace(",", "")
-        hi = range_match.group(2).replace(",", "")
+        lo = _expand_number(range_match.group(1))
+        hi = _expand_number(range_match.group(2))
         params["range_filters"] = f"amount:{lo}..{hi}"
         explanation_parts.append(f"Range: dollar amounts ${lo} to ${hi}")
+        has_amount_range = True
     else:
         # "over $X" / "more than $X"
-        range_match = re.search(r"(?:over|more than|above|exceeding|greater than)\s*\$?([\d,]+)", q_lower)
+        range_match = re.search(r"(?:over|more than|above|exceeding|greater than)\s*\$?([\d,.]+[km]?)", q_lower)
         if range_match:
-            lo = range_match.group(1).replace(",", "")
+            lo = _expand_number(range_match.group(1))
             params["range_filters"] = f"amount:{lo}.."
             explanation_parts.append(f"Range: amounts over ${lo}")
+            has_amount_range = True
         else:
             # "under $X" / "less than $X"
-            range_match = re.search(r"(?:under|less than|below)\s*\$?([\d,]+)", q_lower)
+            range_match = re.search(r"(?:under|less than|below)\s*\$?([\d,.]+[km]?)", q_lower)
             if range_match:
-                hi = range_match.group(1).replace(",", "")
+                hi = _expand_number(range_match.group(1))
                 params["range_filters"] = f"amount:..{hi}"
                 explanation_parts.append(f"Range: amounts under ${hi}")
+                has_amount_range = True
+
+    # If we have an amount range, suppress the dollar regex pattern
+    if has_amount_range:
+        detected_pattern = None
 
     # Date ranges
     date_range = re.search(r"dates?\s+(?:between|from)\s+(\d{4}-\d{2}(?:-\d{2})?)\s+(?:and|to)\s+(\d{4}-\d{2}(?:-\d{2})?)", q_lower)
