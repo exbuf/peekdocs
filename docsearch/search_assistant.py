@@ -201,7 +201,7 @@ def parse_natural_query(query):
         explanation_parts.append(f"Context: {n} lines before and after each match")
 
     # ── Detect exclude terms ──────────────────────────────────
-    excl_match = re.search(r"(?:but not|except|exclude|excluding|ignore|without)\s+[\"']?(\w+(?:\s*,\s*\w+)*)[\"']?", q_lower)
+    excl_match = re.search(r"(?:but not|not|except|exclude|excluding|ignore)\s+[\"']?(\w+(?:\s*,\s*\w+)*)[\"']?$", q_lower)
     if excl_match and not params["inverse"]:  # Don't confuse with inverse "without"
         params["exclude"] = excl_match.group(1).strip()
         explanation_parts.append(f"Exclude: skipping lines containing '{params['exclude']}'")
@@ -249,7 +249,7 @@ def parse_natural_query(query):
                 r"\bfuzzy\b|\bmisspell(ed)?\b|\bapproximate\b|\bsimilar\b",
                 r"\bwhole word\b|\bexact word\b|\bword boundar",
                 r"\bwithin \d+ words?\b|\bnear each other\b|\bclose together\b",
-                r"\bbut not\b|\bexcept\b|\bexclude\b|\bexcluding\b|\bignore\b",
+                r"\bbut not\b|\bexcept\b|\bexclude\b|\bexcluding\b|\bignore\b|\bnot\b",
                 r"\bin pdfs?\b|\bin word\b|\bin excel\b|\bin emails?\b|\bin spreadsheets?\b|\bin presentations?\b",
                 r"\bonly pdfs?\b|\bonly word\b|\bonly excel\b|\bonly emails?\b",
                 r"\b\d+ lines? (?:of )?context\b|\bshow \d+ lines?\b|\blines? before\b|\blines? after\b|\blines? around\b",
@@ -259,6 +259,10 @@ def parse_natural_query(query):
             ]
             for pat in remove_patterns:
                 cleaned = re.sub(pat, " ", cleaned)
+            # Remove exclude terms from search text
+            if params["exclude"]:
+                for excl_term in params["exclude"].split(","):
+                    cleaned = re.sub(r"\b" + re.escape(excl_term.strip()) + r"\b", " ", cleaned)
             # Clean up
             cleaned = re.sub(r"\s+", " ", cleaned).strip()
             # Remove leading/trailing punctuation
