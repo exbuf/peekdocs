@@ -168,8 +168,10 @@ def parse_natural_query(query):
     # "find X with dollar amounts" / "find X and dollar amounts"
     with_amounts = re.search(r"(\w+)\s+(?:with|and)\s+(?:dollar\s+)?amounts?", q_lower)
     if with_amounts and not has_amount_range and not params["search_text"]:
-        params["search_text"] = with_amounts.group(1)
-        explanation_parts.insert(0, f"Search term: {with_amounts.group(1)}")
+        term = with_amounts.group(1)
+        params["search_text"] = f"{term}|\\$[\\d,.]+"
+        params["regex"] = True
+        explanation_parts.insert(0, f"Search term: {term} (also highlighting dollar amounts)")
 
     # "show me everything from March" / "from Q2"
     from_match = re.search(r"(?:everything|all|data|rows?)\s+from\s+(january|february|march|april|may|june|july|august|september|october|november|december|q[1-4]|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", q_lower)
