@@ -661,9 +661,13 @@ def _launch_gui():
                  [("Keywords:", "keyword", "budget approved Q1")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], and_mode=True)),
 
-                ("Find keywords (exclude terms)", "Find keywords but skip lines with excluded terms",
+                ("Find keywords OR (exclude terms)", "Lines with any keyword, skipping lines with excluded terms",
                  [("Keywords:", "keyword", "budget revenue"), ("Exclude:", "exclude", "draft,preliminary")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], exclude=v["exclude"])),
+
+                ("Find keywords AND (exclude terms)", "Lines with ALL keywords, skipping lines with excluded terms",
+                 [("Keywords:", "keyword", "budget approved"), ("Exclude:", "exclude", "draft,pending,obsolete")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], and_mode=True, exclude=v["exclude"])),
 
                 ("Find files MISSING terms", "List files that do NOT contain ANY of these terms",
                  [("Required terms:", "term", "Authorized Signature")],
