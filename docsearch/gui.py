@@ -3774,6 +3774,16 @@ def _launch_gui():
                 self._show_error("Please enter search terms or a range filter.")
                 return
 
+            # Auto-save search terms and folder for next launch
+            try:
+                from docsearch.cli import _load_config, _save_config
+                cfg = _load_config()
+                cfg["search_terms"] = search_text
+                cfg["folder"] = folder
+                _save_config(cfg)
+            except Exception:
+                pass
+
             if self.index_search_var.get() == "on":
                 index_path = os.path.join(folder, ".docsearch.db")
                 if not os.path.exists(index_path):
