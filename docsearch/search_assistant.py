@@ -52,6 +52,22 @@ def parse_natural_query(query):
 
     explanation_parts = []
     unsupported_parts = []
+    has_amount_range = False
+    _need_dollar_highlight = False
+
+    # Helper to convert "10k" → "10000", "1.5m" → "1500000"
+    def _expand_number(s):
+        s = s.replace(",", "")
+        m = re.match(r"([\d.]+)\s*([km])?", s.lower())
+        if not m:
+            return s
+        num = float(m.group(1))
+        suffix = m.group(2)
+        if suffix == "k":
+            num *= 1000
+        elif suffix == "m":
+            num *= 1000000
+        return str(int(num))
 
     # ── Detect known regex patterns ──────────────────────────
     pattern_map = {
@@ -106,6 +122,63 @@ def parse_natural_query(query):
         params["inverse"] = True
         explanation_parts.append("Inverse: finding files that do NOT contain the terms")
 
+    # ── Spreadsheet-style queries ────────────────────────────
+    # "show me all X over/under $Y"
+    ss_match = re.search(r"(?:show me|find|list)\s+(?:all\s+)?(\w+)\s+(?:over|above|greater than|more than)\s+\$?([\d,.]+[km]?)", q_lower)
+    if ss_match and not has_amount_range:
+        params["search_text"] = ss_match.group(1)
+        lo = _expand_number(ss_match.group(2))
+        params["range_filters"] = f"amount:{lo}.."
+        explanation_parts.insert(0, f"Search term: {ss_match.group(1)}")
+        explanation_parts.append(f"Range: amounts over ${lo}")
+        has_amount_range = True
+        _need_dollar_highlight = False
+    if not ss_match:
+        ss_match = re.search(r"(?:show me|find|list)\s+(?:all\s+)?(\w+)\s+(?:under|below|less than)\s+\$?([\d,.]+[km]?)", q_lower)
+        if ss_match and not has_amount_range:
+            params["search_text"] = ss_match.group(1)
+            hi = _expand_number(ss_match.group(2))
+            params["range_filters"] = f"amount:..{hi}"
+            explanation_parts.insert(0, f"Search term: {ss_match.group(1)}")
+            explanation_parts.append(f"Range: amounts under ${hi}")
+            has_amount_range = True
+            _need_dollar_highlight = False
+
+    # "find X where status is Y" / "find rows where Y"
+    status_match = re.search(r"(?:where|with)\s+(?:status|state)\s+(?:is|=|equals?)\s+(\w+)", q_lower)
+    if status_match:
+        status_val = status_match.group(1)
+        if not params["search_text"]:
+            params["search_text"] = status_val
+        else:
+            params["search_text"] += " " + status_val
+            params["expression"] = True
+            params["search_text"] = f"{params['search_text'].split()[0]} AND {status_val}"
+        explanation_parts.insert(0, f"Searching for status: {status_val}")
+
+    # "find X and Y" / "show me X that are Y"
+    and_match = re.search(r"(?:that are|that is|which are)\s+(\w+)\s+and\s+(\w+)", q_lower)
+    if and_match:
+        term1 = and_match.group(1)
+        term2 = and_match.group(2)
+        params["search_text"] = f"{term1} AND {term2}"
+        params["expression"] = True
+        explanation_parts.insert(0, f"Boolean: {term1} AND {term2}")
+
+    # "find X with dollar amounts" / "find X with amounts"
+    with_amounts = re.search(r"(\w+)\s+with\s+(?:dollar\s+)?amounts?", q_lower)
+    if with_amounts and not has_amount_range and not params["search_text"]:
+        params["search_text"] = with_amounts.group(1)
+        explanation_parts.insert(0, f"Search term: {with_amounts.group(1)}")
+
+    # "show me everything from March" / "from Q2"
+    from_match = re.search(r"(?:everything|all|data|rows?)\s+from\s+(january|february|march|april|may|june|july|august|september|october|november|december|q[1-4]|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", q_lower)
+    if from_match:
+        period = from_match.group(1)
+        if not params["search_text"]:
+            params["search_text"] = period
+            explanation_parts.insert(0, f"Search term: {period}")
+
     # ── Detect fuzzy ──────────────────────────────────────────
     if re.search(r"fuzzy|misspell|typo|approximate|similar to|close to|OCR error", q_lower):
         params["fuzzy"] = True
@@ -124,22 +197,7 @@ def parse_natural_query(query):
         explanation_parts.append(f"Proximity: terms within {n} words of each other")
 
     # ── Detect range queries ──────────────────────────────────
-    # Helper to convert "10k" → "10000", "1.5m" → "1500000"
-    def _expand_number(s):
-        s = s.replace(",", "")
-        m = re.match(r"([\d.]+)\s*([km])?", s.lower())
-        if not m:
-            return s
-        num = float(m.group(1))
-        suffix = m.group(2)
-        if suffix == "k":
-            num *= 1000
-        elif suffix == "m":
-            num *= 1000000
-        return str(int(num))
-
     # Dollar amounts
-    has_amount_range = False
     range_match = re.search(r"(?:between|from)\s*\$?([\d,.]+[km]?)\s*(?:and|to|through|-)\s*\$?([\d,.]+[km]?)", q_lower)
     if not range_match:
         # Also try without "between/from" if the query mentions dollars/amounts
@@ -240,7 +298,7 @@ def parse_natural_query(query):
                 r"\bunder\b|\bover\b|\babove\b|\bbelow\b|\bbetween\b",
                 # Structural words
                 r"\bfind\b|\bsearch\b|\blook for\b|\bshow me\b|\bshow\b|\blocate\b|\bget\b|\blist\b",
-                r"\ball\b|\bevery\b|\bany\b|\beach\b|\bme\b|\bmy\b|\bfor\b|\bwith\b|\ban?\b|\bthe\b|\bto\b|\bof\b|\bis\b|\bare\b|\bwas\b|\bwere\b",
+                r"\ball\b|\bevery\b|\bany\b|\beach\b|\bme\b|\bmy\b|\bfor\b|\bwith\b|\ban?\b|\bthe\b|\bto\b|\bof\b|\bis\b|\bare\b|\bwas\b|\bwere\b|\brows?\b|\bcolumns?\b|\bwhere\b|\bstatus\b|\bequals?\b",
                 r"\bfiles?\b|\bdocuments?\b|\brecords?\b|\bin\b|\bfrom\b|\bacross\b|\btheir\b|\bthem\b|\bthose\b|\bthese\b|\bthat\b|\bwhich\b",
                 r"\bthat\s+(contain|have|include|mention|reference)",
                 r"\bcontain(s|ing)?\b|\bhave\b|\bhas\b|\binclude(s|ing)?\b|\bmention(s|ing)?\b",
@@ -287,11 +345,23 @@ def parse_natural_query(query):
     # ── Check for unsupported requests ────────────────────────
     unsupported_triggers = {
         r"replace|change|modify|edit|update|rename": "docsearch is read-only — it searches but cannot modify files",
-        r"delete|remove files": "docsearch never deletes your files — it only searches them",
-        r"upload|cloud|send|share|email the results": "docsearch runs entirely offline — it cannot upload or send files",
-        r"translate|convert|transform": "docsearch searches for content but cannot translate or convert files",
+        r"delete|remove (files|rows|blank)": "docsearch never deletes or modifies files — it only searches them",
+        r"upload|send to cloud|send|share|email (this|the) report": "docsearch runs entirely offline — it cannot upload or send files",
+        r"translate|convert|transform|combine|split|merge": "docsearch searches for content but cannot transform data",
         r"compare|diff|difference between": "docsearch searches within files but cannot compare files to each other",
-        r"sort|order by|rank": "docsearch finds matches but does not sort or rank results",
+        r"\bsort\b|order by|\brank\b|top \d+|lowest|highest": "docsearch finds matches but cannot sort or rank results. Try a range filter instead (e.g., 'find amounts over 50k')",
+        r"\btotal\b|sum of|what's the sum|\baverage\b|\bmean\b|what's the average": "docsearch finds text matches but cannot calculate totals, sums, or averages. Use Excel or Google Sheets for calculations",
+        r"\bcount how many\b|how many (rows|orders|items)": "docsearch shows match counts but cannot count specific values in columns. The results summary shows how many matches were found",
+        r"\bmin and max\b|minimum|maximum": "docsearch cannot compute min/max values. Use a range filter to find values in a range (e.g., 'find salary amounts 50k - 200k')",
+        r"add a column|create a column|new column|calculate.*column": "docsearch searches files but cannot add columns or create formulas. Use Excel or Google Sheets",
+        r"percentage change|percent change|year over year": "docsearch cannot calculate percentage changes. Use Excel or Google Sheets",
+        r"highlight.*red|make.*bold|format.*currency|freeze.*row|hide column": "docsearch cannot format spreadsheets. Use Excel or Google Sheets for formatting",
+        r"(bar|pie|line) chart|plot|graph|visualization": "docsearch cannot create charts. Use Excel or Google Sheets for visualization",
+        r"break ?down.*by|group by|totals by (month|region|category|department)": "docsearch cannot group or aggregate data. Use Excel pivot tables for breakdowns",
+        r"how many days between|days since|last \d+ days|year.to.date": "docsearch cannot do date arithmetic. Use a date range filter instead (e.g., 'find dates 2026-01 to 2026-03')",
+        r"trim|extra spaces|fix.*format|wrong format": "docsearch searches but cannot clean or reformat data",
+        r"save.*pdf|export.*sheet|copy.*tab|new sheet": "docsearch saves results to .docx and .txt reports. Use -o csv for spreadsheet-compatible output",
+        r"duplicate|find duplicates": "docsearch cannot detect duplicates. Use Excel's Remove Duplicates or conditional formatting",
     }
 
     for trigger, msg in unsupported_triggers.items():
