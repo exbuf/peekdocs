@@ -669,9 +669,8 @@ def _launch_gui():
             input_frame = ctk.CTkFrame(win, fg_color="transparent")
             input_frame.pack(fill="x", padx=10, pady=(0, 10))
 
-            input_entry = ctk.CTkEntry(
-                input_frame, placeholder_text="Describe your search...",
-                font=ctk.CTkFont(size=13),
+            input_entry = tk.Entry(
+                input_frame, font=("TkDefaultFont", 13),
             )
             input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
@@ -760,7 +759,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             ).pack(pady=(0, 10))
 
-            input_entry.focus_set()
+            win.after(200, input_entry.focus_set)
 
         def _show_search_help(self):
             """Show a quick-start guide with search examples by category."""
