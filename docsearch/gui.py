@@ -3738,6 +3738,7 @@ def _launch_gui():
                 self.folder_entry.insert(0, folder)
                 self.specific_files_entry.delete(0, "end")
                 self.specific_files_entry.insert(0, filename)
+                self.recursive_var.set("off")
                 self._update_index_button_color()
                 self._refresh_load_search_menu()
 
