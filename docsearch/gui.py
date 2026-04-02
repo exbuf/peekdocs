@@ -443,6 +443,7 @@ def _launch_gui():
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
             self.search_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
+            self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
             clear_button = ctk.CTkButton(
@@ -3897,7 +3898,6 @@ def _launch_gui():
             self._hide_files_list()
             self._hide_preview()
             self._matched_files_link.pack_forget()
-            self._assistant_label.grid_remove()
             # Use indeterminate for indexed searches (no file-by-file progress),
             # determinate for direct file scanning
             is_indexed = self.index_search_var.get() == "on"
