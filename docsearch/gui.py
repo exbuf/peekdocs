@@ -623,7 +623,7 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Search Assistant")
-            win.geometry("600x500")
+            win.geometry("600x400")
             win.resizable(True, True)
             win.after(50, win.lift)
 
@@ -642,7 +642,7 @@ def _launch_gui():
             chat_text = tk.Text(
                 chat_frame, wrap="word", font=("TkDefaultFont", 12),
                 state="disabled", yscrollcommand=chat_scroll.set,
-                padx=10, pady=8, spacing3=4,
+                padx=10, pady=8, spacing3=4, height=12,
             )
             chat_text.pack(side="left", fill="both", expand=True)
             chat_scroll.config(command=chat_text.yview)
