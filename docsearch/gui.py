@@ -335,9 +335,9 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
-            self.geometry("700x720")
-            self.minsize(750, 620)
-            self._center_window(900, 720)
+            self.geometry("850x720")
+            self.minsize(850, 620)
+            self._center_window(950, 720)
 
             ctk.set_appearance_mode("System")
             ctk.set_default_color_theme("blue")
@@ -3451,6 +3451,17 @@ def _launch_gui():
             )
             self.clear_results_btn.pack(side="right", padx=5)
             Tooltip(self.clear_results_btn, "Delete all docsearch_results files from the search folder (including timestamped versions)")
+
+            ctk.CTkButton(
+                self.bottom_frame,
+                text="Close",
+                width=70,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.destroy,
+                font=ctk.CTkFont(size=13),
+            ).pack(side="left", padx=5)
 
 
         # ── Actions ──────────────────────────────────────────────
