@@ -5141,6 +5141,11 @@ def _launch_gui():
 
             listbox.bind("<Double-1>", _on_click)
 
+            tk.Button(
+                popup, text="Close", width=10,
+                command=popup.destroy,
+            ).pack(pady=(5, 10))
+
             tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(0, 10))
 
         def open_help(self):
