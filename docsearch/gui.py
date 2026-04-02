@@ -776,6 +776,7 @@ def _launch_gui():
                             self.search_entry.insert(0, result["search_text"])
 
                         # Set checkboxes
+                        self.and_mode_var.set("on" if result.get("and_mode") else "off")
                         self.recursive_var.set("on" if result["recursive"] else "off")
                         self.regex_var.set("on" if result["regex"] else "off")
                         self.fuzzy_var.set("on" if result["fuzzy"] else "off")
