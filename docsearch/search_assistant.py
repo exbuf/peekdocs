@@ -141,6 +141,10 @@ def parse_natural_query(query):
     # Dollar amounts
     has_amount_range = False
     range_match = re.search(r"(?:between|from)\s*\$?([\d,.]+[km]?)\s*(?:and|to|through|-)\s*\$?([\d,.]+[km]?)", q_lower)
+    if not range_match:
+        # Also try without "between/from" if the query mentions dollars/amounts
+        if re.search(r"dollar|amount|\$", q_lower):
+            range_match = re.search(r"\$?([\d,.]+[km]?)\s*(?:and|to|through|-)\s*\$?([\d,.]+[km]?)", q_lower)
     if range_match:
         lo = _expand_number(range_match.group(1))
         hi = _expand_number(range_match.group(2))
