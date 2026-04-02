@@ -335,8 +335,8 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
-            self.geometry("850x720")
-            self.minsize(850, 620)
+            self.geometry("1120x720")
+            self.minsize(1120, 620)
             self._center_window(950, 720)
 
             ctk.set_appearance_mode("System")
@@ -465,6 +465,13 @@ def _launch_gui():
             self.search_button.pack(side="left", padx=(0, 5))
 
             ctk.CTkButton(
+                btn_frame, text="Run Suite", width=100,
+                command=self._run_suite_from_main,
+                font=ctk.CTkFont(size=14),
+                fg_color="#1f6aa5", hover_color="#144870",
+            ).pack(side="left", padx=(0, 5))
+
+            ctk.CTkButton(
                 btn_frame, text="Search Wizard", width=120,
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=14),
@@ -496,12 +503,6 @@ def _launch_gui():
             self.save_to_collection_btn.pack(side="right", padx=5)
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
-            self.wizard_button = ctk.CTkButton(
-                btn_frame, text="Regex Wizard", width=110, command=self._open_search_wizard,
-                font=ctk.CTkFont(size=14),
-            )
-            self.wizard_button.pack(side="right", padx=5)
-            Tooltip(self.wizard_button, "Open the Regex Wizard to build regex patterns from presets")
 
             self.suite_toggle = ctk.CTkButton(
                 self._toggle_row,
@@ -720,6 +721,12 @@ def _launch_gui():
                 ("Find dates in range", "Lines with dates in a specific range",
                  [("From:", "lo", "2026-01-01"), ("To:", "hi", "2026-12-31")],
                  lambda v: self._apply_wizard(search_text=r"\d{2}/\d{2}/\d{4}", regex=True, range_filters=f"date:{v['lo']}..{v['hi']}")),
+
+                ("Regex pattern builder", "Pick from categorized regex presets (SSNs, invoices, part numbers, etc.).\n"
+                 "Select a category, check the patterns you need, combine with OR or AND,\n"
+                 "and optionally add your own custom regex.",
+                 [],
+                 lambda v: self._open_search_wizard()),
             ]
 
             for title, desc, fields, apply_fn in patterns:
@@ -799,7 +806,7 @@ def _launch_gui():
             import tkinter as tk
             help_win = tk.Toplevel(self)
             help_win.title("Search Examples & Quick-Start Guide")
-            help_win.geometry("750x520")
+            help_win.geometry("750x650")
             help_win.resizable(True, True)
             help_win.transient(self)
             help_win.grab_set()
@@ -845,6 +852,26 @@ def _launch_gui():
             b("pick a folder with Browse, and click Run Search. Use the checkboxes")
             b("under Advanced Options to change search modes \u2014 do not type flags in")
             b("the search box. Results are saved to docsearch_results.txt and .docx.")
+            blank()
+
+            h("SAVING AND LOADING SEARCHES")
+            b("Save Search saves your current search terms AND all settings in")
+            b("Advanced Options (checkboxes, file types, exclude terms, range")
+            b("filters, proximity, etc.) as a named search. Give it a name like")
+            b("'find_ssns' or 'missing_signature'. Saved searches are stored in")
+            b("the folder's .docsearch_collection.json file.")
+            blank()
+            b("Load Saved Search restores a previously saved search \u2014 it loads")
+            b("the search terms back into the search box AND restores all the")
+            b("Advanced Options settings exactly as they were when you saved it.")
+            b("This lets you re-run the same search later with one click.")
+            blank()
+            b("It doesn't matter whether you configured the search yourself or")
+            b("the Search Wizard set it up for you \u2014 as long as you remember")
+            b("to save the search, everything gets preserved.")
+            blank()
+            b("Saved searches are also the building blocks for Search Suites \u2014")
+            b("group them into suites with pass/fail criteria for compliance audits.")
             blank()
 
             h("SIMPLE SEARCH")
@@ -1924,7 +1951,7 @@ def _launch_gui():
             self.suite_window = ctk.CTkToplevel(self)
             self.suite_window.title("Search Suites")
             self.suite_window.after(100, lambda: self.suite_window.title("Search Suites"))
-            self.suite_window.geometry("650x680")
+            self.suite_window.geometry("650x750")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
             self.suite_window.after(50, self.suite_window.lift)
 
@@ -2127,7 +2154,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self._on_suite_window_close,
                 font=ctk.CTkFont(size=12),
-            ).grid(row=9, column=0, columnspan=2, pady=(0, 10))
+            ).grid(row=10, column=0, columnspan=2, pady=(0, 10))
 
         def _open_autorun_history(self):
             """Open the auto-run log file in the default text editor."""
@@ -2512,6 +2539,14 @@ def _launch_gui():
                 self._update_last_run_label()
                 self._update_countdown()
                 self._update_autorun_name_label()
+
+        def _run_suite_from_main(self):
+            """Open the Search Suites panel (if not already open) so the user can run a suite."""
+            if not self.suite_visible:
+                self._toggle_suite_panel()
+            elif self.suite_window and self.suite_window.winfo_exists():
+                self.suite_window.lift()
+                self.suite_window.focus_force()
 
         def _refresh_suite_panel(self):
             """Reload saved searches and suites from the collection file."""
@@ -3409,6 +3444,10 @@ def _launch_gui():
                     self.view_suite_report_btn.grid(row=9, column=0, columnspan=2, pady=(0, 10))
             self.search_button.configure(state="normal")
 
+            # Show suite report in main preview pane
+            if self._suite_report_path and os.path.exists(self._suite_report_path):
+                self._show_suite_report_preview()
+
             # Handle scheduled run completion
             if self._suite_scheduled_run:
                 self._suite_scheduled_run = False
@@ -4089,6 +4128,42 @@ def _launch_gui():
                 row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
             )
 
+        def _show_suite_report_preview(self):
+            """Show the suite txt report in the main preview pane."""
+            if not self._suite_report_path:
+                return
+            # Find the txt report (same base name as docx)
+            txt_path = self._suite_report_path.rsplit(".", 1)[0] + ".txt"
+            if not os.path.exists(txt_path):
+                return
+            try:
+                with open(txt_path, encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+            except Exception:
+                return
+
+            self.preview_text.configure(state="normal")
+            self.preview_text.delete("1.0", "end")
+
+            for line in content.splitlines():
+                if line.startswith("=") or line.startswith("-"):
+                    self.preview_text.insert("end", line + "\n", "filename")
+                elif "PASS" in line:
+                    self.preview_text.insert("end", line + "\n", "match")
+                elif "FAIL" in line:
+                    self.preview_text.insert("end", line + "\n")
+                else:
+                    self.preview_text.insert("end", line + "\n")
+
+            self.preview_text.configure(state="disabled")
+            self.preview_text.see("1.0")
+
+            self._preview_count_label.configure(text="Suite Report")
+
+            self.preview_frame.grid(
+                row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
+            )
+
         def _hide_preview(self):
             """Hide the results preview pane."""
             self.preview_frame.grid_remove()
@@ -4125,8 +4200,12 @@ def _launch_gui():
             summary = _parse_summary_text(stdout)
 
             if returncode == 0:
+                status_text = summary or "Search complete. Matches found."
+                specific = self.specific_files_entry.get().strip()
+                if specific:
+                    status_text += f"  [{specific}]"
                 self.status_label.configure(
-                    text=summary or "Search complete. Matches found.",
+                    text=status_text,
                     text_color=("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
@@ -4161,8 +4240,12 @@ def _launch_gui():
                     self._matched_files_link.configure(text=link_text)
                     self._matched_files_link.pack(side="left", padx=(8, 0))
             elif returncode == 1:
+                no_match_text = summary or "Search complete. No matches found."
+                specific = self.specific_files_entry.get().strip()
+                if specific:
+                    no_match_text += f"  [{specific}]"
                 self.status_label.configure(
-                    text=summary or "Search complete. No matches found.",
+                    text=no_match_text,
                     text_color=("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
