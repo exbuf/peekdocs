@@ -117,7 +117,7 @@ REGEX_PATTERNS = (
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "suite_output_dir", "range", "refresh_interval", "smtp_host", "smtp_port", "smtp_user", "smtp_password", "email_from", "email_to", "email_on", "text_size"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "suite_output_dir", "range", "refresh_interval", "smtp_host", "smtp_port", "smtp_user", "smtp_password", "email_from", "email_to", "email_on", "text_size", "assistant_history"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 

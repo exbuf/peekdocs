@@ -676,9 +676,16 @@ def _launch_gui():
             )
             input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-            # Prompt history for up/down arrow navigation (persists across dialog openings)
+            # Prompt history for up/down arrow navigation (persists across app invocations)
             if not hasattr(self, '_assistant_history'):
-                self._assistant_history = []
+                try:
+                    from docsearch.cli import _load_config
+                    import json as _json
+                    cfg = _load_config()
+                    raw = cfg.get("assistant_history", "[]")
+                    self._assistant_history = _json.loads(raw) if isinstance(raw, str) else []
+                except Exception:
+                    self._assistant_history = []
             prompt_history = self._assistant_history
             history_index = [len(prompt_history)]
 
@@ -709,6 +716,17 @@ def _launch_gui():
                 if not query:
                     return
                 prompt_history.append(query)
+                # Keep only last 10 and save to config
+                while len(prompt_history) > 10:
+                    prompt_history.pop(0)
+                try:
+                    from docsearch.cli import _load_config, _save_config
+                    import json as _json
+                    cfg = _load_config()
+                    cfg["assistant_history"] = _json.dumps(prompt_history)
+                    _save_config(cfg)
+                except Exception:
+                    pass
                 history_index[0] = len(prompt_history)
                 input_entry.delete(0, "end")
 
