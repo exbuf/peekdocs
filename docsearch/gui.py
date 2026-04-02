@@ -3726,11 +3726,6 @@ def _launch_gui():
                 initialdir=initial,
                 title="Select a file to search",
             )
-            # Debug: show what was returned
-            self.status_label.configure(
-                text=f"DEBUG: filedialog returned: {filepath!r}",
-                text_color=("gray30", "gray70"),
-            )
             if filepath:
                 filepath = os.path.normpath(filepath)
                 folder = os.path.dirname(filepath)
