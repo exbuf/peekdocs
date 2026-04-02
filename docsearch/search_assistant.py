@@ -220,6 +220,13 @@ def parse_natural_query(query):
             cleaned = q_lower
             # Remove phrases we've already parsed
             remove_patterns = [
+                # Range expressions first (before "to" is stripped as a stop word)
+                r"\bbetween\s+\$?[\d,.]+[km]?\s*(?:and|to|through|-)\s*\$?[\d,.]+[km]?",
+                r"\bfrom\s+\$?[\d,.]+[km]?\s*(?:and|to|through|-)\s*\$?[\d,.]+[km]?",
+                r"\$?[\d,.]+[km]?\s*(?:-|to|through)\s*\$?[\d,.]+[km]?",
+                r"\bover \$?[\d,.]+[km]?|\bunder \$?[\d,.]+[km]?|\babove \$?[\d,.]+[km]?|\bbelow \$?[\d,.]+[km]?",
+                r"\bmore than \$?[\d,.]+[km]?|\bless than \$?[\d,.]+[km]?|\bexceeding \$?[\d,.]+[km]?|\bgreater than \$?[\d,.]+[km]?",
+                # Structural words
                 r"\bfind\b|\bsearch\b|\blook for\b|\bshow me\b|\bshow\b|\blocate\b|\bget\b|\blist\b",
                 r"\ball\b|\bevery\b|\bany\b|\beach\b|\bme\b|\bmy\b|\bfor\b|\bwith\b|\ban?\b|\bthe\b|\bto\b|\bof\b|\bis\b|\bare\b|\bwas\b|\bwere\b",
                 r"\bfiles?\b|\bdocuments?\b|\brecords?\b|\bin\b|\bfrom\b|\bacross\b|\btheir\b|\bthem\b|\bthose\b|\bthese\b|\bthat\b|\bwhich\b",
@@ -234,7 +241,6 @@ def parse_natural_query(query):
                 r"\bin pdfs?\b|\bin word\b|\bin excel\b|\bin emails?\b|\bin spreadsheets?\b|\bin presentations?\b",
                 r"\bonly pdfs?\b|\bonly word\b|\bonly excel\b|\bonly emails?\b",
                 r"\b\d+ lines? (?:of )?context\b|\bshow \d+ lines?\b|\blines? before\b|\blines? after\b|\blines? around\b",
-                r"\bbetween \$?[\d,]+ and \$?[\d,]+|\bover \$?[\d,]+|\bunder \$?[\d,]+|\babove \$?[\d,]+|\bbelow \$?[\d,]+",
                 r"\bplease\b|\bcan you\b|\bcould you\b|\bi want\b|\bi need\b|\bi'd like\b|\bi would like\b",
                 r"\bdollar amounts?\b|\bamounts?\b|\bphone numbers?\b|\bemail addresses?\b",
                 r"\bword docs?\b|\bword documents?\b",
