@@ -165,8 +165,8 @@ def parse_natural_query(query):
         params["expression"] = True
         explanation_parts.insert(0, f"Boolean: {term1} AND {term2}")
 
-    # "find X with dollar amounts" / "find X with amounts"
-    with_amounts = re.search(r"(\w+)\s+with\s+(?:dollar\s+)?amounts?", q_lower)
+    # "find X with dollar amounts" / "find X and dollar amounts"
+    with_amounts = re.search(r"(\w+)\s+(?:with|and)\s+(?:dollar\s+)?amounts?", q_lower)
     if with_amounts and not has_amount_range and not params["search_text"]:
         params["search_text"] = with_amounts.group(1)
         explanation_parts.insert(0, f"Search term: {with_amounts.group(1)}")
