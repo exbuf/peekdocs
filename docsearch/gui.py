@@ -433,6 +433,12 @@ def _launch_gui():
             label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=28, weight="bold"))
             label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="w")
 
+            self._assistant_label = ctk.CTkLabel(
+                self.search_bar_frame, text="", font=ctk.CTkFont(size=12),
+                text_color=("#8B5CF6", "#A78BFA"), anchor="w",
+            )
+            # Hidden until Search Assistant sets a query
+
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
@@ -759,6 +765,10 @@ def _launch_gui():
                     chat_text.insert("end", "\n", "assistant")
 
                     if not result["unsupported"]:
+                        # Show the assistant's interpretation above the search box
+                        self._assistant_label.configure(text=f"Search Assistant: {query}")
+                        self._assistant_label.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 0), sticky="sw")
+
                         # Apply to GUI
                         self.search_entry.delete(0, "end")
                         if result["search_text"]:
@@ -3887,6 +3897,7 @@ def _launch_gui():
             self._hide_files_list()
             self._hide_preview()
             self._matched_files_link.pack_forget()
+            self._assistant_label.grid_remove()
             # Use indeterminate for indexed searches (no file-by-file progress),
             # determinate for direct file scanning
             is_indexed = self.index_search_var.get() == "on"
