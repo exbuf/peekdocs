@@ -5,6 +5,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 ## Table of Contents
 
 - [Will docsearch affect my existing Python installation?](#will-docsearch-affect-my-existing-python-installation)
+- [Security Best Practices](#security-best-practices)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [GUI Mode](#gui-mode)
 - [Usage](#usage)
@@ -69,6 +70,18 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 - **pipx:** `pipx uninstall docsearch` — removes the docsearch code and its private workspace. Your settings (`~/.docsearchrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
 - **Manual install:** delete the `docsearch-main` folder you downloaded. Your settings and data in document folders remain.
+
+---
+
+## Security Best Practices
+
+docsearch runs entirely on your computer — your documents are never uploaded, transmitted, or shared. But because docsearch works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
+
+- **Lock your screen when stepping away.** docsearch stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just docsearch, but email, browser, and all open files.
+- **Be careful with report files.** The `docsearch_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
+- **Protect suite reports.** Suite reports (`.docx`, `.txt`, `.json`) contain pass/fail results and may reference sensitive content. Store them in a secured folder or delete them after review with **Clean Up Suite Files**.
+- **Don't store docsearch results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Options) to write results to a private local folder instead.
+- **Review the error log.** `docsearch_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
 
 ---
 
