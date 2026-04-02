@@ -674,10 +674,38 @@ def _launch_gui():
             )
             input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
+            # Prompt history for up/down arrow navigation
+            prompt_history = []
+            history_index = [0]  # mutable container for closure
+
+            def _history_up(event=None):
+                if not prompt_history:
+                    return
+                if history_index[0] > 0:
+                    history_index[0] -= 1
+                input_entry.delete(0, "end")
+                input_entry.insert(0, prompt_history[history_index[0]])
+
+            def _history_down(event=None):
+                if not prompt_history:
+                    return
+                if history_index[0] < len(prompt_history) - 1:
+                    history_index[0] += 1
+                    input_entry.delete(0, "end")
+                    input_entry.insert(0, prompt_history[history_index[0]])
+                else:
+                    history_index[0] = len(prompt_history)
+                    input_entry.delete(0, "end")
+
+            input_entry.bind("<Up>", _history_up)
+            input_entry.bind("<Down>", _history_down)
+
             def _submit(event=None):
                 query = input_entry.get().strip()
                 if not query:
                     return
+                prompt_history.append(query)
+                history_index[0] = len(prompt_history)
                 input_entry.delete(0, "end")
 
                 # Show user message
