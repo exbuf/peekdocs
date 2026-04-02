@@ -4131,8 +4131,8 @@ def _launch_gui():
                     btn.pack(side="left", padx=(0, 2))
                     if report_formats.get(fmt):
                         btn.configure(
-                            fg_color=("#3B8ED0", "#1F6AA5"),
-                            hover_color=("#36719F", "#144870"),
+                            fg_color="green",
+                            hover_color="darkgreen",
                         )
                     else:
                         btn.configure(
