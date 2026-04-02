@@ -457,6 +457,13 @@ def _launch_gui():
             )
             self.search_button.pack(side="left", padx=(0, 5))
 
+            ctk.CTkButton(
+                btn_frame, text="Search Assistant", width=130,
+                command=self._open_search_assistant,
+                font=ctk.CTkFont(size=14),
+                fg_color="#8B5CF6", hover_color="#7C3AED",
+            ).pack(side="left", padx=(0, 5))
+
             # Right-aligned buttons — packed right-to-left so Use Index is rightmost
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
@@ -608,6 +615,152 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14),
             )
             close_btn.pack(pady=(5, 10))
+
+        def _open_search_assistant(self):
+            """Open the Search Assistant chatbot dialog."""
+            import tkinter as tk
+            from docsearch.search_assistant import parse_natural_query
+
+            win = ctk.CTkToplevel(self)
+            win.title("Search Assistant")
+            win.geometry("600x500")
+            win.resizable(True, True)
+            win.after(50, win.lift)
+
+            ctk.CTkLabel(
+                win,
+                text="Describe what you want to find in plain English.",
+                font=ctk.CTkFont(size=12),
+                text_color=("gray50", "gray50"),
+            ).pack(padx=15, pady=(10, 5), anchor="w")
+
+            # Chat history
+            chat_frame = tk.Frame(win)
+            chat_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            chat_scroll = tk.Scrollbar(chat_frame)
+            chat_scroll.pack(side="right", fill="y")
+            chat_text = tk.Text(
+                chat_frame, wrap="word", font=("TkDefaultFont", 12),
+                state="disabled", yscrollcommand=chat_scroll.set,
+                padx=10, pady=8, spacing3=4,
+            )
+            chat_text.pack(side="left", fill="both", expand=True)
+            chat_scroll.config(command=chat_text.yview)
+
+            chat_text.tag_configure("user", foreground="#1a73e8", font=("TkDefaultFont", 12, "bold"))
+            chat_text.tag_configure("assistant", foreground="#333333")
+            chat_text.tag_configure("config", foreground="#059669", font=("Courier", 11))
+            chat_text.tag_configure("error", foreground="#DC2626")
+            chat_text.tag_configure("hint", foreground="#888888", font=("TkDefaultFont", 11))
+
+            # Show initial hints
+            chat_text.configure(state="normal")
+            chat_text.insert("end", "Try something like:\n", "hint")
+            chat_text.insert("end", '  "find SSNs in all PDFs in subfolders"\n', "hint")
+            chat_text.insert("end", '  "search for budget but not draft"\n', "hint")
+            chat_text.insert("end", '  "find files missing an authorized signature"\n', "hint")
+            chat_text.insert("end", '  "find dollar amounts between 1000 and 5000"\n', "hint")
+            chat_text.insert("end", '  "find misspelled compliance in Word docs"\n', "hint")
+            chat_text.insert("end", '  "find breach and contract within 5 words"\n', "hint")
+            chat_text.insert("end", "\n", "hint")
+            chat_text.configure(state="disabled")
+
+            # Input row
+            input_frame = ctk.CTkFrame(win, fg_color="transparent")
+            input_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+            input_entry = ctk.CTkEntry(
+                input_frame, placeholder_text="Describe your search...",
+                font=ctk.CTkFont(size=13),
+            )
+            input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+            def _submit(event=None):
+                query = input_entry.get().strip()
+                if not query:
+                    return
+                input_entry.delete(0, "end")
+
+                # Show user message
+                chat_text.configure(state="normal")
+                chat_text.insert("end", f"You: {query}\n", "user")
+
+                # Parse the query
+                result = parse_natural_query(query)
+
+                # Show what we understood
+                if result["unsupported"]:
+                    chat_text.insert("end", f"\n{result['unsupported']}\n\n", "error")
+
+                if result["explanation"]:
+                    chat_text.insert("end", "\nI'll set up this search:\n", "assistant")
+                    for line in result["explanation"].split("\n"):
+                        chat_text.insert("end", f"  {line}\n", "config")
+
+                    chat_text.insert("end", "\n", "assistant")
+
+                    if not result["unsupported"]:
+                        # Apply to GUI
+                        self.search_entry.delete(0, "end")
+                        if result["search_text"]:
+                            self.search_entry.insert(0, result["search_text"])
+
+                        # Set checkboxes
+                        self.recursive_var.set("on" if result["recursive"] else "off")
+                        self.regex_var.set("on" if result["regex"] else "off")
+                        self.fuzzy_var.set("on" if result["fuzzy"] else "off")
+                        self.wildcard_var.set("on" if result["wildcard"] else "off")
+                        self.inverse_var.set("on" if result["inverse"] else "off")
+                        self.whole_word_var.set("on" if result["whole_word"] else "off")
+                        self.expression_var.set("on" if result["expression"] else "off")
+
+                        # Set text fields
+                        self.file_types_entry.delete(0, "end")
+                        if result["file_types"]:
+                            self.file_types_entry.insert(0, result["file_types"])
+
+                        self.exclude_entry.delete(0, "end")
+                        if result["exclude"]:
+                            self.exclude_entry.insert(0, result["exclude"])
+
+                        self.proximity_entry.delete(0, "end")
+                        if result["proximity"]:
+                            self.proximity_entry.insert(0, result["proximity"])
+
+                        self.range_entry.delete(0, "end")
+                        if result["range_filters"]:
+                            self.range_entry.insert(0, result["range_filters"])
+
+                        self.context_before_entry.delete(0, "end")
+                        if result["context_before"]:
+                            self.context_before_entry.insert(0, result["context_before"])
+
+                        self.context_after_entry.delete(0, "end")
+                        if result["context_after"]:
+                            self.context_after_entry.insert(0, result["context_after"])
+
+                        chat_text.insert("end", "Search configured! Click Run Search or type another query.\n\n", "assistant")
+
+                chat_text.configure(state="disabled")
+                chat_text.see("end")
+
+            input_entry.bind("<Return>", _submit)
+
+            ctk.CTkButton(
+                input_frame, text="Go", width=60,
+                command=_submit,
+                font=ctk.CTkFont(size=13),
+            ).pack(side="left")
+
+            ctk.CTkButton(
+                win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=win.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack(pady=(0, 10))
+
+            input_entry.focus_set()
 
         def _show_search_help(self):
             """Show a quick-start guide with search examples by category."""
