@@ -3718,6 +3718,15 @@ def _launch_gui():
 
         def _browse_file(self):
             """Open a file picker, set the folder to the file's directory and specific file to search."""
+            if getattr(self, '_file_dialog_open', False):
+                return
+            self._file_dialog_open = True
+            try:
+                self._browse_file_inner()
+            finally:
+                self.after(500, lambda: setattr(self, '_file_dialog_open', False))
+
+        def _browse_file_inner(self):
             initial = self.folder_entry.get().strip()
             if not initial or not os.path.isdir(initial):
                 initial = os.path.expanduser("~")
