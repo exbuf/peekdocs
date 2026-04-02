@@ -711,6 +711,11 @@ def _launch_gui():
             input_entry.bind("<Up>", _history_up)
             input_entry.bind("<Down>", _history_down)
 
+            # Pre-fill with last search
+            if prompt_history:
+                input_entry.insert(0, prompt_history[-1])
+                input_entry.select_range(0, "end")
+
             def _submit(event=None):
                 query = input_entry.get().strip()
                 if not query:
