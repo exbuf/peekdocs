@@ -674,9 +674,11 @@ def _launch_gui():
             )
             input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-            # Prompt history for up/down arrow navigation
-            prompt_history = []
-            history_index = [0]  # mutable container for closure
+            # Prompt history for up/down arrow navigation (persists across dialog openings)
+            if not hasattr(self, '_assistant_history'):
+                self._assistant_history = []
+            prompt_history = self._assistant_history
+            history_index = [len(prompt_history)]
 
             def _history_up(event=None):
                 if not prompt_history:
@@ -1419,30 +1421,30 @@ def _launch_gui():
             cb_inverse.grid(row=0, column=4, padx=(0, 15), pady=(0, 5), sticky="w")
             Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
 
-            # Row 1: exclude
+            # Row 2: exclude
             ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
-                row=7, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=2, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.exclude_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: draft,obsolete"
             )
-            self.exclude_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-            # Row 2: file types
+            # Row 3: file types
             ctk.CTkLabel(self.advanced_frame, text="File types:").grid(
-                row=2, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=3, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.file_types_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: pdf,docx,txt"
             )
-            self.file_types_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
             # Row 3: proximity + context lines
             ctk.CTkLabel(self.advanced_frame, text="Proximity:").grid(
-                row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=4, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            num_frame.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+            num_frame.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
             self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
             self.proximity_entry.grid(row=0, column=0)
@@ -1459,10 +1461,10 @@ def _launch_gui():
             # Row 4: cores
             self._default_cores = max(1, (os.cpu_count() or 1) // 2)
             ctk.CTkLabel(self.advanced_frame, text="Cores to Use:").grid(
-                row=4, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=5, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-            cores_frame.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+            cores_frame.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
             self.cores_entry = ctk.CTkEntry(cores_frame, width=60)
             self.cores_entry.insert(0, str(self._default_cores))
@@ -1474,24 +1476,24 @@ def _launch_gui():
             self.max_matches_entry.insert(0, "1000")
             self.max_matches_entry.grid(row=0, column=2)
 
-            # Row 5: range filters
+            # Row 6: range filters
             ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
-                row=5, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=6, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.range_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
             )
-            self.range_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.range_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
             Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
 
-            # Row 6: specific files
+            # Row 7: specific files
             ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
-                row=6, column=0, padx=(15, 5), pady=5, sticky="e"
+                row=7, column=0, padx=(15, 5), pady=5, sticky="e"
             )
             self.specific_files_entry = ctk.CTkEntry(
                 self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
             )
-            self.specific_files_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+            self.specific_files_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
             # Row 7: save as + append to
             ctk.CTkLabel(self.advanced_frame, text="Save report as:").grid(
