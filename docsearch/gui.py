@@ -3452,16 +3452,17 @@ def _launch_gui():
             self.clear_results_btn.pack(side="right", padx=5)
             Tooltip(self.clear_results_btn, "Delete all docsearch_results files from the search folder (including timestamped versions)")
 
+            # Close button on its own row below the toolbar
             ctk.CTkButton(
-                self.bottom_frame,
+                self,
                 text="Close",
-                width=70,
+                width=100,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self.destroy,
                 font=ctk.CTkFont(size=13),
-            ).pack(side="left", padx=5)
+            ).grid(row=11, column=0, columnspan=3, pady=(0, 10))
 
 
         # ── Actions ──────────────────────────────────────────────
