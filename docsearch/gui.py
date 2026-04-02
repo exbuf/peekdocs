@@ -3722,13 +3722,6 @@ def _launch_gui():
             filepath = filedialog.askopenfilename(
                 initialdir=initial,
                 title="Select a file to search",
-                filetypes=[
-                    ("All supported", "*.doc *.docx *.pdf *.xlsx *.xls *.csv *.tsv *.pptx *.ppt "
-                     "*.odt *.ods *.odp *.rtf *.epub *.html *.txt *.md *.json *.xml *.yaml *.yml "
-                     "*.toml *.ini *.cfg *.sql *.log *.rst *.tex *.eml *.msg *.pst "
-                     "*.zip *.tar *.gz *.bz2 *.tgz *.7z *.rar"),
-                    ("All files", "*.*"),
-                ],
             )
             if filepath:
                 filepath = os.path.normpath(filepath)
