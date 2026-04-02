@@ -664,6 +664,11 @@ def _launch_gui():
             chat_text.insert("end", "  find breach and contract within 5 words\n", "hint")
             chat_text.insert("end", "  find people not chen\n", "hint")
             chat_text.insert("end", "  find dollar amounts 10k - 50k\n", "hint")
+            chat_text.insert("end", "  show me all sales over $10,000\n", "hint")
+            chat_text.insert("end", "  find rows where status is pending\n", "hint")
+            chat_text.insert("end", "  show me orders that are overdue and unpaid\n", "hint")
+            chat_text.insert("end", "  find cloudnine with dollar amounts\n", "hint")
+            chat_text.insert("end", "  show me everything from March\n", "hint")
             chat_text.insert("end", "\n", "hint")
             chat_text.configure(state="disabled")
 
