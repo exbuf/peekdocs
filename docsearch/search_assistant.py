@@ -167,10 +167,20 @@ def parse_natural_query(query):
                 params["range_filters"] = f"amount:..{hi}"
                 explanation_parts.append(f"Range: amounts under ${hi}")
                 has_amount_range = True
+            else:
+                # "under a dollar" / "less than a dollar"
+                if re.search(r"(?:under|less than|below)\s+a\s+dollar", q_lower):
+                    params["range_filters"] = "amount:..1"
+                    explanation_parts.append("Range: amounts under $1")
+                    has_amount_range = True
 
     # If we have an amount range, suppress the dollar regex pattern
     if has_amount_range:
         detected_pattern = None
+        # Flag to add dollar highlighting if no other search terms are found
+        _need_dollar_highlight = True
+    else:
+        _need_dollar_highlight = False
 
     # Date ranges
     date_range = re.search(r"dates?\s+(?:between|from)\s+(\d{4}-\d{2}(?:-\d{2})?)\s+(?:and|to)\s+(\d{4}-\d{2}(?:-\d{2})?)", q_lower)
@@ -226,6 +236,8 @@ def parse_natural_query(query):
                 r"\$?[\d,.]+[km]?\s*(?:-|to|through)\s*\$?[\d,.]+[km]?",
                 r"\bover \$?[\d,.]+[km]?|\bunder \$?[\d,.]+[km]?|\babove \$?[\d,.]+[km]?|\bbelow \$?[\d,.]+[km]?",
                 r"\bmore than \$?[\d,.]+[km]?|\bless than \$?[\d,.]+[km]?|\bexceeding \$?[\d,.]+[km]?|\bgreater than \$?[\d,.]+[km]?",
+                r"\bunder a dollar\b|\bless than a dollar\b|\bbelow a dollar\b",
+                r"\bunder\b|\bover\b|\babove\b|\bbelow\b|\bbetween\b",
                 # Structural words
                 r"\bfind\b|\bsearch\b|\blook for\b|\bshow me\b|\bshow\b|\blocate\b|\bget\b|\blist\b",
                 r"\ball\b|\bevery\b|\bany\b|\beach\b|\bme\b|\bmy\b|\bfor\b|\bwith\b|\ban?\b|\bthe\b|\bto\b|\bof\b|\bis\b|\bare\b|\bwas\b|\bwere\b",
@@ -261,6 +273,12 @@ def parse_natural_query(query):
                 elif terms:
                     params["search_text"] = cleaned
                     explanation_parts.insert(0, f"Search term: {cleaned}")
+
+    # If we have a dollar range but no search terms, add dollar highlighting
+    if _need_dollar_highlight and not params["search_text"]:
+        params["search_text"] = r"\$[\d,.]+"
+        params["regex"] = True
+        explanation_parts.append("Highlighting dollar amounts in results")
 
     # ── Check for unsupported requests ────────────────────────
     unsupported_triggers = {
