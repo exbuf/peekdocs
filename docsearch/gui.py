@@ -766,7 +766,10 @@ def _launch_gui():
                         if result["context_after"]:
                             self.context_after_entry.insert(0, result["context_after"])
 
-                        chat_text.insert("end", "Search configured! Click Run Search or type another query.\n\n", "assistant")
+                        if not result["search_text"] and result["range_filters"]:
+                            chat_text.insert("end", "Range-only search configured. The Search Terms field is empty — that's correct.\nThe range filter is in Advanced Options. Click Run Search.\n\n", "assistant")
+                        else:
+                            chat_text.insert("end", "Search configured! Click Run Search or type another query.\n\n", "assistant")
 
                 chat_text.configure(state="disabled")
                 chat_text.see("end")
