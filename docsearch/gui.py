@@ -629,7 +629,7 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Search Wizard")
-            win.geometry("720x520")
+            win.geometry("850x520")
             win.resizable(True, True)
             win.after(50, win.lift)
 
