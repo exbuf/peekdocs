@@ -3720,6 +3720,7 @@ def _launch_gui():
             """Open a file picker, set the folder to the file's directory and specific file to search."""
             initial = self.folder_entry.get() or os.path.expanduser("~")
             filepath = filedialog.askopenfilename(
+                parent=self,
                 initialdir=initial,
                 title="Select a file to search",
             )
