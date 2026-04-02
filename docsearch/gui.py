@@ -3718,11 +3718,18 @@ def _launch_gui():
 
         def _browse_file(self):
             """Open a file picker, set the folder to the file's directory and specific file to search."""
-            initial = self.folder_entry.get() or os.path.expanduser("~")
+            initial = self.folder_entry.get().strip()
+            if not initial or not os.path.isdir(initial):
+                initial = os.path.expanduser("~")
             filepath = filedialog.askopenfilename(
                 parent=self,
                 initialdir=initial,
                 title="Select a file to search",
+            )
+            # Debug: show what was returned
+            self.status_label.configure(
+                text=f"DEBUG: filedialog returned: {filepath!r}",
+                text_color=("gray30", "gray70"),
             )
             if filepath:
                 filepath = os.path.normpath(filepath)
