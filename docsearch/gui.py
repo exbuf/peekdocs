@@ -448,7 +448,7 @@ def _launch_gui():
 
             # Row 2: action buttons below the search entry
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=2, column=1, columnspan=2, padx=5, pady=(0, 8), sticky="ew")
+            btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
 
             self.search_button = ctk.CTkButton(
                 btn_frame, text="Run Search", width=100, command=self.start_search,
