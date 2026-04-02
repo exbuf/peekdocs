@@ -767,7 +767,7 @@ def _launch_gui():
                     if not result["unsupported"]:
                         # Show the assistant's interpretation above the search box
                         self._assistant_label.configure(text=f"Search Assistant: {query}")
-                        self._assistant_label.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 0), sticky="sw")
+                        self._assistant_label.grid(row=0, column=1, columnspan=2, padx=(5, 105), pady=(0, 0), sticky="sw")
 
                         # Apply to GUI
                         self.search_entry.delete(0, "end")
