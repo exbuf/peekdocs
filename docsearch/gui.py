@@ -629,7 +629,7 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Search Wizard")
-            win.geometry("580x520")
+            win.geometry("720x520")
             win.resizable(True, True)
             win.after(50, win.lift)
 
@@ -722,7 +722,8 @@ def _launch_gui():
                     field_frame.pack(fill="x", pady=(3, 0))
                     for i, (label, key, placeholder) in enumerate(fields):
                         tk.Label(field_frame, text=label, font=("TkDefaultFont", 11)).grid(row=0, column=i*2, padx=(0, 3), sticky="e")
-                        e = tk.Entry(field_frame, font=("TkDefaultFont", 11), width=15)
+                        entry_width = max(15, len(placeholder) + 3)
+                        e = tk.Entry(field_frame, font=("TkDefaultFont", 11), width=entry_width)
                         e.insert(0, placeholder)
                         e.grid(row=0, column=i*2+1, padx=(0, 10))
                         entries[key] = e
