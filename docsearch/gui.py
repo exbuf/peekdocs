@@ -431,7 +431,7 @@ def _launch_gui():
             Tooltip(search_help_btn, "Search examples and quick-start guide")
 
             label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=28, weight="bold"))
-            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
+            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="w")
 
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
@@ -1099,7 +1099,7 @@ def _launch_gui():
             ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
 
             label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=28, weight="bold"))
-            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="e")
+            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
             self.folder_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
