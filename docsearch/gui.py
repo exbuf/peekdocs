@@ -5094,7 +5094,7 @@ def _launch_gui():
                 heading = f"Matched Files ({count})"
             popup.title(heading)
             popup.resizable(True, True)
-            win_h = max(200, min(500, count * 28 + 80))
+            win_h = max(250, min(600, count * 28 + 120))
             popup.geometry(f"500x{win_h}")
             self.update_idletasks()
             x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
@@ -5151,8 +5151,6 @@ def _launch_gui():
                 popup, text="Close", width=10,
                 command=popup.destroy,
             ).pack(pady=(5, 10))
-
-            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(0, 10))
 
         def open_help(self):
             """Open the docsearch README in the default web browser."""
