@@ -18,11 +18,11 @@ docsearch scales from simple keyword searches to full compliance auditing — us
 
 - **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration
 - **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
-- **Compliance & audit** — create search suites that check every document for required language, flag prohibited content, detect PII, and verify dollar amounts fall within policy ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard creates industry-specific suites (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) in one click
+- **Compliance & audit** — create search suites that check every document for required language, flag prohibited content, detect PII (Personally Identifiable Information), and verify dollar amounts fall within policy ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard creates industry-specific suites — SOX (Sarbanes-Oxley), HIPAA (Health Insurance Portability and Accountability Act), Legal, Government, ISO (International Organization for Standardization), FERPA (Family Educational Rights and Privacy Act), Real Estate, Insurance, HR (Human Resources) — in one click
 - **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review
 - **Healthcare** — HIPAA compliance checks, PII detection across patient records
 - **Finance** — SOX audit documentation, transaction monitoring, range queries on dollar amounts
-- **HR** — verify employee files have required documents, detect SSNs on shared drives
+- **HR (Human Resources)** — verify employee files have required documents, detect SSNs (Social Security Numbers) on shared drives
 - **Research** — search across papers, notes, and datasets in any format
 
 ## Features
