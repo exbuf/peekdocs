@@ -265,7 +265,7 @@ This shows every flag, organized by category (Search Modes, Filters, Output, Ind
 
 ---
 
-## GUI Mode
+## GUI Mode (Graphical User Interface)
 
 If you prefer pointing and clicking over typing commands, docsearch has a graphical interface. It works exactly like the terminal version — same search, same results, same reports — but with a familiar window instead of a command line.
 
@@ -287,7 +287,7 @@ The GUI window is organized into these regions, from top to bottom:
 | **Folder Bar** | Folder path entry and **Browse** button |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
-| **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** |
+| **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read |
 | **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
 
@@ -306,7 +306,7 @@ Click "Advanced Search Options" to expand a panel with additional settings — A
 
 **Manage Indexes:**
 
-Click "Manage Indexes" below Manage Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly.
+Click "Manage Indexes" below Manage Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly.
 
 Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Search Options** handles the corresponding flag behind the scenes.
 
@@ -864,7 +864,7 @@ docsearch --index-clear        # delete the index
 
 **How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
 
-**In the GUI:** Click **▶ Manage Indexes** (below Manage Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour) on the left, then **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons. The **Search Using Index(es)** checkbox is inside Advanced Search Options to toggle between indexed and direct search. Building an index always includes all subfolders. The auto-refresh keeps the index up to date automatically while the app is open — it runs incremental refreshes in the background without interrupting searches. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch.
+**In the GUI:** Click **▶ Manage Indexes** (below Manage Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour / 4 hours / 8 hours / 24 hours) on the left, then **Build Index(es)**, **Delete Index(es)**, and **Index Status** buttons, plus a **?** help button. The **Search Using Index(es)** checkbox is inside Advanced Search Options to toggle between indexed and direct search. Building an index always includes all subfolders. The auto-refresh keeps the index up to date automatically while the app is open — it runs incremental refreshes in the background without interrupting searches. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch.
 
 **Concurrency safety:** The index is safe to use while auto-refresh is running, while multiple searches are happening, or while external tools (cron jobs, other terminals) access the same folder. Protections include:
 
@@ -1480,7 +1480,7 @@ If no settings are saved or if a value is invalid, docsearch uses its built-in d
 
 docsearch creates several types of files during normal operation. Understanding what each file is, where it lives, and how to manage it helps you keep your folders clean and troubleshoot issues.
 
-**Important:** docsearch never modifies, moves, or deletes your original documents. All files listed below are created by docsearch itself.
+**Important:** docsearch never modifies, moves, or deletes your original documents. All files listed below are created by docsearch itself. docsearch can delete its own files when you ask — for example, Clear Results removes report files, Delete Index removes the search index, and Clean Up Suite Files removes generated suite reports. These operations only affect files that docsearch created, never your documents.
 
 ### Search reports
 

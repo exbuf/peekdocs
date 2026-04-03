@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and 33 other file types — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and 37 other file types — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
 >
 > **Built for compliance and auditing.** Create search suites that check every document for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within policy ranges — then run those checks on a schedule with pass/fail reports and email alerts when failures are detected. Includes ready-to-use examples for financial services, healthcare, legal, government, manufacturing, education, real estate, insurance, and HR — copy, paste, and adapt to your needs. No other free tool does this.
 >
@@ -15,7 +15,7 @@
 ## Features
 
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
-- **42 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, HTML, and 30+ more
+- **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` with yellow-highlighted matches and `.txt` with full context
 - **Results preview** — see matches inline in the GUI with highlighted terms
 - **Compliance Wizard** — pick an industry template, customize checks, create a complete compliance suite in one click
@@ -28,17 +28,18 @@
 - **Three interfaces** — terminal CLI, point-and-click GUI (`docsearch-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
-- **Read-only** — docsearch never modifies, moves, or deletes your files
+- **Read-only** — docsearch never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
 
 ### Supported File Types
 
 | Category | Formats |
 |----------|---------|
-| **Documents** | .doc .docx .pdf .odt .rtf .epub .pptx .ppt .html .md .rst .tex |
-| **Spreadsheets** | .xlsx .xls .ods .csv .tsv |
-| **Email** | .eml .msg .pst |
-| **Archives** | .zip .tar .gz .bz2 .tgz .7z .rar |
-| **Data/Config** | .json .xml .yaml .yml .toml .ini .cfg .sql .log .txt |
+| **Documents** | .doc .docx .epub .html .md .odt .pages .pdf .ppt .pptx .rst .rtf .tex |
+| **Spreadsheets** | .csv .ods .tsv .xls .xlsx |
+| **Email** | .eml .mbox .msg .pst |
+| **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip |
+| **Calendar/Contacts** | .ics .vcf |
+| **Data/Config** | .cfg .ini .json .log .sql .toml .txt .xml .yaml .yml |
 | **Images (OCR)** | .bmp .jpg .jpeg .png .tif .tiff (requires `-O` flag) |
 
 ## Installation
@@ -172,10 +173,13 @@ See the [API Reference](docs/API.md) for all parameters and options.
 | [Changelog](CHANGELOG.md) | Version history and release notes |
 | [Contributing](CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
 
-## Use Cases
+## Who Is It For?
 
-- **Home users** — search years of personal documents, Google Docs backups, family records
-- **Compliance & audit** — automated checks with pass/fail suites, scheduled runs, email alerts, .docx evidence reports
+docsearch scales from simple keyword searches to full compliance auditing — use as much or as little as you need:
+
+- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
+- **Compliance & audit** — create search suites that check every document for required language, flag prohibited content, detect PII, and verify dollar amounts fall within policy ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard creates industry-specific suites (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) in one click
 - **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review
 - **Healthcare** — HIPAA compliance checks, PII detection across patient records
 - **Finance** — SOX audit documentation, transaction monitoring, range queries on dollar amounts
@@ -186,7 +190,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 | Feature | docsearch (free) | Paid competitors ($29-249/yr) |
 |---------|-----------------|-------------------------------|
-| File types | 42 | 170+ |
+| File types | 46 | 170+ |
 | CLI + GUI + API | All three | GUI only |
 | Cross-platform | Win/Mac/Linux | Windows only |
 | Highlighted .docx reports | Yes | No |

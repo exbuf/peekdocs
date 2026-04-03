@@ -112,7 +112,7 @@ Click **View Suite Report** to open the `.docx` report directly.
 
 **Why docsearch works well for this:**
 
-- **Offline and read-only** — Your documents never leave your computer. docsearch does not modify, move, or delete any files. This matters for sensitive documents like financial records, legal contracts, medical files, and personnel records.
+- **Offline and read-only** — Your documents never leave your computer. docsearch does not modify, move, or delete any of your files. It creates its own output files (reports, indexes, collection files) and can delete those when you ask (e.g., Clear Results, Delete Index, Clean Up Suite Files) — but your original documents are never touched. This matters for sensitive documents like financial records, legal contracts, medical files, and personnel records.
 - **Portable reports** — The `.docx` report is a standard Word document that anyone can open. No special software, no login, no subscription required to review the results.
 - **Repeatable** — The same suite with the same criteria produces consistent results. Save the suite once, run it whenever you need to.
 - **Auditable** — Each report includes a timestamp, the docsearch version, a report fingerprint (proving the reports haven't been tampered with), and a source file manifest (listing every document that was in scope).

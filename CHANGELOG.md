@@ -18,7 +18,7 @@ All notable changes to docsearch are documented here.
 - **First-run welcome dialog** — getting-started guide appears on first launch with 4-step quick start
 - **Clear Error Log button** — on bottom toolbar next to View Error Log
 - **Clear Auto-Run History button** — in suite panel next to Open Auto-Run History
-- **42 supported file types** (up from 25) — documents, spreadsheets, emails, archives, data/config files, and images (OCR)
+- **46 supported file types** (up from 25) — documents, spreadsheets, emails (.eml, .msg, .pst, .mbox), archives, Apple Pages, calendars (.ics), contacts (.vcf), data/config files, and images (OCR)
 - **Comprehensive -h help** — rewritten with description, usage syntax, file type list, and sections grouped by purpose (Search Modes, Filters, Output, Index, Settings)
 - **Troubleshooting section** expanded to 31 entries covering Windows, macOS, and Linux
 - **Compliance Wizard** — pick an industry template (9 available), review and customize checks, create a complete compliance suite with one click. Templates for Financial Services/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, and HR

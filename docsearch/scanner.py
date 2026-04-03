@@ -189,9 +189,62 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                 row_text = ", ".join(cells)
                 all_lines.append((row_num, row_text))
 
-    elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql"):
+    elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql", ".ics", ".vcf"):
         with open(filepath, encoding="utf-8", errors="replace") as txtfile:
             all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
+
+    elif ext == ".mbox":
+        # Unix mailbox archive — multiple emails in one file
+        import mailbox
+        mbox = mailbox.mbox(filepath)
+        line_num = 0
+        for msg in mbox:
+            for header in ("From", "To", "Subject", "Date"):
+                val = msg.get(header, "")
+                if val:
+                    line_num += 1
+                    all_lines.append((line_num, f"{header}: {val}"))
+            body = ""
+            if msg.is_multipart():
+                for part in msg.walk():
+                    if part.get_content_type() == "text/plain":
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            body = payload.decode("utf-8", errors="replace")
+                            break
+            else:
+                payload = msg.get_payload(decode=True)
+                if payload:
+                    body = payload.decode("utf-8", errors="replace")
+            for line in body.split("\n"):
+                if line.strip():
+                    line_num += 1
+                    all_lines.append((line_num, line.rstrip("\r\n")))
+        mbox.close()
+
+    elif ext == ".pages":
+        # Apple Pages — zip archive containing XML documents
+        try:
+            with zipfile.ZipFile(filepath, "r") as zf:
+                line_num = 0
+                for name in zf.namelist():
+                    if name.endswith(".xml") or name.endswith(".html"):
+                        data = zf.read(name).decode("utf-8", errors="replace")
+                        class _PagesTextExtractor(HTMLParser):
+                            def __init__(self):
+                                super().__init__()
+                                self.text_parts = []
+                            def handle_data(self, data):
+                                self.text_parts.append(data)
+                        parser = _PagesTextExtractor()
+                        parser.feed(data)
+                        for line in "".join(parser.text_parts).split("\n"):
+                            stripped = line.strip()
+                            if stripped:
+                                line_num += 1
+                                all_lines.append((line_num, stripped))
+        except zipfile.BadZipFile:
+            pass  # Newer Pages format may use protobuf — skip gracefully
 
     elif ext == ".html":
         class _HTMLTextExtractor(HTMLParser):
@@ -722,6 +775,10 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     tgz_files = sorted(glob.glob(glob_prefix + ".tgz", recursive=recursive))
     sevenz_files = sorted(glob.glob(glob_prefix + ".7z", recursive=recursive))
     rar_files = sorted(glob.glob(glob_prefix + ".rar", recursive=recursive))
+    mbox_files = sorted(glob.glob(glob_prefix + ".mbox", recursive=recursive))
+    ics_files = sorted(glob.glob(glob_prefix + ".ics", recursive=recursive))
+    vcf_files = sorted(glob.glob(glob_prefix + ".vcf", recursive=recursive))
+    pages_files = sorted(glob.glob(glob_prefix + ".pages", recursive=recursive))
     if use_ocr:
         jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
         jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
@@ -733,7 +790,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         image_files = []
     all_files = sorted(
-        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + image_files
+        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + mbox_files + ics_files + vcf_files + pages_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
         and os.path.basename(f) not in (".docsearch_collection.json", ".docsearch.db", ".docsearchrc")
     )

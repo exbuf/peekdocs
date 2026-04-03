@@ -335,8 +335,8 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
-            self.geometry("1120x720")
-            self.minsize(1120, 620)
+            self.geometry("1180x720")
+            self.minsize(1180, 620)
             self._center_window(950, 720)
 
             ctk.set_appearance_mode("System")
@@ -467,6 +467,7 @@ def _launch_gui():
                 fg_color="green", hover_color="darkgreen",
             )
             self.search_button.pack(side="left", padx=(4, 2), pady=4)
+            Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.)")
 
             self.run_suite_main_btn = ctk.CTkButton(
                 run_group, text="Run Suite", width=100,
@@ -475,6 +476,7 @@ def _launch_gui():
                 fg_color="#CC3333", hover_color="#AA2222",
             )
             self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=4)
+            Tooltip(self.run_suite_main_btn, "Open Manage Suites to select and run a suite. A suite is a collection of saved searches that run together with pass/fail criteria. Green = suites exist, Red = no suites yet")
 
             # Right-aligned: Use Index checkbox
             self.index_search_var = ctk.StringVar(value="off")
@@ -489,19 +491,23 @@ def _launch_gui():
             wizard_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             wizard_group.pack(side="right", padx=(0, 5))
 
-            ctk.CTkButton(
+            search_wiz_btn = ctk.CTkButton(
                 wizard_group, text="Search Wizard", width=120,
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=14),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
-            ).pack(side="left", padx=(4, 2), pady=4)
+            )
+            search_wiz_btn.pack(side="left", padx=(4, 2), pady=4)
+            Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
-            ctk.CTkButton(
+            compliance_wiz_btn = ctk.CTkButton(
                 wizard_group, text="Compliance Wizard", width=140,
                 command=self._open_compliance_wizard,
                 font=ctk.CTkFont(size=14),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
-            ).pack(side="left", padx=(2, 4), pady=4)
+            )
+            compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=4)
+            Tooltip(compliance_wiz_btn, "Create a complete compliance suite from 9 industry templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR)")
 
             # Right-aligned grouped: Save Search, Load Saved Search
             save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
@@ -584,7 +590,7 @@ def _launch_gui():
 
             h("Welcome to docsearch!")
             b("docsearch lets you search Word docs, PDFs, spreadsheets,")
-            b("emails, and 38 other file types \u2014 all at once, all offline.")
+            b("emails, calendars, contacts, and 40 other file types \u2014 all at once, all offline.")
             b("Results are saved to a highlighted Word report.")
             blank()
 
@@ -1323,6 +1329,19 @@ def _launch_gui():
             b("• The created searches appear in your saved searches and can be")
             b("  edited individually later via Load Saved Search")
             blank()
+            b("To apply the same compliance suite to multiple folders, browse to")
+            b("each folder and run the Compliance Wizard again. Each folder gets")
+            b("its own copy of the searches and suite in its .docsearch_collection.json")
+            b("file, so you can customize per folder without affecting the others.")
+            blank()
+            b("To customize a folder's suite after creating it:")
+            b("• Click Load Saved Search to open any of the wizard's searches")
+            b("• Edit the search terms, change modes, adjust settings")
+            b("• Click Save Search to save your changes (use the same name")
+            b("  to overwrite, or a new name to keep both versions)")
+            b("• Open Manage Suites to add, remove, or reorder checks in")
+            b("  the suite, or change pass/fail thresholds")
+            blank()
 
             txt.configure(state="disabled")
 
@@ -1380,6 +1399,37 @@ def _launch_gui():
 
             def blank():
                 txt.insert("end", "\n")
+
+            h("WHAT IS DOCSEARCH?")
+            b("docsearch searches Word docs, PDFs, spreadsheets, emails,")
+            b("archives, and 46 file types \u2014 all at once, all offline. Your")
+            b("files never leave your computer. Results are presented on")
+            b("screen and in a Word document with every match highlighted")
+            b("in yellow. docsearch never modifies, moves, or deletes your")
+            b("files.")
+            blank()
+
+            h("WHO IS IT FOR?")
+            b("\u2022 Home users \u2014 search personal documents, Google Docs")
+            b("  backups, tax records, family files. Just type a keyword")
+            b("  and click Run Search.")
+            blank()
+            b("\u2022 Small businesses \u2014 find information across contracts,")
+            b("  invoices, reports, and correspondence. Use AND mode,")
+            b("  file type filters, and range queries to narrow results.")
+            blank()
+            b("\u2022 Compliance and auditing \u2014 create search suites that")
+            b("  check every document for required language, flag prohibited")
+            b("  content, detect PII like Social Security numbers, and")
+            b("  verify dollar amounts fall within policy ranges. Run")
+            b("  suites on a schedule with pass/fail reports and email")
+            b("  alerts. Use the Compliance Wizard to set up industry-")
+            b("  specific suites (SOX, HIPAA, Legal, Government, ISO,")
+            b("  FERPA, Real Estate, Insurance, HR) in one click.")
+            blank()
+            b("You don't need to use every feature. Start with a simple")
+            b("keyword search and explore from there.")
+            blank()
 
             h("GETTING STARTED")
             b("All searches are case-insensitive. Type your terms in the Search Bar,")
@@ -1522,9 +1572,12 @@ def _launch_gui():
             blank()
 
             h("FILES CREATED BY DOCSEARCH")
-            b("docsearch never modifies your original documents. It creates")
-            b("its own files for reports, indexes, and settings. All are safe")
-            b("to delete \u2014 docsearch recreates them as needed.")
+            b("docsearch never modifies, moves, or deletes your original")
+            b("documents. It creates its own files for reports, indexes, and")
+            b("settings. Buttons like Clear Results, Delete Index, and Clean")
+            b("Up Suite Files only delete files that docsearch created \u2014 never")
+            b("your documents. All docsearch files are safe to delete manually")
+            b("too \u2014 docsearch recreates them as needed.")
             blank()
             s("Search reports (overwritten each search)")
             e("docsearch_results.txt       \u2014 text report")
@@ -2426,15 +2479,6 @@ def _launch_gui():
             self.index_status_button.pack(side="left", padx=5)
             Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
 
-            self.about_index_button = ctk.CTkButton(
-                btn_frame, text="About Index", width=100,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.about_index_action, font=ctk.CTkFont(size=12),
-            )
-            self.about_index_button.pack(side="left", padx=5)
-            Tooltip(self.about_index_button, "Overview of how indexes work in docsearch")
-
             # Auto-refresh row
             refresh_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
             refresh_frame.pack(fill="x", padx=5, pady=(10, 0))
@@ -2447,7 +2491,7 @@ def _launch_gui():
             self.refresh_interval_var = ctk.StringVar(value="Off")
             self.refresh_interval_menu = ctk.CTkOptionMenu(
                 refresh_frame,
-                values=["Off", "5 min", "15 min", "30 min", "1 hour"],
+                values=["Off", "5 min", "15 min", "30 min", "1 hour", "4 hours", "8 hours", "24 hours"],
                 variable=self.refresh_interval_var,
                 command=self._on_refresh_interval_changed,
                 width=100,
@@ -4999,7 +5043,7 @@ def _launch_gui():
 
         # ── Auto-Refresh Scheduler ────────────────────────────
 
-        _REFRESH_INTERVALS = {"Off": 0, "5 min": 5, "15 min": 15, "30 min": 30, "1 hour": 60}
+        _REFRESH_INTERVALS = {"Off": 0, "5 min": 5, "15 min": 15, "30 min": 30, "1 hour": 60, "4 hours": 240, "8 hours": 480, "24 hours": 1440}
 
         def _on_refresh_interval_changed(self, value):
             """Handle auto-refresh interval selection change."""
@@ -5523,7 +5567,7 @@ def _launch_gui():
             import tkinter as tk
             help_win = tk.Toplevel(self.index_window or self)
             help_win.title("Manage Indexes — Help")
-            help_win.geometry("650x480")
+            help_win.geometry("650x560")
             help_win.resizable(True, True)
             if self.index_window:
                 help_win.transient(self.index_window)
@@ -5596,11 +5640,28 @@ def _launch_gui():
             b("in your top folder covers everything underneath it.")
             blank()
 
+            h("THE USE INDEX CHECKBOX")
+            b("The Use Index checkbox on the main screen controls whether")
+            b("searches use the index or scan files directly. When an index")
+            b("exists, the checkbox is enabled and checked automatically.")
+            b("Uncheck it if you prefer direct scanning for a particular")
+            b("search. If no index exists for the current folder, the")
+            b("checkbox is grayed out and unavailable — build an index")
+            b("first to enable it.")
+            blank()
+
             h("HOW THE INDEX STAYS CURRENT")
             b("Use Auto-Refresh to keep the index up to date while the")
             b("app is open. It checks for new, changed, and deleted files")
-            b("at the interval you choose (5 min, 15 min, 30 min, 1 hour).")
+            b("at the interval you choose (5 min to 24 hours).")
             b("You can also rebuild manually anytime with Build Index(es).")
+            blank()
+
+            h("IDENTICAL RESULTS")
+            b("Indexed searches produce the exact same results as direct")
+            b("searches. The index just skips the file-parsing step. You")
+            b("can verify this by unchecking Use Index and comparing.")
+            b("The index is typically 10\u201320% the size of your original files.")
             blank()
 
             h("INDEX FILES")
@@ -5634,67 +5695,6 @@ def _launch_gui():
                 command=help_win.destroy,
             )
             close_btn.pack(pady=(5, 10))
-
-        def about_index_action(self):
-            """Show an informational popup explaining how indexes work."""
-            import tkinter as tk
-            about_win = tk.Toplevel(self)
-            about_win.title("About Index")
-            about_win.resizable(True, True)
-            about_win.geometry("540x420")
-            self.update_idletasks()
-            x = self.winfo_rootx() + (self.winfo_width() - 540) // 2
-            y = self.winfo_rooty() + (self.winfo_height() - 420) // 2
-            about_win.geometry(f"+{x}+{y}")
-
-            scrollbar = tk.Scrollbar(about_win)
-            scrollbar.pack(side="right", fill="y")
-
-            text = tk.Text(
-                about_win, font=("TkDefaultFont", 12), wrap="word",
-                padx=15, pady=15, borderwidth=0, highlightthickness=0,
-                yscrollcommand=scrollbar.set,
-            )
-            text.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
-            text.pack(side="left", fill="both", expand=True)
-            scrollbar.config(command=text.yview)
-
-            sections = [
-                ("Index Overview\n",
-                 "docsearch can build an optional search index to speed up "
-                 "repeated searches. Instead of opening and parsing every file "
-                 "each time, the index stores extracted text in a small SQLite "
-                 "database (.docsearch.db) so searches skip file I/O entirely.\n\n"),
-                ("How It Works\n",
-                 "When you click Build Index(es), docsearch reads every supported "
-                 "file in the selected folder and all subfolders, extracts the "
-                 "text, and stores it in a single .docsearch.db file in that "
-                 "folder.\n\n"),
-                ("Automatic Refresh\n",
-                 "Each time you search with the index, docsearch automatically "
-                 "checks for new, changed, or deleted files and updates the index "
-                 "before returning results. You never need to manually rebuild.\n\n"),
-                ("Identical Results\n",
-                 "Indexed searches produce the exact same results as direct "
-                 "searches. You can verify this by unchecking Search Using "
-                 "Index(es) and comparing. Both methods use the same matching "
-                 "logic \u2014 the index just skips the file-parsing step.\n\n"),
-                ("The Index File\n",
-                 "A single .docsearch.db file is created in the top-level "
-                 "folder you selected. It contains text from that folder and "
-                 "all subfolders. It is a hidden file (starts with a dot). "
-                 "Use Cmd+Shift+. in Finder or 'ls -a' in Terminal to see it. "
-                 "The index is typically 10\u201320% the size of your original "
-                 "files.\n\n"),
-                ("Managing Indexes\n",
-                 "Use Delete Index(es) to remove the database at any time. "
-                 "Use Index Status to see how many files and lines are indexed, "
-                 "the database size, and when it was created."),
-            ]
-            for heading, body in sections:
-                text.insert("end", heading, "bold")
-                text.insert("end", body)
-            text.configure(state="disabled")
 
         def _open_selected_file(self):
             """Open the selected file from the matched files list in the default app."""
