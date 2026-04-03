@@ -271,6 +271,89 @@ def test_search_html(tmp_path, monkeypatch, capsys):
     assert "Budget" in content
 
 
+def test_search_ics(tmp_path, monkeypatch, capsys):
+    ics_file = tmp_path / "event.ics"
+    ics_file.write_text(
+        "BEGIN:VCALENDAR\n"
+        "BEGIN:VEVENT\n"
+        "SUMMARY:Budget review meeting\n"
+        "DESCRIPTION:Discuss Q1 budget and revenue targets\n"
+        "END:VEVENT\n"
+        "END:VCALENDAR\n"
+    )
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert "match(es)" in captured.out
+
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "event.ics" in content
+    assert "budget" in content.lower()
+
+
+def test_search_vcf(tmp_path, monkeypatch, capsys):
+    vcf_file = tmp_path / "contact.vcf"
+    vcf_file.write_text(
+        "BEGIN:VCARD\n"
+        "VERSION:3.0\n"
+        "FN:Jane Budget-Smith\n"
+        "NOTE:Handles budget approvals for Q1\n"
+        "END:VCARD\n"
+    )
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "contact.vcf" in content
+    assert "budget" in content.lower()
+
+
+def test_search_mbox(tmp_path, monkeypatch, capsys):
+    mbox_file = tmp_path / "mail.mbox"
+    mbox_file.write_text(
+        "From sender@example.com Mon Jan  1 00:00:00 2026\n"
+        "From: sender@example.com\n"
+        "To: receiver@example.com\n"
+        "Subject: Budget Report\n"
+        "Date: Mon, 1 Jan 2026 00:00:00 +0000\n"
+        "\n"
+        "Please review the attached budget for Q1.\n"
+        "\n"
+    )
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "mail.mbox" in content
+    assert "budget" in content.lower()
+
+
+def test_search_pages(tmp_path, monkeypatch, capsys):
+    """Test .pages search — create a minimal zip with XML containing searchable text."""
+    import zipfile
+    pages_path = tmp_path / "doc.pages"
+    with zipfile.ZipFile(str(pages_path), "w") as zf:
+        zf.writestr("index.xml", "<document><p>Annual budget review completed</p></document>")
+
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+
+    assert result == 0
+    content = (tmp_path / "docsearch_results.txt").read_text()
+    assert "doc.pages" in content
+    assert "budget" in content.lower()
+
+
 def test_search_xlsx(tmp_path, monkeypatch, capsys):
     from openpyxl import Workbook
     wb = Workbook()

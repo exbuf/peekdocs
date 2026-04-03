@@ -154,12 +154,16 @@ Run `docsearch -h` for the full flag reference with examples.
 docsearch-gui
 ```
 
-1. Click **Browse** to select a folder
+1. Click **Browse** to select a folder (or **File** to search a single file)
 2. Type your search terms
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
+**Note:** On macOS, the file picker shows a preview of the selected file in its right panel (Column View). On Windows, the file picker does not include a preview — this is a difference in the operating systems, not docsearch.
+
 Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration, or the **Compliance Wizard** to create a complete compliance suite from 9 industry templates (Financial/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, HR) — one click creates all searches and the suite, ready to run.
+
+**If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 
 ### Python API
 
@@ -202,6 +206,16 @@ See the [API Reference](docs/API.md) for all parameters and options.
 | Email search (.eml/.msg/.pst) | Yes | Yes |
 | Archive search (.zip/.7z/.rar) | Yes | No |
 | Open source | Yes | No |
+
+## Platform Notes
+
+- **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
+- **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If docsearch is blocked, add your Python installation or the docsearch folder to your antivirus allow list
+- **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If docsearch reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `docsearch_errors.log`
+- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [ZIP download](#option-c-manual-install-no-git-no-sign-up) installation method instead
+- **macOS file picker vs Windows** — on macOS, the File button opens a picker with a preview panel for inspecting files before selecting. On Windows, the picker does not include a preview — this is an operating system difference, not docsearch
+
+For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
 ## Author
 

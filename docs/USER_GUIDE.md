@@ -284,7 +284,7 @@ The GUI window is organized into these regions, from top to bottom:
 | Region | Description |
 |--------|-------------|
 | **Search Bar** | Search entry field, **Run Search** and **Run Suite** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches) |
-| **Folder Bar** | Folder path entry and **Browse** button |
+| **Folder Bar** | Folder path entry, **Browse** button (select a folder), and **File** button (select a single file to search) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
@@ -294,8 +294,10 @@ The GUI window is organized into these regions, from top to bottom:
 **Your first GUI search:**
 
 1. Type what you're looking for in the **Search Bar**
-2. Click **Browse** in the **Folder Bar** to pick the folder containing your documents (your home folder is selected by default)
+2. Click **Browse** in the **Folder Bar** to pick the folder containing your documents (your home folder is selected by default), or click **File** to pick a single file
 3. Click **Run Search** (or press Enter)
+
+**macOS vs Windows file picker:** On macOS, clicking **File** opens a file picker with a preview panel on the right — you can inspect the file's contents before selecting it. On Windows, the file picker does not include a preview. This is a difference in the operating systems, not docsearch.
 4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, or **JSON** to open the report in other formats. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. You can also use [Google Docs](https://docs.google.com) (upload the file), Apple Pages (free, Mac only), or any other application that supports .docx files. The .txt report can be opened on any computer with no additional software.

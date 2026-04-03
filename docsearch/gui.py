@@ -1571,6 +1571,37 @@ def _launch_gui():
             b("\u2022 Expressions and range filters are fully preserved in saved searches")
             blank()
 
+            h("TROUBLESHOOTING: SEARCH NOT FINDING EXPECTED RESULTS?")
+            b("If a search returns no results (or fewer than expected) for")
+            b("terms you know exist in your documents, check Advanced Search")
+            b("Options for leftover settings from a previous search. Common")
+            b("culprits:")
+            blank()
+            b("\u2022 File types \u2014 limits the search to specific formats")
+            b("\u2022 Exclude terms \u2014 silently drops matching lines")
+            b("\u2022 Specific files \u2014 restricts to a single file")
+            b("\u2022 Range filters \u2014 filters out lines outside the range")
+            b("\u2022 Inverse checked \u2014 shows files missing your terms")
+            b("\u2022 Regex or Expression checked \u2014 changes how terms")
+            b("  are interpreted")
+            blank()
+            b("Open Advanced Search Options and click Reset All Fields (the")
+            b("red button) to clear everything and start fresh.")
+            blank()
+            b("If Use Index is checked, try unchecking it and searching")
+            b("directly. A stale index may not contain recently added or")
+            b("changed files. To keep the index current, open Manage")
+            b("Indexes and set Auto-Refresh to an appropriate interval:")
+            blank()
+            b("\u2022 5\u201315 min \u2014 folders where files change frequently")
+            b("\u2022 30 min\u20131 hour \u2014 folders that change occasionally")
+            b("\u2022 4\u201324 hours \u2014 stable folders checked periodically")
+            b("\u2022 Off \u2014 rebuild manually with Build Index(es) when needed")
+            blank()
+            b("Auto-refresh runs in the background while the app is open")
+            b("and does not interrupt searches.")
+            blank()
+
             h("FILES CREATED BY DOCSEARCH")
             b("docsearch never modifies, moves, or deletes your original")
             b("documents. It creates its own files for reports, indexes, and")
@@ -1872,8 +1903,36 @@ def _launch_gui():
             b("These are restored automatically when docsearch starts.")
             s("Restore Settings")
             b("Reload saved defaults from ~/.docsearchrc into the GUI.")
-            s("Reset")
+            s("Reset All Fields")
             b("Clear all fields and reset to defaults. Does not modify the config file.")
+            blank()
+
+            h("TROUBLESHOOTING: SEARCH NOT FINDING EXPECTED RESULTS?")
+            b("If a search returns no results (or fewer than expected) for")
+            b("terms you know exist in your documents, check the fields")
+            b("above for leftover settings from a previous search. Common")
+            b("culprits:")
+            blank()
+            b("\u2022 File types \u2014 limits the search to specific formats")
+            b("\u2022 Exclude terms \u2014 silently drops matching lines")
+            b("\u2022 Specific files \u2014 restricts to a single file")
+            b("\u2022 Range filters \u2014 filters out lines outside the range")
+            b("\u2022 Inverse checked \u2014 shows files missing your terms")
+            b("\u2022 Regex or Expression checked \u2014 changes how terms")
+            b("  are interpreted")
+            blank()
+            b("Click Reset All Fields (the red button at the bottom) to")
+            b("clear everything and start fresh.")
+            blank()
+            b("If Use Index is checked on the main screen, try unchecking")
+            b("it and searching directly. A stale index may not contain")
+            b("recently added or changed files. Use Auto-Refresh in Manage")
+            b("Indexes to keep the index current automatically:")
+            blank()
+            b("\u2022 5\u201315 min \u2014 folders where files change frequently")
+            b("\u2022 30 min\u20131 hour \u2014 folders that change occasionally")
+            b("\u2022 4\u201324 hours \u2014 stable folders checked periodically")
+            b("\u2022 Off \u2014 rebuild manually with Build Index(es) when needed")
 
             txt.configure(state="disabled")
 
@@ -2214,11 +2273,10 @@ def _launch_gui():
             Tooltip(restore_settings_btn, "Load saved defaults from ~/.docsearchrc into the GUI")
 
             reset_btn = ctk.CTkButton(
-                settings_btn_frame, text="Reset", width=90,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
+                settings_btn_frame, text="Reset All Fields", width=120,
+                fg_color="#CC3333", hover_color="#AA2222",
                 command=self.reset_form,
-                font=ctk.CTkFont(size=12),
+                font=ctk.CTkFont(size=13, weight="bold"),
             )
             reset_btn.pack(side="left", padx=5)
             Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it")
@@ -2269,12 +2327,13 @@ def _launch_gui():
             adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
 
-            ctk.CTkButton(
-                adv_bottom_frame, text="Save Defaults", width=120,
+            adv_save_btn = ctk.CTkButton(
+                adv_bottom_frame, text="Save", width=80,
                 command=self._save_current_settings,
                 font=ctk.CTkFont(size=13),
-            ).pack(side="right", padx=5)
-            Tooltip(adv_bottom_frame.winfo_children()[-1], "Save all current options as defaults to ~/.docsearchrc")
+            )
+            adv_save_btn.pack(side="left", padx=(5, 0))
+            Tooltip(adv_save_btn, "Save all current options as defaults to ~/.docsearchrc")
 
             ctk.CTkButton(
                 adv_bottom_frame, text="Close", width=80,
@@ -2282,7 +2341,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self._close_advanced_window,
                 font=ctk.CTkFont(size=13),
-            ).pack(side="right", padx=5)
+            ).place(relx=0.5, rely=0.5, anchor="center")
 
         def _build_progress_area(self):
             """Build the progress bar, status label, and results preview pane."""

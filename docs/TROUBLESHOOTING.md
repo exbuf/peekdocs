@@ -158,6 +158,36 @@ Every feature in docsearch serves the core mission of finding content in documen
 
 ## Troubleshooting
 
+**Why doesn't the File picker show a preview on Windows?**
+
+On macOS, clicking the **File** button opens a file picker with a preview panel on the right side — you can inspect a file's contents before selecting it. On Windows, the file picker does not include a preview panel. This is a difference between the operating systems, not a docsearch issue. Both platforms use the native OS file dialog, and docsearch has no control over its appearance or features.
+
+---
+
+**My search isn't finding matches I know are there**
+
+If a search returns no results (or fewer than expected) for terms you know exist in your documents, check **Advanced Search Options** for leftover settings from a previous search that may be filtering out results. Common culprits:
+
+- **File types** — if set to `pdf`, only PDFs are searched; your `.docx` files are skipped
+- **Exclude terms** — terms listed here cause matching lines to be silently dropped
+- **Specific files** — limits the search to a single file
+- **Range filters** — restricts results to lines with values in the specified range
+- **Inverse** checked — shows files *missing* your terms instead of files containing them
+- **Regex** or **Expression** checked — changes how your search terms are interpreted
+
+To clear everything at once, open **Advanced Search Options** and click **Reset All Fields** (the red button). This restores all fields to their defaults for the current session without affecting your saved settings in `~/.docsearchrc`.
+
+If **Use Index** is checked on the main screen, try unchecking it and searching directly. A stale index may not contain recently added or changed files. To keep the index current, open **Manage Indexes** and set **Auto-Refresh** to an appropriate interval:
+
+- **5–15 min** — folders where files change frequently
+- **30 min–1 hour** — folders that change occasionally
+- **4–24 hours** — stable folders checked periodically
+- **Off** — rebuild manually with **Build Index(es)** when needed
+
+Auto-refresh runs in the background while the app is open and does not interrupt searches.
+
+---
+
 **Why can't docsearch read files in my Documents folder (permission denied)?**
 
 Your operating system may be blocking docsearch (or your terminal) from accessing protected folders like Documents or Downloads. This is a security feature — not a docsearch bug. The fix below is a one-time setup that permanently allows access on each platform. These changes are narrowly scoped — they only grant read access to your terminal or Python for the folders you specify. All other OS security features (antivirus, firewall, app sandboxing, etc.) continue to work normally.
