@@ -80,7 +80,7 @@ docsearch runs entirely on your computer — your documents are never uploaded, 
 - **Lock your screen when stepping away.** docsearch stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just docsearch, but email, browser, and all open files.
 - **Be careful with report files.** The `docsearch_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
 - **Protect suite reports.** Suite reports (`.docx`, `.txt`, `.json`) contain pass/fail results and may reference sensitive content. Store them in a secured folder or delete them after review with **Clean Up Suite Files**.
-- **Don't store docsearch results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Options) to write results to a private local folder instead.
+- **Don't store docsearch results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `docsearch_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
 
 ---
@@ -283,11 +283,11 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field, **Inverse** checkbox, **Run Search** button, **Wizard** button, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Settings ▼** button (opens a popup to load or delete saved searches) |
+| **Search Bar** | Search entry field, **Run Search** and **Run Suite** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches) |
 | **Folder Bar** | Folder path entry and **Browse** button |
-| **Advanced Options** | Collapsible panel with all search options (click to expand) |
-| **Search Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
-| **Index Options** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** |
+| **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
+| **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
+| **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** |
 | **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read |
 | **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
 
@@ -300,15 +300,15 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. You can also use [Google Docs](https://docs.google.com) (upload the file), Apple Pages (free, Mac only), or any other application that supports .docx files. The .txt report can be opened on any computer with no additional software.
 
-**Advanced Options:**
+**Advanced Search Options:**
 
-Click "Advanced Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
+Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
 
-**Index Options:**
+**Manage Indexes:**
 
-Click "Index Options" below Search Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Options — check it to use the index for your next search, or uncheck it to search files directly.
+Click "Manage Indexes" below Manage Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **About Index** to learn how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly.
 
-Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Options** handles the corresponding flag behind the scenes.
+Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Search Options** handles the corresponding flag behind the scenes.
 
 **Search Wizard:**
 
@@ -338,13 +338,26 @@ For example, to find paragraphs that contain a phone number or email address *an
 1. Open the Wizard, select **Common / General**, check **Phone Number** and **Email Address** (with OR mode), click **Apply**
 2. The Search Bar now contains one regex term: `(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})|([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})`
 3. After the regex, type a space and then `invoice` — the Search Bar now has two terms
-4. Check the **AND mode** checkbox in Advanced Options
+4. Check the **AND mode** checkbox in Advanced Search Options
 
 The search finds paragraphs where *both* conditions are true: at least one phone number or email appears, *and* the word "invoice" appears. The OR stays inside the wizard's regex, and the AND applies between the two separate search terms.
 
 You can also build up the Search Bar in multiple passes — use the wizard once, append, type some words, open the wizard again with a different category, and append again. Each append adds to what's already there.
 
 **Note:** The wizard enables regex mode. If you manually type additional terms containing special characters (`.` `+` `(` `)` `[` `]` etc.), escape them with `\` — for example, `cost\+fees`. Plain words like `budget` need no escaping.
+
+**Compliance Wizard:**
+
+Click the **Compliance Wizard** button (next to Search Wizard) to create a complete compliance suite for your industry in one click. Instead of manually building individual searches and assembling them into a suite, pick a template and the wizard does it all:
+
+1. **Choose an industry** — select from 9 templates: Financial Services (SOX/BSA/AML), Healthcare (HIPAA), Legal Document Review, Government Records, Manufacturing (ISO 9001), Education (FERPA), Real Estate Closing, Insurance Compliance, or HR Compliance
+2. **Review the checks** — each template includes 8 pre-built checks with search terms, modes (regex, Boolean, inverse), and pass/fail criteria already configured
+3. **Customize** — edit search terms to match your organization's terminology, adjust pass/fail thresholds, or uncheck any check to exclude it
+4. **Create Suite** — click the green button to create all saved searches and the suite in one step
+
+The created suite appears in the same **Manage Suites** panel alongside any suites you built manually. You can run it immediately with **Run Suite**, schedule it for automatic runs, or edit individual searches later via **Load Saved Search**. The Compliance Wizard adds a description to each suite (e.g., "Auto-generated by Compliance Wizard — Healthcare (HIPAA)") so you can tell which suites were created by the wizard.
+
+Click the **?** button in the Compliance Wizard for detailed help on how each check works, what pass/fail criteria mean, and all available templates.
 
 **Compliance and audit examples:**
 
@@ -494,9 +507,9 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
-- `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Options panel
+- `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Search Options panel
 - `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `docsearch_results_20260327_143022.txt`)
-- `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
+- `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Search Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
 - `--timestamp` and `-s` are independent — `-s` looks for `docsearch_results.txt` by name, so it only works when `--timestamp` is not used
 - `--output-dir` writes all output files to the specified directory instead of the search folder. The search still runs in the current directory — only the output destination changes
 - `--output-dir` creates the directory if it doesn't exist
@@ -800,7 +813,7 @@ An index is like a book's index — instead of reading every page to find a word
 
 You don't need an index for small folders or one-off searches. It's most useful when you search the same folder repeatedly (like a compliance team running weekly audits on the same document set).
 
-**When the index may be slower:** If your folder contains very large files (long PDFs, huge spreadsheets) that produce millions of extracted text lines, the index can actually be slower than direct scanning. Direct scanning stops reading a file as soon as it finds enough matches, while the index searches all stored text. If you notice indexed searches taking longer than non-indexed searches, uncheck **Search Using Index(es)** in Advanced Options. The index is most beneficial for folders with many small-to-medium files, not folders with a few very large files.
+**When the index may be slower:** If your folder contains very large files (long PDFs, huge spreadsheets) that produce millions of extracted text lines, the index can actually be slower than direct scanning. Direct scanning stops reading a file as soon as it finds enough matches, while the index searches all stored text. If you notice indexed searches taking longer than non-indexed searches, uncheck **Search Using Index(es)** in Advanced Search Options. The index is most beneficial for folders with many small-to-medium files, not folders with a few very large files.
 
 **Building the index from the terminal:**
 
@@ -814,15 +827,15 @@ docsearch --index -O           # same, with OCR for scanned PDFs and images
 
 1. Open `docsearch-gui`
 2. In the **Search Folder** field, browse to the folder you want to index
-3. Click **Index Options** (below Search Suites on the main screen) to expand the index panel
+3. Click **Manage Indexes** (below Manage Suites on the main screen) to expand the index panel
 4. Click **Build Index(es)** — this indexes all files in the folder **and all subfolders** automatically (recursive is always on for index builds)
-5. Once built, check **Search Using Index(es)** in Advanced Options to use it
+5. Once built, check **Search Using Index(es)** in Advanced Search Options to use it
 
 The index is stored as a single `.docsearch.db` file inside the folder you indexed. It contains the extracted text from every supported file in that folder and all its subfolders. This means if you build an index in your top-level documents folder, one index covers everything — you don't need to build separate indexes in each subfolder. Each folder can have its own index if you prefer, but a single top-level index is the simplest approach for most users. You can see the index status (file count, size, last updated) by clicking **Index Status** in the index panel.
 
 **Using the index:**
 
-Once built, the index is used automatically in the CLI — just search as usual. In the GUI, make sure **Search Using Index(es)** is checked in Advanced Options:
+Once built, the index is used automatically in the CLI — just search as usual. In the GUI, make sure **Search Using Index(es)** is checked in Advanced Search Options:
 
 ```bash
 docsearch budget               # uses the index automatically (faster)
@@ -851,7 +864,7 @@ docsearch --index-clear        # delete the index
 
 **How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
 
-**In the GUI:** Click **▶ Index Options** (below Search Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour) on the left, then **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons. The **Search Using Index(es)** checkbox is inside Advanced Options to toggle between indexed and direct search. Building an index always includes all subfolders. The auto-refresh keeps the index up to date automatically while the app is open — it runs incremental refreshes in the background without interrupting searches. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch.
+**In the GUI:** Click **▶ Manage Indexes** (below Manage Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour) on the left, then **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **About Index** buttons. The **Search Using Index(es)** checkbox is inside Advanced Search Options to toggle between indexed and direct search. Building an index always includes all subfolders. The auto-refresh keeps the index up to date automatically while the app is open — it runs incremental refreshes in the background without interrupting searches. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch.
 
 **Concurrency safety:** The index is safe to use while auto-refresh is running, while multiple searches are happening, or while external tools (cron jobs, other terminals) access the same folder. Protections include:
 
@@ -1290,9 +1303,9 @@ docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
 - **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
 - **Index search** — ranges work with the search index. Indexed results are post-filtered by content and metadata ranges
 - **Search suites** — range filters are fully preserved in saved searches and restored when suites run. Enter ranges in the GUI's Range field before clicking **Save Search**
-- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click **Save Defaults** in Advanced Options, and restored when the GUI opens or when you click Restore Settings
+- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click **Save Defaults** in Advanced Search Options, and restored when the GUI opens or when you click Restore Settings
 
-In the GUI, enter range filters in the **Range** field in Advanced Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
+In the GUI, enter range filters in the **Range** field in Advanced Search Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
 
 ## Combining Modes
 
@@ -1471,7 +1484,7 @@ docsearch creates several types of files during normal operation. Understanding 
 
 ### Search reports
 
-These are your search results. By default, they are overwritten each time you run a new search. If you enable the Timestamp checkbox in Advanced Options, each search creates uniquely named files (e.g., `docsearch_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
+These are your search results. By default, they are overwritten each time you run a new search. If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `docsearch_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
 
 | File | Purpose | Location |
 |------|---------|----------|
@@ -1583,11 +1596,11 @@ Your saved default settings.
 **What does "rc" mean?** The "rc" in `.docsearchrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.docsearchrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
 
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
-**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Options to view its current contents.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Search Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Search Options to view its current contents.
 **What happens if it's deleted?** docsearch runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
 **How to recover:**
 1. Open the GUI (`docsearch-gui`)
-2. Open **Advanced Options** and configure your preferred settings (recursive, file types, cores, max matches, etc.)
+2. Open **Advanced Search Options** and configure your preferred settings (recursive, file types, cores, max matches, etc.)
 3. Click **Save Defaults** — this recreates the file
 4. If you had email alerts configured, click **Configure Email Alerts** in the Search Suites panel and re-enter your SMTP settings
 5. Change the **Text Size** dropdown if you had a non-default size — it auto-saves immediately
@@ -1669,7 +1682,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 
 **Goal:** Find any document containing a Social Security number (format: 123-45-6789).
 
-1. Open **Advanced Options** and check the **Regex** checkbox
+1. Open **Advanced Search Options** and check the **Regex** checkbox
 2. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
    - This is a regex pattern: `\d` means "any digit" and `{3}` means "exactly 3 of them"
    - You don't need to memorize regex — click the **Wizard** button next to the search box for a list of pre-built patterns you can insert with one click
@@ -1677,7 +1690,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 4. Look at the results preview:
    - Each match shows the filename, line number, and the actual SSN found, highlighted in yellow
    - If no matches appear, your documents don't contain SSNs — that's good
-5. Open **Advanced Options** and uncheck **Regex** when you're done
+5. Open **Advanced Search Options** and uncheck **Regex** when you're done
 
 **Tip:** The Wizard button has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
 
@@ -1685,7 +1698,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 
 **Goal:** Find documents containing "compliance" even if it's misspelled (common in scanned/OCR documents).
 
-1. Open **Advanced Options** and check the **Fuzzy** checkbox
+1. Open **Advanced Search Options** and check the **Fuzzy** checkbox
 2. In the **Search Terms** field, type: `compliance`
 3. Click **Run Search**
 4. Look at the results preview:
@@ -1700,7 +1713,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 **Goal:** Find documents mentioning dollar amounts between $10,000 and $50,000.
 
 1. In the **Search Terms** field, type: `payment` (or any related keyword, or leave it empty for a range-only search)
-2. Open **Advanced Options** and find the **Range** field
+2. Open **Advanced Search Options** and find the **Range** field
 3. In the Range field, type: `amount:10000..50000`
    - This tells docsearch: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
 4. Click **Run Search**
@@ -1719,7 +1732,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 **Goal:** Find which contracts are missing an "Authorized Signature" line.
 
 1. In the **Search Terms** field, type: `Authorized Signature`
-2. Open **Advanced Options** and check the **Inverse** checkbox
+2. Open **Advanced Search Options** and check the **Inverse** checkbox
    - Normal search finds files WITH your terms. Inverse flips it — it finds files WITHOUT your terms
 3. Click **Run Search**
 4. Look at the results preview:
@@ -1735,7 +1748,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 **Goal:** Find documents where "breach" and "contract" appear within 5 words of each other (not just anywhere in the same file).
 
 1. In the **Search Terms** field, type: `breach contract`
-2. Open **Advanced Options** and find the **Proximity** field
+2. Open **Advanced Search Options** and find the **Proximity** field
 3. In the Proximity field, type: `5`
    - This means both words must appear within 5 words of each other on the same line
    - AND mode is applied automatically when you use proximity
@@ -1750,7 +1763,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 **Goal:** Search only PDFs and Word documents, ignoring everything else.
 
 1. In the **Search Terms** field, type your search term
-2. Open **Advanced Options** and find the **File types** field
+2. Open **Advanced Search Options** and find the **File types** field
 3. In the File types field, type: `pdf,docx`
    - No dots, no spaces — just the extensions separated by commas
    - Other file types in the folder are ignored
@@ -1767,7 +1780,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 **Goal:** Find SSNs in PDF files across all subfolders, showing 2 lines of context before and after each match.
 
 1. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
-2. Open **Advanced Options** and set:
+2. Open **Advanced Search Options** and set:
    - Check **Regex**
    - Check **Recursive** (searches subfolders)
    - **File types:** `pdf`
@@ -1814,7 +1827,7 @@ Run `docsearch-gui`. Click the **Browse** button next to the Search Folder field
 This search checks that every file contains "Authorized Signature."
 
 - In the **Search Terms** field, type: `Authorized Signature`
-- Open **Advanced Options** and check the **Inverse** checkbox (this flips the search — instead of finding files WITH the term, it finds files WITHOUT it)
+- Open **Advanced Search Options** and check the **Inverse** checkbox (this flips the search — instead of finding files WITH the term, it finds files WITHOUT it)
 - Click **Run Search** to test it first. Look at the results preview:
   - If some files are missing the signature, they'll be listed — that means the search is working correctly
   - If all files have it, you'll see "0 matches" — that's also correct, it means every file passed
@@ -1828,7 +1841,7 @@ This search checks that every file contains "Authorized Signature."
 This search checks that no file contains "DRAFT."
 
 - Clear the search box and type: `DRAFT`
-- Open **Advanced Options** and **uncheck** Inverse (you want to find files that DO contain DRAFT)
+- Open **Advanced Search Options** and **uncheck** Inverse (you want to find files that DO contain DRAFT)
 - Click **Run Search** to test it first. Look at the results preview:
   - If any files contain DRAFT, they'll appear — the search is working
   - If no files contain DRAFT, you'll see "0 matches" — also correct
@@ -1839,7 +1852,7 @@ This search checks that no file contains "DRAFT."
 
 **4. Build the suite**
 
-- Click **Search Suites** (on the same row as Advanced Options) to open the suites window
+- Click **Manage Suites** (on the same row as Advanced Search Options) to open the suites window
 - Click **Build a New Suite**
 - Name it: `my_first_suite`
 - In the left panel, you'll see your two saved searches: `has_signature` and `no_draft`
@@ -1872,9 +1885,11 @@ For a more detailed compliance walkthrough with 9 industry examples, see the [Co
 
 **How it works (reference):**
 
-1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder.
+1. **Save a search:** Configure a search in the GUI (terms, flags, options), then click the **Save Search** button in the Search Bar. Give it a unique name (e.g., "missing_disclaimer"). The search and all its settings are saved to `.docsearch_collection.json` in the search folder. It doesn't matter whether you configured the search yourself or the Search Wizard set it up — as long as you save it, everything is preserved.
 
-2. **Build a suite:** Click **▶ Search Suites** (below Advanced Options) to open the suites window. Click **Build a New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
+2. **Build a suite (manual):** Click **▶ Manage Suites** (below Advanced Search Options) to open the suites window. Click **Build a New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches.
+
+   **Build a suite (Compliance Wizard):** Or skip steps 1-2 entirely — click the **Compliance Wizard** button, pick an industry template, and it creates all the saved searches and the suite for you in one click. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
 
 3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 

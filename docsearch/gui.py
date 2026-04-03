@@ -365,7 +365,7 @@ def _launch_gui():
             self.grid_columnconfigure(1, weight=1)
             self.grid_rowconfigure(8, weight=1)
 
-            # Shared toggle row for Advanced Options, Search Suites, Index Options
+            # Shared toggle row for Advanced Search Options, Search Suites, Manage Indexes
             self._toggle_row = ctk.CTkFrame(self, fg_color="transparent")
             self._toggle_row.grid(
                 row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
@@ -390,6 +390,7 @@ def _launch_gui():
             self.after(1000, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
+            self._update_run_suite_button_color()
             if self._is_first_run:
                 self.after(300, self._show_welcome)
             self.after(500, self._resume_suite_schedule)
@@ -457,56 +458,75 @@ def _launch_gui():
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
             btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 10), pady=(0, 8), sticky="ew")
 
+            run_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
+            run_group.pack(side="left", padx=(0, 8))
+
             self.search_button = ctk.CTkButton(
-                btn_frame, text="Run Search", width=100, command=self.start_search,
+                run_group, text="Run Search", width=100, command=self.start_search,
                 font=ctk.CTkFont(size=14),
                 fg_color="green", hover_color="darkgreen",
             )
-            self.search_button.pack(side="left", padx=(0, 5))
+            self.search_button.pack(side="left", padx=(4, 2), pady=4)
 
-            ctk.CTkButton(
-                btn_frame, text="Run Suite", width=100,
+            self.run_suite_main_btn = ctk.CTkButton(
+                run_group, text="Run Suite", width=100,
                 command=self._run_suite_from_main,
                 font=ctk.CTkFont(size=14),
-                fg_color="#1f6aa5", hover_color="#144870",
-            ).pack(side="left", padx=(0, 5))
+                fg_color="#CC3333", hover_color="#AA2222",
+            )
+            self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=4)
 
-            ctk.CTkButton(
-                btn_frame, text="Search Wizard", width=120,
-                command=self._open_search_wizard_guide,
-                font=ctk.CTkFont(size=14),
-                fg_color="#8B5CF6", hover_color="#7C3AED",
-            ).pack(side="left", padx=(0, 5))
-
-            # Right-aligned buttons — packed right-to-left so Use Index is rightmost
+            # Right-aligned: Use Index checkbox
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
             )
             self.cb_index_search.pack(side="right", padx=(5, 15))
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Index Options")
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes")
+
+            # Right-aligned grouped: Search Wizard + Compliance Wizard
+            wizard_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
+            wizard_group.pack(side="right", padx=(0, 5))
+
+            ctk.CTkButton(
+                wizard_group, text="Search Wizard", width=120,
+                command=self._open_search_wizard_guide,
+                font=ctk.CTkFont(size=14),
+                fg_color="#8B5CF6", hover_color="#7C3AED",
+            ).pack(side="left", padx=(4, 2), pady=4)
+
+            ctk.CTkButton(
+                wizard_group, text="Compliance Wizard", width=140,
+                command=self._open_compliance_wizard,
+                font=ctk.CTkFont(size=14),
+                fg_color="#8B5CF6", hover_color="#7C3AED",
+            ).pack(side="left", padx=(2, 4), pady=4)
+
+            # Right-aligned grouped: Save Search, Load Saved Search
+            save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
+            save_group.pack(side="right", padx=(0, 5))
+
+            self.save_to_collection_btn = ctk.CTkButton(
+                save_group, text="Save Search", width=100, command=self._save_to_collection,
+                font=ctk.CTkFont(size=14),
+            )
+            self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=4)
+            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
             self.load_search_btn = ctk.CTkButton(
-                btn_frame, text="Load Saved Search \u25bc", width=155,
+                save_group, text="Load Saved Search \u25bc", width=155,
                 font=ctk.CTkFont(size=14),
                 command=self._open_load_search_popup,
             )
-            self.load_search_btn.pack(side="right", padx=5)
+            self.load_search_btn.pack(side="left", padx=(2, 4), pady=4)
             Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
-
-            self.save_to_collection_btn = ctk.CTkButton(
-                btn_frame, text="Save Search", width=100, command=self._save_to_collection,
-                font=ctk.CTkFont(size=14),
-            )
-            self.save_to_collection_btn.pack(side="right", padx=5)
-            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
 
             self.suite_toggle = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Search Suites",
+                text="\u25b6 Manage Suites",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -515,9 +535,9 @@ def _launch_gui():
                 command=self._toggle_suite_panel,
                 font=ctk.CTkFont(size=13),
             )
-            # Packed later in _build_advanced_toggle so Advanced Options appears first
+            # Packed later in _build_advanced_toggle so Advanced Search Options appears first
 
-            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+            Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
         def _show_welcome(self):
             """Show a getting-started guide for first-time users."""
@@ -594,13 +614,13 @@ def _launch_gui():
             h("What's Next?")
             blank()
             s("Search subfolders")
-            b("Open Advanced Options and check Recursive to search")
+            b("Open Advanced Search Options and check Recursive to search")
             b("all subfolders, not just the selected folder.")
             blank()
             s("Use advanced search modes")
-            b("Open Advanced Options for regex, fuzzy matching,")
+            b("Open Advanced Search Options for regex, fuzzy matching,")
             b("wildcards, Boolean expressions, range queries, and more.")
-            b("Click the ? button inside Advanced Options for help.")
+            b("Click the ? button inside Advanced Search Options for help.")
             blank()
             s("Build compliance suites")
             b("Save individual searches and group them into suites")
@@ -634,12 +654,19 @@ def _launch_gui():
             win.resizable(True, True)
             win.after(50, win.lift)
 
+            header_frame = ctk.CTkFrame(win, fg_color="transparent")
+            header_frame.pack(fill="x", padx=15, pady=(10, 10))
             ctk.CTkLabel(
-                win,
+                header_frame,
                 text="Choose a search type, fill in your values, and click Apply.",
                 font=ctk.CTkFont(size=12),
                 text_color=("gray50", "gray50"),
-            ).pack(padx=15, pady=(10, 10), anchor="w")
+            ).pack(side="left")
+            ctk.CTkButton(
+                header_frame, text="?", width=30,
+                command=lambda: self._show_search_wizard_help(win),
+                font=ctk.CTkFont(size=14, weight="bold"),
+            ).pack(side="right")
 
             # Scrollable frame for patterns
             canvas_frame = tk.Frame(win)
@@ -689,6 +716,15 @@ def _launch_gui():
                 ("Find dollar amounts in range", "Lines with dollar amounts in a specific range",
                  [("Min ($):", "lo", "10000"), ("Max ($):", "hi", "50000")],
                  lambda v: self._apply_wizard(search_text=r"\$[\d,.]+", regex=True, range_filters=f"amount:{v['lo']}..{v['hi']}")),
+
+                ("Find vendor with dollar amounts in range", "Lines with a vendor name AND a dollar amount in range.\n"
+                 "Example: find lines mentioning 'Acme' with amounts between $5,000 and $25,000",
+                 [("Vendor:", "vendor", "Acme"), ("Min ($):", "lo", "5000"), ("Max ($):", "hi", "25000")],
+                 lambda v: self._apply_wizard(search_text=rf"{v['vendor']} \$[\d,.]+", regex=True, and_mode=True, range_filters=f"amount:{v['lo']}..{v['hi']}")),
+
+                ("Find vendor with any dollar amount", "Lines with a vendor name AND any dollar amount on the same line",
+                 [("Vendor:", "vendor", "Acme")],
+                 lambda v: self._apply_wizard(search_text=rf"{v['vendor']} \$[\d,.]+", regex=True, and_mode=True)),
 
                 ("Find keywords with dollar amounts", "Lines with both keywords AND a dollar sign",
                  [("Keywords:", "keyword", "cloudnine hosting")],
@@ -801,6 +837,504 @@ def _launch_gui():
             if context_after:
                 self.context_after_entry.insert(0, context_after)
 
+        def _open_compliance_wizard(self):
+            """Open the Compliance Wizard to create a pre-built compliance suite."""
+            import tkinter as tk
+            from tkinter import ttk, messagebox
+            from docsearch.compliance_templates import COMPLIANCE_TEMPLATES, COMPLIANCE_CATEGORY_ORDER
+            from docsearch.collection import load_collection, add_saved_search, add_test_suite
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Select a valid search folder first.")
+                return
+
+            win = ctk.CTkToplevel(self)
+            win.title("Compliance Wizard")
+            win.geometry("900x620")
+            win.resizable(True, True)
+            win.after(50, win.lift)
+
+            header_frame = ctk.CTkFrame(win, fg_color="transparent")
+            header_frame.pack(fill="x", padx=15, pady=(10, 5))
+            ctk.CTkLabel(
+                header_frame,
+                text="Choose an industry, review the checks, customize if needed, and click Create Suite.",
+                font=ctk.CTkFont(size=12),
+                text_color=("gray50", "gray50"),
+            ).pack(side="left")
+            ctk.CTkButton(
+                header_frame, text="?", width=30,
+                command=lambda: self._show_compliance_help(win),
+                font=ctk.CTkFont(size=14, weight="bold"),
+            ).pack(side="right")
+
+            # Category selector
+            cat_frame = ctk.CTkFrame(win, fg_color="transparent")
+            cat_frame.pack(fill="x", padx=15, pady=(0, 5))
+            ctk.CTkLabel(cat_frame, text="Industry:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
+            cat_var = tk.StringVar(value=COMPLIANCE_CATEGORY_ORDER[0])
+            cat_combo = ttk.Combobox(
+                cat_frame, textvariable=cat_var, values=COMPLIANCE_CATEGORY_ORDER,
+                state="readonly", width=35, font=("TkDefaultFont", 12),
+            )
+            cat_combo.pack(side="left", padx=(8, 0))
+
+            # Suite name
+            name_frame = ctk.CTkFrame(win, fg_color="transparent")
+            name_frame.pack(fill="x", padx=15, pady=(0, 5))
+            ctk.CTkLabel(name_frame, text="Suite name:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
+            name_entry = tk.Entry(name_frame, font=("TkDefaultFont", 12), width=30)
+            name_entry.pack(side="left", padx=(8, 0))
+            name_entry.insert(0, "financial_compliance")
+
+            # Scrollable checks area
+            checks_outer = tk.Frame(win)
+            checks_outer.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            canvas = tk.Canvas(checks_outer, highlightthickness=0)
+            scrollbar = tk.Scrollbar(checks_outer, orient="vertical", command=canvas.yview)
+            checks_inner = tk.Frame(canvas)
+            checks_inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=checks_inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+
+            # State for current checks
+            check_widgets = []  # list of dicts with widgets for each check
+
+            def _load_checks(*_args):
+                """Load checks for the selected industry."""
+                for w in checks_inner.winfo_children():
+                    w.destroy()
+                check_widgets.clear()
+
+                category = cat_var.get()
+                checks = COMPLIANCE_TEMPLATES.get(category, [])
+
+                # Update suite name suggestion
+                safe = category.split("(")[0].strip().lower().replace(" ", "_").replace("/", "_")
+                name_entry.delete(0, "end")
+                name_entry.insert(0, f"{safe}_compliance")
+
+                for i, check in enumerate(checks):
+                    frame = tk.LabelFrame(
+                        checks_inner,
+                        text=f"  {i+1}. {check['name']}  ",
+                        font=("TkDefaultFont", 11, "bold"),
+                        padx=8, pady=4,
+                    )
+                    frame.pack(fill="x", padx=5, pady=(0, 4))
+
+                    # Description
+                    tk.Label(frame, text=check["desc"], font=("TkDefaultFont", 10),
+                             fg="gray", anchor="w").pack(anchor="w")
+
+                    # Editable fields row
+                    field_frame = tk.Frame(frame)
+                    field_frame.pack(fill="x", pady=(2, 0))
+
+                    tk.Label(field_frame, text="Search:", font=("TkDefaultFont", 10)).grid(row=0, column=0, sticky="e", padx=(0, 3))
+                    search_entry = tk.Entry(field_frame, font=("TkDefaultFont", 10), width=35)
+                    search_entry.insert(0, check["search_text"])
+                    search_entry.grid(row=0, column=1, padx=(0, 10))
+
+                    # Mode indicators
+                    modes = []
+                    if check.get("regex"):
+                        modes.append("regex")
+                    if check.get("expression"):
+                        modes.append("expression")
+                    if check.get("inverse"):
+                        modes.append("inverse")
+                    if check.get("range_filters"):
+                        modes.append(f"range: {check['range_filters']}")
+                    mode_text = ", ".join(modes) if modes else "plain"
+                    tk.Label(field_frame, text=f"[{mode_text}]", font=("TkDefaultFont", 9),
+                             fg="gray").grid(row=0, column=2, padx=(0, 10))
+
+                    # Pass criteria
+                    tk.Label(field_frame, text="Pass:", font=("TkDefaultFont", 10)).grid(row=0, column=3, sticky="e", padx=(0, 3))
+                    op_var = tk.StringVar(value=check["operator"])
+                    op_combo = ttk.Combobox(field_frame, textvariable=op_var,
+                                            values=["==", ">=", "<=", ">", "<", "!="],
+                                            state="readonly", width=4, font=("TkDefaultFont", 10))
+                    op_combo.grid(row=0, column=4, padx=(0, 3))
+                    thresh_entry = tk.Entry(field_frame, font=("TkDefaultFont", 10), width=5)
+                    thresh_entry.insert(0, str(check["threshold"]))
+                    thresh_entry.grid(row=0, column=5)
+
+                    # Enable/disable checkbox
+                    enabled_var = tk.BooleanVar(value=True)
+                    tk.Checkbutton(field_frame, text="Include", variable=enabled_var,
+                                   font=("TkDefaultFont", 10)).grid(row=0, column=6, padx=(10, 0))
+
+                    check_widgets.append({
+                        "template": check,
+                        "search_entry": search_entry,
+                        "op_var": op_var,
+                        "thresh_entry": thresh_entry,
+                        "enabled_var": enabled_var,
+                    })
+
+            cat_combo.bind("<<ComboboxSelected>>", _load_checks)
+
+            # Buttons
+            btn_frame = ctk.CTkFrame(win, fg_color="transparent")
+            btn_frame.pack(fill="x", padx=15, pady=(5, 12))
+
+            def _create_suite():
+                suite_name = name_entry.get().strip()
+                if not suite_name:
+                    messagebox.showerror("Error", "Enter a suite name.", parent=win)
+                    return
+
+                # Check if suite already exists
+                data = load_collection(folder)
+                if suite_name in data.get("test_suites", {}):
+                    if not messagebox.askyesno("Suite Exists",
+                                               f"Suite '{suite_name}' already exists. Overwrite?",
+                                               parent=win):
+                        return
+
+                # Create saved searches and collect names
+                search_names = []
+                pass_criteria = {}
+                for w in check_widgets:
+                    if not w["enabled_var"].get():
+                        continue
+                    tmpl = w["template"]
+                    sname = tmpl["name"]
+                    search_text = w["search_entry"].get().strip()
+                    if not search_text:
+                        continue
+
+                    # Build search params
+                    params = {"query": search_text}
+                    if tmpl.get("regex"):
+                        params["regex"] = True
+                    if tmpl.get("expression"):
+                        params["expression"] = True
+                    if tmpl.get("inverse"):
+                        params["inverse"] = True
+                    if tmpl.get("and_mode"):
+                        params["and_mode"] = True
+                    if tmpl.get("range_filters"):
+                        params["range_filters"] = tmpl["range_filters"]
+                    if tmpl.get("fuzzy"):
+                        params["fuzzy"] = True
+
+                    # Save the search
+                    add_saved_search(folder, sname, params)
+                    search_names.append(sname)
+
+                    # Pass criteria
+                    op = w["op_var"].get()
+                    try:
+                        thresh = int(w["thresh_entry"].get().strip())
+                    except ValueError:
+                        thresh = 0
+                    pass_criteria[sname] = {"op": op, "n": thresh}
+
+                if not search_names:
+                    messagebox.showerror("Error", "No checks enabled.", parent=win)
+                    return
+
+                # Create the suite
+                category = cat_var.get()
+                desc = f"Auto-generated by Compliance Wizard — {category}"
+                add_test_suite(folder, suite_name, desc, search_names,
+                               cascade=False, pass_criteria=pass_criteria)
+
+                # Refresh UI
+                if self.suite_visible:
+                    self._refresh_suite_panel()
+                self._update_run_suite_button_color()
+
+                messagebox.showinfo(
+                    "Suite Created",
+                    f"Created suite '{suite_name}' with {len(search_names)} checks.\n\n"
+                    f"Click Run Suite or open Manage Suites to run it.",
+                    parent=win,
+                )
+                win.destroy()
+
+            ctk.CTkButton(
+                btn_frame, text="Create Suite", width=120,
+                command=_create_suite,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="green", hover_color="darkgreen",
+            ).pack(side="right", padx=(5, 0))
+
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=win.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack(side="right", padx=(5, 0))
+
+            # Load initial category
+            _load_checks()
+
+        def _show_search_wizard_help(self, parent):
+            """Show help for the Search Wizard."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("Search Wizard — Help")
+            help_win.geometry("700x580")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
+            scroll = tk.Scrollbar(help_win, command=txt.yview)
+            txt.configure(yscrollcommand=scroll.set)
+            scroll.pack(side="right", fill="y")
+            txt.pack(fill="both", expand=True)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                              lmargin2=30, spacing1=2)
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+
+            def blank():
+                txt.insert("end", "\n")
+
+            h("WHAT IS THE SEARCH WIZARD?")
+            b("The Search Wizard helps you configure searches without memorizing")
+            b("flags, regex syntax, or advanced options. Pick a search type, fill")
+            b("in your values, and click Apply — the wizard sets everything up.")
+            blank()
+
+            h("HOW TO USE IT")
+            b("1. Scroll through the search types to find what you need")
+            b("2. Fill in the input fields (placeholders show example values)")
+            b("3. Click Apply — the wizard fills the search bar and enables")
+            b("   the correct checkboxes in Advanced Search Options")
+            b("4. Click Run Search to execute")
+            blank()
+            b("You can apply multiple patterns — each one replaces the previous")
+            b("search configuration. After applying, you can also manually edit")
+            b("the search bar or Advanced Search Options before running.")
+            blank()
+
+            h("AVAILABLE SEARCH TYPES")
+            blank()
+            b("Keywords (OR) — find lines with any of the terms")
+            e("  budget revenue expenses")
+            blank()
+            b("Keywords (AND) — find lines with ALL terms")
+            e("  budget approved Q1")
+            blank()
+            b("Keywords with exclude — skip lines containing certain terms")
+            e("  Keywords: budget revenue  Exclude: draft,preliminary")
+            blank()
+            b("Files missing terms (inverse) — find files that do NOT")
+            b("contain specific required text")
+            e("  Required terms: Authorized Signature")
+            blank()
+            b("SSNs, phone numbers, email addresses — pre-built regex")
+            b("patterns, no typing needed. Just click Apply.")
+            blank()
+            b("Dollar amounts in range — find lines with dollar amounts")
+            b("within a min/max range")
+            e("  Min: 10000  Max: 50000")
+            blank()
+            b("Vendor with dollar amounts — find lines with a vendor name")
+            b("AND a dollar amount (optionally in a range)")
+            e("  Vendor: Acme  Min: 5000  Max: 25000")
+            blank()
+            b("Keywords in file types — search only certain formats")
+            e("  Keywords: budget  Types: pdf,docx,xlsx")
+            blank()
+            b("Fuzzy matching — find misspelled terms or OCR errors")
+            e("  Terms: compliance accommodation")
+            blank()
+            b("Proximity — find two terms within N words of each other")
+            e("  Term 1: breach  Term 2: contract  N words: 5")
+            blank()
+            b("Boolean expression — combine AND, OR, NOT with parentheses")
+            e("  (budget OR revenue) AND NOT draft")
+            blank()
+            b("Dates in range — find lines with dates in a specific range")
+            e("  From: 2026-01-01  To: 2026-12-31")
+            blank()
+            b("Regex pattern builder — opens the categorized regex picker")
+            b("with checkboxes for SSNs, invoice numbers, part numbers,")
+            b("and dozens more patterns organized by profession.")
+            blank()
+
+            h("SAVING YOUR SEARCH")
+            b("After the wizard configures your search, click Save Search to")
+            b("save it by name. Saved searches can be reused individually or")
+            b("grouped into search suites for compliance auditing. It doesn't")
+            b("matter whether the wizard configured it or you did it manually —")
+            b("Save Search preserves everything.")
+            blank()
+
+            h("TIPS")
+            b("• The wizard replaces whatever is in the search bar each time")
+            b("  you click Apply — save your search first if you want to keep it")
+            b("• Placeholder values (gray text) are examples — replace them")
+            b("  with your own values before clicking Apply")
+            b("• For compliance checks across multiple searches, use the")
+            b("  Compliance Wizard instead — it creates an entire suite at once")
+            blank()
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
+
+        def _show_compliance_help(self, parent):
+            """Show help for the Compliance Wizard."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("Compliance Wizard — Help")
+            help_win.geometry("700x580")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
+            scroll = tk.Scrollbar(help_win, command=txt.yview)
+            txt.configure(yscrollcommand=scroll.set)
+            scroll.pack(side="right", fill="y")
+            txt.pack(fill="both", expand=True)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                              lmargin2=30, spacing1=2)
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+
+            def blank():
+                txt.insert("end", "\n")
+
+            h("WHAT IS THE COMPLIANCE WIZARD?")
+            b("The Compliance Wizard creates a complete search suite for a specific")
+            b("industry or regulation in one click. Instead of manually building")
+            b("individual searches and assembling them into a suite, you pick an")
+            b("industry template and the wizard does it all for you.")
+            blank()
+
+            h("HOW IT WORKS")
+            b("1. Choose an industry from the dropdown (e.g., Healthcare/HIPAA)")
+            b("2. Review the pre-built checks — each one is a search that will")
+            b("   be saved and added to a suite")
+            b("3. Customize if needed — edit search terms, change pass/fail")
+            b("   thresholds, or uncheck any check to exclude it")
+            b("4. Give the suite a name (a default is suggested)")
+            b("5. Click Create Suite — the wizard creates all the saved searches")
+            b("   and the suite in one step")
+            blank()
+
+            h("WHAT EACH CHECK DOES")
+            b("Each check has a search term, a mode, and a pass criterion:")
+            blank()
+            b("Search — the text or pattern to look for in your documents")
+            b("Mode — how the search works:")
+            e("  plain      = simple keyword search")
+            e("  regex      = pattern matching (SSNs, dates, amounts)")
+            e("  expression = Boolean logic (AND, OR, NOT)")
+            e("  inverse    = find files MISSING the term")
+            e("  range      = filter by dollar amount or date range")
+            blank()
+            b("Pass criteria — how many matches determine pass or fail:")
+            e("  == 0   means 'must find ZERO matches' (nothing bad found)")
+            e("  >= 1   means 'must find AT LEAST one match' (required item exists)")
+            e("  You can change the operator and threshold for any check")
+            blank()
+
+            h("UNDERSTANDING PASS AND FAIL")
+            b("Checks that look for BAD things (SSNs, drafts, expired certs)")
+            b("use == 0 — they PASS when nothing is found.")
+            blank()
+            b("Checks that look for REQUIRED things (signatures, compliance")
+            b("references, documentation) use >= 1 — they PASS when at least")
+            b("one match is found.")
+            blank()
+            b("Inverse checks (e.g., 'every file has a signature') search for")
+            b("files MISSING the term. Pass == 0 means no files are missing it.")
+            blank()
+
+            h("AFTER CREATING THE SUITE")
+            b("Once created, you can:")
+            b("• Click Run Suite to execute all checks immediately")
+            b("• Open Manage Suites to schedule automatic runs")
+            b("• View the suite report in the preview pane")
+            b("• Set up email alerts for failures")
+            blank()
+
+            h("AVAILABLE TEMPLATES")
+            b("• Financial Services (SOX/BSA/AML) — signatures, SSNs, drafts,")
+            b("  dates, SOX references, anti-money laundering, transactions")
+            b("• Healthcare (HIPAA) — SSNs, HIPAA references, diagnosis codes,")
+            b("  billing, medical records, patient consent")
+            b("• Legal Document Review — signatures, indemnification, effective")
+            b("  dates, privileged documents, settlements, case numbers, NDAs")
+            b("• Government Records — classified markings, procurement, budgets,")
+            b("  purchase orders, FOIA compliance")
+            b("• Manufacturing (ISO 9001) — expired certs, ISO references, lot")
+            b("  numbers, part numbers, nonconformance, calibration")
+            b("• Education (FERPA) — student SSNs, FERPA references, grants,")
+            b("  accreditation, student IDs, financial aid")
+            b("• Real Estate Closing — disclosures, property values, square")
+            b("  footage, title search, inspection reports")
+            b("• Insurance Compliance — lapsed policies, state-mandated language,")
+            b("  premiums, policy numbers, claims, underwriting")
+            b("• HR Compliance — SSNs, offer letters, I-9 verification, salary")
+            b("  ranges, EEOC, FLSA references")
+            blank()
+
+            h("CUSTOMIZING TEMPLATES")
+            b("Every field is editable before you create the suite. You can:")
+            b("• Change search terms to match your organization's terminology")
+            b("• Adjust thresholds (e.g., change >= 1 to >= 5)")
+            b("• Uncheck 'Include' to skip irrelevant checks")
+            b("• The created searches appear in your saved searches and can be")
+            b("  edited individually later via Load Saved Search")
+            blank()
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
+
         def _show_search_help(self):
             """Show a quick-start guide with search examples by category."""
             import tkinter as tk
@@ -850,20 +1384,20 @@ def _launch_gui():
             h("GETTING STARTED")
             b("All searches are case-insensitive. Type your terms in the Search Bar,")
             b("pick a folder with Browse, and click Run Search. Use the checkboxes")
-            b("under Advanced Options to change search modes \u2014 do not type flags in")
+            b("under Advanced Search Options to change search modes \u2014 do not type flags in")
             b("the search box. Results are saved to docsearch_results.txt and .docx.")
             blank()
 
             h("SAVING AND LOADING SEARCHES")
             b("Save Search saves your current search terms AND all settings in")
-            b("Advanced Options (checkboxes, file types, exclude terms, range")
+            b("Advanced Search Options (checkboxes, file types, exclude terms, range")
             b("filters, proximity, etc.) as a named search. Give it a name like")
             b("'find_ssns' or 'missing_signature'. Saved searches are stored in")
             b("the folder's .docsearch_collection.json file.")
             blank()
             b("Load Saved Search restores a previously saved search \u2014 it loads")
             b("the search terms back into the search box AND restores all the")
-            b("Advanced Options settings exactly as they were when you saved it.")
+            b("Advanced Search Options settings exactly as they were when you saved it.")
             b("This lets you re-run the same search later with one click.")
             blank()
             b("It doesn't matter whether you configured the search yourself or")
@@ -897,7 +1431,7 @@ def _launch_gui():
 
             b("For help with Fuzzy, Regex, Wildcard, Whole Word, Proximity,")
             b("Range Filters, Context Lines, and other advanced options, click")
-            b("the ? button inside the Advanced Options window.")
+            b("the ? button inside the Advanced Search Options window.")
             blank()
 
             h("BREAKING DOWN COMPLEX SEARCHES")
@@ -1030,7 +1564,7 @@ def _launch_gui():
             blank()
             s("If ~/.docsearchrc is deleted")
             b("Nothing breaks \u2014 docsearch uses built-in defaults. To recover:")
-            b("1. Open Advanced Options, set your preferences, click Save Defaults")
+            b("1. Open Advanced Search Options, set your preferences, click Save Defaults")
             b("2. Re-enter email alerts via Configure Email Alerts in Search Suites")
             b("3. Change Text Size dropdown if needed (auto-saves immediately)")
             b("\u2022 Use Clean Up Suite Files, Clear Auto-Run History, Clear Error Log,")
@@ -1038,9 +1572,9 @@ def _launch_gui():
             blank()
             s("Building a search index")
             b("1. Browse to the folder you want to index")
-            b("2. Click Index Options (below Search Suites)")
+            b("2. Click Manage Indexes (below Search Suites)")
             b("3. Click Build Index(es)")
-            b("4. Check Search Using Index(es) in Advanced Options")
+            b("4. Check Search Using Index(es) in Advanced Search Options")
             b("The index automatically includes all subfolders \u2014 one")
             b("index in your top folder covers everything underneath it.")
             b("You don't need to build separate indexes in each subfolder.")
@@ -1057,10 +1591,10 @@ def _launch_gui():
             close_btn.pack(pady=(5, 10))
 
         def _show_advanced_help(self):
-            """Show help for all Advanced Options with examples."""
+            """Show help for all Advanced Search Options with examples."""
             import tkinter as tk
             help_win = tk.Toplevel(self.advanced_window or self)
-            help_win.title("Advanced Options — Help")
+            help_win.title("Advanced Search Options — Help")
             help_win.geometry("750x520")
             help_win.resizable(True, True)
             if self.advanced_window:
@@ -1239,7 +1773,7 @@ def _launch_gui():
 
             s("Search Using Index(es)")
             b("Use the search index for faster repeated searches.")
-            b("Build the index first using Index Options on the main screen.")
+            b("Build the index first using Manage Indexes on the main screen.")
             blank()
 
             h("COMBINING MODES")
@@ -1281,7 +1815,7 @@ def _launch_gui():
             s("Inspect .docsearchrc")
             b("View the current saved settings file (read-only).")
             s("Save Defaults")
-            b("Save all current Advanced Options as defaults to ~/.docsearchrc.")
+            b("Save all current Advanced Search Options as defaults to ~/.docsearchrc.")
             b("These are restored automatically when docsearch starts.")
             s("Restore Settings")
             b("Reload saved defaults from ~/.docsearchrc into the GUI.")
@@ -1340,10 +1874,10 @@ def _launch_gui():
             Tooltip(self.folder_entry, "The folder or file to search. Use Folder to pick a folder, File to pick a specific file")
 
         def _build_advanced_toggle(self):
-            """Build the toggle buttons for Advanced Options and Search Suites."""
+            """Build the toggle buttons for Advanced Search Options and Search Suites."""
             self.advanced_toggle = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Advanced Options",
+                text="\u25b6 Advanced Search Options",
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -1355,11 +1889,11 @@ def _launch_gui():
             self.suite_toggle.pack(side="left", padx=(10, 0))
 
         def _build_advanced_panel(self):
-            """Build the Advanced Options popup window with all search mode checkboxes and fields."""
-            # Create popup window for Advanced Options
+            """Build the Advanced Search Options popup window with all search mode checkboxes and fields."""
+            # Create popup window for Advanced Search Options
             self.advanced_window = ctk.CTkToplevel(self)
-            self.advanced_window.title("Advanced Options")
-            self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Options"))
+            self.advanced_window.title("Advanced Search Options")
+            self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
             self.advanced_window.geometry("720x620")
             self.advanced_window.resizable(True, True)
             self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
@@ -1614,7 +2148,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             save_settings_btn.pack(side="left", padx=5)
-            Tooltip(save_settings_btn, "Save the current Advanced Options as defaults in ~/.docsearchrc")
+            Tooltip(save_settings_btn, "Save the current Advanced Search Options as defaults in ~/.docsearchrc")
 
             restore_settings_btn = ctk.CTkButton(
                 settings_btn_frame, text="Restore Settings", width=130,
@@ -1678,7 +2212,7 @@ def _launch_gui():
             Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
 
-            # Bottom buttons for the Advanced Options window
+            # Bottom buttons for the Advanced Search Options window
             adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
 
@@ -1808,11 +2342,11 @@ def _launch_gui():
             )
 
         def _build_index_panel(self):
-            """Build the Index Options popup window with build, delete, status, and auto-refresh controls."""
+            """Build the Manage Indexes popup window with build, delete, status, and auto-refresh controls."""
             # Index toggle button — in the shared toggle row
             self.index_toggle_btn = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Index Options",
+                text="\u25b6 Manage Indexes",
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -1822,10 +2356,10 @@ def _launch_gui():
             )
             self.index_toggle_btn.pack(side="left", padx=(10, 0))
 
-            # Create popup window for Index Options
+            # Create popup window for Manage Indexes
             self.index_window = ctk.CTkToplevel(self)
-            self.index_window.title("Index Options")
-            self.index_window.after(100, lambda: self.index_window.title("Index Options"))
+            self.index_window.title("Manage Indexes")
+            self.index_window.after(100, lambda: self.index_window.title("Manage Indexes"))
             self.index_window.geometry("650x240")
             self.index_window.resizable(True, True)
             self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
@@ -2096,7 +2630,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             suite_outdir_browse_btn.grid(row=0, column=2)
-            Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Options — each can point to a different location")
+            Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Search Options — each can point to a different location")
 
             # Auto-Run History + Email Alerts links row
             links_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -2389,7 +2923,7 @@ def _launch_gui():
 
             h("OUTPUT DIRECTORY")
             b("Set Output Dir to write suite files to a separate folder.")
-            b("Independent from the Output Dir in Advanced Options.")
+            b("Independent from the Output Dir in Advanced Search Options.")
             b("All files use DO_NOT_SEARCH prefix to auto-exclude from future searches.")
             b("This setting is automatically saved to ~/.docsearchrc when you close")
             b("the Suites window and restored on next launch.")
@@ -2510,7 +3044,7 @@ def _launch_gui():
             self._capture_suite_output_dir()
             self.suite_window.destroy()
             self.suite_window = None
-            self.suite_toggle.configure(text="\u25b6 Search Suites")
+            self.suite_toggle.configure(text="\u25b6 Manage Suites")
             self.suite_visible = False
 
         def _toggle_suite_panel(self):
@@ -2521,13 +3055,13 @@ def _launch_gui():
                 self._capture_suite_output_dir()
                 self.suite_window.destroy()
                 self.suite_window = None
-                self.suite_toggle.configure(text="\u25b6 Search Suites")
+                self.suite_toggle.configure(text="\u25b6 Manage Suites")
                 self.suite_visible = False
             else:
                 # Guard against schedule reset during panel construction
                 self._restoring_schedule = True
                 self._build_suite_panel()
-                self.suite_toggle.configure(text="\u25bc Search Suites")
+                self.suite_toggle.configure(text="\u25bc Manage Suites")
                 self.suite_visible = True
                 self._refresh_suite_panel()
                 # Re-select the scheduled suite if any
@@ -2539,6 +3073,22 @@ def _launch_gui():
                 self._update_last_run_label()
                 self._update_countdown()
                 self._update_autorun_name_label()
+
+        def _update_run_suite_button_color(self):
+            """Set Run Suite button green if suites exist, red if not."""
+            from docsearch.collection import load_collection
+            folder = self.folder_entry.get().strip()
+            has_suites = False
+            if folder and os.path.isdir(folder):
+                try:
+                    data = load_collection(folder)
+                    has_suites = bool(data.get("test_suites"))
+                except Exception:
+                    pass
+            if has_suites:
+                self.run_suite_main_btn.configure(fg_color="green", hover_color="darkgreen")
+            else:
+                self.run_suite_main_btn.configure(fg_color="#CC3333", hover_color="#AA2222")
 
         def _run_suite_from_main(self):
             """Open the Search Suites panel (if not already open) so the user can run a suite."""
@@ -2971,6 +3521,7 @@ def _launch_gui():
                                pass_criteria=criteria)
                 dialog.destroy()
                 self._refresh_suite_panel()
+                self._update_run_suite_button_color()
                 # Select the newly created suite
                 for i in range(self.suite_selector.size()):
                     if self.suite_selector.get(i) == suite_name:
@@ -3074,6 +3625,7 @@ def _launch_gui():
             self.suite_schedule_var.set("Off")
             self._update_last_run_label()
             self._refresh_suite_panel()
+            self._update_run_suite_button_color()
 
         # ── Suite Execution ────────────────────────────────────
 
@@ -3722,36 +4274,36 @@ def _launch_gui():
                 self.tooltip_toggle_btn.configure(text="Enable Hover Text")
 
         def toggle_advanced(self):
-            """Toggle the Advanced Options window open or closed."""
+            """Toggle the Advanced Search Options window open or closed."""
             if self.advanced_visible:
                 self._close_advanced_window()
             else:
                 self.advanced_window.deiconify()
                 self.advanced_window.lift()
-                self.advanced_toggle.configure(text="\u25bc Advanced Options")
+                self.advanced_toggle.configure(text="\u25bc Advanced Search Options")
                 self.advanced_visible = True
 
         def _close_advanced_window(self):
-            """Hide the Advanced Options window and update the toggle button."""
+            """Hide the Advanced Search Options window and update the toggle button."""
             self.advanced_window.withdraw()
-            self.advanced_toggle.configure(text="\u25b6 Advanced Options")
+            self.advanced_toggle.configure(text="\u25b6 Advanced Search Options")
             self.advanced_visible = False
 
         def _toggle_index_options(self):
-            """Toggle the Index Options window open or closed."""
+            """Toggle the Manage Indexes window open or closed."""
             if self.index_visible:
                 self._close_index_window()
             else:
                 self.index_window.deiconify()
                 self.index_window.lift()
-                self.index_toggle_btn.configure(text="\u25bc Index Options")
+                self.index_toggle_btn.configure(text="\u25bc Manage Indexes")
                 self.index_visible = True
                 self._update_index_button_color()
 
         def _close_index_window(self):
-            """Hide the Index Options window and update the toggle button."""
+            """Hide the Manage Indexes window and update the toggle button."""
             self.index_window.withdraw()
-            self.index_toggle_btn.configure(text="\u25b6 Index Options")
+            self.index_toggle_btn.configure(text="\u25b6 Manage Indexes")
             self.index_visible = False
 
         def _cancel_index_build(self):
@@ -3797,6 +4349,7 @@ def _launch_gui():
                 self.recursive_var.set("off")
                 self._update_index_button_color()
                 self._refresh_load_search_menu()
+                self._update_run_suite_button_color()
                 self.status_label.configure(
                     text=f"File selected: {filename} in {folder}",
                     text_color=("gray30", "gray70"),
@@ -3816,6 +4369,7 @@ def _launch_gui():
                 if self.suite_visible:
                     self._refresh_suite_panel()
                 self._refresh_load_search_menu()
+                self._update_run_suite_button_color()
                 self._resume_suite_schedule()
 
         def _browse_output_dir(self):
@@ -3917,7 +4471,7 @@ def _launch_gui():
                 range_filters=self.range_entry.get(),
             )
             if cmd == "FLAGS_IN_SEARCH":
-                self._show_error("Flags go in Advanced Options, not the search box.")
+                self._show_error("Flags go in Advanced Search Options, not the search box.")
                 return
             if cmd is None:
                 # Debug: show what values were passed
@@ -4968,7 +5522,7 @@ def _launch_gui():
             """Show help explaining what indexes are and when to use them."""
             import tkinter as tk
             help_win = tk.Toplevel(self.index_window or self)
-            help_win.title("Index Options — Help")
+            help_win.title("Manage Indexes — Help")
             help_win.geometry("650x480")
             help_win.resizable(True, True)
             if self.index_window:
@@ -5033,7 +5587,7 @@ def _launch_gui():
 
             h("HOW TO BUILD AN INDEX")
             b("1. Browse to the folder you want to index")
-            b("2. Click Index Options on the main screen")
+            b("2. Click Manage Indexes on the main screen")
             b("3. Click Build Index(es)")
             b("4. Wait \u2014 large folders may take a few minutes")
             b("5. Check Use Index on the main screen to use it")
@@ -5346,7 +5900,7 @@ def _launch_gui():
             tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
 
         def _save_current_settings(self):
-            """Save current Advanced Options state to ~/.docsearchrc."""
+            """Save current Advanced Search Options state to ~/.docsearchrc."""
             from docsearch.cli import _save_config, _config_path
 
             settings = {}
@@ -5947,7 +6501,7 @@ def _launch_gui():
                             self.search_entry.insert("end", "|" + combined)
                         messagebox.showinfo(
                             "Note",
-                            "The AND mode checkbox in Advanced Options applies "
+                            "The AND mode checkbox in Advanced Search Options applies "
                             "to ALL terms in the search bar — not just the "
                             "wizard's patterns. Check or uncheck it to control "
                             "whether all terms must match (AND) or any term "

@@ -18,6 +18,7 @@
 - **42 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` with yellow-highlighted matches and `.txt` with full context
 - **Results preview** — see matches inline in the GUI with highlighted terms
+- **Compliance Wizard** — pick an industry template, customize checks, create a complete compliance suite in one click
 - **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs
 - **Email alerts** — get notified when scheduled suites detect compliance failures
 - **Inverse search** — find files that are *missing* required content
@@ -144,7 +145,7 @@ docsearch-gui
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Open **Advanced Options** for regex, fuzzy, Boolean, range queries, and all other settings. Open **Search Suites** to build compliance checks with pass/fail tracking.
+Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration, or the **Compliance Wizard** to create a complete compliance suite from 9 industry templates (Financial/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, HR) — one click creates all searches and the suite, ready to run.
 
 ### Python API
 
@@ -189,6 +190,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 | CLI + GUI + API | All three | GUI only |
 | Cross-platform | Win/Mac/Linux | Windows only |
 | Highlighted .docx reports | Yes | No |
+| Compliance Wizard (9 industries) | Yes | No |
 | Search suites with pass/fail | Yes | No |
 | Range queries (dates, $, %) | Yes | Limited or none |
 | Email alerts | Yes | No |

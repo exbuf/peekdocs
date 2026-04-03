@@ -22,9 +22,21 @@ env/
 .env
 
 # Output files
-docsearch_results.txt
-docsearch_results.docx
+docsearch_results*
 docsearch_errors.log
+DO_NOT_SEARCH_docsearch_suite_*
+
+# Sample/test data files
+dashboard.html
+employee_data.csv
+financial_summary.pdf
+meeting_notes.odt
+project_log.txt
+quarterly_report.docx
+sales_data.xlsx
+
+# Debug/temp files
+test_gui_debug.py
 
 # Claude Code
 .claude/

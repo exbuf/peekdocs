@@ -86,7 +86,7 @@ docsearch handles all of these with features already built in. Here's how to set
 
 After configuring each search, click **Save Search** in the Search Bar and give it a name. The search and all its settings are saved to the folder's collection file.
 
-**Step 3: Build a suite.** Click **Search Suites** to open the suites panel. Click **Build a New Suite**, name it (e.g., "quarterly_contract_review"), and add your saved searches in order. For each search, set the **pass criteria**:
+**Step 3: Build a suite.** Click **Manage Suites** to open the suites panel (or use the **Compliance Wizard** to skip this step entirely — it creates the searches and suite for you). Click **Build a New Suite**, name it (e.g., "quarterly_contract_review"), and add your saved searches in order. For each search, set the **pass criteria**:
 
 | Search | Criteria | Meaning |
 |--------|----------|---------|
@@ -122,7 +122,20 @@ Click **View Suite Report** to open the `.docx` report directly.
 
 docsearch includes a set of 90 sample documents across 9 industries, each with pre-built compliance suites ready to run. These serve as both a demonstration of docsearch's compliance capabilities and a starting point you can adapt for your own use. The sample documents are located in subfolders under a `googledocs/` folder, with each industry in its own subfolder. Each subfolder contains 10 realistic documents — a mix of compliant and non-compliant files — along with a `.docsearch_collection.json` file containing 8 saved searches and 1 compliance suite.
 
-**Where the suites are stored:** The saved searches and suites for each industry are stored in a `.docsearch_collection.json` file inside that industry's folder. This is docsearch's standard approach — the collection file lives alongside the documents it searches. This is best practice for several reasons: the suites travel with the documents (if you copy or move the folder, the suites come with it), each folder has suites tailored to its specific content, and there is no central configuration file to manage or accidentally break. When you point the GUI at a folder, it automatically loads that folder's collection. You can view, edit, or add to the suites from the GUI at any time.
+**Compliance Wizard — the fastest way to get started:**
+
+The **Compliance Wizard** (on the main screen, next to the Search Wizard) creates a complete compliance suite for your industry in one click. Instead of manually building individual searches and assembling them into a suite:
+
+1. Click **Compliance Wizard**
+2. Choose your industry from the dropdown (e.g., Healthcare/HIPAA)
+3. Review and customize the 8 pre-built checks if needed
+4. Click **Create Suite**
+
+The wizard creates all the saved searches and the suite automatically. The created suite appears in the **Manage Suites** panel alongside any suites you built manually — there is no difference in how they work. You can run it immediately, schedule it, or edit individual searches later.
+
+Available templates: Financial Services (SOX/BSA/AML), Healthcare (HIPAA), Legal Document Review, Government Records, Manufacturing (ISO 9001), Education (FERPA), Real Estate Closing, Insurance Compliance, and HR Compliance.
+
+**Where the suites are stored:** The saved searches and suites for each industry — whether created manually, by the Search Wizard, or by the Compliance Wizard — are stored in a `.docsearch_collection.json` file inside that industry's folder. This is docsearch's standard approach — the collection file lives alongside the documents it searches. This is best practice for several reasons: the suites travel with the documents (if you copy or move the folder, the suites come with it), each folder has suites tailored to its specific content, and there is no central configuration file to manage or accidentally break. When you point the GUI at a folder, it automatically loads that folder's collection. You can view, edit, or add to the suites from the GUI at any time.
 
 **Why JSON?** The collection file uses JSON (JavaScript Object Notation), which is a standard format for storing structured data. JSON is the right choice here because it is human-readable (you can open it in any text editor and understand what's in it), universally supported (every programming language has built-in JSON support — Python's `json` module is part of the standard library with no extra dependencies), and naturally handles nested data (suites containing ordered search lists, each with its own parameters and pass criteria). JSON is also plain text, so it works on every operating system, diffs cleanly in version control, and has syntax highlighting in every code editor. Other formats have drawbacks for this use case: SQLite is overkill for a small config file, YAML adds an external dependency and has well-known gotchas (like silently converting `no` to `False` or `3.10` to `3.1`), TOML is awkward for deeply nested structures, and binary formats like Pickle are not human-readable and pose security risks. You never need to edit the JSON file directly — the GUI manages it for you — but if you want to inspect or modify it manually, it's straightforward to do so.
 
@@ -130,11 +143,11 @@ docsearch includes a set of 90 sample documents across 9 industries, each with p
 
 1. Open `docsearch-gui`
 2. In the **Search Folder** field, browse to the industry subfolder (e.g., `googledocs/financial_services`)
-3. Click **Search Suites** (below Advanced Options) to open the suites panel
+3. Click **Manage Suites** (below Advanced Search Options) to open the suites panel — or click **Run Suite** on the main screen
 4. Select the suite from the **Suites** list
 5. Click **Run Selected Suite**
 6. Watch the results — each check shows PASS (green) or FAIL (red) in real time
-7. When the suite finishes, click **View Suite Report** to open the `.docx` report
+7. When the suite finishes, the suite report appears in the main preview pane. Click **View Suite Report** in the suites panel to open the `.docx` report
 
 Each suite is designed so that some checks will fail — this is intentional. The non-compliant documents demonstrate what failures look like in practice and how the stage reports pinpoint the exact files and lines that caused the failure.
 
