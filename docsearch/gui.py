@@ -1650,6 +1650,12 @@ def _launch_gui():
             b("Auto-refresh runs in the background while the app is open")
             b("and does not interrupt searches.")
             blank()
+            b("Files over 100 MB are automatically skipped to prevent slow")
+            b("searches and memory issues. The status line turns orange and")
+            b("shows how many files were skipped. Click View Error Log to")
+            b("see which files and why. To change the limit, set Max File")
+            b("Size (MB) in Advanced Search Options. Set to 0 for no limit.")
+            blank()
 
             h("FILES CREATED BY DOCSEARCH")
             b("docsearch never modifies, moves, or deletes your original")
