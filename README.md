@@ -12,6 +12,19 @@
 
 **[See docsearch in action →](https://robertdschoening.com/docsearch)**
 
+## Who Is It For?
+
+docsearch scales from simple keyword searches to full compliance auditing — use as much or as little as you need:
+
+- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
+- **Compliance & audit** — create search suites that check every document for required language, flag prohibited content, detect PII, and verify dollar amounts fall within policy ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard creates industry-specific suites (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) in one click
+- **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review
+- **Healthcare** — HIPAA compliance checks, PII detection across patient records
+- **Finance** — SOX audit documentation, transaction monitoring, range queries on dollar amounts
+- **HR** — verify employee files have required documents, detect SSNs on shared drives
+- **Research** — search across papers, notes, and datasets in any format
+
 ## Features
 
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
@@ -172,19 +185,6 @@ See the [API Reference](docs/API.md) for all parameters and options.
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Changelog](CHANGELOG.md) | Version history and release notes |
 | [Contributing](CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
-
-## Who Is It For?
-
-docsearch scales from simple keyword searches to full compliance auditing — use as much or as little as you need:
-
-- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
-- **Compliance & audit** — create search suites that check every document for required language, flag prohibited content, detect PII, and verify dollar amounts fall within policy ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard creates industry-specific suites (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) in one click
-- **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review
-- **Healthcare** — HIPAA compliance checks, PII detection across patient records
-- **Finance** — SOX audit documentation, transaction monitoring, range queries on dollar amounts
-- **HR** — verify employee files have required documents, detect SSNs on shared drives
-- **Research** — search across papers, notes, and datasets in any format
 
 ## What You Get at Each Price Point
 
