@@ -1634,6 +1634,7 @@ docsearch has very few hard limits. Most constraints are system-dependent (avail
 | Limit | Default | Flag | Notes |
 |-------|---------|------|-------|
 | **Max matches in reports** | 1,000 | `-m N` | Caps the number of matches written to report files. The total match count is always reported accurately in the summary — only the report files are capped. Set `-m 0` for unlimited. Set permanently with `--config` (see below) |
+| **Max file size** | 100 MB | `--config max_file_size_mb=N` | Files larger than this are automatically skipped during search. This prevents very large files (huge PDFs, massive spreadsheets, database exports) from causing slow searches or exhausting available memory. When a file is skipped, it is logged to `docsearch_errors.log` with the file name, its size, and the current limit — so you always know what was missed and why. Set to 0 for no limit. In the GUI, use the **Max File Size (MB)** field in Advanced Search Options. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs |
 
 **Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.docsearchrc`) so it applies automatically every time you run docsearch — you don't have to type the flag on every search. For example, if you always want a higher match cap:
 

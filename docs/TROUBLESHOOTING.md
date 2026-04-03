@@ -328,6 +328,20 @@ Windows Defender or third-party antivirus may flag docsearch's rapid file scanni
 
 ---
 
+**Some files are being skipped (check docsearch_errors.log)**
+
+docsearch automatically skips files over 100 MB to prevent slow searches and memory issues. Very large files — huge PDFs, massive spreadsheets, database exports, large email archives — can take minutes to parse and may exhaust available memory, causing the app to freeze or crash. When a file is skipped, `docsearch_errors.log` records the file name, its size, and the current limit so you know exactly what was missed.
+
+To change the limit:
+- **GUI:** Open **Advanced Search Options** and change **Max File Size (MB)**. Set to 0 for no limit
+- **CLI:** `docsearch --config max_file_size_mb=200` (or 0 for no limit)
+
+ZIP archives that would expand to over 500 MB are also skipped to protect against archive bombs (tiny ZIP files designed to expand to enormous sizes).
+
+If you set the limit to 0 and a file causes a memory error, docsearch catches it and logs the file without crashing — but the search will be slower and may use significant memory.
+
+---
+
 **Windows path length limit (260 characters) causes files to be skipped**
 
 Deeply nested directories with long filenames may exceed Windows' default 260-character path limit, causing files to be silently skipped during recursive search.
@@ -411,9 +425,13 @@ The GUI has rendering artifacts, blank areas, or input problems on modern Linux 
 
 ---
 
-**GUI text is too small or too large (high-DPI / display scaling)**
+**GUI text is too small or too large, or buttons overlap (high-DPI / display scaling)**
 
-On 4K monitors or Retina displays, GUI text and buttons may appear microscopic or oversized.
+On 4K monitors, Retina displays, or systems with non-default display scaling, GUI text and buttons may appear too small, too large, or overlap each other.
+
+**Try this first:** Use the **Text Size** dropdown on the bottom-right toolbar of the GUI. Choose Small, Normal, Large, or Extra Large. Normal works well on most screens. This setting is saved automatically and restored on next launch.
+
+If the Text Size dropdown doesn't fully resolve the issue:
 
 - Windows: right-click the Python executable → Properties → Compatibility → Change high DPI settings → Override high DPI scaling behavior (Application)
 - Linux: set `TK_SCALING=2.0` as an environment variable before launching

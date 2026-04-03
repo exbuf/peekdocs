@@ -65,6 +65,7 @@ def search(
     progress=None,
     expression=None,
     range_filters=None,
+    max_file_size_mb=100,
 ):
     """Search documents and return structured results.
 
@@ -204,6 +205,7 @@ def search(
         "content_ranges": content_ranges,
         "metadata_ranges": metadata_ranges,
         "filename_ranges": filename_ranges,
+        "max_file_size_mb": max_file_size_mb,
     }
 
     # ── Determine search path ───────────────────────────────────

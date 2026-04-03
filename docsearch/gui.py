@@ -35,6 +35,7 @@ def _build_command_from_values(
     expression=False,
     whole_word=False,
     max_matches="",
+    max_file_size_mb="",
     timestamp_suffix="",
     output_dir="",
     range_filters="",
@@ -124,6 +125,9 @@ def _build_command_from_values(
 
     if str(max_matches).strip() and str(max_matches).strip() != "1000":
         cmd.extend(["-m", str(max_matches).strip()])
+
+    if str(max_file_size_mb).strip() and str(max_file_size_mb).strip() != "100":
+        cmd.extend(["--config", f"max_file_size_mb={max_file_size_mb}"])
 
     if timestamp_suffix:
         cmd.extend(["--ts-suffix", timestamp_suffix])
@@ -1118,6 +1122,19 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            # Table of contents
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Is the Search Wizard?", "How to Use It",
+                "Available Search Types", "Saving Your Search", "Tips",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
             h("WHAT IS THE SEARCH WIZARD?")
             b("The Search Wizard helps you configure searches without memorizing")
             b("flags, regex syntax, or advanced options. Pick a search type, fill")
@@ -1245,6 +1262,21 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            # Table of contents
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Is the Compliance Wizard?", "How It Works",
+                "What Each Check Does", "Understanding Pass and Fail",
+                "After Creating the Suite", "Available Templates",
+                "Customizing Templates",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
             h("WHAT IS THE COMPLIANCE WIZARD?")
             b("The Compliance Wizard creates a complete search suite for a specific")
             b("industry or regulation in one click. Instead of manually building")
@@ -1359,7 +1391,7 @@ def _launch_gui():
             import tkinter as tk
             help_win = tk.Toplevel(self)
             help_win.title("Search Examples & Quick-Start Guide")
-            help_win.geometry("750x650")
+            help_win.geometry("750x700")
             help_win.resizable(True, True)
             help_win.transient(self)
             help_win.grab_set()
@@ -1399,6 +1431,23 @@ def _launch_gui():
 
             def blank():
                 txt.insert("end", "\n")
+
+            # Table of contents
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 13, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Is docsearch?", "Who Is It For?", "Getting Started",
+                "Saving and Loading Searches", "Simple Search", "AND Mode",
+                "Boolean Expressions", "Breaking Down Complex Searches",
+                "Tips", "Search Suites", "Troubleshooting",
+                "Files Created by docsearch", "Search Mode Checkboxes",
+                "Text Fields", "Combining Modes", "Settings Buttons",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
 
             h("WHAT IS DOCSEARCH?")
             b("docsearch searches Word docs, PDFs, spreadsheets, emails,")
@@ -1712,6 +1761,19 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            # Table of contents
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 13, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "Search Mode Checkboxes", "Text Fields",
+                "Combining Modes", "Settings Buttons", "Troubleshooting",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
             h("SEARCH MODE CHECKBOXES")
             blank()
 
@@ -1821,6 +1883,13 @@ def _launch_gui():
             b("Cap the number of matches written to report files. Default: 1000.")
             b("The total count is always accurate — only the report is capped.")
             b("Set to 0 for unlimited.")
+            blank()
+
+            s("Max File Size (MB)")
+            b("Skip files larger than this size. Default: 100 MB. Very large files")
+            b("(huge PDFs, massive spreadsheets) can cause slow searches or exhaust")
+            b("memory. Skipped files are logged to docsearch_errors.log with a message")
+            b("explaining why. Set to 0 for no limit if you need to search large files.")
             blank()
 
             s("Range")
@@ -2161,6 +2230,11 @@ def _launch_gui():
             self.max_matches_entry.insert(0, "1000")
             self.max_matches_entry.grid(row=0, column=2)
 
+            ctk.CTkLabel(cores_frame, text="Max File Size (MB):").grid(row=0, column=3, padx=(20, 5), sticky="e")
+            self.max_file_size_entry = ctk.CTkEntry(cores_frame, width=60)
+            self.max_file_size_entry.insert(0, "100")
+            self.max_file_size_entry.grid(row=0, column=4)
+
             # Row 6: range filters
             ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
                 row=6, column=0, padx=(15, 5), pady=5, sticky="e"
@@ -2317,6 +2391,7 @@ def _launch_gui():
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
             Tooltip(self.cores_entry, f"Number of CPU cores to use. This machine has {os.cpu_count()}, default is {self._default_cores}")
             Tooltip(self.max_matches_entry, "Maximum matches included in reports. Default 1000. Set to 0 for no limit.")
+            Tooltip(self.max_file_size_entry, "Skip files larger than this (in MB). Default 100. Set to 0 for no limit. Large files can cause slow searches or memory issues.")
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
@@ -3927,6 +4002,7 @@ def _launch_gui():
                     expression=params.get("expression", False),
                     whole_word=params.get("whole_word", False),
                     max_matches=params.get("max_matches", ""),
+                    max_file_size_mb=params.get("max_file_size_mb", ""),
                     range_filters=params.get("range_filters", ""),
                 )
 
@@ -4281,6 +4357,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.help_button.pack(side="left")
+            Tooltip(self.help_button, "Open the docsearch README on GitHub — full documentation, installation guide, and feature reference")
 
             self.about_button = ctk.CTkButton(
                 self.bottom_frame,
@@ -4301,6 +4378,7 @@ def _launch_gui():
                 command=self._on_text_size_changed,
             )
             text_size_menu.pack(side="right", padx=5)
+            Tooltip(text_size_menu, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically")
             ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right")
 
             self.tooltip_toggle_btn = ctk.CTkButton(
@@ -4326,6 +4404,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.clear_error_log_btn.pack(side="right", padx=5)
+            Tooltip(self.clear_error_log_btn, "Delete the docsearch_errors.log file from the search folder. A new one is created automatically if errors occur in future searches")
 
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
@@ -4569,6 +4648,7 @@ def _launch_gui():
                 expression=self.expression_var.get() == "on",
                 whole_word=self.whole_word_var.get() == "on",
                 max_matches=self.max_matches_entry.get(),
+                max_file_size_mb=self.max_file_size_entry.get(),
                 timestamp_suffix=self._last_ts_suffix,
                 output_dir=self.output_dir_entry.get(),
                 range_filters=self.range_entry.get(),
@@ -4856,14 +4936,21 @@ def _launch_gui():
 
             summary = _parse_summary_text(stdout)
 
+            # Check if any files were skipped (appears in subprocess output)
+            import re as _re_fin
+            _skip_match = _re_fin.search(r"Errors logged to docsearch_errors\.log \((\d+) error", stdout or "")
+            _skip_count = int(_skip_match.group(1)) if _skip_match else 0
+
             if returncode == 0:
                 status_text = summary or "Search complete. Matches found."
                 specific = self.specific_files_entry.get().strip()
                 if specific:
                     status_text += f"  [{specific}]"
+                if _skip_count:
+                    status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=status_text,
-                    text_color=("gray30", "gray70"),
+                    text_color=("orange",) * 2 if _skip_count else ("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
                 # Post-search save (-s) if user filled in "Save as" field
@@ -4901,9 +4988,11 @@ def _launch_gui():
                 specific = self.specific_files_entry.get().strip()
                 if specific:
                     no_match_text += f"  [{specific}]"
+                if _skip_count:
+                    no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=no_match_text,
-                    text_color=("gray30", "gray70"),
+                    text_color=("orange",) * 2 if _skip_count else ("gray30", "gray70"),
                     font=ctk.CTkFont(size=13),
                 )
                 self._show_action_buttons()
@@ -6018,6 +6107,14 @@ def _launch_gui():
                         settings["max_matches"] = n
                 except ValueError:
                     pass
+            mfs = self.max_file_size_entry.get().strip()
+            if mfs:
+                try:
+                    n = int(mfs)
+                    if n >= 0:
+                        settings["max_file_size_mb"] = n
+                except ValueError:
+                    pass
             # String settings
             ft = self.file_types_entry.get().strip()
             if ft:
@@ -6112,6 +6209,11 @@ def _launch_gui():
                 self.max_matches_entry.insert(0, str(config["max_matches"]))
             else:
                 self.max_matches_entry.insert(0, "1000")
+            self.max_file_size_entry.delete(0, "end")
+            if "max_file_size_mb" in config:
+                self.max_file_size_entry.insert(0, str(config["max_file_size_mb"]))
+            else:
+                self.max_file_size_entry.insert(0, "100")
             self.file_types_entry.delete(0, "end")
             if "file_types" in config:
                 self.file_types_entry.insert(0, config["file_types"])
@@ -6172,6 +6274,8 @@ def _launch_gui():
             self.cores_entry.insert(0, str(self._default_cores))
             self.max_matches_entry.delete(0, "end")
             self.max_matches_entry.insert(0, "1000")
+            self.max_file_size_entry.delete(0, "end")
+            self.max_file_size_entry.insert(0, "100")
             self.specific_files_entry.delete(0, "end")
             self.save_name_entry.delete(0, "end")
             self.append_name_entry.delete(0, "end")
@@ -6233,6 +6337,7 @@ def _launch_gui():
                 "context_after": self.context_after_entry.get().strip(),
                 "cores": self.cores_entry.get().strip(),
                 "max_matches": self.max_matches_entry.get().strip(),
+                "max_file_size_mb": self.max_file_size_entry.get().strip(),
                 "specific_files": self.specific_files_entry.get().strip(),
                 "index_search": self.index_search_var.get() == "on",
                 "inverse": self.inverse_var.get() == "on",
@@ -6270,6 +6375,8 @@ def _launch_gui():
             self.cores_entry.insert(0, params.get("cores", "") or str(self._default_cores))
             self.max_matches_entry.delete(0, "end")
             self.max_matches_entry.insert(0, params.get("max_matches", "") or "1000")
+            self.max_file_size_entry.delete(0, "end")
+            self.max_file_size_entry.insert(0, params.get("max_file_size_mb", "") or "100")
             self.specific_files_entry.delete(0, "end")
             self.specific_files_entry.insert(0, params.get("specific_files", ""))
             self.index_search_var.set("on" if params.get("index_search") else "off")

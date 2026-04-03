@@ -418,10 +418,16 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
     elif ext in (".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar"):
         # Archive formats — extract to temp dir and process each contained file
         all_supported = SUPPORTED_TYPES | OCR_IMAGE_TYPES
+        _MAX_ARCHIVE_BYTES = 500 * 1024 * 1024  # 500 MB extraction limit
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Extract archive contents
+            # Extract archive contents — check for zip bombs on .zip files
             if ext == ".zip":
                 with zipfile.ZipFile(filepath, "r") as zf:
+                    total_uncompressed = sum(i.file_size for i in zf.infolist())
+                    if total_uncompressed > _MAX_ARCHIVE_BYTES:
+                        raise ValueError(
+                            f"Archive expands to {total_uncompressed / (1024*1024):.0f} MB, "
+                            f"exceeds 500 MB safety limit. Skipping to prevent memory issues.")
                     zf.extractall(tmpdir)
             elif ext in (".tar", ".gz", ".bz2", ".tgz"):
                 with tarfile.open(filepath, "r:*") as tf:
@@ -658,10 +664,25 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     return (matches, [])
 
 
+_DEFAULT_MAX_FILE_SIZE_MB = 100
+
+
 def _process_file(args_tuple):
     """Process a single file and return (matches, skipped) for that file."""
     filepath, config = args_tuple
     filename = os.path.basename(filepath)
+
+    # File size guard — skip files over the configured limit
+    max_mb = config.get("max_file_size_mb", _DEFAULT_MAX_FILE_SIZE_MB)
+    if max_mb > 0:
+        try:
+            size_mb = os.path.getsize(filepath) / (1024 * 1024)
+            if size_mb > max_mb:
+                return ([], [(filename,
+                    f"Skipped — file is {size_mb:.0f} MB, exceeds the {max_mb} MB limit. "
+                    f"Increase Max File Size in Advanced Search Options or set to 0 for no limit.")])
+        except OSError:
+            pass
 
     # Metadata range filtering — skip entire file if it doesn't match
     metadata_ranges = config.get("metadata_ranges", [])
@@ -681,6 +702,11 @@ def _process_file(args_tuple):
             config.get("use_ocr", False),
             config.get("_ocr_image_func"),
         )
+    except MemoryError:
+        return ([], [(filename,
+            f"Skipped — '{filename}' caused an out-of-memory error. "
+            f"The file may be too large to process. Try reducing CPU cores (-c 1) "
+            f"or excluding this file type.")])
     except Exception as e:
         return ([], [(filename, _friendly_file_error(e, filename))])
 
