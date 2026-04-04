@@ -311,38 +311,43 @@ def _launch_gui():
             """Display the tooltip window near the widget on mouse enter."""
             if self.tip_window or not Tooltip.enabled:
                 return
-            import tkinter as tk
-            self.tip_window = tw = tk.Toplevel(self.widget)
-            tw.wm_overrideredirect(True)
-            tw.withdraw()
-            label = tk.Label(
-                tw, text=self.text, background="#333333", foreground="white",
-                relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
-                padx=6, pady=4, wraplength=300, justify="left",
-            )
-            label.pack()
-            label.update_idletasks()
-            tip_w = label.winfo_reqwidth()
-            tip_h = label.winfo_reqheight()
-            if self.anchor == "left":
-                x = self.widget.winfo_rootx() + self.widget.winfo_width() - tip_w
-                y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
-            elif self.anchor == "above-left":
-                x = self.widget.winfo_rootx() + self.widget.winfo_width() - tip_w
-                y = self.widget.winfo_rooty() - tip_h - 5
-            elif self.anchor == "above":
-                x = self.widget.winfo_rootx()
-                y = self.widget.winfo_rooty() - tip_h - 5
-            else:
-                x = self.widget.winfo_rootx() + 20
-                y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
-            tw.wm_geometry(f"+{x}+{y}")
-            tw.deiconify()
+            try:
+                import tkinter as tk
+                if self.anchor == "left":
+                    x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
+                    y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+                elif self.anchor in ("above", "above-left", "above-mid", "above-high"):
+                    y = self.widget.winfo_rooty() - 75
+                    x = self.widget.winfo_rootx()
+                    if self.anchor == "above-mid":
+                        y = self.widget.winfo_rooty() - 95
+                    elif self.anchor == "above-high":
+                        y = self.widget.winfo_rooty() - 120
+                    elif self.anchor == "above-left":
+                        x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
+                else:
+                    x = self.widget.winfo_rootx() + 20
+                    y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+
+                self.tip_window = tw = tk.Toplevel(self.widget)
+                tw.wm_overrideredirect(True)
+                tw.wm_geometry(f"+{x}+{y}")
+                label = tk.Label(
+                    tw, text=self.text, background="#333333", foreground="white",
+                    relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
+                    padx=6, pady=4, wraplength=300, justify="left",
+                )
+                label.pack()
+            except Exception:
+                self.tip_window = None
 
         def _hide(self, event=None):
             """Destroy the tooltip window on mouse leave."""
             if self.tip_window:
-                self.tip_window.destroy()
+                try:
+                    self.tip_window.destroy()
+                except Exception:
+                    pass
                 self.tip_window = None
 
     class DocSearchApp(ctk.CTk):
@@ -799,6 +804,17 @@ def _launch_gui():
                  "and optionally add your own custom regex.",
                  [],
                  lambda v: self._open_search_wizard()),
+
+                ("Search scanned PDFs and images (OCR)", "Enable OCR to extract text from scanned PDFs and image files.\n"
+                 "Requires Tesseract to be installed. Searches .bmp, .jpg, .jpeg, .png, .tif, .tiff in addition to normal file types.",
+                 [("Keywords:", "keyword", "budget revenue")],
+                 lambda v: (self._apply_wizard(search_text=v["keyword"]), self.ocr_var.set("on"))),
+
+                ("Find keywords with surrounding context", "Show lines before and after each match so you can read the\n"
+                 "full paragraph without opening the file. Useful for understanding\n"
+                 "matches in context.",
+                 [("Keywords:", "keyword", "breach liability"), ("Lines before:", "before", "3"), ("Lines after:", "after", "3")],
+                 lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
             ]
 
             for title, desc, fields, apply_fn in patterns:
@@ -1223,6 +1239,12 @@ def _launch_gui():
             b("Regex pattern builder — opens the categorized regex picker")
             b("with checkboxes for SSNs, invoice numbers, part numbers,")
             b("and dozens more patterns organized by profession.")
+            blank()
+            b("Search scanned PDFs (OCR) — enable OCR to extract text")
+            b("from scanned PDFs and image files. Requires Tesseract.")
+            blank()
+            b("Keywords with context — show lines before and after each")
+            b("match so you can read the full paragraph in the results.")
             blank()
 
             h("SAVING YOUR SEARCH")
@@ -4493,7 +4515,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.clear_error_log_btn.pack(side="right", padx=5)
-            Tooltip(self.clear_error_log_btn, "Delete the docsearch_errors.log file from the search folder. A new one is created automatically if errors occur in future searches", anchor="above")
+            Tooltip(self.clear_error_log_btn, "Delete the docsearch_errors.log file from the search folder. A new one is created automatically if errors occur in future searches", anchor="above-mid")
 
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
@@ -4506,7 +4528,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.view_error_log_bottom.pack(side="right", padx=5)
-            self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries", anchor="above")
+            self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries", anchor="above-high")
 
             self.clear_results_btn = ctk.CTkButton(
                 self.bottom_frame,
