@@ -811,75 +811,40 @@ Results ==> /Users/bob/GoogleDocs
 
 ## Search Index (Optional)
 
-An index is like a book's index — instead of reading every page to find a word, you look it up in the back and go straight to the right page. Without an index, docsearch opens and reads every file from scratch each time you search. With an index, docsearch reads the files once, stores the extracted text in a database, and searches that database on every subsequent search. The result is the same — you get the same matches — but repeated searches are much faster, especially on large folders with hundreds or thousands of files.
+Indexing is a one-time setup that makes all future searches on a folder faster. Click **Manage Indexes** → **Build Index(es)** and you're done — Use Index is enabled and Auto-Refresh is set to 1 hour automatically. From that point on, searches use the index behind the scenes and the index stays current on its own.
 
-You don't need an index for small folders or one-off searches. It's most useful when you search the same folder repeatedly (like a compliance team running weekly audits on the same document set).
+Under the hood, the index reads your files once, stores the extracted text in a small database, and searches that database instead of re-reading files each time. Results are identical — the index just skips the file-parsing step.
 
-**When the index may be slower:** If your folder contains very large files (long PDFs, huge spreadsheets) that produce millions of extracted text lines, the index can actually be slower than direct scanning. Direct scanning stops reading a file as soon as it finds enough matches, while the index searches all stored text. If you notice indexed searches taking longer than non-indexed searches, uncheck **Search Using Index(es)** in Advanced Search Options. The index is most beneficial for folders with many small-to-medium files, not folders with a few very large files.
+You don't need an index for small folders or one-off searches. If you search a large folder (100+ files) without an index, docsearch suggests building one on the status line.
 
-**Building the index from the terminal:**
+**Building an index:**
 
-```bash
-cd /path/to/your/documents
-docsearch --index              # index files in current folder and all subfolders
-docsearch --index -O           # same, with OCR for scanned PDFs and images
-```
+| Method | Command |
+|--------|---------|
+| **GUI** | Click **Manage Indexes** → **Build Index(es)**. Use Index is enabled and Auto-Refresh is set to 1 hour automatically |
+| **Terminal** | `docsearch --index` (add `-O` to include OCR for scanned PDFs) |
 
-**Building the index from the GUI:**
+The index covers the folder and all subfolders. It's stored as `.docsearch.db` in the search folder — one file, typically 10–20% the size of your documents.
 
-1. Open `docsearch-gui`
-2. In the **Search Folder** field, browse to the folder you want to index
-3. Click **Manage Indexes** (below Manage Suites on the main screen) to expand the index panel
-4. Click **Build Index(es)** — this indexes all files in the folder **and all subfolders** automatically (recursive is always on for index builds)
-5. Once built, **Search Using Index(es)** is automatically enabled and **Auto-Refresh** is set to 1 hour to keep the index current
-
-The index is stored as a single `.docsearch.db` file inside the folder you indexed. It contains the extracted text from every supported file in that folder and all its subfolders. This means if you build an index in your top-level documents folder, one index covers everything — you don't need to build separate indexes in each subfolder. Each folder can have its own index if you prefer, but a single top-level index is the simplest approach for most users. You can see the index status (file count, size, last updated) by clicking **Index Status** in the index panel.
-
-**Using the index:**
-
-Once built, the index is used automatically in the CLI — just search as usual. In the GUI, make sure **Search Using Index(es)** is checked in Advanced Search Options:
-
-```bash
-docsearch budget               # uses the index automatically (faster)
-docsearch -z budgt             # fuzzy search — also uses the index
-docsearch -x "\d{3}-\d{4}"    # regex search — also uses the index
-```
-
-The index stays up to date automatically. Each search checks for new, changed, or deleted files and refreshes the index incrementally before searching. You do not need to rebuild the index manually unless you want a full rebuild.
+**Staying current:** Auto-Refresh runs incremental updates in the background while the app is open (default: 1 hour after first build). In the terminal, use `docsearch --index-refresh` manually or with cron. Each search also checks for changes automatically.
 
 **Managing the index:**
 
-```bash
-docsearch --index-status       # show file count, size, creation date
-docsearch --index-refresh      # incrementally update (add new, re-index changed, remove deleted)
-docsearch --index-clear        # delete the index
-```
+| Action | GUI | Terminal |
+|--------|-----|----------|
+| Build | **Build Index(es)** | `docsearch --index` |
+| Check status | **Index Status** | `docsearch --index-status` |
+| Refresh | Auto-Refresh dropdown | `docsearch --index-refresh` |
+| Delete | **Delete Index(es)** | `docsearch --index-clear` |
+| Toggle on/off | **Use Index** checkbox | Automatic (use `--no-index` to skip) |
 
-**Scheduled refresh:** Use `--index-refresh` with cron or launchd to keep the index up to date automatically:
+**When the index may be slower:** Folders with a few very large files (huge PDFs, massive spreadsheets) can be slower with an index than without one. Direct scanning stops reading a file after finding matches; the index searches all stored text. If indexed searches feel slow, uncheck **Use Index**.
 
-```bash
-# cron: refresh every 15 minutes
-*/15 * * * * cd /path/to/documents && docsearch --index-refresh
+**Indexes and suites:** The index setting is saved per search. When you save a search with Use Index checked, suites use the index for that search. If no index exists, docsearch falls back to direct scanning automatically.
 
-# macOS launchd: create a plist with ProgramArguments pointing to docsearch --index-refresh
-```
+**Subfolders:** One index in your top folder covers everything underneath. You can build separate indexes in subfolders too — they're independent and don't interfere with each other.
 
-**How it works:** The index extracts and stores text from every supported file in a `.docsearch.db` file in the search directory. For simple keyword searches (OR/AND), the index uses FTS5 full-text search for speed. For advanced modes (regex, fuzzy, wildcard, proximity, context lines), the index reads stored text from the database instead of re-parsing files — this guarantees identical results to non-indexed search while still skipping file I/O.
-
-**In the GUI:** Click **▶ Manage Indexes** (below Manage Suites on the main page) to expand index controls. The panel has an **Auto-Refresh Index** dropdown (Off / 5 min / 15 min / 30 min / 1 hour / 4 hours / 8 hours / 24 hours) on the left, then **Build Index(es)**, **Delete Index(es)**, and **Index Status** buttons, plus a **?** help button. The **Search Using Index(es)** checkbox is inside Advanced Search Options to toggle between indexed and direct search. Building an index always includes all subfolders. When you build an index, Auto-Refresh automatically sets to 1 hour (if currently Off) so the index stays current without manual maintenance. The auto-refresh runs incremental updates in the background while the app is open without interrupting searches. You can change the interval or turn it off anytime. The index last-updated timestamp is shown below the Build Index(es) button. The selected interval is saved to `~/.docsearchrc` and restored on next launch. If you search a large folder (100+ files) without an index, docsearch suggests building one on the status line.
-
-**Concurrency safety:** The index is safe to use while auto-refresh is running, while multiple searches are happening, or while external tools (cron jobs, other terminals) access the same folder. Protections include:
-
-- **WAL mode with 10-second busy timeout** — SQLite's Write-Ahead Logging allows concurrent reads during writes. If two writers collide (e.g., auto-refresh and a CLI search both trying to refresh), the second waits up to 10 seconds for the lock instead of failing.
-- **Graceful lock handling** — If a search cannot refresh the index (because another process holds the write lock), it searches with the existing index data. Results may be seconds stale but never corrupted or incomplete.
-- **Locked-vs-corrupt distinction** — A locked database is never mistaken for a corrupt one. Only actual corruption (malformed schema, unreadable pages) triggers index deletion and rebuild.
-- **GUI scheduling guards** — Auto-refresh is paused while a search, index build, or suite run is active and resumed when it finishes. Starting a search while a refresh is in progress is blocked until the refresh completes.
-- **Atomic transactions** — All index writes (adds, updates, deletes) happen within a single SQLite transaction. If the process crashes mid-refresh, uncommitted changes are rolled back automatically — the index reverts to its previous consistent state.
-- **Connection cleanup** — All database connections are wrapped in `try/finally` blocks so connections are always closed, even if an error occurs.
-
-**Indexes and subfolders:** The index (`.docsearch.db`) is always stored in the folder you point docsearch at — the search folder. When you build an index with recursive mode, it indexes all files in all subfolders, but the index file itself lives in the top folder. If you also build indexes inside individual subfolders, each gets its own separate `.docsearch.db`. These indexes are completely independent — they do not interfere with each other. When you search from the top folder with `-r`, docsearch uses the top folder's index. When you search from a subfolder, it uses that subfolder's index (if one exists). The only downside of building indexes at both levels is disk space — the top-level index already contains everything the subfolder indexes contain. For small folders this is trivial; for very large document collections, choose one level or the other.
-
-**Indexes and search suites:** The index setting is stored **per saved search**, not as a global setting. When you save a search with the **Search Using Index(es)** checkbox checked, that search will use the index when it runs as part of a suite. If the checkbox was not checked when the search was saved, the suite will search files directly — even if an index exists in the folder. The main screen's index checkbox does not affect suite runs. To enable indexing for an existing saved search, load it into the GUI, check **Search Using Index(es)**, and re-save it with the same name. If a saved search has indexing enabled but no index exists in the folder, docsearch falls back to direct file scanning automatically — the search still runs, just without the speed benefit of the index.
+**Safe and reliable:** The index uses SQLite WAL mode with atomic transactions, busy timeouts, and graceful lock handling. Multiple searches, auto-refresh, and external tools can access the same index safely. If the process crashes mid-refresh, uncommitted changes are rolled back automatically.
 
 ## Inverse Search
 
