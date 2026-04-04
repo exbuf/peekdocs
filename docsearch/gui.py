@@ -349,6 +349,7 @@ def _launch_gui():
             self.process = None
             self.search_thread = None
             self.results_dir = None
+            self._recent_searches = []
             self.advanced_visible = False
             self.suite_visible = False
             self.suite_running = False
@@ -447,9 +448,17 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
+            self.search_entry.grid(row=1, column=1, padx=(5, 0), pady=(0, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
+
+            recent_btn = ctk.CTkButton(
+                self.search_bar_frame, text="\u25bc", width=30,
+                command=self._show_recent_searches,
+                font=ctk.CTkFont(size=14),
+            )
+            recent_btn.grid(row=1, column=2, padx=(0, 5), pady=(0, 8), sticky="w")
+            Tooltip(recent_btn, "Show recent searches — click to re-use a previous search")
 
             clear_button = ctk.CTkButton(
                 self.search_bar_frame, text="Clear", width=90,
@@ -1461,7 +1470,8 @@ def _launch_gui():
             h("WHO IS IT FOR?")
             b("\u2022 Home users \u2014 search personal documents, Google Docs")
             b("  backups, tax records, family files. Just type a keyword")
-            b("  and click Run Search.")
+            b("  and click Run Search. Recent searches remember your last")
+            b("  10 searches so you can quickly repeat them.")
             blank()
             b("\u2022 Small businesses \u2014 find information across contracts,")
             b("  invoices, reports, and correspondence. Use AND mode,")
@@ -1485,6 +1495,11 @@ def _launch_gui():
             b("pick a folder with Browse, and click Run Search. Use the checkboxes")
             b("under Advanced Search Options to change search modes \u2014 do not type flags in")
             b("the search box. Results are saved to docsearch_results.txt and .docx.")
+            blank()
+            b("Quick tips: Click the \u25bc button next to the search bar to reuse one of")
+            b("your last 10 searches. While a search is running, the status line shows")
+            b("how many terms are being searched. In the Results Preview, right-click")
+            b("to copy text and double-click a filename to open it in your default app.")
             blank()
 
             h("SAVING AND LOADING SEARCHES")
@@ -2497,6 +2512,44 @@ def _launch_gui():
                                             foreground="#1a73e8")
             self.preview_text.tag_configure("match", background="#FFFF00")
             self.preview_text.tag_configure("line_num", foreground="#888888")
+
+            # Right-click to copy selected text or current line
+            def _preview_copy(event):
+                try:
+                    sel = self.preview_text.get("sel.first", "sel.last")
+                except tk.TclError:
+                    # No selection — copy current line
+                    sel = self.preview_text.get("current linestart", "current lineend")
+                if sel.strip():
+                    self.clipboard_clear()
+                    self.clipboard_append(sel.strip())
+                    self.status_label.configure(text="Copied to clipboard.",
+                                                text_color=("gray30", "gray70"))
+            self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
+            self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
+
+            # Double-click filename to open the file
+            def _preview_open_file(event):
+                idx = self.preview_text.index("current")
+                line = self.preview_text.get(f"{idx} linestart", f"{idx} lineend").strip()
+                # Filename lines are tagged with "filename" — check if clicked line has it
+                tags = self.preview_text.tag_names(f"{idx} linestart")
+                if "filename" not in tags:
+                    return
+                # Extract path from the line (format: "── filename (dir) ──" or just a path)
+                # Try matched_files list first
+                for filepath, fname, _count in getattr(self, 'matched_files', []):
+                    if fname in line:
+                        if os.path.exists(filepath):
+                            system = platform.system()
+                            if system == "Darwin":
+                                subprocess.Popen(["open", filepath])
+                            elif system == "Windows":
+                                os.startfile(filepath)
+                            else:
+                                subprocess.Popen(["xdg-open", filepath])
+                        return
+            self.preview_text.bind("<Double-1>", _preview_open_file)
 
         def _build_open_report(self):
             """Build the Matched Files and View Report buttons."""
@@ -4580,6 +4633,51 @@ def _launch_gui():
                 self.suite_output_dir_entry.delete(0, "end")
                 self.suite_output_dir_entry.insert(0, folder)
 
+        def _show_recent_searches(self):
+            """Show a popup with recent searches to re-use."""
+            import tkinter as tk
+            if not self._recent_searches:
+                self.status_label.configure(
+                    text="No recent searches yet.",
+                    text_color=("gray30", "gray70"),
+                    font=ctk.CTkFont(size=13),
+                )
+                return
+            popup = tk.Toplevel(self)
+            popup.title("Recent Searches")
+            popup.resizable(False, False)
+            popup.transient(self)
+            popup.grab_set()
+            self.update_idletasks()
+            x = self.winfo_rootx() + 50
+            y = self.winfo_rooty() + 80
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(popup, text="Click a search to re-use it:",
+                     font=("TkDefaultFont", 11), fg="gray").pack(padx=10, pady=(8, 4))
+
+            listbox = tk.Listbox(popup, font=("TkDefaultFont", 12),
+                                 selectmode=tk.SINGLE, activestyle="none",
+                                 bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                                 highlightthickness=0, borderwidth=1, relief="sunken",
+                                 width=60, height=min(len(self._recent_searches), 10))
+            listbox.pack(padx=10, pady=(0, 8))
+            for s in self._recent_searches:
+                listbox.insert("end", s)
+
+            def _select(event=None):
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                text = listbox.get(sel[0])
+                self.search_entry.delete(0, "end")
+                self.search_entry.insert(0, text)
+                popup.destroy()
+
+            listbox.bind("<Double-1>", _select)
+            tk.Button(popup, text="Use", width=8, command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
+            tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+
         def start_search(self):
             """Validate inputs, build the CLI command, and launch a search thread."""
             if self.suite_running:
@@ -4618,6 +4716,14 @@ def _launch_gui():
                 _save_config(cfg)
             except Exception:
                 pass
+
+            # Record in recent searches (max 10, no duplicates)
+            if search_text and search_text not in self._recent_searches:
+                self._recent_searches.insert(0, search_text)
+                self._recent_searches = self._recent_searches[:10]
+            elif search_text in self._recent_searches:
+                self._recent_searches.remove(search_text)
+                self._recent_searches.insert(0, search_text)
 
             if self.index_search_var.get() == "on":
                 index_path = os.path.join(folder, ".docsearch.db")
@@ -4702,7 +4808,14 @@ def _launch_gui():
             self.progress_bar.grid(
                 row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
-            self.status_label.configure(text="Searching...", text_color=("gray30", "gray70"))
+            # Count search terms for status display
+            import shlex as _shlex
+            try:
+                _term_count = len(_shlex.split(search_text))
+            except ValueError:
+                _term_count = len(search_text.split())
+            _term_label = f"{_term_count} term{'s' if _term_count != 1 else ''}"
+            self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("gray30", "gray70"))
             self.search_start_time = time.time()
             self._start_elapsed_timer()
 

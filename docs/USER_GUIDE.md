@@ -283,12 +283,12 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field, **Run Search** and **Run Suite** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches) |
+| **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search** and **Run Suite** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), and **File** button (select a single file to search) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
-| **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read |
+| **Results** | After a search: **Matched Files** button (click to view matching files and open them), **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
 | **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
 
 **Your first GUI search:**

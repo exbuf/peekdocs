@@ -30,7 +30,8 @@ docsearch scales from simple keyword searches to organized document review workf
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
 - **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` with yellow-highlighted matches and `.txt` with full context
-- **Results preview** — see matches inline in the GUI with highlighted terms
+- **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy, double-click a filename to open it
+- **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Compliance Wizard** — pick an industry starter template, customize checks, create a search suite in one click
 - **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs
 - **Email alerts** — get notified when scheduled suites detect failures
