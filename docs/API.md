@@ -140,6 +140,7 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 | `use_index` | `bool` | Auto | Use search index if available |
 | `progress` | `callable` | `None` | Callback `progress(done, total, filename)` |
 | `range_filters` | `list[str]` | `None` | Range filter specs (e.g. `["amount:1000..5000", "date:2024-01-01..2024-12-31"]`). Use `fn:` prefix for filename ranges (e.g. `["fn:date:2024-01-01..2024-12-31"]`) |
+| `max_file_size_mb` | `int` | `100` | Skip files larger than this (in MB). Prevents slow searches and memory issues from very large files. Set to `0` for no limit |
 
 ### Return Value
 

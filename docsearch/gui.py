@@ -312,26 +312,32 @@ def _launch_gui():
             if self.tip_window or not Tooltip.enabled:
                 return
             import tkinter as tk
-            if self.anchor == "left":
-                x = self.widget.winfo_rootx() - 320
-            elif self.anchor == "above":
-                x = self.widget.winfo_rootx()
-            else:
-                x = self.widget.winfo_rootx() + 20
-            if self.anchor != "above":
-                y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
             self.tip_window = tw = tk.Toplevel(self.widget)
             tw.wm_overrideredirect(True)
+            tw.withdraw()
             label = tk.Label(
                 tw, text=self.text, background="#333333", foreground="white",
                 relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
                 padx=6, pady=4, wraplength=300, justify="left",
             )
             label.pack()
-            if self.anchor == "above":
-                tw.update_idletasks()
-                y = self.widget.winfo_rooty() - tw.winfo_reqheight() - 5
+            label.update_idletasks()
+            tip_w = label.winfo_reqwidth()
+            tip_h = label.winfo_reqheight()
+            if self.anchor == "left":
+                x = self.widget.winfo_rootx() + self.widget.winfo_width() - tip_w
+                y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+            elif self.anchor == "above-left":
+                x = self.widget.winfo_rootx() + self.widget.winfo_width() - tip_w
+                y = self.widget.winfo_rooty() - tip_h - 5
+            elif self.anchor == "above":
+                x = self.widget.winfo_rootx()
+                y = self.widget.winfo_rooty() - tip_h - 5
+            else:
+                x = self.widget.winfo_rootx() + 20
+                y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
             tw.wm_geometry(f"+{x}+{y}")
+            tw.deiconify()
 
         def _hide(self, event=None):
             """Destroy the tooltip window on mouse leave."""
@@ -531,7 +537,7 @@ def _launch_gui():
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             )
             compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=4)
-            Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs")
+            Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs. Templates are search configurations, not compliance certifications")
 
             # Right-aligned grouped: Save Search, Load Saved Search
             save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
@@ -2460,16 +2466,19 @@ def _launch_gui():
             # Starts hidden — shown only during search
 
             import tkinter as _tk_status
-            status_label_left = _tk_status.Label(
-                self.search_bar_frame, text="Status:", font=("TkDefaultFont", 13),
-            )
-            status_label_left.grid(row=3, column=0, padx=(10, 5), pady=(0, 4), sticky="w")
-            Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
             status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            status_row.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=(0, 4), sticky="ew")
+            status_row.grid(row=3, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
 
-            self.status_label = ctk.CTkLabel(
-                status_row, text="", font=ctk.CTkFont(size=13), anchor="w"
+            status_label_left = _tk_status.Label(
+                status_row, text="Status:", font=("TkDefaultFont", 13),
+            )
+            status_label_left.pack(side="left", padx=(0, 5))
+            Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
+
+            import tkinter as _tk_sl
+            self.status_label = _tk_sl.Label(
+                status_row, text="", font=("TkDefaultFont", 13), anchor="w",
+                wraplength=900, fg="black",
             )
             self.status_label.pack(side="left")
 
@@ -2540,7 +2549,7 @@ def _launch_gui():
                     self.clipboard_clear()
                     self.clipboard_append(sel.strip())
                     self.status_label.configure(text="Copied to clipboard.",
-                                                text_color=("gray30", "gray70"))
+                                                fg="black")
             self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
             self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
 
@@ -4455,10 +4464,10 @@ def _launch_gui():
                 command=self._on_text_size_changed,
             )
             text_size_menu.pack(side="right", padx=5)
-            Tooltip(text_size_menu, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above")
+            Tooltip(text_size_menu, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above-left")
             text_size_label = ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11))
             text_size_label.pack(side="right")
-            Tooltip(text_size_label, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above")
+            Tooltip(text_size_label, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above-left")
 
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -4837,7 +4846,7 @@ def _launch_gui():
             except ValueError:
                 _term_count = len(search_text.split())
             _term_label = f"{_term_count} term{'s' if _term_count != 1 else ''}"
-            self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("gray30", "gray70"))
+            self.status_label.configure(text=f"Searching ({_term_label})...", fg="black")
             self.search_start_time = time.time()
             self._start_elapsed_timer()
 
@@ -5107,8 +5116,7 @@ def _launch_gui():
                     status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=status_text,
-                    text_color=("orange",) * 2 if _skip_count else ("gray30", "gray70"),
-                    font=ctk.CTkFont(size=13),
+                    fg="black",
                 )
                 # Post-search save (-s) if user filled in "Save as" field
                 save_name = self.save_name_entry.get().strip()
@@ -5149,8 +5157,7 @@ def _launch_gui():
                     no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=no_match_text,
-                    text_color=("orange",) * 2 if _skip_count else ("gray30", "gray70"),
-                    font=ctk.CTkFont(size=13),
+                    fg="black",
                 )
                 self._show_action_buttons()
             elif returncode == 2:
@@ -5178,8 +5185,7 @@ def _launch_gui():
                     self._show_action_buttons()
             else:
                 self.status_label.configure(
-                    text="Search was cancelled.", text_color=("gray30", "gray70"),
-                    font=ctk.CTkFont(size=13),
+                    text="Search was cancelled.", fg="black",
                 )
 
             # Resume auto-refresh schedule if active
