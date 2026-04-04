@@ -1,6 +1,8 @@
 # docsearch Compliance and Auditing Guide
 
-This guide explains how to use docsearch as a compliance and auditing tool. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
+This guide explains how to use docsearch to help with compliance and auditing workflows. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
+
+> **Disclaimer:** docsearch is a search and reporting tool. It does not provide legal, regulatory, or compliance advice. Templates are document search configurations, not compliance certifications — pass/fail results indicate whether search criteria were met, not whether documents satisfy regulatory requirements. Users are solely responsible for determining whether search results meet their specific compliance obligations.
 
 ## Table of Contents
 

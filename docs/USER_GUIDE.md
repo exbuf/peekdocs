@@ -1776,6 +1776,8 @@ Now that you're comfortable with individual advanced searches, you can:
 
 Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into a document review workflow tool — run the same checks repeatedly and get a report showing which checks passed and which failed.
 
+> **Disclaimer:** Pass/fail results indicate whether your search criteria were met, not whether documents satisfy regulatory requirements. Templates are starting points — you are responsible for verifying that checks meet your specific compliance obligations.
+
 **Note:** Search suites are a GUI feature. They are created, managed, and run from the `docsearch-gui` interface. The CLI (`docsearch`) runs individual searches but does not support running suites. All instructions in this section use the GUI.
 
 **Before you start:** Suites are built from saved searches. A saved search is just a regular search that you've given a name so you can reuse it. Before saving a search, always **run it first** to verify it finds what you expect. If a search doesn't produce the right results as a standalone search, it won't produce the right results inside a suite either. Think of it like writing a recipe — test each step before combining them.
