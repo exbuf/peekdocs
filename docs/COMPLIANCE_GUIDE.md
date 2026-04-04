@@ -120,11 +120,11 @@ Click **View Suite Report** to open the `.docx` report directly.
 
 ## Sample compliance suites by industry
 
-docsearch includes a set of 90 sample documents across 9 industries, each with pre-built compliance suites ready to run. These serve as both a demonstration of docsearch's compliance capabilities and a starting point you can adapt for your own use. The sample documents are located in subfolders under a `googledocs/` folder, with each industry in its own subfolder. Each subfolder contains 10 realistic documents — a mix of compliant and non-compliant files — along with a `.docsearch_collection.json` file containing 8 saved searches and 1 compliance suite.
+docsearch includes a set of 90 sample documents across 9 industries, each with starter search suites ready to run. These serve as both a demonstration of docsearch's document review capabilities and a starting point you can adapt for your own use. The sample documents are located in subfolders under a `googledocs/` folder, with each industry in its own subfolder. Each subfolder contains 10 realistic documents — a mix of compliant and non-compliant files — along with a `.docsearch_collection.json` file containing 8 saved searches and 1 compliance suite.
 
 **Compliance Wizard — the fastest way to get started:**
 
-The **Compliance Wizard** (on the main screen, next to the Search Wizard) creates a complete compliance suite for your industry in one click. Instead of manually building individual searches and assembling them into a suite:
+The **Compliance Wizard** (on the main screen, next to the Search Wizard) creates a search suite from an industry starter template in one click. Instead of manually building individual searches and assembling them into a suite:
 
 1. Click **Compliance Wizard**
 2. Choose your industry from the dropdown (e.g., Healthcare/HIPAA)

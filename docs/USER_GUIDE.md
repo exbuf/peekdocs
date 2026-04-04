@@ -350,7 +350,7 @@ You can also build up the Search Bar in multiple passes — use the wizard once,
 
 **Compliance Wizard:**
 
-Click the **Compliance Wizard** button (next to Search Wizard) to create a complete compliance suite for your industry in one click. Instead of manually building individual searches and assembling them into a suite, pick a template and the wizard does it all:
+Click the **Compliance Wizard** button (next to Search Wizard) to create a search suite from an industry starter template in one click. Instead of manually building individual searches and assembling them into a suite, pick a template and the wizard does it all:
 
 1. **Choose an industry** — select from 9 templates: Financial Services (SOX/BSA/AML), Healthcare (HIPAA), Legal Document Review, Government Records, Manufacturing (ISO 9001), Education (FERPA), Real Estate Closing, Insurance Compliance, or HR Compliance
 2. **Review the checks** — each template includes 8 pre-built checks with search terms, modes (regex, Boolean, inverse), and pass/fail criteria already configured
@@ -1802,14 +1802,14 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 
 Now that you're comfortable with individual advanced searches, you can:
 - **Save searches for reuse** — click **Save Search** to name and store any search you've configured
-- **Build compliance suites** — group saved searches into suites with pass/fail criteria (see below)
+- **Build search suites** — group saved searches into suites with pass/fail criteria (see below)
 - **Read the [Compliance Guide](COMPLIANCE_GUIDE.md)** for 9 industry-specific audit examples
 
 ---
 
 ## Search Suites
 
-Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into an audit automation tool — run the same compliance checks repeatedly and get a report showing which checks passed and which failed.
+Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into a document review workflow tool — run the same checks repeatedly and get a report showing which checks passed and which failed.
 
 **Note:** Search suites are a GUI feature. They are created, managed, and run from the `docsearch-gui` interface. The CLI (`docsearch`) runs individual searches but does not support running suites. All instructions in this section use the GUI.
 
@@ -1819,7 +1819,7 @@ Search suites let you save individual searches, group them into named suites, an
 
 ### Your First Suite — Step by Step
 
-This walkthrough creates a simple 2-check compliance suite that verifies every document has an authorized signature and no documents contain the word "DRAFT." Follow along with any folder containing a few test documents.
+This walkthrough creates a simple 2-check search suite that looks for an authorized signature in every document and checks that no documents contain the word "DRAFT." Follow along with any folder containing a few test documents.
 
 **1. Open the GUI and select a folder**
 
@@ -1880,7 +1880,7 @@ This search checks that no file contains "DRAFT."
 - If `has_signature` shows **FAIL** (red): some files are missing "Authorized Signature" — open the stage report to see which ones
 - If `no_draft` shows **FAIL** (red): some files contain "DRAFT" — open the stage report to see which ones
 
-You now have a reusable compliance suite. Run it again anytime — same folder, same checks, one click. Add more searches to the suite as needed by clicking **Edit Suite**.
+You now have a reusable search suite. Run it again anytime — same folder, same checks, one click. Add more searches to the suite as needed by clicking **Edit Suite**.
 
 For a more detailed compliance walkthrough with 9 industry examples, see the [Compliance Guide](COMPLIANCE_GUIDE.md).
 
@@ -1935,7 +1935,7 @@ The criteria is displayed next to each search in the suite contents list (e.g., 
 
 With the default criteria (`>= 1`), a search passes if it finds at least one match and fails if it finds none. Custom criteria change this — for example, `== 0` makes a search pass only when there are no matches, and `<= 3` passes when there are 3 or fewer matches.
 
-**Compliance audit patterns:** By combining search modes with pass criteria, you can build document-level compliance checks that flag exactly which files pass or fail:
+**Document review patterns:** By combining search modes with pass criteria, you can build document-level checks that flag exactly which files pass or fail:
 
 | Check | How to build it | Criteria | What the report shows |
 |-------|----------------|----------|----------------------|
@@ -1953,7 +1953,7 @@ The key technique is **inverse search + `== 0`**: inverse mode lists files that 
 - **Edit Suite:** Modify which searches are included in an existing suite and change their execution order using the same dual-panel selector with Up/Down reordering.
 - **Delete Suite:** Remove a suite (or multiple selected suites) without affecting the saved searches it references.
 
-**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build compliance suites with complex conditions like "must contain (signature AND date) but NOT draft".
+**Boolean expression searches in suites:** Saved searches fully support expression mode. Toggle the **Expression** checkbox, enter your boolean expression (e.g., `(budget OR revenue) AND NOT draft`), and click **Save Search** — the expression flag and query are preserved. When the suite runs that search, it uses the same boolean logic. This makes it easy to build suites with complex conditions like "must contain (signature AND date) but NOT draft".
 
 **Range queries in suites:** Saved searches fully preserve range filters. Enter your range specs in the **Range** field (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`), configure your text search terms (or leave empty for range-only), and click **Save Search**. When the suite runs that search, the same range filters are applied. Range filters also work with expressions in suites — for example, save a search with expression `budget AND amount:1000..5000` and it will be restored exactly when the suite runs.
 

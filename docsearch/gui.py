@@ -511,7 +511,7 @@ def _launch_gui():
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             )
             compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=4)
-            Tooltip(compliance_wiz_btn, "Create a complete compliance suite from 9 industry templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR)")
+            Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs")
 
             # Right-aligned grouped: Save Search, Load Saved Search
             save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
@@ -632,7 +632,7 @@ def _launch_gui():
             b("wildcards, Boolean expressions, range queries, and more.")
             b("Click the ? button inside Advanced Search Options for help.")
             blank()
-            s("Build compliance suites")
+            s("Build search suites")
             b("Save individual searches and group them into suites")
             b("that run as a batch with pass/fail tracking. Click")
             b("Search Suites to get started.")
@@ -848,7 +848,7 @@ def _launch_gui():
                 self.context_after_entry.insert(0, context_after)
 
         def _open_compliance_wizard(self):
-            """Open the Compliance Wizard to create a pre-built compliance suite."""
+            """Open the Compliance Wizard to create a search suite from an industry starter template."""
             import tkinter as tk
             from tkinter import ttk, messagebox
             from docsearch.compliance_templates import COMPLIANCE_TEMPLATES, COMPLIANCE_CATEGORY_ORDER
@@ -1074,7 +1074,7 @@ def _launch_gui():
                 command=_create_suite,
                 font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="green", hover_color="darkgreen",
-            ).pack(side="right", padx=(5, 0))
+            ).pack(side="left", padx=(0, 5))
 
             ctk.CTkButton(
                 btn_frame, text="Close", width=80,
@@ -1082,7 +1082,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=win.destroy,
                 font=ctk.CTkFont(size=12),
-            ).pack(side="right", padx=(5, 0))
+            ).place(relx=0.5, rely=0.5, anchor="center")
 
             # Load initial category
             _load_checks()
@@ -1212,7 +1212,7 @@ def _launch_gui():
             b("  you click Apply — save your search first if you want to keep it")
             b("• Placeholder values (gray text) are examples — replace them")
             b("  with your own values before clicking Apply")
-            b("• For compliance checks across multiple searches, use the")
+            b("• For document review checks across multiple searches, use the")
             b("  Compliance Wizard instead — it creates an entire suite at once")
             blank()
 
@@ -1361,7 +1361,7 @@ def _launch_gui():
             b("• The created searches appear in your saved searches and can be")
             b("  edited individually later via Load Saved Search")
             blank()
-            b("To apply the same compliance suite to multiple folders, browse to")
+            b("To apply the same search suite to multiple folders, browse to")
             b("each folder and run the Compliance Wizard again. Each folder gets")
             b("its own copy of the searches and suite in its .docsearch_collection.json")
             b("file, so you can customize per folder without affecting the others.")
@@ -3050,7 +3050,7 @@ def _launch_gui():
 
             h("COMPLIANCE AUDIT PATTERNS")
             b("Combine search modes with pass criteria to build document-level")
-            b("compliance checks that flag exactly which files pass or fail:")
+            b("document review checks that flag exactly which files pass or fail:")
             blank()
             s("Every file must contain a term")
             b("Search for the term with Inverse on. Set criteria to == 0.")
@@ -4385,7 +4385,9 @@ def _launch_gui():
             )
             text_size_menu.pack(side="right", padx=5)
             Tooltip(text_size_menu, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically")
-            ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11)).pack(side="right")
+            text_size_label = ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11))
+            text_size_label.pack(side="right")
+            Tooltip(text_size_label, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically")
 
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -4398,6 +4400,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.tooltip_toggle_btn.pack(side="right", padx=5)
+            Tooltip(self.tooltip_toggle_btn, "Turn hover tooltips on or off. When disabled, no tooltip popups appear when you hover over buttons and fields")
 
             self.clear_error_log_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -4423,7 +4426,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.view_error_log_bottom.pack(side="right", padx=5)
-            Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read")
+            self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries")
 
             self.clear_results_btn = ctk.CTkButton(
                 self.bottom_frame,
@@ -4947,6 +4950,18 @@ def _launch_gui():
             _skip_match = _re_fin.search(r"Errors logged to docsearch_errors\.log \((\d+) error", stdout or "")
             _skip_count = int(_skip_match.group(1)) if _skip_match else 0
 
+            # Update error log tooltip with actual path
+            folder = self.folder_entry.get().strip()
+            log_dir = self.results_dir or folder
+            if log_dir:
+                log_path = os.path.join(log_dir, "docsearch_errors.log")
+                self._error_log_tooltip.text = (
+                    f"Open docsearch_errors.log to see details about files that could not be read or were skipped.\n"
+                    f"The log is in your search folder (or output directory if set).\n"
+                    f"Location: {log_path}\n"
+                    f"Scroll to the very bottom of the file to see the most recent entries"
+                )
+
             if returncode == 0:
                 status_text = summary or "Search complete. Matches found."
                 specific = self.specific_files_entry.get().strip()
@@ -5076,13 +5091,24 @@ def _launch_gui():
             )
         def open_error_log(self):
             """Open the docsearch error log file in the default text editor."""
-            folder = self.results_dir or self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
+            # Check results dir first (output dir if set), then search folder
+            candidates = []
+            if self.results_dir:
+                candidates.append(self.results_dir)
+            folder = self.folder_entry.get().strip()
+            if folder and folder not in candidates:
+                candidates.append(folder)
+            if not candidates:
                 self._show_error("Please select a folder first.")
                 return
-            error_log_path = os.path.join(folder, "docsearch_errors.log")
-            if not os.path.exists(error_log_path):
-                self._show_error("No error log found in the selected folder.")
+            error_log_path = None
+            for d in candidates:
+                p = os.path.join(d, "docsearch_errors.log")
+                if os.path.exists(p):
+                    error_log_path = p
+                    break
+            if not error_log_path:
+                self._show_error("No error log found. Check the search folder and output directory.")
                 return
             system = platform.system()
             if system == "Darwin":

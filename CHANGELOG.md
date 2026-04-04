@@ -21,7 +21,7 @@ All notable changes to docsearch are documented here.
 - **46 supported file types** (up from 25) — documents, spreadsheets, emails (.eml, .msg, .pst, .mbox), archives, Apple Pages, calendars (.ics), contacts (.vcf), data/config files, and images (OCR)
 - **Comprehensive -h help** — rewritten with description, usage syntax, file type list, and sections grouped by purpose (Search Modes, Filters, Output, Index, Settings)
 - **Troubleshooting section** expanded to 31 entries covering Windows, macOS, and Linux
-- **Compliance Wizard** — pick an industry template (9 available), review and customize checks, create a complete compliance suite with one click. Templates for Financial Services/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, and HR
+- **Compliance Wizard** — pick an industry starter template (9 available), review and customize checks, create a search suite with one click. Starter templates for Financial Services/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, and HR
 - **Run Suite button** — on the main screen next to Run Search; opens the Manage Suites panel. Green when suites exist, red when none
 - **Suite report preview** — after a suite run, the txt report is displayed in the main preview pane
 - **Compliance and auditing guide** with industry examples, step-by-step instructions, and 9 pre-built sample suites
