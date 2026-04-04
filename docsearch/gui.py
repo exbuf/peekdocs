@@ -1639,8 +1639,9 @@ def _launch_gui():
             blank()
             b("If Use Index is checked, try unchecking it and searching")
             b("directly. A stale index may not contain recently added or")
-            b("changed files. To keep the index current, open Manage")
-            b("Indexes and set Auto-Refresh to an appropriate interval:")
+            b("changed files. When you build an index, Auto-Refresh is")
+            b("set to 1 hour automatically to keep it current. You can")
+            b("change the interval in Manage Indexes:")
             blank()
             b("\u2022 5\u201315 min \u2014 folders where files change frequently")
             b("\u2022 30 min\u20131 hour \u2014 folders that change occasionally")
@@ -5049,6 +5050,19 @@ def _launch_gui():
             # Resume auto-refresh schedule if active
             self._reschedule_refresh()
 
+            # Suggest indexing for large folders without an index
+            if returncode in (0, 1) and self.index_search_var.get() != "on":
+                _files_match = _re_fin.search(r"Files searched:\s*(\d+)", stdout or "")
+                if _files_match:
+                    _file_count = int(_files_match.group(1))
+                    if _file_count >= 100:
+                        from docsearch.indexer import index_exists
+                        if not index_exists(folder):
+                            current = self.status_label.cget("text")
+                            self.status_label.configure(
+                                text=current + "  |  Tip: Build an index for faster searches — click Manage Indexes",
+                            )
+
         def _show_action_buttons(self, inverse=False):
             """Show Matched Files and View Report buttons."""
             self._clear_action_buttons()
@@ -5676,6 +5690,10 @@ def _launch_gui():
                         text=display,
                         text_color=("gray30", "gray70"),
                     )
+                    # Default auto-refresh to 1 hour if currently Off
+                    if self.refresh_interval_var.get() == "Off":
+                        self.refresh_interval_var.set("1 hour")
+                        self._on_refresh_interval_changed("1 hour")
                 else:
                     self._show_error("Index build failed. Check the error log.")
 
@@ -5814,10 +5832,13 @@ def _launch_gui():
             b("2. Click Manage Indexes on the main screen")
             b("3. Click Build Index(es)")
             b("4. Wait \u2014 large folders may take a few minutes")
-            b("5. Check Use Index on the main screen to use it")
             blank()
-            b("The index automatically includes all subfolders. One index")
-            b("in your top folder covers everything underneath it.")
+            b("That's it. Use Index is enabled automatically and Auto-Refresh")
+            b("is set to 1 hour to keep the index current. The index includes")
+            b("all subfolders \u2014 one index in your top folder covers everything.")
+            blank()
+            b("If you search a large folder (100+ files) without an index,")
+            b("docsearch suggests building one on the status line.")
             blank()
 
             h("THE USE INDEX CHECKBOX")
