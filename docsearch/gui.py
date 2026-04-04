@@ -440,7 +440,8 @@ def _launch_gui():
             )
             self.search_bar_frame.grid_columnconfigure(0)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
-            self.search_bar_frame.grid_columnconfigure(2, minsize=170)
+            self.search_bar_frame.grid_columnconfigure(2, minsize=40)
+            self.search_bar_frame.grid_columnconfigure(3, minsize=80)
 
             ctk.CTkLabel(
                 self.search_bar_frame, text="Search Bar",
@@ -454,7 +455,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self._show_search_help,
             )
-            search_help_btn.grid(row=0, column=2, padx=(0, 10), pady=(4, 0), sticky="e")
+            search_help_btn.grid(row=0, column=3, padx=(0, 10), pady=(4, 0), sticky="e")
             Tooltip(search_help_btn, "Search examples and quick-start guide")
 
             label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=28, weight="bold"))
@@ -478,20 +479,20 @@ def _launch_gui():
                 command=self._show_recent_searches,
                 font=ctk.CTkFont(size=14),
             )
-            recent_btn.grid(row=1, column=2, padx=(0, 5), pady=(0, 8), sticky="w")
+            recent_btn.grid(row=1, column=2, padx=(2, 2), pady=(0, 8))
             Tooltip(recent_btn, "Show recent searches — click to re-use a previous search")
 
             clear_button = ctk.CTkButton(
-                self.search_bar_frame, text="Clear", width=90,
+                self.search_bar_frame, text="Clear", width=70,
                 command=lambda: self.search_entry.delete(0, "end"),
                 font=ctk.CTkFont(size=14),
             )
-            clear_button.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
+            clear_button.grid(row=1, column=3, padx=(0, 10), pady=(0, 8))
             Tooltip(clear_button, "Clear the search bar", anchor="left")
 
             # Row 2: action buttons below the search entry
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 10), pady=(0, 8), sticky="ew")
+            btn_frame.grid(row=2, column=1, columnspan=3, padx=(5, 10), pady=(0, 8), sticky="ew")
 
             run_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             run_group.pack(side="left", padx=(0, 8))
@@ -517,7 +518,7 @@ def _launch_gui():
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
-                onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=13, weight="bold"),
             )
             self.cb_index_search.pack(side="right", padx=(5, 15))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
@@ -1378,6 +1379,25 @@ def _launch_gui():
             b("• Open Manage Suites to schedule automatic runs")
             b("• View the suite report in the preview pane")
             b("• Set up email alerts for failures")
+            blank()
+
+            h("SUITE REPORTS")
+            b("Each suite run produces three report files, saved in")
+            b("the search folder (or output directory if set):")
+            blank()
+            b("• .docx — formatted Word document with color-coded")
+            b("  PASS/FAIL summary table, per-stage details, search")
+            b("  criteria, report fingerprint, and source file manifest")
+            b("• .txt — plain text version with the same information")
+            b("• .json — machine-readable version for automation")
+            blank()
+            b("Filenames start with DO_NOT_SEARCH_ so they are never")
+            b("included in future search results.")
+            blank()
+            b("Each report includes a disclaimer at the bottom stating")
+            b("that pass/fail results indicate whether search criteria")
+            b("were met, not whether documents satisfy regulatory")
+            b("requirements.")
             blank()
 
             h("AVAILABLE TEMPLATES")
@@ -2489,7 +2509,7 @@ def _launch_gui():
 
             import tkinter as _tk_status
             status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            status_row.grid(row=3, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
+            status_row.grid(row=3, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
 
             status_label_left = _tk_status.Label(
                 status_row, text="Status:", font=("TkDefaultFont", 13),
