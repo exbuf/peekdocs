@@ -294,10 +294,11 @@ def _launch_gui():
 
         enabled = True
 
-        def __init__(self, widget, text):
+        def __init__(self, widget, text, anchor="right"):
             """Bind hover tooltip with the given text to a widget."""
             self.widget = widget
             self.text = text
+            self.anchor = anchor
             self.tip_window = None
             widget.bind("<Enter>", self._show)
             widget.bind("<Leave>", self._hide)
@@ -311,7 +312,10 @@ def _launch_gui():
             if self.tip_window or not Tooltip.enabled:
                 return
             import tkinter as tk
-            x = self.widget.winfo_rootx() + 20
+            if self.anchor == "left":
+                x = self.widget.winfo_rootx() - 320
+            else:
+                x = self.widget.winfo_rootx() + 20
             y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
             self.tip_window = tw = tk.Toplevel(self.widget)
             tw.wm_overrideredirect(True)
@@ -498,7 +502,7 @@ def _launch_gui():
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=13),
             )
             self.cb_index_search.pack(side="right", padx=(5, 15))
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes")
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
             # Right-aligned grouped: Search Wizard + Compliance Wizard
             wizard_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
@@ -1579,7 +1583,7 @@ def _launch_gui():
 
             h("TIPS")
             b("\u2022 Use Save Search to save a search for reuse in Search Suites.")
-            b("\u2022 Click Open Readme.md in the toolbar for full documentation.")
+            b("\u2022 Click User Guide in the toolbar for full documentation on GitHub.")
             blank()
 
             h("SEARCH SUITES")
@@ -4408,8 +4412,8 @@ def _launch_gui():
 
             self.help_button = ctk.CTkButton(
                 self.bottom_frame,
-                text="Open Readme.md",
-                width=110,
+                text="User Guide",
+                width=90,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -4417,7 +4421,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.help_button.pack(side="left")
-            Tooltip(self.help_button, "Open the docsearch README on GitHub — full documentation, installation guide, and feature reference")
+            Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, COMPLIANCE_GUIDE.md, and API.md are under 'docs' on GitHub")
 
             self.about_button = ctk.CTkButton(
                 self.bottom_frame,
@@ -4484,7 +4488,7 @@ def _launch_gui():
 
             self.clear_results_btn = ctk.CTkButton(
                 self.bottom_frame,
-                text="Clear Results",
+                text="Clear Search Results",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -4561,6 +4565,7 @@ def _launch_gui():
                 self._index_process = None
             self.build_index_button.configure(state="normal", text="Build Index(es)")
             self.cancel_index_button.pack_forget()
+            self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
             self.status_label.configure(text="Index build cancelled.")
             self._update_index_button_color()
 
@@ -4686,7 +4691,10 @@ def _launch_gui():
                 self.process.terminate()
                 return
 
-            # Wait for any in-progress auto-refresh to finish
+            # Wait for any in-progress index build or auto-refresh to finish
+            if hasattr(self, '_index_process') and self._index_process is not None:
+                self._show_error("Index build in progress — please wait for it to finish, or cancel it in Manage Indexes.")
+                return
             if self._refresh_running:
                 self._show_error("Index refresh in progress — please wait a moment.")
                 return
@@ -5266,7 +5274,7 @@ def _launch_gui():
             else:
                 msg += "\n".join(results_files[:10]) + f"\n... and {len(results_files) - 10} more"
             msg += "\n\nThis cannot be undone."
-            if messagebox.askyesno("Clear Results", msg):
+            if messagebox.askyesno("Clear Search Results", msg):
                 deleted = 0
                 for fname in results_files:
                     try:
@@ -5746,6 +5754,7 @@ def _launch_gui():
 
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
             self.cancel_index_button.pack(side="left", padx=5)
+            self.search_button.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
             self.status_label.configure(
                 text="Building index... this may take a few minutes for large folders. Please wait.",
                 text_color=("gray30", "gray70"),
@@ -5782,6 +5791,7 @@ def _launch_gui():
             def _finished(stdout, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
                 self.cancel_index_button.pack_forget()
+                self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
                 self._update_index_button_color()
                 if returncode == 0:
                     summary = ""
@@ -5911,96 +5921,66 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
-            h("WHAT IS AN INDEX?")
-            b("An index is like a book's index \u2014 instead of reading every")
-            b("page to find a word, you look it up in the back and go")
-            b("straight to the right page. Without an index, docsearch")
-            b("opens and reads every file each time you search. With an")
-            b("index, docsearch reads files once, stores the text in a")
-            b("database, and searches that database on every subsequent")
-            b("search. The result is the same \u2014 you get the same matches")
-            b("\u2014 but repeated searches are much faster.")
+            h("QUICK START")
+            b("Click Build Index(es) and you're done. docsearch reads")
+            b("your files once, enables Use Index, and sets Auto-Refresh")
+            b("to 1 hour. All future searches are faster and the index")
+            b("stays current automatically.")
             blank()
 
-            h("WHEN TO USE AN INDEX")
-            s("Good for:")
-            b("\u2022 Large folders with hundreds or thousands of files")
-            b("\u2022 Folders you search repeatedly (compliance audits, etc.)")
-            b("\u2022 Running search suites on a schedule")
+            h("BUTTONS ON THIS PANEL")
             blank()
-            s("Not needed for:")
-            b("\u2022 Small folders (under 50 files) \u2014 direct scanning is fast")
-            b("\u2022 One-off searches you won't repeat")
+            s("Build Index(es)")
+            b("Reads every file in the search folder (and all subfolders)")
+            b("and stores the extracted text in a database. Run Search is")
+            b("disabled while this runs. May take a few minutes for large")
+            b("folders.")
             blank()
-            s("May be slower than direct scanning when:")
-            b("\u2022 Your folder has a few very large files (long PDFs, huge")
-            b("  spreadsheets) that produce millions of text lines")
-            b("\u2022 The index becomes very large (check with Index Status)")
-            b("If indexed searches feel slow, uncheck Use Index on the")
-            b("main screen and search directly instead.")
+            s("Delete Index(es)")
+            b("Removes the index database. Searches go back to reading")
+            b("files directly. You can rebuild anytime.")
             blank()
-
-            h("HOW TO BUILD AN INDEX")
-            b("1. Browse to the folder you want to index")
-            b("2. Click Manage Indexes on the main screen")
-            b("3. Click Build Index(es)")
-            b("4. Wait \u2014 large folders may take a few minutes")
+            s("Index Status")
+            b("Shows how many files are indexed, the database size, and")
+            b("when it was last updated.")
             blank()
-            b("That's it. Use Index is enabled automatically and Auto-Refresh")
-            b("is set to 1 hour to keep the index current. The index includes")
-            b("all subfolders \u2014 one index in your top folder covers everything.")
+            s("Auto-Refresh")
+            b("Keeps the index current by checking for new, changed, and")
+            b("deleted files at the interval you choose. Set automatically")
+            b("to 1 hour when you first build an index. Change it anytime:")
             blank()
-            b("If you search a large folder (100+ files) without an index,")
-            b("docsearch suggests building one on the status line.")
+            b("\u2022 5\u201315 min \u2014 files change frequently")
+            b("\u2022 30 min\u20131 hour \u2014 files change occasionally")
+            b("\u2022 4\u201324 hours \u2014 stable folders")
+            b("\u2022 Off \u2014 rebuild manually when needed")
             blank()
 
-            h("THE USE INDEX CHECKBOX")
-            b("The Use Index checkbox on the main screen controls whether")
-            b("searches use the index or scan files directly. When an index")
-            b("exists, the checkbox is enabled and checked automatically.")
-            b("Uncheck it if you prefer direct scanning for a particular")
-            b("search. If no index exists for the current folder, the")
-            b("checkbox is grayed out and unavailable — build an index")
-            b("first to enable it.")
+            h("USE INDEX CHECKBOX (MAIN SCREEN)")
+            b("Controls whether searches use the index or read files")
+            b("directly. Enabled automatically when an index exists.")
+            b("Grayed out when no index exists. Uncheck it to compare")
+            b("indexed vs direct results, or if indexed search feels")
+            b("slower for your particular folder.")
             blank()
 
-            h("HOW THE INDEX STAYS CURRENT")
-            b("Use Auto-Refresh to keep the index up to date while the")
-            b("app is open. It checks for new, changed, and deleted files")
-            b("at the interval you choose (5 min to 24 hours).")
-            b("You can also rebuild manually anytime with Build Index(es).")
+            h("DO I NEED AN INDEX?")
+            b("Yes, if you search the same folder often (100+ files).")
+            b("No, if your folder is small or you rarely re-search it.")
+            b("docsearch suggests building one when it would help.")
+            blank()
+            b("If indexed search feels slower than direct search,")
+            b("uncheck Use Index. This can happen with folders that")
+            b("have a few very large files instead of many small ones.")
             blank()
 
-            h("IDENTICAL RESULTS")
-            b("Indexed searches produce the exact same results as direct")
-            b("searches. The index just skips the file-parsing step. You")
-            b("can verify this by unchecking Use Index and comparing.")
-            b("The index is typically 10\u201320% the size of your original files.")
-            blank()
-
-            h("INDEX FILES")
-            b("The index is stored as .docsearch.db in the search folder.")
-            b("It also creates temporary .docsearch.db-wal and -shm files")
-            b("for concurrent access. All are safe to delete \u2014 rebuild")
-            b("with Build Index(es) anytime.")
-            blank()
-            b("To remove the index completely, click Delete Index(es).")
-            blank()
-
-            h("INDEXES AND SUBFOLDERS")
-            b("Each folder can have its own index. If you build an index")
-            b("in a top folder, it covers all subfolders. If you also")
-            b("build indexes in subfolders, they are independent \u2014 they")
-            b("don't interfere with each other. The simplest approach is")
-            b("one index in your top folder.")
-            blank()
-
-            h("INDEXES AND SEARCH SUITES")
-            b("The Use Index setting is saved per search when you click")
-            b("Save Search. When a suite runs, each search uses whatever")
-            b("index setting it was saved with. If a saved search has")
-            b("indexing enabled but no index exists, it falls back to")
-            b("direct scanning automatically.")
+            h("GOOD TO KNOW")
+            b("\u2022 Results are identical with or without an index")
+            b("\u2022 The index is one file (.docsearch.db) in your search folder")
+            b("\u2022 One index covers the folder and all subfolders")
+            b("\u2022 Safe to delete \u2014 rebuild with Build Index(es) anytime")
+            b("\u2022 Suites use whatever index setting each search was saved with")
+            b("\u2022 If a suite search needs an index but none exists, it falls")
+            b("  back to direct scanning automatically")
 
             txt.configure(state="disabled")
 
@@ -6104,8 +6084,8 @@ def _launch_gui():
             ).pack(pady=(5, 10))
 
         def open_help(self):
-            """Open the docsearch README in the default web browser."""
-            webbrowser.open("https://github.com/exbuf/docsearch#readme")
+            """Open the docsearch User Guide in the default web browser."""
+            webbrowser.open("https://github.com/exbuf/docsearch/blob/main/docs/USER_GUIDE.md")
 
         def show_about(self):
             """Show the About dialog with version and author information."""
