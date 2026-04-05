@@ -202,12 +202,12 @@ def _parse_summary_text(stdout):
 
 
 def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
-    """Parse docsearch_results.txt and return a list of (filepath, filename, count) tuples."""
+    """Parse docsearch_results.txt and return a list of (filepath, filename, count, line_nums) tuples."""
     results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
-    counts = {}  # filepath -> (filepath, filename, count)
-    order = []   # preserve first-appearance order
+    data = {}  # filepath -> {"filename": ..., "count": int, "lines": [int, ...]}
+    order = []
     with open(results_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     i = 0
@@ -222,18 +222,29 @@ def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
                     raw_name = line.split("Document: ")[1].split(", Line: ")[0]
                     # Strip per-file match count suffix e.g. "report.pdf (5 matches)"
                     filename = re.sub(r"\s+\(\d+ match(?:es)?\)$", "", raw_name)
+                    # Extract line number after ", Line: "
+                    line_num_str = line.split(", Line: ")[1].strip()
+                    # Strip any trailing comma and split on whitespace/punctuation
+                    line_num_match = re.match(r"(\d+)", line_num_str)
+                    line_num = int(line_num_match.group(1)) if line_num_match else None
                     filepath = os.path.join(file_dir, filename)
-                    if filepath in counts:
-                        counts[filepath] = (filepath, filename, counts[filepath][2] + 1)
+                    if filepath in data:
+                        data[filepath]["count"] += 1
+                        if line_num is not None:
+                            data[filepath]["lines"].append(line_num)
                     else:
-                        counts[filepath] = (filepath, filename, 1)
+                        data[filepath] = {
+                            "filename": filename,
+                            "count": 1,
+                            "lines": [line_num] if line_num is not None else [],
+                        }
                         order.append(filepath)
         i += 1
-    return [counts[fp] for fp in order]
+    return [(fp, data[fp]["filename"], data[fp]["count"], data[fp]["lines"]) for fp in order]
 
 
 def _parse_inverse_files(results_dir, results_filename="docsearch_results.txt"):
-    """Parse docsearch_results.txt for inverse search and return (filepath, filename, 0) tuples."""
+    """Parse docsearch_results.txt for inverse search and return (filepath, filename, 0, []) tuples."""
     results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
@@ -260,7 +271,7 @@ def _parse_inverse_files(results_dir, results_filename="docsearch_results.txt"):
                         file_dir = dir_line[1:-1]
                         filename = line
                         filepath = os.path.join(file_dir, filename)
-                        result.append((filepath, filename, 0))
+                        result.append((filepath, filename, 0, []))
                         i += 2
                         continue
         i += 1
@@ -2525,7 +2536,7 @@ def _launch_gui():
             self.status_label.pack(side="left")
 
             self._matched_files_link = ctk.CTkLabel(
-                status_row, text="", font=ctk.CTkFont(size=13, underline=True),
+                status_row, text="", font=ctk.CTkFont(size=15, weight="bold", underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
             self._matched_files_link.pack(side="left", padx=(8, 0))
@@ -2605,7 +2616,8 @@ def _launch_gui():
                     return
                 # Extract path from the line (format: "── filename (dir) ──" or just a path)
                 # Try matched_files list first
-                for filepath, fname, _count in getattr(self, 'matched_files', []):
+                for _item in getattr(self, 'matched_files', []):
+                    filepath, fname = _item[0], _item[1]
                     if fname in line:
                         if os.path.exists(filepath):
                             system = platform.system()
@@ -5053,7 +5065,7 @@ def _launch_gui():
             if self._inverse_results:
                 self._preview_count_label.configure(text=f"{match_count} file(s) without matches")
             else:
-                total_matches = sum(c for _, _, c in self.matched_files)
+                total_matches = sum(item[2] for item in self.matched_files)
                 self._preview_count_label.configure(text=f"{total_matches} match(es) in {match_count} file(s)")
 
             # Show the preview frame
@@ -6059,7 +6071,7 @@ def _launch_gui():
             selection = self.files_listbox.curselection()
             if not selection:
                 return
-            filepath, _, _ = self.matched_files[selection[0]]
+            filepath = self.matched_files[selection[0]][0]
             if not os.path.exists(filepath):
                 self._show_error(f"File not found: {filepath}")
                 return
@@ -6089,7 +6101,7 @@ def _launch_gui():
                 heading = f"Matched Files ({count})"
             popup.title(heading)
             popup.resizable(True, True)
-            win_h = max(250, min(600, count * 28 + 120))
+            win_h = max(320, min(650, count * 28 + 180))
             popup.geometry(f"500x{win_h}")
             self.update_idletasks()
             x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
@@ -6121,14 +6133,25 @@ def _launch_gui():
             listbox.pack(side="left", fill="both", expand=True)
             scrollbar.config(command=listbox.yview)
 
-            for filepath, filename, match_count in self.matched_files:
-                listbox.insert("end", f"{filename} ({match_count} match{'es' if match_count != 1 else ''})")
+            for item in self.matched_files:
+                filepath, filename, match_count = item[0], item[1], item[2]
+                line_nums = item[3] if len(item) > 3 else []
+                label = f"{filename} ({match_count} match{'es' if match_count != 1 else ''}"
+                if line_nums:
+                    # Show up to 10 line numbers, then ellipsis
+                    shown = line_nums[:10]
+                    lines_str = ", ".join(str(n) for n in shown)
+                    if len(line_nums) > 10:
+                        lines_str += ", ..."
+                    label += f" — lines {lines_str}"
+                label += ")"
+                listbox.insert("end", label)
 
             def _on_click(event):
                 selection = listbox.curselection()
                 if not selection:
                     return
-                filepath, _, _ = self.matched_files[selection[0]]
+                filepath = self.matched_files[selection[0]][0]
                 if not os.path.exists(filepath):
                     self._show_error(f"File not found: {filepath}")
                     return
@@ -6142,9 +6165,134 @@ def _launch_gui():
 
             listbox.bind("<Double-1>", _on_click)
 
+            def _view_text():
+                selection = listbox.curselection()
+                if not selection:
+                    return
+                filepath, filename = self.matched_files[selection[0]][0], self.matched_files[selection[0]][1]
+                if not os.path.exists(filepath):
+                    self._show_error(f"File not found: {filepath}")
+                    return
+                self._show_file_text_view(filepath, filename)
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
             tk.Button(
-                popup, text="Close", width=10,
+                btn_frame, text="View Text (with line numbers)", width=28,
+                command=_view_text,
+            ).pack(side="left", padx=5)
+            tk.Button(
+                btn_frame, text="Close", width=10,
                 command=popup.destroy,
+            ).pack(side="left", padx=5)
+
+        def _show_file_text_view(self, filepath, filename):
+            """Display extracted text of a file with line numbers and match highlighting."""
+            import tkinter as tk
+            from docsearch.scanner import _extract_lines, _ocr_image
+            import re as _re_view
+
+            try:
+                lines = _extract_lines(filepath, use_ocr=False, ocr_func=_ocr_image)
+            except Exception as e:
+                self._show_error(f"Could not extract text from {filename}: {e}")
+                return
+
+            win = tk.Toplevel(self)
+            win.title(f"Text View — {filename}")
+            win.geometry("900x600")
+            win.resizable(True, True)
+
+            tk.Label(
+                win, text=f"{filename}  —  {len(lines)} line(s) extracted",
+                font=("TkDefaultFont", 12, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                win, text="Line numbers match those shown in the Results Preview. "
+                          "Matches are highlighted in yellow.",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 8))
+
+            text_frame = tk.Frame(win)
+            text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            scrollbar = tk.Scrollbar(text_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            txt = tk.Text(
+                text_frame, wrap="word", font=("Courier", 11),
+                yscrollcommand=scrollbar.set, padx=8, pady=5,
+                bg="white", fg="black",
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("line_num", foreground="#888888")
+            txt.tag_configure("match", background="#FFFF00")
+
+            # Build highlight pattern from current search
+            search_text = self.search_entry.get().strip()
+            patterns = []
+            if search_text:
+                use_regex = self.regex_var.get() == "on"
+                use_wildcard = self.wildcard_var.get() == "on"
+                use_whole_word = self.whole_word_var.get() == "on"
+                is_expression = self.expression_var.get() == "on"
+                if is_expression:
+                    try:
+                        from docsearch.expr_parser import parse_expression, extract_positive_terms
+                        terms = extract_positive_terms(parse_expression(search_text))
+                    except Exception:
+                        terms = search_text.split()
+                else:
+                    terms = search_text.split()
+                for term in terms:
+                    if use_wildcard:
+                        from docsearch.scanner import _wildcard_to_regex
+                        patterns.append(_wildcard_to_regex(term))
+                    elif use_regex:
+                        patterns.append(term)
+                    elif use_whole_word:
+                        patterns.append(r'\b' + _re_view.escape(term) + r'\b')
+                    else:
+                        patterns.append(_re_view.escape(term))
+
+            combined_re = None
+            if patterns:
+                try:
+                    combined_re = _re_view.compile("|".join(f"({p})" for p in patterns), _re_view.IGNORECASE)
+                except _re_view.error:
+                    combined_re = None
+
+            # Calculate line number column width
+            max_ln = max((ln for ln, _ in lines), default=1)
+            ln_width = len(str(max_ln))
+
+            first_match_line = None
+            for line_num, text in lines:
+                prefix = f"{line_num:>{ln_width}}  "
+                txt.insert("end", prefix, "line_num")
+                line_start_idx = txt.index("end-1c")
+                txt.insert("end", text + "\n")
+                # Highlight matches on this line
+                if combined_re:
+                    for m in combined_re.finditer(text):
+                        start_col = m.start()
+                        end_col = m.end()
+                        start_idx = f"{line_start_idx}+{start_col}c"
+                        end_idx = f"{line_start_idx}+{end_col}c"
+                        txt.tag_add("match", start_idx, end_idx)
+                        if first_match_line is None:
+                            first_match_line = line_num
+
+            txt.configure(state="disabled")
+
+            # Scroll to first match
+            if first_match_line is not None:
+                # Find position of first match line in text widget
+                txt.see(f"1.0 + {lines.index((first_match_line, dict(lines)[first_match_line]))} lines")
+
+            tk.Button(
+                win, text="Close", width=10, command=win.destroy,
             ).pack(pady=(5, 10))
 
         def open_help(self):
