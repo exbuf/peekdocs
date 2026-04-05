@@ -303,7 +303,7 @@ def _launch_gui():
     class Tooltip:
         """Simple hover tooltip for any widget."""
 
-        enabled = True
+        enabled = False
 
         def __init__(self, widget, text, anchor="right"):
             """Bind hover tooltip with the given text to a widget."""
@@ -3545,7 +3545,7 @@ def _launch_gui():
                     self._apply_params_to_gui(params)
                     self.status_label.configure(
                         text=f"Loaded search '{name}' from collection.",
-                        text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
+                        fg="black", font=ctk.CTkFont(size=13),
                     )
                 popup.destroy()
                 self._load_search_popup = None
@@ -3568,7 +3568,7 @@ def _launch_gui():
                 self._refresh_suite_panel()
                 self.status_label.configure(
                     text=f"Deleted saved search '{name}'.",
-                    text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
+                    fg="black", font=ctk.CTkFont(size=13),
                 )
                 if listbox.size() == 0:
                     listbox.insert("end", "(no saved searches)")
@@ -4532,7 +4532,7 @@ def _launch_gui():
 
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
-                text="Disable Hover Text",
+                text="Enable Hover Text",
                 width=130,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -4640,18 +4640,15 @@ def _launch_gui():
 
         def _cancel_index_build(self):
             """Cancel an in-progress index build."""
+            self._index_cancelled = True
+            # For older subprocess-based builds (safety), also try terminate
             if hasattr(self, '_index_process') and self._index_process is not None:
-                try:
-                    self._index_process.terminate()
-                except Exception:
-                    pass
-                self._index_process = None
-            self.build_index_button.configure(state="normal", text="Build Index(es)")
-            self.cancel_index_button.pack_forget()
-            self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
-            self._update_run_suite_button_color()
-            self.status_label.configure(text="Index build cancelled.")
-            self._update_index_button_color()
+                if hasattr(self._index_process, 'terminate'):
+                    try:
+                        self._index_process.terminate()
+                    except Exception:
+                        pass
+            self.status_label.configure(text="Cancelling index build...", fg="black")
 
         def _browse_file(self):
             """Open a file picker, set the folder to the file's directory and specific file to search."""
@@ -4686,7 +4683,7 @@ def _launch_gui():
                 self._update_run_suite_button_color()
                 self.status_label.configure(
                     text=f"File selected: {filename} in {folder}",
-                    text_color=("gray30", "gray70"),
+                    fg="black",
                 )
 
         def browse_folder(self):
@@ -4728,7 +4725,7 @@ def _launch_gui():
             if not self._recent_searches:
                 self.status_label.configure(
                     text="No recent searches yet.",
-                    text_color=("gray30", "gray70"),
+                    fg="black",
                     font=ctk.CTkFont(size=13),
                 )
                 return
@@ -5839,71 +5836,80 @@ def _launch_gui():
             self.run_suite_main_btn.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
             self.status_label.configure(
                 text="Building index... this may take a few minutes for large folders. Please wait.",
-                text_color=("gray30", "gray70"),
+                fg="black",
             )
 
-            def _run():
-                try:
-                    import subprocess as _sp
-                    # Use a separate Python script to avoid all encoding/pipe issues
-                    script = (
-                        "import sys, os; "
-                        "sys.stdout = sys.stderr = open(os.devnull, 'w'); "
-                        f"os.chdir({folder!r}); "
-                        "from docsearch.cli import main; "
-                        "rc = main(['--index', '-r', '-q']); "
-                        "sys.exit(rc or 0)"
-                    )
-                    kwargs = {}
-                    if sys.platform == "win32":
-                        kwargs["creationflags"] = _sp.CREATE_NO_WINDOW
-                    proc = _sp.Popen(
-                        [sys.executable, "-c", script],
-                        stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
-                        **kwargs,
-                    )
-                    self._index_process = proc
-                    proc.wait()
-                    self._index_process = None
-                    returncode = proc.returncode
-                except Exception as e:
-                    returncode = -1
-                self.after(0, _finished, "", returncode)
+            self._index_cancelled = False
+            # Shared progress state (thread writes, main thread polls)
+            self._index_progress = {"done": 0, "total": 0, "filename": "", "finished": False, "result": None, "returncode": None}
 
-            def _finished(stdout, returncode):
+            def _progress_callback(done, total_count, filename):
+                if self._index_cancelled:
+                    raise InterruptedError("Index build cancelled by user")
+                self._index_progress["done"] = done + 1
+                self._index_progress["total"] = total_count
+                self._index_progress["filename"] = filename or ""
+
+            def _poll_progress():
+                if self._index_progress["finished"]:
+                    _finished(self._index_progress["result"], self._index_progress["returncode"])
+                    return
+                done = self._index_progress["done"]
+                total = self._index_progress["total"]
+                fname = self._index_progress["filename"]
+                if total > 0:
+                    short_name = os.path.basename(fname) if fname else ""
+                    if len(short_name) > 50:
+                        short_name = short_name[:47] + "..."
+                    self.status_label.configure(
+                        text=f"Building index... {done}/{total} files: {short_name}",
+                        fg="black",
+                    )
+                self.after(300, _poll_progress)
+
+            def _run():
+                build_result = None
+                try:
+                    from docsearch.indexer import build_index
+                    self._index_process = "running"  # sentinel so start_search knows
+                    build_result = build_index(folder, recursive=True, use_ocr=False,
+                                               progress_callback=_progress_callback)
+                    returncode = 0
+                except InterruptedError:
+                    returncode = 2
+                except Exception as e:
+                    build_result = {"error": str(e)}
+                    returncode = -1
+                finally:
+                    self._index_process = None
+                self._index_progress["result"] = build_result
+                self._index_progress["returncode"] = returncode
+                self._index_progress["finished"] = True
+
+            def _finished(result, returncode):
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
                 self.cancel_index_button.pack_forget()
                 self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
                 self._update_run_suite_button_color()
                 self._update_index_button_color()
-                if returncode == 0:
-                    summary = ""
-                    elapsed = ""
-                    index_file = ""
-                    for line in stdout.strip().split("\n"):
-                        if line.startswith("Index built:"):
-                            summary = line
-                        elif line.startswith("Elapsed:"):
-                            elapsed = line.strip().replace("Elapsed:", "").strip()
-                        elif line.startswith("Index file:"):
-                            index_file = line.strip()
-                    display = summary or "Index built successfully."
-                    if elapsed:
-                        display += f", {elapsed}"
-                    if index_file:
-                        display += f"  ({index_file.replace('Index file:', '').strip()})"
-                    self.status_label.configure(
-                        text=display,
-                        text_color=("gray30", "gray70"),
-                    )
+                if returncode == 0 and result:
+                    fc = result.get("file_count", 0)
+                    lc = result.get("line_count", 0)
+                    el = result.get("elapsed", 0)
+                    display = f"Index built: {fc} files, {lc:,} lines in {el:.1f}s"
+                    self.status_label.configure(text=display, fg="black")
                     # Default auto-refresh to 1 hour if currently Off
                     if self.refresh_interval_var.get() == "Off":
                         self.refresh_interval_var.set("1 hour")
                         self._on_refresh_interval_changed("1 hour")
+                elif returncode == 2:
+                    self.status_label.configure(text="Index build cancelled.", fg="black")
                 else:
-                    self._show_error("Index build failed. Check the error log.")
+                    err_msg = (result or {}).get("error", "Unknown error")
+                    self.status_label.configure(text=f"Index build failed: {err_msg}", fg="red")
 
             threading.Thread(target=_run, daemon=True).start()
+            self.after(300, _poll_progress)
 
         def delete_index_action(self):
             """Delete the search index from the selected folder."""
@@ -5916,15 +5922,16 @@ def _launch_gui():
             try:
                 result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
                 msg = result.stdout.strip()
-                self.status_label.configure(
-                    text=msg or "Index removed.",
-                    text_color=("gray30", "gray70"),
-                )
-                self._update_index_button_color()
-                self.refresh_interval_var.set("Off")
-                self._on_refresh_interval_changed("Off")
             except Exception:
                 self._show_error("Failed to delete index.")
+                return
+            self.status_label.configure(
+                text=msg or "Index removed.",
+                fg="black",
+            )
+            self._update_index_button_color()
+            self.refresh_interval_var.set("Off")
+            self._on_refresh_interval_changed("Off")
 
         def index_status_action(self):
             """Display index status information in a popup window."""
@@ -5933,20 +5940,39 @@ def _launch_gui():
                 self._show_error("Please select a valid folder.")
                 return
 
-            cmd = [sys.executable, "-m", "docsearch", "-q", "--index-status"]
+            # Read index status directly — no subprocess needed
             try:
-                result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
-                stdout = result.stdout.strip()
-            except Exception:
-                self._show_error("Failed to get index status.")
+                from docsearch.indexer import index_status as _idx_status
+                from docsearch.constants import INDEX_FILENAME as _IDX_FILE
+                status = _idx_status(folder)
+            except Exception as e:
+                self._show_error(f"Failed to get index status: {e}")
                 return
 
-            if not stdout or "No index found" in stdout:
+            if status is None:
                 self.status_label.configure(
                     text="No index found. Click Build Index(es) to create one.",
-                    text_color=("gray30", "gray70"),
+                    fg="black",
                 )
                 return
+
+            # Build status text
+            from docsearch.reporter import fmt_size as _fmt_size
+            db_path = os.path.join(folder, _IDX_FILE)
+            stdout = (
+                "Index status:\n"
+                f"  Index file:     {_IDX_FILE}\n"
+                f"  Folder:         {folder}\n"
+                f"  Full path:      {db_path}\n"
+                f"  Files indexed:  {status.get('file_count', '?')}\n"
+                f"  Lines indexed:  {status.get('line_count', '?')}\n"
+                f"  Database size:  {_fmt_size(status.get('db_size', 0))}\n"
+                f"  Created:        {status.get('created_at', '?')}\n"
+                f"  Last updated:   {status.get('last_updated', status.get('created_at', '?'))}\n"
+                f"  Recursive:      {status.get('recursive', '?')}\n"
+                f"  OCR:            {status.get('use_ocr', '?')}\n"
+                f"  docsearch ver:  {status.get('docsearch_version', '?')}"
+            )
 
             import tkinter as tk
             status_win = tk.Toplevel(self)
@@ -6184,14 +6210,30 @@ def _launch_gui():
 
             btn_frame = tk.Frame(popup)
             btn_frame.pack(pady=(5, 10))
-            tk.Button(
-                btn_frame, text="View Text (with line numbers)", width=28,
-                command=_view_text,
-            ).pack(side="left", padx=5)
-            tk.Button(
-                btn_frame, text="Close", width=10,
-                command=popup.destroy,
-            ).pack(side="left", padx=5)
+
+            view_btn = tk.Label(
+                btn_frame, text="View Text (with line numbers)",
+                font=("TkDefaultFont", 13, "bold"),
+                bg="#FF6B35", fg="white",
+                relief="raised", borderwidth=2,
+                padx=20, pady=8, cursor="hand2",
+            )
+            view_btn.pack(side="left", padx=5)
+            view_btn.bind("<Button-1>", lambda e: _view_text())
+            view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#E55A2B"))
+            view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF6B35"))
+
+            close_btn = tk.Label(
+                btn_frame, text="Close",
+                font=("TkDefaultFont", 13, "bold"),
+                bg="#888888", fg="white",
+                relief="raised", borderwidth=2,
+                padx=20, pady=8, cursor="hand2",
+            )
+            close_btn.pack(side="left", padx=5)
+            close_btn.bind("<Button-1>", lambda e: popup.destroy())
+            close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
+            close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
 
         def _show_file_text_view(self, filepath, filename):
             """Display extracted text of a file with line numbers and match highlighting."""
@@ -6541,7 +6583,7 @@ def _launch_gui():
                     os.remove(path)
             self.status_label.configure(
                 text="Settings saved to ~/.docsearchrc",
-                text_color=("gray30", "gray70"),
+                fg="black",
                 font=ctk.CTkFont(size=13),
             )
 
@@ -6669,7 +6711,7 @@ def _launch_gui():
                 self._on_suite_schedule_changed("Off")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
-                text="", font=ctk.CTkFont(size=13), text_color=("gray30", "gray70")
+                text="", text_color=("gray30", "gray70")
             )
             self._clear_action_buttons()
             self._hide_files_list()
@@ -6686,7 +6728,7 @@ def _launch_gui():
         def _show_error(self, message):
             """Display an error message in the status label and a modal dialog."""
             self.status_label.configure(
-                text=message, text_color="red", font=ctk.CTkFont(size=13, weight="bold")
+                text=message, fg="red"
             )
             self.bell()
             messagebox.showerror("Error", message)
@@ -6818,7 +6860,7 @@ def _launch_gui():
                     dialog.destroy()
                     self.status_label.configure(
                         text=f"Search '{name}' saved to collection.",
-                        text_color=("gray30", "gray70"), font=ctk.CTkFont(size=13),
+                        fg="black", font=ctk.CTkFont(size=13),
                     )
                     if self.suite_window is not None and self.suite_visible:
                         self._refresh_suite_panel()
