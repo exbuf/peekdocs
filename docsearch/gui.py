@@ -2541,12 +2541,13 @@ def _launch_gui():
             )
             self.status_label.pack(side="left")
 
-            self._matched_files_link = ctk.CTkLabel(
-                status_row, text="", font=ctk.CTkFont(size=15, weight="bold", underline=True),
-                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
+            self._matched_files_link = ctk.CTkButton(
+                status_row, text="", font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
+                cursor="hand2", height=32,
+                command=self._show_matched_files_popup,
             )
-            self._matched_files_link.pack(side="left", padx=(8, 0))
-            self._matched_files_link.bind("<Button-1>", lambda e: self._show_matched_files_popup())
+            self._matched_files_link.pack(side="left", padx=(12, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
 
             self.matched_files = []
@@ -6292,10 +6293,13 @@ def _launch_gui():
 
             txt.configure(state="disabled")
 
-            # Scroll to first match
-            if first_match_line is not None:
-                # Find position of first match line in text widget
-                txt.see(f"1.0 + {lines.index((first_match_line, dict(lines)[first_match_line]))} lines")
+            # Scroll to first match using the match tag
+            first_match_range = txt.tag_ranges("match")
+            if first_match_range:
+                txt.see(first_match_range[0])
+                # Also highlight the first match more prominently
+                txt.tag_configure("first_match", background="#FF6B35", foreground="white")
+                txt.tag_add("first_match", first_match_range[0], first_match_range[1])
 
             tk.Button(
                 win, text="Close", width=10, command=win.destroy,
