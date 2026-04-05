@@ -117,14 +117,11 @@ def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
             if size_mb > max_file_size_mb:
                 return 0
         except OSError:
-            return 0
+            pass  # If we can't stat, try to index anyway (matches direct search)
 
     try:
         all_lines = _extract_lines(filepath, use_ocr, ocr_func)
     except Exception:
-        return 0
-
-    if not all_lines:
         return 0
 
     try:
@@ -132,6 +129,8 @@ def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
     except OSError:
         return 0
 
+    # Insert file record even if all_lines is empty, so empty/unparseable files
+    # still appear in the index (matches direct search behavior)
     cursor = conn.execute(
         "INSERT INTO files (filepath, filename, file_dir, extension, size, mtime) "
         "VALUES (?, ?, ?, ?, ?, ?)",
@@ -139,11 +138,12 @@ def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
     )
     file_id = cursor.lastrowid
 
-    lines_to_insert = [(file_id, ln, text) for ln, text in all_lines if text.strip()]
-    conn.executemany(
-        "INSERT INTO paragraphs (file_id, line_num, text) VALUES (?, ?, ?)",
-        lines_to_insert,
-    )
+    lines_to_insert = [(file_id, ln, text) for ln, text in (all_lines or []) if text.strip()]
+    if lines_to_insert:
+        conn.executemany(
+            "INSERT INTO paragraphs (file_id, line_num, text) VALUES (?, ?, ?)",
+            lines_to_insert,
+        )
 
     return len(lines_to_insert)
 
@@ -216,14 +216,13 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
             errors.append((filename, str(e)))
             continue
 
-        if not all_lines:
-            continue
-
         try:
             stat = os.stat(filepath)
         except OSError:
             continue
 
+        # Insert file record even if empty so it appears in the index
+        # (matches direct search behavior — empty files are "searched" too)
         ext = os.path.splitext(filename)[1].lower()
         cursor = conn.execute(
             "INSERT INTO files (filepath, filename, file_dir, extension, size, mtime) "
@@ -232,11 +231,12 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
         )
         file_id = cursor.lastrowid
 
-        lines_to_insert = [(file_id, ln, text) for ln, text in all_lines if text.strip()]
-        conn.executemany(
-            "INSERT INTO paragraphs (file_id, line_num, text) VALUES (?, ?, ?)",
-            lines_to_insert,
-        )
+        lines_to_insert = [(file_id, ln, text) for ln, text in (all_lines or []) if text.strip()]
+        if lines_to_insert:
+            conn.executemany(
+                "INSERT INTO paragraphs (file_id, line_num, text) VALUES (?, ?, ?)",
+                lines_to_insert,
+            )
 
         file_count += 1
         line_count += len(lines_to_insert)
@@ -495,15 +495,18 @@ def search_with_index(directory, config, file_types=None, file_names=None):
 
     # Report files in the folder that aren't in the index — for consistency
     # with direct search. Includes oversized files and any that couldn't be
-    # read during indexing.
+    # read during indexing. Use normalized paths to avoid false mismatches
+    # on Windows (case-insensitive, backslashes vs forward slashes).
     max_mb = config.get("max_file_size_mb", 100)
     from docsearch.scanner import discover_files as _discover
     use_ocr = config.get("use_ocr", False)
     disc = _discover(directory, recursive=True, use_ocr=use_ocr)
     if not isinstance(disc, tuple):
-        indexed_set = set(all_indexed_files)
+        def _norm(p):
+            return os.path.normcase(os.path.normpath(p))
+        indexed_set = {_norm(p) for p in all_indexed_files}
         for fp in disc:
-            if fp not in indexed_set:
+            if _norm(fp) not in indexed_set:
                 name = os.path.basename(fp)
                 reported = False
                 if max_mb > 0:
