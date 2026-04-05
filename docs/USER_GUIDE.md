@@ -24,6 +24,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Files Created by docsearch](#files-created-by-docsearch)
+- [Verifying File Coverage (Sanity Check for Compliance)](#verifying-file-coverage-sanity-check-for-compliance)
 - [Limits and Constraints](#limits-and-constraints)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Search Suites](#search-suites)
@@ -1589,6 +1590,58 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 | Config file | 1 (home dir) | N/A | With caution — loses saved settings and email config |
 
 **Most of these files are safe to delete** — docsearch recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.docsearch_collection.json`), which contains your saved searches and suites, and the **config file** (`~/.docsearchrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
+
+## Verifying File Coverage (Sanity Check for Compliance)
+
+For compliance and audit work, you may want to prove that every file in your folder was accounted for by docsearch — either searched or explicitly excluded with a reason. Here is a simple verification you can do after any search.
+
+**The math:**
+
+```
+Files searched (status line) + Excluded files (button) = Total files in folder
+```
+
+After each search, docsearch reports:
+- **Files searched** — in the status line (e.g., "174 files, 2 matches")
+- **Excluded files** — click the **View N excluded file(s)** button on the status line to see every file that was NOT searched, grouped by reason (unsupported type, prior output, hidden file, etc.)
+
+Add those two numbers together and compare to the total file count from your terminal.
+
+**macOS / Linux — count all files (including hidden):**
+
+```bash
+find "/path/to/your/folder" -type f | wc -l
+```
+
+**Windows PowerShell — count all files (including hidden):**
+
+```powershell
+(Get-ChildItem -Path "C:\path\to\your\folder" -Recurse -File -Force).Count
+```
+
+**Windows Command Prompt:**
+
+```cmd
+dir "C:\path\to\your\folder" /s /b /a-d | find /c /v ""
+```
+
+**Example verification:**
+
+```
+Terminal count:        248 files
+docsearch searched:    174 files
+docsearch excluded:     74 files
+                      -----
+Total accounted for:   248 files  ✓
+```
+
+If the numbers match, every file in the folder was either searched or explicitly excluded with a reason you can review. This is the kind of evidence an auditor expects: "we can prove what was searched and what was not."
+
+**If the numbers don't match:**
+- Check for symbolic links — `find` and `Get-ChildItem` handle symlinks differently from docsearch
+- Check for files added during the search (race condition) — rerun and count again
+- Make sure your terminal command uses the exact same folder path as docsearch
+- Use the same "include hidden" flag on both sides (`-Force` in PowerShell, no `-not -name '.*'` in `find`)
 
 ## Limits and Constraints
 

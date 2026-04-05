@@ -118,6 +118,7 @@ Click **View Suite Report** to open the `.docx` report directly.
 - **Portable reports** — The `.docx` report is a standard Word document that anyone can open. No special software, no login, no subscription required to review the results.
 - **Repeatable** — The same suite with the same criteria produces consistent results. Save the suite once, run it whenever you need to.
 - **Auditable** — Each report includes a timestamp, the docsearch version, a report fingerprint (proving the reports haven't been tampered with), and a source file manifest (listing every document that was in scope).
+- **Verifiable coverage** — After every search, docsearch shows both the files it searched and an explicit list of files it excluded (with a reason for each exclusion). Add those two numbers together and compare to a terminal/PowerShell file count for the folder — they should match exactly. This gives you proof that every file was accounted for, which is often the first question an auditor asks. See [Verifying File Coverage](USER_GUIDE.md#verifying-file-coverage-sanity-check-for-compliance) in the User Guide for the exact commands.
 - **Free** — No per-seat licenses, no annual subscriptions, no per-GB processing fees. Commercial compliance tools that offer similar functionality cost $249 to $150,000+ per year.
 
 ## Sample compliance suites by industry
