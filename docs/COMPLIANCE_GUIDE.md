@@ -10,6 +10,7 @@ This guide explains how to use docsearch to help with compliance and auditing wo
 - [Who performs audits](#who-performs-audits)
 - [Industry examples](#industry-examples)
 - [How docsearch fits](#how-docsearch-fits)
+- [Verifiable File Coverage (Proof for Auditors)](#verifiable-file-coverage-proof-for-auditors)
 - [Sample compliance suites by industry](#sample-compliance-suites-by-industry)
   - [Financial Services Compliance](#financial-services-compliance)
   - [Healthcare Compliance](#healthcare-compliance)
@@ -118,8 +119,39 @@ Click **View Suite Report** to open the `.docx` report directly.
 - **Portable reports** — The `.docx` report is a standard Word document that anyone can open. No special software, no login, no subscription required to review the results.
 - **Repeatable** — The same suite with the same criteria produces consistent results. Save the suite once, run it whenever you need to.
 - **Auditable** — Each report includes a timestamp, the docsearch version, a report fingerprint (proving the reports haven't been tampered with), and a source file manifest (listing every document that was in scope).
-- **Verifiable coverage** — After every search, docsearch shows both the files it searched and an explicit list of files it excluded (with a reason for each exclusion). Add those two numbers together and compare to a terminal/PowerShell file count for the folder — they should match exactly. This gives you proof that every file was accounted for, which is often the first question an auditor asks. See [Verifying File Coverage](USER_GUIDE.md#verifying-file-coverage-sanity-check-for-compliance) in the User Guide for the exact commands.
 - **Free** — No per-seat licenses, no annual subscriptions, no per-GB processing fees. Commercial compliance tools that offer similar functionality cost $249 to $150,000+ per year.
+
+## Verifiable File Coverage (Proof for Auditors)
+
+One of the first questions an auditor asks is: **"Can you prove every file in the folder was accounted for?"**
+
+docsearch answers this directly. After every search, the GUI reports two numbers:
+
+1. **Files searched** — shown on the status line (e.g., "174 files")
+2. **Files excluded** — shown on the **View N excluded file(s)** button, with each file grouped by the reason it was excluded (unsupported type, prior search output, hidden file, oversized, etc.)
+
+Add these two numbers and compare to a terminal count of the folder. They should match exactly:
+
+```
+Terminal count:        248 files
+
+docsearch searched:    174 files
+docsearch excluded:     74 files
+                      -----
+Total accounted for:   248 files  ✓
+```
+
+**Terminal commands for independent verification:**
+
+| Platform | Command |
+|----------|---------|
+| macOS / Linux | `find "/path/to/folder" -type f \| wc -l` |
+| Windows PowerShell | `(Get-ChildItem -Path "C:\path\to\folder" -Recurse -File -Force).Count` |
+| Windows CMD | `dir "C:\path\to\folder" /s /b /a-d \| find /c /v ""` |
+
+If the numbers match, you have proof that every file in the folder was either searched or explicitly excluded for a documented reason you can review and justify. This is the kind of evidence regulated industries (financial services, healthcare, legal, government) require for compliance documentation.
+
+For full details and troubleshooting, see [Verifying File Coverage](USER_GUIDE.md#verifying-file-coverage-sanity-check-for-compliance) in the User Guide.
 
 ## Sample compliance suites by industry
 
