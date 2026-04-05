@@ -126,8 +126,8 @@ def _build_command_from_values(
     if str(max_matches).strip() and str(max_matches).strip() != "1000":
         cmd.extend(["-m", str(max_matches).strip()])
 
-    # max_file_size_mb is saved to ~/.docsearchrc via auto-save before the search runs
-    # (CLI picks it up from config — no flag needed)
+    if str(max_file_size_mb).strip() and str(max_file_size_mb).strip() != "100":
+        cmd.extend(["--max-file-size", str(max_file_size_mb).strip()])
 
     if timestamp_suffix:
         cmd.extend(["--ts-suffix", timestamp_suffix])
@@ -382,6 +382,7 @@ def _launch_gui():
             self.search_thread = None
             self.results_dir = None
             self._recent_searches = []
+            self._excluded_files = []
             self.advanced_visible = False
             self.suite_visible = False
             self.suite_running = False
@@ -2485,7 +2486,7 @@ def _launch_gui():
             ))
             Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
             Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
-            Tooltip(self.file_types_entry, "Comma-separated file extensions to search — no limit to the number of types. Supported types: 7z, bz2, cfg, csv, doc, docx, eml, epub, gz, html, ini, json, log, md, msg, odp, ods, odt, pdf, ppt, pptx, pst, rar, rst, rtf, sql, tar, tex, tgz, toml, tsv, txt, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
+            Tooltip(self.file_types_entry, "Comma-separated file extensions to search. Leave blank to search ALL 46 supported file types (not every file on disk — unsupported formats like .DS_Store, .exe, random binaries are always skipped). Supported types: 7z, bz2, cfg, csv, doc, docx, eml, epub, gz, html, ics, ini, json, log, mbox, md, msg, odp, ods, odt, pages, pdf, ppt, pptx, pst, rar, rst, rtf, sql, tar, tex, tgz, toml, tsv, txt, vcf, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
             Tooltip(self.proximity_entry, "Find terms within this many words of each other")
             Tooltip(self.context_before_entry, "Number of lines to show before each match")
             Tooltip(self.context_after_entry, "Number of lines to show after each match")
@@ -2551,6 +2552,15 @@ def _launch_gui():
             )
             self._matched_files_link.pack(side="left", padx=(12, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
+
+            self._excluded_files_btn = ctk.CTkButton(
+                status_row, text="", font=ctk.CTkFont(size=13, weight="bold"),
+                fg_color="#666666", hover_color="#555555", text_color="white",
+                cursor="hand2", height=32,
+                command=self._show_excluded_files_popup,
+            )
+            self._excluded_files_btn.pack(side="left", padx=(8, 0))
+            self._excluded_files_btn.pack_forget()  # Hidden until search completes
 
             self.matched_files = []
             self._inverse_results = False
@@ -4893,6 +4903,7 @@ def _launch_gui():
             self._hide_files_list()
             self._hide_preview()
             self._matched_files_link.pack_forget()
+            self._excluded_files_btn.pack_forget()
             # Use indeterminate for indexed searches (no file-by-file progress),
             # determinate for direct file scanning
             is_indexed = self.index_search_var.get() == "on"
@@ -4912,7 +4923,32 @@ def _launch_gui():
             except ValueError:
                 _term_count = len(search_text.split())
             _term_label = f"{_term_count} term{'s' if _term_count != 1 else ''}"
-            self.status_label.configure(text=f"Searching ({_term_label})...", fg="black")
+
+            # If Use Index is on and the index was built with a different max file
+            # size, warn the user that the index will be rebuilt during this search
+            _will_rebuild = False
+            if self.index_search_var.get() == "on":
+                try:
+                    from docsearch.indexer import index_status as _istatus
+                    status = _istatus(folder)
+                    if status:
+                        stored = status.get("max_file_size_mb")
+                        try:
+                            current_mfs = int(self.max_file_size_entry.get().strip() or "100")
+                        except ValueError:
+                            current_mfs = 100
+                        if stored is not None and int(stored) != current_mfs:
+                            _will_rebuild = True
+                except Exception:
+                    pass
+
+            if _will_rebuild:
+                self.status_label.configure(
+                    text=f"Rebuilding index with new Max File Size, then searching ({_term_label})...",
+                    fg="black",
+                )
+            else:
+                self.status_label.configure(text=f"Searching ({_term_label})...", fg="black")
             self.search_start_time = time.time()
             self._start_elapsed_timer()
 
@@ -4931,7 +4967,16 @@ def _launch_gui():
                 return
             if self.search_start_time is not None:
                 elapsed = time.time() - self.search_start_time
-                self.status_label.configure(text=f"Searching... ({elapsed:.0f}s)")
+                # Preserve a "Rebuilding index..." prefix if set, append elapsed time
+                current = self.status_label.cget("text") or ""
+                if current.startswith("Rebuilding index"):
+                    # Update in place with elapsed time
+                    import re as _re
+                    new_text = _re.sub(r"\s*\(\d+s\)\s*$", "", current)
+                    new_text = f"{new_text} ({elapsed:.0f}s)"
+                    self.status_label.configure(text=new_text)
+                else:
+                    self.status_label.configure(text=f"Searching... ({elapsed:.0f}s)")
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
         def _run_search(self, cmd, folder):
@@ -5160,6 +5205,20 @@ def _launch_gui():
             import re as _re_fin
             _skip_match = _re_fin.search(r"Errors logged to docsearch_errors\.log \((\d+) error", stdout or "")
             _skip_count = int(_skip_match.group(1)) if _skip_match else 0
+
+            # Compute excluded files list (unsupported types, docsearch outputs, etc.)
+            folder = self.folder_entry.get().strip()
+            recursive = self.recursive_var.get() == "on"
+            try:
+                self._excluded_files = self._compute_excluded_files(folder, recursive=recursive)
+            except Exception:
+                self._excluded_files = []
+            _excl_count = len(self._excluded_files)
+            if _excl_count > 0:
+                self._excluded_files_btn.configure(text=f"View {_excl_count} excluded file(s)")
+                self._excluded_files_btn.pack(side="left", padx=(8, 0))
+            else:
+                self._excluded_files_btn.pack_forget()
 
             # Update error log tooltip with actual path
             folder = self.folder_entry.get().strip()
@@ -6136,6 +6195,123 @@ def _launch_gui():
         def _hide_files_list(self):
             """Clear the matched files list."""
             self.matched_files = []
+            self._excluded_files = []
+
+        def _compute_excluded_files(self, folder, recursive=True):
+            """Walk the search folder and return a list of (filepath, reason) tuples
+            for files that are excluded from searches, with the reason why."""
+            from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+            excluded = []
+            try:
+                mfs = int(self.max_file_size_entry.get().strip() or "100")
+            except (ValueError, AttributeError):
+                mfs = 100
+            use_ocr = self.ocr_var.get() == "on"
+            supported = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if use_ocr else set())
+
+            _DOCSEARCH_INTERNAL = {
+                ".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm",
+                ".docsearch_collection.json", ".docsearchrc",
+                "docsearch_errors.log",
+            }
+
+            walker = os.walk(folder) if recursive else [(folder, [], os.listdir(folder))]
+            for root, dirs, files in walker:
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    ext = os.path.splitext(fname)[1].lower()
+
+                    # Hidden file
+                    if fname.startswith("."):
+                        if fname in _DOCSEARCH_INTERNAL:
+                            excluded.append((filepath, "docsearch internal file (hidden)"))
+                        else:
+                            excluded.append((filepath, "hidden file (starts with .)"))
+                        continue
+
+                    # docsearch output files
+                    if fname.startswith("docsearch_results") or fname.startswith("DO_NOT_SEARCH"):
+                        excluded.append((filepath, "docsearch output file (prior search results)"))
+                        continue
+                    if fname in _DOCSEARCH_INTERNAL:
+                        excluded.append((filepath, "docsearch internal file"))
+                        continue
+
+                    # Unsupported file type
+                    if ext not in supported:
+                        if ext in OCR_IMAGE_TYPES and not use_ocr:
+                            excluded.append((filepath, f"image file ({ext}) — enable OCR to search"))
+                        else:
+                            excluded.append((filepath, f"unsupported file type ({ext or 'no extension'})"))
+                        continue
+
+                    # File size limit
+                    if mfs > 0:
+                        try:
+                            size_mb = os.path.getsize(filepath) / (1024 * 1024)
+                            if size_mb > mfs:
+                                excluded.append((filepath, f"file is {size_mb:.0f} MB, exceeds {mfs} MB limit"))
+                                continue
+                        except OSError:
+                            pass
+                if not recursive:
+                    break
+            return excluded
+
+        def _show_excluded_files_popup(self):
+            """Show a popup listing files excluded from the search with reasons."""
+            import tkinter as tk
+            if not self._excluded_files:
+                return
+            popup = tk.Toplevel(self)
+            popup.title(f"Excluded Files ({len(self._excluded_files)})")
+            popup.resizable(True, True)
+            popup.geometry("800x500")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup, text=f"Files Excluded from Search ({len(self._excluded_files)})",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                popup, text="These files were in your search folder but were not searched. "
+                            "Each is shown with the reason why.",
+                font=("TkDefaultFont", 11), fg="gray",
+            ).pack(pady=(0, 8))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            # Group by reason for easier scanning
+            from collections import defaultdict
+            by_reason = defaultdict(list)
+            for filepath, reason in self._excluded_files:
+                by_reason[reason].append(filepath)
+
+            for reason in sorted(by_reason.keys()):
+                files = by_reason[reason]
+                listbox.insert("end", f"── {reason} ({len(files)} file(s)) ──")
+                for fp in sorted(files):
+                    listbox.insert("end", f"    {os.path.basename(fp)}")
+                listbox.insert("end", "")
+
+            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
 
         def _show_matched_files_popup(self):
             """Show a popup listing all matched files. Click a file to open it."""

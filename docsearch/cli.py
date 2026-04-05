@@ -77,6 +77,7 @@ BANNER_BOTTOM = (
     '  -sa my_report      Append results to a named file across searches\n'
     '  --output-dir PATH  Write all output files to a specific folder\n'
     '  --timestamp        Add timestamp to report filenames\n'
+    '  --max-file-size N  Skip files larger than N MB (default 100, 0 = no limit)\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
     '  --index            Build/rebuild the search index (includes all subfolders)\n'

@@ -221,15 +221,43 @@ def search(
 
     if use_index:
         indexed = True
+        # If the index was built with a different max_file_size_mb, rebuild it
+        # so search results match the current setting
+        try:
+            from docsearch.indexer import index_status as _status, build_index as _rebuild
+            status = _status(directory)
+            # Only rebuild if the DB is valid and the stored limit differs from current
+            if status is not None:
+                stored_mfs = status.get("max_file_size_mb")
+                if stored_mfs is not None:
+                    try:
+                        if int(stored_mfs) != max_file_size_mb:
+                            _rebuild(directory, recursive=True, use_ocr=use_ocr,
+                                     max_file_size_mb=max_file_size_mb)
+                    except (ValueError, TypeError):
+                        pass
+        except Exception:
+            pass
         try:
             refresh_index(directory, recursive=True, use_ocr=use_ocr, max_file_size_mb=max_file_size_mb)
         except Exception:
             pass  # Search with existing index if refresh fails (e.g. DB locked)
-        idx_matches, idx_skipped, all_files = search_with_index(
+        idx_matches, idx_skipped, indexed_files = search_with_index(
             directory, search_config, ft_set, file_names,
         )
         matches = [SearchMatch(*m) for m in idx_matches]
         skipped_files = list(idx_skipped)
+        # For file count reporting, use the actual folder discovery (includes
+        # oversized files that were skipped) so indexed and non-indexed searches
+        # report consistent file counts.
+        try:
+            disc = discover_files(directory, True, use_ocr, ft_set, file_names)
+            if not isinstance(disc, tuple):
+                all_files = disc
+            else:
+                all_files = indexed_files
+        except Exception:
+            all_files = indexed_files
 
         # If index was corrupt and deleted, fall back to direct scan
         if not index_exists(directory):

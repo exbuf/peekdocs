@@ -253,6 +253,7 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
         "last_updated": now,
         "recursive": str(recursive),
         "use_ocr": str(use_ocr),
+        "max_file_size_mb": str(max_file_size_mb),
         "docsearch_version": version,
     }
     for key, value in meta_values.items():

@@ -204,6 +204,17 @@ def parse_flags(args, config):
         args[:] = args[:idx] + args[idx + 2:]
 
     max_file_size_mb = config.get("max_file_size_mb", 100)
+    if "--max-file-size" in args:
+        idx = args.index("--max-file-size")
+        if idx + 1 >= len(args):
+            return (2, "No value provided. Usage: docsearch --max-file-size 500 search_term\n")
+        try:
+            max_file_size_mb = int(args[idx + 1])
+            if max_file_size_mb < 0:
+                raise ValueError
+        except ValueError:
+            return (2, f"Invalid value for --max-file-size: {args[idx + 1]}. Must be a non-negative integer (0 = no limit).\n")
+        args[:] = args[:idx] + args[idx + 2:]
 
     max_matches = config.get("max_matches", 1000)
     if "-m" in args:
