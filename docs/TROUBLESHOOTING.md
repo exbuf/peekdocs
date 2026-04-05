@@ -123,6 +123,11 @@ No — docsearch searches uncompressed files only.
 **Does it work offline?**
 Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
+**Will upgrading docsearch delete my saved searches, suites, or settings?**
+No. Your saved searches, suites, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the docsearch code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for the complete list of what is preserved.
+
+---
+
 **What if I upgrade Python and docsearch stops working?**
 Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, run `docsearch --check` to see which dependencies need updating, then reinstall: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. docsearch will also print a warning at startup if your Python version is outside the tested range. Most dependency updates are available within a few weeks of a new Python release.
 

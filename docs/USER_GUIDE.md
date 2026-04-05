@@ -67,6 +67,22 @@ All your settings, saved searches, suites, indexes, and reports are stored outsi
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.
 
+**Backing up your work — only two files matter:**
+
+Everything docsearch creates (indexes, reports, error logs) can be regenerated. The only files worth backing up are:
+
+| File | Location | Contains |
+|------|----------|----------|
+| `~/.docsearchrc` | Home directory (one file) | Your settings, email config, saved defaults |
+| `.docsearch_collection.json` | Each search folder (one per folder) | Your saved searches, suites, pass/fail criteria, schedules |
+
+Copy these to a safe location before major changes. If you search multiple folders, back up the `.docsearch_collection.json` in each one.
+
+**How to see hidden files:** These files start with a dot, which makes them hidden by default.
+- **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
+- **Windows:** In File Explorer, click the **View** tab and check **Show hidden items**
+- **Linux:** In your file manager, press **Ctrl+H** or use `ls -a` in the terminal
+
 **If you want to uninstall completely:**
 
 - **pipx:** `pipx uninstall docsearch` — removes the docsearch code and its private workspace. Your settings (`~/.docsearchrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.

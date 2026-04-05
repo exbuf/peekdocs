@@ -131,6 +131,16 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
 
 **Important:** Same as Option B — you must activate the virtual environment each time you open a new terminal. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
 
+### Upgrading
+
+Your saved searches, suites, settings, indexes, and reports are stored outside the docsearch installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
+
+- **pipx:** `pipx upgrade docsearch`
+- **git:** `cd docsearch && git pull && pip install -e .`
+- **ZIP:** download the new ZIP, replace the folder, run `pip install -e .`
+
+See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for full details on what is and isn't preserved.
+
 ## Quick Start
 
 ### Terminal
