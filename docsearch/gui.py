@@ -1571,6 +1571,12 @@ def _launch_gui():
             b("how many terms are being searched. In the Results Preview, right-click")
             b("to copy text and double-click a filename to open it in your default app.")
             blank()
+            b("After a search, click the View N matched file(s) link on the status")
+            b("line to see the list of files with match counts and line numbers.")
+            b("Double-click a file to open it in its default app, or click View Text")
+            b("(with line numbers) to see the file's extracted content with line")
+            b("numbers and matches highlighted in yellow.")
+            blank()
 
             h("SAVING AND LOADING SEARCHES")
             b("Save Search saves your current search terms AND all settings in")
