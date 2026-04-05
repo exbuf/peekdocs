@@ -203,6 +203,8 @@ def parse_flags(args, config):
             return (2, f"Invalid count for -c: {args[idx + 1]}. Must be a positive integer.\n")
         args[:] = args[:idx] + args[idx + 2:]
 
+    max_file_size_mb = config.get("max_file_size_mb", 100)
+
     max_matches = config.get("max_matches", 1000)
     if "-m" in args:
         idx = args.index("-m")
@@ -356,6 +358,7 @@ def parse_flags(args, config):
         "append_name": append_name,
         "cores": cores,
         "max_matches": max_matches,
+        "max_file_size_mb": max_file_size_mb,
         "output_formats": output_formats,
         "search_terms": search_terms,
         "inverse": inverse,

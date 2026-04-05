@@ -104,11 +104,20 @@ def _handle_corrupt_db(directory):
 # ─── Index building ──────────────────────────────────────
 
 
-def _index_single_file(conn, filepath, use_ocr, ocr_func):
+def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
     """Extract and index a single file into the database."""
     filename = os.path.basename(filepath)
     file_dir = os.path.dirname(filepath)
     ext = os.path.splitext(filename)[1].lower()
+
+    # Skip files over the size limit (consistent with direct search)
+    if max_file_size_mb > 0:
+        try:
+            size_mb = os.path.getsize(filepath) / (1024 * 1024)
+            if size_mb > max_file_size_mb:
+                return 0
+        except OSError:
+            return 0
 
     try:
         all_lines = _extract_lines(filepath, use_ocr, ocr_func)
@@ -139,7 +148,8 @@ def _index_single_file(conn, filepath, use_ocr, ocr_func):
     return len(lines_to_insert)
 
 
-def build_index(directory, recursive=False, use_ocr=False, progress_callback=None):
+def build_index(directory, recursive=False, use_ocr=False, progress_callback=None,
+                max_file_size_mb=100):
     """Build or rebuild the full FTS5 index for files in directory.
 
     Args:
@@ -147,6 +157,7 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
         recursive: If True, index files in subdirectories.
         use_ocr: If True, use OCR for scanned PDFs and images.
         progress_callback: Optional callable(done, total, filename) for progress.
+        max_file_size_mb: Skip files larger than this (0 for no limit).
 
     Returns:
         dict with keys: file_count, line_count, elapsed, errors
@@ -187,6 +198,17 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
 
         if progress_callback:
             progress_callback(i, total, filename)
+
+        # Skip files over the size limit (same behavior as direct search)
+        if max_file_size_mb > 0:
+            try:
+                size_mb = os.path.getsize(filepath) / (1024 * 1024)
+                if size_mb > max_file_size_mb:
+                    errors.append((filename,
+                        f"Skipped — file is {size_mb:.0f} MB, exceeds the {max_file_size_mb} MB limit"))
+                    continue
+            except OSError:
+                pass
 
         try:
             all_lines = _extract_lines(filepath, use_ocr, ocr_func)
@@ -254,7 +276,7 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
 # ─── Incremental updates ─────────────────────────────────
 
 
-def refresh_index(directory, recursive, use_ocr):
+def refresh_index(directory, recursive, use_ocr, max_file_size_mb=100):
     """Incrementally update the index: add new files, re-index changed files, remove deleted.
 
     Returns:
@@ -303,11 +325,11 @@ def refresh_index(directory, recursive, use_ocr):
         # Re-index changed files (delete and re-add)
         for filepath, file_id in changed_files:
             conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
-            _index_single_file(conn, filepath, use_ocr, ocr_func)
+            _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb)
 
         # Index new files
         for filepath in new_files:
-            _index_single_file(conn, filepath, use_ocr, ocr_func)
+            _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb)
 
         # Update last_updated timestamp
         conn.execute(
@@ -469,6 +491,26 @@ def search_with_index(directory, config, file_types=None, file_names=None):
         matches, skipped = _fts5_fast_search(conn, config, file_filter_sql, file_filter_params)
     else:
         matches, skipped = _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
+
+    # Report files in the folder that aren't in the index because they exceed
+    # the size limit — for consistency with direct search
+    max_mb = config.get("max_file_size_mb", 100)
+    if max_mb > 0:
+        from docsearch.scanner import discover_files as _discover
+        use_ocr = config.get("use_ocr", False)
+        disc = _discover(directory, recursive=True, use_ocr=use_ocr)
+        if not isinstance(disc, tuple):
+            indexed_set = set(all_indexed_files)
+            for fp in disc:
+                if fp not in indexed_set:
+                    try:
+                        size_mb = os.path.getsize(fp) / (1024 * 1024)
+                        if size_mb > max_mb:
+                            skipped.append((os.path.basename(fp),
+                                f"Skipped — file is {size_mb:.0f} MB, exceeds the {max_mb} MB limit. "
+                                f"Increase Max File Size in Advanced Search Options or set to 0 for no limit."))
+                    except OSError:
+                        pass
 
     # Apply range filtering on index results
     content_ranges = config.get("content_ranges", [])

@@ -126,8 +126,8 @@ def _build_command_from_values(
     if str(max_matches).strip() and str(max_matches).strip() != "1000":
         cmd.extend(["-m", str(max_matches).strip()])
 
-    if str(max_file_size_mb).strip() and str(max_file_size_mb).strip() != "100":
-        cmd.extend(["--config", f"max_file_size_mb={max_file_size_mb}"])
+    # max_file_size_mb is saved to ~/.docsearchrc via auto-save before the search runs
+    # (CLI picks it up from config — no flag needed)
 
     if timestamp_suffix:
         cmd.extend(["--ts-suffix", timestamp_suffix])
@@ -2528,15 +2528,17 @@ def _launch_gui():
             status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
             status_row.grid(row=3, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
 
+            _status_label_size = 15 if sys.platform == "win32" else 13
             status_label_left = _tk_status.Label(
-                status_row, text="Status:", font=("TkDefaultFont", 13),
+                status_row, text="Status:", font=("TkDefaultFont", _status_label_size, "bold"),
             )
             status_label_left.pack(side="left", padx=(0, 5))
             Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
 
             import tkinter as _tk_sl
+            _status_font_size = 15 if sys.platform == "win32" else 13
             self.status_label = _tk_sl.Label(
-                status_row, text="", font=("TkDefaultFont", 13), anchor="w",
+                status_row, text="", font=("TkDefaultFont", _status_font_size), anchor="w",
                 wraplength=900, fg="black",
             )
             self.status_label.pack(side="left")
@@ -4796,12 +4798,18 @@ def _launch_gui():
                 self._show_error("Please enter search terms or a range filter.")
                 return
 
-            # Auto-save search terms and folder for next launch
+            # Auto-save search terms, folder, and max file size for next launch
+            # (max_file_size_mb must be saved here so the CLI subprocess picks it up)
             try:
                 from docsearch.cli import _load_config, _save_config
                 cfg = _load_config()
                 cfg["search_terms"] = search_text
                 cfg["folder"] = folder
+                try:
+                    mfs = int(self.max_file_size_entry.get().strip() or "100")
+                    cfg["max_file_size_mb"] = mfs
+                except ValueError:
+                    pass
                 _save_config(cfg)
             except Exception:
                 pass
@@ -5491,7 +5499,11 @@ def _launch_gui():
             """Background thread: run refresh_index and post result to main thread."""
             from docsearch.indexer import refresh_index
             try:
-                result = refresh_index(folder, recursive=True, use_ocr=False)
+                mfs = int(self.max_file_size_entry.get().strip() or "100")
+            except (ValueError, AttributeError):
+                mfs = 100
+            try:
+                result = refresh_index(folder, recursive=True, use_ocr=False, max_file_size_mb=mfs)
             except Exception:
                 result = None
             self.after(0, self._auto_refresh_finished, result)
@@ -5872,8 +5884,13 @@ def _launch_gui():
                 try:
                     from docsearch.indexer import build_index
                     self._index_process = "running"  # sentinel so start_search knows
+                    try:
+                        mfs = int(self.max_file_size_entry.get().strip() or "100")
+                    except ValueError:
+                        mfs = 100
                     build_result = build_index(folder, recursive=True, use_ocr=False,
-                                               progress_callback=_progress_callback)
+                                               progress_callback=_progress_callback,
+                                               max_file_size_mb=mfs)
                     returncode = 0
                 except InterruptedError:
                     returncode = 2
