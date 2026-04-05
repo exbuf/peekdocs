@@ -4580,7 +4580,7 @@ def _launch_gui():
 
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
-                text="View Error Log",
+                text="Error Log",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -6218,15 +6218,26 @@ def _launch_gui():
 
         def _compute_excluded_files(self, folder, recursive=True):
             """Walk the search folder and return a list of (filepath, reason) tuples
-            for files that are excluded from searches, with the reason why."""
+            for files that docsearch did NOT include in its search pool.
+
+            Files that were discovered but skipped at process time (e.g., oversized)
+            are reported in the error log, not here — that avoids double-counting.
+            """
             from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+            from docsearch.scanner import discover_files as _discover
             excluded = []
-            try:
-                mfs = int(self.max_file_size_entry.get().strip() or "100")
-            except (ValueError, AttributeError):
-                mfs = 100
             use_ocr = self.ocr_var.get() == "on"
             supported = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if use_ocr else set())
+
+            # Get the set of files docsearch would include in its search pool
+            try:
+                disc = _discover(folder, recursive=recursive, use_ocr=use_ocr)
+                if isinstance(disc, tuple):
+                    searched_set = set()
+                else:
+                    searched_set = {os.path.normcase(os.path.normpath(p)) for p in disc}
+            except Exception:
+                searched_set = set()
 
             _DOCSEARCH_INTERNAL = {
                 ".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm",
@@ -6238,6 +6249,9 @@ def _launch_gui():
             for root, dirs, files in walker:
                 for fname in files:
                     filepath = os.path.join(root, fname)
+                    # Skip files that discover_files already includes
+                    if os.path.normcase(os.path.normpath(filepath)) in searched_set:
+                        continue
                     ext = os.path.splitext(fname)[1].lower()
 
                     # Hidden file
@@ -6264,15 +6278,8 @@ def _launch_gui():
                             excluded.append((filepath, f"unsupported file type ({ext or 'no extension'})"))
                         continue
 
-                    # File size limit
-                    if mfs > 0:
-                        try:
-                            size_mb = os.path.getsize(filepath) / (1024 * 1024)
-                            if size_mb > mfs:
-                                excluded.append((filepath, f"file is {size_mb:.0f} MB, exceeds {mfs} MB limit"))
-                                continue
-                        except OSError:
-                            pass
+                    # Supported type but not in searched set — unknown reason
+                    excluded.append((filepath, "not included in search (unknown reason)"))
                 if not recursive:
                     break
             return excluded
