@@ -493,25 +493,32 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     else:
         matches, skipped = _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
 
-    # Report files in the folder that aren't in the index because they exceed
-    # the size limit — for consistency with direct search
+    # Report files in the folder that aren't in the index — for consistency
+    # with direct search. Includes oversized files and any that couldn't be
+    # read during indexing.
     max_mb = config.get("max_file_size_mb", 100)
-    if max_mb > 0:
-        from docsearch.scanner import discover_files as _discover
-        use_ocr = config.get("use_ocr", False)
-        disc = _discover(directory, recursive=True, use_ocr=use_ocr)
-        if not isinstance(disc, tuple):
-            indexed_set = set(all_indexed_files)
-            for fp in disc:
-                if fp not in indexed_set:
+    from docsearch.scanner import discover_files as _discover
+    use_ocr = config.get("use_ocr", False)
+    disc = _discover(directory, recursive=True, use_ocr=use_ocr)
+    if not isinstance(disc, tuple):
+        indexed_set = set(all_indexed_files)
+        for fp in disc:
+            if fp not in indexed_set:
+                name = os.path.basename(fp)
+                reported = False
+                if max_mb > 0:
                     try:
                         size_mb = os.path.getsize(fp) / (1024 * 1024)
                         if size_mb > max_mb:
-                            skipped.append((os.path.basename(fp),
+                            skipped.append((name,
                                 f"Skipped — file is {size_mb:.0f} MB, exceeds the {max_mb} MB limit. "
                                 f"Increase Max File Size in Advanced Search Options or set to 0 for no limit."))
+                            reported = True
                     except OSError:
                         pass
+                if not reported:
+                    skipped.append((name,
+                        "Could not be read during indexing (may be locked, corrupt, or unsupported)"))
 
     # Apply range filtering on index results
     content_ranges = config.get("content_ranges", [])

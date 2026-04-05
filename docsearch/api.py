@@ -226,16 +226,22 @@ def search(
         try:
             from docsearch.indexer import index_status as _status, build_index as _rebuild
             status = _status(directory)
-            # Only rebuild if the DB is valid and the stored limit differs from current
+            # Rebuild if the DB is valid and the stored limit differs from current,
+            # OR if the metadata is missing (old index from before this feature)
             if status is not None:
                 stored_mfs = status.get("max_file_size_mb")
-                if stored_mfs is not None:
+                needs_rebuild = False
+                if stored_mfs is None:
+                    needs_rebuild = True  # old index, rebuild to add metadata
+                else:
                     try:
                         if int(stored_mfs) != max_file_size_mb:
-                            _rebuild(directory, recursive=True, use_ocr=use_ocr,
-                                     max_file_size_mb=max_file_size_mb)
+                            needs_rebuild = True
                     except (ValueError, TypeError):
-                        pass
+                        needs_rebuild = True
+                if needs_rebuild:
+                    _rebuild(directory, recursive=True, use_ocr=use_ocr,
+                             max_file_size_mb=max_file_size_mb)
         except Exception:
             pass
         try:

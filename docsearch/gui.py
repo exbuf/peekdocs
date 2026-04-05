@@ -2529,7 +2529,7 @@ def _launch_gui():
             status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
             status_row.grid(row=3, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
 
-            _status_label_size = 15 if sys.platform == "win32" else 13
+            _status_label_size = 16 if sys.platform == "win32" else 14
             status_label_left = _tk_status.Label(
                 status_row, text="Status:", font=("TkDefaultFont", _status_label_size, "bold"),
             )
@@ -2537,10 +2537,10 @@ def _launch_gui():
             Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
 
             import tkinter as _tk_sl
-            _status_font_size = 15 if sys.platform == "win32" else 13
+            _status_font_size = 16 if sys.platform == "win32" else 14
             self.status_label = _tk_sl.Label(
                 status_row, text="", font=("TkDefaultFont", _status_font_size), anchor="w",
-                wraplength=900, fg="black",
+                wraplength=675, fg="black", justify="left",
             )
             self.status_label.pack(side="left")
 
@@ -4937,8 +4937,15 @@ def _launch_gui():
                             current_mfs = int(self.max_file_size_entry.get().strip() or "100")
                         except ValueError:
                             current_mfs = 100
-                        if stored is not None and int(stored) != current_mfs:
+                        if stored is None:
+                            # Old index from before this feature — will rebuild
                             _will_rebuild = True
+                        else:
+                            try:
+                                if int(stored) != current_mfs:
+                                    _will_rebuild = True
+                            except (ValueError, TypeError):
+                                _will_rebuild = True
                 except Exception:
                     pass
 
