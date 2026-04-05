@@ -1629,6 +1629,7 @@ dir "C:\path\to\your\folder" /s /b /a-d | find /c /v ""
 
 ```
 Terminal count:        248 files
+
 docsearch searched:    174 files
 docsearch excluded:     74 files
                       -----
