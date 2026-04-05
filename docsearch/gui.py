@@ -4615,6 +4615,19 @@ def _launch_gui():
             self.clear_results_btn.pack(side="right", padx=5)
             Tooltip(self.clear_results_btn, "Delete all docsearch_results files from the search folder (including timestamped versions)", anchor="above")
 
+            self.cleanup_practice_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="Clean Up Practice Files",
+                width=150,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._clean_up_practice_files,
+                font=ctk.CTkFont(size=13),
+            )
+            self.cleanup_practice_btn.pack(side="right", padx=5)
+            Tooltip(self.cleanup_practice_btn, "Delete all docsearch-generated practice files (results, suite reports, error logs, index) from the search folder and subfolders. Preserves your saved searches, suites, settings, and original documents. For starting fresh after experimenting with the app", anchor="above")
+
             # Close button on its own row below the toolbar
             ctk.CTkButton(
                 self,
@@ -5477,6 +5490,89 @@ def _launch_gui():
                     self.status_label.configure(text="Error log cleared.")
                 except OSError as e:
                     self._show_error(f"Could not delete error log: {e}")
+
+        def _clean_up_practice_files(self):
+            """Delete all docsearch-generated artifacts from the search folder
+            (and all subfolders), preserving saved searches and settings.
+
+            For users who have been experimenting with the app and want to
+            start fresh before serious work.
+            """
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a folder first.")
+                return
+
+            # Files to delete — anything docsearch created during searches
+            # Preserved: .docsearch_collection.json (saved searches/suites)
+            #           .docsearchrc (in home dir, not search folder anyway)
+            to_delete = []  # list of (path, reason)
+
+            for root, dirs, files in os.walk(folder):
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    # Search result files
+                    if fname.startswith("docsearch_results"):
+                        to_delete.append((filepath, "search results"))
+                    # Suite reports and stage reports
+                    elif fname.startswith("DO_NOT_SEARCH"):
+                        to_delete.append((filepath, "suite report"))
+                    # Error log
+                    elif fname == "docsearch_errors.log":
+                        to_delete.append((filepath, "error log"))
+                    # Index database
+                    elif fname in (".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm"):
+                        to_delete.append((filepath, "index database"))
+
+            if not to_delete:
+                self.status_label.configure(
+                    text="Nothing to clean up — no practice files found.",
+                    fg="black",
+                )
+                return
+
+            from tkinter import messagebox
+            # Build confirmation message
+            from collections import Counter
+            reasons = Counter(r for _, r in to_delete)
+            reason_lines = "\n".join(f"  \u2022 {count} {reason}" for reason, count in sorted(reasons.items()))
+            msg = (
+                f"Delete {len(to_delete)} practice file(s) from\n"
+                f"{folder}\n\n"
+                f"{reason_lines}\n\n"
+                f"PRESERVED:\n"
+                f"  \u2022 Your saved searches and suites (.docsearch_collection.json)\n"
+                f"  \u2022 Your settings (~/.docsearchrc)\n"
+                f"  \u2022 Your original documents\n\n"
+                f"This cannot be undone."
+            )
+            if not messagebox.askyesno("Clean Up Practice Files", msg):
+                return
+
+            deleted = 0
+            failed = 0
+            for path, _ in to_delete:
+                try:
+                    os.remove(path)
+                    deleted += 1
+                except OSError:
+                    failed += 1
+
+            # Refresh index button color since we may have deleted the index
+            self._update_index_button_color()
+            self._hide_preview()
+            self._clear_action_buttons()
+
+            if failed:
+                self.status_label.configure(
+                    text=f"Cleaned up {deleted} file(s). {failed} could not be deleted.",
+                    fg="black",
+                )
+            else:
+                self.status_label.configure(
+                    text=f"Cleaned up {deleted} practice file(s). Saved searches preserved.",
+                    fg="black",
+                )
 
         def _open_report_format(self, fmt):
             """Open the report file for the given format (txt, docx, csv, json)."""
