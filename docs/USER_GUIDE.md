@@ -1613,6 +1613,12 @@ Add those two numbers together and compare to the total file count from your ter
 find "/path/to/your/folder" -type f | wc -l
 ```
 
+If you see "Permission denied" errors for some subfolders, prefix with `sudo` (you will be prompted for your login password):
+
+```bash
+sudo find "/path/to/your/folder" -type f | wc -l
+```
+
 **Windows PowerShell — count all files (including hidden):**
 
 ```powershell

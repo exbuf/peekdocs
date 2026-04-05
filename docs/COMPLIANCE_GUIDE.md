@@ -149,6 +149,8 @@ Total accounted for:   248 files  ✓
 | Windows PowerShell | `(Get-ChildItem -Path "C:\path\to\folder" -Recurse -File -Force).Count` |
 | Windows CMD | `dir "C:\path\to\folder" /s /b /a-d \| find /c /v ""` |
 
+On macOS and Linux, if `find` reports "Permission denied" errors for some subfolders, prefix the command with `sudo` and enter your login password when prompted: `sudo find "/path/to/folder" -type f | wc -l`.
+
 If the numbers match, you have proof that every file in the folder was either searched or explicitly excluded for a documented reason you can review and justify. This is the kind of evidence regulated industries (financial services, healthcare, legal, government) require for compliance documentation.
 
 For full details and troubleshooting, see [Verifying File Coverage](USER_GUIDE.md#verifying-file-coverage-sanity-check-for-compliance) in the User Guide.
