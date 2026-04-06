@@ -1668,14 +1668,19 @@ If the numbers match, every file in the folder was either searched or explicitly
 
 ## Limits and Constraints
 
-docsearch has very few hard limits. Most constraints are system-dependent (available memory, disk space, OS file descriptor limits) rather than imposed by docsearch itself.
+**docsearch itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, suites, or index size. The only constraints are your computer's available memory, disk space, and processing power.
 
-**Configurable limits:**
+**Optional safeguards (all configurable, all removable):**
 
-| Limit | Default | Flag | Notes |
-|-------|---------|------|-------|
-| **Max matches in reports** | 1,000 | `-m N` | Caps the number of matches written to report files. The total match count is always reported accurately in the summary — only the report files are capped. Set `-m 0` for unlimited. Set permanently with `--config` (see below) |
-| **Max file size** | 100 MB | `--max-file-size N` | Files larger than this are automatically skipped during search. This prevents very large files (huge PDFs, massive spreadsheets, database exports) from causing slow searches or exhausting available memory. When a file is skipped, it is logged to `docsearch_errors.log` with the file name, its size, and the current limit — so you always know what was missed and why. Set to 0 for no limit. In the GUI, use the **Max File Size (MB)** field in Advanced Search Options — changing the value automatically rebuilds the index on the next indexed search. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs |
+The following defaults exist to prevent accidental slowdowns or memory issues on very large folders. They are **entirely optional** — set any of them to 0 or remove them if you prefer no limits. docsearch will search everything your hardware can handle.
+
+| Safeguard | Default | Flag | Why it exists | How to remove |
+|-----------|---------|------|---------------|---------------|
+| **Max matches in reports** | 1,000 | `-m N` | Writing 50,000 matches to a .docx file can take minutes and produce a very large report. The total match count is always accurate in the summary — only the report files are capped | Set `-m 0` for unlimited |
+| **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files are logged to `docsearch_errors.log` so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
+| **CPU cores** | Half of available | `-c N` | Using all cores speeds up searches but makes your computer unresponsive while searching | Set `-c` to your full core count for maximum speed |
+
+These safeguards exist because a user once searching a folder with multi-GB database exports shouldn't have to wonder why the app froze — the defaults protect against that while being easy to override. If you know your files are manageable, remove the limits entirely.
 
 **Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.docsearchrc`) so it applies automatically every time you run docsearch — you don't have to type the flag on every search. For example, if you always want a higher match cap:
 
