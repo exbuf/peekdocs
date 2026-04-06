@@ -817,7 +817,9 @@ def _launch_gui():
                  [],
                  lambda v: self._apply_wizard(search_text=r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}", regex=True)),
 
-                ("Find dollar amounts in range", "Lines with dollar amounts in a specific range",
+                ("Find dollar amounts in range", "Lines containing a dollar amount in range.\n"
+                 "Note: all dollar amounts on matching lines are highlighted, but only lines\n"
+                 "with at least one amount in range are included in results.",
                  [("Min ($):", "lo", "10000"), ("Max ($):", "hi", "50000")],
                  lambda v: self._apply_wizard(search_text=r"\$[\d,.]+", regex=True, range_filters=f"amount:{v['lo']}..{v['hi']}")),
 
@@ -5253,6 +5255,14 @@ def _launch_gui():
             use_fuzzy = self.fuzzy_var.get() == "on"
             is_expression = self.expression_var.get() == "on"
 
+            if search_text and use_fuzzy:
+                # For fuzzy, build patterns that match approximate words
+                from rapidfuzz import fuzz
+                _fuzzy_terms = search_text.split()
+                _fuzzy_highlight = True
+            else:
+                _fuzzy_highlight = False
+
             if search_text and not use_fuzzy:
                 patterns = []
                 if is_expression:
@@ -5286,6 +5296,19 @@ def _launch_gui():
                             self.preview_text.insert("end", part)
                         if i < len(matches):
                             self.preview_text.insert("end", matches[i], "match")
+                elif _fuzzy_highlight:
+                    # Highlight words that fuzzy-match the search terms
+                    import re as _re_fz
+                    from docsearch.constants import FUZZY_THRESHOLD
+                    words = _re_fz.split(r'(\s+)', line)
+                    for word in words:
+                        if word.strip() and any(
+                            fuzz.ratio(term.lower(), word.lower()) >= FUZZY_THRESHOLD
+                            for term in _fuzzy_terms
+                        ):
+                            self.preview_text.insert("end", word, "match")
+                        else:
+                            self.preview_text.insert("end", word)
                 else:
                     self.preview_text.insert("end", line)
                 self.preview_text.insert("end", "\n")
