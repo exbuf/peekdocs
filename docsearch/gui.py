@@ -704,12 +704,14 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Search Wizard")
-            win.geometry("850x520")
+            win.geometry("920x520")
             win.resizable(True, True)
             win.after(50, win.lift)
+            win.after(100, win.focus_force)
+            win.after(200, lambda: win.title("Search Wizard"))
 
             header_frame = ctk.CTkFrame(win, fg_color="transparent")
-            header_frame.pack(fill="x", padx=15, pady=(10, 10))
+            header_frame.pack(fill="x", padx=15, pady=(10, 5))
             ctk.CTkLabel(
                 header_frame,
                 text="Choose a search type, fill in your values, and click Apply.",
@@ -721,22 +723,31 @@ def _launch_gui():
                 command=lambda: self._show_search_wizard_help(win),
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
+            import tkinter as _tk_wiz
+            _tk_wiz.Label(
+                win,
+                text="Tip: After clicking Apply, visit Advanced Search Options for additional settings: "
+                     "File Types, Exclude Terms, Proximity, Context Lines, Range Filters, and more.",
+                font=("TkDefaultFont", 10), fg="gray", wraplength=880, justify="left",
+            ).pack(padx=15, pady=(0, 5), anchor="w")
 
             # Common settings — Recursive and OCR
+            _sf = self._scaled_font
             settings_frame = tk.Frame(win)
-            settings_frame.pack(fill="x", padx=15, pady=(0, 8))
-            tk.Label(settings_frame, text="Also apply:", font=("TkDefaultFont", 11),
+            settings_frame.pack(fill="x", padx=15, pady=(0, 0))
+            tk.Frame(win, height=24).pack()  # spacer for readability
+            tk.Label(settings_frame, text="Also apply:", font=_sf(11),
                      fg="gray").pack(side="left", padx=(0, 8))
             wiz_recursive_var = tk.BooleanVar(value=self.recursive_var.get() == "on")
             wiz_recursive_cb = tk.Checkbutton(
                 settings_frame, text="Include subfolders (Recursive)",
-                variable=wiz_recursive_var, font=("TkDefaultFont", 11),
+                variable=wiz_recursive_var, font=_sf(11),
             )
             wiz_recursive_cb.pack(side="left", padx=(0, 15))
             wiz_ocr_var = tk.BooleanVar(value=self.ocr_var.get() == "on")
             wiz_ocr_cb = tk.Checkbutton(
                 settings_frame, text="Search scanned PDFs/images (OCR)",
-                variable=wiz_ocr_var, font=("TkDefaultFont", 11),
+                variable=wiz_ocr_var, font=_sf(11),
             )
             wiz_ocr_cb.pack(side="left")
 
@@ -751,6 +762,22 @@ def _launch_gui():
             canvas.configure(yscrollcommand=scrollbar.set)
             scrollbar.pack(side="right", fill="y")
             canvas.pack(side="left", fill="both", expand=True)
+
+            # Enable mousewheel scrolling (cross-platform)
+            def _bind_mousewheel(c, parent_win):
+                def _scroll(event):
+                    if sys.platform == "darwin":
+                        c.yview_scroll(-event.delta, "units")
+                    elif sys.platform == "linux":
+                        pass  # handled by Button-4/5
+                    else:
+                        c.yview_scroll(int(-event.delta / 40), "units")
+                c.configure(yscrollincrement=5)
+                parent_win.bind("<MouseWheel>", _scroll)
+                if sys.platform == "linux":
+                    parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
+                    parent_win.bind("<Button-5>", lambda e: c.yview_scroll(1, "units"))
+            _bind_mousewheel(canvas, win)
 
             patterns = [
                 ("Find keywords (OR — any match)", "Lines containing any of the terms. For AND+OR combos use Boolean below",
@@ -849,19 +876,19 @@ def _launch_gui():
             ]
 
             for title, desc, fields, apply_fn in patterns:
-                frame = tk.LabelFrame(scroll_inner, text=title, font=("TkDefaultFont", 12, "bold"), padx=8, pady=5)
+                frame = tk.LabelFrame(scroll_inner, text=title, font=_sf(12, "bold"), padx=8, pady=5)
                 frame.pack(fill="x", padx=5, pady=(0, 8))
 
-                tk.Label(frame, text=desc, font=("TkDefaultFont", 10), fg="gray").pack(anchor="w")
+                tk.Label(frame, text=desc, font=_sf(10), fg="gray").pack(anchor="w")
 
                 entries = {}
                 if fields:
                     field_frame = tk.Frame(frame)
                     field_frame.pack(fill="x", pady=(3, 0))
                     for i, (label, key, placeholder) in enumerate(fields):
-                        tk.Label(field_frame, text=label, font=("TkDefaultFont", 11)).grid(row=0, column=i*2, padx=(0, 3), sticky="e")
+                        tk.Label(field_frame, text=label, font=_sf(11)).grid(row=0, column=i*2, padx=(0, 3), sticky="e")
                         entry_width = max(15, len(placeholder) + 3)
-                        e = tk.Entry(field_frame, font=("TkDefaultFont", 11), width=entry_width)
+                        e = tk.Entry(field_frame, font=_sf(11), width=entry_width)
                         e.insert(0, placeholder)
                         e.grid(row=0, column=i*2+1, padx=(0, 10))
                         entries[key] = e
@@ -940,6 +967,8 @@ def _launch_gui():
             win.geometry("900x620")
             win.resizable(True, True)
             win.after(50, win.lift)
+            win.after(100, win.focus_force)
+            win.after(200, lambda: win.title("Compliance Wizard"))
 
             header_frame = ctk.CTkFrame(win, fg_color="transparent")
             header_frame.pack(fill="x", padx=15, pady=(10, 5))
@@ -956,13 +985,14 @@ def _launch_gui():
             ).pack(side="right")
 
             # Category selector
+            _sf = self._scaled_font
             cat_frame = ctk.CTkFrame(win, fg_color="transparent")
             cat_frame.pack(fill="x", padx=15, pady=(0, 5))
             ctk.CTkLabel(cat_frame, text="Industry:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
             cat_var = tk.StringVar(value=COMPLIANCE_CATEGORY_ORDER[0])
             cat_combo = ttk.Combobox(
                 cat_frame, textvariable=cat_var, values=COMPLIANCE_CATEGORY_ORDER,
-                state="readonly", width=35, font=("TkDefaultFont", 12),
+                state="readonly", width=35, font=_sf(12),
             )
             cat_combo.pack(side="left", padx=(8, 0))
 
@@ -970,7 +1000,7 @@ def _launch_gui():
             name_frame = ctk.CTkFrame(win, fg_color="transparent")
             name_frame.pack(fill="x", padx=15, pady=(0, 5))
             ctk.CTkLabel(name_frame, text="Suite name:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
-            name_entry = tk.Entry(name_frame, font=("TkDefaultFont", 12), width=30)
+            name_entry = tk.Entry(name_frame, font=_sf(12), width=30)
             name_entry.pack(side="left", padx=(8, 0))
             name_entry.insert(0, "financial_compliance")
 
@@ -985,6 +1015,22 @@ def _launch_gui():
             canvas.configure(yscrollcommand=scrollbar.set)
             scrollbar.pack(side="right", fill="y")
             canvas.pack(side="left", fill="both", expand=True)
+
+            # Enable mousewheel scrolling (cross-platform)
+            def _bind_mousewheel_cw(c, parent_win):
+                def _scroll(event):
+                    if sys.platform == "darwin":
+                        c.yview_scroll(-event.delta, "units")
+                    elif sys.platform == "linux":
+                        pass
+                    else:
+                        c.yview_scroll(int(-event.delta / 40), "units")
+                c.configure(yscrollincrement=5)
+                parent_win.bind("<MouseWheel>", _scroll)
+                if sys.platform == "linux":
+                    parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
+                    parent_win.bind("<Button-5>", lambda e: c.yview_scroll(1, "units"))
+            _bind_mousewheel_cw(canvas, win)
 
             # State for current checks
             check_widgets = []  # list of dicts with widgets for each check
@@ -1007,21 +1053,21 @@ def _launch_gui():
                     frame = tk.LabelFrame(
                         checks_inner,
                         text=f"  {i+1}. {check['name']}  ",
-                        font=("TkDefaultFont", 11, "bold"),
+                        font=_sf(11, "bold"),
                         padx=8, pady=4,
                     )
                     frame.pack(fill="x", padx=5, pady=(0, 4))
 
                     # Description
-                    tk.Label(frame, text=check["desc"], font=("TkDefaultFont", 10),
+                    tk.Label(frame, text=check["desc"], font=_sf(10),
                              fg="gray", anchor="w").pack(anchor="w")
 
                     # Editable fields row
                     field_frame = tk.Frame(frame)
                     field_frame.pack(fill="x", pady=(2, 0))
 
-                    tk.Label(field_frame, text="Search:", font=("TkDefaultFont", 10)).grid(row=0, column=0, sticky="e", padx=(0, 3))
-                    search_entry = tk.Entry(field_frame, font=("TkDefaultFont", 10), width=35)
+                    tk.Label(field_frame, text="Search:", font=_sf(10)).grid(row=0, column=0, sticky="e", padx=(0, 3))
+                    search_entry = tk.Entry(field_frame, font=_sf(10), width=35)
                     search_entry.insert(0, check["search_text"])
                     search_entry.grid(row=0, column=1, padx=(0, 10))
 
@@ -1036,24 +1082,24 @@ def _launch_gui():
                     if check.get("range_filters"):
                         modes.append(f"range: {check['range_filters']}")
                     mode_text = ", ".join(modes) if modes else "plain"
-                    tk.Label(field_frame, text=f"[{mode_text}]", font=("TkDefaultFont", 9),
+                    tk.Label(field_frame, text=f"[{mode_text}]", font=_sf(9),
                              fg="gray").grid(row=0, column=2, padx=(0, 10))
 
                     # Pass criteria
-                    tk.Label(field_frame, text="Pass:", font=("TkDefaultFont", 10)).grid(row=0, column=3, sticky="e", padx=(0, 3))
+                    tk.Label(field_frame, text="Pass:", font=_sf(10)).grid(row=0, column=3, sticky="e", padx=(0, 3))
                     op_var = tk.StringVar(value=check["operator"])
                     op_combo = ttk.Combobox(field_frame, textvariable=op_var,
                                             values=["==", ">=", "<=", ">", "<", "!="],
-                                            state="readonly", width=4, font=("TkDefaultFont", 10))
+                                            state="readonly", width=4, font=_sf(10))
                     op_combo.grid(row=0, column=4, padx=(0, 3))
-                    thresh_entry = tk.Entry(field_frame, font=("TkDefaultFont", 10), width=5)
+                    thresh_entry = tk.Entry(field_frame, font=_sf(10), width=5)
                     thresh_entry.insert(0, str(check["threshold"]))
                     thresh_entry.grid(row=0, column=5)
 
                     # Enable/disable checkbox
                     enabled_var = tk.BooleanVar(value=True)
                     tk.Checkbutton(field_frame, text="Include", variable=enabled_var,
-                                   font=("TkDefaultFont", 10)).grid(row=0, column=6, padx=(10, 0))
+                                   font=_sf(10)).grid(row=0, column=6, padx=(10, 0))
 
                     check_widgets.append({
                         "template": check,
@@ -1234,19 +1280,13 @@ def _launch_gui():
             b("are on the main screen and in Advanced Search Options. You")
             b("can close the wizard and edit anything further from there.")
             blank()
-            b("IMPORTANT: The wizard configures the search type and terms,")
-            b("but you may still need to visit Advanced Search Options to")
-            b("set other options before running. Common settings the wizard")
-            b("does not set:")
+            b("The wizard configures the search type, terms, Recursive,")
+            b("and OCR. You may still want to visit Advanced Search Options")
+            b("to set other options before running:")
             blank()
-            b("\u2022 Recursive \u2014 check this to include subfolders")
-            b("\u2022 OCR \u2014 check this to search scanned PDFs and images")
             b("\u2022 File types \u2014 fill this in to limit to specific formats")
             b("\u2022 Exclude terms \u2014 fill this in to skip unwanted results")
             b("\u2022 Max Matches, Cores, Output Dir \u2014 adjust as needed")
-            blank()
-            b("Think of the wizard as setting up WHAT to search for.")
-            b("Advanced Search Options controls HOW to search.")
             blank()
             b("The wizard isn't doing anything you can't do manually using")
             b("the search bar and Advanced Search Options. It just fills in")
@@ -6972,6 +7012,14 @@ def _launch_gui():
                 self.preview_text.tag_configure("filename", font=("Courier", size, "bold"))
                 self.preview_text.tag_configure("line_num", font=("Courier", size))
 
+        def _scaled_font(self, base_size=12, weight="normal"):
+            """Return a font tuple scaled by the current Text Size setting."""
+            scale = self._TEXT_SIZE_SCALES.get(self._text_size_var.get(), 1.0)
+            size = max(8, int(base_size * scale))
+            if weight == "bold":
+                return ("TkDefaultFont", size, "bold")
+            return ("TkDefaultFont", size)
+
         def _on_text_size_changed(self, value):
             """Scale all GUI widgets and auto-save the setting."""
             scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
@@ -7532,6 +7580,22 @@ def _launch_gui():
 
             canvas.pack(side="left", fill="both", expand=True)
             scrollbar.pack(side="right", fill="y")
+
+            # Enable mousewheel scrolling (cross-platform)
+            def _bind_mousewheel_rw(c, parent_win):
+                def _scroll(event):
+                    if sys.platform == "darwin":
+                        c.yview_scroll(-event.delta, "units")
+                    elif sys.platform == "linux":
+                        pass
+                    else:
+                        c.yview_scroll(int(-event.delta / 40), "units")
+                c.configure(yscrollincrement=5)
+                parent_win.bind("<MouseWheel>", _scroll)
+                if sys.platform == "linux":
+                    parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
+                    parent_win.bind("<Button-5>", lambda e: c.yview_scroll(1, "units"))
+            _bind_mousewheel_rw(canvas, wiz)
 
             # State: list of (BooleanVar, label, regex) for current category
             check_vars = []
