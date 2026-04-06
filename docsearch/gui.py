@@ -5223,6 +5223,27 @@ def _launch_gui():
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
 
+            # If inverse search, show the list of files missing the term
+            if self._inverse_results and self.matched_files:
+                self.preview_text.tag_configure("inverse_header",
+                    font=("TkDefaultFont", 12, "bold"), foreground="#FF6B35")
+                self.preview_text.tag_configure("inverse_file",
+                    font=("TkDefaultFont", 11))
+                self.preview_text.insert("end",
+                    f"Files WITHOUT your search term ({len(self.matched_files)} file(s)) \u2014 Inverse box checked:\n\n",
+                    "inverse_header")
+                for item in self.matched_files:
+                    filepath, filename = item[0], item[1]
+                    dirname = os.path.dirname(filepath)
+                    self.preview_text.insert("end", f"  {filename}\n", "inverse_file")
+                    self.preview_text.insert("end", f"  ({dirname})\n\n", "inverse_file")
+                self.preview_text.configure(state="disabled")
+                self.preview_text.see("1.0")
+                self.preview_frame.grid(
+                    row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
+                )
+                return
+
             # Build highlight pattern from current search settings
             highlight_pattern = None
             search_text = self.search_entry.get().strip()
@@ -5329,7 +5350,8 @@ def _launch_gui():
             # Update count label
             match_count = len(self.matched_files)
             if self._inverse_results:
-                self._preview_count_label.configure(text=f"{match_count} file(s) without matches")
+                self._preview_count_label.configure(
+                    text=f"{match_count} file(s) without matches")
             else:
                 total_matches = sum(item[2] for item in self.matched_files)
                 self._preview_count_label.configure(text=f"{total_matches} match(es) in {match_count} file(s)")

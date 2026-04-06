@@ -176,6 +176,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             for fp in inverse_files:
                 f.write(f"  {os.path.basename(fp)}\n")
                 f.write(f"  ({os.path.dirname(fp)})\n\n")
+            # Inverse reports only list files missing the term — no match lines
+            return (total_bytes, size_str)
         prev_file = None
         for file_dir, filename, line_num, text in matches:
             current_file = os.path.join(file_dir, filename)
