@@ -1726,6 +1726,15 @@ def _launch_gui():
             b("Saved searches are also the building blocks for Search Suites \u2014")
             b("group them into suites with pass/fail criteria for compliance audits.")
             blank()
+            s("Save Search vs Save Defaults \u2014 what's the difference?")
+            b("\u2022 Save Search (main screen) \u2014 saves the current search terms")
+            b("  and settings by name for reuse. Stored per folder in")
+            b("  .docsearch_collection.json. Use this to build suites.")
+            b("\u2022 Save Defaults (Advanced Search Options) \u2014 saves your")
+            b("  preferred settings as defaults for every future session.")
+            b("  Stored once in ~/.docsearchrc. Use this to set your")
+            b("  preferred starting configuration.")
+            blank()
 
             h("SIMPLE SEARCH")
             b("Type one or more terms separated by spaces. By default, any term matches (OR mode).")
@@ -2365,7 +2374,7 @@ def _launch_gui():
             adv_header_frame.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(
                 adv_header_frame,
-                text="Configure search options below. Settings take effect on your next search.\nClick Save Defaults to keep them for future sessions.",
+                text="Configure search options below. Settings take effect on your next search.",
                 font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"),
                 justify="left",
@@ -2677,7 +2686,7 @@ def _launch_gui():
             _tk_adv.Label(
                 self.advanced_window,
                 text="Your selections take effect immediately on the next Run Search — no need to press Save. "
-                     "The Save button saves your settings as permanent defaults for future sessions.",
+                     "The Save Defaults button saves your settings as permanent defaults for future sessions.",
                 font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
             ).pack(padx=15, pady=(5, 2))
 
@@ -2686,7 +2695,7 @@ def _launch_gui():
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
 
             adv_save_btn = ctk.CTkButton(
-                adv_bottom_frame, text="Save", width=80,
+                adv_bottom_frame, text="Save Defaults", width=110,
                 command=self._save_current_settings,
                 font=ctk.CTkFont(size=13),
             )

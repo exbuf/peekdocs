@@ -323,6 +323,17 @@ The GUI window is organized into these regions, from top to bottom:
 
 Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
 
+**Save Search vs Save Defaults — what's the difference?**
+
+These two buttons do different things:
+
+| Button | Location | What it saves | Where it's stored | Purpose |
+|--------|----------|--------------|-------------------|---------|
+| **Save Search** | Main screen | Current search terms + all settings, by name | `.docsearch_collection.json` in the search folder | Reusable named search for suites |
+| **Save Defaults** | Advanced Search Options | Your preferred default settings | `~/.docsearchrc` in your home directory | Starting configuration for every future session |
+
+Your selections in Advanced Search Options take effect immediately on the next Run Search — you do not need to press Save Defaults first. Save Defaults is only for making your choices persist across sessions.
+
 **Manage Indexes:**
 
 Click "Manage Indexes" below Manage Suites to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly.
