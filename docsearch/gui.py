@@ -717,8 +717,8 @@ def _launch_gui():
                 text="Choose a search type, fill in your values, click Apply, then close this window. "
                      "Use the Save Search button on the main screen to save your settings.",
                 font=ctk.CTkFont(size=13),
-                wraplength=800,
-            ).pack(side="left")
+                wraplength=650, justify="center",
+            ).pack(expand=True)
             ctk.CTkButton(
                 header_frame, text="?", width=30,
                 command=lambda: self._show_search_wizard_help(win),
@@ -740,18 +740,18 @@ def _launch_gui():
             settings_frame = tk.Frame(win)
             settings_frame.pack(fill="x", padx=15, pady=(0, 0))
             tk.Frame(win, height=24).pack()  # spacer for readability
-            tk.Label(settings_frame, text="Also apply:", font=_sf(11),
-                     fg="gray").pack(side="left", padx=(0, 8))
+            tk.Label(settings_frame, text="Also apply:", font=_sf(13, "bold"),
+                     ).pack(side="left", padx=(0, 8))
             wiz_recursive_var = tk.BooleanVar(value=self.recursive_var.get() == "on")
             wiz_recursive_cb = tk.Checkbutton(
                 settings_frame, text="Include subfolders (Recursive)",
-                variable=wiz_recursive_var, font=_sf(11),
+                variable=wiz_recursive_var, font=_sf(13),
             )
             wiz_recursive_cb.pack(side="left", padx=(0, 15))
             wiz_ocr_var = tk.BooleanVar(value=self.ocr_var.get() == "on")
             wiz_ocr_cb = tk.Checkbutton(
                 settings_frame, text="Search scanned PDFs/images (OCR)",
-                variable=wiz_ocr_var, font=_sf(11),
+                variable=wiz_ocr_var, font=_sf(13),
             )
             wiz_ocr_cb.pack(side="left")
 
