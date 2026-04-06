@@ -2672,6 +2672,15 @@ def _launch_gui():
             Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
 
+            # Note about saving
+            import tkinter as _tk_adv
+            _tk_adv.Label(
+                self.advanced_window,
+                text="Your selections take effect immediately on the next Run Search — no need to press Save. "
+                     "The Save button saves your settings as permanent defaults for future sessions.",
+                font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
+            ).pack(padx=15, pady=(5, 2))
+
             # Bottom buttons for the Advanced Search Options window
             adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -2682,7 +2691,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             adv_save_btn.pack(side="left", padx=(5, 0))
-            Tooltip(adv_save_btn, "Save all current options as defaults to ~/.docsearchrc")
+            Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.docsearchrc. Not required for the current search — changes take effect immediately")
 
             ctk.CTkButton(
                 adv_bottom_frame, text="Close", width=80,
