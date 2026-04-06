@@ -4596,23 +4596,10 @@ def _launch_gui():
             self.tooltip_toggle_btn.pack(side="right", padx=5)
             Tooltip(self.tooltip_toggle_btn, "Turn hover tooltips on or off. When disabled, no tooltip popups appear when you hover over buttons and fields", anchor="above")
 
-            self.clear_error_log_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="Clear Error Log",
-                width=115,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._clear_error_log,
-                font=ctk.CTkFont(size=13),
-            )
-            self.clear_error_log_btn.pack(side="right", padx=5)
-            Tooltip(self.clear_error_log_btn, "Delete the docsearch_errors.log file from the search folder. A new one is created automatically if errors occur in future searches", anchor="above-mid")
-
             self.view_error_log_bottom = ctk.CTkButton(
                 self.bottom_frame,
                 text="Error Log",
-                width=110,
+                width=80,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -4622,31 +4609,34 @@ def _launch_gui():
             self.view_error_log_bottom.pack(side="right", padx=5)
             self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries", anchor="above-high")
 
-            self.clear_results_btn = ctk.CTkButton(
+            # Maintenance menu — consolidates housekeeping actions
+            def _show_maintenance_menu():
+                import tkinter as tk
+                menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
+                menu.add_command(label="View App Files — list all docsearch-created files", command=self._show_app_files)
+                menu.add_separator()
+                menu.add_command(label="Clear Search Results — delete docsearch_results files", command=self._clear_results_files)
+                menu.add_command(label="Clear Error Log — delete docsearch_errors.log", command=self._clear_error_log)
+                menu.add_separator()
+                menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
+                # Position menu above the button
+                btn = self._maintenance_btn
+                x = btn.winfo_rootx()
+                y = btn.winfo_rooty() - 140
+                menu.tk_popup(x, y)
+
+            self._maintenance_btn = ctk.CTkButton(
                 self.bottom_frame,
-                text="Clear Search Results",
+                text="Maintenance \u25b2",
                 width=110,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
-                command=self._clear_results_files,
+                command=_show_maintenance_menu,
                 font=ctk.CTkFont(size=13),
             )
-            self.clear_results_btn.pack(side="right", padx=5)
-            Tooltip(self.clear_results_btn, "Delete all docsearch_results files from the search folder (including timestamped versions)", anchor="above")
-
-            self.cleanup_practice_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="Clean Up Practice Files",
-                width=150,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._clean_up_practice_files,
-                font=ctk.CTkFont(size=13),
-            )
-            self.cleanup_practice_btn.pack(side="right", padx=5)
-            Tooltip(self.cleanup_practice_btn, "Delete all docsearch-generated practice files (results, suite reports, error logs, index) from the search folder and subfolders. Preserves your saved searches, suites, settings, and original documents. For starting fresh after experimenting with the app", anchor="above")
+            self._maintenance_btn.pack(side="right", padx=5)
+            Tooltip(self._maintenance_btn, "App Files, Clear Search Results, Clear Error Log, Clean Up Practice Files", anchor="above")
 
             # Close button on its own row below the toolbar
             ctk.CTkButton(
@@ -6411,6 +6401,135 @@ def _launch_gui():
                     break
             return excluded
 
+        def _show_app_files(self):
+            """List all docsearch-created files in the search folder and subfolders."""
+            import tkinter as tk
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+
+            # Categorize docsearch-generated files
+            app_files = []  # list of (filepath, category)
+            _INTERNAL_NAMES = {
+                ".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm",
+                ".docsearch_collection.json", "docsearch_errors.log",
+            }
+
+            for root, dirs, files in os.walk(folder):
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    rel_dir = os.path.relpath(root, folder)
+                    if rel_dir == ".":
+                        rel_dir = "(top folder)"
+                    display = os.path.join(rel_dir, fname)
+
+                    if fname.startswith("docsearch_results"):
+                        app_files.append((display, "Search results"))
+                    elif fname.startswith("DO_NOT_SEARCH_docsearch_suite"):
+                        app_files.append((display, "Suite reports"))
+                    elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
+                        app_files.append((display, "Accumulated results"))
+                    elif fname.startswith("DO_NOT_SEARCH"):
+                        app_files.append((display, "Saved/stage reports"))
+                    elif fname == "docsearch_errors.log":
+                        app_files.append((display, "Error log"))
+                    elif fname == ".docsearch.db":
+                        app_files.append((display, "Search index"))
+                    elif fname in (".docsearch.db-wal", ".docsearch.db-shm"):
+                        app_files.append((display, "Index temp files"))
+                    elif fname == ".docsearch_collection.json":
+                        app_files.append((display, "Saved searches & suites \u2014 DO NOT DELETE"))
+
+            # Also check home directory for .docsearchrc
+            rc_path = os.path.expanduser("~/.docsearchrc")
+            if os.path.exists(rc_path):
+                app_files.append((rc_path, "Settings \u2014 DO NOT DELETE"))
+
+            if not app_files:
+                self.status_label.configure(
+                    text="No docsearch files found in this folder.",
+                    fg="black",
+                )
+                return
+
+            popup = tk.Toplevel(self)
+            popup.title(f"docsearch App Files ({len(app_files)})")
+            popup.resizable(True, True)
+            popup.geometry("800x500")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup, text=f"docsearch Files ({len(app_files)} file(s) in {folder})",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                popup, text="Files created by docsearch in this folder and subfolders. "
+                            "Items marked DO NOT DELETE contain your saved work.",
+                font=("TkDefaultFont", 11), fg="gray",
+            ).pack(pady=(0, 8))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            # Group by category
+            from collections import defaultdict
+            by_category = defaultdict(list)
+            for display, category in app_files:
+                by_category[category].append(display)
+
+            _CATEGORY_DESCRIPTIONS = {
+                "Saved searches & suites \u2014 DO NOT DELETE":
+                    "    These .docsearch_collection.json files store your saved searches,\n"
+                    "    suites, pass/fail criteria, and schedules. One per folder.\n"
+                    "    Back these up — they represent all your suite-building work.",
+                "Settings \u2014 DO NOT DELETE":
+                    "    Your ~/.docsearchrc file stores settings, email config, and defaults.\n"
+                    "    Back this up — it contains your personalized configuration.",
+                "Search index":
+                    "    SQLite database storing extracted text for faster repeated searches.\n"
+                    "    Safe to delete — rebuild anytime with Build Index(es).",
+                "Search results":
+                    "    Output files from previous searches. Safe to delete.",
+                "Suite reports":
+                    "    Reports generated by suite runs. Safe to delete.",
+                "Error log":
+                    "    Log of files that could not be read. Safe to delete.",
+            }
+
+            for category in sorted(by_category.keys()):
+                files = by_category[category]
+                idx = listbox.size()
+                listbox.insert("end", f"\u2500\u2500 {category} ({len(files)} file(s)) \u2500\u2500")
+                listbox.itemconfig(idx, fg="#FFD700")
+                desc = _CATEGORY_DESCRIPTIONS.get(category)
+                if desc:
+                    for desc_line in desc.split("\n"):
+                        desc_idx = listbox.size()
+                        listbox.insert("end", desc_line)
+                        listbox.itemconfig(desc_idx, fg="#FFD700")
+                for fp in sorted(files):
+                    listbox.insert("end", f"    {fp}")
+                listbox.insert("end", "")
+
+            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+
         def _show_excluded_files_popup(self):
             """Show a popup listing files excluded from the search with reasons."""
             import tkinter as tk
@@ -6604,9 +6723,14 @@ def _launch_gui():
             ).pack(pady=(10, 2))
             tk.Label(
                 win, text="Line numbers match those shown in the Results Preview. "
-                          "Matches are highlighted in yellow.",
+                          "Matches are highlighted in orange.",
                 font=("TkDefaultFont", 10), fg="gray",
-            ).pack(pady=(0, 8))
+            ).pack(pady=(0, 2))
+            matching_lines_label = tk.Label(
+                win, text="", font=("TkDefaultFont", 11, "bold"),
+                fg="#FF6B35", anchor="w",
+            )
+            matching_lines_label.pack(fill="x", padx=15, pady=(0, 8))
 
             text_frame = tk.Frame(win)
             text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
@@ -6622,7 +6746,7 @@ def _launch_gui():
             scrollbar.config(command=txt.yview)
 
             txt.tag_configure("line_num", foreground="#888888")
-            txt.tag_configure("match", background="#FFFF00")
+            txt.tag_configure("match", background="#FF6B35", foreground="white")
 
             # Build highlight pattern from current search
             search_text = self.search_entry.get().strip()
@@ -6663,6 +6787,7 @@ def _launch_gui():
             ln_width = len(str(max_ln))
 
             first_match_line = None
+            matched_line_nums = []
             for line_num, text in lines:
                 prefix = f"{line_num:>{ln_width}}  "
                 txt.insert("end", prefix, "line_num")
@@ -6670,6 +6795,7 @@ def _launch_gui():
                 txt.insert("end", text + "\n")
                 # Highlight matches on this line
                 if combined_re:
+                    found_on_line = False
                     for m in combined_re.finditer(text):
                         start_col = m.start()
                         end_col = m.end()
@@ -6678,6 +6804,21 @@ def _launch_gui():
                         txt.tag_add("match", start_idx, end_idx)
                         if first_match_line is None:
                             first_match_line = line_num
+                        found_on_line = True
+                    if found_on_line:
+                        matched_line_nums.append(line_num)
+
+            # Show matching line numbers
+            if matched_line_nums:
+                shown = matched_line_nums[:20]
+                lines_str = ", ".join(str(n) for n in shown)
+                if len(matched_line_nums) > 20:
+                    lines_str += f", ... ({len(matched_line_nums)} total)"
+                matching_lines_label.configure(
+                    text=f"Matching lines: {lines_str}"
+                )
+            else:
+                matching_lines_label.configure(text="No matches in this file")
 
             txt.configure(state="disabled")
 
