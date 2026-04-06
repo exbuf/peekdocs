@@ -339,7 +339,9 @@ def line_matches_content_ranges(text, content_ranges):
             min_bound = _parse_bound(rspec.field, rspec.min_val)
             max_bound = _parse_bound(rspec.field, rspec.max_val)
         except (ValueError, TypeError):
-            continue
+            # Invalid range bounds (e.g., invalid date like June 31) —
+            # reject all lines rather than silently matching everything
+            return False
         values = extractor(text)
         if not values:
             return False

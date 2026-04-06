@@ -852,32 +852,41 @@ def _launch_gui():
                  [("Term 1:", "t1", "breach"), ("Term 2:", "t2", "contract"), ("N words:", "n", "5")],
                  lambda v: self._apply_wizard(search_text=f"{v['t1']} {v['t2']}", proximity=v["n"])),
 
-                ("Boolean expression (AND + OR + NOT)", "Combine AND, OR, NOT with parentheses. Examples:\n"
+                ("Boolean expression (AND + OR + NOT)", "Combine AND, OR, NOT with parentheses. No limit on terms or nesting depth.\n"
+                 "AND/OR/NOT must be UPPERCASE. Examples:\n"
                  "(budget OR revenue) AND approved\n"
+                 "(budget OR revenue OR limit OR expenses) AND approved\n"
                  "(salary OR bonus) AND NOT confidential\n"
-                 "(contract AND signed) OR (agreement AND executed)\n"
+                 "((budget OR revenue) AND (approved OR signed)) OR (draft AND NOT confidential)\n"
                  "budget AND revenue AND NOT (draft OR preliminary)",
                  [("Expression:", "expr", "(budget OR revenue) AND NOT draft")],
                  lambda v: self._apply_wizard(search_text=v["expr"], expression=True)),
 
-                ("Find dates in range", "Lines with dates in a specific range",
+                ("Find dates in range", "Lines with dates in a specific range.\n"
+                 "Use YYYY-MM-DD format. Dates must be valid (e.g., use 06-30 not 06-31).\n"
+                 "Invalid dates will cause no results to be found.",
                  [("From:", "lo", "2026-01-01"), ("To:", "hi", "2026-12-31")],
                  lambda v: self._apply_wizard(search_text=r"\d{2}/\d{2}/\d{4}", regex=True, range_filters=f"date:{v['lo']}..{v['hi']}")),
 
-                ("Regex pattern builder", "Pick from categorized regex presets (SSNs, invoices, part numbers, etc.).\n"
+                ("Regex pattern builder", "Opens a separate window with categorized regex presets (SSNs, invoices, part numbers, etc.).\n"
                  "Select a category, check the patterns you need, combine with OR or AND,\n"
-                 "and optionally add your own custom regex.",
+                 "and optionally add your own custom regex. When you click Apply, the regex is\n"
+                 "placed in the Search Terms field and Regex is checked in Advanced Search Options.",
                  [],
                  lambda v: self._open_search_wizard()),
 
                 ("Search scanned PDFs and images (OCR)", "Enable OCR to extract text from scanned PDFs and image files.\n"
-                 "Requires Tesseract to be installed. Searches .bmp, .jpg, .jpeg, .png, .tif, .tiff in addition to normal file types.",
+                 "Requires Tesseract to be installed. When you click Apply, the keywords are placed\n"
+                 "in the Search Terms field and OCR is checked in Advanced Search Options.\n"
+                 "Searches .bmp, .jpg, .jpeg, .png, .tif, .tiff in addition to normal file types.",
                  [("Keywords:", "keyword", "budget revenue")],
                  lambda v: (self._apply_wizard(search_text=v["keyword"]), self.ocr_var.set("on"))),
 
                 ("Find keywords with surrounding context", "Show lines before and after each match so you can read the\n"
-                 "full paragraph without opening the file. Useful for understanding\n"
-                 "matches in context.",
+                 "full paragraph without opening the file. Default is OR mode — after clicking\n"
+                 "Apply, you can check AND mode or Expression in Advanced Search Options to\n"
+                 "change how the terms are combined. You can also use a boolean expression\n"
+                 "directly in the Keywords field (e.g., \"(breach OR violation) AND contract\").",
                  [("Keywords:", "keyword", "breach liability"), ("Lines before:", "before", "3"), ("Lines after:", "after", "3")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
             ]
@@ -1342,8 +1351,10 @@ def _launch_gui():
             b("Proximity — find two terms within N words of each other")
             e("  Term 1: breach  Term 2: contract  N words: 5")
             blank()
-            b("Boolean expression — combine AND, OR, NOT with parentheses")
-            e("  (budget OR revenue) AND NOT draft")
+            b("Boolean expression \u2014 combine AND, OR, NOT with parentheses.")
+            b("No limit on terms or nesting depth. AND/OR/NOT must be UPPERCASE.")
+            e("  (budget OR revenue OR limit OR expenses) AND NOT draft")
+            e("  ((budget OR revenue) AND (approved OR signed)) OR draft")
             blank()
             b("Dates in range — find lines with dates in a specific range")
             e("  From: 2026-01-01  To: 2026-12-31")
@@ -1753,10 +1764,13 @@ def _launch_gui():
 
             h("BOOLEAN EXPRESSIONS")
             b("Check the Expression checkbox. Combine AND, OR, NOT with parentheses.")
+            b("No limit on terms or nesting depth. AND/OR/NOT must be UPPERCASE.")
             e("budget AND revenue")
             e("(bob AND amy) OR fred")
+            e("(budget OR revenue OR limit OR expenses) AND approved")
             e("contract NOT draft")
             e("(salary OR bonus) AND NOT confidential")
+            e("((budget OR revenue) AND (approved OR signed)) OR draft")
             blank()
 
             b("For help with Fuzzy, Regex, Wildcard, Whole Word, Proximity,")

@@ -907,7 +907,7 @@ Normal docsearch shows files that **contain** your search terms. Inverse search 
 
 ## Boolean Expression Search
 
-The `-e` flag enables boolean expression search, allowing you to combine AND, OR, NOT, and parentheses for complex queries that can't be expressed with the `-a` and `-n` flags alone.
+The `-e` flag enables boolean expression search, allowing you to combine AND, OR, NOT, and parentheses for complex queries that can't be expressed with the `-a` and `-n` flags alone. There is no limit on the number of terms or nesting depth — you can have as many conditions inside parentheses as you need (e.g., `(budget OR revenue OR limit OR expenses) AND approved`). AND, OR, and NOT must be UPPERCASE to distinguish them from search terms.
 
 ### Why use `-e` instead of `-a` and `-n`?
 
