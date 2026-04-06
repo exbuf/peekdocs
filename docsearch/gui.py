@@ -1471,10 +1471,13 @@ def _launch_gui():
 
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
-                "What Is the Compliance Wizard?", "How It Works",
+                "What Is the Compliance Wizard?",
+                "Search Wizard vs Compliance Wizard",
+                "How It Works",
                 "What Each Check Does", "Understanding Pass and Fail",
-                "After Creating the Suite", "Available Templates",
-                "Customizing Templates",
+                "Mixing Industries",
+                "After Creating the Suite", "Suite Reports",
+                "Available Templates", "Customizing Templates",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
@@ -1484,6 +1487,21 @@ def _launch_gui():
             b("industry or regulation in one click. Instead of manually building")
             b("individual searches and assembling them into a suite, you pick an")
             b("industry template and the wizard does it all for you.")
+            blank()
+
+            h("SEARCH WIZARD VS COMPLIANCE WIZARD")
+            b("The Search Wizard configures one search at a time. You pick a")
+            b("search type, click Apply, and it fills in the search bar and")
+            b("Advanced Search Options. You then run or save that single search.")
+            blank()
+            b("The Compliance Wizard creates multiple searches AND a suite in")
+            b("one step. Each industry template includes 8 pre-built searches")
+            b("with pass/fail criteria, all grouped into a named suite. One")
+            b("click replaces what would take many trips to the Search Wizard.")
+            blank()
+            b("Use the Search Wizard for individual searches and learning.")
+            b("Use the Compliance Wizard when you need a full set of document")
+            b("review checks ready to run as a batch.")
             blank()
 
             h("HOW IT WORKS")
@@ -1524,6 +1542,15 @@ def _launch_gui():
             blank()
             b("Inverse checks (e.g., 'every file has a signature') search for")
             b("files MISSING the term. Pass == 0 means no files are missing it.")
+            blank()
+
+            h("MIXING INDUSTRIES")
+            b("You're not limited to one industry. You can run the Compliance")
+            b("Wizard multiple times with different templates \u2014 all the saved")
+            b("searches go into the same folder's collection. Then open Manage")
+            b("Suites and build a custom suite that picks searches from any")
+            b("industry. For example, combine HIPAA patient checks with HR")
+            b("employee checks and SOX financial checks into one suite.")
             blank()
 
             h("AFTER CREATING THE SUITE")
@@ -1594,6 +1621,11 @@ def _launch_gui():
             b("  to overwrite, or a new name to keep both versions)")
             b("• Open Manage Suites to add, remove, or reorder checks in")
             b("  the suite, or change pass/fail thresholds")
+            blank()
+            b("You can also import custom templates from a .json file using")
+            b("the Import Template button in Manage Suites. This merges the")
+            b("imported searches and suites into your existing collection")
+            b("without overwriting non-conflicting items.")
             blank()
 
             txt.configure(state="disabled")
@@ -1834,6 +1866,12 @@ def _launch_gui():
             e("Stage 1: \"contract\"       \u2192  finds 50 files")
             e("Stage 2: \"termination\"    \u2192  searches only those 50 files")
             e("Stage 3: \"penalty\"        \u2192  searches only Stage 2's matches")
+            blank()
+            s("Import Template")
+            b("Click Import Template in Manage Suites to load saved searches")
+            b("and suites from an external .json file. This merges them into")
+            b("your existing collection. Use this to receive custom templates")
+            b("or to copy suites between folders.")
             blank()
             s("Auto-Run scheduling")
             b("Select a suite and use the Auto-Run dropdown to schedule it at")
@@ -3024,7 +3062,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self._close_index_window,
                 font=ctk.CTkFont(size=12),
-            ).pack(side="right", padx=5, pady=(5, 0))
+            ).pack(side="bottom", pady=(10, 10))
 
             # For index_frame compatibility with _update_index_button_color
             self.index_frame = idx_frame
@@ -3114,6 +3152,13 @@ def _launch_gui():
             )
             self.cleanup_suite_btn.pack(side="left")
             Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
+
+            ctk.CTkButton(
+                suite_btn_frame, text="Import Template", width=120, font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._import_template,
+            ).pack(side="left", padx=(5, 0))
 
             # Status label (under Suites column)
             status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -3386,6 +3431,18 @@ def _launch_gui():
             b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
             b("3. Run: select a suite, click Run Selected Suite.")
             b("4. Reports are generated automatically with timestamps.")
+            blank()
+
+            h("IMPORT TEMPLATE")
+            b("Click Import Template to load saved searches and suites from")
+            b("an external .json file. This merges the imported searches and")
+            b("suites into your existing collection without overwriting items")
+            b("that don't conflict. If a search or suite with the same name")
+            b("already exists, you'll be warned before it's overwritten.")
+            blank()
+            b("Use this to receive custom templates from a consultant or to")
+            b("copy suites between folders. The imported suites appear in the")
+            b("Suites list alongside your existing ones.")
             blank()
 
             h("CASCADE MODE")
@@ -4153,6 +4210,88 @@ def _launch_gui():
 
             tk.Button(btn_frame, text="Save", width=10, command=do_save).pack(side="left", padx=5)
             tk.Button(btn_frame, text="Cancel", width=10, command=dialog.destroy).pack(side="left", padx=5)
+
+        def _import_template(self):
+            """Import saved searches and suites from an external .json template file."""
+            from tkinter import filedialog, messagebox
+            import json
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+
+            filepath = filedialog.askopenfilename(
+                parent=self.suite_window or self,
+                title="Import Template — select a .json template file",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            )
+            if not filepath:
+                return
+
+            # Read the template file
+            try:
+                with open(filepath, encoding="utf-8") as f:
+                    template = json.load(f)
+            except Exception as e:
+                self._show_error(f"Could not read template file: {e}")
+                return
+
+            if not isinstance(template, dict):
+                self._show_error("Invalid template file — expected a JSON object.")
+                return
+
+            # Count what we're importing
+            new_searches = template.get("saved_searches", {})
+            new_suites = template.get("test_suites", {})
+            if not new_searches and not new_suites:
+                self._show_error("Template file contains no saved searches or suites.")
+                return
+
+            # Load existing collection
+            from docsearch.collection import load_collection, save_collection
+            existing = load_collection(folder)
+
+            # Check for conflicts
+            search_conflicts = set(new_searches.keys()) & set(existing.get("saved_searches", {}).keys())
+            suite_conflicts = set(new_suites.keys()) & set(existing.get("test_suites", {}).keys())
+
+            # Build confirmation message
+            msg = f"Import from: {os.path.basename(filepath)}\n\n"
+            msg += f"Saved searches to import: {len(new_searches)}\n"
+            msg += f"Suites to import: {len(new_suites)}\n"
+            if search_conflicts:
+                msg += f"\n⚠ {len(search_conflicts)} saved search(es) already exist and will be overwritten:\n"
+                msg += ", ".join(sorted(search_conflicts)[:10])
+                if len(search_conflicts) > 10:
+                    msg += f" ... and {len(search_conflicts) - 10} more"
+                msg += "\n"
+            if suite_conflicts:
+                msg += f"\n⚠ {len(suite_conflicts)} suite(s) already exist and will be overwritten:\n"
+                msg += ", ".join(sorted(suite_conflicts)[:10])
+                if len(suite_conflicts) > 10:
+                    msg += f" ... and {len(suite_conflicts) - 10} more"
+                msg += "\n"
+            msg += "\nYour existing searches and suites that don't conflict will not be affected."
+            msg += "\n\nProceed?"
+
+            if not messagebox.askyesno("Import Template", msg,
+                                       parent=self.suite_window or self):
+                return
+
+            # Merge into existing collection
+            existing.setdefault("saved_searches", {}).update(new_searches)
+            existing.setdefault("test_suites", {}).update(new_suites)
+            save_collection(folder, existing)
+
+            # Refresh the suite panel
+            self._refresh_suite_panel()
+            self._update_run_suite_button_color()
+
+            imported_total = len(new_searches) + len(new_suites)
+            self.suite_status_label.configure(
+                text=f"Imported {len(new_searches)} search(es) and {len(new_suites)} suite(s) from {os.path.basename(filepath)}"
+            )
 
         def _delete_suite(self):
             """Delete the selected search suite(s)."""

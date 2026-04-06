@@ -33,7 +33,7 @@ docsearch scales from simple keyword searches to organized document review workf
 - **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy, double-click a filename to open it. Matched files popup shows line numbers and includes a "View Text" option that displays the file's extracted content with line numbers and highlighted matches
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Compliance Wizard** — pick an industry starter template, customize checks, create a search suite in one click
-- **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs
+- **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs. Import custom templates from `.json` files to add new suites
 - **Email alerts** — get notified when scheduled suites detect failures
 - **Inverse search** — find files that are *missing* required content
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, proximity

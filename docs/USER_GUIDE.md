@@ -389,6 +389,10 @@ The created suite appears in the same **Manage Suites** panel alongside any suit
 
 Click the **?** button in the Compliance Wizard for detailed help on how each check works, what pass/fail criteria mean, and all available templates.
 
+**Search Wizard vs Compliance Wizard:** The Search Wizard configures one search at a time — you pick a type, click Apply, and run or save that single search. The Compliance Wizard creates multiple searches AND a suite in one step. Use the Search Wizard for individual searches and learning. Use the Compliance Wizard when you need a full set of document review checks ready to run as a batch.
+
+**Mixing industries:** You're not limited to one industry template. Run the Compliance Wizard multiple times with different templates — all saved searches go into the same folder's collection. Then open **Manage Suites** and build a custom suite that picks searches from any industry. For example, combine HIPAA patient checks with HR employee checks and SOX financial checks into one suite.
+
 **Compliance and audit examples:**
 
 The wizard combined with typed search terms is especially useful for compliance, auditing, and risk management. Below are practical examples across industries. In each case, use the wizard to select the pattern(s), type any additional keyword(s), and check AND mode so both must appear together.
@@ -1952,6 +1956,8 @@ For a more detailed compliance walkthrough with 9 industry examples, see the [Co
 2. **Build a suite (manual):** Click **▶ Manage Suites** (below Advanced Search Options) to open the suites window. Click **Build a New Suite**, give it a name (e.g., "quarterly_compliance"), and use the dual-panel selector to choose and order your searches.
 
    **Build a suite (Compliance Wizard):** Or skip steps 1-2 entirely — click the **Compliance Wizard** button, pick an industry template, and it creates all the saved searches and the suite for you in one click. The left panel shows available saved searches; use the **→** button (or double-click) to add them to the right panel, which represents execution order. Use the **▲ Up** and **▼ Down** buttons to reorder. Click **Create**.
+
+   **Import a custom template:** Click **Import Template** in the Manage Suites panel to load saved searches and suites from an external `.json` file. The imported items are merged into your existing collection — searches and suites that don't conflict are preserved. If a name conflicts, you're warned before it's overwritten. Use this to receive custom templates from a consultant or to copy suites between folders.
 
 3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
