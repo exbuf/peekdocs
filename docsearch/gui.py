@@ -714,9 +714,10 @@ def _launch_gui():
             header_frame.pack(fill="x", padx=15, pady=(10, 5))
             ctk.CTkLabel(
                 header_frame,
-                text="Choose a search type, fill in your values, and click Apply.",
-                font=ctk.CTkFont(size=12),
-                text_color=("gray50", "gray50"),
+                text="Choose a search type, fill in your values, click Apply, then close this window. "
+                     "Use the Save Search button on the main screen to save your settings.",
+                font=ctk.CTkFont(size=13),
+                wraplength=800,
             ).pack(side="left")
             ctk.CTkButton(
                 header_frame, text="?", width=30,
@@ -724,12 +725,15 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
             import tkinter as _tk_wiz
+            tip_frame = _tk_wiz.Frame(win, bg="#FFF3CD", highlightbackground="#FFD700", highlightthickness=1)
+            tip_frame.pack(fill="x", padx=15, pady=(0, 5))
             _tk_wiz.Label(
-                win,
-                text="Tip: After clicking Apply, visit Advanced Search Options for additional settings: "
+                tip_frame,
+                text="\u2191 Tip: After clicking Apply, visit Advanced Search Options for additional settings: "
                      "File Types, Exclude Terms, Proximity, Context Lines, Range Filters, and more.",
-                font=("TkDefaultFont", 10), fg="gray", wraplength=880, justify="left",
-            ).pack(padx=15, pady=(0, 5), anchor="w")
+                font=("TkDefaultFont", 11, "bold"), fg="#856404", bg="#FFF3CD",
+                wraplength=860, justify="left",
+            ).pack(padx=10, pady=6)
 
             # Common settings — Recursive and OCR
             _sf = self._scaled_font
@@ -767,12 +771,13 @@ def _launch_gui():
             def _bind_mousewheel(c, parent_win):
                 def _scroll(event):
                     if sys.platform == "darwin":
-                        c.yview_scroll(-event.delta, "units")
+                        direction = -1 if event.delta > 0 else 1
+                        c.yview_scroll(direction, "units")
                     elif sys.platform == "linux":
                         pass  # handled by Button-4/5
                     else:
                         c.yview_scroll(int(-event.delta / 40), "units")
-                c.configure(yscrollincrement=5)
+                c.configure(yscrollincrement=10)
                 parent_win.bind("<MouseWheel>", _scroll)
                 if sys.platform == "linux":
                     parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
@@ -875,8 +880,8 @@ def _launch_gui():
                  lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
             ]
 
-            for title, desc, fields, apply_fn in patterns:
-                frame = tk.LabelFrame(scroll_inner, text=title, font=_sf(12, "bold"), padx=8, pady=5)
+            for idx, (title, desc, fields, apply_fn) in enumerate(patterns, 1):
+                frame = tk.LabelFrame(scroll_inner, text=f"  {idx}. {title}", font=_sf(12, "bold"), padx=8, pady=5)
                 frame.pack(fill="x", padx=5, pady=(0, 8))
 
                 tk.Label(frame, text=desc, font=_sf(10), fg="gray").pack(anchor="w")
@@ -969,6 +974,8 @@ def _launch_gui():
             win.after(50, win.lift)
             win.after(100, win.focus_force)
             win.after(200, lambda: win.title("Compliance Wizard"))
+            win.after(300, win.lift)
+            win.after(400, win.focus_force)
 
             header_frame = ctk.CTkFrame(win, fg_color="transparent")
             header_frame.pack(fill="x", padx=15, pady=(10, 5))
@@ -1020,12 +1027,14 @@ def _launch_gui():
             def _bind_mousewheel_cw(c, parent_win):
                 def _scroll(event):
                     if sys.platform == "darwin":
-                        c.yview_scroll(-event.delta, "units")
+                        # Clamp to ±1 for smooth scrolling on macOS trackpads
+                        direction = -1 if event.delta > 0 else 1
+                        c.yview_scroll(direction, "units")
                     elif sys.platform == "linux":
                         pass
                     else:
                         c.yview_scroll(int(-event.delta / 40), "units")
-                c.configure(yscrollincrement=5)
+                c.configure(yscrollincrement=10)
                 parent_win.bind("<MouseWheel>", _scroll)
                 if sys.platform == "linux":
                     parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
