@@ -809,9 +809,9 @@ def _launch_gui():
                  [],
                  lambda v: self._apply_wizard(search_text=r"\d{3}-\d{2}-\d{4}", regex=True)),
 
-                ("Find phone numbers", "US phone numbers in various formats",
+                ("Find phone numbers", "US phone numbers with formatting (requires dashes, dots, spaces, or parentheses)",
                  [],
-                 lambda v: self._apply_wizard(search_text=r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", regex=True)),
+                 lambda v: self._apply_wizard(search_text=r"(?<!\d)(?:\(\d{3}\)\s?\d{3}[-.\s]\d{4}|\d{3}[-.\s]\d{3}[-.\s]\d{4})(?!\d)", regex=True)),
 
                 ("Find email addresses", "Email addresses in any format",
                  [],
