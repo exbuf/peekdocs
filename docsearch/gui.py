@@ -4940,12 +4940,23 @@ def _launch_gui():
             self.view_error_log_bottom.pack(side="right", padx=5)
             self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries", anchor="above-high")
 
+            app_files_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="App Files",
+                width=80,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_app_files,
+                font=ctk.CTkFont(size=13),
+            )
+            app_files_btn.pack(side="right", padx=5)
+            Tooltip(app_files_btn, "List all docsearch-created files in the search folder and subfolders with full paths", anchor="above")
+
             # Maintenance menu — consolidates housekeeping actions
             def _show_maintenance_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
-                menu.add_command(label="View App Files — list all docsearch-created files", command=self._show_app_files)
-                menu.add_separator()
                 menu.add_command(label="Clear Search Results — delete docsearch_results files", command=self._clear_results_files)
                 menu.add_command(label="Clear Error Log — delete docsearch_errors.log", command=self._clear_error_log)
                 menu.add_separator()
@@ -6800,27 +6811,23 @@ def _launch_gui():
             for root, dirs, files in os.walk(folder):
                 for fname in files:
                     filepath = os.path.join(root, fname)
-                    rel_dir = os.path.relpath(root, folder)
-                    if rel_dir == ".":
-                        rel_dir = "(top folder)"
-                    display = os.path.join(rel_dir, fname)
 
                     if fname.startswith("docsearch_results"):
-                        app_files.append((display, "Search results"))
+                        app_files.append((filepath, "Search results"))
                     elif fname.startswith("DO_NOT_SEARCH_docsearch_suite"):
-                        app_files.append((display, "Suite reports"))
+                        app_files.append((filepath, "Suite reports"))
                     elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
-                        app_files.append((display, "Accumulated results"))
+                        app_files.append((filepath, "Accumulated results"))
                     elif fname.startswith("DO_NOT_SEARCH"):
-                        app_files.append((display, "Saved/stage reports"))
+                        app_files.append((filepath, "Saved/stage reports"))
                     elif fname == "docsearch_errors.log":
-                        app_files.append((display, "Error log"))
+                        app_files.append((filepath, "Error log"))
                     elif fname == ".docsearch.db":
-                        app_files.append((display, "Search index"))
+                        app_files.append((filepath, "Search index"))
                     elif fname in (".docsearch.db-wal", ".docsearch.db-shm"):
-                        app_files.append((display, "Index temp files"))
+                        app_files.append((filepath, "Index temp files"))
                     elif fname == ".docsearch_collection.json":
-                        app_files.append((display, "Saved searches & suites \u2014 DO NOT DELETE"))
+                        app_files.append((filepath, "Saved searches & suites \u2014 DO NOT DELETE"))
 
             # Also check home directory for .docsearchrc
             rc_path = os.path.expanduser("~/.docsearchrc")
@@ -6837,9 +6844,9 @@ def _launch_gui():
             popup = tk.Toplevel(self)
             popup.title(f"docsearch App Files ({len(app_files)})")
             popup.resizable(True, True)
-            popup.geometry("800x500")
+            popup.geometry("1000x500")
             self.update_idletasks()
-            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            x = self.winfo_rootx() + (self.winfo_width() - 1000) // 2
             y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
             popup.geometry(f"+{x}+{y}")
 
@@ -6881,7 +6888,8 @@ def _launch_gui():
                     "    suites, pass/fail criteria, and schedules. One per folder.\n"
                     "    Back these up — they represent all your suite-building work.",
                 "Settings \u2014 DO NOT DELETE":
-                    "    Your ~/.docsearchrc file stores settings, email config, and defaults.\n"
+                    "    Your ~/.docsearchrc file stores your Advanced Search Options settings,\n"
+                    "    email config, and all other saved defaults.\n"
                     "    Back this up — it contains your personalized configuration.",
                 "Search index":
                     "    SQLite database storing extracted text for faster repeated searches.\n"
