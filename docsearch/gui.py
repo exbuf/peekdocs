@@ -5724,8 +5724,7 @@ def _launch_gui():
                     # Search succeeded but something else failed (likely report generation)
                     self.status_label.configure(
                         text=summary or "Search complete (with warnings — check error log).",
-                        text_color=("orange",) * 2,
-                        font=ctk.CTkFont(size=13),
+                        fg="black",
                     )
                     self._inverse_results = self.inverse_var.get() == "on"
                     if self._inverse_results:
