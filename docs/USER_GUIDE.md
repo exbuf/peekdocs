@@ -7,7 +7,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Will docsearch affect my existing Python installation?](#will-docsearch-affect-my-existing-python-installation)
 - [Security Best Practices](#security-best-practices)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
-- [GUI Mode](#gui-mode)
+- [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
 - [Usage](#usage)
   - [Regex search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
