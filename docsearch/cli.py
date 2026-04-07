@@ -946,10 +946,14 @@ def _main_inner(argv=None):
 
     if "pdf" in output_formats:
         pdf_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.pdf")
-        write_pdf_report(
-            pdf_output_path, matches, search_terms=search_terms,
-            report_mode=report_mode, inverse_files=inverse_files,
-        )
+        try:
+            write_pdf_report(
+                pdf_output_path, matches, search_terms=search_terms,
+                report_mode=report_mode, inverse_files=inverse_files,
+            )
+        except Exception as pdf_err:
+            print(f"Warning: PDF report could not be generated ({pdf_err})")
+            pdf_output_path = None
 
     if append_name is not None:
         append_results(append_name, output_dir, output_path, docx_output_path)
