@@ -749,7 +749,11 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     doc_files = sorted(glob.glob(glob_prefix + ".doc", recursive=recursive))
-    pdf_files = sorted(glob.glob(glob_prefix + ".pdf", recursive=recursive))
+    pdf_files = sorted(
+        f for f in glob.glob(glob_prefix + ".pdf", recursive=recursive)
+        if not os.path.basename(f).startswith("docsearch_results")
+        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
+    )
     csv_files = sorted(
         f for f in glob.glob(glob_prefix + ".csv", recursive=recursive)
         if not os.path.basename(f).startswith("docsearch_results")

@@ -434,6 +434,74 @@ def write_json_report(output_path, matches, search_terms, report_mode,
         json.dump(json_data, f, indent=2, ensure_ascii=False)
 
 
+def write_pdf_report(output_path, matches, search_terms=None,
+                     report_mode="ANY", inverse_files=None):
+    """Write docsearch_results.pdf with highlighted matches."""
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(0, 10, "docsearch Search Results", ln=True)
+    pdf.ln(3)
+
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 6, f"Search terms: {' '.join(search_terms or [])}", ln=True)
+    pdf.cell(0, 6, f"Mode: {report_mode}", ln=True)
+    pdf.cell(0, 6, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
+    pdf.ln(5)
+
+    if inverse_files is not None:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, f"Files WITHOUT matches: {len(inverse_files)}", ln=True)
+        pdf.ln(3)
+        pdf.set_font("Helvetica", "", 10)
+        for fp in inverse_files:
+            filename = os.path.basename(fp)
+            dirname = os.path.dirname(fp)
+            pdf.cell(0, 5, f"  {filename}", ln=True)
+            pdf.set_text_color(128, 128, 128)
+            pdf.cell(0, 5, f"  ({dirname})", ln=True)
+            pdf.set_text_color(0, 0, 0)
+            pdf.ln(2)
+    else:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, f"Matches found: {len(matches)}", ln=True)
+        pdf.ln(3)
+
+        prev_file = None
+        for file_dir, filename, line_num, text in matches:
+            current_file = os.path.join(file_dir, filename)
+            if current_file != prev_file:
+                pdf.ln(3)
+                pdf.set_font("Helvetica", "B", 10)
+                # Count matches for this file
+                fc = sum(1 for fd, fn, _ln, _tx in matches
+                         if os.path.join(fd, fn) == current_file)
+                pdf.set_text_color(26, 115, 232)
+                pdf.cell(0, 6, f"Document: {filename} ({fc} match{'es' if fc != 1 else ''})", ln=True)
+                pdf.set_text_color(128, 128, 128)
+                pdf.set_font("Helvetica", "", 9)
+                pdf.cell(0, 5, f"({file_dir})", ln=True)
+                pdf.set_text_color(0, 0, 0)
+                prev_file = current_file
+
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(128, 128, 128)
+            pdf.cell(15, 5, f"Line {line_num}:")
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font("Helvetica", "", 10)
+            clean_text = _strip_highlights(text)
+            # Truncate very long lines for PDF readability
+            if len(clean_text) > 200:
+                clean_text = clean_text[:197] + "..."
+            pdf.multi_cell(0, 5, clean_text)
+            pdf.ln(1)
+
+    pdf.output(output_path)
+
+
 def append_results(append_name, output_dir, txt_path, docx_path):
     """Append current results to accumulated DO_NOT_SEARCH files."""
     append_txt_path = os.path.join(output_dir, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")

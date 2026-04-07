@@ -72,7 +72,7 @@ BANNER_BOTTOM = (
     '  -A 5               Show 5 lines after each match\n'
     '  -B 5               Show 5 lines before each match\n'
     '  -m 5000            Max matches in reports (0 = no limit, default: 1000)\n'
-    '  -o csv,json        Additional output formats (csv, json, or both)\n'
+    '  -o csv,json,pdf    Additional output formats (csv, json, pdf, or any combination)\n'
     '  -s my_report       Save/archive the report with a name\n'
     '  -sa my_report      Append results to a named file across searches\n'
     '  --output-dir PATH  Write all output files to a specific folder\n'
@@ -117,7 +117,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "inverse", "timestamp", "suite_timestamp"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "inverse", "timestamp", "suite_timestamp"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "suite_output_dir", "range", "refresh_interval", "smtp_host", "smtp_port", "smtp_user", "smtp_password", "email_from", "email_to", "email_on", "text_size", "assistant_history"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -181,7 +181,7 @@ from docsearch.indexer import (  # noqa: E402
 from docsearch.reporter import (  # noqa: E402
     fmt_size, write_txt_report, write_docx_report,
     insert_file_sizes, write_csv_report, write_json_report,
-    append_results,
+    write_pdf_report, append_results,
 )
 
 
@@ -930,6 +930,7 @@ def _main_inner(argv=None):
 
     csv_output_path = None
     json_output_path = None
+    pdf_output_path = None
 
     if "csv" in output_formats:
         csv_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.csv")
@@ -941,6 +942,13 @@ def _main_inner(argv=None):
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
             inverse_files=inverse_files,
+        )
+
+    if "pdf" in output_formats:
+        pdf_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.pdf")
+        write_pdf_report(
+            pdf_output_path, matches, search_terms=search_terms,
+            report_mode=report_mode, inverse_files=inverse_files,
         )
 
     if append_name is not None:
@@ -976,6 +984,8 @@ def _main_inner(argv=None):
         print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")
     if json_output_path:
         print(f"  {os.path.basename(json_output_path)} ({fmt_size(os.path.getsize(json_output_path))})")
+    if pdf_output_path:
+        print(f"  {os.path.basename(pdf_output_path)} ({fmt_size(os.path.getsize(pdf_output_path))})")
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     if skipped_files:

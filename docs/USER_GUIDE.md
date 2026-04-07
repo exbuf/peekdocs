@@ -305,7 +305,7 @@ The GUI window is organized into these regions, from top to bottom:
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
-| **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **DOCX**, **CSV**, **JSON**, and **TXT** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
+| **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
 | **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
 
 **Your first GUI search:**
@@ -315,13 +315,13 @@ The GUI window is organized into these regions, from top to bottom:
 3. Click **Run Search** (or press Enter)
 
 **macOS vs Windows file picker:** On macOS, clicking **File** opens a file picker with a preview panel on the right — you can inspect the file's contents before selecting it. On Windows, the file picker does not include a preview. This is a difference in the operating systems, not docsearch.
-4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, or **JSON** to open the report in other formats. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
+4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, or **PDF** to open the report in other formats. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. You can also use [Google Docs](https://docs.google.com) (upload the file), Apple Pages (free, Mac only), or any other application that supports .docx files. The .txt report can be opened on any computer with no additional software.
 
 **Advanced Search Options:**
 
-Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
+Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
 
 **Save Search vs Save Defaults — what's the difference?**
 
@@ -465,7 +465,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
-| `-o` (output) | Additional output formats — `csv`, `json`, or both (`csv,json`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
+| `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, or any combination (`csv,json,pdf`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
@@ -486,7 +486,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
-| `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON) to the specified directory instead of the search folder |
+| `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON, PDF) to the specified directory instead of the search folder |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
 
@@ -533,11 +533,11 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
 - `-n` works with all flags and all search modes except `-e` (use NOT inside the expression instead)
 - `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
-- `-o` supported formats are `csv` and `json`
+- `-o` supported formats are `csv`, `json`, and `pdf`
 - `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
 - `-o csv` creates `docsearch_results.csv` with columns: filename, folder, line_number, matched_text
 - `-o json` creates `docsearch_results.json` with metadata and a matches array
-- `-o csv,json` creates both files
+- `-o csv,json` creates both files; `-o csv,json,pdf` creates all three
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
@@ -896,7 +896,7 @@ Normal docsearch shows files that **contain** your search terms. Inverse search 
 
 1. docsearch searches all files normally and identifies which files have matches
 2. It then computes the **difference** — files that were searched but had no matches
-3. The console output, TXT/DOCX reports, and optional CSV/JSON exports all list the files without matches instead of match details
+3. The console output, TXT/DOCX reports, and optional CSV/JSON/PDF exports all list the files without matches instead of match details
 
 **Output:**
 
@@ -2112,7 +2112,7 @@ docsearch/
 │   ├── gui.py           # Optional GUI (docsearch-gui)
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
-│   ├── reporter.py      # Report generation (txt, docx, csv, json)
+│   ├── reporter.py      # Report generation (txt, docx, csv, json, pdf)
 │   ├── scanner.py       # File processing and discovery
 │   ├── translator.py    # Plain-English translation of commands and regex
 │   └── wizard_patterns.py # Regex Wizard pattern presets

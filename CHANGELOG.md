@@ -65,7 +65,7 @@ All notable changes to docsearch are documented here.
 - Search suites with pass/fail criteria and cascade mode
 - Suite scheduling (auto-run) with persistent schedules
 - Highlighted .docx and .txt reports
-- CSV and JSON export
+- CSV, JSON, and PDF export
 - Save and append report archiving
 - Library API (Python search() function)
 - Cross-platform: Windows, macOS, Linux

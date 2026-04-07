@@ -30,6 +30,7 @@ def _build_command_from_values(
     append_name="",
     output_csv=False,
     output_json=False,
+    output_pdf=False,
     index_search=False,
     inverse=False,
     expression=False,
@@ -120,6 +121,8 @@ def _build_command_from_values(
         output_parts.append("csv")
     if output_json:
         output_parts.append("json")
+    if output_pdf:
+        output_parts.append("pdf")
     if output_parts:
         cmd.extend(["-o", ",".join(output_parts)])
 
@@ -2256,7 +2259,8 @@ def _launch_gui():
             blank()
 
             s("Output Formats")
-            b("Check CSV and/or JSON to generate additional report files.")
+            b("Check CSV, JSON, and/or PDF to generate additional report files.")
+            b("PDF is a portable format for sharing and printing.")
             b("Check Timestamp to add a timestamp to report filenames.")
             blank()
 
@@ -2642,6 +2646,7 @@ def _launch_gui():
             ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
             self.output_csv_var = ctk.StringVar(value="off")
             self.output_json_var = ctk.StringVar(value="off")
+            self.output_pdf_var = ctk.StringVar(value="off")
             cb_csv = ctk.CTkCheckBox(
                 output_frame, text="CSV", variable=self.output_csv_var,
                 onvalue="on", offvalue="off",
@@ -2651,13 +2656,18 @@ def _launch_gui():
                 output_frame, text="JSON", variable=self.output_json_var,
                 onvalue="on", offvalue="off",
             )
-            cb_json.grid(row=0, column=2)
+            cb_json.grid(row=0, column=2, padx=(0, 15))
+            cb_pdf = ctk.CTkCheckBox(
+                output_frame, text="PDF", variable=self.output_pdf_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_pdf.grid(row=0, column=3, padx=(0, 15))
             self.timestamp_var = ctk.StringVar(value="off")
             cb_ts = ctk.CTkCheckBox(
                 output_frame, text="Timestamp Filename", variable=self.timestamp_var,
                 onvalue="on", offvalue="off",
             )
-            cb_ts.grid(row=0, column=3, padx=(15, 0))
+            cb_ts.grid(row=0, column=4, padx=(0, 0))
             Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
 
             # Row 10: Save Defaults + Restore Settings buttons
@@ -2745,6 +2755,7 @@ def _launch_gui():
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
+            Tooltip(cb_pdf, "Also save results as a PDF file (docsearch_results.pdf) — portable format for sharing and printing")
 
             # Note about saving
             import tkinter as _tk_adv
@@ -2940,6 +2951,10 @@ def _launch_gui():
             self.report_btn_json = ctk.CTkButton(
                 self.report_frame, text="JSON", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("json"),
+            )
+            self.report_btn_pdf = ctk.CTkButton(
+                self.report_frame, text="PDF", width=btn_w, font=btn_font,
+                command=lambda: self._open_report_format("pdf"),
             )
 
         def _build_index_panel(self):
@@ -5226,6 +5241,7 @@ def _launch_gui():
                 append_name=self.append_name_entry.get(),
                 output_csv=self.output_csv_var.get() == "on",
                 output_json=self.output_json_var.get() == "on",
+                output_pdf=self.output_pdf_var.get() == "on",
                 index_search=self.index_search_var.get() == "on",
                 inverse=self.inverse_var.get() == "on",
                 expression=self.expression_var.get() == "on",
@@ -5255,6 +5271,10 @@ def _launch_gui():
                         os.remove(stale)
                 if self.output_json_var.get() != "on":
                     stale = os.path.join(self.results_dir, "docsearch_results.json")
+                    if os.path.exists(stale):
+                        os.remove(stale)
+                if self.output_pdf_var.get() != "on":
+                    stale = os.path.join(self.results_dir, "docsearch_results.pdf")
                     if os.path.exists(stale):
                         os.remove(stale)
             self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
@@ -5749,7 +5769,7 @@ def _launch_gui():
             report_formats = {}
             if self.results_dir:
                 suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-                for fmt in ("txt", "docx", "csv", "json"):
+                for fmt in ("txt", "docx", "csv", "json", "pdf"):
                     path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
                     report_formats[fmt] = os.path.exists(path)
 
@@ -5764,6 +5784,7 @@ def _launch_gui():
                 ("docx", self.report_btn_docx),
                 ("csv", self.report_btn_csv),
                 ("json", self.report_btn_json),
+                ("pdf", self.report_btn_pdf),
             ]:
                 btn.pack(side="left", padx=(0, 2))
                 if report_formats.get(fmt):
@@ -7333,6 +7354,7 @@ def _launch_gui():
             settings["index_search"] = (self.index_search_var.get() == "on")
             settings["output_csv"] = (self.output_csv_var.get() == "on")
             settings["output_json"] = (self.output_json_var.get() == "on")
+            settings["output_pdf"] = (self.output_pdf_var.get() == "on")
             settings["inverse"] = (self.inverse_var.get() == "on")
             settings["expression"] = (self.expression_var.get() == "on")
             settings["whole_word"] = (self.whole_word_var.get() == "on")
@@ -7458,6 +7480,7 @@ def _launch_gui():
             self.index_search_var.set("on" if config.get("index_search") else "off")
             self.output_csv_var.set("on" if config.get("output_csv") else "off")
             self.output_json_var.set("on" if config.get("output_json") else "off")
+            self.output_pdf_var.set("on" if config.get("output_pdf") else "off")
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
             self.whole_word_var.set("on" if config.get("whole_word") else "off")
@@ -7552,6 +7575,7 @@ def _launch_gui():
             self.append_name_entry.delete(0, "end")
             self.output_csv_var.set("off")
             self.output_json_var.set("off")
+            self.output_pdf_var.set("off")
             self.index_search_var.set("off")
             self.inverse_var.set("off")
             self.expression_var.set("off")
@@ -7616,6 +7640,7 @@ def _launch_gui():
                 "whole_word": self.whole_word_var.get() == "on",
                 "output_csv": self.output_csv_var.get() == "on",
                 "output_json": self.output_json_var.get() == "on",
+                "output_pdf": self.output_pdf_var.get() == "on",
                 "range_filters": self.range_entry.get().strip(),
                 "append_name": self.append_name_entry.get().strip(),
                 "save_name": self.save_name_entry.get().strip(),
@@ -7660,6 +7685,7 @@ def _launch_gui():
                 self.search_entry.configure(placeholder_text="Enter search terms...")
             self.output_csv_var.set("on" if params.get("output_csv") else "off")
             self.output_json_var.set("on" if params.get("output_json") else "off")
+            self.output_pdf_var.set("on" if params.get("output_pdf") else "off")
             self.range_entry.delete(0, "end")
             self.range_entry.insert(0, params.get("range_filters", ""))
             self.append_name_entry.delete(0, "end")
