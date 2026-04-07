@@ -391,6 +391,8 @@ Click the **?** button in the Compliance Wizard for detailed help on how each ch
 
 **Search Wizard vs Compliance Wizard:** The Search Wizard configures one search at a time — you pick a type, click Apply, and run or save that single search. The Compliance Wizard creates multiple searches AND a suite in one step. Use the Search Wizard for individual searches and learning. Use the Compliance Wizard when you need a full set of document review checks ready to run as a batch.
 
+**No hidden capabilities — just automation:** Everything the Search Wizard and Compliance Wizard do can also be done manually using the search bar, Advanced Search Options, Save Search, and Manage Suites. The wizards automate what would otherwise be a multi-step process, but they use the same fields and checkboxes you see on the main screen. After a wizard runs, all settings are visible and editable — nothing is locked or hidden.
+
 **Mixing industries:** You're not limited to one industry template. Run the Compliance Wizard multiple times with different templates — all saved searches go into the same folder's collection. Then open **Manage Suites** and build a custom suite that picks searches from any industry. For example, combine HIPAA patient checks with HR employee checks and SOX financial checks into one suite.
 
 **Compliance and audit examples:**
