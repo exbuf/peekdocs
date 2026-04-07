@@ -451,6 +451,43 @@ def _pdf_safe(text):
     return text.encode('latin-1', errors='replace').decode('latin-1')
 
 
+def _pdf_insert_highlighted(pdf, text, search_terms):
+    """Insert text with search terms highlighted in orange background."""
+    import re as _re
+    if not search_terms:
+        pdf.multi_cell(0, 5, text)
+        return
+    # Build pattern from search terms
+    patterns = []
+    for term in search_terms:
+        patterns.append(_re.escape(term))
+    try:
+        pattern = _re.compile("|".join(patterns), _re.IGNORECASE)
+    except _re.error:
+        pdf.multi_cell(0, 5, text)
+        return
+    parts = pattern.split(text)
+    found = pattern.findall(text)
+    if not found:
+        pdf.multi_cell(0, 5, text)
+        return
+    # Use cell for inline highlighting (multi_cell doesn't support mixed colors)
+    x_start = pdf.get_x()
+    page_width = pdf.w - pdf.r_margin - x_start
+    for i, part in enumerate(parts):
+        if part:
+            pdf.set_text_color(0, 0, 0)
+            pdf.write(5, part)
+        if i < len(found):
+            # Yellow background highlight
+            pdf.set_fill_color(255, 255, 0)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(pdf.get_string_width(found[i]) + 1, 5, found[i], fill=True)
+            pdf.set_fill_color(255, 255, 255)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(5)
+
+
 def write_pdf_report(output_path, matches, search_terms=None,
                      report_mode="ANY", inverse_files=None):
     """Write docsearch_results.pdf with highlighted matches."""
@@ -511,7 +548,7 @@ def write_pdf_report(output_path, matches, search_terms=None,
             clean_text = _pdf_safe(_strip_highlights(text))
             if len(clean_text) > 200:
                 clean_text = clean_text[:197] + "..."
-            pdf.multi_cell(0, 5, clean_text)
+            _pdf_insert_highlighted(pdf, clean_text, [_pdf_safe(t) for t in (search_terms or [])])
             pdf.ln(1)
 
     pdf.output(output_path)

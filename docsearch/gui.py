@@ -2260,7 +2260,7 @@ def _launch_gui():
 
             s("Output Formats")
             b("Check CSV, JSON, and/or PDF to generate additional report files.")
-            b("PDF is a portable format for sharing and printing.")
+            b("PDF highlights matches in yellow, like the DOCX report.")
             b("Check Timestamp to add a timestamp to report filenames.")
             blank()
 
@@ -2755,7 +2755,7 @@ def _launch_gui():
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
             Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
-            Tooltip(cb_pdf, "Also save results as a PDF file (docsearch_results.pdf) — portable format for sharing and printing")
+            Tooltip(cb_pdf, "Also save results as a PDF file (docsearch_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
 
             # Note about saving
             import tkinter as _tk_adv
