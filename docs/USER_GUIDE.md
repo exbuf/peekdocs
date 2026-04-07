@@ -306,7 +306,7 @@ The GUI window is organized into these regions, from top to bottom:
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
-| **Toolbar** | **Open Readme.md**, **View Error Log**, and **About** buttons |
+| **Toolbar** | **User Guide**, **App Files**, **All Collections** (global view of saved searches/suites across all folders), **Error Log**, **Maintenance**, **Text Size**, **Enable Hover Text**, and **About** buttons |
 
 **Your first GUI search:**
 
@@ -1975,6 +1975,20 @@ For a more detailed compliance walkthrough with 9 industry examples, see the [Co
 6. **Read on folder change** — when you browse to a folder or open the suites window, the GUI reads the collection file and populates the saved searches list and suites list from it.
 7. **Do not delete it** — this file represents all the work you put into building searches and suites. Deleting it erases all of that with no undo. If you need to start fresh, delete individual searches or suites through the GUI instead.
 8. **Back it up** — it's a standard JSON text file. Copy it to a safe location before making major changes. You can view its contents in any text editor.
+
+**Searching across multiple folders:** If you need to run the same checks across many folders — for example, auditing 50 department folders with a single suite — the recommended approach is:
+
+1. **Point to the parent folder** that contains all the subfolders
+2. **Turn on Recursive** (check the Recursive checkbox or use `-r` on the CLI)
+3. **Save your searches and build your suite** in that parent folder
+
+This searches all subfolders in one pass and generates one consolidated report. The suite, saved searches, and collection file all live in the parent folder, and the recursive flag ensures every document in every subfolder is included.
+
+You do not need to create separate collection files in each subfolder. One parent folder with recursive search covers everything beneath it.
+
+**Seeing all your collections:** Over time, you may have saved searches and suites in several different folders. The **All Collections** button on the bottom toolbar scans your home directory and shows every folder that contains a `.docsearch_collection.json` file, along with the saved searches and suites in each one. This gives you a global view of all your saved work across every folder — useful for finding searches you built months ago or cleaning up collections you no longer need. Double-click a folder in the list to switch to it.
+
+**Cleaning up old collections:** There is no global delete button — and that's intentional. A single misclick could wipe out suites you spent hours building across many folders. Instead, use All Collections to find the folder you want to clean up, double-click it to switch to it, then use the per-folder Maintenance tools (Clear Search Results, Clear Error Log, Clean Up Practice Files) to remove what you no longer need. This takes two extra clicks but ensures you only delete what you're looking at.
 
 **Report fingerprint and source file manifest:** Each `.docx` suite report includes two audit traceability features:
 

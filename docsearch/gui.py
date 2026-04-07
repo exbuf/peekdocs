@@ -4953,6 +4953,19 @@ def _launch_gui():
             app_files_btn.pack(side="right", padx=5)
             Tooltip(app_files_btn, "List all docsearch-created files in the search folder and subfolders with full paths", anchor="above")
 
+            all_collections_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text="All Collections",
+                width=110,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_all_collections,
+                font=ctk.CTkFont(size=13),
+            )
+            all_collections_btn.pack(side="right", padx=5)
+            Tooltip(all_collections_btn, "Scan your home directory for all .docsearch_collection.json files — see saved searches and suites across every folder", anchor="above-high")
+
             # Maintenance menu — consolidates housekeeping actions
             def _show_maintenance_menu():
                 import tkinter as tk
@@ -6916,6 +6929,134 @@ def _launch_gui():
                 for fp in sorted(files):
                     listbox.insert("end", f"    {fp}")
                 listbox.insert("end", "")
+
+            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+
+        def _show_all_collections(self):
+            """Scan home directory for all .docsearch_collection.json files and display a summary."""
+            import tkinter as tk
+            from collections import defaultdict
+            from docsearch.collection import COLLECTION_FILENAME, load_collection
+
+            home = os.path.expanduser("~")
+            self.status_label.configure(text="Scanning for saved collections…", fg="blue")
+            self.update_idletasks()
+
+            # Walk home directory to find all collection files
+            collections = []  # list of (folder_path, n_searches, n_suites, search_names, suite_names)
+            try:
+                for root, dirs, files in os.walk(home):
+                    # Skip hidden dirs (except those containing collection files),
+                    # common large dirs, and virtual environments
+                    dirs[:] = [
+                        d for d in dirs
+                        if not d.startswith(".")
+                        and d not in ("node_modules", "__pycache__", "venv", ".venv",
+                                      "Library", "Applications", "AppData")
+                    ]
+                    if COLLECTION_FILENAME in files:
+                        folder = root
+                        data = load_collection(folder)
+                        searches = sorted(data.get("saved_searches", {}).keys())
+                        suites = sorted(data.get("test_suites", {}).keys())
+                        if searches or suites:
+                            collections.append((folder, len(searches), len(suites), searches, suites))
+            except (OSError, PermissionError):
+                pass
+
+            if not collections:
+                self.status_label.configure(
+                    text="No saved collections found.",
+                    fg="black",
+                )
+                return
+
+            self.status_label.configure(
+                text=f"Found {len(collections)} collection(s).",
+                fg="black",
+            )
+
+            popup = tk.Toplevel(self)
+            popup.title(f"All Saved Collections ({len(collections)} folder(s))")
+            popup.resizable(True, True)
+            popup.geometry("1050x550")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 1050) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            total_searches = sum(c[1] for c in collections)
+            total_suites = sum(c[2] for c in collections)
+            tk.Label(
+                popup,
+                text=f"Saved Collections — {len(collections)} folder(s), "
+                     f"{total_searches} search(es), {total_suites} suite(s)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                popup,
+                text="All .docsearch_collection.json files found under your home directory. "
+                     "Click a folder path to switch to it.",
+                font=("TkDefaultFont", 11), fg="gray",
+            ).pack(pady=(0, 8))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            # Track which listbox indices are folder paths (for click-to-switch)
+            folder_indices = {}  # index -> folder_path
+
+            for folder, n_searches, n_suites, searches, suites in sorted(collections, key=lambda c: c[0]):
+                idx = listbox.size()
+                listbox.insert("end", f"\u2500\u2500 {folder} \u2500\u2500")
+                listbox.itemconfig(idx, fg="#FFD700")
+                folder_indices[idx] = folder
+
+                summary = f"    {n_searches} saved search(es), {n_suites} suite(s)"
+                listbox.insert("end", summary)
+
+                if searches:
+                    listbox.insert("end", "    Searches:")
+                    for s in searches:
+                        listbox.insert("end", f"        {s}")
+                if suites:
+                    listbox.insert("end", "    Suites:")
+                    for s in suites:
+                        listbox.insert("end", f"        {s}")
+                listbox.insert("end", "")
+
+            def _on_double_click(event):
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                idx = sel[0]
+                if idx in folder_indices:
+                    folder = folder_indices[idx]
+                    self.folder_entry.delete(0, "end")
+                    self.folder_entry.insert(0, folder)
+                    if self.suite_visible:
+                        self._refresh_suite_panel()
+                    self._refresh_load_search_menu()
+                    self.status_label.configure(
+                        text=f"Switched to: {folder}",
+                        fg="black",
+                    )
+                    popup.destroy()
+
+            listbox.bind("<Double-1>", _on_double_click)
 
             tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
 
