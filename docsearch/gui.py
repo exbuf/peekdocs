@@ -371,6 +371,7 @@ def _launch_gui():
             except Exception:
                 version = ""
             self.title(f"docsearch {version}".strip())
+            self.withdraw()  # Hide until setup is complete to prevent flicker
             self.geometry("1180x720")
             self.minsize(1180, 620)
             self._center_window(950, 720)
@@ -422,13 +423,15 @@ def _launch_gui():
             from docsearch.cli import _config_path
             self._is_first_run = not os.path.exists(_config_path())
             self._load_saved_settings()
-            # Re-apply settings after event loop starts (CTkToplevel widgets may
-            # reset their variables during initialization)
-            self.after(200, self._load_saved_settings)
-            self.after(1000, self._load_saved_settings)
             self._update_index_button_color()
             self._refresh_load_search_menu()
             self._update_run_suite_button_color()
+            # Re-apply settings after event loop starts (CTkToplevel widgets may
+            # reset their variables during initialization on Windows)
+            self.after(200, self._load_saved_settings)
+            self.after(1000, self._load_saved_settings)
+            # Show the window after all settings reloads are done
+            self.after(1100, self.deiconify)
             if self._is_first_run:
                 self.after(300, self._show_welcome)
             self.after(500, self._resume_suite_schedule)
