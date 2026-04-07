@@ -434,6 +434,23 @@ def write_json_report(output_path, matches, search_terms, report_mode,
         json.dump(json_data, f, indent=2, ensure_ascii=False)
 
 
+def _pdf_safe(text):
+    """Replace Unicode characters that Helvetica can't render."""
+    replacements = {
+        '\u2018': "'", '\u2019': "'",   # smart single quotes
+        '\u201c': '"', '\u201d': '"',   # smart double quotes
+        '\u2013': '-', '\u2014': '--',  # en dash, em dash
+        '\u2026': '...', '\u00a0': ' ', # ellipsis, nbsp
+        '\u2022': '*', '\u2023': '>',   # bullets
+        '\ufb01': 'fi', '\ufb02': 'fl', # ligatures
+        '\u00b0': 'deg',               # degree sign
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    # Remove any remaining non-latin1 characters
+    return text.encode('latin-1', errors='replace').decode('latin-1')
+
+
 def write_pdf_report(output_path, matches, search_terms=None,
                      report_mode="ANY", inverse_files=None):
     """Write docsearch_results.pdf with highlighted matches."""
@@ -447,7 +464,7 @@ def write_pdf_report(output_path, matches, search_terms=None,
     pdf.ln(3)
 
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, f"Search terms: {' '.join(search_terms or [])}", ln=True)
+    pdf.cell(0, 6, _pdf_safe(f"Search terms: {' '.join(search_terms or [])}"), ln=True)
     pdf.cell(0, 6, f"Mode: {report_mode}", ln=True)
     pdf.cell(0, 6, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
     pdf.ln(5)
@@ -460,9 +477,9 @@ def write_pdf_report(output_path, matches, search_terms=None,
         for fp in inverse_files:
             filename = os.path.basename(fp)
             dirname = os.path.dirname(fp)
-            pdf.cell(0, 5, f"  {filename}", ln=True)
+            pdf.cell(0, 5, _pdf_safe(f"  {filename}"), ln=True)
             pdf.set_text_color(128, 128, 128)
-            pdf.cell(0, 5, f"  ({dirname})", ln=True)
+            pdf.cell(0, 5, _pdf_safe(f"  ({dirname})"), ln=True)
             pdf.set_text_color(0, 0, 0)
             pdf.ln(2)
     else:
@@ -476,14 +493,13 @@ def write_pdf_report(output_path, matches, search_terms=None,
             if current_file != prev_file:
                 pdf.ln(3)
                 pdf.set_font("Helvetica", "B", 10)
-                # Count matches for this file
                 fc = sum(1 for fd, fn, _ln, _tx in matches
                          if os.path.join(fd, fn) == current_file)
                 pdf.set_text_color(26, 115, 232)
-                pdf.cell(0, 6, f"Document: {filename} ({fc} match{'es' if fc != 1 else ''})", ln=True)
+                pdf.cell(0, 6, _pdf_safe(f"Document: {filename} ({fc} match{'es' if fc != 1 else ''})"), ln=True)
                 pdf.set_text_color(128, 128, 128)
                 pdf.set_font("Helvetica", "", 9)
-                pdf.cell(0, 5, f"({file_dir})", ln=True)
+                pdf.cell(0, 5, _pdf_safe(f"({file_dir})"), ln=True)
                 pdf.set_text_color(0, 0, 0)
                 prev_file = current_file
 
@@ -492,8 +508,7 @@ def write_pdf_report(output_path, matches, search_terms=None,
             pdf.cell(15, 5, f"Line {line_num}:")
             pdf.set_text_color(0, 0, 0)
             pdf.set_font("Helvetica", "", 10)
-            clean_text = _strip_highlights(text)
-            # Truncate very long lines for PDF readability
+            clean_text = _pdf_safe(_strip_highlights(text))
             if len(clean_text) > 200:
                 clean_text = clean_text[:197] + "..."
             pdf.multi_cell(0, 5, clean_text)
