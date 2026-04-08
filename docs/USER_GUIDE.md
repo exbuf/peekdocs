@@ -67,16 +67,7 @@ All your settings, saved searches, suites, indexes, and reports are stored outsi
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.
 
-**Backing up your work — only two files matter:**
-
-Everything docsearch creates (indexes, reports, error logs) can be regenerated. The only files worth backing up are:
-
-| File | Location | Contains |
-|------|----------|----------|
-| `~/.docsearchrc` | Home directory (one file) | Your settings, email config, saved defaults |
-| `.docsearch_collection.json` | Each search folder (one per folder) | Your saved searches, suites, pass/fail criteria, schedules |
-
-Copy these to a safe location before major changes. If you search multiple folders, back up the `.docsearch_collection.json` in each one.
+**Backing up your work — only two files matter:** `~/.docsearchrc` (your settings) and `.docsearch_collection.json` (your saved searches and suites, one per folder). Everything else docsearch creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by docsearch](#files-created-by-docsearch) for the complete list of all files and what each one does.
 
 **How to see hidden files:** These files start with a dot, which makes them hidden by default.
 - **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
@@ -288,7 +279,7 @@ If you prefer pointing and clicking over typing commands, docsearch has a graphi
 
 **How to open it:**
 
-You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the workspace first (see [Option B step 2](#option-b-manual-install)). Then type:
+You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the virtual environment first (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git) for details). Then type:
 
 ```bash
 docsearch-gui
@@ -424,7 +415,7 @@ The wizard combined with typed search terms is especially useful for compliance,
 
 ## Usage
 
-If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the workspace first each time you open a new terminal (see [Option B step 2](#option-b-manual-install)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
+If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Regex search
 
@@ -437,23 +428,24 @@ Regex is powerful but can look intimidating at first. See the table below for co
 
 #### Common Regex Search Patterns
 
-Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes.
+Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes. The **Report translation** column shows how docsearch describes each pattern in the plain-English report header (see [Command Translation](#command-translation) below).
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `\d{3}-\d{3}-\d{4}` | US phone numbers | 555-123-4567 |
-| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | Email addresses | jane@example.com |
-| `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 |
-| `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 |
-| `\d{3}-\d{2}-\d{4}` | SSN format | 123-45-6789 |
-| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 |
-| `https?://\S+` | URLs | https://example.com |
-| `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI |
-| `\b\d{5}(-\d{4})?\b` | US ZIP codes | 12345 or 12345-6789 |
-| `\(\d{3}\)\s?\d{3}-\d{4}` | Phone numbers with area code parens | (555) 123-4567 |
-| `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith |
-| `\b\d+%` | Percentages | 92% |
-| `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 |
+| Pattern | Matches | Example | Report translation |
+|---------|---------|---------|-------------------|
+| `\d{3}-\d{3}-\d{4}` | US phone numbers | 555-123-4567 | a US phone number |
+| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | Email addresses | jane@example.com | an email address |
+| `\d{1,2}/\d{1,2}/\d{2,4}` | Dates (MM/DD/YYYY) | 03/17/2026 | a date |
+| `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 | — |
+| `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 | a dollar amount |
+| `\d{3}-\d{2}-\d{4}` | SSN format | 123-45-6789 | a Social Security Number (SSN) |
+| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 | an IP address |
+| `https?://\S+` | URLs | https://example.com | a URL |
+| `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI | — |
+| `\b\d{5}(-\d{4})?\b` | US ZIP codes | 12345 or 12345-6789 | a US ZIP code |
+| `\(\d{3}\)\s?\d{3}-\d{4}` | Phone with area code parens | (555) 123-4567 | a phone number with area code |
+| `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith | — |
+| `\b\d+%` | Percentages | 92% | a percentage |
+| `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 | a fiscal quarter |
 
 ## Flag Use Summary
 
@@ -462,7 +454,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
 | `-a` (all) | AND logic — all terms must appear in the same paragraph |
-| `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). See [FAQ](#faq-frequently-asked-questions) for tradeoffs |
+| `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). For small numbers of files (fewer than 10), single-threaded mode is used automatically |
 | `-e` (expression) | Boolean expression search — use AND, OR, NOT, parentheses, and range specs for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
@@ -519,7 +511,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-c` always needs its core count immediately after it (e.g., `-c 4`)
 - `-c` defaults to half of available CPU cores when not specified
 - For small numbers of files (fewer than 10), single-threaded mode is used automatically regardless of `-c`
-- `-O` requires Tesseract to be installed on your system (see [Installation](#installation))
+- `-O` requires Tesseract to be installed on your system (see the [README](../README.md#prerequisites) for installation instructions)
 - `-O` enables OCR for PDF pages that have no extractable text and adds image file types (.jpg, .jpeg, .png, .tiff, .tif, .bmp) to the search
 - `-O` makes searches slower — only use it when you need to search scanned or image-based documents
 - `-z` enables fuzzy matching — words that are approximately similar (80% or better) to your search terms will match
@@ -769,21 +761,7 @@ With the `-o` flag, additional output files are created:
 
 ### Command Translation
 
-Every report includes a **Translation** line that explains the search command in plain English. Regex patterns are automatically recognized and described by their meaning — not their individual characters:
-
-| Regex Pattern | Translation |
-|---|---|
-| `\d{1,2}/\d{1,2}/\d{2,4}` | a date (e.g. MM/DD/YYYY or YYYY-MM-DD) |
-| `\d{3}-\d{3}-\d{4}` | a US phone number (e.g. 555-123-4567) |
-| `\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}` | a phone number with area code (e.g. (555) 123-4567) |
-| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | an email address (e.g. user@example.com) |
-| `\$\d+\.?\d*` | a dollar amount (e.g. $45.99) |
-| `\d{3}-\d{2}-\d{4}` | a Social Security Number (SSN) (e.g. 123-45-6789) |
-| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | an IP address (e.g. 192.168.1.1) |
-| `https?://\S+` | a URL (e.g. https://example.com) |
-| `\d{5}(-\d{4})?` | a US ZIP code (e.g. 12345 or 12345-6789) |
-| `\d+%` | a percentage (e.g. 92%) |
-| `Q[1-4]\s?\d{4}` | a fiscal quarter (e.g. Q1 2026) |
+Every report includes a **Translation** line that explains the search command in plain English. Regex patterns are automatically recognized and described by their meaning — not their individual characters. See the **Report translation** column in the [Common Regex Search Patterns](#common-regex-search-patterns) table above for the full list of recognized patterns.
 
 Example report header:
 ```
@@ -1713,15 +1691,13 @@ docsearch -m 0 budget                    # this search only: unlimited matches (
 ```
 
 To see all your saved settings: `docsearch --config`. To reset a setting to its default: `docsearch --config max_matches=`. The `--config` flag works for many settings — see the [Saved Settings](#saved-settings-optional) section for the full list.
-| **CPU cores used** | Half of available | `-c N` | Balances search speed with keeping your machine responsive. Use `-c 1` for minimal resource usage or `-c` with your full core count for maximum speed |
-| **Fuzzy match threshold** | 80 (out of 100) | — | Minimum similarity score for fuzzy matching (`-z`). Words scoring below 80% similarity are not considered matches. Not user-configurable |
 
 **No limits on:**
 
 | Item | Notes |
 |------|-------|
 | **File size** | docsearch processes whatever the underlying libraries (PyMuPDF, openpyxl, python-docx, etc.) can handle. There is no hardcoded maximum. Very large files (multi-GB PDFs, spreadsheets with millions of rows) may cause high memory usage — use `-c 1` to reduce memory consumption |
-| **Number of files** | No maximum. The only constraint is the operating system's file descriptor limit, which defaults to 256 on macOS and 1024 on Linux. Increase with `ulimit -n 4096` if needed. See the Troubleshooting section for details |
+| **Number of files** | No maximum. The only constraint is the operating system's file descriptor limit, which defaults to 256 on macOS and 1024 on Linux. Increase with `ulimit -n 4096` if needed. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) for details |
 | **PDF page count** | PDFs are processed page by page with no page count limit |
 | **Excel rows and sheets** | No maximum. openpyxl processes worksheets in read-only mode for memory efficiency |
 | **Number of search terms** | No maximum — you can provide as many terms as needed |
@@ -1733,10 +1709,10 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 | Constraint | What happens | How to fix |
 |------------|-------------|------------|
 | **Memory** | Very large files, or many files searched in parallel across multiple cores, can exhaust available RAM. docsearch catches `MemoryError` and suggests reducing cores or limiting file types | Use `-c 1` to search single-threaded, or `-t` to limit file types |
-| **Open files limit** | Searching thousands of files may exceed the OS file descriptor limit, causing "Too many open files" errors | Run `ulimit -n 4096` before searching. See Troubleshooting |
+| **Open files limit** | Searching thousands of files may exceed the OS file descriptor limit, causing "Too many open files" errors | Run `ulimit -n 4096` before searching. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
 | **Disk space** | docsearch checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
-| **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See Troubleshooting |
-| **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See Troubleshooting |
+| **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
+| **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
 
 ## Your First Advanced Search — Step by Step
 
@@ -2106,7 +2082,7 @@ Click **Send Test Email** to verify your settings before saving. Settings are st
 
 ## Running Tests
 
-Running tests requires the cloned repository (see [Option B](#option-b-manual-install)). From the project folder:
+Running tests requires the cloned repository (see [Option B](../README.md#option-b-manual-install-with-git) in the README). From the project folder:
 
 ```bash
 source venv/bin/activate
