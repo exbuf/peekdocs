@@ -1881,7 +1881,7 @@ Now that you're comfortable with individual advanced searches, you can:
 
 ## Search Suites
 
-Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into a document review workflow tool — run the same checks repeatedly and get a report showing which checks passed and which failed.
+Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into a **verifiable document audit** tool — define a set of checks, run them against a collection of documents, and generate a report that proves what was searched, what passed, what failed, and which files were in scope. Run the same checks repeatedly and get a report showing which checks passed and which failed.
 
 > **Disclaimer:** Pass/fail results indicate whether your search criteria were met, not whether documents satisfy regulatory requirements. Templates are starting points — you are responsible for verifying that checks meet your specific compliance obligations.
 
@@ -1942,6 +1942,7 @@ This search checks that no file contains "DRAFT."
 
 **5. Run the suite**
 
+- Verify that the **Search Folder** on the main screen points to the folder containing the documents you want to check — the suite runs against whatever folder is shown there
 - Select `my_first_suite` in the Suites list
 - Click **Run Selected Suite**
 - Watch the status label — it shows each search running in sequence
@@ -1972,20 +1973,26 @@ For a more detailed compliance walkthrough with 9 industry examples, see the [Co
 
    **Export a suite:** Select a suite in the Manage Suites panel and click **Export Suite** to save it as a `.json` file. The export includes the suite and all of its referenced saved searches — everything the recipient needs to import it. Use this to share suites with colleagues, send templates to clients, or copy suites between folders on different machines.
 
-3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. Each search runs sequentially against the folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
+3. **Run the suite:** Select one or more suites from the **Suites** list and click **Run Selected Suite**. The suite runs against whatever folder is in the **Search Folder** field on the main screen — make sure it points to the documents you want to check. Each search runs sequentially against that folder — its settings are loaded into the main GUI as it runs so you can see what's happening. Results appear in real-time with color-coded PASS/FAIL indicators. When multiple suites are selected, their searches are combined (deduplicated) and run together.
 
-4. **Reports:** Suite report files are automatically generated with timestamps in three formats: `.docx`, `.txt`, and `.json` (e.g., `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx`). The `.docx` report is a formatted Word document with a color-coded summary table (green PASS / red FAIL), per-stage details with search criteria, a report fingerprint for audit traceability, and the docsearch version used. Each report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict. After a suite run completes, a **View Suite Report** button appears in the suite panel — click it to open the `.docx` report directly.
+4. **Reports:** Suite report files are automatically generated with timestamps in three formats: `.docx`, `.txt`, and `.json` (e.g., `DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx`). Reports are saved to the Search Folder, or to the **Output Dir** if set in the Manage Suites panel. The `.docx` report is a formatted Word document with a color-coded summary table (green PASS / red FAIL), per-stage details with search criteria, a report fingerprint for audit traceability, and the docsearch version used. Each report includes each test's name, search terms, result, and an overall PASSED/FAILED verdict. After a suite run completes, a **View Suite Report** button appears in the suite panel — click it to open the `.docx` report directly.
 
-**How the collection file works:** When you save a search or build a suite, docsearch stores everything in a file called `.docsearch_collection.json` inside the search folder. Here is the full lifecycle of this file:
+**How the collection file works:** When you save a search or build a suite, docsearch stores everything in a single file called `.docsearch_collection.json` inside the search folder. This one file holds all of your work for that folder — all saved searches and all suites together:
+
+- **All saved searches** — whether created manually via Save Search, by the Search Wizard, or by the Compliance Wizard. There is no distinction in the file between these — they are all entries in the same `"saved_searches"` section.
+- **All suites** — each with a name, an ordered list of searches, pass/fail criteria, cascade setting, and schedule. Suites reference saved searches by name, so everything is interconnected within the collection.
+
+Here is the full lifecycle of this file:
 
 1. **Created automatically** — the first time you click **Save Search** in the Search Bar for a folder, docsearch creates `.docsearch_collection.json` in that folder. You don't create it manually.
 2. **One per folder** — each folder has its own collection file. When you browse to a different folder in the GUI, docsearch loads that folder's collection. If no collection file exists yet, the suites panel is empty.
 3. **Lives with your documents** — the collection file is stored inside the search folder alongside the documents it searches, not in a central location. This means if you copy or move a folder, the saved searches and suites travel with it.
-4. **Contains saved searches + suites** — inside the file are two things: your saved searches (each with a name and all its settings — terms, flags, file types, range filters, etc.) and your suites (each with a name, an ordered list of searches, pass/fail criteria, cascade setting, and schedule). All of this is managed through the GUI — you never need to edit the file directly.
-5. **Updated by the GUI** — every time you save a search, build/edit/delete a suite, change pass criteria, or set a schedule, the GUI writes the changes to this file immediately.
-6. **Read on folder change** — when you browse to a folder or open the suites window, the GUI reads the collection file and populates the saved searches list and suites list from it.
-7. **Do not delete it** — this file represents all the work you put into building searches and suites. Deleting it erases all of that with no undo. If you need to start fresh, delete individual searches or suites through the GUI instead.
-8. **Back it up** — it's a standard JSON text file. Copy it to a safe location before making major changes. You can view its contents in any text editor.
+4. **Updated by the GUI** — every time you save a search, build/edit/delete a suite, change pass criteria, or set a schedule, the GUI writes the changes to this file immediately.
+5. **Read on folder change** — when you browse to a folder or open the suites window, the GUI reads the collection file and populates the saved searches list and suites list from it.
+6. **Do not delete it** — this file represents all the work you put into building searches and suites. Deleting it erases all of that with no undo. If you need to start fresh, delete individual searches or suites through the GUI instead.
+7. **Back it up** — it's a standard JSON text file. Copy it to a safe location before making major changes. You can view its contents in any text editor.
+
+**When files change in the folder:** Suites store search instructions, not file references. They don't track which files exist — each time a suite runs, it discovers files fresh from the folder at that moment. If files are added, the next run includes them automatically. If files are removed, they're skipped. If files are modified, the new content is searched. You never need to rebuild or update a suite when files change — suites are living checks that always run against the current state of the folder. (Note: if **Use Index** is checked, the index may not reflect recent file changes. Use Auto-Refresh in Manage Indexes to keep it current, or uncheck Use Index to search files directly.)
 
 **Searching across multiple folders:** If you need to run the same checks across many folders — for example, auditing 50 department folders with a single suite — the recommended approach is:
 
@@ -1996,6 +2003,10 @@ For a more detailed compliance walkthrough with 9 industry examples, see the [Co
 This searches all subfolders in one pass and generates one consolidated report. The suite, saved searches, and collection file all live in the parent folder, and the recursive flag ensures every document in every subfolder is included.
 
 You do not need to create separate collection files in each subfolder. One parent folder with recursive search covers everything beneath it.
+
+**Why this matters:** Suites are stored per-folder. A suite you create while pointing at `/Documents/contracts` only exists in that folder. If you switch to `/Documents/invoices`, the suite won't appear there — it only lives where you created it. To run the same checks against a different folder, you would need to create a new suite in that folder.
+
+This is why building your suite in a higher-level parent folder with Recursive checked is the best approach for broad coverage. One suite in the parent folder covers every document in every subfolder beneath it — no need to duplicate suites across subfolders. When using the Compliance Wizard or building suites manually, verify that the **Search Folder** points to the right level before creating the suite. The Compliance Wizard and Search Wizard both show the current folder at the top of the window with a **Change Folder** button so you can adjust it without closing the wizard.
 
 **Seeing all your collections:** Over time, you may have saved searches and suites in several different folders. The **All Collections** button on the bottom toolbar scans your home directory and shows every folder that contains a `.docsearch_collection.json` file, along with the saved searches and suites in each one. This gives you a global view of all your saved work across every folder — useful for finding searches you built months ago or cleaning up collections you no longer need. Double-click a folder in the list to switch to it.
 

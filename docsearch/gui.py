@@ -744,6 +744,9 @@ def _launch_gui():
                 command=lambda: self._show_search_wizard_help(win),
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
+
+            self._add_folder_bar(win, "Search will run against this folder.")
+
             import tkinter as _tk_wiz
             tip_frame = _tk_wiz.Frame(win, bg="#FFF3CD", highlightbackground="#FFD700", highlightthickness=1)
             tip_frame.pack(fill="x", padx=15, pady=(0, 5))
@@ -1000,7 +1003,7 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Compliance Wizard")
-            win.geometry("900x620")
+            win.geometry("1000x650")
             win.resizable(True, True)
             win.after(50, win.lift)
             win.after(100, win.focus_force)
@@ -1021,6 +1024,8 @@ def _launch_gui():
                 command=lambda: self._show_compliance_help(win),
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
+
+            self._add_folder_bar(win, "Your suite will be saved in the above folder and run against that folder. See ? help (Search Folder \u2014 Where the Suite Runs) for details.")
 
             # Category selector
             _sf = self._scaled_font
@@ -1223,9 +1228,13 @@ def _launch_gui():
                     self._refresh_suite_panel()
                 self._update_run_suite_button_color()
 
+                folder = self.folder_entry.get().strip()
                 messagebox.showinfo(
                     "Suite Created",
                     f"Created suite '{suite_name}' with {len(search_names)} checks.\n\n"
+                    f"The suite will run against the current Search Folder:\n"
+                    f"{folder}\n\n"
+                    f"Reports will be saved there (or to Output Dir if set in Manage Suites).\n\n"
                     f"Click Run Suite or open Manage Suites to run it.",
                     parent=win,
                 )
@@ -1293,9 +1302,14 @@ def _launch_gui():
             for section in [
                 "What Is the Search Wizard?", "How to Use It",
                 "Available Search Types", "Saving Your Search", "Tips",
+                "Search Wizard vs Compliance Wizard",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
+
+            b("The Search Wizard helps you configure searches without memorizing")
+            b("flags or regex syntax. Pick a type, fill in values, click Apply.")
+            blank()
 
             h("WHAT IS THE SEARCH WIZARD?")
             b("The Search Wizard helps you configure searches without memorizing")
@@ -1429,6 +1443,30 @@ def _launch_gui():
             b("\u2022 For document review checks across multiple searches, use the")
             b("  Compliance Wizard instead \u2014 it creates an entire suite at once")
             blank()
+
+            h("SEARCH WIZARD vs COMPLIANCE WIZARD")
+            b("Both wizards use the same search fields and checkboxes available")
+            b("on the main screen \u2014 they just fill them in for you. The difference")
+            b("is scope:")
+            blank()
+            b("Search Wizard \u2014 configures one search at a time. You pick a type")
+            b("(SSN, keywords, dollar range, etc.), click Apply, and the main")
+            b("screen is set up for that single search. Run it or save it.")
+            b("Use this for individual searches and for learning how the")
+            b("search options work.")
+            blank()
+            b("Compliance Wizard \u2014 creates multiple searches AND a suite in one")
+            b("step. Pick an industry template (9 available), review the pre-built")
+            b("checks, customize if needed, and click Create. The wizard saves")
+            b("all the searches and builds a suite with pass/fail criteria.")
+            b("Use this when you need a full set of document review checks")
+            b("ready to run as a batch.")
+            blank()
+            b("You can mix both: build some searches with the Search Wizard,")
+            b("create a suite with the Compliance Wizard, then combine them")
+            b("in Manage Suites.")
+            blank()
+
             b("* Tesseract is a free, open-source OCR engine that extracts")
             b("  text from scanned documents and images. docsearch uses it")
             b("  when the OCR option is enabled. It must be installed")
@@ -1494,6 +1532,7 @@ def _launch_gui():
                 "What Is the Compliance Wizard?",
                 "Search Wizard vs Compliance Wizard",
                 "How It Works",
+                "Search Folder — Where the Suite Runs",
                 "What Each Check Does", "Understanding Pass and Fail",
                 "Mixing Industries",
                 "After Creating the Suite", "Suite Reports",
@@ -1501,6 +1540,10 @@ def _launch_gui():
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
+
+            b("The Compliance Wizard creates a complete search suite for a")
+            b("specific industry or regulation in one click \u2014 9 templates available.")
+            blank()
 
             h("WHAT IS THE COMPLIANCE WIZARD?")
             b("The Compliance Wizard creates a complete search suite for a specific")
@@ -1533,6 +1576,34 @@ def _launch_gui():
             b("4. Give the suite a name (a default is suggested)")
             b("5. Click Create Suite — the wizard creates all the saved searches")
             b("   and the suite in one step")
+            blank()
+
+            h("SEARCH FOLDER — WHERE THE SUITE RUNS")
+            b("Before creating a suite, make sure the Search Folder at the top")
+            b("of the wizard points to the right place. The suite and its saved")
+            b("searches are stored in that folder, and when you run the suite,")
+            b("it searches the documents in that folder.")
+            blank()
+            b("If you want the suite to check all files across many subfolders,")
+            b("point the Search Folder to the top-level parent folder and make")
+            b("sure Recursive is checked in Advanced Search Options. The suite")
+            b("will search every document in every subfolder beneath it.")
+            blank()
+            b("You can use the Change Folder button in the wizard to switch")
+            b("folders without closing the wizard.")
+            blank()
+            b("Suites are stored per-folder. If you switch to a different folder")
+            b("later, the suite won't appear there — it only exists in the")
+            b("folder where you created it. To run the same checks against a")
+            b("different folder, you would need to create a new suite there.")
+            blank()
+            b("This is why building your suite in a higher-level folder with")
+            b("Recursive checked is the best approach if you want broad")
+            b("coverage. One suite in the parent folder covers everything")
+            b("beneath it — no need to duplicate suites across subfolders.")
+            blank()
+            b("Use the All Collections button on the bottom toolbar to see")
+            b("all suites across all your folders.")
             blank()
 
             h("WHAT EACH CHECK DOES")
@@ -1574,11 +1645,31 @@ def _launch_gui():
             blank()
 
             h("AFTER CREATING THE SUITE")
+            b("The wizard saves all the searches and the suite to a file")
+            b("called .docsearch_collection.json in the search folder. This")
+            b("single file holds everything for that folder — all saved")
+            b("searches and all suites, whether created by the Compliance")
+            b("Wizard, the Search Wizard, or manually. You never need to")
+            b("edit this file — the GUI manages it for you.")
+            blank()
+            b("Back up this file — it represents all the work you put into")
+            b("building searches and suites. If it's deleted, all of that")
+            b("is gone with no undo. It's a small JSON text file you can")
+            b("copy to a safe location anytime. If you search multiple")
+            b("folders, back up the .docsearch_collection.json in each one.")
+            blank()
             b("Once created, you can:")
             b("• Click Run Suite to execute all checks immediately")
             b("• Open Manage Suites to schedule automatic runs")
             b("• View the suite report in the preview pane")
             b("• Set up email alerts for failures")
+            blank()
+            b("If files are added, removed, or modified in the folder after")
+            b("creating the suite, you don't need to change anything. Suites")
+            b("store search instructions, not file references \u2014 each run")
+            b("discovers files fresh from the folder at that moment. New files")
+            b("are included automatically, removed files are skipped, and")
+            b("modified files are searched with their new content.")
             blank()
 
             h("SUITE REPORTS")
@@ -2802,7 +2893,13 @@ def _launch_gui():
 
         def _build_progress_area(self):
             """Build the progress bar, status label, and results preview pane."""
-            self.progress_bar = ctk.CTkProgressBar(self, mode="determinate")
+            self.progress_bar = ctk.CTkProgressBar(
+                self, mode="indeterminate", height=18,
+                progress_color=("#2196F3", "#1976D2"),
+                fg_color=("#E0E0E0", "#3A3A3A"),
+                corner_radius=5,
+                indeterminate_speed=1.2,
+            )
             self.progress_bar.set(0)
             # Starts hidden — shown only during search
 
@@ -3134,9 +3231,44 @@ def _launch_gui():
             help_btn.pack(side="right")
             Tooltip(help_btn, "How Search Suites work")
 
+            # Current folder display
+            folder_info = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            folder_info.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 0), sticky="ew")
+            # Shift header to row -1 equivalent by re-gridding
+            header_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            folder_info.grid(row=1, column=0, columnspan=2, padx=10, pady=(2, 5), sticky="ew")
+
+            ctk.CTkLabel(
+                folder_info, text="Search Folder:",
+                font=ctk.CTkFont(size=11, weight="bold"),
+            ).pack(side="left")
+            self._suite_folder_label = ctk.CTkLabel(
+                folder_info, text=self.folder_entry.get().strip() or "(none)",
+                font=ctk.CTkFont(size=11),
+                text_color=("blue", "deepskyblue"),
+            )
+            self._suite_folder_label.pack(side="left", padx=(5, 0))
+            Tooltip(self._suite_folder_label, "The suite will run against this folder. Change it on the main screen")
+
+            # Poll to keep the folder label in sync with the main screen
+            def _poll_suite_folder():
+                if not hasattr(self, "_suite_folder_label"):
+                    return
+                try:
+                    if not self._suite_folder_label.winfo_exists():
+                        return
+                except Exception:
+                    return
+                current = self.folder_entry.get().strip() or "(none)"
+                if self._suite_folder_label.cget("text") != current:
+                    self._suite_folder_label.configure(text=current)
+                self.after(500, _poll_suite_folder)
+
+            _poll_suite_folder()
+
             # Suites
             right = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            right.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+            right.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
             self.suite_frame.grid_columnconfigure(0, weight=1)
 
             ctk.CTkLabel(right, text="Suites", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
@@ -3215,7 +3347,7 @@ def _launch_gui():
 
             # Status label (under Suites column)
             status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            status_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            status_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
             ctk.CTkLabel(status_frame, text="Messages:", font=ctk.CTkFont(size=12)).pack(side="left")
             self.suite_status_label = ctk.CTkLabel(status_frame, text="", font=ctk.CTkFont(size=12))
             self.suite_status_label.pack(side="left", padx=(5, 10))
@@ -3229,7 +3361,7 @@ def _launch_gui():
 
             # Schedule + Last Run row
             schedule_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            schedule_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            schedule_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
 
             ctk.CTkLabel(schedule_frame, text="Auto-Run every:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
             self.suite_schedule_var = ctk.StringVar(value="Off")
@@ -3265,7 +3397,7 @@ def _launch_gui():
 
             # Output Dir row for suites
             suite_outdir_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            suite_outdir_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(15, 0), sticky="ew")
+            suite_outdir_frame.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky="ew")
 
             ctk.CTkLabel(suite_outdir_frame, text="Output Dir:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
             self.suite_output_dir_entry = ctk.CTkEntry(suite_outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
@@ -3286,7 +3418,7 @@ def _launch_gui():
 
             # Auto-Run History + Email Alerts links row
             links_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            links_frame.grid(row=7, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="ew")
+            links_frame.grid(row=8, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="ew")
 
             autorun_label = ctk.CTkLabel(
                 links_frame, text="Open Auto-Run History",
@@ -3332,8 +3464,8 @@ def _launch_gui():
                 self.suite_frame, text="Run Selected Suite", width=160, font=ctk.CTkFont(size=14, weight="bold"),
                 command=self._run_suite,
             )
-            self.run_suite_btn.grid(row=8, column=0, columnspan=2, pady=(10, 10))
-            Tooltip(self.run_suite_btn, "Run all searches in the selected suite(s) in order and evaluate pass/fail criteria — generates .docx, .txt, and .json reports")
+            self.run_suite_btn.grid(row=9, column=0, columnspan=2, pady=(10, 10))
+            Tooltip(self.run_suite_btn, "Run all searches in the selected suite(s) against the current Search Folder and evaluate pass/fail criteria. Reports are saved to the Search Folder (or Output Dir if set). Make sure your Search Folder points to the documents you want to check before clicking")
 
             _close_btn = ctk.CTkButton(
                 self.suite_frame, text="Close", width=80,
@@ -3342,7 +3474,7 @@ def _launch_gui():
                 command=self._on_suite_window_close,
                 font=ctk.CTkFont(size=12),
             )
-            _close_btn.grid(row=10, column=0, columnspan=2, pady=(0, 10))
+            _close_btn.grid(row=11, column=0, columnspan=2, pady=(0, 10))
             Tooltip(_close_btn, "Close this panel — auto-run schedules continue in the background")
 
         def _open_autorun_history(self):
@@ -3480,6 +3612,31 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            # Table of contents
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "How to Use",
+                "Import Template",
+                "Export Suite",
+                "Cascade Mode",
+                "Search Order",
+                "Pass Criteria",
+                "What It's Good For",
+                "Compliance Audit Patterns",
+                "Files Generated",
+                "How the Collection File Works",
+                "When Files Change",
+                "Output Directory",
+                "Auto-Run Scheduling",
+                "Email Alerts",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
             b("Search Suites let you save individual searches, group them into")
             b("named suites, and run them as a batch with pass/fail tracking.")
             blank()
@@ -3489,6 +3646,11 @@ def _launch_gui():
             b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
             b("3. Run: select a suite, click Run Selected Suite.")
             b("4. Reports are generated automatically with timestamps.")
+            blank()
+            b("Important: the suite runs against whatever folder is in the")
+            b("Search Folder field on the main screen. Reports are saved to")
+            b("that folder (or to Output Dir if set below). Make sure your")
+            b("Search Folder points to the documents you want to check.")
             blank()
 
             h("IMPORT TEMPLATE")
@@ -3585,19 +3747,53 @@ def _launch_gui():
 
             h("HOW THE COLLECTION FILE WORKS")
             b("When you save a search or build a suite, docsearch stores")
-            b("everything in .docsearch_collection.json inside the search folder.")
+            b("everything in a single file called .docsearch_collection.json")
+            b("inside the current search folder. This one file holds all of")
+            b("your work for that folder:")
             blank()
+            b("\u2022 All saved searches \u2014 whether created manually, by the")
+            b("  Search Wizard, or by the Compliance Wizard")
+            b("\u2022 All suites \u2014 with their ordered search lists, pass/fail")
+            b("  criteria, cascade settings, and schedules")
+            blank()
+            b("There is no distinction between a search saved manually and")
+            b("one created by a wizard \u2014 they are all entries in the same")
+            b("file. Suites reference saved searches by name, so everything")
+            b("is interconnected within the collection.")
+            blank()
+            b("Key points:")
             b("\u2022 Created automatically when you first save a search")
             b("\u2022 One per folder \u2014 each folder has its own collection")
             b("\u2022 Lives with your documents \u2014 copy/move a folder and")
-            b("  the suites travel with it")
-            b("\u2022 Contains all saved searches (names + settings) and all")
-            b("  suites (names + ordered search lists + pass criteria)")
+            b("  the searches and suites travel with it")
             b("\u2022 Updated instantly by the GUI when you save, edit, or delete")
             b("\u2022 Loaded automatically when you browse to a folder")
             b("\u2022 Do NOT delete \u2014 it contains all your suite work")
             b("\u2022 Back it up \u2014 it's a JSON text file you can copy anywhere")
             b("\u2022 You never need to edit it directly \u2014 the GUI manages it")
+            blank()
+            b("If you search multiple folders, each one has its own collection")
+            b("file. Back up the .docsearch_collection.json in each folder")
+            b("where you've built searches or suites.")
+            blank()
+
+            h("WHEN FILES CHANGE")
+            b("Suites store search instructions, not results. They don't")
+            b("reference specific files \u2014 each time a suite runs, it")
+            b("discovers files fresh from the folder at that moment.")
+            blank()
+            b("\u2022 Files added \u2014 included in the next suite run automatically")
+            b("\u2022 Files removed \u2014 no longer searched (match counts may change,")
+            b("  possibly flipping a pass/fail result)")
+            b("\u2022 Files modified \u2014 the new content is searched")
+            blank()
+            b("You never need to rebuild or update a suite when files change.")
+            b("Suites are living checks that always run against the current")
+            b("state of the folder.")
+            blank()
+            b("Note: if Use Index is checked, the index may not reflect recent")
+            b("file changes. Use Auto-Refresh in Manage Indexes to keep it")
+            b("current, or uncheck Use Index to search files directly.")
             blank()
 
             h("OUTPUT DIRECTORY")
@@ -4822,7 +5018,7 @@ def _launch_gui():
                 self.cancel_suite_btn.pack_forget()
                 # Show View Suite Report button if a report was generated
                 if self._suite_report_path and os.path.exists(self._suite_report_path):
-                    self.view_suite_report_btn.grid(row=9, column=0, columnspan=2, pady=(0, 10))
+                    self.view_suite_report_btn.grid(row=10, column=0, columnspan=2, pady=(0, 10))
             self.search_button.configure(state="normal")
 
             # Show suite report in main preview pane
@@ -5302,10 +5498,6 @@ def _launch_gui():
             if self.suite_running or self.process is not None:
                 self._show_error("A search or suite is already running.")
                 return
-            folder = self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Please select a valid folder first.")
-                return
 
             win = tk.Toplevel(self)
             win.title("PII Scan — Select Categories")
@@ -5313,10 +5505,18 @@ def _launch_gui():
             win.transient(self)
             win.grab_set()
 
+            header = tk.Frame(win)
+            header.pack(fill="x", padx=15, pady=(12, 4))
             tk.Label(
-                win, text="Select which categories to scan for:",
+                header, text="Select which categories to scan for:",
                 font=("TkDefaultFont", 13, "bold"),
-            ).pack(pady=(12, 8), padx=15)
+            ).pack(side="left")
+            tk.Button(
+                header, text="?", width=3, font=("TkDefaultFont", 12, "bold"),
+                command=lambda: self._show_pii_scan_help(win),
+            ).pack(side="right")
+
+            self._add_folder_bar(win, "Scan will check files in this folder.")
 
             # Load saved selections (default: all enabled)
             if not hasattr(self, "_pii_scan_enabled"):
@@ -5391,9 +5591,225 @@ def _launch_gui():
             tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack(side="left", padx=5)
             tk.Button(btn_frame, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=5)
 
+        def _show_pii_scan_help(self, parent):
+            """Show help for the PII Scan."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("PII Scan — Help")
+            help_win.geometry("700x580")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
+            scroll = tk.Scrollbar(help_win, command=txt.yview)
+            txt.configure(yscrollcommand=scroll.set)
+            scroll.pack(side="right", fill="y")
+            txt.pack(fill="both", expand=True)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                              lmargin2=30, spacing1=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
+                              lmargin2=20, foreground="gray40")
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+
+            def blank():
+                txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Is the PII Scan?",
+                "How to Use It",
+                "Scan Categories",
+                "Severity Levels",
+                "Understanding Results",
+                "The Highlighted Report",
+                "False Positives",
+                "Saving Your Selections",
+                "Search Folder",
+                "How It Differs from Regular Search",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            b("The PII Scan checks your documents for sensitive data \u2014 SSNs,")
+            b("credit cards, tax IDs, passwords, and more \u2014 with one click.")
+            blank()
+
+            h("WHAT IS THE PII SCAN?")
+            b("The PII Scan checks your documents for personally identifiable")
+            b("information (PII) and other sensitive data with one click. It")
+            b("runs a battery of regex pattern searches \u2014 SSNs, credit cards,")
+            b("tax IDs, emails, phone numbers, passwords, dates of birth, and")
+            b("large dollar amounts \u2014 and shows you exactly where they are.")
+            blank()
+            b("Use it to discover sensitive data hiding in your files before")
+            b("someone else finds it. A home user can check years of personal")
+            b("documents for exposed SSNs. A compliance officer can verify")
+            b("that no PII has leaked into a shared drive.")
+            blank()
+
+            h("HOW TO USE IT")
+            b("1. Make sure the Search Folder points to the folder you want")
+            b("   to check (use Change Folder if needed)")
+            b("2. Check the categories you want to scan for (all are checked")
+            b("   by default)")
+            b("3. Click Run Scan")
+            b("4. Results appear in a popup with color-coded severity badges")
+            b("5. Click View Files on any category to see affected files")
+            b("6. Click Open Report to view the highlighted .docx report")
+            blank()
+
+            h("SCAN CATEGORIES")
+            blank()
+            b("Social Security Numbers (HIGH)")
+            e("  Pattern: XXX-XX-XXXX (e.g., 123-45-6789)")
+            blank()
+            b("Credit Card Numbers (HIGH)")
+            e("  Visa, Mastercard, Amex, Discover patterns")
+            e("  (e.g., 4111-1111-1111-1111)")
+            blank()
+            b("Tax ID / EIN (HIGH)")
+            e("  Employer Identification Numbers: XX-XXXXXXX")
+            e("  (e.g., 12-3456789)")
+            blank()
+            b("Email Addresses (MODERATE)")
+            e("  Standard email patterns (e.g., name@example.com)")
+            blank()
+            b("Phone Numbers (MODERATE)")
+            e("  US phone patterns with separators")
+            e("  (e.g., 555-123-4567 or (555) 123-4567)")
+            blank()
+            b("Passwords / Secrets (MODERATE)")
+            e("  Lines containing password=, secret=, api_key=,")
+            e("  token=, or similar assignments")
+            blank()
+            b("Dates of Birth (MODERATE)")
+            e("  Date patterns near keywords like DOB, date of birth,")
+            e("  or born (e.g., DOB: 03/15/1990)")
+            blank()
+            b("Dollar Amounts Over $10,000 (INFO)")
+            e("  Dollar amounts $10,000 and above")
+            e("  (e.g., $15,000 or $250,000.00)")
+            blank()
+
+            h("SEVERITY LEVELS")
+            b("HIGH (red) \u2014 Data that could cause serious harm if exposed:")
+            b("SSNs, credit cards, tax IDs. These should be investigated")
+            b("immediately.")
+            blank()
+            b("MODERATE (yellow) \u2014 Data that may be sensitive depending on")
+            b("context: emails, phone numbers, passwords, dates of birth.")
+            b("Review to determine if exposure is a concern.")
+            blank()
+            b("INFO (blue) \u2014 Data that is noteworthy but not necessarily")
+            b("sensitive: large dollar amounts. Useful for financial review")
+            b("but unlikely to be a privacy risk on its own.")
+            blank()
+
+            h("UNDERSTANDING RESULTS")
+            b("The results popup shows each category with:")
+            b("\u2022 A color-coded severity badge (HIGH/MODERATE/INFO)")
+            b("\u2022 The number of matches and files affected")
+            b("\u2022 'Clean' (green) if no matches were found")
+            b("\u2022 A View Files button to see per-file details")
+            blank()
+            b("Click View Files to see which files contain that type of data,")
+            b("with match counts and line numbers. Double-click a file to")
+            b("open it in its default application.")
+            blank()
+
+            h("THE HIGHLIGHTED REPORT")
+            b("When the scan detects findings, a Word report is automatically")
+            b("generated: DO_NOT_SEARCH_pii_scan_report.docx")
+            blank()
+            b("The report includes:")
+            b("\u2022 Summary table of all categories with match counts")
+            b("\u2022 Detail sections for each category with findings")
+            b("\u2022 Every affected file with match count and line numbers")
+            b("\u2022 The actual matched text with sensitive data highlighted")
+            b("  in yellow")
+            b("\u2022 A disclaimer about false positives")
+            blank()
+            b("Click Open Report in the results popup to view it. The report")
+            b("is saved in the search folder (or output directory if set).")
+            b("It is prefixed with DO_NOT_SEARCH so it is never re-searched.")
+            blank()
+
+            h("FALSE POSITIVES")
+            b("Pattern-based detection will produce false positives. For")
+            b("example:")
+            b("\u2022 A 9-digit number that looks like an SSN but is an")
+            b("  account number or ZIP+4 code")
+            b("\u2022 A number matching the credit card pattern that is")
+            b("  actually a serial number or tracking ID")
+            b("\u2022 The word 'password' in a help document rather than")
+            b("  an actual exposed password")
+            blank()
+            b("Always review findings in context before taking action.")
+            b("The report shows the matched text with surrounding context")
+            b("so you can quickly judge whether a finding is real.")
+            blank()
+
+            h("SAVING YOUR SELECTIONS")
+            b("Your checkbox selections are saved to ~/.docsearchrc and")
+            b("remembered between sessions. The next time you open the PII")
+            b("Scan, the same categories will be checked. Use Select All")
+            b("or Deselect All for quick toggling.")
+            blank()
+
+            h("SEARCH FOLDER")
+            b("The scan runs against whatever folder is shown at the top")
+            b("of this window. Use Change Folder to switch without closing")
+            b("the window. If Recursive is checked in Advanced Search")
+            b("Options, all subfolders are included.")
+            blank()
+            b("The scan always searches files directly \u2014 it does not use")
+            b("the search index, because regex pattern matching requires")
+            b("scanning every line of text. The Use Index checkbox is")
+            b("temporarily unchecked during the scan and restored afterward.")
+            blank()
+
+            h("HOW IT DIFFERS FROM REGULAR SEARCH")
+            b("A regular search looks for terms you type. The PII Scan")
+            b("runs 8 pre-built regex patterns designed to detect specific")
+            b("types of sensitive data. You don't need to know regex \u2014")
+            b("the patterns are built in.")
+            blank()
+            b("The PII Scan is not a suite \u2014 it doesn't create saved")
+            b("searches or appear in Manage Suites. It's a standalone")
+            b("one-click scan with its own report. If you want to run")
+            b("PII checks as part of a recurring compliance suite, use")
+            b("the Search Wizard or Compliance Wizard to create saved")
+            b("searches with the same regex patterns and add them to a")
+            b("suite.")
+            blank()
+
+            txt.configure(state="disabled")
+
+            tk.Button(help_win, text="Close", width=10,
+                      command=help_win.destroy).pack(pady=(5, 10))
+
         def _run_sensitive_scan(self, selected_patterns):
             """Launch the sensitive data scan with the selected patterns."""
             folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder first.")
+                return
             recursive = self.recursive_var.get() == "on"
             file_types_str = self.file_types_entry.get().strip() if hasattr(self, "file_types_entry") else ""
             file_types = None
@@ -5423,11 +5839,18 @@ def _launch_gui():
             from docsearch.sensitive_patterns import SENSITIVE_PATTERNS
 
             patterns = selected_patterns if selected_patterns else SENSITIVE_PATTERNS
+            total_patterns = len(patterns)
             scan_results = []
             start = time.time()
             files_searched = 0
 
-            for category, regex, severity, description in patterns:
+            for pat_idx, (category, regex, severity, description) in enumerate(patterns, 1):
+                self.after(0, lambda i=pat_idx, t=total_patterns, c=category:
+                    self.status_label.configure(
+                        text=f"Scanning for sensitive data... ({i}/{t}) {c}",
+                        fg="blue",
+                    )
+                )
                 try:
                     result = search(
                         [regex],
@@ -5855,15 +6278,8 @@ def _launch_gui():
             self._hide_preview()
             self._matched_files_link.pack_forget()
             self._excluded_files_btn.pack_forget()
-            # Use indeterminate for indexed searches (no file-by-file progress),
-            # determinate for direct file scanning
-            is_indexed = self.index_search_var.get() == "on"
-            if is_indexed:
-                self.progress_bar.configure(mode="indeterminate")
-                self.progress_bar.start()
-            else:
-                self.progress_bar.configure(mode="determinate")
-                self.progress_bar.set(0)
+            self.progress_bar.configure(mode="indeterminate")
+            self.progress_bar.start()
             self.progress_bar.grid(
                 row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
@@ -5925,16 +6341,19 @@ def _launch_gui():
                 return
             if self.search_start_time is not None:
                 elapsed = time.time() - self.search_start_time
+                dots = "." * (int(elapsed) % 4)
                 # Preserve a "Rebuilding index..." prefix if set, append elapsed time
                 current = self.status_label.cget("text") or ""
                 if current.startswith("Rebuilding index"):
-                    # Update in place with elapsed time
                     import re as _re
                     new_text = _re.sub(r"\s*\(\d+s\)\s*$", "", current)
                     new_text = f"{new_text} ({elapsed:.0f}s)"
-                    self.status_label.configure(text=new_text)
+                    self.status_label.configure(text=new_text, fg="blue")
                 else:
-                    self.status_label.configure(text=f"Searching... ({elapsed:.0f}s)")
+                    self.status_label.configure(
+                        text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
+                        fg="blue",
+                    )
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
         def _run_search(self, cmd, folder):
@@ -6177,8 +6596,10 @@ def _launch_gui():
             self.progress_bar.set(pct)
             if self.search_start_time is not None:
                 elapsed = time.time() - self.search_start_time
+                pct_display = int(pct * 100)
                 self.status_label.configure(
-                    text=f"Searching... {done}/{total} files ({elapsed:.0f}s)"
+                    text=f"Searching... {done}/{total} files  ({pct_display}%)  ({elapsed:.0f}s)",
+                    fg="blue",
                 )
 
         def _search_finished(self, stdout, returncode):
@@ -8307,6 +8728,57 @@ def _launch_gui():
             )
             self.bell()
             messagebox.showerror("Error", message)
+
+        def _add_folder_bar(self, parent, message="Your search will run against this folder."):
+            """Add a folder display bar with Change Folder button to a wizard window.
+
+            Returns the folder label widget so callers can read the current value.
+            """
+            import tkinter as tk
+            from tkinter import filedialog
+
+            bar = tk.Frame(parent, bd=1, relief="groove", padx=8, pady=5)
+            bar.pack(fill="x", padx=15, pady=(5, 5))
+
+            top_row = tk.Frame(bar)
+            top_row.pack(fill="x")
+
+            tk.Label(
+                top_row, text="Search Folder:",
+                font=("TkDefaultFont", 11, "bold"),
+            ).pack(side="left")
+
+            folder_label = tk.Label(
+                top_row, text=self.folder_entry.get().strip() or "(none)",
+                font=("TkDefaultFont", 11), fg="blue",
+            )
+            folder_label.pack(side="left", padx=(5, 10))
+
+            def _change_folder():
+                new_folder = filedialog.askdirectory(
+                    parent=parent,
+                    title="Select Search Folder",
+                    initialdir=self.folder_entry.get().strip() or os.path.expanduser("~"),
+                )
+                if new_folder:
+                    self.folder_entry.delete(0, "end")
+                    self.folder_entry.insert(0, new_folder)
+                    folder_label.configure(text=new_folder)
+                    if self.suite_visible:
+                        self._refresh_suite_panel()
+                    self._refresh_load_search_menu()
+
+            tk.Button(
+                top_row, text="Change Folder", command=_change_folder,
+                font=("TkDefaultFont", 10),
+            ).pack(side="right")
+
+            tk.Label(
+                bar, text=message,
+                font=("TkDefaultFont", 10), fg="gray", anchor="w",
+            ).pack(fill="x", pady=(2, 0))
+
+            return folder_label
 
         # ── Search Collections ─────────────────────────────────
 

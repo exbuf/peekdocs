@@ -218,6 +218,8 @@ Most document search tools find text inside files. docsearch does that too — b
 
 If all you need is to find a word in a document, any search tool works. If you need to **systematically verify** that 500 documents meet a set of requirements — and produce evidence that you checked — that's what docsearch was built for.
 
+We call this **verifiable document audit** — the ability to define a set of checks, run them against a collection of documents, and generate a report that proves what was searched, what passed, what failed, and which files were in scope. Other tools search. docsearch searches *and proves it searched*.
+
 docsearch is a search and workflow tool that helps you organize document reviews. It does not certify compliance or provide legal advice — the checks you build and the conclusions you draw are yours.
 
 ## What You Get at Each Price Point

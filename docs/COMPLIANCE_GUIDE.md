@@ -57,7 +57,7 @@ In each of these industries, the core task is the same: search a set of document
 
 ## How docsearch fits
 
-docsearch can serve as a lightweight compliance and auditing tool. Instead of manually opening documents one at a time to verify that required language is present, prohibited content is absent, or values fall within acceptable ranges, you can automate those checks and produce evidence-grade reports — all offline, without uploading anything to the cloud.
+docsearch can serve as a lightweight **verifiable document audit** tool. Instead of manually opening documents one at a time to verify that required language is present, prohibited content is absent, or values fall within acceptable ranges, you can automate those checks and produce evidence-grade reports that prove what was searched, what passed, what failed, and which files were in scope — all offline, without uploading anything to the cloud.
 
 **What compliance and audit teams typically need to verify:**
 
