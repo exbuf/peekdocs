@@ -375,9 +375,9 @@ def _launch_gui():
                 version = ""
             self.title(f"docsearch {version}".strip())
             self.withdraw()  # Hide until setup is complete to prevent flicker
-            self.geometry("1180x720")
-            self.minsize(1180, 620)
-            self._center_window(950, 720)
+            self.geometry("1280x720")
+            self.minsize(1280, 620)
+            self._center_window(1050, 720)
 
             ctk.set_appearance_mode("System")
             ctk.set_default_color_theme("blue")
@@ -532,6 +532,15 @@ def _launch_gui():
             self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=4)
             Tooltip(self.run_suite_main_btn, "Open Manage Suites to select and run a suite. A suite is a collection of saved searches that run together with pass/fail criteria. Green = suites exist, Red = no suites yet. Both Run buttons turn red and are temporarily disabled while an index is being built")
 
+            self.sensitive_scan_btn = ctk.CTkButton(
+                btn_frame, text="PII Scan", width=80,
+                command=self._start_sensitive_scan,
+                font=ctk.CTkFont(size=14),
+                fg_color="#E63946", hover_color="#C1121F",
+            )
+            self.sensitive_scan_btn.pack(side="left", padx=(4, 0))
+            Tooltip(self.sensitive_scan_btn, "Sensitive Data Scan — one-click scan for PII: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Uses current folder and respects Recursive and File Type settings")
+
             # Right-aligned: Use Index checkbox
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
@@ -681,6 +690,11 @@ def _launch_gui():
             b("Open Advanced Search Options for regex, fuzzy matching,")
             b("wildcards, Boolean expressions, range queries, and more.")
             b("Click the ? button inside Advanced Search Options for help.")
+            blank()
+            s("Scan for sensitive data")
+            b("Click the red Sensitive Data Scan button to check your")
+            b("documents for SSNs, credit cards, tax IDs, emails, phone")
+            b("numbers, passwords, and more \u2014 one click, no setup needed.")
             blank()
             s("Build search suites")
             b("Save individual searches and group them into suites")
@@ -5279,6 +5293,304 @@ def _launch_gui():
             listbox.bind("<Double-1>", _select)
             tk.Button(popup, text="Use", width=8, command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
             tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+
+        def _start_sensitive_scan(self):
+            """Launch a background sensitive data scan against the current folder."""
+            if self.suite_running or self.process is not None:
+                self._show_error("A search or suite is already running.")
+                return
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a valid folder first.")
+                return
+
+            recursive = self.recursive_var.get() == "on"
+            file_types_str = self.file_types_entry.get().strip() if hasattr(self, "file_types_entry") else ""
+            file_types = None
+            if file_types_str:
+                file_types = ["." + t.strip().lstrip(".") for t in file_types_str.split(",") if t.strip()]
+
+            # Save and uncheck Use Index — regex scans don't benefit from the index
+            self._sensitive_scan_saved_index = self.index_search_var.get()
+            self.index_search_var.set("off")
+
+            self.sensitive_scan_btn.configure(state="disabled", text="Scanning...")
+            self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", fg="blue")
+            self.progress_bar.configure(mode="indeterminate")
+            self.progress_bar.start()
+            self.progress_bar.grid(row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
+
+            thread = threading.Thread(
+                target=self._sensitive_scan_thread,
+                args=(folder, recursive, file_types),
+                daemon=True,
+            )
+            thread.start()
+
+        def _sensitive_scan_thread(self, folder, recursive, file_types):
+            """Run all sensitive data patterns in a background thread."""
+            from docsearch.api import search
+            from docsearch.sensitive_patterns import SENSITIVE_PATTERNS
+
+            scan_results = []
+            start = time.time()
+            files_searched = 0
+
+            for category, regex, severity, description in SENSITIVE_PATTERNS:
+                try:
+                    result = search(
+                        [regex],
+                        directory=folder,
+                        recursive=recursive,
+                        use_regex=True,
+                        use_index=False,
+                        file_types=file_types,
+                    )
+                    files_searched = max(files_searched, len(result.files_searched))
+                    # Build per-file breakdown
+                    file_matches = {}
+                    for match in result.matches:
+                        key = match.filename
+                        if key not in file_matches:
+                            file_matches[key] = {
+                                "path": os.path.join(match.file_dir, match.filename),
+                                "count": 0,
+                                "lines": [],
+                            }
+                        file_matches[key]["count"] += 1
+                        file_matches[key]["lines"].append(match.line_num)
+                    scan_results.append({
+                        "category": category,
+                        "severity": severity,
+                        "description": description,
+                        "match_count": len(result.matches),
+                        "file_count": len(file_matches),
+                        "files": file_matches,
+                    })
+                except Exception:
+                    scan_results.append({
+                        "category": category,
+                        "severity": severity,
+                        "description": description,
+                        "match_count": 0,
+                        "file_count": 0,
+                        "files": {},
+                    })
+
+            elapsed = time.time() - start
+            self.after(0, self._sensitive_scan_finished, scan_results, elapsed, files_searched)
+
+        def _sensitive_scan_finished(self, scan_results, elapsed, files_searched):
+            """Restore UI and show results popup after sensitive data scan."""
+            self.progress_bar.stop()
+            self.progress_bar.grid_remove()
+            self.sensitive_scan_btn.configure(state="normal", text="PII Scan")
+
+            # Restore Use Index checkbox
+            if hasattr(self, "_sensitive_scan_saved_index"):
+                self.index_search_var.set(self._sensitive_scan_saved_index)
+
+            total = sum(r["match_count"] for r in scan_results)
+            high = sum(r["match_count"] for r in scan_results if r["severity"] == "high")
+
+            if total == 0:
+                self.status_label.configure(
+                    text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — no findings.",
+                    fg="green",
+                )
+            else:
+                self.status_label.configure(
+                    text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — {total} finding(s) ({high} high severity).",
+                    fg="red" if high > 0 else "black",
+                )
+            self._show_sensitive_scan_results(scan_results, elapsed, files_searched)
+
+        def _show_sensitive_scan_results(self, scan_results, elapsed, files_searched):
+            """Show a popup with categorized sensitive data scan results."""
+            import tkinter as tk
+            from docsearch.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
+
+            popup = tk.Toplevel(self)
+            popup.title("Sensitive Data Scan Results")
+            popup.resizable(True, True)
+            popup.geometry("800x520")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            total = sum(r["match_count"] for r in scan_results)
+            high = sum(r["match_count"] for r in scan_results if r["severity"] == "high")
+
+            # Header
+            if total == 0:
+                header_text = f"No sensitive data found — {files_searched} files scanned in {elapsed:.1f}s"
+                header_color = "green"
+            else:
+                header_text = f"{total} finding(s) across {files_searched} files ({elapsed:.1f}s)"
+                header_color = "#CC0000" if high > 0 else "black"
+
+            tk.Label(
+                popup, text="Sensitive Data Scan Results",
+                font=("TkDefaultFont", 14, "bold"),
+            ).pack(pady=(10, 2))
+            tk.Label(
+                popup, text=header_text,
+                font=("TkDefaultFont", 12), fg=header_color,
+            ).pack(pady=(0, 8))
+
+            # Scrollable results frame
+            canvas_frame = tk.Frame(popup)
+            canvas_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            canvas = tk.Canvas(canvas_frame, highlightthickness=0)
+            scrollbar = tk.Scrollbar(canvas_frame, command=canvas.yview)
+            inner = tk.Frame(canvas)
+
+            inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+
+            # Sort by severity order, then by match count descending
+            severity_rank = {s: i for i, s in enumerate(SEVERITY_ORDER)}
+            sorted_results = sorted(
+                scan_results,
+                key=lambda r: (severity_rank.get(r["severity"], 99), -r["match_count"]),
+            )
+
+            for result in sorted_results:
+                sev = SEVERITY_COLORS.get(result["severity"], SEVERITY_COLORS["info"])
+                row = tk.Frame(inner, pady=3)
+                row.pack(fill="x", padx=5, pady=2)
+
+                # Severity badge
+                badge = tk.Label(
+                    row, text=f" {sev['label']} ", font=("TkDefaultFont", 10, "bold"),
+                    bg=sev["bg"], fg=sev["fg"], width=10,
+                )
+                badge.pack(side="left", padx=(0, 8))
+
+                # Category name
+                tk.Label(
+                    row, text=result["category"],
+                    font=("TkDefaultFont", 12, "bold"), anchor="w",
+                ).pack(side="left", padx=(0, 8))
+
+                if result["match_count"] == 0:
+                    tk.Label(
+                        row, text="Clean",
+                        font=("TkDefaultFont", 11), fg="green",
+                    ).pack(side="left")
+                else:
+                    count_text = f"{result['match_count']} match(es) in {result['file_count']} file(s)"
+                    tk.Label(
+                        row, text=count_text,
+                        font=("TkDefaultFont", 11), fg="#CC0000" if result["severity"] == "high" else "black",
+                    ).pack(side="left", padx=(0, 8))
+
+                    files_data = result["files"]
+                    cat_name = result["category"]
+                    view_btn = tk.Button(
+                        row, text="View Files",
+                        font=("TkDefaultFont", 10),
+                        command=lambda f=files_data, c=cat_name, p=popup: self._show_sensitive_category_files(f, c, p),
+                    )
+                    view_btn.pack(side="right", padx=(0, 5))
+
+                # Description
+                desc_row = tk.Frame(inner)
+                desc_row.pack(fill="x", padx=5)
+                tk.Label(
+                    desc_row, text=f"    {result['description']}",
+                    font=("TkDefaultFont", 10), fg="gray",
+                ).pack(side="left")
+
+            # Mousewheel scrolling
+            def _on_mousewheel(event):
+                delta = event.delta
+                if abs(delta) > 10:
+                    delta = 1 if delta > 0 else -1
+                else:
+                    delta = max(-1, min(1, delta))
+                canvas.yview_scroll(-delta, "units")
+
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            popup.protocol("WM_DELETE_WINDOW", lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()))
+
+            tk.Button(popup, text="Close", width=10, command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy())).pack(pady=(5, 10))
+
+        def _show_sensitive_category_files(self, files_data, category, parent):
+            """Show files for a specific sensitive data category."""
+            import tkinter as tk
+            import subprocess, sys
+
+            popup = tk.Toplevel(parent)
+            popup.title(f"Files containing: {category}")
+            popup.resizable(True, True)
+            popup.geometry("750x400")
+            parent.update_idletasks()
+            x = parent.winfo_rootx() + 25
+            y = parent.winfo_rooty() + 25
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup, text=f"{category} — {len(files_data)} file(s)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 5))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            file_paths = {}
+            for fname, info in sorted(files_data.items()):
+                line_nums = sorted(set(info["lines"]))[:20]
+                lines_str = ", ".join(str(ln) for ln in line_nums)
+                if len(info["lines"]) > 20:
+                    lines_str += "..."
+                entry = f"{fname}  ({info['count']} match(es) — lines {lines_str})"
+                idx = listbox.size()
+                listbox.insert("end", entry)
+                file_paths[idx] = info["path"]
+
+            def _on_double_click(event):
+                sel = listbox.curselection()
+                if not sel or sel[0] not in file_paths:
+                    return
+                path = file_paths[sel[0]]
+                try:
+                    if sys.platform == "darwin":
+                        subprocess.Popen(["open", path])
+                    elif sys.platform == "win32":
+                        os.startfile(path)
+                    else:
+                        subprocess.Popen(["xdg-open", path])
+                except Exception:
+                    pass
+
+            listbox.bind("<Double-1>", _on_double_click)
+
+            tk.Label(
+                popup, text="Double-click a file to open it",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack()
+
+            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
 
         def start_search(self):
             """Validate inputs, build the CLI command, and launch a search thread."""

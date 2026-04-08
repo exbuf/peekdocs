@@ -27,6 +27,7 @@ docsearch scales from simple keyword searches to organized document review workf
 
 ## Features
 
+- **Sensitive Data Scan** — one-click scan for PII and sensitive data: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Results are categorized by severity (high/moderate/info) with per-file details. Click any category to see which files are affected
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
 - **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output

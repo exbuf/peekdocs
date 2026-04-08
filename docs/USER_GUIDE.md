@@ -291,7 +291,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search** and **Run Suite** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
+| **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search**, **Run Suite**, and **Sensitive Data Scan** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), and **File** button (select a single file to search) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
@@ -309,6 +309,25 @@ The GUI window is organized into these regions, from top to bottom:
 4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, or **PDF** to open the report in other formats. The PDF report also highlights matches in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. You can also use [Google Docs](https://docs.google.com) (upload the file), Apple Pages (free, Mac only), or any other application that supports .docx files. The .txt report can be opened on any computer with no additional software.
+
+**Sensitive Data Scan:**
+
+Click the red **Sensitive Data Scan** button (next to Run Suite) to scan your documents for PII and sensitive data with one click. No configuration needed — just select a folder and click. The scan checks for 8 categories of sensitive data:
+
+| Category | Severity | What it finds |
+|----------|----------|---------------|
+| Social Security Numbers | HIGH | SSN patterns (XXX-XX-XXXX) |
+| Credit Card Numbers | HIGH | Visa, Mastercard, Amex, Discover patterns |
+| Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
+| Email Addresses | MODERATE | Email address patterns |
+| Phone Numbers | MODERATE | US phone number patterns |
+| Passwords / Secrets | MODERATE | Lines containing password, secret, or API key assignments |
+| Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
+| Dollar Amounts Over $10,000 | INFO | Dollar amounts $10,000 and above |
+
+Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
+
+The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
 **Advanced Search Options:**
 
