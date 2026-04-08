@@ -8,9 +8,10 @@ Use docsearch programmatically from Python code. For CLI and GUI usage, see the 
 - [With Options](#with-options)
 - [Parameters](#parameters)
 - [Return Value](#return-value)
+- [Notes](#notes)
 - [Error Handling](#error-handling)
 
-### Basic Usage
+## Basic Usage
 
 ```python
 from docsearch import search
@@ -22,7 +23,7 @@ for match in result.matches:
     print(f"  {match.filename}:{match.line_num}: {match.text}")
 ```
 
-### With Options
+## With Options
 
 ```python
 from docsearch import search
@@ -116,7 +117,7 @@ def on_progress(done, total, filename):
 result = search(["error"], directory="/var/log", progress=on_progress)
 ```
 
-### Parameters
+## Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -142,7 +143,7 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 | `range_filters` | `list[str]` | `None` | Range filter specs (e.g. `["amount:1000..5000", "date:2024-01-01..2024-12-31"]`). Use `fn:` prefix for filename ranges (e.g. `["fn:date:2024-01-01..2024-12-31"]`) |
 | `max_file_size_mb` | `int` | `100` | Skip files larger than this (in MB). Prevents slow searches and memory issues from very large files. Set to `0` for no limit |
 
-### Return Value
+## Return Value
 
 `search()` returns a `SearchResult` with these fields:
 
@@ -156,7 +157,12 @@ result = search(["error"], directory="/var/log", progress=on_progress)
 
 Each `SearchMatch` has fields: `file_dir`, `filename`, `line_num`, `text`.
 
-### Error Handling
+## Notes
+
+- **No match limit:** The API returns all matches. The CLI's `-m` (max matches) flag caps report output only — it does not exist in the API. If you need to limit results, slice `result.matches` after the search.
+- **No inverse mode:** Inverse search (listing files that do *not* contain terms) is a GUI/CLI feature. To achieve the same result with the API, compare `result.files_searched` against `result.matches` to find files with zero matches.
+
+## Error Handling
 
 `search()` raises `ValueError` for invalid parameter combinations (e.g. combining regex + fuzzy) and `FileNotFoundError` if specified files are not found.
 

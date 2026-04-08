@@ -13,7 +13,7 @@ Common questions and solutions for docsearch issues. For general usage, see the 
 Results are saved to two files in the current directory: `docsearch_results.txt` and `docsearch_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
 
 **What happens when a file can't be read?**
-Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file — see the [Output](#output) section for details.
+Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `docsearch_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If docsearch itself crashes unexpectedly, a crash report with a diagnosis is also written to this file.
 
 **How do I recall a previous command?**
 Press the up arrow key in your terminal to scroll through previous commands. This is a built-in feature of all terminals (macOS, Windows, and Linux) — not specific to docsearch. You can press up repeatedly to go further back, then press Enter to re-run the command.
@@ -25,7 +25,7 @@ Press Ctrl+C. docsearch will stop cleanly and print "Search cancelled." This wor
 Run `docsearch --check`. This verifies your Python version, checks that all required dependencies are installed, reports whether Tesseract is available for OCR, and checks available disk space. If anything is missing, it tells you exactly how to fix it.
 
 **How do I save my preferred settings?**
-Use the `--config` flag. For example, `docsearch --config recursive=true` saves that setting so it applies automatically every time. See the [Saved Settings](#saved-settings-optional) section for details.
+Use the `--config` flag. For example, `docsearch --config recursive=true` saves that setting so it applies automatically every time. See [Saved Settings](USER_GUIDE.md#saved-settings-optional) in the User Guide for details.
 
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>
@@ -73,11 +73,11 @@ Example: `docsearch -n draft budget`<br>
 Example with multiple excludes: `docsearch -n draft,obsolete budget`
 
 **Can I search scanned PDFs or images?**
-Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [Installation](#installation) section for instructions. OCR is slower than regular text search, so it's opt-in.<br>
+Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [README](../README.md#prerequisites) for installation instructions. OCR is slower than regular text search, so it's opt-in.<br>
 Example: `docsearch -O budget`
 
 **Can I use regex patterns?**
-Yes — use the `-x` flag. [Common Regex Patterns](#common-regex-search-patterns)<br>
+Yes — use the `-x` flag. [Common Regex Patterns](USER_GUIDE.md#common-regex-search-patterns)<br>
 Example: `docsearch -x "\d{3}-\d{3}-\d{4}"`
 
 **Can I see lines before and after each match?**
@@ -92,7 +92,7 @@ Example: `docsearch -a budget revenue expenses`
 **Can I combine AND, OR, and NOT in a single query?**
 Yes — use the `-e` flag for boolean expression search. This lets you write complex logic with AND, OR, NOT, and parentheses.<br>
 Example: `docsearch -e "(budget OR revenue) AND NOT draft"`<br>
-Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. Range specs (`field:min..max`) can be embedded directly in expressions (e.g., `"budget AND amount:1000..5000"`). See [Boolean Expression Search](#boolean-expression-search) for details.
+Precedence: NOT binds tightest, then AND, then OR. Use parentheses to override. The `-e` flag cannot be combined with `-a`, `-n`, or `-p` — those features are built into the expression syntax. Range specs (`field:min..max`) can be embedded directly in expressions (e.g., `"budget AND amount:1000..5000"`). See [Boolean Expression Search](USER_GUIDE.md#boolean-expression-search) in the User Guide for details.
 
 **How many CPU cores does docsearch use?**
 By default, docsearch uses half of your available CPU cores to keep your machine responsive. Use the `-c` flag to control this.<br>
@@ -107,7 +107,7 @@ You can set `-c` to any value from 1 to your maximum core count. Using more core
 
 **Can I use multiple flags at the same time?**
 Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
-Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](#command-examples) table for many combinations.
+Example: `docsearch -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](USER_GUIDE.md#command-examples) table in the User Guide for many combinations.
 
 **Do I have to use the terminal, or is there a GUI?**
 Both. If you prefer a graphical interface, run `docsearch-gui` for a point-and-click window with a search box, folder picker, and all the advanced options. If you're comfortable in the terminal, `docsearch` gives you the same search power in a single command.
@@ -118,13 +118,13 @@ Never used a terminal before? It's simpler than it looks — type `docsearch` fo
 docsearch runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is installed.
 
 **Does it search inside ZIP or RAR files?**
-No — docsearch searches uncompressed files only.
+Yes — docsearch searches inside .zip, .7z, .rar, .tar, .gz, .bz2, and .tgz archives. Files inside the archive are extracted to memory and searched like any other file. ZIP archives that would expand to over 500 MB are skipped to protect against archive bombs.
 
 **Does it work offline?**
 Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
 **Will upgrading docsearch delete my saved searches, suites, or settings?**
-No. Your saved searches, suites, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the docsearch code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for the complete list of what is preserved.
+No. Your saved searches, suites, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the docsearch code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for the complete list of what is preserved.
 
 ---
 
@@ -132,7 +132,7 @@ No. Your saved searches, suites, settings, indexes, and reports are stored in yo
 Upgrading Python can occasionally break installed packages. If docsearch stops working after a Python upgrade, run `docsearch --check` to see which dependencies need updating, then reinstall: `pip install --upgrade docsearch` (or `pipx reinstall docsearch` if you used pipx). Check `docsearch_errors.log` for a crash report with a diagnosis — it usually points to the exact package that needs updating. docsearch will also print a warning at startup if your Python version is outside the tested range. Most dependency updates are available within a few weeks of a new Python release.
 
 **What is the search index and when should I use it?**
-The search index is an optional SQLite database (`.docsearch.db`) that stores extracted text from your documents. Build it with `docsearch --index` in any folder where you search frequently. After that, every search in that folder uses the index automatically — skipping file parsing entirely — making repeated searches much faster. You don't need the index for one-off searches or small folders. See [Search Index](#search-index-optional) for details.
+The search index is an optional SQLite database (`.docsearch.db`) that stores extracted text from your documents. Build it with `docsearch --index` in any folder where you search frequently. After that, every search in that folder uses the index automatically — skipping file parsing entirely — making repeated searches much faster. You don't need the index for one-off searches or small folders. See [Search Index](USER_GUIDE.md#search-index-optional) in the User Guide for details.
 
 **How much disk space does the index use?**
 The index is typically 10–20% the size of the original files. Text-heavy documents (PDFs, Word docs) produce smaller indexes relative to file size since the index stores only the extracted text. You can check the exact size with `docsearch --index-status` and delete it anytime with `docsearch --index-clear`.
@@ -523,3 +523,39 @@ Searching directories with many `.xlsx` files produces repeated `UserWarning: Da
 - Upgrade openpyxl: `pip install --upgrade openpyxl`
 - If warnings persist, set `PYTHONWARNINGS=ignore` as an environment variable before running docsearch
 - These warnings do not affect search results — they are cosmetic only
+
+---
+
+**"docsearch: command not found" after activating the virtual environment**
+
+You activated the virtual environment but `docsearch` still isn't recognized. This usually means the activation didn't take effect, or docsearch wasn't installed in that environment.
+
+- Verify the venv is active: your terminal prompt should show `(venv)` at the beginning. If it doesn't, activation didn't work
+- Make sure you're in the right directory: `cd` to the docsearch project folder first, then run `source venv/bin/activate` (Mac/Linux) or `venv\Scripts\activate` (Windows)
+- On Windows, if `activate` is blocked by execution policy, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` first
+- After activating, reinstall: `pip install -e .`
+- Verify: `which docsearch` (Mac/Linux) or `where docsearch` (Windows) should show a path inside the venv folder
+
+If you don't want to activate a virtual environment every time, consider switching to [pipx installation](../README.md#option-a-quick-install-with-pipx-recommended) — it makes `docsearch` available globally with no activation step.
+
+---
+
+**Which pip should I use? (pip vs pip3 vs python -m pip)**
+
+Running `pip install` installs into one Python, but `docsearch` runs with a different Python — causing "ModuleNotFoundError" even though pip says it's installed.
+
+- **Safest option:** Always use `python -m pip install` (or `python3 -m pip install`) instead of bare `pip`. This guarantees pip installs into the same Python that will run docsearch
+- **In a virtual environment:** Once the venv is activated, `pip` and `python` always point to the right place — bare `pip install` is fine
+- **Check which pip you're using:** `pip --version` shows the Python path it installs into. Compare with `python3 --version` to make sure they match
+- **Multiple Pythons installed?** macOS often has system Python, Homebrew Python, and pyenv Python. Use `which python3` and `which pip3` to see which ones are active. If they point to different installations, use `python3 -m pip` to stay consistent
+
+---
+
+**pip or pipx can't download packages (corporate firewall or proxy)**
+
+Installation fails with connection timeouts, SSL certificate errors, or "Could not find a version that satisfies the requirement."
+
+- **Behind a proxy:** Set the proxy for pip: `pip install --proxy http://proxy.company.com:8080 docsearch`
+- **SSL certificate issues:** If your company uses a custom SSL certificate, tell pip to trust it: `pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org docsearch`
+- **No internet access at all:** Use the [ZIP download](../README.md#option-c-manual-install-no-git-no-sign-up) method — download the ZIP on a machine with internet, transfer it to the target machine, and install from the local folder with `pip install -e .`
+- **pipx behind a proxy:** pipx uses pip internally, so set the `HTTP_PROXY` and `HTTPS_PROXY` environment variables before running `pipx install`

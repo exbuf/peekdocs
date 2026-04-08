@@ -2,9 +2,9 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and 37 other file types — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and more — 46 file types in all — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
 >
 > **Useful for compliance and audit workflows.** Create search suites to help check documents for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within expected ranges — then run those checks on a schedule with pass/fail reports and email alerts. Includes starter templates for financial services, healthcare, legal, government, manufacturing, education, real estate, insurance, and HR — customize and adapt to your needs. docsearch is a search tool, not compliance software — the checks you build and the conclusions you draw are yours.
 >
@@ -172,8 +172,6 @@ docsearch-gui
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-**Note:** On macOS, the file picker shows a preview of the selected file in its right panel (Column View). On Windows, the file picker does not include a preview — this is a difference in the operating systems, not docsearch.
-
 Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration, or the **Compliance Wizard** to create a search suite from 9 industry starter templates (Financial/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, HR) — customize to fit your needs.
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
@@ -242,7 +240,7 @@ docsearch is a search and workflow tool that helps you organize document reviews
 - **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If docsearch is blocked, add your Python installation or the docsearch folder to your antivirus allow list
 - **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If docsearch reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `docsearch_errors.log`
 - **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [ZIP download](#option-c-manual-install-no-git-no-sign-up) installation method instead
-- **macOS file picker vs Windows** — on macOS, the File button opens a picker with a preview panel for inspecting files before selecting. On Windows, the picker does not include a preview — this is an operating system difference, not docsearch
+- **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not docsearch
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 

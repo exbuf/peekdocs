@@ -81,7 +81,7 @@ docsearch handles all of these with features already built in. Here's how to set
 
 **Step 2: Create saved searches in the GUI.** Open the GUI by running `docsearch-gui` in your terminal. "Point it at a folder" means clicking the **Browse** button next to the **Search Folder** field at the top of the window and navigating to the folder containing your documents. Once selected, all searches will run against that folder. Now configure each check as a separate search:
 
-- **"has_signature"** — Enter `Authorized\s+Signature` in the search box, check **Regex** and **Inverse**. Inverse mode lists files that do *not* contain the term — if the result is zero files, every document has it.
+- **"has_signature"** — Enter `Authorized Signature` in the search box and check **Inverse**. Inverse mode lists files that do *not* contain the term — if the result is zero files, every document has it.
 - **"has_date"** — Enter `\d{2}/\d{2}/\d{4}` in the search box, check **Regex** and **Inverse**. Same logic: zero files missing a date means all files have one.
 - **"no_draft"** — Enter `DRAFT` in the search box. A normal (non-inverse) search that should return zero matches.
 - **"amount_in_range"** — Enter `amount:1000..50000` in the Range field. Should return at least one match.
@@ -109,7 +109,7 @@ Click **Create**.
 
 Click **View Suite Report** to open the `.docx` report directly.
 
-**Step 5: Schedule recurring runs (optional).** If this is a check you need to run regularly, use the **Auto-Run every** dropdown in the suites panel to schedule it (e.g., every 24 hours). docsearch will run the suite automatically at the set interval, generate timestamped reports, and log each run to `DO_NOT_SEARCH_autorun_log.txt`. You don't need to keep the suites window open — auto-runs execute in the background.
+**Step 5: Schedule recurring runs (optional).** If this is a check you need to run regularly, use the **Auto-Run every** dropdown in the suites panel to schedule it (e.g., every 24 hours). docsearch will run the suite automatically at the set interval, generate timestamped reports, and log each run to `DO_NOT_SEARCH_autorun_log.txt`. You don't need to keep the suites window open — auto-runs execute in the background. To get notified when a scheduled run detects failures, click **Configure Email Alerts** in the suites panel and enter your SMTP settings — see the Email Alerts section under [Search Suites](USER_GUIDE.md#search-suites) in the User Guide for setup instructions.
 
 **Step 6: Review failures.** When a check fails, the suite report tells you exactly which check failed and how many matches (or missing files) were found. Click the individual stage report (listed in the suite report) to see the specific matches — each one shows the filename, line number, and matched text with yellow highlighting. Fix the issue in the source document and re-run the suite to confirm.
 
@@ -184,7 +184,7 @@ Available templates: Financial Services (SOX/BSA/AML), Healthcare (HIPAA), Legal
 
 1. Open `docsearch-gui`
 2. In the **Search Folder** field, browse to the industry subfolder (e.g., `googledocs/financial_services`)
-3. Click **Manage Suites** (below Advanced Search Options) to open the suites panel — or click **Run Suite** on the main screen
+3. Click **Manage Suites** (below Advanced Search Options) to open the suites panel
 4. Select the suite from the **Suites** list
 5. Click **Run Selected Suite**
 6. Watch the results — each check shows PASS (green) or FAIL (red) in real time
