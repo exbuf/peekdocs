@@ -33,6 +33,12 @@ All notable changes to docsearch are documented here.
 - **Limits and Constraints documentation**
 - **Files Created by docsearch reference** — complete catalog of every file docsearch generates
 - **Index and subfolder documentation** — explains how indexes work across folder hierarchies and with search suites
+- **Search Wizard** — guided search configuration with 21 patterns (SSN, phone, email, dates, dollar amounts, etc.). Pick a type, click Apply, and the search bar is configured automatically
+- **Recent Searches dropdown** — button next to the search bar remembers your last 10 searches for quick recall
+- **PDF highlighted reports** — optional `.pdf` output with yellow-highlighted matches, matching the `.docx` report style. Enable with the PDF checkbox or `-o pdf` on the CLI
+- **App Files button** — bottom toolbar button listing all docsearch-created files in the search folder with full paths, grouped by category
+- **All Collections button** — bottom toolbar button that scans your home directory for all `.docsearch_collection.json` files, showing saved searches and suites across every folder. Double-click a folder to switch to it
+- **Fuzzy search highlighting** — fuzzy matches are now highlighted in the results preview and reports, not just exact matches
 
 ### Changed
 - **"Save Settings" buttons renamed** — Search Bar button is now "Save Search" (saves to collection for suites); Advanced Search Options button is now "Save Defaults" (saves to ~/.docsearchrc)
