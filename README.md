@@ -4,11 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and more — 46 file types in all — all at once, all offline. Results are presented both on screen and in a Word document with every match highlighted in yellow and shown with full paragraph context, so you can understand each result without opening the original file.
+> Search Word docs, PDFs, spreadsheets, emails, archives, and more — 46 file types, all at once, all offline. No uploads, no cloud, no subscriptions. Everything stays on your computer. Free, open-source. Windows/Mac/Linux.
 >
-> **Useful for compliance and audit workflows.** Create search suites to help check documents for required language, flag prohibited content, detect PII like Social Security numbers, and verify that dollar amounts fall within expected ranges — then run those checks on a schedule with pass/fail reports and email alerts. Includes starter templates for financial services, healthcare, legal, government, manufacturing, education, real estate, insurance, and HR — customize and adapt to your needs. docsearch is a search tool, not compliance software — the checks you build and the conclusions you draw are yours.
+> **For home users and small businesses:** **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
 >
-> Also a powerful everyday search tool — use plain keywords, regex, Boolean logic, fuzzy matching, wildcards, proximity search, or range queries. From a home user searching personal files to an auditor reviewing 500 contracts, it just works. Terminal, GUI, or Python API. Free, open-source. Windows/Mac/Linux.
+> **For compliance, audit, and legal teams:** **Can you prove you checked every document?** Build search suites that verify 500 contracts all contain a required clause, flag any file still marked DRAFT, detect SSNs that shouldn't be there, and confirm dollar amounts fall within expected ranges — then run those checks on a schedule with pass/fail reports, highlighted evidence, and email alerts on failure. Auditors get a Word report documenting exactly what was searched, what passed, what failed, and which files were in scope. Includes starter templates for 9 industries. docsearch is a search tool, not compliance software — the checks you build and the conclusions you draw are yours.
+>
+> Terminal, GUI, or Python API. From a home user scanning personal files for PII to an auditor reviewing 500 contracts, it just works.
 
 **[See docsearch in action →](https://robertdschoening.com/docsearch)**
 
