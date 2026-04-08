@@ -37,6 +37,10 @@ def load_collection(folder):
         data.setdefault("version", COLLECTION_VERSION)
         data.setdefault("saved_searches", {})
         data.setdefault("test_suites", {})
+        # Migrate: rename "query" key to "search_text" in saved searches
+        for params in data["saved_searches"].values():
+            if "query" in params and "search_text" not in params:
+                params["search_text"] = params.pop("query")
         return data
     except (json.JSONDecodeError, OSError):
         return _empty_collection()

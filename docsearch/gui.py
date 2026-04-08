@@ -205,7 +205,11 @@ def _parse_summary_text(stdout):
 
 
 def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
-    """Parse docsearch_results.txt and return a list of (filepath, filename, count, line_nums) tuples."""
+    """Parse docsearch_results.txt and return a list of (filepath, filename, count, line_nums) tuples.
+
+    Handles both normal results (Document: ..., Line: ...) and inverse results
+    (Files WITHOUT matches: ... followed by filename/directory pairs).
+    """
     results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
@@ -214,20 +218,46 @@ def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
     with open(results_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     i = 0
+    in_inverse = False
     while i < len(lines):
         line = lines[i].strip()
+
+        # Detect inverse results section
+        if line.startswith("Files WITHOUT matches:"):
+            in_inverse = True
+            i += 1
+            continue
+
+        # Parse inverse file list: filename on one line, (directory) on next
+        if in_inverse:
+            if line and not line.startswith("("):
+                filename = line
+                if i + 1 < len(lines):
+                    dir_line = lines[i + 1].strip()
+                    if dir_line.startswith("(") and dir_line.endswith(")"):
+                        file_dir = dir_line[1:-1]
+                        filepath = os.path.join(file_dir, filename)
+                        if filepath not in data:
+                            data[filepath] = {
+                                "filename": filename,
+                                "count": 0,
+                                "lines": [],
+                            }
+                            order.append(filepath)
+                        i += 2
+                        continue
+            i += 1
+            continue
+
+        # Parse normal results: Document: ..., Line: ...
         if line.startswith("Document: ") and ", Line: " in line:
-            # Next line has the directory in parentheses
             if i + 1 < len(lines):
                 dir_line = lines[i + 1].strip()
                 if dir_line.startswith("(") and dir_line.endswith(")"):
                     file_dir = dir_line[1:-1]
                     raw_name = line.split("Document: ")[1].split(", Line: ")[0]
-                    # Strip per-file match count suffix e.g. "report.pdf (5 matches)"
                     filename = re.sub(r"\s+\(\d+ match(?:es)?\)$", "", raw_name)
-                    # Extract line number after ", Line: "
                     line_num_str = line.split(", Line: ")[1].strip()
-                    # Strip any trailing comma and split on whitespace/punctuation
                     line_num_match = re.match(r"(\d+)", line_num_str)
                     line_num = int(line_num_match.group(1)) if line_num_match else None
                     filepath = os.path.join(file_dir, filename)
@@ -1196,7 +1226,7 @@ def _launch_gui():
                         continue
 
                     # Build search params
-                    params = {"query": search_text}
+                    params = {"search_text": search_text}
                     if tmpl.get("regex"):
                         params["regex"] = True
                     if tmpl.get("expression"):
@@ -4811,9 +4841,20 @@ def _launch_gui():
             # Collect source file manifest for the suite report
             from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
             all_exts = SUPPORTED_TYPES | OCR_IMAGE_TYPES
+            _MANIFEST_EXCLUDE = {
+                ".docsearch_collection.json", ".docsearch.db",
+                ".docsearch.db-wal", ".docsearch.db-shm",
+                "docsearch_errors.log", ".docsearchrc",
+            }
             source_files = []
             try:
                 for fname in sorted(os.listdir(folder)):
+                    if fname in _MANIFEST_EXCLUDE:
+                        continue
+                    if fname.startswith("DO_NOT_SEARCH"):
+                        continue
+                    if fname.startswith("docsearch_results"):
+                        continue
                     fpath = os.path.join(folder, fname)
                     if os.path.isfile(fpath) and os.path.splitext(fname)[1].lower() in all_exts:
                         stat = os.stat(fpath)
@@ -4941,8 +4982,7 @@ def _launch_gui():
                             match_count = int(m.group(1))
 
                 # Copy per-stage reports before the next search overwrites them
-                stage_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name, timestamp_suffix=stage_ts)
+                stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name)
 
                 # Evaluate pass/fail using per-search criteria
                 pc = self._search_criteria.get(name, {"op": ">=", "n": 1})
@@ -4970,6 +5010,18 @@ def _launch_gui():
                     "cascade_input_count": cascade_input_count,
                     "cascade_file_count": None,
                 }
+
+                # Collect matched files for the report (parse before next search overwrites)
+                try:
+                    matched = _parse_matched_files(output_dir)
+                    matched_file_list = []
+                    for item in matched:
+                        fname = item[1] if len(item) > 1 else str(item[0])
+                        count = item[2] if len(item) > 2 else 0
+                        matched_file_list.append((fname, count))
+                    result["matched_files"] = matched_file_list
+                except Exception:
+                    result["matched_files"] = []
 
                 # Cascade: extract matched files for next stage
                 if cascade_active:
@@ -5064,10 +5116,9 @@ def _launch_gui():
                 return
             report_dir = getattr(self, '_suite_output_dir', folder)
             safe_name = self._suite_name.replace(" ", "_").replace("/", "_")
-            ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
-            json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
-            docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.docx")
+            txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.txt")
+            json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.json")
+            docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.docx")
             write_suite_report_txt(
                 txt_path, self._suite_name, folder,
                 self._suite_results_data,
@@ -7269,10 +7320,9 @@ def _launch_gui():
                                                 write_suite_report_docx)
                 from docsearch import __version__
                 safe_name = suite_name.replace(" ", "_").replace("/", "_")
-                ts = f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.txt")
-                json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.json")
-                docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}{ts}.docx")
+                txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.txt")
+                json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.json")
+                docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.docx")
                 write_suite_report_txt(
                     txt_path, suite_name, folder,
                     results, self._suite_start_time, self._suite_end_time,

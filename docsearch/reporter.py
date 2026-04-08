@@ -851,7 +851,7 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
 
     # ── Styles ──
     style = doc.styles["Normal"]
-    style.font.size = Pt(10)
+    style.font.size = Pt(14)
     style.font.name = "Calibri"
 
     GREEN = RGBColor(0, 128, 0)
@@ -999,6 +999,21 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
                 if cic is not None:
                     result_str += f" (narrowed from {cic})"
             _add_line(result_str)
+
+        # List matched files
+        matched_files = r.get("matched_files", [])
+        if matched_files:
+            if r.get("inverse"):
+                _add_line(f"Files missing the search term ({len(matched_files)}):")
+            else:
+                _add_line(f"Files with matches ({len(matched_files)}):")
+            for fname, count in matched_files[:50]:
+                if count:
+                    _add_line(f"    {fname}  ({count} match(es))")
+                else:
+                    _add_line(f"    {fname}")
+            if len(matched_files) > 50:
+                _add_line(f"    ... and {len(matched_files) - 50} more (see stage report for full list)")
 
         # Stage report references
         stage_files = r.get("stage_files", {})
