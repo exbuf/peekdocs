@@ -3171,12 +3171,23 @@ def _launch_gui():
             self.cleanup_suite_btn.pack(side="left")
             Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
 
+            # Second row: Import / Export
+            suite_btn_frame2 = ctk.CTkFrame(right, fg_color="transparent")
+            suite_btn_frame2.pack(fill="x", pady=(3, 0))
+
             ctk.CTkButton(
-                suite_btn_frame, text="Import Template", width=120, font=ctk.CTkFont(size=12),
+                suite_btn_frame2, text="Import Template", width=120, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._import_template,
-            ).pack(side="left", padx=(5, 0))
+            ).pack(side="left", padx=(0, 5))
+
+            ctk.CTkButton(
+                suite_btn_frame2, text="Export Suite", width=100, font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._export_suite,
+            ).pack(side="left", padx=(0, 5))
 
             # Status label (under Suites column)
             status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -4228,6 +4239,73 @@ def _launch_gui():
 
             tk.Button(btn_frame, text="Save", width=10, command=do_save).pack(side="left", padx=5)
             tk.Button(btn_frame, text="Cancel", width=10, command=dialog.destroy).pack(side="left", padx=5)
+
+        def _export_suite(self):
+            """Export the selected suite and its saved searches to a .json file."""
+            from tkinter import filedialog, messagebox
+            import json
+
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+
+            # Get selected suite(s)
+            sel = self.suite_selector.curselection()
+            if not sel:
+                self._show_error("Select a suite to export.")
+                return
+
+            from docsearch.collection import load_collection
+            data = load_collection(folder)
+
+            export = {"version": data.get("version", 1), "saved_searches": {}, "test_suites": {}}
+
+            for idx in sel:
+                suite_name = self.suite_selector.get(idx)
+                suite = data.get("test_suites", {}).get(suite_name)
+                if not suite:
+                    continue
+                export["test_suites"][suite_name] = suite
+                # Include all saved searches referenced by this suite
+                for search_name in suite.get("searches", []):
+                    params = data.get("saved_searches", {}).get(search_name)
+                    if params:
+                        export["saved_searches"][search_name] = params
+
+            if not export["test_suites"]:
+                self._show_error("No suite data found to export.")
+                return
+
+            n_suites = len(export["test_suites"])
+            n_searches = len(export["saved_searches"])
+
+            # Default filename from suite name
+            if n_suites == 1:
+                default_name = list(export["test_suites"].keys())[0] + ".json"
+            else:
+                default_name = "docsearch_export.json"
+
+            filepath = filedialog.asksaveasfilename(
+                parent=self.suite_window or self,
+                title="Export Suite — save as .json template",
+                defaultextension=".json",
+                initialfile=default_name,
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            )
+            if not filepath:
+                return
+
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    json.dump(export, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                self._show_error(f"Could not write export file: {e}")
+                return
+
+            self.suite_status_label.configure(
+                text=f"Exported {n_suites} suite(s) and {n_searches} search(es) to {os.path.basename(filepath)}"
+            )
 
         def _import_template(self):
             """Import saved searches and suites from an external .json template file."""
