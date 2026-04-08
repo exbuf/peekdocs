@@ -294,7 +294,7 @@ The GUI window is organized into these regions, from top to bottom:
 | **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search**, **Run Suite**, and **Sensitive Data Scan** buttons, **Search Wizard** and **Compliance Wizard** buttons, **Save Search** button (saves the current search to the folder's collection for reuse in search suites), and **Load Saved Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), and **File** button (select a single file to search) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
-| **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
+| **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports. Has its own **Search Folder** display and **Change Folder** button — operates independently from the main screen |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
 | **Toolbar** | **User Guide**, **App Files**, **All Collections** (global view of saved searches/suites across all folders), **Error Log**, **Maintenance**, **Text Size**, **Disable Hover Text** (tooltips are on by default), and **About** buttons |
@@ -327,9 +327,11 @@ Click the red **PII Scan** button (next to Run Suite) to scan your documents for
 
 Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
 
-When findings are detected, a highlighted `.docx` report is automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
+When findings are detected, a highlighted `.docx` report is automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`. The report is saved in the search folder by default, or in the **Output Dir** if set in Advanced Search Options. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
 
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
+
+Each popup (PII Scan, Search Wizard, Compliance Wizard, and Manage Suites) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
 
 **Advanced Search Options:**
 
@@ -388,6 +390,8 @@ You can also build up the Search Bar in multiple passes — use the wizard once,
 
 **Note:** The wizard enables regex mode. If you manually type additional terms containing special characters (`.` `+` `(` `)` `[` `]` etc.), escape them with `\` — for example, `cost\+fees`. Plain words like `budget` need no escaping.
 
+The Search Wizard shows the current **Search Folder** at the top of the window with a **Change Folder** button. You can switch folders without closing the wizard. When you click **Apply**, the main screen's Search Folder is updated to match the wizard's folder (since the search runs from the main screen).
+
 **Compliance Wizard:**
 
 Click the **Compliance Wizard** button (next to Search Wizard) to create a search suite from an industry starter template in one click. Instead of manually building individual searches and assembling them into a suite, pick a template and the wizard does it all:
@@ -398,6 +402,8 @@ Click the **Compliance Wizard** button (next to Search Wizard) to create a searc
 4. **Create Suite** — click the green button to create all saved searches and the suite in one step
 
 The created suite appears in the same **Manage Suites** panel alongside any suites you built manually. You can run it immediately with **Run Suite**, schedule it for automatic runs, or edit individual searches later via **Load Saved Search**. The Compliance Wizard adds a description to each suite (e.g., "Auto-generated by Compliance Wizard — Healthcare (HIPAA)") so you can tell which suites were created by the wizard.
+
+The Compliance Wizard shows the current **Search Folder** at the top of the window with a **Change Folder** button. Verify that it points to the right folder before clicking Create Suite — the suite and its saved searches are stored in that folder, and the suite will run against documents in that folder. Changing the folder inside the wizard does not affect the main screen's Search Folder.
 
 Click the **?** button in the Compliance Wizard for detailed help on how each check works, what pass/fail criteria mean, and all available templates.
 
@@ -1544,7 +1550,7 @@ Created automatically when a Sensitive Data Scan detects findings.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `DO_NOT_SEARCH_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output dir (or search folder) |
+| `DO_NOT_SEARCH_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output Dir if set in Advanced Search Options, otherwise search folder |
 
 **Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
 **How to delete:** Delete manually, or use **Clean Up Practice Files** in the Maintenance menu. Overwritten on each new PII scan.

@@ -745,7 +745,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
 
-            self._add_folder_bar(win, "Search will run against this folder.")
+            self._sw_folder_label = self._add_folder_bar(win, "Search will run against this folder.")
 
             import tkinter as _tk_wiz
             tip_frame = _tk_wiz.Frame(win, bg="#FFF3CD", highlightbackground="#FFD700", highlightthickness=1)
@@ -959,6 +959,15 @@ def _launch_gui():
                           file_types="", exclude="", proximity="",
                           range_filters="", context_before="", context_after=""):
             """Apply Search Wizard settings to the GUI fields."""
+            # Sync folder from wizard to main screen
+            if hasattr(self, "_sw_folder_label"):
+                try:
+                    sw_folder = self._sw_folder_label.cget("text")
+                    if sw_folder and sw_folder != "(none)" and sw_folder != self.folder_entry.get().strip():
+                        self.folder_entry.delete(0, "end")
+                        self.folder_entry.insert(0, sw_folder)
+                except Exception:
+                    pass
             self.search_entry.delete(0, "end")
             if search_text:
                 self.search_entry.insert(0, search_text)
@@ -996,10 +1005,6 @@ def _launch_gui():
             from docsearch.compliance_templates import COMPLIANCE_TEMPLATES, COMPLIANCE_CATEGORY_ORDER
             from docsearch.collection import load_collection, add_saved_search, add_test_suite
 
-            folder = self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Select a valid search folder first.")
-                return
 
             win = ctk.CTkToplevel(self)
             win.title("Compliance Wizard")
@@ -1025,7 +1030,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14, weight="bold"),
             ).pack(side="right")
 
-            self._add_folder_bar(win, "Your suite will be saved in the above folder and run against that folder. See ? help (Search Folder \u2014 Where the Suite Runs) for details.")
+            _cw_folder_label = self._add_folder_bar(win, "Your suite will be saved in the above folder and run against that folder. See ? help (Search Folder \u2014 Where the Suite Runs) for details.")
 
             # Category selector
             _sf = self._scaled_font
@@ -1161,6 +1166,10 @@ def _launch_gui():
             btn_frame.pack(fill="x", padx=15, pady=(5, 12))
 
             def _create_suite():
+                folder = _cw_folder_label.cget("text")
+                if not folder or folder == "(none)" or not os.path.isdir(folder):
+                    messagebox.showerror("Error", "Select a valid search folder first.", parent=win)
+                    return
                 suite_name = name_entry.get().strip()
                 if not suite_name:
                     messagebox.showerror("Error", "Enter a suite name.", parent=win)
@@ -1228,7 +1237,6 @@ def _launch_gui():
                     self._refresh_suite_panel()
                 self._update_run_suite_button_color()
 
-                folder = self.folder_entry.get().strip()
                 messagebox.showinfo(
                     "Suite Created",
                     f"Created suite '{suite_name}' with {len(search_names)} checks.\n\n"
@@ -3242,29 +3250,36 @@ def _launch_gui():
                 folder_info, text="Search Folder:",
                 font=ctk.CTkFont(size=11, weight="bold"),
             ).pack(side="left")
+            self._suite_folder = self.folder_entry.get().strip()
             self._suite_folder_label = ctk.CTkLabel(
-                folder_info, text=self.folder_entry.get().strip() or "(none)",
+                folder_info, text=self._suite_folder or "(none)",
                 font=ctk.CTkFont(size=11),
                 text_color=("blue", "deepskyblue"),
             )
             self._suite_folder_label.pack(side="left", padx=(5, 0))
-            Tooltip(self._suite_folder_label, "The suite will run against this folder. Change it on the main screen")
+            Tooltip(self._suite_folder_label, "The suite will run against this folder")
 
-            # Poll to keep the folder label in sync with the main screen
-            def _poll_suite_folder():
-                if not hasattr(self, "_suite_folder_label"):
-                    return
-                try:
-                    if not self._suite_folder_label.winfo_exists():
-                        return
-                except Exception:
-                    return
-                current = self.folder_entry.get().strip() or "(none)"
-                if self._suite_folder_label.cget("text") != current:
-                    self._suite_folder_label.configure(text=current)
-                self.after(500, _poll_suite_folder)
+            def _change_suite_folder():
+                from tkinter import filedialog
+                new_folder = filedialog.askdirectory(
+                    parent=self.suite_window,
+                    title="Select Search Folder",
+                    initialdir=self._suite_folder or os.path.expanduser("~"),
+                )
+                if new_folder:
+                    self._suite_folder = new_folder
+                    self._suite_folder_label.configure(text=new_folder)
+                    self._refresh_suite_panel()
 
-            _poll_suite_folder()
+            ctk.CTkButton(
+                folder_info, text="Change Folder", width=100,
+                font=ctk.CTkFont(size=11),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=_change_suite_folder,
+            ).pack(side="right")
+
+            # No polling — the suite panel folder only changes via its own Change Folder button
 
             # Suites
             right = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -3480,7 +3495,7 @@ def _launch_gui():
         def _open_autorun_history(self):
             """Open the auto-run log file in the default text editor."""
             import subprocess, sys
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
             if not report_dir or not os.path.isdir(report_dir):
                 self._show_error("Select a valid folder first.")
@@ -3498,7 +3513,7 @@ def _launch_gui():
 
         def _clear_autorun_history(self):
             """Delete the auto-run log file after confirmation."""
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
             if not report_dir or not os.path.isdir(report_dir):
                 self._show_error("Select a valid folder first.")
@@ -3521,7 +3536,7 @@ def _launch_gui():
             import glob
             from tkinter import messagebox
 
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Select a valid folder first.")
                 return
@@ -3952,7 +3967,7 @@ def _launch_gui():
         def _update_run_suite_button_color(self):
             """Set Run Suite button green if suites exist, red if not."""
             from docsearch.collection import load_collection
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             has_suites = False
             if folder and os.path.isdir(folder):
                 try:
@@ -3978,7 +3993,7 @@ def _launch_gui():
             if not hasattr(self, "suite_selector"):
                 return
             from docsearch.collection import load_collection
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             self.suite_selector.delete(0, "end")
             self.suite_contents_listbox.delete(0, "end")
             if not folder or not os.path.isdir(folder):
@@ -4002,7 +4017,7 @@ def _launch_gui():
         def _on_suite_selected(self, event=None):
             """Populate the suite contents listbox from all selected suites."""
             from docsearch.collection import get_suite
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             self.suite_contents_listbox.delete(0, "end")
             sel = self.suite_selector.curselection()
             if not sel or not folder:
@@ -4338,7 +4353,7 @@ def _launch_gui():
             import tkinter as tk
             from docsearch.collection import load_collection, add_test_suite
 
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Select a valid folder first.")
                 return
@@ -4416,7 +4431,7 @@ def _launch_gui():
             if not sel or len(sel) != 1:
                 return
             suite_name = self.suite_selector.get(sel[0])
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             data = load_collection(folder)
             suite = data["test_suites"].get(suite_name)
             if not suite:
@@ -4482,7 +4497,7 @@ def _launch_gui():
             from tkinter import filedialog, messagebox
             import json
 
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a search folder first.")
                 return
@@ -4549,7 +4564,7 @@ def _launch_gui():
             from tkinter import filedialog, messagebox
             import json
 
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a search folder first.")
                 return
@@ -4637,7 +4652,7 @@ def _launch_gui():
             label = ", ".join(names)
             if not messagebox.askyesno("Delete?", f"Delete suite(s): {label}?"):
                 return
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             for name in names:
                 remove_test_suite(folder, name)
             # Cancel suite schedule if active
@@ -4722,7 +4737,7 @@ def _launch_gui():
             sel = self.suite_selector.curselection()
             if not sel:
                 return
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Select a valid folder.")
                 return
@@ -5000,7 +5015,7 @@ def _launch_gui():
                     self.suite_status_label.configure(text=f"Done in {elapsed:.1f}s — {verdict}")
 
             # Record last_run_time for each suite that was run
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if folder:
                 for sn in self._suite_names_list:
@@ -5044,7 +5059,7 @@ def _launch_gui():
                                             write_suite_report_json,
                                             write_suite_report_docx)
             from docsearch import __version__
-            folder = self.folder_entry.get().strip()
+            folder = self._get_suite_folder()
             if not folder or not self._suite_results_data:
                 return
             report_dir = getattr(self, '_suite_output_dir', folder)
@@ -5516,7 +5531,7 @@ def _launch_gui():
                 command=lambda: self._show_pii_scan_help(win),
             ).pack(side="right")
 
-            self._add_folder_bar(win, "Scan will check files in this folder.")
+            _pii_folder_label = self._add_folder_bar(win, "Scan will check files in this folder.")
 
             # Load saved selections (default: all enabled)
             if not hasattr(self, "_pii_scan_enabled"):
@@ -5585,8 +5600,9 @@ def _launch_gui():
                     _save_config(config)
                 except Exception:
                     pass
+                pii_folder = _pii_folder_label.cget("text")
                 win.destroy()
-                self._run_sensitive_scan(selected)
+                self._run_sensitive_scan(selected, pii_folder)
 
             tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack(side="left", padx=5)
             tk.Button(btn_frame, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=5)
@@ -5735,7 +5751,10 @@ def _launch_gui():
 
             h("THE HIGHLIGHTED REPORT")
             b("When the scan detects findings, a Word report is automatically")
-            b("generated: DO_NOT_SEARCH_pii_scan_report.docx")
+            b("generated and saved:")
+            blank()
+            e("  File:     DO_NOT_SEARCH_pii_scan_report.docx")
+            e("  Location: Your search folder (or Output Dir if set)")
             blank()
             b("The report includes:")
             b("\u2022 Summary table of all categories with match counts")
@@ -5745,9 +5764,15 @@ def _launch_gui():
             b("  in yellow")
             b("\u2022 A disclaimer about false positives")
             blank()
-            b("Click Open Report in the results popup to view it. The report")
-            b("is saved in the search folder (or output directory if set).")
-            b("It is prefixed with DO_NOT_SEARCH so it is never re-searched.")
+            b("Click Open Report in the results popup to view it directly.")
+            b("The DO_NOT_SEARCH prefix ensures the report is never included")
+            b("in future search results. The report is overwritten each time")
+            b("you run a new PII scan.")
+            blank()
+            b("To save the report to a different folder, set Output Dir in")
+            b("Advanced Search Options on the main screen before running the")
+            b("scan. This is useful if you want to keep reports separate from")
+            b("your documents \u2014 for example, a dedicated 'reports' folder.")
             blank()
 
             h("FALSE POSITIVES")
@@ -5804,10 +5829,11 @@ def _launch_gui():
             tk.Button(help_win, text="Close", width=10,
                       command=help_win.destroy).pack(pady=(5, 10))
 
-        def _run_sensitive_scan(self, selected_patterns):
+        def _run_sensitive_scan(self, selected_patterns, folder=None):
             """Launch the sensitive data scan with the selected patterns."""
-            folder = self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
+            if not folder:
+                folder = self.folder_entry.get().strip()
+            if not folder or folder == "(none)" or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder first.")
                 return
             recursive = self.recursive_var.get() == "on"
@@ -8721,6 +8747,10 @@ def _launch_gui():
             self.report_btn_csv.pack_forget()
             self.report_btn_json.pack_forget()
 
+        def _get_suite_folder(self):
+            """Return the suite panel's folder (independent of main screen)."""
+            return getattr(self, "_suite_folder", None) or self.folder_entry.get().strip()
+
         def _show_error(self, message):
             """Display an error message in the status label and a modal dialog."""
             self.status_label.configure(
@@ -8758,15 +8788,10 @@ def _launch_gui():
                 new_folder = filedialog.askdirectory(
                     parent=parent,
                     title="Select Search Folder",
-                    initialdir=self.folder_entry.get().strip() or os.path.expanduser("~"),
+                    initialdir=folder_label.cget("text") if folder_label.cget("text") != "(none)" else os.path.expanduser("~"),
                 )
                 if new_folder:
-                    self.folder_entry.delete(0, "end")
-                    self.folder_entry.insert(0, new_folder)
                     folder_label.configure(text=new_folder)
-                    if self.suite_visible:
-                        self._refresh_suite_panel()
-                    self._refresh_load_search_menu()
 
             tk.Button(
                 top_row, text="Change Folder", command=_change_folder,
