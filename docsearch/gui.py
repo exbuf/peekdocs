@@ -3146,22 +3146,28 @@ def _launch_gui():
 
             suite_btn_frame = ctk.CTkFrame(right, fg_color="transparent")
             suite_btn_frame.pack(fill="x")
-            ctk.CTkButton(
+            _build_btn = ctk.CTkButton(
                 suite_btn_frame, text="Build a New Suite", width=130, font=ctk.CTkFont(size=12),
                 command=self._create_suite_dialog,
-            ).pack(side="left", padx=(0, 5))
-            ctk.CTkButton(
+            )
+            _build_btn.pack(side="left", padx=(0, 5))
+            Tooltip(_build_btn, "Create a new suite from your saved searches — name it, pick which searches to include, set pass/fail criteria, and choose execution order")
+            _edit_btn = ctk.CTkButton(
                 suite_btn_frame, text="Edit Suite", width=90, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._edit_suite_dialog,
-            ).pack(side="left", padx=(0, 5))
-            ctk.CTkButton(
+            )
+            _edit_btn.pack(side="left", padx=(0, 5))
+            Tooltip(_edit_btn, "Modify which searches are in the selected suite, change execution order, or update pass/fail criteria")
+            _delete_btn = ctk.CTkButton(
                 suite_btn_frame, text="Delete Suite", width=90, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._delete_suite,
-            ).pack(side="left", padx=(0, 5))
+            )
+            _delete_btn.pack(side="left", padx=(0, 5))
+            Tooltip(_delete_btn, "Remove the selected suite(s) — saved searches are not affected")
             self.cleanup_suite_btn = ctk.CTkButton(
                 suite_btn_frame, text="Clean Up Suite Files", width=160, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
@@ -3175,19 +3181,23 @@ def _launch_gui():
             suite_btn_frame2 = ctk.CTkFrame(right, fg_color="transparent")
             suite_btn_frame2.pack(fill="x", pady=(3, 0))
 
-            ctk.CTkButton(
+            _import_btn = ctk.CTkButton(
                 suite_btn_frame2, text="Import Template", width=120, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._import_template,
-            ).pack(side="left", padx=(0, 5))
+            )
+            _import_btn.pack(side="left", padx=(0, 5))
+            Tooltip(_import_btn, "Load saved searches and suites from an external .json file — merges into your existing collection without overwriting non-conflicting items")
 
-            ctk.CTkButton(
+            _export_btn = ctk.CTkButton(
                 suite_btn_frame2, text="Export Suite", width=100, font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._export_suite,
-            ).pack(side="left", padx=(0, 5))
+            )
+            _export_btn.pack(side="left", padx=(0, 5))
+            Tooltip(_export_btn, "Save the selected suite and all its saved searches to a .json file for sharing with colleagues or other machines")
 
             # Status label (under Suites column)
             status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -3200,6 +3210,7 @@ def _launch_gui():
                 fg_color="red", hover_color="darkred",
                 command=self._cancel_suite,
             )
+            Tooltip(self.cancel_suite_btn, "Stop the currently running suite after the current search finishes")
             # Cancel hidden by default
 
             # Schedule + Last Run row
@@ -3256,6 +3267,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             suite_outdir_browse_btn.grid(row=0, column=2)
+            Tooltip(suite_outdir_browse_btn, "Choose a folder for suite output files (stage reports, suite reports)")
             Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Search Options — each can point to a different location")
 
             # Auto-Run History + Email Alerts links row
@@ -3307,14 +3319,17 @@ def _launch_gui():
                 command=self._run_suite,
             )
             self.run_suite_btn.grid(row=8, column=0, columnspan=2, pady=(10, 10))
+            Tooltip(self.run_suite_btn, "Run all searches in the selected suite(s) in order and evaluate pass/fail criteria — generates .docx, .txt, and .json reports")
 
-            ctk.CTkButton(
+            _close_btn = ctk.CTkButton(
                 self.suite_frame, text="Close", width=80,
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._on_suite_window_close,
                 font=ctk.CTkFont(size=12),
-            ).grid(row=10, column=0, columnspan=2, pady=(0, 10))
+            )
+            _close_btn.grid(row=10, column=0, columnspan=2, pady=(0, 10))
+            Tooltip(_close_btn, "Close this panel — auto-run schedules continue in the background")
 
         def _open_autorun_history(self):
             """Open the auto-run log file in the default text editor."""
@@ -3472,6 +3487,18 @@ def _launch_gui():
             b("Use this to receive custom templates from a consultant or to")
             b("copy suites between folders. The imported suites appear in the")
             b("Suites list alongside your existing ones.")
+            blank()
+
+            h("EXPORT SUITE")
+            b("Select a suite in the list and click Export Suite to save it")
+            b("as a .json file. The export includes the suite definition and")
+            b("all of its referenced saved searches \u2014 everything the recipient")
+            b("needs to import it with Import Template.")
+            blank()
+            b("Use this to share compliance suites with colleagues, send")
+            b("templates to clients, or copy suites between folders on")
+            b("different machines. You can select multiple suites to export")
+            b("them all into a single file.")
             blank()
 
             h("CASCADE MODE")
