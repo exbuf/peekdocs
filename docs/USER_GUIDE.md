@@ -327,6 +327,8 @@ Click the red **Sensitive Data Scan** button (next to Run Suite) to scan your do
 
 Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
 
+When findings are detected, a highlighted `.docx` report is automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
+
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
 **Advanced Search Options:**

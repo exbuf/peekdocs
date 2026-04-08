@@ -5356,13 +5356,16 @@ def _launch_gui():
                                 "path": os.path.join(match.file_dir, match.filename),
                                 "count": 0,
                                 "lines": [],
+                                "match_texts": [],
                             }
                         file_matches[key]["count"] += 1
                         file_matches[key]["lines"].append(match.line_num)
+                        file_matches[key]["match_texts"].append(match.text)
                     scan_results.append({
                         "category": category,
                         "severity": severity,
                         "description": description,
+                        "regex": regex,
                         "match_count": len(result.matches),
                         "file_count": len(file_matches),
                         "files": file_matches,
@@ -5403,6 +5406,25 @@ def _launch_gui():
                     text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — {total} finding(s) ({high} high severity).",
                     fg="red" if high > 0 else "black",
                 )
+            # Generate .docx report
+            folder = self.folder_entry.get().strip()
+            self._pii_report_path = None
+            if total > 0:
+                try:
+                    from docsearch.reporter import write_pii_scan_report
+                    report_name = "DO_NOT_SEARCH_pii_scan_report.docx"
+                    output_dir = folder
+                    # Use output dir if set in Advanced Search Options
+                    if hasattr(self, "output_dir_entry"):
+                        od = self.output_dir_entry.get().strip()
+                        if od and os.path.isdir(od):
+                            output_dir = od
+                    report_path = os.path.join(output_dir, report_name)
+                    write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched)
+                    self._pii_report_path = report_path
+                except Exception:
+                    pass
+
             self._show_sensitive_scan_results(scan_results, elapsed, files_searched)
 
         def _show_sensitive_scan_results(self, scan_results, elapsed, files_searched):
@@ -5520,7 +5542,24 @@ def _launch_gui():
             canvas.bind_all("<MouseWheel>", _on_mousewheel)
             popup.protocol("WM_DELETE_WINDOW", lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()))
 
-            tk.Button(popup, text="Close", width=10, command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy())).pack(pady=(5, 10))
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            if self._pii_report_path and os.path.exists(self._pii_report_path):
+                def _open_report():
+                    import subprocess, sys
+                    try:
+                        if sys.platform == "darwin":
+                            subprocess.Popen(["open", self._pii_report_path])
+                        elif sys.platform == "win32":
+                            os.startfile(self._pii_report_path)
+                        else:
+                            subprocess.Popen(["xdg-open", self._pii_report_path])
+                    except Exception:
+                        pass
+                tk.Button(btn_frame, text="Open Report", width=12, command=_open_report).pack(side="left", padx=5)
+
+            tk.Button(btn_frame, text="Close", width=10, command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy())).pack(side="left", padx=5)
 
         def _show_sensitive_category_files(self, files_data, category, parent):
             """Show files for a specific sensitive data category."""
