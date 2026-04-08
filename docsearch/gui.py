@@ -306,7 +306,7 @@ def _launch_gui():
     class Tooltip:
         """Simple hover tooltip for any widget."""
 
-        enabled = False
+        enabled = True
 
         def __init__(self, widget, text, anchor="right"):
             """Bind hover tooltip with the given text to a widget."""
@@ -5035,7 +5035,7 @@ def _launch_gui():
 
             self.tooltip_toggle_btn = ctk.CTkButton(
                 self.bottom_frame,
-                text="Enable Hover Text",
+                text="Disable Hover Text",
                 width=130,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
@@ -5295,7 +5295,10 @@ def _launch_gui():
             tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
 
         def _start_sensitive_scan(self):
-            """Launch a background sensitive data scan against the current folder."""
+            """Show a configuration popup for the sensitive data scan."""
+            import tkinter as tk
+            from docsearch.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_COLORS
+
             if self.suite_running or self.process is not None:
                 self._show_error("A search or suite is already running.")
                 return
@@ -5304,6 +5307,93 @@ def _launch_gui():
                 self._show_error("Please select a valid folder first.")
                 return
 
+            win = tk.Toplevel(self)
+            win.title("PII Scan — Select Categories")
+            win.resizable(False, False)
+            win.transient(self)
+            win.grab_set()
+
+            tk.Label(
+                win, text="Select which categories to scan for:",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(12, 8), padx=15)
+
+            # Load saved selections (default: all enabled)
+            if not hasattr(self, "_pii_scan_enabled"):
+                from docsearch.cli import _load_config
+                config = _load_config()
+                saved = config.get("pii_scan_categories")
+                if isinstance(saved, list):
+                    self._pii_scan_enabled = set(saved)
+                else:
+                    self._pii_scan_enabled = {cat for cat, _, _, _ in SENSITIVE_PATTERNS}
+
+            # Checkboxes for each pattern
+            check_vars = []
+            checks_frame = tk.Frame(win)
+            checks_frame.pack(fill="x", padx=20)
+
+            for i, (category, _regex, severity, description) in enumerate(SENSITIVE_PATTERNS):
+                var = tk.BooleanVar(value=(category in self._pii_scan_enabled))
+                check_vars.append(var)
+                row = tk.Frame(checks_frame)
+                row.pack(fill="x", pady=2)
+
+                sev = SEVERITY_COLORS.get(severity, SEVERITY_COLORS["info"])
+                tk.Label(
+                    row, text=f" {sev['label']} ", font=("TkDefaultFont", 9, "bold"),
+                    bg=sev["bg"], fg=sev["fg"], width=10,
+                ).pack(side="left", padx=(0, 8))
+
+                cb = tk.Checkbutton(row, variable=var, text=category, font=("TkDefaultFont", 12))
+                cb.pack(side="left")
+
+                tk.Label(
+                    row, text=f"  {description}", font=("TkDefaultFont", 10), fg="gray",
+                ).pack(side="left")
+
+            # Select All / Deselect All
+            toggle_frame = tk.Frame(win)
+            toggle_frame.pack(pady=(8, 4))
+
+            def _select_all():
+                for v in check_vars:
+                    v.set(True)
+
+            def _deselect_all():
+                for v in check_vars:
+                    v.set(False)
+
+            tk.Button(toggle_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=5)
+            tk.Button(toggle_frame, text="Deselect All", width=10, command=_deselect_all).pack(side="left", padx=5)
+
+            # Run / Cancel buttons
+            btn_frame = tk.Frame(win)
+            btn_frame.pack(pady=(8, 12))
+
+            def _run():
+                selected = [SENSITIVE_PATTERNS[i] for i, v in enumerate(check_vars) if v.get()]
+                if not selected:
+                    self._show_error("Select at least one category.")
+                    return
+                # Remember selections for next time
+                self._pii_scan_enabled = {SENSITIVE_PATTERNS[i][0] for i, v in enumerate(check_vars) if v.get()}
+                try:
+                    from docsearch.cli import _load_config, _save_config
+                    config = _load_config()
+                    config["pii_scan_categories"] = sorted(self._pii_scan_enabled)
+                    _save_config(config)
+                except Exception:
+                    pass
+                win.destroy()
+                self._run_sensitive_scan(selected)
+
+            tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack(side="left", padx=5)
+            tk.Button(btn_frame, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=5)
+
+        def _run_sensitive_scan(self, selected_patterns):
+            """Launch the sensitive data scan with the selected patterns."""
+            folder = self.folder_entry.get().strip()
             recursive = self.recursive_var.get() == "on"
             file_types_str = self.file_types_entry.get().strip() if hasattr(self, "file_types_entry") else ""
             file_types = None
@@ -5322,21 +5412,22 @@ def _launch_gui():
 
             thread = threading.Thread(
                 target=self._sensitive_scan_thread,
-                args=(folder, recursive, file_types),
+                args=(folder, recursive, file_types, selected_patterns),
                 daemon=True,
             )
             thread.start()
 
-        def _sensitive_scan_thread(self, folder, recursive, file_types):
-            """Run all sensitive data patterns in a background thread."""
+        def _sensitive_scan_thread(self, folder, recursive, file_types, selected_patterns=None):
+            """Run selected sensitive data patterns in a background thread."""
             from docsearch.api import search
             from docsearch.sensitive_patterns import SENSITIVE_PATTERNS
 
+            patterns = selected_patterns if selected_patterns else SENSITIVE_PATTERNS
             scan_results = []
             start = time.time()
             files_searched = 0
 
-            for category, regex, severity, description in SENSITIVE_PATTERNS:
+            for category, regex, severity, description in patterns:
                 try:
                     result = search(
                         [regex],

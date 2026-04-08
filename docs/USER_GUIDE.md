@@ -297,7 +297,7 @@ The GUI window is organized into these regions, from top to bottom:
 | **Manage Suites** | Collapsible toggle — opens a standalone window to manage search suites, select one or more suites, run them with pass/fail tracking, schedule auto-runs, view last-run timestamps, and generate compliance/audit reports |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
-| **Toolbar** | **User Guide**, **App Files**, **All Collections** (global view of saved searches/suites across all folders), **Error Log**, **Maintenance**, **Text Size**, **Enable Hover Text**, and **About** buttons |
+| **Toolbar** | **User Guide**, **App Files**, **All Collections** (global view of saved searches/suites across all folders), **Error Log**, **Maintenance**, **Text Size**, **Disable Hover Text** (tooltips are on by default), and **About** buttons |
 
 **Your first GUI search:**
 
@@ -312,7 +312,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Sensitive Data Scan:**
 
-Click the red **Sensitive Data Scan** button (next to Run Suite) to scan your documents for PII and sensitive data with one click. No configuration needed — just select a folder and click. The scan checks for 8 categories of sensitive data:
+Click the red **PII Scan** button (next to Run Suite) to scan your documents for PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.docsearchrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
 
 | Category | Severity | What it finds |
 |----------|----------|---------------|
@@ -1471,6 +1471,7 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `index_search` | true/false | — | false (direct file search) |
 | `search_terms` | text | — | empty (none) |
 | `folder` | path | — | empty (current directory) |
+| `pii_scan_categories` | list | — | all 8 categories enabled (SSNs, credit cards, tax IDs, emails, phones, passwords, DOB, dollar amounts) |
 
 If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
 
@@ -1536,6 +1537,17 @@ Created automatically when a suite run completes (manual or scheduled).
 
 **Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
 **How to delete:** Click **Clean Up Suite Files** in the suites panel, or delete manually. Each run creates new timestamped files, so old reports accumulate unless cleaned up.
+
+### PII scan report
+
+Created automatically when a Sensitive Data Scan detects findings.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `DO_NOT_SEARCH_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output dir (or search folder) |
+
+**Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
+**How to delete:** Delete manually, or use **Clean Up Practice Files** in the Maintenance menu. Overwritten on each new PII scan.
 
 ### Auto-run log
 
