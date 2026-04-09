@@ -2641,6 +2641,16 @@ def _launch_gui():
             self.browse_file_button.pack(side="left")
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
+            self._clear_file_btn = ctk.CTkButton(
+                browse_frame, text="\u2715", width=24, height=24,
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray50", "gray50"),
+                hover_color=("gray90", "gray25"),
+                command=self._clear_specific_file,
+            )
+            # Hidden until a file is selected
+            Tooltip(self._clear_file_btn, "Clear the selected file and search the entire folder", anchor="left")
+
             search_help_btn = ctk.CTkButton(
                 self, text="?", width=28, height=28,
                 font=ctk.CTkFont(size=14, weight="bold"),
@@ -5598,6 +5608,16 @@ def _launch_gui():
                     text=f"File selected: {filename} in {folder}",
                     text_color="black",
                 )
+                self._clear_file_btn.pack(side="left", padx=(2, 0))
+
+        def _clear_specific_file(self):
+            """Clear the specific file selection and revert to full folder search."""
+            self.specific_files_entry.delete(0, "end")
+            self._clear_file_btn.pack_forget()
+            self.status_label.configure(
+                text="File selection cleared — searching entire folder.",
+                text_color="black",
+            )
 
         def browse_folder(self):
             """Open a folder picker and update the search folder entry."""
