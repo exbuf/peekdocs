@@ -634,7 +634,7 @@ def _launch_gui():
             ).grid(row=1, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
 
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 10), pady=(0, 8), sticky="ew")
+            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 47), pady=(0, 8), sticky="ew")
 
             run_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             run_group.pack(side="left", padx=(0, 8))
@@ -671,7 +671,7 @@ def _launch_gui():
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
             )
-            self.cb_index_search.pack(side="right", padx=(5, 10))
+            self.cb_index_search.pack(side="right", padx=(5, 2))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
             # Right-aligned grouped: Search Wizard + Compliance Wizard
