@@ -6120,12 +6120,12 @@ def _launch_gui():
             if total == 0:
                 self.status_label.configure(
                     text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — no findings.",
-                    fg="green",
+                    text_color="green",
                 )
             else:
                 self.status_label.configure(
                     text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — {total} finding(s) ({high} high severity).",
-                    fg="red" if high > 0 else "black",
+                    text_color="red" if high > 0 else "black",
                 )
             # Generate .docx report
             folder = self.folder_entry.get().strip()
