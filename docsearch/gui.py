@@ -629,7 +629,7 @@ def _launch_gui():
 
             # Row 1: "3." label + action buttons
             ctk.CTkLabel(
-                self.search_bar_frame, text="3.",
+                self.search_bar_frame, text="3. Run Search:",
                 font=ctk.CTkFont(size=18, weight="bold"),
             ).grid(row=1, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
 
@@ -2551,7 +2551,7 @@ def _launch_gui():
             h("SETTINGS BUTTONS")
             s("Inspect .docsearchrc")
             b("View the current saved settings file (read-only).")
-            s("Save Defaults")
+            s("Save As Defaults")
             b("Save all current Advanced Search Options as defaults to ~/.docsearchrc.")
             b("These are restored automatically when docsearch starts.")
             b("Not required for the current search \u2014 your selections take")
@@ -2676,7 +2676,7 @@ def _launch_gui():
             self.advanced_window = ctk.CTkToplevel(self)
             self.advanced_window.title("Advanced Search Options")
             self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
-            self.advanced_window.geometry("720x620")
+            self.advanced_window.geometry("900x720")
             self.advanced_window.resizable(True, True)
             self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
             # Withdraw after event loop starts to avoid flash
@@ -2692,7 +2692,7 @@ def _launch_gui():
             adv_header_frame.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(
                 adv_header_frame,
-                text="Configure search options below. Settings take effect on your next search.",
+                text="All regular and compliance-related searches are based on this screen and the Search Terms on the main screen.",
                 font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"),
                 justify="left",
@@ -2923,35 +2923,8 @@ def _launch_gui():
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
             settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
-            inspect_settings_btn = ctk.CTkButton(
-                settings_btn_frame, text="Inspect .docsearchrc", width=155,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._inspect_settings,
-                font=ctk.CTkFont(size=12),
-            )
-            inspect_settings_btn.pack(side="left", padx=5)
-            Tooltip(inspect_settings_btn, "View the current saved settings in ~/.docsearchrc (read-only)")
 
-            save_settings_btn = ctk.CTkButton(
-                settings_btn_frame, text="Save Defaults", width=120,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._save_current_settings,
-                font=ctk.CTkFont(size=12),
-            )
-            save_settings_btn.pack(side="left", padx=5)
-            Tooltip(save_settings_btn, "Save the current Advanced Search Options as defaults in ~/.docsearchrc")
 
-            restore_settings_btn = ctk.CTkButton(
-                settings_btn_frame, text="Restore Settings", width=130,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._load_saved_settings,
-                font=ctk.CTkFont(size=12),
-            )
-            restore_settings_btn.pack(side="left", padx=5)
-            Tooltip(restore_settings_btn, "Load saved defaults from ~/.docsearchrc into the GUI")
 
             reset_btn = ctk.CTkButton(
                 settings_btn_frame, text="Reset All Fields", width=120,
@@ -3007,12 +2980,13 @@ def _launch_gui():
             Tooltip(cb_pdf, "Also save results as a PDF file (docsearch_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
 
             # Note about saving
+            # Note above bottom buttons
             import tkinter as _tk_adv
             _tk_adv.Label(
                 self.advanced_window,
-                text="Your selections take effect immediately on the next Run Search — no need to press Save. "
-                     "The Save Defaults button saves your settings as permanent defaults for future sessions.",
-                font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
+                text="Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. "
+                     "That button saves your settings as permanent defaults for future sessions.",
+                font=("TkDefaultFont", 10), fg="gray", wraplength=800, justify="left",
             ).pack(padx=15, pady=(5, 2))
 
             # Bottom buttons for the Advanced Search Options window
@@ -3020,12 +2994,12 @@ def _launch_gui():
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
 
             adv_save_btn = ctk.CTkButton(
-                adv_bottom_frame, text="Save Defaults", width=110,
+                adv_bottom_frame, text="Save As Defaults", width=110,
                 command=self._save_current_settings,
                 font=ctk.CTkFont(size=13),
             )
             adv_save_btn.pack(side="left", padx=(5, 0))
-            Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.docsearchrc. Not required for the current search — changes take effect immediately")
+            Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.docsearchrc")
 
             ctk.CTkButton(
                 adv_bottom_frame, text="Close", width=80,
@@ -3034,6 +3008,23 @@ def _launch_gui():
                 command=self._close_advanced_window,
                 font=ctk.CTkFont(size=13),
             ).place(relx=0.5, rely=0.5, anchor="center")
+
+            adv_restore_btn = ctk.CTkButton(
+                adv_bottom_frame, text="Restore Saved Defaults", width=130,
+                command=self._load_saved_settings,
+                font=ctk.CTkFont(size=13),
+            )
+            adv_restore_btn.pack(side="right", padx=(0, 5))
+            Tooltip(adv_restore_btn, "Load saved defaults from ~/.docsearchrc into the GUI")
+
+            adv_inspect_link = ctk.CTkLabel(
+                adv_bottom_frame, text="Inspect .docsearchrc",
+                font=ctk.CTkFont(size=12, underline=True),
+                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
+            )
+            adv_inspect_link.pack(side="left", padx=(5, 0))
+            adv_inspect_link.bind("<Button-1>", lambda e: self._inspect_settings())
+            Tooltip(adv_inspect_link, "View the current saved settings in ~/.docsearchrc (read-only)")
 
         def _build_progress_area(self):
             """Build the progress bar, status label, and results preview pane."""
@@ -3066,12 +3057,12 @@ def _launch_gui():
             self.status_label.pack(side="left")
 
             self._matched_files_link = ctk.CTkButton(
-                status_row, text="", font=ctk.CTkFont(size=14, weight="bold"),
+                status_row, text="", font=ctk.CTkFont(size=10),
                 fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
-                cursor="hand2", height=32,
+                cursor="hand2", height=22, width=120,
                 command=self._show_matched_files_popup,
             )
-            self._matched_files_link.pack(side="left", padx=(12, 0))
+            self._matched_files_link.pack(side="left", padx=(5, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
 
             # Auto-run indicator (right side of status row)
@@ -3082,12 +3073,12 @@ def _launch_gui():
             self._autorun_indicator.pack(side="right", padx=(5, 0))
 
             self._excluded_files_btn = ctk.CTkButton(
-                status_row, text="", font=ctk.CTkFont(size=13, weight="bold"),
+                status_row, text="", font=ctk.CTkFont(size=10),
                 fg_color="#666666", hover_color="#555555", text_color="white",
-                cursor="hand2", height=32,
+                cursor="hand2", height=22, width=120,
                 command=self._show_excluded_files_popup,
             )
-            self._excluded_files_btn.pack(side="left", padx=(8, 0))
+            self._excluded_files_btn.pack(side="left", padx=(5, 0))
             self._excluded_files_btn.pack_forget()  # Hidden until search completes
 
             self.matched_files = []
@@ -6844,8 +6835,8 @@ def _launch_gui():
                 self._excluded_files = []
             _excl_count = len(self._excluded_files)
             if _excl_count > 0:
-                self._excluded_files_btn.configure(text=f"View {_excl_count} excluded file(s)")
-                self._excluded_files_btn.pack(side="left", padx=(8, 0))
+                self._excluded_files_btn.configure(text=f"{_excl_count} Excluded Files")
+                self._excluded_files_btn.pack(side="left", padx=(5, 0))
             else:
                 self._excluded_files_btn.pack_forget()
 
@@ -6887,11 +6878,12 @@ def _launch_gui():
                 # Show matched files link on status line
                 if self.matched_files:
                     if self._inverse_results:
-                        link_text = f"View {len(self.matched_files)} file(s) without matches"
+                        link_text = f"{len(self.matched_files)} File(s) Without Matches"
+                        self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
                     else:
-                        link_text = f"View {len(self.matched_files)} matched file(s)"
-                    self._matched_files_link.configure(text=link_text)
-                    self._matched_files_link.pack(side="left", padx=(8, 0))
+                        link_text = f"{len(self.matched_files)} Matched File(s)"
+                        self._matched_files_link.configure(text=link_text, fg_color="green", hover_color="darkgreen")
+                    self._matched_files_link.pack(side="left", padx=(5, 0))
             elif returncode == 1:
                 no_match_text = summary or "Search complete. No matches found."
                 specific = self.specific_files_entry.get().strip()
@@ -6903,6 +6895,11 @@ def _launch_gui():
                     text=no_match_text,
                     text_color="black",
                 )
+                self._matched_files_link.configure(
+                    text="0 Matched File(s)",
+                    fg_color="#CC3333", hover_color="#AA2222",
+                )
+                self._matched_files_link.pack(side="left", padx=(5, 0))
                 self._show_action_buttons()
             elif returncode == 2:
                 # Check if results were produced despite the error (e.g., .docx generation failed)
@@ -8934,6 +8931,7 @@ def _launch_gui():
             self.report_btn_docx.pack_forget()
             self.report_btn_csv.pack_forget()
             self.report_btn_json.pack_forget()
+            self.report_btn_pdf.pack_forget()
 
         def _get_suite_folder(self):
             """Return the suite panel's folder (independent of main screen)."""
