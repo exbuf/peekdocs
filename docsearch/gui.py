@@ -593,7 +593,7 @@ def _launch_gui():
             self.search_bar_frame.grid_columnconfigure(0)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
             self.search_bar_frame.grid_columnconfigure(2, minsize=40)
-            self.search_bar_frame.grid_columnconfigure(3, minsize=80)
+            self.search_bar_frame.grid_columnconfigure(3, minsize=145)
 
             label = ctk.CTkLabel(self.search_bar_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"))
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
@@ -607,7 +607,7 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=0, column=1, padx=(5, 0), pady=(4, 8), sticky="ew")
+            self.search_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
@@ -616,7 +616,7 @@ def _launch_gui():
                 command=self._show_recent_searches,
                 font=ctk.CTkFont(size=14),
             )
-            recent_btn.grid(row=0, column=2, padx=(2, 2), pady=(4, 8))
+            recent_btn.grid(row=0, column=2, padx=(0, 2), pady=(4, 8), sticky="w")
             Tooltip(recent_btn, "Show recent searches — click to re-use a previous search")
 
             clear_button = ctk.CTkButton(
@@ -2619,7 +2619,7 @@ def _launch_gui():
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=0, column=1, columnspan=2, padx=(5, 105), pady=(4, 8), sticky="ew")
+            self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             browse_frame = ctk.CTkFrame(self.folder_bar_frame, fg_color="transparent")
@@ -2633,7 +2633,7 @@ def _launch_gui():
             Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
 
             self.browse_file_button = ctk.CTkButton(
-                browse_frame, text="File", width=50, command=self._browse_file,
+                browse_frame, text="Single File", width=80, command=self._browse_file,
                 font=ctk.CTkFont(size=14),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
