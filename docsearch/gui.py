@@ -405,8 +405,8 @@ def _launch_gui():
                 version = ""
             self.title(f"docsearch {version}".strip())
             self.withdraw()  # Hide until setup is complete to prevent flicker
-            self.geometry("1280x720")
-            self.minsize(1280, 620)
+            self.geometry("1280x800")
+            self.minsize(1280, 700)
             self._center_window(1050, 720)
 
             ctk.set_appearance_mode("System")
@@ -434,11 +434,28 @@ def _launch_gui():
             self._countdown_timer_id = None
             self._text_size_var = ctk.StringVar(value="Normal")
 
-            self.grid_columnconfigure(1, weight=1)
-            self.grid_rowconfigure(8, weight=1)
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_rowconfigure(0, weight=1)
+
+            # Tab view: Getting Started + Search
+            self._tabview = ctk.CTkTabview(self, anchor="nw")
+            self._tabview.grid(row=0, column=0, sticky="nsew", padx=5, pady=(5, 0))
+
+            self._tab_started = self._tabview.add("Getting Started")
+            self._tab_search = self._tabview.add("Search")
+
+            # Build Getting Started tab
+            self._build_getting_started_tab()
+
+            # Use an inner frame with grid layout inside the Search tab
+            self._search_parent = ctk.CTkFrame(self._tab_search, fg_color="transparent")
+            self._search_parent.pack(fill="both", expand=True)
+            self._search_parent.grid_columnconfigure(0, weight=0)
+            self._search_parent.grid_columnconfigure(1, weight=1)
+            self._search_parent.grid_rowconfigure(8, weight=1)
 
             # Shared toggle row for Advanced Search Options, Search Suites, Manage Indexes
-            self._toggle_row = ctk.CTkFrame(self, fg_color="transparent")
+            self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")
             self._toggle_row.grid(
                 row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
             )
@@ -452,6 +469,16 @@ def _launch_gui():
             self._build_index_panel()
             self.suite_window = None
             self._build_bottom_row()
+
+            # Show the View Report row on startup (buttons grayed out until a search runs)
+            for btn in (self.report_btn_txt, self.report_btn_docx, self.report_btn_csv,
+                        self.report_btn_json, self.report_btn_pdf):
+                btn.pack(side="left", padx=(0, 2))
+                btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
+            self.report_frame.grid(
+                row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
+            )
+
             # Check for first run before loading settings (which creates the config file)
             from docsearch.cli import _config_path
             self._is_first_run = not os.path.exists(_config_path())
@@ -466,7 +493,9 @@ def _launch_gui():
             # Show the window after all settings reloads are done
             self.after(1100, self.deiconify)
             if self._is_first_run:
-                self.after(300, self._show_welcome)
+                self._tabview.set("Getting Started")
+            else:
+                self._tabview.set("Search")
             self.after(500, self._resume_suite_schedule)
 
         def _center_window(self, width, height):
@@ -480,34 +509,94 @@ def _launch_gui():
 
         # ── Layout builders ──────────────────────────────────────
 
+        def _build_getting_started_tab(self):
+            """Build the Getting Started tab with a friendly guided introduction."""
+            import tkinter as tk
+            tab = self._tab_started
+
+            canvas = tk.Canvas(tab, highlightthickness=0)
+            scrollbar = tk.Scrollbar(tab, command=canvas.yview)
+            inner = tk.Frame(canvas)
+            inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set, yscrollincrement=10)
+            scrollbar.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+
+            def _on_mousewheel(event):
+                delta = 1 if event.delta > 0 else -1
+                canvas.yview_scroll(-delta, "units")
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+            pad = {"padx": 30, "anchor": "w"}
+
+            tk.Label(inner, text="Welcome to docsearch!", font=("TkDefaultFont", 22, "bold")).pack(pady=(20, 5), **pad)
+            tk.Label(inner, text="Search Word docs, PDFs, spreadsheets, emails, and 42 other file types — all offline.",
+                     font=("TkDefaultFont", 13), fg="gray").pack(pady=(0, 15), **pad)
+
+            def _step(number, title, desc):
+                frame = tk.Frame(inner)
+                frame.pack(fill="x", padx=30, pady=(10, 0))
+                tk.Label(frame, text=f"Step {number}", font=("TkDefaultFont", 14, "bold"),
+                         fg="white", bg="#2196F3", width=7).pack(side="left", padx=(0, 12))
+                text_frame = tk.Frame(frame)
+                text_frame.pack(side="left", fill="x")
+                tk.Label(text_frame, text=title, font=("TkDefaultFont", 14, "bold"), anchor="w").pack(anchor="w")
+                tk.Label(text_frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", wraplength=800).pack(anchor="w")
+
+            _step(1, "Choose a folder", "Click the Search tab, then click Browse next to '1. Search Folder' to select the folder containing your documents.")
+            _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue")
+            _step(3, "Click Run Search", "docsearch scans every supported file and shows results with matches highlighted in yellow.")
+            _step(4, "View your results", "Click DOCX next to View Report to open the highlighted Word report. Or browse matches in the preview pane.")
+
+            tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
+
+            tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
+
+            features = [
+                ("\U0001f50d  PII Scan", "One click finds SSNs, credit cards, passwords, and other sensitive data hiding in your files.", "#0D9488"),
+                ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
+                ("\u2705  Compliance Wizard", "Create a compliance suite from 9 industry templates — Financial, Healthcare, Legal, and more.", "#8B5CF6"),
+                ("\U0001f4ca  Search Suites", "Save searches, group them into suites, run with pass/fail tracking and scheduled auto-runs.", "#2196F3"),
+                ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
+            ]
+
+            for emoji_title, desc, color in features:
+                frame = tk.Frame(inner)
+                frame.pack(fill="x", padx=30, pady=(8, 0))
+                tk.Label(frame, text=emoji_title, font=("TkDefaultFont", 13, "bold"), fg=color, anchor="w").pack(anchor="w")
+                tk.Label(frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", wraplength=900).pack(anchor="w", padx=(24, 0))
+
+            tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
+
+            tk.Label(inner, text="Ready? Click the Search tab at the top of this window, or the button below.",
+                     font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 5), **pad)
+
+            def _go_to_search():
+                self._tabview.set("Search")
+
+            _go_btn_frame = ctk.CTkFrame(inner, fg_color="transparent")
+            _go_btn_frame.pack(pady=(10, 30), padx=30, anchor="w")
+            ctk.CTkButton(
+                _go_btn_frame, text="Go to Search \u2192", width=180, height=40,
+                font=ctk.CTkFont(size=16, weight="bold"),
+                fg_color="#2196F3", hover_color="#1976D2",
+                command=_go_to_search,
+            ).pack()
+
         def _build_search_row(self):
             """Build the search bar with entry field, action buttons, and tooltips."""
-            self.search_bar_frame = ctk.CTkFrame(self)
+            self.search_bar_frame = ctk.CTkFrame(self._search_parent)
             self.search_bar_frame.grid(
-                row=0, column=0, columnspan=3, padx=10, pady=(10, 2), sticky="ew"
+                row=1, column=0, columnspan=3, padx=10, pady=(0, 2), sticky="ew"
             )
             self.search_bar_frame.grid_columnconfigure(0)
             self.search_bar_frame.grid_columnconfigure(1, weight=1)
             self.search_bar_frame.grid_columnconfigure(2, minsize=40)
             self.search_bar_frame.grid_columnconfigure(3, minsize=80)
 
-            ctk.CTkLabel(
-                self.search_bar_frame, text="Search Bar",
-                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).grid(row=0, column=0, columnspan=2, padx=10, pady=(4, 0), sticky="w")
-
-            search_help_btn = ctk.CTkButton(
-                self.search_bar_frame, text="?", width=28, height=28,
-                font=ctk.CTkFont(size=14, weight="bold"),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._show_search_help,
-            )
-            search_help_btn.grid(row=0, column=3, padx=(0, 10), pady=(4, 0), sticky="e")
-            Tooltip(search_help_btn, "Search examples and quick-start guide")
-
-            label = ctk.CTkLabel(self.search_bar_frame, text="Search Terms:", font=ctk.CTkFont(size=28, weight="bold"))
-            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="w")
+            label = ctk.CTkLabel(self.search_bar_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"))
+            label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self._assistant_label = ctk.CTkLabel(
                 self.search_bar_frame, text="", font=ctk.CTkFont(size=12),
@@ -518,7 +607,7 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=1, column=1, padx=(5, 0), pady=(0, 8), sticky="ew")
+            self.search_entry.grid(row=0, column=1, padx=(5, 0), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
@@ -527,7 +616,7 @@ def _launch_gui():
                 command=self._show_recent_searches,
                 font=ctk.CTkFont(size=14),
             )
-            recent_btn.grid(row=1, column=2, padx=(2, 2), pady=(0, 8))
+            recent_btn.grid(row=0, column=2, padx=(2, 2), pady=(4, 8))
             Tooltip(recent_btn, "Show recent searches — click to re-use a previous search")
 
             clear_button = ctk.CTkButton(
@@ -535,38 +624,43 @@ def _launch_gui():
                 command=lambda: self.search_entry.delete(0, "end"),
                 font=ctk.CTkFont(size=14),
             )
-            clear_button.grid(row=1, column=3, padx=(0, 10), pady=(0, 8))
+            clear_button.grid(row=0, column=3, padx=(0, 10), pady=(4, 8))
             Tooltip(clear_button, "Clear the search bar", anchor="left")
 
-            # Row 2: action buttons below the search entry
+            # Row 1: "3." label + action buttons
+            ctk.CTkLabel(
+                self.search_bar_frame, text="3.",
+                font=ctk.CTkFont(size=18, weight="bold"),
+            ).grid(row=1, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=2, column=1, columnspan=3, padx=(5, 10), pady=(0, 8), sticky="ew")
+            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 10), pady=(0, 8), sticky="ew")
 
             run_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             run_group.pack(side="left", padx=(0, 8))
 
             self.search_button = ctk.CTkButton(
-                run_group, text="Run Search", width=100, command=self.start_search,
-                font=ctk.CTkFont(size=14),
+                run_group, text="Run Search", width=85, command=self.start_search,
+                font=ctk.CTkFont(size=12),
                 fg_color="green", hover_color="darkgreen",
             )
-            self.search_button.pack(side="left", padx=(4, 2), pady=4)
+            self.search_button.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
             self.run_suite_main_btn = ctk.CTkButton(
-                run_group, text="Run Suite", width=100,
+                run_group, text="Run Suite", width=75,
                 command=self._run_suite_from_main,
-                font=ctk.CTkFont(size=14),
+                font=ctk.CTkFont(size=12),
                 fg_color="#CC3333", hover_color="#AA2222",
             )
-            self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=4)
+            self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(self.run_suite_main_btn, "Open Manage Suites to select and run a suite. A suite is a collection of saved searches that run together with pass/fail criteria. Green = suites exist, Red = no suites yet. Both Run buttons turn red and are temporarily disabled while an index is being built")
 
             self.sensitive_scan_btn = ctk.CTkButton(
-                btn_frame, text="PII Scan", width=80,
+                btn_frame, text="PII Scan", width=70,
                 command=self._start_sensitive_scan,
-                font=ctk.CTkFont(size=14),
-                fg_color="#E63946", hover_color="#C1121F",
+                font=ctk.CTkFont(size=12),
+                fg_color="#0D9488", hover_color="#0F766E",
             )
             self.sensitive_scan_btn.pack(side="left", padx=(4, 0))
             Tooltip(self.sensitive_scan_btn, "Sensitive Data Scan — one-click scan for PII: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Uses current folder and respects Recursive and File Type settings")
@@ -575,9 +669,9 @@ def _launch_gui():
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
-                onvalue="on", offvalue="off", font=ctk.CTkFont(size=13, weight="bold"),
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
             )
-            self.cb_index_search.pack(side="right", padx=(5, 15))
+            self.cb_index_search.pack(side="right", padx=(5, 10))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
             # Right-aligned grouped: Search Wizard + Compliance Wizard
@@ -585,21 +679,21 @@ def _launch_gui():
             wizard_group.pack(side="right", padx=(0, 5))
 
             search_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Search Wizard", width=120,
+                wizard_group, text="Search Wizard", width=100,
                 command=self._open_search_wizard_guide,
-                font=ctk.CTkFont(size=14),
+                font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             )
-            search_wiz_btn.pack(side="left", padx=(4, 2), pady=4)
+            search_wiz_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
             compliance_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Compliance Wizard", width=140,
+                wizard_group, text="Compliance Wizard", width=120,
                 command=self._open_compliance_wizard,
-                font=ctk.CTkFont(size=14),
+                font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             )
-            compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=4)
+            compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs. Templates are search configurations, not compliance certifications")
 
             # Right-aligned grouped: Save Search, Load Saved Search
@@ -607,18 +701,18 @@ def _launch_gui():
             save_group.pack(side="right", padx=(0, 5))
 
             self.save_to_collection_btn = ctk.CTkButton(
-                save_group, text="Save Search", width=100, command=self._save_to_collection,
-                font=ctk.CTkFont(size=14),
+                save_group, text="Save Search", width=85, command=self._save_to_collection,
+                font=ctk.CTkFont(size=12),
             )
-            self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=4)
+            self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
             self.load_search_btn = ctk.CTkButton(
-                save_group, text="Load Saved Search \u25bc", width=155,
-                font=ctk.CTkFont(size=14),
+                save_group, text="Load Search \u25bc", width=100,
+                font=ctk.CTkFont(size=12),
                 command=self._open_load_search_popup,
             )
-            self.load_search_btn.pack(side="left", padx=(2, 4), pady=4)
+            self.load_search_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
 
@@ -2513,28 +2607,23 @@ def _launch_gui():
 
         def _build_folder_row(self):
             """Build the folder selection row with entry field and Browse button."""
-            self.folder_bar_frame = ctk.CTkFrame(self)
+            self.folder_bar_frame = ctk.CTkFrame(self._search_parent)
             self.folder_bar_frame.grid(
-                row=1, column=0, columnspan=3, padx=10, pady=2, sticky="ew"
+                row=0, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="ew"
             )
             self.folder_bar_frame.grid_columnconfigure(0)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
             self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
 
-            ctk.CTkLabel(
-                self.folder_bar_frame, text="Folder Bar",
-                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).grid(row=0, column=0, columnspan=3, padx=10, pady=(4, 0), sticky="w")
-
-            label = ctk.CTkLabel(self.folder_bar_frame, text="Search Folder:", font=ctk.CTkFont(size=28, weight="bold"))
-            label.grid(row=1, column=0, padx=(15, 5), pady=(0, 8), sticky="w")
+            label = ctk.CTkLabel(self.folder_bar_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"))
+            label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=1, column=1, columnspan=2, padx=(5, 105), pady=(0, 8), sticky="ew")
+            self.folder_entry.grid(row=0, column=1, columnspan=2, padx=(5, 105), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             browse_frame = ctk.CTkFrame(self.folder_bar_frame, fg_color="transparent")
-            browse_frame.grid(row=1, column=2, padx=(5, 10), pady=(0, 8), sticky="e")
+            browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="e")
 
             self.browse_button = ctk.CTkButton(
                 browse_frame, text="Folder", width=60, command=self.browse_folder,
@@ -2551,6 +2640,16 @@ def _launch_gui():
             )
             self.browse_file_button.pack(side="left")
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
+
+            search_help_btn = ctk.CTkButton(
+                self, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_search_help,
+            )
+            search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
+            Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
             Tooltip(self.folder_entry, "The folder or file to search. Use Folder to pick a folder, File to pick a specific file")
 
@@ -2939,7 +3038,7 @@ def _launch_gui():
         def _build_progress_area(self):
             """Build the progress bar, status label, and results preview pane."""
             self.progress_bar = ctk.CTkProgressBar(
-                self, mode="indeterminate", height=18,
+                self._search_parent, mode="indeterminate", height=18,
                 progress_color=("#2196F3", "#1976D2"),
                 fg_color=("#E0E0E0", "#3A3A3A"),
                 corner_radius=5,
@@ -2950,20 +3049,19 @@ def _launch_gui():
 
             import tkinter as _tk_status
             status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            status_row.grid(row=3, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
+            status_row.grid(row=2, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
 
             _status_label_size = 16 if sys.platform == "win32" else 14
-            status_label_left = _tk_status.Label(
-                status_row, text="Status:", font=("TkDefaultFont", _status_label_size, "bold"),
+            status_label_left = ctk.CTkLabel(
+                status_row, text="Status:", font=ctk.CTkFont(size=_status_label_size, weight="bold"),
             )
             status_label_left.pack(side="left", padx=(0, 5))
             Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
 
-            import tkinter as _tk_sl
             _status_font_size = 16 if sys.platform == "win32" else 14
-            self.status_label = _tk_sl.Label(
-                status_row, text="", font=("TkDefaultFont", _status_font_size), anchor="w",
-                wraplength=675, fg="black", justify="left",
+            self.status_label = ctk.CTkLabel(
+                status_row, text="", font=ctk.CTkFont(size=_status_font_size), anchor="w",
+                wraplength=675, text_color="black", justify="left",
             )
             self.status_label.pack(side="left")
 
@@ -2975,6 +3073,13 @@ def _launch_gui():
             )
             self._matched_files_link.pack(side="left", padx=(12, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
+
+            # Auto-run indicator (right side of status row)
+            self._autorun_indicator = ctk.CTkLabel(
+                status_row, text="", font=ctk.CTkFont(size=10),
+                text_color=("gray50", "gray50"),
+            )
+            self._autorun_indicator.pack(side="right", padx=(5, 0))
 
             self._excluded_files_btn = ctk.CTkButton(
                 status_row, text="", font=ctk.CTkFont(size=13, weight="bold"),
@@ -2989,7 +3094,7 @@ def _launch_gui():
             self._inverse_results = False
 
             # Results preview pane — hidden until search completes
-            self.preview_frame = ctk.CTkFrame(self)
+            self.preview_frame = ctk.CTkFrame(self._search_parent)
             # Don't grid yet — shown by _show_preview after search
 
             import tkinter as tk
@@ -3022,7 +3127,7 @@ def _launch_gui():
             self.preview_text = tk.Text(
                 preview_text_frame, wrap="word", font=("Courier", 11),
                 state="disabled", yscrollcommand=preview_scroll.set,
-                padx=8, pady=5, height=10,
+                padx=8, pady=5, height=15,
             )
             self.preview_text.pack(side="left", fill="both", expand=True)
             preview_scroll.config(command=self.preview_text.yview)
@@ -3044,7 +3149,7 @@ def _launch_gui():
                     self.clipboard_clear()
                     self.clipboard_append(sel.strip())
                     self.status_label.configure(text="Copied to clipboard.",
-                                                fg="black")
+                                                text_color="black")
             self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
             self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
 
@@ -3074,9 +3179,9 @@ def _launch_gui():
 
         def _build_open_report(self):
             """Build the Matched Files and View Report buttons."""
-            # Buttons are children of the main window, gridded directly at row 6
+            # Buttons are children of the search tab, gridded directly at row 6
             self.matched_files_button = ctk.CTkButton(
-                self,
+                self._search_parent,
                 text="Matched Files",
                 width=140,
                 command=self._show_matched_files_popup,
@@ -3084,9 +3189,13 @@ def _launch_gui():
             )
             Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
 
-            self.report_frame = ctk.CTkFrame(self, fg_color=self.cget("fg_color"))
+            self.report_frame = ctk.CTkFrame(self._search_parent, fg_color=self._search_parent.cget("fg_color"))
+            ctk.CTkLabel(
+                self.report_frame, text="4.",
+                font=ctk.CTkFont(size=18, weight="bold"),
+            ).pack(side="left", padx=(0, 4))
             report_lbl = ctk.CTkLabel(
-                self.report_frame, text="View Report:", font=ctk.CTkFont(size=28, weight="bold"),
+                self.report_frame, text="View Report:", font=ctk.CTkFont(size=18, weight="bold"),
             )
             report_lbl.pack(side="left", padx=(0, 4))
 
@@ -4204,7 +4313,7 @@ def _launch_gui():
                     self._apply_params_to_gui(params)
                     self.status_label.configure(
                         text=f"Loaded search '{name}' from collection.",
-                        fg="black", font=ctk.CTkFont(size=13),
+                        text_color="black",
                     )
                 popup.destroy()
                 self._load_search_popup = None
@@ -4227,7 +4336,7 @@ def _launch_gui():
                 self._refresh_suite_panel()
                 self.status_label.configure(
                     text=f"Deleted saved search '{name}'.",
-                    fg="black", font=ctk.CTkFont(size=13),
+                    text_color="black",
                 )
                 if listbox.size() == 0:
                     listbox.insert("end", "(no saved searches)")
@@ -5314,19 +5423,22 @@ def _launch_gui():
                           command=dialog.destroy).pack(side="left", padx=5)
 
         def _build_bottom_row(self):
-            """Build the bottom toolbar with help, about, text size, and utility buttons."""
-            self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
+            """Build the bottom toolbar with help, about, tools, and close."""
+            self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
             self.bottom_frame.grid(
-                row=10, column=0, columnspan=3, padx=15, pady=(0, 15), sticky="sew"
+                row=10, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
             )
 
-            ctk.CTkLabel(
-                self.bottom_frame, text="Toolbar",
-                font=ctk.CTkFont(size=10), text_color=("gray50", "gray50"),
-            ).pack(side="left", padx=(5, 2))
+            self.bottom_frame.grid_columnconfigure(0, weight=1)
+            self.bottom_frame.grid_columnconfigure(1, weight=1)
+            self.bottom_frame.grid_columnconfigure(2, weight=1)
+
+            # Left group
+            left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
+            left_frame.grid(row=0, column=0, sticky="w")
 
             self.help_button = ctk.CTkButton(
-                self.bottom_frame,
+                left_frame,
                 text="User Guide",
                 width=90,
                 fg_color="transparent",
@@ -5338,8 +5450,24 @@ def _launch_gui():
             self.help_button.pack(side="left")
             Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, COMPLIANCE_GUIDE.md, and API.md are under 'docs' on GitHub", anchor="above")
 
-            self.about_button = ctk.CTkButton(
+            # Center: Close button
+            ctk.CTkButton(
                 self.bottom_frame,
+                text="Close",
+                width=70,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self.destroy,
+                font=ctk.CTkFont(size=13),
+            ).grid(row=0, column=1)
+
+            # Right group
+            right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
+            right_frame.grid(row=0, column=2, sticky="e")
+
+            self.about_button = ctk.CTkButton(
+                right_frame,
                 text="About",
                 width=70,
                 fg_color="transparent",
@@ -5350,108 +5478,47 @@ def _launch_gui():
             )
             self.about_button.pack(side="right", padx=5)
 
-            text_size_menu = ctk.CTkOptionMenu(
-                self.bottom_frame, variable=self._text_size_var,
-                values=["Small", "Normal", "Large", "Extra Large"],
-                width=110, font=ctk.CTkFont(size=11),
-                command=self._on_text_size_changed,
-            )
-            text_size_menu.pack(side="right", padx=5)
-            Tooltip(text_size_menu, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above-left")
-            text_size_label = ctk.CTkLabel(self.bottom_frame, text="Text Size:", font=ctk.CTkFont(size=11))
-            text_size_label.pack(side="right")
-            Tooltip(text_size_label, "Adjust all GUI text and buttons. Use Normal if buttons overlap or text looks too large. Saved automatically", anchor="above-left")
-
-            self.tooltip_toggle_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="Disable Hover Text",
-                width=130,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._toggle_tooltips,
-                font=ctk.CTkFont(size=13),
-            )
-            self.tooltip_toggle_btn.pack(side="right", padx=5)
-            Tooltip(self.tooltip_toggle_btn, "Turn hover tooltips on or off. When disabled, no tooltip popups appear when you hover over buttons and fields", anchor="above")
-
-            self.view_error_log_bottom = ctk.CTkButton(
-                self.bottom_frame,
-                text="Error Log",
-                width=80,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.open_error_log,
-                font=ctk.CTkFont(size=13),
-            )
-            self.view_error_log_bottom.pack(side="right", padx=5)
-            self._error_log_tooltip = Tooltip(self.view_error_log_bottom, "Open docsearch_errors.log to see details about files that could not be read or were skipped. The log is in your search folder (or output directory if set). Scroll to the very bottom of the file to see the most recent entries", anchor="above-high")
-
-            app_files_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="App Files",
-                width=80,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._show_app_files,
-                font=ctk.CTkFont(size=13),
-            )
-            app_files_btn.pack(side="right", padx=5)
-            Tooltip(app_files_btn, "List all docsearch-created files in the search folder and subfolders with full paths", anchor="above")
-
-            all_collections_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="All Collections",
-                width=110,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._show_all_collections,
-                font=ctk.CTkFont(size=13),
-            )
-            all_collections_btn.pack(side="right", padx=5)
-            Tooltip(all_collections_btn, "Scan your home directory for all .docsearch_collection.json files — see saved searches and suites across every folder", anchor="above-high")
-
-            # Maintenance menu — consolidates housekeeping actions
-            def _show_maintenance_menu():
+            # Tools menu — consolidates utilities, settings, and maintenance
+            def _show_tools_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
+                menu.add_command(label="App Files — list docsearch-created files", command=self._show_app_files)
+                menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
+                menu.add_command(label="Error Log — open docsearch_errors.log", command=self.open_error_log)
+                menu.add_separator()
                 menu.add_command(label="Clear Search Results — delete docsearch_results files", command=self._clear_results_files)
                 menu.add_command(label="Clear Error Log — delete docsearch_errors.log", command=self._clear_error_log)
-                menu.add_separator()
                 menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
-                # Position menu above the button
-                btn = self._maintenance_btn
-                x = btn.winfo_rootx()
-                y = btn.winfo_rooty() - 140
+                menu.add_separator()
+                # Text Size submenu
+                size_menu = tk.Menu(menu, tearoff=0, font=("TkDefaultFont", 12))
+                for size in ["Small", "Normal", "Large", "Extra Large"]:
+                    size_menu.add_command(label=size, command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)))
+                menu.add_cascade(label=f"Text Size — {self._text_size_var.get()}", menu=size_menu)
+                # Hover text toggle
+                hover_label = "Disable Hover Text" if Tooltip.enabled else "Enable Hover Text"
+                menu.add_command(label=hover_label, command=self._toggle_tooltips)
+                btn = self._tools_btn
+                x = btn.winfo_rootx() - 400
+                y = btn.winfo_rooty() - 350
                 menu.tk_popup(x, y)
 
-            self._maintenance_btn = ctk.CTkButton(
-                self.bottom_frame,
-                text="Maintenance \u25b2",
-                width=110,
+            self._tools_btn = ctk.CTkButton(
+                right_frame,
+                text="Tools \u25b2",
+                width=70,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
-                command=_show_maintenance_menu,
+                command=_show_tools_menu,
                 font=ctk.CTkFont(size=13),
             )
-            self._maintenance_btn.pack(side="right", padx=5)
-            Tooltip(self._maintenance_btn, "App Files, Clear Search Results, Clear Error Log, Clean Up Practice Files", anchor="above")
+            self._tools_btn.pack(side="right", padx=5)
+            Tooltip(self._tools_btn, "App Files, All Collections, Error Log, Text Size, Hover Text, Clear Results, Clean Up", anchor="above-left")
 
-            # Close button on its own row below the toolbar
-            ctk.CTkButton(
-                self,
-                text="Close",
-                width=100,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self.destroy,
-                font=ctk.CTkFont(size=13),
-            ).grid(row=11, column=0, columnspan=3, pady=(0, 10))
+            # Keep references for tooltip toggle (used by _toggle_tooltips)
+            self.tooltip_toggle_btn = None
+            self.view_error_log_bottom = None
 
 
         # ── Actions ──────────────────────────────────────────────
@@ -5459,10 +5526,6 @@ def _launch_gui():
         def _toggle_tooltips(self):
             """Toggle hover tooltip visibility on or off."""
             Tooltip.enabled = not Tooltip.enabled
-            if Tooltip.enabled:
-                self.tooltip_toggle_btn.configure(text="Disable Hover Text")
-            else:
-                self.tooltip_toggle_btn.configure(text="Enable Hover Text")
 
         def toggle_advanced(self):
             """Toggle the Advanced Search Options window open or closed."""
@@ -5507,7 +5570,7 @@ def _launch_gui():
                         self._index_process.terminate()
                     except Exception:
                         pass
-            self.status_label.configure(text="Cancelling index build...", fg="black")
+            self.status_label.configure(text="Cancelling index build...", text_color="black")
 
         def _browse_file(self):
             """Open a file picker, set the folder to the file's directory and specific file to search."""
@@ -5542,7 +5605,7 @@ def _launch_gui():
                 self._update_run_suite_button_color()
                 self.status_label.configure(
                     text=f"File selected: {filename} in {folder}",
-                    fg="black",
+                    text_color="black",
                 )
 
         def browse_folder(self):
@@ -5584,7 +5647,7 @@ def _launch_gui():
             if not self._recent_searches:
                 self.status_label.configure(
                     text="No recent searches yet.",
-                    fg="black",
+                    text_color="black",
                     font=ctk.CTkFont(size=13),
                 )
                 return
@@ -5965,7 +6028,7 @@ def _launch_gui():
             self.index_search_var.set("off")
 
             self.sensitive_scan_btn.configure(state="disabled", text="Scanning...")
-            self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", fg="blue")
+            self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color="blue")
             self.progress_bar.configure(mode="indeterminate")
             self.progress_bar.start()
             self.progress_bar.grid(row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
@@ -6466,7 +6529,7 @@ def _launch_gui():
                     fg="black",
                 )
             else:
-                self.status_label.configure(text=f"Searching ({_term_label})...", fg="black")
+                self.status_label.configure(text=f"Searching ({_term_label})...", text_color="black")
             self.search_start_time = time.time()
             self._start_elapsed_timer()
 
@@ -6492,11 +6555,11 @@ def _launch_gui():
                     import re as _re
                     new_text = _re.sub(r"\s*\(\d+s\)\s*$", "", current)
                     new_text = f"{new_text} ({elapsed:.0f}s)"
-                    self.status_label.configure(text=new_text, fg="blue")
+                    self.status_label.configure(text=new_text, text_color="blue")
                 else:
                     self.status_label.configure(
                         text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
-                        fg="blue",
+                        text_color="blue",
                     )
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
@@ -6786,17 +6849,7 @@ def _launch_gui():
             else:
                 self._excluded_files_btn.pack_forget()
 
-            # Update error log tooltip with actual path
-            folder = self.folder_entry.get().strip()
-            log_dir = self.results_dir or folder
-            if log_dir:
-                log_path = os.path.join(log_dir, "docsearch_errors.log")
-                self._error_log_tooltip.text = (
-                    f"Open docsearch_errors.log to see details about files that could not be read or were skipped.\n"
-                    f"The log is in your search folder (or output directory if set).\n"
-                    f"Location: {log_path}\n"
-                    f"Scroll to the very bottom of the file to see the most recent entries"
-                )
+            # Error log tooltip removed — Error Log is now in Tools menu
 
             if returncode == 0:
                 status_text = summary or "Search complete. Matches found."
@@ -6807,7 +6860,7 @@ def _launch_gui():
                     status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=status_text,
-                    fg="black",
+                    text_color="black",
                 )
                 # Post-search save (-s) if user filled in "Save as" field
                 save_name = self.save_name_entry.get().strip()
@@ -6848,7 +6901,7 @@ def _launch_gui():
                     no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=no_match_text,
-                    fg="black",
+                    text_color="black",
                 )
                 self._show_action_buttons()
             elif returncode == 2:
@@ -6875,7 +6928,7 @@ def _launch_gui():
                     self._show_action_buttons()
             else:
                 self.status_label.configure(
-                    text="Search was cancelled.", fg="black",
+                    text="Search was cancelled.", text_color="black",
                 )
 
             # Resume auto-refresh schedule if active
@@ -6922,6 +6975,7 @@ def _launch_gui():
                 ("pdf", self.report_btn_pdf),
             ]:
                 btn.pack(side="left", padx=(0, 2))
+                btn.configure(state="normal")
                 if report_formats.get(fmt):
                     btn.configure(
                         fg_color="green",
@@ -6933,7 +6987,7 @@ def _launch_gui():
                         hover_color="#AA2222",
                     )
             self.report_frame.grid(
-                row=9, column=0, padx=(15, 5), pady=(5, 45), sticky="w"
+                row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
             )
         def open_error_log(self):
             """Open the docsearch error log file in the default text editor."""
@@ -7052,7 +7106,7 @@ def _launch_gui():
             if not to_delete:
                 self.status_label.configure(
                     text="Nothing to clean up — no practice files found.",
-                    fg="black",
+                    text_color="black",
                 )
                 return
 
@@ -7287,6 +7341,7 @@ def _launch_gui():
                 self._start_countdown()
                 self._update_autorun_name_label()
                 self._update_last_run_label()
+                self._update_autorun_indicator()
             else:
                 # Clear schedule but preserve last run info for the suite
                 prev_name = self._scheduled_suite_name or suite_name
@@ -7296,12 +7351,27 @@ def _launch_gui():
                 self._stop_countdown()
                 self._update_autorun_name_label()
                 self._update_last_run_label(for_suite=prev_name)
+                self._update_autorun_indicator()
 
         def _update_autorun_name_label(self):
             """Update the Auto-Run Suite label with the scheduled suite name."""
             if self._suite_label_available() and hasattr(self, 'suite_autorun_name_label'):
                 name = self._scheduled_suite_name or "None"
                 self.suite_autorun_name_label.configure(text=name)
+
+        def _update_autorun_indicator(self):
+            """Update the auto-run indicator on the main screen status row."""
+            if not hasattr(self, "_autorun_indicator"):
+                return
+            name = self._scheduled_suite_name
+            interval = self._scheduled_suite_interval
+            if name and interval:
+                self._autorun_indicator.configure(
+                    text=f"\u23f0 Auto-run: {name} ({interval})",
+                    text_color=("blue", "deepskyblue"),
+                )
+            else:
+                self._autorun_indicator.configure(text="", text_color=("gray50", "gray50"))
 
         def _start_countdown(self):
             """Start the 1-minute countdown display timer."""
@@ -7510,6 +7580,7 @@ def _launch_gui():
                     self._restoring_schedule = True
                     self.suite_schedule_var.set(schedule)
                     self._restoring_schedule = False
+                self._update_autorun_indicator()
                 break  # Only one schedule at a time
 
         def _update_last_run_label(self, for_suite=None):
@@ -7555,7 +7626,7 @@ def _launch_gui():
             self.run_suite_main_btn.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
             self.status_label.configure(
                 text="Building index... this may take a few minutes for large folders. Please wait.",
-                fg="black",
+                text_color="black",
             )
 
             self._index_cancelled = False
@@ -7582,7 +7653,7 @@ def _launch_gui():
                         short_name = short_name[:47] + "..."
                     self.status_label.configure(
                         text=f"Building index... {done}/{total} files: {short_name}",
-                        fg="black",
+                        text_color="black",
                     )
                 self.after(300, _poll_progress)
 
@@ -7621,16 +7692,16 @@ def _launch_gui():
                     lc = result.get("line_count", 0)
                     el = result.get("elapsed", 0)
                     display = f"Index built: {fc} files, {lc:,} lines in {el:.1f}s"
-                    self.status_label.configure(text=display, fg="black")
+                    self.status_label.configure(text=display, text_color="black")
                     # Default auto-refresh to 1 hour if currently Off
                     if self.refresh_interval_var.get() == "Off":
                         self.refresh_interval_var.set("1 hour")
                         self._on_refresh_interval_changed("1 hour")
                 elif returncode == 2:
-                    self.status_label.configure(text="Index build cancelled.", fg="black")
+                    self.status_label.configure(text="Index build cancelled.", text_color="black")
                 else:
                     err_msg = (result or {}).get("error", "Unknown error")
-                    self.status_label.configure(text=f"Index build failed: {err_msg}", fg="red")
+                    self.status_label.configure(text=f"Index build failed: {err_msg}", text_color="red")
 
             threading.Thread(target=_run, daemon=True).start()
             self.after(300, _poll_progress)
@@ -7651,7 +7722,7 @@ def _launch_gui():
                 return
             self.status_label.configure(
                 text=msg or "Index removed.",
-                fg="black",
+                text_color="black",
             )
             self._update_index_button_color()
             self.refresh_interval_var.set("Off")
@@ -7961,7 +8032,7 @@ def _launch_gui():
             if not app_files:
                 self.status_label.configure(
                     text="No docsearch files found in this folder.",
-                    fg="black",
+                    text_color="black",
                 )
                 return
 
@@ -8050,7 +8121,7 @@ def _launch_gui():
             from docsearch.collection import COLLECTION_FILENAME, load_collection
 
             home = os.path.expanduser("~")
-            self.status_label.configure(text="Scanning for saved collections…", fg="blue")
+            self.status_label.configure(text="Scanning for saved collections…", text_color="blue")
             self.update_idletasks()
 
             # Walk home directory to find all collection files
@@ -8078,7 +8149,7 @@ def _launch_gui():
             if not collections:
                 self.status_label.configure(
                     text="No saved collections found.",
-                    fg="black",
+                    text_color="black",
                 )
                 return
 
@@ -8163,7 +8234,7 @@ def _launch_gui():
                     self._refresh_load_search_menu()
                     self.status_label.configure(
                         text=f"Switched to: {folder}",
-                        fg="black",
+                        text_color="black",
                     )
                     popup.destroy()
 
@@ -8720,7 +8791,7 @@ def _launch_gui():
                     os.remove(path)
             self.status_label.configure(
                 text="Settings saved to ~/.docsearchrc",
-                fg="black",
+                text_color="black",
                 font=ctk.CTkFont(size=13),
             )
 
@@ -8871,7 +8942,7 @@ def _launch_gui():
         def _show_error(self, message):
             """Display an error message in the status label and a modal dialog."""
             self.status_label.configure(
-                text=message, fg="red"
+                text=message, text_color="red"
             )
             self.bell()
             messagebox.showerror("Error", message)
@@ -9051,7 +9122,7 @@ def _launch_gui():
                     dialog.destroy()
                     self.status_label.configure(
                         text=f"Search '{name}' saved to collection.",
-                        fg="black", font=ctk.CTkFont(size=13),
+                        text_color="black", font=ctk.CTkFont(size=13),
                     )
                     if self.suite_window is not None and self.suite_visible:
                         self._refresh_suite_panel()
