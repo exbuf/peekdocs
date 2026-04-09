@@ -1776,6 +1776,13 @@ def _launch_gui():
             b("imported searches and suites into your existing collection")
             b("without overwriting non-conflicting items.")
             blank()
+            b("The 9 built-in industry templates are starting points, not a")
+            b("fixed set. You can build your own compliance suites for any")
+            b("industry, regulation, or internal standard \u2014 there is no limit.")
+            b("Create saved searches manually, group them into a suite with")
+            b("pass/fail criteria, and export the suite as a .json file.")
+            b("The result is identical to a wizard-generated template.")
+            blank()
 
             txt.configure(state="disabled")
 
@@ -3242,12 +3249,44 @@ def _launch_gui():
             self.suite_window = ctk.CTkToplevel(self)
             self.suite_window.title("Search Suites")
             self.suite_window.after(100, lambda: self.suite_window.title("Search Suites"))
-            self.suite_window.geometry("650x750")
+            self.suite_window.geometry("780x750")
             self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
             self.suite_window.after(50, self.suite_window.lift)
 
-            self.suite_frame = ctk.CTkFrame(self.suite_window)
-            self.suite_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            import tkinter as _tk_suite
+
+            # Scrollable container
+            self._suite_canvas = _tk_suite.Canvas(self.suite_window, highlightthickness=0)
+            self._suite_scrollbar = _tk_suite.Scrollbar(self.suite_window, command=self._suite_canvas.yview)
+            self._suite_canvas.configure(yscrollcommand=self._suite_scrollbar.set)
+            self._suite_scrollbar.pack(side="right", fill="y")
+            self._suite_canvas.pack(side="left", fill="both", expand=True)
+
+            self.suite_frame = ctk.CTkFrame(self._suite_canvas)
+            self._suite_canvas_window = self._suite_canvas.create_window(
+                (0, 0), window=self.suite_frame, anchor="nw"
+            )
+
+            def _on_suite_frame_configure(event):
+                self._suite_canvas.configure(scrollregion=self._suite_canvas.bbox("all"))
+
+            def _on_suite_canvas_configure(event):
+                self._suite_canvas.itemconfig(self._suite_canvas_window, width=event.width)
+
+            self.suite_frame.bind("<Configure>", _on_suite_frame_configure)
+            self._suite_canvas.bind("<Configure>", _on_suite_canvas_configure)
+
+            # Mousewheel scrolling
+            def _on_suite_mousewheel(event):
+                delta = event.delta
+                if abs(delta) > 10:
+                    delta = 1 if delta > 0 else -1
+                else:
+                    delta = max(-1, min(1, delta))
+                self._suite_canvas.yview_scroll(-delta, "units")
+
+            self._suite_canvas.bind_all("<MouseWheel>", _on_suite_mousewheel)
+            self._suite_canvas.configure(yscrollincrement=10)
 
             # Header with description and Help button
             header_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -3460,6 +3499,19 @@ def _launch_gui():
             suite_outdir_browse_btn.grid(row=0, column=2)
             Tooltip(suite_outdir_browse_btn, "Choose a folder for suite output files (stage reports, suite reports)")
             Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Search Options — each can point to a different location")
+
+            # Stage reports checkbox
+            stage_opts_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
+            stage_opts_frame.grid(row=6, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
+            self._generate_stage_reports_var = ctk.StringVar(value="on")
+            self._stage_reports_cb = ctk.CTkCheckBox(
+                stage_opts_frame, text="Generate stage reports (per-search detail files)",
+                variable=self._generate_stage_reports_var,
+                onvalue="on", offvalue="off",
+                font=ctk.CTkFont(size=12),
+            )
+            self._stage_reports_cb.pack(side="left")
+            Tooltip(self._stage_reports_cb, "When checked, each search in the suite produces its own detail report file with the actual matched text and highlighting. Uncheck to generate only the summary suite report")
 
             # Auto-Run History + Email Alerts links row
             links_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
@@ -3779,15 +3831,23 @@ def _launch_gui():
             blank()
 
             h("FILES GENERATED")
-            b("All report filenames are automatically timestamped.")
-            b("\u2022 Stage reports: \u2026_stage{NN}_{search}_{timestamp}.txt/.docx")
-            b("  Each search gets its own report file.")
-            b("\u2022 Suite report: \u2026_suite_{name}_{timestamp}.docx/.txt/.json")
-            b("  Consolidated pass/fail summary with color-coded results.")
+            b("\u2022 Suite report: DO_NOT_SEARCH_docsearch_suite_{name}.docx/.txt/.json")
+            b("  Consolidated pass/fail summary with color-coded results,")
+            b("  source file manifest, File \u00d7 Test matrix, and stage details.")
+            b("  Overwritten on each run.")
+            b("\u2022 Stage reports (optional): DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt/.docx")
+            b("  Each search gets its own detail report file with the actual")
+            b("  matched text and highlighting. Useful for drilling into a")
+            b("  specific finding. Overwritten on each run.")
             b("\u2022 Collection: .docsearch_collection.json")
             b("  Saves searches & suite definitions per folder.")
             b("\u2022 Auto-run log: DO_NOT_SEARCH_autorun_log.txt")
             b("  Persistent history of all scheduled runs.")
+            blank()
+            b("Check 'Generate stage reports' in the suites panel to produce")
+            b("per-search detail files. Uncheck it to generate only the suite")
+            b("summary report. The suite report always includes the File \u00d7 Test")
+            b("matrix showing per-file, per-test results regardless of this setting.")
             blank()
 
             h("HOW THE COLLECTION FILE WORKS")
@@ -3962,6 +4022,10 @@ def _launch_gui():
             if self.suite_running:
                 return  # Don't close while a suite is running
             self._capture_suite_output_dir()
+            try:
+                self._suite_canvas.unbind_all("<MouseWheel>")
+            except Exception:
+                pass
             self.suite_window.destroy()
             self.suite_window = None
             self.suite_toggle.configure(text="\u25b6 Manage Suites")
@@ -4982,7 +5046,10 @@ def _launch_gui():
                             match_count = int(m.group(1))
 
                 # Copy per-stage reports before the next search overwrites them
-                stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name)
+                if self._generate_stage_reports_var.get() == "on":
+                    stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name)
+                else:
+                    stage_files = {}
 
                 # Evaluate pass/fail using per-search criteria
                 pc = self._search_criteria.get(name, {"op": ">=", "n": 1})

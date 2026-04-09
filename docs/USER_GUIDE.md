@@ -1742,6 +1742,17 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 | **Number of search terms** | No maximum — you can provide as many terms as needed |
 | **Index database size** | No maximum. The index grows proportionally to the amount of text in your documents (typically 10–20% of original file sizes) |
 | **Number of saved searches or suites** | No maximum per folder |
+| **Number of searches in a suite** | No maximum |
+| **Number of industry templates** | No maximum — the 9 built-in templates are starter examples; you can build as many of your own as you need |
+
+**Building your own compliance templates:** The 9 industry templates in the Compliance Wizard are not a fixed set — they're starting points. You can build your own compliance suites for any industry, regulation, or internal standard:
+
+1. **Create saved searches** — use the Search Wizard, the search bar, or Advanced Search Options to configure each check (e.g., "find files missing a confidentiality notice," "detect account numbers," "verify approval signatures"). Save each one with a descriptive name.
+2. **Build a suite** — open Manage Suites, click Build a New Suite, add your saved searches, set pass/fail criteria and execution order.
+3. **Export it** — click Export Suite to save the suite and all its searches as a `.json` file.
+4. **Share it** — send the `.json` file to colleagues, clients, or other machines. They click Import Template to load it.
+
+This is the same process the Compliance Wizard automates — you're just doing it manually with your own searches tailored to your specific requirements. The exported `.json` file is functionally identical to a wizard-generated template. There is no difference between a suite created by the wizard and one you build yourself.
 
 **System-dependent constraints:**
 

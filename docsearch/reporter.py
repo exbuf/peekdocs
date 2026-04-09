@@ -908,8 +908,48 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
 
     doc.add_paragraph()  # spacer
 
+    # ── Source file manifest (moved above summary) ──
+    if source_files:
+        _add_line("Source File Manifest", bold=True, size=12)
+        _add_line(
+            f"{len(source_files)} file(s) were present in the search folder "
+            f"when this suite ran."
+        )
+        doc.add_paragraph()
+
+        manifest_table = doc.add_table(rows=1, cols=4)
+        manifest_table.style = "Light Grid Accent 1"
+        for i, h in enumerate(["#", "File", "Size", "Last Modified"]):
+            cell = manifest_table.rows[0].cells[i]
+            cell.text = ""
+            run = cell.paragraphs[0].add_run(h)
+            run.bold = True
+            run.font.size = Pt(10)
+
+        for idx, (filepath, size_bytes, mod_time) in enumerate(source_files, 1):
+            row = manifest_table.add_row()
+            row.cells[0].text = str(idx)
+            row.cells[1].text = os.path.basename(filepath)
+            row.cells[2].text = fmt_size(size_bytes)
+            row.cells[3].text = mod_time
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    for run in para.runs:
+                        if run.font.size is None:
+                            run.font.size = Pt(10)
+
+        for row in manifest_table.rows:
+            trPr = row._tr.get_or_add_trPr()
+            cant_split = OxmlElement("w:cantSplit")
+            trPr.append(cant_split)
+
+        total_size = sum(s for _, s, _ in source_files)
+        doc.add_paragraph()
+        _add_line(f"Total: {len(source_files)} files, {fmt_size(total_size)}")
+        doc.add_paragraph()
+
     # ── Summary table ──
-    _add_line("Summary", bold=True, size=12)
+    _add_line("Test Summary", bold=True, size=12)
 
     cols = 5 if has_cascade else 4
     table = doc.add_table(rows=1, cols=cols)
@@ -953,7 +993,6 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
                     cascade_str += f" (of {cic})"
                 row.cells[4].text = cascade_str
 
-        # Set font size on all cells in row
         for cell in row.cells:
             for para in cell.paragraphs:
                 for run in para.runs:
@@ -961,6 +1000,166 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
                         run.font.size = Pt(9)
 
     doc.add_paragraph()  # spacer
+
+    # ── File × Test matrix ──
+    if source_files and results:
+        _add_line("File × Test Detail", bold=True, size=12)
+        _add_line(
+            "Each cell shows the match count for that file in that test. "
+            "For inverse tests, \u2718 = file is missing the required term. "
+            "The last column shows PASS if all tests passed for that file, "
+            "or FAIL if any test failed."
+        )
+        doc.add_paragraph()
+
+        # Build per-file, per-test match data
+        test_names = [r["name"] for r in results]
+        # Map: test_name -> {filename -> count}
+        test_file_counts = {}
+        test_is_inverse = {}
+        for r in results:
+            tname = r["name"]
+            test_is_inverse[tname] = r.get("inverse", False)
+            file_map = {}
+            for item in r.get("matched_files", []):
+                fname = item[0] if isinstance(item, (list, tuple)) else item
+                count = item[1] if isinstance(item, (list, tuple)) and len(item) > 1 else 0
+                file_map[fname] = count
+            test_file_counts[tname] = file_map
+
+        # Collect all source filenames
+        all_filenames = [os.path.basename(fp) for fp, _, _ in source_files]
+
+        # Build matrix table: #, File, Test1, Test2, ..., P/F
+        n_tests = len(test_names)
+        matrix = doc.add_table(rows=1, cols=2 + n_tests + 1)
+        matrix.style = "Light Grid Accent 1"
+
+        # Row 0: header with test numbers
+        header_row = matrix.rows[0]
+        cell = header_row.cells[0]
+        cell.text = ""
+        run = cell.paragraphs[0].add_run("#")
+        run.bold = True
+        run.font.size = Pt(10)
+        cell = header_row.cells[1]
+        cell.text = ""
+        run = cell.paragraphs[0].add_run("Test \u2192")
+        run.bold = True
+        run.font.size = Pt(10)
+        for t_idx in range(n_tests):
+            cell = header_row.cells[2 + t_idx]
+            cell.text = ""
+            run = cell.paragraphs[0].add_run(str(t_idx + 1))
+            run.bold = True
+            run.font.size = Pt(10)
+        cell = header_row.cells[2 + n_tests]
+        cell.text = ""
+        run = cell.paragraphs[0].add_run("P/F")
+        run.bold = True
+        run.font.size = Pt(10)
+
+        for file_idx, fname in enumerate(all_filenames, 1):
+            row = matrix.add_row()
+            row.cells[0].text = str(file_idx)
+            row.cells[1].text = fname
+
+            file_failed = False
+            for t_idx, tname in enumerate(test_names):
+                cell = row.cells[2 + t_idx]
+                file_map = test_file_counts.get(tname, {})
+                is_inv = test_is_inverse.get(tname, False)
+                pc = results[t_idx].get("pass_criteria", {"op": ">=", "n": 1})
+
+                if is_inv:
+                    # Inverse: file in matched_files means it's MISSING the term
+                    if fname in file_map:
+                        cell.text = ""
+                        run = cell.paragraphs[0].add_run("\u2718")
+                        run.font.color.rgb = RED
+                        run.font.size = Pt(10)
+                        # Missing term — check if criteria expects 0 missing
+                        if pc["op"] == "==" and pc["n"] == 0:
+                            file_failed = True
+                    else:
+                        cell.text = ""
+                        run = cell.paragraphs[0].add_run("\u2714")
+                        run.font.color.rgb = GREEN
+                        run.font.size = Pt(10)
+                else:
+                    # Normal: file in matched_files has matches
+                    count = file_map.get(fname, 0)
+                    cell.text = ""
+                    run = cell.paragraphs[0].add_run(str(count))
+                    run.font.size = Pt(10)
+                    if count > 0:
+                        # Has matches — fail if criteria wants 0
+                        if pc["op"] == "==" and pc["n"] == 0:
+                            run.font.color.rgb = RED
+                            file_failed = True
+                        elif pc["op"] == "<=" and count > pc["n"]:
+                            run.font.color.rgb = RED
+                            file_failed = True
+                    else:
+                        # No matches — fail if criteria requires matches
+                        if pc["op"] == ">=" and pc["n"] > 0:
+                            run.font.color.rgb = RED
+                            file_failed = True
+
+            # P/F column
+            pf_cell = row.cells[2 + n_tests]
+            pf_cell.text = ""
+            if file_failed:
+                run = pf_cell.paragraphs[0].add_run("F")
+                run.bold = True
+                run.font.color.rgb = RED
+            else:
+                run = pf_cell.paragraphs[0].add_run("P")
+                run.bold = True
+                run.font.color.rgb = GREEN
+            run.font.size = Pt(10)
+
+            # Set font size on # and File cells
+            for ci in (0, 1):
+                for para in row.cells[ci].paragraphs:
+                    for run in para.runs:
+                        if run.font.size is None:
+                            run.font.size = Pt(10)
+
+        # Summary row: P/F status per test column
+        summary_row = matrix.add_row()
+        summary_row.cells[0].text = ""
+        cell = summary_row.cells[1]
+        cell.text = ""
+        run = cell.paragraphs[0].add_run("Test Result:")
+        run.bold = True
+        run.font.size = Pt(10)
+        for t_idx, r in enumerate(results):
+            cell = summary_row.cells[2 + t_idx]
+            cell.text = ""
+            status = "P" if r["passed"] else "F"
+            run = cell.paragraphs[0].add_run(status)
+            run.bold = True
+            run.font.color.rgb = GREEN if r["passed"] else RED
+            run.font.size = Pt(10)
+        summary_row.cells[2 + n_tests].text = ""
+
+        # Prevent rows from splitting across pages; keep last data row
+        # attached to the summary row
+        all_rows = list(matrix.rows)
+        for i, row in enumerate(all_rows):
+            trPr = row._tr.get_or_add_trPr()
+            cant_split = OxmlElement("w:cantSplit")
+            trPr.append(cant_split)
+            # keepNext on second-to-last row keeps summary row attached
+            if i == len(all_rows) - 2:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        pPr = para._p.get_or_add_pPr()
+                        keep_next = OxmlElement("w:keepNext")
+                        pPr.append(keep_next)
+
+        doc.add_paragraph()
 
     # ── Stage details ──
     _add_line("Stage Details", bold=True, size=12)
@@ -1000,21 +1199,6 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
                     result_str += f" (narrowed from {cic})"
             _add_line(result_str)
 
-        # List matched files
-        matched_files = r.get("matched_files", [])
-        if matched_files:
-            if r.get("inverse"):
-                _add_line(f"Files missing the search term ({len(matched_files)}):")
-            else:
-                _add_line(f"Files with matches ({len(matched_files)}):")
-            for fname, count in matched_files[:50]:
-                if count:
-                    _add_line(f"    {fname}  ({count} match(es))")
-                else:
-                    _add_line(f"    {fname}")
-            if len(matched_files) > 50:
-                _add_line(f"    ... and {len(matched_files) - 50} more (see stage report for full list)")
-
         # Stage report references
         stage_files = r.get("stage_files", {})
         if stage_files:
@@ -1022,42 +1206,6 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
             _add_line(f"Stage reports: {fnames}")
 
         doc.add_paragraph()  # spacer between stages
-
-    # ── Source file manifest ──
-    if source_files:
-        _add_line("Source File Manifest", bold=True, size=12)
-        _add_line(
-            f"{len(source_files)} file(s) were present in the search folder "
-            f"when this suite ran. This manifest lists every file that was "
-            f"available for searching."
-        )
-        doc.add_paragraph()  # spacer
-
-        manifest_table = doc.add_table(rows=1, cols=4)
-        manifest_table.style = "Light Grid Accent 1"
-        for i, h in enumerate(["#", "File", "Size", "Last Modified"]):
-            cell = manifest_table.rows[0].cells[i]
-            cell.text = ""
-            run = cell.paragraphs[0].add_run(h)
-            run.bold = True
-            run.font.size = Pt(8)
-
-        for idx, (filepath, size_bytes, mod_time) in enumerate(source_files, 1):
-            row = manifest_table.add_row()
-            row.cells[0].text = str(idx)
-            row.cells[1].text = os.path.basename(filepath)
-            row.cells[2].text = fmt_size(size_bytes)
-            row.cells[3].text = mod_time
-            for cell in row.cells:
-                for para in cell.paragraphs:
-                    for run in para.runs:
-                        if run.font.size is None:
-                            run.font.size = Pt(8)
-
-        # Manifest summary
-        total_size = sum(s for _, s, _ in source_files)
-        doc.add_paragraph()
-        _add_line(f"Total: {len(source_files)} files, {fmt_size(total_size)}")
 
     # ── Disclaimer ──
     doc.add_paragraph()
@@ -1069,7 +1217,7 @@ def write_suite_report_docx(output_path, suite_name, folder, results,
         "requirements. Users are solely responsible for determining whether results meet "
         "their specific compliance obligations."
     )
-    run.font.size = Pt(8)
+    run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(128, 128, 128)
 
     doc.save(output_path)
