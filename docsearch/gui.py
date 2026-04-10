@@ -1960,7 +1960,7 @@ def _launch_gui():
             b("Building custom templates is straightforward \u2014 the format")
             b("and steps are described above. If your organization needs help")
             b("designing a compliance suite for a complex regulatory environment,")
-            b("the author offers consulting services at robertdschoening.com.")
+            b("feel free to contact the author at robertdschoening.com.")
             blank()
 
             txt.configure(state="disabled")
