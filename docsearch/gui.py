@@ -638,12 +638,19 @@ def _launch_gui():
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
             btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 5), pady=(0, 8), sticky="ew")
 
+            # Run Search + AND/OR radio buttons grouped together
+            run_group = ctk.CTkFrame(
+                btn_frame, border_width=2, border_color=("gray40", "gray60"),
+                corner_radius=8, fg_color=("gray85", "gray20"),
+            )
+            run_group.pack(side="left", padx=(0, 8))
+
             self.search_button = ctk.CTkButton(
-                btn_frame, text="Run Search", width=0, command=self.start_search,
+                run_group, text="Run Search", width=0, command=self.start_search,
                 font=ctk.CTkFont(size=12),
                 fg_color="green", hover_color="darkgreen",
             )
-            self.search_button.pack(side="left", padx=(0, 8))
+            self.search_button.pack(side="left", padx=(4, 4), pady=3)
             Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
             # AND/OR radio buttons — synced with AND mode checkbox in Advanced Search Options
@@ -655,20 +662,20 @@ def _launch_gui():
                 if hasattr(self, "search_entry"):
                     self.search_entry.configure(placeholder_text="Enter search terms...")
             self._and_radio = ctk.CTkRadioButton(
-                btn_frame, text="AND", variable=self.and_mode_var, value="on",
+                run_group, text="AND", variable=self.and_mode_var, value="on",
                 font=ctk.CTkFont(size=11), command=_on_radio_and,
                 radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
                 width=38,
             )
-            self._and_radio.pack(side="left", padx=0)
+            self._and_radio.pack(side="left", padx=0, pady=3)
             Tooltip(self._and_radio, "AND mode — all search terms must appear in the same paragraph. Synced with AND mode checkbox in Advanced Search Options")
             self._or_radio = ctk.CTkRadioButton(
-                btn_frame, text="OR", variable=self.and_mode_var, value="off",
+                run_group, text="OR", variable=self.and_mode_var, value="off",
                 font=ctk.CTkFont(size=11), command=_on_radio_and,
                 radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
                 width=30,
             )
-            self._or_radio.pack(side="left", padx=(8, 6))
+            self._or_radio.pack(side="left", padx=(8, 6), pady=3)
             Tooltip(self._or_radio, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode checkbox in Advanced Search Options")
 
             # Right-aligned: Use Index checkbox
@@ -2048,16 +2055,20 @@ def _launch_gui():
             blank()
 
             h("WHO IS IT FOR?")
-            b("\u2022 Home users \u2014 search personal documents, Google Docs")
+            txt.tag_configure("body_bold_who", font=("TkDefaultFont", 12, "bold"), lmargin1=20, lmargin2=20)
+            txt.insert("end", "\u2022 Home users", "body_bold_who")
+            txt.insert("end", " \u2014 search personal documents, Google Docs\n", "body")
             b("  backups, tax records, family files. Just type a keyword")
             b("  and click Run Search. Recent searches remember your last")
             b("  10 searches so you can quickly repeat them.")
             blank()
-            b("\u2022 Small businesses \u2014 find information across contracts,")
+            txt.insert("end", "\u2022 Small businesses", "body_bold_who")
+            txt.insert("end", " \u2014 find information across contracts,\n", "body")
             b("  invoices, reports, and correspondence. Use AND mode,")
             b("  file type filters, and range queries to narrow results.")
             blank()
-            b("\u2022 Compliance and auditing \u2014 create search suites that")
+            txt.insert("end", "\u2022 Compliance and auditing", "body_bold_who")
+            txt.insert("end", " \u2014 create search suites that\n", "body")
             b("  check every document for required language, flag prohibited")
             b("  content, detect PII like Social Security numbers, and")
             b("  verify dollar amounts fall within policy ranges. Run")
