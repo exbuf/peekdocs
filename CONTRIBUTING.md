@@ -6,7 +6,7 @@ Thank you for your interest in contributing to docsearch!
 
 docsearch is MIT-licensed and free. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled, and the existing features will remain free.
 
-If your organization needs help designing custom compliance templates or compliance review workflows for a specific regulatory environment, feel free to contact the author ([Robert D. Schoening](https://robertdschoening.com)).
+If your organization needs help designing custom compliance templates for a specific regulatory environment, feel free to contact the author ([Robert D. Schoening](https://robertdschoening.com)).
 
 ## Reporting Bugs
 
