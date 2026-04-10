@@ -18,7 +18,7 @@
 
 docsearch scales from simple keyword searches to organized document review workflows — use as much or as little as you need:
 
-- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration
+- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration. Click **PII Scan** to check your personal files for Social Security numbers, credit cards, tax IDs, and other sensitive data hiding in your documents — one click, no setup
 - **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
 - **Compliance & audit workflows** — create search suites to help review documents for required language, flag prohibited content, detect PII (Personally Identifiable Information), and check that dollar amounts fall within expected ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard provides starter templates for common industries — SOX (Sarbanes-Oxley), HIPAA (Health Insurance Portability and Accountability Act), Legal, Government, ISO (International Organization for Standardization), FERPA (Family Educational Rights and Privacy Act), Real Estate, Insurance, HR (Human Resources) — customize to fit your needs
 - **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review

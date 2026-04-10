@@ -394,6 +394,8 @@ The Search Wizard shows the current **Search Folder** at the top of the window w
 
 **Compliance Wizard:**
 
+**Who should use it?** Compliance officers, internal auditors, legal teams, HR managers, healthcare administrators, financial services teams, consultants delivering document review services, and anyone who needs repeatable, evidence-grade document checks. **Home users:** the Compliance Wizard is overkill for typical personal needs like finding a tax return, searching old emails, or looking for a phrase in a document. For those tasks, just use the main search bar, and for periodically checking your personal files for sensitive data (SSNs, credit cards, passwords) use the **PII Scan** button — one click, no suite needed. The Compliance Wizard is designed for structured, repeatable reviews that produce audit-ready reports.
+
 Click the **Compliance Wizard** button (next to Search Wizard) to create a search suite from an industry starter template in one click. Instead of manually building individual searches and assembling them into a suite, pick a template and the wizard does it all:
 
 1. **Choose an industry** — select from 9 templates: Financial Services (SOX/BSA/AML), Healthcare (HIPAA), Legal Document Review, Government Records, Manufacturing (ISO 9001), Education (FERPA), Real Estate Closing, Insurance Compliance, or HR Compliance

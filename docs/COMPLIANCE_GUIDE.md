@@ -161,6 +161,8 @@ docsearch includes a set of 90 sample documents across 9 industries, each with s
 
 **Compliance Wizard — the fastest way to get started:**
 
+**Who should use it?** Compliance officers, internal auditors, legal teams, HR managers, healthcare administrators, financial services teams, consultants delivering document review services, and anyone who needs repeatable, evidence-grade document checks. **Home users:** the Compliance Wizard is overkill for typical personal needs like finding a tax return, searching old emails, or looking for a phrase in a document. For those tasks, just use the main search bar, and for periodically checking your personal files for sensitive data (SSNs, credit cards, passwords) use the **PII Scan** button — one click, no suite needed. The Compliance Wizard is designed for structured, repeatable reviews that produce audit-ready reports.
+
 The **Compliance Wizard** (on the main screen, next to the Search Wizard) creates a search suite from an industry starter template in one click. Instead of manually building individual searches and assembling them into a suite:
 
 1. Click **Compliance Wizard**

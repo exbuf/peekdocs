@@ -541,13 +541,15 @@ def _launch_gui():
                          fg="white", bg="#2196F3", width=7).pack(side="left", padx=(0, 12))
                 text_frame = tk.Frame(frame)
                 text_frame.pack(side="left", fill="x")
-                tk.Label(text_frame, text=title, font=("TkDefaultFont", 14, "bold"), anchor="w").pack(anchor="w")
-                tk.Label(text_frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", wraplength=800).pack(anchor="w")
+                tk.Label(text_frame, text=title, font=("TkDefaultFont", 14, "bold"),
+                         anchor="w", justify="left").pack(anchor="w", fill="x")
+                tk.Label(text_frame, text=desc, font=("TkDefaultFont", 12), fg="gray",
+                         anchor="w", justify="left", wraplength=800).pack(anchor="w", fill="x")
 
-            _step(1, "Choose a folder", "Click the Search tab, then click Browse next to '1. Search Folder' to select the folder containing your documents.")
-            _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue")
+            _step(1, "Choose a folder", "Click the Search tab above, then click Browse next to '1. Search Folder' to select the folder containing your documents.")
+            _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
             _step(3, "Click Run Search", "docsearch scans every supported file and shows results with matches highlighted in yellow.")
-            _step(4, "View your results", "Click DOCX next to View Report to open the highlighted Word report. Or browse matches in the preview pane.")
+            _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. DOCX requires a word processor on your computer (Microsoft Word, LibreOffice, Google Docs, or Apple Pages). TXT opens in any text editor.")
 
             tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
@@ -1680,6 +1682,7 @@ def _launch_gui():
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
                 "What Is the Compliance Wizard?",
+                "Who Should Use the Compliance Wizard?",
                 "Search Wizard vs Compliance Wizard",
                 "How It Works",
                 "Search Folder — Where the Suite Runs",
@@ -1687,6 +1690,7 @@ def _launch_gui():
                 "Mixing Industries",
                 "After Creating the Suite", "Suite Reports",
                 "Available Templates", "Customizing Templates",
+                "Building Your Own Templates",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
@@ -1697,9 +1701,40 @@ def _launch_gui():
 
             h("WHAT IS THE COMPLIANCE WIZARD?")
             b("The Compliance Wizard creates a complete search suite for a specific")
-            b("industry or regulation in one click. Instead of manually building")
-            b("individual searches and assembling them into a suite, you pick an")
-            b("industry template and the wizard does it all for you.")
+            b("industry or regulation in one click. docsearch ships with 9 built-in")
+            b("industry templates, and you can also build your own for any")
+            b("industry, regulation, or internal standard (see 'Building Your Own")
+            b("Templates' below). Instead of manually building individual searches")
+            b("and assembling them into a suite, you pick an industry template and")
+            b("the wizard does it all for you.")
+            blank()
+
+            h("WHO SHOULD USE THE COMPLIANCE WIZARD?")
+            b("\u2022 Compliance officers auditing documents for regulatory requirements")
+            b("  (SOX, HIPAA, FERPA, ISO 9001, BSA/AML, etc.)")
+            b("\u2022 Internal auditors reviewing contracts, records, or policies")
+            b("\u2022 Legal teams doing document review or privilege detection")
+            b("\u2022 HR managers verifying employee files have required documents")
+            b("\u2022 Healthcare administrators checking for PII exposure")
+            b("\u2022 Financial services teams monitoring transactions and disclosures")
+            b("\u2022 Consultants delivering document review services to clients")
+            b("\u2022 Anyone who needs repeatable, evidence-grade document checks")
+            blank()
+            # Merged paragraph with bolded "Home users:" prefix
+            txt.tag_configure("body_bold_inline", font=("TkDefaultFont", 12, "bold"))
+            txt.insert("end", "Home users: ", "body_bold_inline")
+            txt.insert("end",
+                "the Compliance Wizard is overkill for typical personal needs like "
+                "finding a tax return, searching old emails, or looking for a phrase "
+                "in a document. For those tasks, just use the main search bar, and for "
+                "periodically checking your personal files for sensitive data (SSNs, "
+                "credit cards, passwords) use the PII Scan button \u2014 one click, no "
+                "suite needed. If you only need to find text in a single document or "
+                "folder, use the main search bar or the Search Wizard instead. The "
+                "Compliance Wizard is designed for structured, repeatable reviews "
+                "that produce audit-ready reports.\n",
+                "body",
+            )
             blank()
 
             h("SEARCH WIZARD VS COMPLIANCE WIZARD")
@@ -1888,12 +1923,44 @@ def _launch_gui():
             b("imported searches and suites into your existing collection")
             b("without overwriting non-conflicting items.")
             blank()
+
+            h("BUILDING YOUR OWN TEMPLATES")
             b("The 9 built-in industry templates are starting points, not a")
             b("fixed set. You can build your own compliance suites for any")
             b("industry, regulation, or internal standard \u2014 there is no limit.")
             b("Create saved searches manually, group them into a suite with")
             b("pass/fail criteria, and export the suite as a .json file.")
             b("The result is identical to a wizard-generated template.")
+            blank()
+            b("Other industries and use cases where custom templates make sense:")
+            b("\u2022 Construction \u2014 permit documents, contractor licenses,")
+            b("  safety certifications, change orders, lien waivers")
+            b("\u2022 Engineering \u2014 design specs, test reports, calibration")
+            b("  records, material certifications, drawing revisions")
+            b("\u2022 Pharmaceutical / biotech \u2014 clinical trial records, FDA")
+            b("  submissions, batch records, GMP documentation")
+            b("\u2022 Agriculture / food safety \u2014 HACCP plans, USDA compliance,")
+            b("  organic certification, traceability records")
+            b("\u2022 Transportation / logistics \u2014 DOT compliance, driver logs,")
+            b("  shipping manifests, hazmat documentation")
+            b("\u2022 Energy / utilities \u2014 NERC/FERC compliance, environmental")
+            b("  permits, safety inspections, OSHA records")
+            b("\u2022 Nonprofits \u2014 grant reporting, donor records, 990 filings,")
+            b("  volunteer background checks")
+            b("\u2022 Technology / SaaS \u2014 SOC 2 evidence, GDPR compliance,")
+            b("  data retention, access reviews")
+            b("\u2022 Accounting / tax \u2014 client file completeness, tax return")
+            b("  review, workpaper standards")
+            b("\u2022 Nonprofit / academic research \u2014 IRB approvals, consent")
+            b("  forms, data handling records")
+            blank()
+            b("If you work in any industry with document review requirements,")
+            b("you can build a compliance suite for it \u2014 the tool is industry-agnostic.")
+            blank()
+            b("Building custom templates is straightforward \u2014 the format")
+            b("and steps are described above. If your organization needs help")
+            b("designing a compliance suite for a complex regulatory environment,")
+            b("the author offers consulting services at robertdschoening.com.")
             blank()
 
             txt.configure(state="disabled")
