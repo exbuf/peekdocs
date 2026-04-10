@@ -9211,8 +9211,12 @@ def _launch_gui():
             from docsearch.cli import _load_config
 
             config = _load_config()
-            # Set booleans — reset to off if not in config
-            self.recursive_var.set("on" if config.get("recursive") else "off")
+            # For first-time users (no config yet), default Recursive and Whole Word to ON
+            # For returning users, respect what they saved (missing key = off)
+            _recursive_default = True if self._is_first_run else False
+            _whole_word_default = True if self._is_first_run else False
+            # Set booleans — reset to off if not in config (except recursive/whole_word for new users)
+            self.recursive_var.set("on" if config.get("recursive", _recursive_default) else "off")
             self.and_mode_var.set("on" if config.get("match_all") else "off")
             self.fuzzy_var.set("on" if config.get("fuzzy") else "off")
             self.wildcard_var.set("on" if config.get("wildcard") else "off")
@@ -9224,7 +9228,7 @@ def _launch_gui():
             self.output_pdf_var.set("on" if config.get("output_pdf") else "off")
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
-            self.whole_word_var.set("on" if config.get("whole_word") else "off")
+            self.whole_word_var.set("on" if config.get("whole_word", _whole_word_default) else "off")
             self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
             # Clear and set entry fields
             self.cores_entry.delete(0, "end")
