@@ -4,7 +4,7 @@ Thank you for your interest in contributing to docsearch!
 
 ## Project Model
 
-docsearch is MIT-licensed and free forever. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled and will not be.
+docsearch is MIT-licensed and free. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled, and the existing features will remain free.
 
 The author ([Robert D. Schoening](https://robertdschoening.com)) offers optional consulting services for organizations that need help designing custom compliance templates or compliance review workflows for specific regulatory environments. This is separate from the open-source project and is only relevant if your organization wants professional assistance — everyone else can use docsearch freely and build their own templates following the documentation.
 
