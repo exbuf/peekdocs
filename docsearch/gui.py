@@ -2378,6 +2378,19 @@ def _launch_gui():
             e("budget revenue        \u2192  line must contain BOTH words")
             blank()
 
+            s("Phrase Search (Quoted Terms)")
+            b("To search for a multi-word phrase as a single unit, enclose it")
+            b("in double quotes. Without quotes, each space-separated word is")
+            b("treated as a separate search term.")
+            e('"annual report"                   \u2192  exact phrase')
+            e('"Q4 2025" budget                  \u2192  phrase AND word (with AND mode)')
+            e('insecure core                     \u2192  two separate terms')
+            blank()
+            b("Phrase search works in plain, regex, expression, and inverse")
+            b("modes. In Boolean expressions, quote phrases inside the")
+            b("expression: (\"annual report\" OR \"yearly report\") AND 2024")
+            blank()
+
             s("Recursive")
             b("Search all subfolders, not just the selected folder.")
             b("Without this, only files directly in the search folder are checked.")
@@ -3070,7 +3083,7 @@ def _launch_gui():
             _status_font_size = 16 if sys.platform == "win32" else 14
             self.status_label = ctk.CTkLabel(
                 status_row, text="", font=ctk.CTkFont(size=_status_font_size), anchor="w",
-                wraplength=675, text_color="blue", justify="left",
+                wraplength=550, text_color="blue", justify="left",
             )
             self.status_label.pack(side="left")
 
@@ -6909,7 +6922,11 @@ def _launch_gui():
             if search_text and use_fuzzy:
                 # For fuzzy, build patterns that match approximate words
                 from rapidfuzz import fuzz
-                _fuzzy_terms = search_text.split()
+                import shlex as _shlex_fz
+                try:
+                    _fuzzy_terms = _shlex_fz.split(search_text)
+                except ValueError:
+                    _fuzzy_terms = search_text.split()
                 _fuzzy_highlight = True
             else:
                 _fuzzy_highlight = False
@@ -6920,7 +6937,12 @@ def _launch_gui():
                     from docsearch.expr_parser import parse_expression, extract_positive_terms
                     terms = extract_positive_terms(parse_expression(search_text))
                 else:
-                    terms = search_text.split()
+                    # Use shlex.split to respect quoted phrases (e.g., "insecure core")
+                    import shlex as _shlex_hl
+                    try:
+                        terms = _shlex_hl.split(search_text)
+                    except ValueError:
+                        terms = search_text.split()
                 for term in terms:
                     if use_wildcard:
                         from docsearch.scanner import _wildcard_to_regex

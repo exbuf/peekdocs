@@ -444,6 +444,19 @@ The wizard combined with typed search terms is especially useful for compliance,
 
 If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
 
+### Phrase search (quoted terms)
+
+By default, docsearch treats each space-separated word as a separate search term. To search for a multi-word phrase as a single unit, enclose it in **double quotes**:
+
+```bash
+docsearch '"annual report"'             # find the exact phrase "annual report"
+docsearch -a '"Q4 2025" budget'         # AND mode: find "Q4 2025" AND budget
+```
+
+This works in both the terminal and the GUI — in the GUI, type `"annual report"` directly into the Search Terms field. Phrase searches also work inside Boolean expressions: `docsearch -e '"annual report" AND (2023 OR 2024)'`.
+
+Without quotes, `annual report` becomes two terms (`annual` and `report`) joined by OR logic (or AND if `-a` is used), which is usually not what you want for a phrase. Use quotes when you need the words to appear adjacent to each other in the same order.
+
 ### Regex search
 
 **What are Regex searches?**
