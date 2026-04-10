@@ -636,34 +636,13 @@ def _launch_gui():
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
             btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 47), pady=(0, 8), sticky="ew")
 
-            run_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
-            run_group.pack(side="left", padx=(0, 8))
-
             self.search_button = ctk.CTkButton(
-                run_group, text="Run Search", width=85, command=self.start_search,
+                btn_frame, text="Run Search", width=0, command=self.start_search,
                 font=ctk.CTkFont(size=12),
                 fg_color="green", hover_color="darkgreen",
             )
-            self.search_button.pack(side="left", padx=(4, 2), pady=3)
+            self.search_button.pack(side="left", padx=(0, 8))
             Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
-
-            self.run_suite_main_btn = ctk.CTkButton(
-                run_group, text="Run Suite", width=75,
-                command=self._run_suite_from_main,
-                font=ctk.CTkFont(size=12),
-                fg_color="#CC3333", hover_color="#AA2222",
-            )
-            self.run_suite_main_btn.pack(side="left", padx=(2, 4), pady=3)
-            Tooltip(self.run_suite_main_btn, "Open Manage Suites to select and run a suite. A suite is a collection of saved searches that run together with pass/fail criteria. Green = suites exist, Red = no suites yet. Both Run buttons turn red and are temporarily disabled while an index is being built")
-
-            self.sensitive_scan_btn = ctk.CTkButton(
-                btn_frame, text="PII Scan", width=70,
-                command=self._start_sensitive_scan,
-                font=ctk.CTkFont(size=12),
-                fg_color="#0D9488", hover_color="#0F766E",
-            )
-            self.sensitive_scan_btn.pack(side="left", padx=(4, 0))
-            Tooltip(self.sensitive_scan_btn, "Sensitive Data Scan — one-click scan for PII: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Uses current folder and respects Recursive and File Type settings")
 
             # Right-aligned: Use Index checkbox
             self.index_search_var = ctk.StringVar(value="off")
@@ -678,8 +657,8 @@ def _launch_gui():
             wizard_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             wizard_group.pack(side="right", padx=(0, 5))
 
-            search_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Search Wizard", width=100,
+            self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
+                wizard_group, text="Search Wizard", width=0,
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
@@ -687,8 +666,8 @@ def _launch_gui():
             search_wiz_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
-            compliance_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Compliance Wizard", width=120,
+            self._compliance_wiz_btn = compliance_wiz_btn = ctk.CTkButton(
+                wizard_group, text="Compliance Wizard", width=0,
                 command=self._open_compliance_wizard,
                 font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
@@ -696,24 +675,34 @@ def _launch_gui():
             compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs. Templates are search configurations, not compliance certifications")
 
+            # PII Scan — to the left of the save group
+            self.sensitive_scan_btn = ctk.CTkButton(
+                btn_frame, text="PII Scan", width=0,
+                command=self._start_sensitive_scan,
+                font=ctk.CTkFont(size=12),
+                fg_color="#0D9488", hover_color="#0F766E",
+            )
+            self.sensitive_scan_btn.pack(side="right", padx=(0, 5))
+            Tooltip(self.sensitive_scan_btn, "Sensitive Data Scan — one-click scan for PII: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Uses current folder and respects Recursive and File Type settings")
+
             # Right-aligned grouped: Save Search, Load Saved Search
             save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
             save_group.pack(side="right", padx=(0, 5))
 
             self.save_to_collection_btn = ctk.CTkButton(
-                save_group, text="Save Search", width=85, command=self._save_to_collection,
+                save_group, text="Save Search", width=0, command=self._save_to_collection,
                 font=ctk.CTkFont(size=12),
             )
             self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
 
             self.load_search_btn = ctk.CTkButton(
-                save_group, text="Load Search \u25bc", width=100,
+                save_group, text="Load Search \u25bc", width=0,
                 font=ctk.CTkFont(size=12),
                 command=self._open_load_search_popup,
             )
             self.load_search_btn.pack(side="left", padx=(2, 4), pady=3)
-            Tooltip(self.load_search_btn, "Load a saved search into the GUI to review, edit, or re-run it")
+            Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
 
 
@@ -2626,7 +2615,7 @@ def _launch_gui():
             browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="e")
 
             self.browse_button = ctk.CTkButton(
-                browse_frame, text="Folder", width=60, command=self.browse_folder,
+                browse_frame, text="Browse", width=60, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
             self.browse_button.pack(side="left", padx=(0, 3))
@@ -2702,10 +2691,11 @@ def _launch_gui():
             adv_header_frame.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(
                 adv_header_frame,
-                text="All regular and compliance-related searches are based on this screen and the Search Terms on the main screen.",
+                text="All regular and compliance-related searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
                 font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"),
                 justify="left",
+                wraplength=600,
             ).grid(row=0, column=0, sticky="w")
             adv_help_btn = ctk.CTkButton(
                 adv_header_frame, text="?", width=28, height=28,
@@ -2992,13 +2982,6 @@ def _launch_gui():
             # Note about saving
             # Note above bottom buttons
             import tkinter as _tk_adv
-            _tk_adv.Label(
-                self.advanced_window,
-                text="Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. "
-                     "That button saves your settings as permanent defaults for future sessions.",
-                font=("TkDefaultFont", 10), fg="gray", wraplength=800, justify="left",
-            ).pack(padx=15, pady=(5, 2))
-
             # Bottom buttons for the Advanced Search Options window
             adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
             adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -3062,7 +3045,7 @@ def _launch_gui():
             _status_font_size = 16 if sys.platform == "win32" else 14
             self.status_label = ctk.CTkLabel(
                 status_row, text="", font=ctk.CTkFont(size=_status_font_size), anchor="w",
-                wraplength=675, text_color="black", justify="left",
+                wraplength=675, text_color="blue", justify="left",
             )
             self.status_label.pack(side="left")
 
@@ -3150,7 +3133,7 @@ def _launch_gui():
                     self.clipboard_clear()
                     self.clipboard_append(sel.strip())
                     self.status_label.configure(text="Copied to clipboard.",
-                                                text_color="black")
+                                                text_color="blue")
             self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
             self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
 
@@ -3851,8 +3834,15 @@ def _launch_gui():
             h("HOW TO USE")
             b("1. Save a search: configure in the main GUI, click Save Search, give it a name.")
             b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
-            b("3. Run: select a suite, click Run Selected Suite.")
-            b("4. Reports are generated automatically with timestamps.")
+            b("3. Run: select one or more suites, click Run Selected Suite.")
+            b("4. Reports are generated automatically.")
+            blank()
+            b("Running multiple suites: you can select multiple suites in")
+            b("the list (Shift+click or Cmd/Ctrl+click) and run them")
+            b("together. Their searches are combined into a single run.")
+            b("If both suites contain a search with the same name, it")
+            b("runs only once (deduplicated). One combined report is")
+            b("generated covering all searches from all selected suites.")
             blank()
             b("Important: the suite runs against whatever folder is in the")
             b("Search Folder field on the main screen. Reports are saved to")
@@ -4179,10 +4169,7 @@ def _launch_gui():
                     has_suites = bool(data.get("test_suites"))
                 except Exception:
                     pass
-            if has_suites:
-                self.run_suite_main_btn.configure(fg_color="green", hover_color="darkgreen")
-            else:
-                self.run_suite_main_btn.configure(fg_color="#CC3333", hover_color="#AA2222")
+            pass  # Run Suite button removed from row 3
 
         def _run_suite_from_main(self):
             """Open the Search Suites panel (if not already open) so the user can run a suite."""
@@ -4314,7 +4301,7 @@ def _launch_gui():
                     self._apply_params_to_gui(params)
                     self.status_label.configure(
                         text=f"Loaded search '{name}' from collection.",
-                        text_color="black",
+                        text_color="blue",
                     )
                 popup.destroy()
                 self._load_search_popup = None
@@ -4337,7 +4324,7 @@ def _launch_gui():
                 self._refresh_suite_panel()
                 self.status_label.configure(
                     text=f"Deleted saved search '{name}'.",
-                    text_color="black",
+                    text_color="blue",
                 )
                 if listbox.size() == 0:
                     listbox.insert("end", "(no saved searches)")
@@ -4978,6 +4965,11 @@ def _launch_gui():
             self.cancel_suite_btn.pack(side="left", padx=(0, 5))
             self.search_button.configure(state="disabled")
 
+            self.status_label.configure(
+                text=f"Running suite: {suite_label}...",
+                text_color="blue",
+            )
+
             self._suite_results_data = []
             self._suite_start_time = time.time()
             self._suite_name = suite_label
@@ -5053,9 +5045,20 @@ def _launch_gui():
                 if self.suite_cancel_requested:
                     break
 
-                self.after(0, lambda idx=i, n=name, t=total, p=params:
-                    (self._apply_params_to_gui(p),
-                     self.suite_status_label.configure(text=f"Running {idx+1}/{t}: {n}...")))
+                def _update_progress(idx=i, n=name, t=total, p=params):
+                    self._apply_params_to_gui(p)
+                    # Update main screen status
+                    self.status_label.configure(
+                        text=f"Running suite ({idx+1}/{t}): {n}...",
+                        text_color="blue",
+                    )
+                    # Update suite panel status if window is open
+                    if hasattr(self, "suite_status_label") and self._suite_window_open():
+                        try:
+                            self.suite_status_label.configure(text=f"Running {idx+1}/{t}: {n}...")
+                        except Exception:
+                            pass
+                self.after(0, _update_progress)
 
                 cmd = _build_command_from_values(
                     search_text=params.get("search_text", ""),
@@ -5156,7 +5159,13 @@ def _launch_gui():
                             match_count = int(m.group(1))
 
                 # Copy per-stage reports before the next search overwrites them
-                if self._generate_stage_reports_var.get() == "on":
+                generate_stage = True
+                if hasattr(self, "_generate_stage_reports_var"):
+                    try:
+                        generate_stage = self._generate_stage_reports_var.get() == "on"
+                    except Exception:
+                        pass
+                if generate_stage:
                     stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name)
                 else:
                     stage_files = {}
@@ -5242,6 +5251,19 @@ def _launch_gui():
                     self.suite_status_label.configure(text=f"Cancelled after {elapsed:.1f}s")
                 else:
                     self.suite_status_label.configure(text=f"Done in {elapsed:.1f}s — {verdict}")
+
+            # Update main screen status
+            if self.suite_cancel_requested:
+                self.status_label.configure(
+                    text=f"Suite cancelled after {elapsed:.1f}s",
+                    text_color="blue",
+                )
+            else:
+                color = "green" if verdict == "PASSED" else "red"
+                self.status_label.configure(
+                    text=f"Suite '{self._suite_name}' — {passed}/{total} passed — {verdict} ({elapsed:.1f}s)",
+                    text_color=color,
+                )
 
             # Record last_run_time for each suite that was run
             folder = self._get_suite_folder()
@@ -5340,13 +5362,22 @@ def _launch_gui():
 
             dialog = ctk.CTkToplevel(self)
             dialog.title("Email Alert Settings")
-            dialog.geometry("500x420")
+            dialog.geometry("500x520")
             dialog.transient(self)
             dialog.grab_set()
 
             cfg = _load_config()
 
-            ctk.CTkLabel(dialog, text="Email Alert Settings", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(15, 5))
+            header = ctk.CTkFrame(dialog, fg_color="transparent")
+            header.pack(fill="x", padx=15, pady=(15, 0))
+            ctk.CTkLabel(header, text="Email Alert Settings", font=ctk.CTkFont(size=16, weight="bold")).pack(side="left")
+            ctk.CTkButton(
+                header, text="?", width=28, height=28,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=lambda: self._show_email_alert_help(dialog),
+            ).pack(side="right")
             ctk.CTkLabel(dialog, text="Send email notifications when scheduled suite runs complete.",
                          font=ctk.CTkFont(size=11), text_color="gray50").pack(pady=(0, 10))
 
@@ -5423,6 +5454,213 @@ def _launch_gui():
                           text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"),
                           command=dialog.destroy).pack(side="left", padx=5)
 
+        def _show_email_alert_help(self, parent):
+            """Show help for email alert configuration."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("Email Alerts — Help")
+            help_win.geometry("800x620")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
+            scroll = tk.Scrollbar(help_win, command=txt.yview)
+            txt.configure(yscrollcommand=scroll.set)
+            scroll.pack(side="right", fill="y")
+            txt.pack(fill="both", expand=True)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                              lmargin2=30, spacing1=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
+                              lmargin2=20, foreground="gray40")
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+            def blank():
+                txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Are Email Alerts?",
+                "What You Need",
+                "SMTP Server and Port",
+                "Username and Password",
+                "Gmail Setup",
+                "Outlook / Microsoft 365 Setup",
+                "Other Providers",
+                "From and To Addresses",
+                "Send Alerts Setting",
+                "Testing Your Configuration",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            b("docsearch can send email notifications when scheduled suite")
+            b("runs complete, so you know immediately if a check failed.")
+            blank()
+
+            h("WHAT ARE EMAIL ALERTS?")
+            b("When a suite is scheduled to auto-run (e.g., every 24 hours),")
+            b("docsearch can send you an email with the pass/fail results")
+            b("after each run. The email arrives in your inbox with a")
+            b("summary of which checks passed and which failed.")
+            blank()
+            b("Important: the docsearch app must be running and your")
+            b("computer must be on for scheduled suites to run and email")
+            b("alerts to be sent. docsearch does not run in the background")
+            b("after you close the app \u2014 it only checks schedules while")
+            b("the GUI is open. If the app was closed during a scheduled")
+            b("interval, the overdue run executes shortly after you")
+            b("relaunch the app.")
+            blank()
+            b("Only one suite can be scheduled for auto-run at a time.")
+            b("When you schedule a different suite, it replaces the")
+            b("previous schedule. The email alert settings (SMTP server,")
+            b("credentials, recipient) are shared \u2014 whichever suite is")
+            b("scheduled will use the same email configuration.")
+            blank()
+
+            h("WHAT YOU NEED")
+            b("To send email, docsearch connects to an SMTP server \u2014 this")
+            b("is the outgoing mail server that your email provider operates.")
+            b("You need four pieces of information:")
+            blank()
+            b("1. SMTP Server \u2014 your provider's outgoing mail server address")
+            b("2. SMTP Port \u2014 the port number (587 works for most providers)")
+            b("3. Username \u2014 your email address")
+            b("4. Password \u2014 an app password (not your regular login password)")
+            blank()
+
+            h("SMTP SERVER AND PORT")
+            b("Every email provider has an SMTP server. Common ones:")
+            blank()
+            e("  Gmail:          smtp.gmail.com         port 587")
+            e("  Outlook/365:    smtp.office365.com     port 587")
+            e("  Yahoo:          smtp.mail.yahoo.com    port 587")
+            e("  iCloud:         smtp.mail.me.com       port 587")
+            blank()
+            b("If you use a corporate email system, ask your IT department")
+            b("for the SMTP server address and port. Port 587 is the")
+            b("standard for secure email sending (STARTTLS).")
+            blank()
+
+            h("USERNAME AND PASSWORD")
+            b("Username is your full email address \u2014 the account docsearch")
+            b("will send alerts from (e.g., you@gmail.com).")
+            blank()
+            b("Password is NOT your regular email login password. Most")
+            b("providers require an app password \u2014 a special one-time")
+            b("password generated specifically for applications like")
+            b("docsearch. This is a security measure to protect your")
+            b("account.")
+            blank()
+
+            h("GMAIL SETUP")
+            b("1. Go to myaccount.google.com")
+            b("2. Click Security (left sidebar)")
+            b("3. Under 'How you sign in to Google', make sure 2-Step")
+            b("   Verification is turned ON (required for app passwords)")
+            b("4. Search for 'App passwords' in the search bar at the top")
+            b("5. Click App passwords")
+            b("6. Enter a name (e.g., 'docsearch') and click Create")
+            b("7. Copy the 16-character password that appears")
+            b("8. Paste it into the Password field here")
+            blank()
+            e("  SMTP Server:  smtp.gmail.com")
+            e("  SMTP Port:    587")
+            e("  Username:     you@gmail.com")
+            e("  Password:     (the 16-character app password)")
+            blank()
+
+            h("OUTLOOK / MICROSOFT 365 SETUP")
+            b("1. Go to account.microsoft.com")
+            b("2. Click Security, then Advanced security options")
+            b("3. Under App passwords, click 'Create a new app password'")
+            b("4. Copy the generated password")
+            b("5. Paste it into the Password field here")
+            blank()
+            b("Note: If your organization uses Microsoft 365 with modern")
+            b("authentication, app passwords may be disabled by your admin.")
+            b("Contact your IT department for SMTP credentials.")
+            blank()
+            e("  SMTP Server:  smtp.office365.com")
+            e("  SMTP Port:    587")
+            e("  Username:     you@company.com")
+            e("  Password:     (the app password)")
+            blank()
+
+            h("OTHER PROVIDERS")
+            b("For Yahoo, iCloud, or other providers, search for")
+            b("'[provider name] app password' or '[provider name] SMTP")
+            b("settings' in your browser. The process is similar:")
+            b("enable 2-factor authentication, generate an app password,")
+            b("and use it here.")
+            blank()
+            b("For corporate email, ask your IT department for:")
+            b("\u2022 SMTP server address")
+            b("\u2022 SMTP port number")
+            b("\u2022 Whether app passwords or regular credentials are used")
+            b("\u2022 Whether external SMTP access is allowed")
+            blank()
+
+            h("FROM AND TO ADDRESSES")
+            b("From Address \u2014 the sender shown on the alert email.")
+            b("Leave blank to use your username. Some providers require")
+            b("this to match your account email.")
+            blank()
+            b("To Address \u2014 who receives the alerts. This can be:")
+            b("\u2022 Your own email address (for personal use)")
+            b("\u2022 Your manager's email")
+            b("\u2022 A team distribution list (e.g., compliance-team@company.com)")
+            blank()
+
+            h("SEND ALERTS SETTING")
+            b("failure \u2014 send an email only when a suite has FAIL results.")
+            b("This is the recommended setting. You only get notified")
+            b("when something needs attention.")
+            blank()
+            b("always \u2014 send an email after every auto-run, whether it")
+            b("passed or failed. Useful when you want confirmation that")
+            b("the check actually ran.")
+            blank()
+            b("off \u2014 no emails. Suite still runs on schedule and generates")
+            b("reports, but no notification is sent.")
+            blank()
+
+            h("TESTING YOUR CONFIGURATION")
+            b("Click Send Test Email to verify your settings before relying")
+            b("on them. docsearch will attempt to send a test email and")
+            b("report success or the specific error (wrong password,")
+            b("connection refused, etc.).")
+            blank()
+            b("Common errors:")
+            b("\u2022 'Authentication failed' \u2014 wrong password or username.")
+            b("  Make sure you're using an app password, not your login")
+            b("  password")
+            b("\u2022 'Connection refused' \u2014 wrong SMTP server or port, or")
+            b("  your firewall is blocking the connection")
+            b("\u2022 'Connection timed out' \u2014 your network or corporate")
+            b("  firewall is blocking outgoing SMTP traffic. Contact")
+            b("  your IT department")
+            blank()
+            b("Settings are saved to ~/.docsearchrc when you click Save.")
+            blank()
+
+            txt.configure(state="disabled")
+            tk.Button(help_win, text="Close", width=10,
+                      command=help_win.destroy).pack(pady=(5, 10))
+
         def _build_bottom_row(self):
             """Build the bottom toolbar with help, about, tools, and close."""
             self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
@@ -5483,7 +5721,7 @@ def _launch_gui():
             def _show_tools_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
-                menu.add_command(label="App Files — list docsearch-created files", command=self._show_app_files)
+                menu.add_command(label="App Files — list docsearch-created files in the Search Folder", command=self._show_app_files)
                 menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
                 menu.add_command(label="Error Log — open docsearch_errors.log", command=self.open_error_log)
                 menu.add_separator()
@@ -5493,11 +5731,15 @@ def _launch_gui():
                 menu.add_separator()
                 # Text Size submenu
                 size_menu = tk.Menu(menu, tearoff=0, font=("TkDefaultFont", 12))
-                for size in ["Small", "Normal", "Large", "Extra Large"]:
+                for size in ["Small", "Normal", "Large", "Extra Large", "Huge"]:
                     size_menu.add_command(label=size, command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)))
-                menu.add_cascade(label=f"Text Size — {self._text_size_var.get()}", menu=size_menu)
+                menu.add_cascade(label=f"Text Size — scales all GUI text, labels, and buttons (currently {self._text_size_var.get()})", menu=size_menu)
                 # Hover text toggle
-                hover_label = "Disable Hover Text" if Tooltip.enabled else "Enable Hover Text"
+                hover_label = (
+                    "Disable Hover Text — hide tooltip popups when hovering over buttons and fields"
+                    if Tooltip.enabled else
+                    "Enable Hover Text — show tooltip popups when hovering over buttons and fields"
+                )
                 menu.add_command(label=hover_label, command=self._toggle_tooltips)
                 btn = self._tools_btn
                 x = btn.winfo_rootx() - 400
@@ -5571,7 +5813,7 @@ def _launch_gui():
                         self._index_process.terminate()
                     except Exception:
                         pass
-            self.status_label.configure(text="Cancelling index build...", text_color="black")
+            self.status_label.configure(text="Cancelling index build...", text_color="blue")
 
         def _browse_file(self):
             """Open a file picker, set the folder to the file's directory and specific file to search."""
@@ -5606,7 +5848,7 @@ def _launch_gui():
                 self._update_run_suite_button_color()
                 self.status_label.configure(
                     text=f"File selected: {filename} in {folder}",
-                    text_color="black",
+                    text_color="blue",
                 )
                 self._clear_file_btn.pack(side="left", padx=(2, 0))
 
@@ -5616,7 +5858,7 @@ def _launch_gui():
             self._clear_file_btn.pack_forget()
             self.status_label.configure(
                 text="File selection cleared — searching entire folder.",
-                text_color="black",
+                text_color="blue",
             )
 
         def browse_folder(self):
@@ -5658,7 +5900,7 @@ def _launch_gui():
             if not self._recent_searches:
                 self.status_label.configure(
                     text="No recent searches yet.",
-                    text_color="black",
+                    text_color="blue",
                     font=ctk.CTkFont(size=13),
                 )
                 return
@@ -6066,7 +6308,7 @@ def _launch_gui():
                 self.after(0, lambda i=pat_idx, t=total_patterns, c=category:
                     self.status_label.configure(
                         text=f"Scanning for sensitive data... ({i}/{t}) {c}",
-                        fg="blue",
+                        text_color="blue",
                     )
                 )
                 try:
@@ -6537,10 +6779,10 @@ def _launch_gui():
             if _will_rebuild:
                 self.status_label.configure(
                     text=f"Rebuilding index with new Max File Size, then searching ({_term_label})...",
-                    fg="black",
+                    text_color="blue",
                 )
             else:
-                self.status_label.configure(text=f"Searching ({_term_label})...", text_color="black")
+                self.status_label.configure(text=f"Searching ({_term_label})...", text_color="blue")
             self.search_start_time = time.time()
             self._start_elapsed_timer()
 
@@ -6817,7 +7059,7 @@ def _launch_gui():
                 pct_display = int(pct * 100)
                 self.status_label.configure(
                     text=f"Searching... {done}/{total} files  ({pct_display}%)  ({elapsed:.0f}s)",
-                    fg="blue",
+                    text_color="blue",
                 )
 
         def _search_finished(self, stdout, returncode):
@@ -6871,7 +7113,7 @@ def _launch_gui():
                     status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=status_text,
-                    text_color="black",
+                    text_color="blue",
                 )
                 # Post-search save (-s) if user filled in "Save as" field
                 save_name = self.save_name_entry.get().strip()
@@ -6913,7 +7155,7 @@ def _launch_gui():
                     no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
                 self.status_label.configure(
                     text=no_match_text,
-                    text_color="black",
+                    text_color="blue",
                 )
                 self._matched_files_link.configure(
                     text="0 Matched File(s)",
@@ -6930,7 +7172,7 @@ def _launch_gui():
                     # Search succeeded but something else failed (likely report generation)
                     self.status_label.configure(
                         text=summary or "Search complete (with warnings — check error log).",
-                        fg="black",
+                        text_color="blue",
                     )
                     self._inverse_results = self.inverse_var.get() == "on"
                     if self._inverse_results:
@@ -6945,7 +7187,7 @@ def _launch_gui():
                     self._show_action_buttons()
             else:
                 self.status_label.configure(
-                    text="Search was cancelled.", text_color="black",
+                    text="Search was cancelled.", text_color="blue",
                 )
 
             # Resume auto-refresh schedule if active
@@ -7025,7 +7267,17 @@ def _launch_gui():
                     error_log_path = p
                     break
             if not error_log_path:
-                self._show_error("No error log found. Check the search folder and output directory.")
+                from tkinter import messagebox
+                messagebox.showinfo(
+                    "No Error Log",
+                    "No error log found — this is good news! The log file is only "
+                    "created when a file error occurs during a search (e.g., a file "
+                    "couldn't be read). If you haven't had any errors, no log exists.",
+                )
+                self.status_label.configure(
+                    text="No error log found — no file errors have occurred.",
+                    text_color="green",
+                )
                 return
             system = platform.system()
             if system == "Darwin":
@@ -7123,7 +7375,7 @@ def _launch_gui():
             if not to_delete:
                 self.status_label.configure(
                     text="Nothing to clean up — no practice files found.",
-                    text_color="black",
+                    text_color="blue",
                 )
                 return
 
@@ -7162,12 +7414,12 @@ def _launch_gui():
             if failed:
                 self.status_label.configure(
                     text=f"Cleaned up {deleted} file(s). {failed} could not be deleted.",
-                    fg="black",
+                    text_color="blue",
                 )
             else:
                 self.status_label.configure(
                     text=f"Cleaned up {deleted} practice file(s). Saved searches preserved.",
-                    fg="black",
+                    text_color="blue",
                 )
 
         def _open_report_format(self, fmt):
@@ -7419,15 +7671,27 @@ def _launch_gui():
             if remaining <= 0:
                 if self._suite_label_available():
                     self.suite_next_run_label.configure(text="Running...")
+                # Update main screen indicator
+                if hasattr(self, "_autorun_indicator") and self._scheduled_suite_name:
+                    self._autorun_indicator.configure(
+                        text=f"\u23f0 Auto-run: {self._scheduled_suite_name} \u2014 Running...",
+                        text_color=("blue", "deepskyblue"),
+                    )
                 return
             hours = int(remaining // 3600)
             mins = int((remaining % 3600) // 60)
             if hours > 0:
-                text = f"{hours}h {mins}m"
+                countdown_text = f"{hours}h {mins}m"
             else:
-                text = f"{mins}m" if mins > 0 else "<1m"
+                countdown_text = f"{mins}m" if mins > 0 else "<1m"
             if self._suite_label_available():
-                self.suite_next_run_label.configure(text=text)
+                self.suite_next_run_label.configure(text=countdown_text)
+            # Update main screen indicator with countdown
+            if hasattr(self, "_autorun_indicator") and self._scheduled_suite_name:
+                self._autorun_indicator.configure(
+                    text=f"\u23f0 Auto-run: {self._scheduled_suite_name} \u2014 next in {countdown_text}",
+                    text_color=("blue", "deepskyblue"),
+                )
             # Keep ticking even if window is closed so it's correct when reopened
             self._countdown_timer_id = self.after(60000, self._update_countdown)
 
@@ -7520,18 +7784,32 @@ def _launch_gui():
                 from docsearch.email_alert import send_suite_alert
                 cfg = _load_config()
                 if cfg.get("smtp_host") and cfg.get("email_to"):
+                    self.status_label.configure(
+                        text=f"Suite '{suite_name}' — {verdict}. Sending email alert to {cfg['email_to']}...",
+                        text_color="blue",
+                    )
+                    self.update_idletasks()
                     docx_report = docx_path if results else None
                     err = send_suite_alert(
                         cfg, suite_name, folder, results, run_time,
                         passed, total, verdict, report_path=docx_report,
                     )
                     if err:
+                        self.status_label.configure(
+                            text=f"Suite '{suite_name}' — {verdict}. Email alert failed: {err}",
+                            text_color="red",
+                        )
                         # Log email failure to auto-run log
                         try:
                             with open(log_path, "a", encoding="utf-8") as f:
                                 f.write(f"  [EMAIL ALERT] {err}\n\n")
                         except OSError:
                             pass
+                    else:
+                        self.status_label.configure(
+                            text=f"Suite '{suite_name}' — {verdict}. Email alert sent to {cfg['email_to']}.",
+                            text_color="green" if verdict == "PASSED" else "red",
+                        )
             except Exception:
                 pass  # Never let email failure break the auto-run
 
@@ -7640,10 +7918,9 @@ def _launch_gui():
             self.build_index_button.configure(state="disabled", text="Building...", width=120)
             self.cancel_index_button.pack(side="left", padx=5)
             self.search_button.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
-            self.run_suite_main_btn.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
             self.status_label.configure(
                 text="Building index... this may take a few minutes for large folders. Please wait.",
-                text_color="black",
+                text_color="blue",
             )
 
             self._index_cancelled = False
@@ -7670,7 +7947,7 @@ def _launch_gui():
                         short_name = short_name[:47] + "..."
                     self.status_label.configure(
                         text=f"Building index... {done}/{total} files: {short_name}",
-                        text_color="black",
+                        text_color="blue",
                     )
                 self.after(300, _poll_progress)
 
@@ -7709,13 +7986,13 @@ def _launch_gui():
                     lc = result.get("line_count", 0)
                     el = result.get("elapsed", 0)
                     display = f"Index built: {fc} files, {lc:,} lines in {el:.1f}s"
-                    self.status_label.configure(text=display, text_color="black")
+                    self.status_label.configure(text=display, text_color="blue")
                     # Default auto-refresh to 1 hour if currently Off
                     if self.refresh_interval_var.get() == "Off":
                         self.refresh_interval_var.set("1 hour")
                         self._on_refresh_interval_changed("1 hour")
                 elif returncode == 2:
-                    self.status_label.configure(text="Index build cancelled.", text_color="black")
+                    self.status_label.configure(text="Index build cancelled.", text_color="blue")
                 else:
                     err_msg = (result or {}).get("error", "Unknown error")
                     self.status_label.configure(text=f"Index build failed: {err_msg}", text_color="red")
@@ -7739,7 +8016,7 @@ def _launch_gui():
                 return
             self.status_label.configure(
                 text=msg or "Index removed.",
-                text_color="black",
+                text_color="blue",
             )
             self._update_index_button_color()
             self.refresh_interval_var.set("Off")
@@ -7764,7 +8041,7 @@ def _launch_gui():
             if status is None:
                 self.status_label.configure(
                     text="No index found. Click Build Index(es) to create one.",
-                    fg="black",
+                    text_color="blue",
                 )
                 return
 
@@ -8049,7 +8326,7 @@ def _launch_gui():
             if not app_files:
                 self.status_label.configure(
                     text="No docsearch files found in this folder.",
-                    text_color="black",
+                    text_color="blue",
                 )
                 return
 
@@ -8068,9 +8345,11 @@ def _launch_gui():
             ).pack(pady=(10, 2))
             tk.Label(
                 popup, text="Files created by docsearch in this folder and subfolders. "
-                            "Items marked DO NOT DELETE contain your saved work.",
-                font=("TkDefaultFont", 11), fg="gray",
-            ).pack(pady=(0, 8))
+                            "Items marked DO NOT DELETE contain your saved work. "
+                            ".docsearch_collection.json holds all saved searches and suites "
+                            "for that folder \u2014 back it up before major changes.",
+                font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
+            ).pack(pady=(0, 8), padx=15)
 
             list_frame = tk.Frame(popup)
             list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
@@ -8166,13 +8445,13 @@ def _launch_gui():
             if not collections:
                 self.status_label.configure(
                     text="No saved collections found.",
-                    text_color="black",
+                    text_color="blue",
                 )
                 return
 
             self.status_label.configure(
                 text=f"Found {len(collections)} collection(s).",
-                fg="black",
+                text_color="blue",
             )
 
             popup = tk.Toplevel(self)
@@ -8195,7 +8474,7 @@ def _launch_gui():
             tk.Label(
                 popup,
                 text="All .docsearch_collection.json files found under your home directory. "
-                     "Click a folder path to switch to it.",
+                     "Double-click a folder path to switch to it.",
                 font=("TkDefaultFont", 11), fg="gray",
             ).pack(pady=(0, 8))
 
@@ -8215,7 +8494,7 @@ def _launch_gui():
             listbox.pack(side="left", fill="both", expand=True)
             scrollbar.config(command=listbox.yview)
 
-            # Track which listbox indices are folder paths (for click-to-switch)
+            # Track which folder each listbox index belongs to (for double-click-to-switch)
             folder_indices = {}  # index -> folder_path
 
             for folder, n_searches, n_suites, searches, suites in sorted(collections, key=lambda c: c[0]):
@@ -8225,16 +8504,26 @@ def _launch_gui():
                 folder_indices[idx] = folder
 
                 summary = f"    {n_searches} saved search(es), {n_suites} suite(s)"
+                idx = listbox.size()
                 listbox.insert("end", summary)
+                folder_indices[idx] = folder
 
                 if searches:
+                    idx = listbox.size()
                     listbox.insert("end", "    Searches:")
+                    folder_indices[idx] = folder
                     for s in searches:
+                        idx = listbox.size()
                         listbox.insert("end", f"        {s}")
+                        folder_indices[idx] = folder
                 if suites:
+                    idx = listbox.size()
                     listbox.insert("end", "    Suites:")
+                    folder_indices[idx] = folder
                     for s in suites:
+                        idx = listbox.size()
                         listbox.insert("end", f"        {s}")
+                        folder_indices[idx] = folder
                 listbox.insert("end", "")
 
             def _on_double_click(event):
@@ -8251,7 +8540,7 @@ def _launch_gui():
                     self._refresh_load_search_menu()
                     self.status_label.configure(
                         text=f"Switched to: {folder}",
-                        text_color="black",
+                        text_color="blue",
                     )
                     popup.destroy()
 
@@ -8598,6 +8887,7 @@ def _launch_gui():
             "Normal": 1.0,
             "Large": 1.2,
             "Extra Large": 1.4,
+            "Huge": 1.7,
         }
 
         def _on_preview_size_changed(self, value):
@@ -8628,6 +8918,45 @@ def _launch_gui():
             """Scale all GUI widgets and auto-save the setting."""
             scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
             ctk.set_widget_scaling(scale)
+            # Shorten row 3 button labels at Extra Large and Huge to save width
+            try:
+                if value in ("Extra Large", "Huge"):
+                    labels = {
+                        "search": "Run",
+                        "pii": "PII",
+                        "save": "Save",
+                        "load": "\u25bc",
+                        "search_wiz": "Search Wiz",
+                        "compliance_wiz": "Compl Wiz",
+                    }
+                else:
+                    labels = {
+                        "search": "Run Search",
+                        "pii": "PII Scan",
+                        "save": "Save Search",
+                        "load": "Load Search \u25bc",
+                        "search_wiz": "Search Wizard",
+                        "compliance_wiz": "Compliance Wizard",
+                    }
+                pairs = [
+                    (self.search_button, labels["search"]),
+                    (self.sensitive_scan_btn, labels["pii"]),
+                    (self.save_to_collection_btn, labels["save"]),
+                    (self.load_search_btn, labels["load"]),
+                ]
+                for btn, text in pairs:
+                    if btn is not None:
+                        try:
+                            btn.configure(text=text)
+                        except Exception:
+                            pass
+                # Wizard buttons if we can find them by searching the wizard_group
+                if hasattr(self, "_search_wiz_btn"):
+                    self._search_wiz_btn.configure(text=labels["search_wiz"])
+                if hasattr(self, "_compliance_wiz_btn"):
+                    self._compliance_wiz_btn.configure(text=labels["compliance_wiz"])
+            except Exception:
+                pass
             # Update preview size dropdown to match the scaled size
             if hasattr(self, '_preview_size_var'):
                 base_size = 11
@@ -8808,7 +9137,7 @@ def _launch_gui():
                     os.remove(path)
             self.status_label.configure(
                 text="Settings saved to ~/.docsearchrc",
-                text_color="black",
+                text_color="blue",
                 font=ctk.CTkFont(size=13),
             )
 
@@ -9140,7 +9469,7 @@ def _launch_gui():
                     dialog.destroy()
                     self.status_label.configure(
                         text=f"Search '{name}' saved to collection.",
-                        text_color="black", font=ctk.CTkFont(size=13),
+                        text_color="blue", font=ctk.CTkFont(size=13),
                     )
                     if self.suite_window is not None and self.suite_visible:
                         self._refresh_suite_panel()
