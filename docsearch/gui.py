@@ -6530,8 +6530,13 @@ def _launch_gui():
                     report_path = os.path.join(output_dir, report_name)
                     write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched)
                     self._pii_report_path = report_path
-                except Exception:
-                    pass
+                except Exception as _pii_err:
+                    import traceback
+                    traceback.print_exc()
+                    self.status_label.configure(
+                        text=f"PII report generation failed: {_pii_err}",
+                        text_color="red",
+                    )
 
             self._show_sensitive_scan_results(scan_results, elapsed, files_searched)
 
@@ -6560,10 +6565,17 @@ def _launch_gui():
                 header_text = f"{total} finding(s) across {files_searched} files ({elapsed:.1f}s)"
                 header_color = "#CC0000" if high > 0 else "black"
 
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=15, pady=(10, 2))
             tk.Label(
-                popup, text="Sensitive Data Scan Results",
+                header_frame, text="Sensitive Data Scan Results",
                 font=("TkDefaultFont", 14, "bold"),
-            ).pack(pady=(10, 2))
+            ).pack(side="left", expand=True)
+            tk.Button(
+                header_frame, text="?", width=3,
+                font=("TkDefaultFont", 12, "bold"),
+                command=lambda: self._show_pii_scan_results_help(popup),
+            ).pack(side="right")
             tk.Label(
                 popup, text=header_text,
                 font=("TkDefaultFont", 12), fg=header_color,
@@ -6650,9 +6662,6 @@ def _launch_gui():
             canvas.bind_all("<MouseWheel>", _on_mousewheel)
             popup.protocol("WM_DELETE_WINDOW", lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()))
 
-            btn_frame = tk.Frame(popup)
-            btn_frame.pack(pady=(5, 10))
-
             if self._pii_report_path and os.path.exists(self._pii_report_path):
                 def _open_report():
                     import subprocess, sys
@@ -6665,9 +6674,166 @@ def _launch_gui():
                             subprocess.Popen(["xdg-open", self._pii_report_path])
                     except Exception:
                         pass
-                tk.Button(btn_frame, text="Open Report", width=12, command=_open_report).pack(side="left", padx=5)
+                open_btn = ctk.CTkButton(
+                    popup, text="\u2b50 Open Highlighted Report \u2b50",
+                    font=ctk.CTkFont(size=14, weight="bold"),
+                    fg_color="#2196F3", hover_color="#1976D2",
+                    text_color="white",
+                    width=260, height=36,
+                    command=_open_report,
+                )
+                open_btn.pack(pady=(8, 4))
 
-            tk.Button(btn_frame, text="Close", width=10, command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy())).pack(side="left", padx=5)
+            tk.Button(
+                popup, text="Close", width=10,
+                command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()),
+            ).pack(pady=(0, 10))
+
+        def _show_pii_scan_results_help(self, parent):
+            """Show help for interpreting the PII Scan Results window."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("PII Scan Results — Help")
+            help_win.geometry("700x580")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
+            scroll = tk.Scrollbar(help_win, command=txt.yview)
+            txt.configure(yscrollcommand=scroll.set)
+            scroll.pack(side="right", fill="y")
+            txt.pack(fill="both", expand=True)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                              lmargin2=30, spacing1=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
+                              lmargin2=20, foreground="gray40")
+
+            def h(text):
+                txt.insert("end", text + "\n", "heading")
+            def b(text):
+                txt.insert("end", text + "\n", "body")
+            def e(text):
+                txt.insert("end", text + "\n", "example")
+            def blank():
+                txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What This Window Shows",
+                "Severity Badges",
+                "Reading the Match Counts",
+                "View Files Button",
+                "Open Report Button",
+                "The Highlighted Report",
+                "What to Do Next",
+                "False Positives",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            b("This window shows the results of the PII Scan \u2014 each")
+            b("category the scan checked, with counts of matches found.")
+            blank()
+
+            h("WHAT THIS WINDOW SHOWS")
+            b("Each row represents one of the 8 scan categories you ran.")
+            b("The categories are sorted by severity (HIGH first, then")
+            b("MODERATE, then INFO). Categories with no matches show a")
+            b("green 'Clean' label \u2014 nothing to worry about.")
+            blank()
+
+            h("SEVERITY BADGES")
+            b("HIGH (red) \u2014 Data that could cause serious harm if exposed:")
+            b("Social Security numbers, credit card numbers, tax IDs.")
+            b("Investigate these immediately.")
+            blank()
+            b("MODERATE (yellow) \u2014 Data that may be sensitive depending on")
+            b("context: emails, phone numbers, passwords, dates of birth.")
+            b("Review to determine if exposure is a concern.")
+            blank()
+            b("INFO (blue) \u2014 Noteworthy but not necessarily sensitive:")
+            b("large dollar amounts. Useful for financial review.")
+            blank()
+
+            h("READING THE MATCH COUNTS")
+            b("Each category with findings shows:")
+            e("  12 match(es) in 3 file(s)")
+            blank()
+            b("This means docsearch found 12 instances of that pattern across")
+            b("3 different files. Some files may contain multiple matches.")
+            blank()
+
+            h("VIEW FILES BUTTON")
+            b("Click View Files on any category to see exactly which files")
+            b("contain that type of data. The sub-popup shows:")
+            b("\u2022 Each affected file with its match count")
+            b("\u2022 Line numbers where matches appear (up to 20 per file)")
+            b("\u2022 Double-click a file to open it in its default application")
+            blank()
+            b("This is how you drill into a specific finding \u2014 start at")
+            b("the category, find the file, open it, and look at the line.")
+            blank()
+
+            h("OPEN REPORT BUTTON")
+            b("Click Open Report (at the bottom) to open the full highlighted")
+            b("Word report: DO_NOT_SEARCH_pii_scan_report.docx")
+            blank()
+            b("The report is saved in your search folder (or in the Output Dir")
+            b("if set in Advanced Search Options). It is overwritten each")
+            b("time you run a new PII scan.")
+            blank()
+
+            h("THE HIGHLIGHTED REPORT")
+            b("The .docx report contains:")
+            b("\u2022 Summary table of all 8 categories with match counts")
+            b("\u2022 Detail sections for each category with findings")
+            b("\u2022 Every affected file listed with match count and line numbers")
+            b("\u2022 The actual matched text with the sensitive data")
+            b("  highlighted in yellow \u2014 so you can see exactly what")
+            b("  was detected and in what context")
+            b("\u2022 A disclaimer about false positives")
+            blank()
+            b("Example entry in the report:")
+            e("  contract.docx  (2 match(es) \u2014 lines 47, 89)")
+            e("  Line 47: Employee SSN: [123-45-6789]  \u2190 highlighted yellow")
+            e("  Line 89: Contact SSN: [987-65-4321]  \u2190 highlighted yellow")
+            blank()
+
+            h("WHAT TO DO NEXT")
+            b("For HIGH severity findings:")
+            b("1. Click View Files to see which files are affected")
+            b("2. Open each file and go to the listed line numbers")
+            b("3. Determine whether the data should be there or not")
+            b("4. If it shouldn't: redact, move to a secured location, or delete")
+            b("5. Re-run the scan to verify the finding is gone")
+            blank()
+            b("For MODERATE/INFO findings: review to determine if any action")
+            b("is needed based on your context. Some findings may be")
+            b("legitimate (e.g., your own email address in a template).")
+            blank()
+
+            h("FALSE POSITIVES")
+            b("Pattern-based detection produces false positives. For example:")
+            b("\u2022 A 9-digit account number that looks like an SSN")
+            b("\u2022 A tracking number that matches the credit card pattern")
+            b("\u2022 The word 'password' in a help document")
+            blank()
+            b("Always review findings in context before taking action.")
+            b("The report shows the matched text with surrounding context")
+            b("so you can quickly judge whether a finding is real.")
+            blank()
+
+            txt.configure(state="disabled")
+            tk.Button(help_win, text="Close", width=10,
+                      command=help_win.destroy).pack(pady=(5, 10))
 
         def _show_sensitive_category_files(self, files_data, category, parent):
             """Show files for a specific sensitive data category."""

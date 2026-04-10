@@ -4,9 +4,14 @@ import csv
 import glob
 import os
 import re
+import warnings
 from copy import deepcopy
 from html.parser import HTMLParser
 from itertools import product
+
+# Suppress noisy openpyxl warnings about malformed dates, unsupported
+# extensions, etc. These don't affect search results — they're cosmetic.
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 import fitz
 from docx import Document
