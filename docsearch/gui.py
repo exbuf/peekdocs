@@ -634,7 +634,7 @@ def _launch_gui():
             ).grid(row=1, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
 
             btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 47), pady=(0, 8), sticky="ew")
+            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 5), pady=(0, 8), sticky="ew")
 
             self.search_button = ctk.CTkButton(
                 btn_frame, text="Run Search", width=0, command=self.start_search,
@@ -643,6 +643,31 @@ def _launch_gui():
             )
             self.search_button.pack(side="left", padx=(0, 8))
             Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+
+            # AND/OR radio buttons — synced with AND mode checkbox in Advanced Search Options
+            self.and_mode_var = ctk.StringVar(value="off")
+            def _on_radio_and():
+                # Ensure expression mode is off when AND is selected
+                if hasattr(self, "expression_var") and self.and_mode_var.get() == "on":
+                    self.expression_var.set("off")
+                if hasattr(self, "search_entry"):
+                    self.search_entry.configure(placeholder_text="Enter search terms...")
+            self._and_radio = ctk.CTkRadioButton(
+                btn_frame, text="AND", variable=self.and_mode_var, value="on",
+                font=ctk.CTkFont(size=11), command=_on_radio_and,
+                radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
+                width=38,
+            )
+            self._and_radio.pack(side="left", padx=0)
+            Tooltip(self._and_radio, "AND mode — all search terms must appear in the same paragraph. Synced with AND mode checkbox in Advanced Search Options")
+            self._or_radio = ctk.CTkRadioButton(
+                btn_frame, text="OR", variable=self.and_mode_var, value="off",
+                font=ctk.CTkFont(size=11), command=_on_radio_and,
+                radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
+                width=30,
+            )
+            self._or_radio.pack(side="left", padx=(8, 6))
+            Tooltip(self._or_radio, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode checkbox in Advanced Search Options")
 
             # Right-aligned: Use Index checkbox
             self.index_search_var = ctk.StringVar(value="off")
@@ -2713,7 +2738,7 @@ def _launch_gui():
             cb_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
             cb_frame.grid(row=1, column=0, columnspan=3, padx=15, pady=(10, 5), sticky="w")
 
-            self.and_mode_var = ctk.StringVar(value="off")
+            # and_mode_var is already created in _build_search_row (AND/OR radio)
             self.recursive_var = ctk.StringVar(value="off")
             self.fuzzy_var = ctk.StringVar(value="off")
 
