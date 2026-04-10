@@ -1504,6 +1504,10 @@ def _launch_gui():
             b("Keywords (AND) — find lines with ALL terms")
             e("  budget approved Q1")
             blank()
+            b("Multi-word phrases — enclose in double quotes to match as one unit")
+            e('  "annual report"                 (exact phrase)')
+            e('  "Q4 2025" budget                (phrase AND word with AND mode)')
+            blank()
             b("Keywords with exclude — skip lines containing certain terms")
             e("  Keywords: budget revenue  Exclude: draft,preliminary")
             blank()
@@ -1957,7 +1961,8 @@ def _launch_gui():
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
                 "What Is docsearch?", "Who Is It For?", "Getting Started",
-                "Saving and Loading Searches", "Simple Search", "AND Mode",
+                "Saving and Loading Searches", "Simple Search",
+                "Phrase Search (Quoted Terms)", "AND Mode",
                 "Boolean Expressions", "Breaking Down Complex Searches",
                 "Tips", "Search Suites", "Troubleshooting",
                 "Files Created by docsearch", "Search Mode Checkboxes",
@@ -2050,6 +2055,19 @@ def _launch_gui():
             e("budget                \u2192  finds lines containing \"budget\"")
             e("budget revenue        \u2192  finds lines with \"budget\" OR \"revenue\"")
             e("\"annual report\"       \u2192  exact phrase match (use quotes)")
+            blank()
+
+            h("PHRASE SEARCH (QUOTED TERMS)")
+            b("To find a multi-word phrase as a single unit, enclose it in")
+            b("double quotes. Without quotes, each space-separated word is")
+            b("treated as a separate search term.")
+            e('"annual report"              \u2192  exact phrase "annual report"')
+            e('annual report                \u2192  "annual" OR "report" (two terms)')
+            e('"Q4 2025" budget             \u2192  phrase AND word (with AND mode)')
+            blank()
+            b("Phrase search works in plain, AND, expression, and inverse modes.")
+            b("Inside Boolean expressions, quote phrases directly:")
+            e('("annual report" OR "yearly report") AND 2024')
             blank()
 
             h("AND MODE")
