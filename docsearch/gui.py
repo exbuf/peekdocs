@@ -376,8 +376,13 @@ def _launch_gui():
                 self.tip_window = tw = tk.Toplevel(self.widget)
                 tw.wm_overrideredirect(True)
                 tw.wm_geometry(f"+{x}+{y}")
+                display_text = (
+                    f"{self.text}\n\n"
+                    "Turn hover text on/off from Tools \u25b2 \u2192 "
+                    "Disable/Enable Hover Text."
+                )
                 label = tk.Label(
-                    tw, text=self.text, background="#333333", foreground="white",
+                    tw, text=display_text, background="#333333", foreground="white",
                     relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
                     padx=6, pady=4, wraplength=300, justify="left",
                 )
@@ -735,9 +740,17 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
                 command=self._open_load_search_popup,
             )
-            self.load_search_btn.pack(side="left", padx=(2, 4), pady=3)
+            self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
             Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
+
+            self.save_load_help_btn = ctk.CTkButton(
+                save_group, text="?", width=28, height=22,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                command=self._show_save_load_help,
+            )
+            self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
+            Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
 
 
             self.suite_toggle = ctk.CTkButton(
@@ -881,8 +894,8 @@ def _launch_gui():
             header_frame.pack(fill="x", padx=15, pady=(10, 5))
             ctk.CTkLabel(
                 header_frame,
-                text="Choose a search type, fill in your values, click Apply, then close this window. "
-                     "Use the Save Search button on the main screen to save your settings.",
+                text="Select a search type (click its radio button), fill in your values, "
+                     "then click Apply at the bottom. Use the Save Search button on the main screen to save your settings.",
                 font=ctk.CTkFont(size=13),
                 wraplength=650, justify="center",
             ).pack(expand=True)
@@ -1061,22 +1074,37 @@ def _launch_gui():
                  lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
             ]
 
+            # Track which row the user has selected via its radio button
+            selected_row = tk.IntVar(value=1)
+            row_applies = {}  # idx -> callable that applies the row's settings
+
             for idx, (title, desc, fields, apply_fn) in enumerate(patterns, 1):
-                frame = tk.LabelFrame(scroll_inner, text=f"  {idx}. {title}", font=_sf(12, "bold"), padx=8, pady=5)
+                frame = tk.LabelFrame(scroll_inner, text="", padx=8, pady=5)
                 frame.pack(fill="x", padx=5, pady=(0, 8))
 
-                tk.Label(frame, text=desc, font=_sf(10), fg="gray").pack(anchor="w")
+                # Radio button + title in a header row (replaces the LabelFrame's built-in title)
+                rb = tk.Radiobutton(
+                    frame, text=f"{idx}. {title}",
+                    variable=selected_row, value=idx,
+                    font=_sf(12, "bold"), anchor="w", justify="left",
+                )
+                rb.pack(anchor="w")
+
+                tk.Label(frame, text=desc, font=_sf(10), fg="gray",
+                         anchor="w", justify="left").pack(anchor="w", padx=(22, 0))
 
                 entries = {}
                 if fields:
                     field_frame = tk.Frame(frame)
-                    field_frame.pack(fill="x", pady=(3, 0))
+                    field_frame.pack(fill="x", pady=(3, 0), padx=(22, 0))
                     for i, (label, key, placeholder) in enumerate(fields):
                         tk.Label(field_frame, text=label, font=_sf(11)).grid(row=0, column=i*2, padx=(0, 3), sticky="e")
                         entry_width = max(15, len(placeholder) + 3)
                         e = tk.Entry(field_frame, font=_sf(11), width=entry_width)
                         e.insert(0, placeholder)
                         e.grid(row=0, column=i*2+1, padx=(0, 10))
+                        # Selecting the entry also selects this row's radio button
+                        e.bind("<FocusIn>", lambda ev, i=idx: selected_row.set(i))
                         entries[key] = e
 
                 def _make_apply(fn, ents, t):
@@ -1090,7 +1118,29 @@ def _launch_gui():
                         self._assistant_label.grid(row=0, column=1, columnspan=2, padx=(5, 105), pady=(0, 0), sticky="sw")
                     return _click
 
-                tk.Button(frame, text="Apply", width=8, command=_make_apply(apply_fn, entries, title)).pack(anchor="e", pady=(3, 0))
+                row_applies[idx] = _make_apply(apply_fn, entries, title)
+
+            def _on_apply_clicked():
+                idx = selected_row.get()
+                apply_fn = row_applies.get(idx)
+                if apply_fn:
+                    apply_fn()
+
+            # Prominent bottom-center Apply button in a bordered group
+            # (matches the Run Search button's look on the main screen)
+            apply_group = ctk.CTkFrame(
+                win, border_width=2, border_color=("gray40", "gray60"),
+                corner_radius=8, fg_color=("gray85", "gray20"),
+            )
+            apply_group.pack(pady=(8, 4))
+
+            apply_btn = ctk.CTkButton(
+                apply_group, text="Apply", width=160, height=36,
+                command=_on_apply_clicked,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="green", hover_color="darkgreen",
+            )
+            apply_btn.pack(padx=6, pady=6)
 
             ctk.CTkButton(
                 win, text="Close", width=80,
@@ -1098,7 +1148,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=win.destroy,
                 font=ctk.CTkFont(size=12),
-            ).pack(pady=(5, 10))
+            ).pack(pady=(0, 10))
 
         def _apply_wizard(self, search_text="", regex=False, fuzzy=False,
                           wildcard=False, inverse=False, whole_word=False,
@@ -2441,10 +2491,12 @@ def _launch_gui():
 
             txt.configure(state="disabled")
 
-            # Close button
             close_btn = ctk.CTkButton(
-                help_win, text="Close", width=100,
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
                 command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
             )
             close_btn.pack(pady=(5, 10))
 
@@ -2757,8 +2809,11 @@ def _launch_gui():
             txt.configure(state="disabled")
 
             close_btn = ctk.CTkButton(
-                help_win, text="Close", width=100,
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
                 command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
             )
             close_btn.pack(pady=(5, 10))
 
@@ -3225,6 +3280,7 @@ def _launch_gui():
             )
             self._matched_files_link.pack(side="left", padx=(5, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
+            Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
 
             # Auto-run indicator (right side of status row)
             self._autorun_indicator = ctk.CTkLabel(
@@ -3241,6 +3297,7 @@ def _launch_gui():
             )
             self._excluded_files_btn.pack(side="left", padx=(5, 0))
             self._excluded_files_btn.pack_forget()  # Hidden until search completes
+            Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior docsearch output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number docsearch searched")
 
             self.matched_files = []
             self._inverse_results = False
@@ -4263,8 +4320,11 @@ def _launch_gui():
             txt.configure(state="disabled")
 
             close_btn = ctk.CTkButton(
-                help_win, text="Close", width=100,
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
                 command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
             )
             close_btn.pack(pady=(5, 10))
 
@@ -4454,7 +4514,9 @@ def _launch_gui():
             listbox.bind("<ButtonPress-1>", _on_click)
 
             btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-            btn_frame.pack(side="top", fill="x", padx=4, pady=(2, 4))
+            btn_frame.pack(side="top", fill="x", padx=4, pady=(2, 2))
+            cancel_frame = ctk.CTkFrame(frame, fg_color="transparent")
+            cancel_frame.pack(side="top", fill="x", padx=4, pady=(0, 4))
 
             def on_select():
                 sel = listbox.curselection()
@@ -4502,13 +4564,16 @@ def _launch_gui():
                     self._load_search_popup.destroy()
                     self._load_search_popup = None
 
-            ctk.CTkButton(btn_frame, text="Cancel", width=70, font=ctk.CTkFont(size=12),
-                          command=close_popup).pack(side="left", padx=(0, 5))
             ctk.CTkButton(btn_frame, text="Select", width=70, font=ctk.CTkFont(size=12),
                           command=on_select).pack(side="left")
             ctk.CTkButton(btn_frame, text="Delete", width=70, font=ctk.CTkFont(size=12),
                           fg_color="firebrick", hover_color="darkred",
                           command=on_delete).pack(side="right")
+            ctk.CTkButton(cancel_frame, text="Cancel", width=80,
+                          fg_color="transparent", text_color=("gray30", "gray70"),
+                          hover_color=("gray90", "gray25"),
+                          font=ctk.CTkFont(size=12),
+                          command=close_popup).pack()
 
             listbox.bind("<Double-1>", lambda e: on_select())
             popup.bind("<Escape>", close_popup)
@@ -5826,8 +5891,15 @@ def _launch_gui():
             blank()
 
             txt.configure(state="disabled")
-            tk.Button(help_win, text="Close", width=10,
-                      command=help_win.destroy).pack(pady=(5, 10))
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _build_bottom_row(self):
             """Build the bottom toolbar with help, about, tools, and close."""
@@ -6428,8 +6500,14 @@ def _launch_gui():
 
             txt.configure(state="disabled")
 
-            tk.Button(help_win, text="Close", width=10,
-                      command=help_win.destroy).pack(pady=(5, 10))
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _run_sensitive_scan(self, selected_patterns, folder=None):
             """Launch the sensitive data scan with the selected patterns."""
@@ -6875,8 +6953,15 @@ def _launch_gui():
             blank()
 
             txt.configure(state="disabled")
-            tk.Button(help_win, text="Close", width=10,
-                      command=help_win.destroy).pack(pady=(5, 10))
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _show_sensitive_category_files(self, files_data, category, parent):
             """Show files for a specific sensitive data category."""
@@ -7496,7 +7581,7 @@ def _launch_gui():
                         self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
                     else:
                         link_text = f"{len(self.matched_files)} Matched File(s)"
-                        self._matched_files_link.configure(text=link_text, fg_color="green", hover_color="darkgreen")
+                        self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
                     self._matched_files_link.pack(side="left", padx=(5, 0))
             elif returncode == 1:
                 no_match_text = summary or "Search complete. No matches found."
@@ -8459,6 +8544,9 @@ def _launch_gui():
             txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=10, spacing3=2)
             txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
             txt.tag_configure("example", font=("Courier", 12), lmargin1=30, lmargin2=30)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
 
             def h(text):
                 txt.insert("end", text + "\n", "heading")
@@ -8470,6 +8558,17 @@ def _launch_gui():
                 txt.insert("end", text + "\n", "example")
             def blank():
                 txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "Quick Start",
+                "Buttons on This Panel",
+                "Use Index Checkbox (Main Screen)",
+                "Do I Need an Index?",
+                "Good to Know",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
 
             h("QUICK START")
             b("Click Build Index(es) and you're done. docsearch reads")
@@ -8539,8 +8638,11 @@ def _launch_gui():
             txt.configure(state="disabled")
 
             close_btn = ctk.CTkButton(
-                help_win, text="Close", width=100,
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
                 command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
             )
             close_btn.pack(pady=(5, 10))
 
@@ -8914,10 +9016,18 @@ def _launch_gui():
             y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
             popup.geometry(f"+{x}+{y}")
 
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=10, pady=(10, 2))
             tk.Label(
-                popup, text=f"Files Excluded from Search ({len(self._excluded_files)})",
+                header_frame, text=f"Files Excluded from Search ({len(self._excluded_files)})",
                 font=("TkDefaultFont", 13, "bold"),
-            ).pack(pady=(10, 2))
+            ).pack(side="left", expand=True)
+            help_btn = ctk.CTkButton(
+                header_frame, text="?", width=30, height=26,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                command=lambda: self._show_excluded_files_help(popup),
+            )
+            help_btn.pack(side="right")
             tk.Label(
                 popup, text="These files were in your search folder but were not searched. "
                             "Each is shown with the reason why.",
@@ -8955,6 +9065,154 @@ def _launch_gui():
 
             tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
 
+        def _show_excluded_files_help(self, parent):
+            """Show help for the Excluded Files popup."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("Excluded Files \u2014 Help")
+            help_win.geometry("720x680")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt_frame = tk.Frame(help_win)
+            txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            scrollbar = tk.Scrollbar(txt_frame)
+            scrollbar.pack(side="right", fill="y")
+            txt = tk.Text(
+                txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                yscrollcommand=scrollbar.set, padx=10, pady=10,
+                borderwidth=1, relief="sunken",
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=8, spacing3=4)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=10, lmargin2=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            def h(s): txt.insert("end", s + "\n", "heading")
+            def b(s): txt.insert("end", s + "\n", "body")
+            def e(s): txt.insert("end", s + "\n", "example")
+            def blank(): txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What This Popup Shows",
+                "Why Files Get Excluded",
+                "How the List Is Organized",
+                "What to Do About Excluded Files",
+                "Why This Matters for Audits",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            h("WHAT THIS POPUP SHOWS")
+            b("You opened this popup by clicking the gray Excluded Files")
+            b("button on the status line at the bottom of the main window.")
+            b("It lists every file that was in your search folder but was")
+            b("NOT searched, grouped by the reason it was skipped.")
+            blank()
+            b("This answers the question: \"Why did docsearch report fewer")
+            b("files searched than my file manager shows in the folder?\"")
+            b("If you expected 200 files and only 180 were searched, this")
+            b("popup tells you exactly which 20 were skipped and why.")
+            blank()
+
+            h("WHY FILES GET EXCLUDED")
+            b("Files are excluded for several reasons:")
+            blank()
+            b("\u2022 Unsupported type \u2014 the file extension is not in docsearch's")
+            b("  list of 46 searchable formats (e.g., .exe, .dll, .dmg,")
+            b("  .iso, .mp3, .mp4, .psd). docsearch is a document search")
+            b("  tool, not a binary/media scanner")
+            b("\u2022 Prior docsearch output \u2014 files docsearch created itself,")
+            b("  such as DO_NOT_SEARCH_*.docx reports, index databases,")
+            b("  and collection files. Searching these would produce")
+            b("  circular matches and pollute your results")
+            b("\u2022 Oversized \u2014 files larger than your Max File Size setting")
+            b("  (100 MB by default). Very large files can take minutes")
+            b("  to parse and may exhaust memory. Raise the limit in")
+            b("  Advanced Search Options, or set it to 0 for no limit")
+            b("\u2022 Hidden \u2014 files whose names start with a dot (.DS_Store,")
+            b("  .git, .venv). These are system/config files you usually")
+            b("  do not want included")
+            b("\u2022 Symlink \u2014 symbolic links to files outside your search")
+            b("  folder, skipped to avoid searching the same file twice")
+            b("\u2022 Permission denied \u2014 docsearch does not have read")
+            b("  access to the file (common on macOS for files in")
+            b("  protected folders like ~/Documents without Full Disk")
+            b("  Access granted)")
+            b("\u2022 Archive too large \u2014 ZIP/7z/RAR files that would")
+            b("  expand to more than 500 MB are skipped to prevent")
+            b("  archive bombs")
+            blank()
+
+            h("HOW THE LIST IS ORGANIZED")
+            b("Excluded files are grouped by reason, with a header line")
+            b("showing the reason and the count in that group:")
+            blank()
+            e("  \u2500\u2500 Unsupported type (12 file(s)) \u2500\u2500")
+            e("      photo1.jpg")
+            e("      photo2.jpg")
+            e("      ...")
+            e("")
+            e("  \u2500\u2500 Prior docsearch output (3 file(s)) \u2500\u2500")
+            e("      DO_NOT_SEARCH_results.docx")
+            e("      ...")
+            blank()
+            b("Groups are sorted alphabetically by reason, and files")
+            b("within each group are sorted alphabetically by name.")
+            blank()
+
+            h("WHAT TO DO ABOUT EXCLUDED FILES")
+            b("Most exclusions are intentional and you don't need to do")
+            b("anything. But here are the cases where you may want to act:")
+            blank()
+            b("\u2022 Unsupported type \u2014 if a format you care about is")
+            b("  missing, check the Supported File Types table in the")
+            b("  User Guide. If the format is genuinely unsupported,")
+            b("  consider converting the file (for example, export a")
+            b("  .numbers spreadsheet to .xlsx)")
+            b("\u2022 Oversized \u2014 if a real document is being skipped for")
+            b("  size, open Advanced Search Options, raise the Max File")
+            b("  Size (MB) value, and search again. The index will")
+            b("  rebuild automatically on the next search")
+            b("\u2022 Permission denied (macOS) \u2014 open System Settings >")
+            b("  Privacy & Security > Full Disk Access and grant access")
+            b("  to your terminal application (Terminal.app, iTerm, etc.)")
+            b("\u2022 Prior docsearch output \u2014 leave these alone. They are")
+            b("  supposed to be excluded")
+            blank()
+
+            h("WHY THIS MATTERS FOR AUDITS")
+            b("For compliance and audit workflows, one of the first")
+            b("questions a reviewer asks is: \"Can you prove every file")
+            b("was accounted for?\" This popup is the answer. Every file")
+            b("in your folder is either in the Matched Files popup, in")
+            b("this Excluded Files popup, or in the search results with")
+            b("zero matches \u2014 nothing falls through the cracks.")
+            blank()
+            b("Suite reports also include a source file manifest listing")
+            b("every document that was in scope and every document that")
+            b("was excluded, so the evidence is preserved in the .docx")
+            b("report you hand to an auditor.")
+            blank()
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
+
         def _show_matched_files_popup(self):
             """Show a popup listing all matched files. Click a file to open it."""
             if not self.matched_files:
@@ -8976,12 +9234,20 @@ def _launch_gui():
             y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
             popup.geometry(f"+{x}+{y}")
 
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=10, pady=(10, 2))
             tk.Label(
-                popup, text=heading,
+                header_frame, text=heading,
                 font=("TkDefaultFont", 13, "bold"),
-            ).pack(pady=(10, 2))
+            ).pack(side="left", expand=True)
+            help_btn = ctk.CTkButton(
+                header_frame, text="?", width=30, height=26,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                command=lambda: self._show_matched_files_help(popup),
+            )
+            help_btn.pack(side="right")
             tk.Label(
-                popup, text="Click a file to open it",
+                popup, text="Double-click a file to open it",
                 font=("TkDefaultFont", 10), fg="gray",
             ).pack(pady=(0, 8))
 
@@ -9069,6 +9335,315 @@ def _launch_gui():
             close_btn.bind("<Button-1>", lambda e: popup.destroy())
             close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
             close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
+
+        def _show_matched_files_help(self, parent):
+            """Show help for the Matched Files popup."""
+            import tkinter as tk
+            help_win = tk.Toplevel(parent)
+            help_win.title("Matched Files \u2014 Help")
+            help_win.geometry("720x640")
+            help_win.resizable(True, True)
+            help_win.transient(parent)
+            help_win.grab_set()
+
+            txt_frame = tk.Frame(help_win)
+            txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            scrollbar = tk.Scrollbar(txt_frame)
+            scrollbar.pack(side="right", fill="y")
+            txt = tk.Text(
+                txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                yscrollcommand=scrollbar.set, padx=10, pady=10,
+                borderwidth=1, relief="sunken",
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=8, spacing3=4)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=10, lmargin2=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            def h(s): txt.insert("end", s + "\n", "heading")
+            def b(s): txt.insert("end", s + "\n", "body")
+            def e(s): txt.insert("end", s + "\n", "example")
+            def blank(): txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What This Popup Shows",
+                "How to Use It",
+                "View Text vs Open File",
+                "Line Numbers",
+                "Why Some Files May Be Missing",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            h("WHAT THIS POPUP SHOWS")
+            b("You opened this popup by clicking the orange Matched Files")
+            b("button on the status line at the bottom of the main window.")
+            b("It lists every file that matched your search \u2014 one row per")
+            b("file \u2014 along with the number of matches in that file and")
+            b("the line numbers where the matches were found (up to 10 line")
+            b("numbers, then \"...\").")
+            blank()
+            b("Example row:")
+            e("  quarterly_report.docx (3 matches \u2014 lines 12, 47, 89)")
+            blank()
+            b("If you ran an inverse search, the popup instead lists files")
+            b("that did NOT match your search \u2014 the files missing the")
+            b("required content.")
+            blank()
+
+            h("HOW TO USE IT")
+            b("\u2022 Single-click a row to select it")
+            b("\u2022 Double-click a row to open the file in its default")
+            b("  application (Word, Excel, PDF viewer, etc.)")
+            b("\u2022 Select a row and click View Text to see the extracted")
+            b("  text of the file with line numbers and every match")
+            b("  highlighted in yellow \u2014 useful when the original")
+            b("  file is a PDF, archive, or format that is awkward")
+            b("  to search visually")
+            b("\u2022 Click Close when you're done")
+            blank()
+
+            h("VIEW TEXT vs OPEN FILE")
+            b("Double-clicking a row opens the original file \u2014 the actual")
+            b(".docx, .pdf, .xlsx, or whatever format it is \u2014 in the")
+            b("application your system uses for that file type.")
+            blank()
+            b("View Text opens docsearch's extracted plain-text view of")
+            b("the same file, with:")
+            b("\u2022 Line numbers down the left side")
+            b("\u2022 Every match highlighted in yellow")
+            b("\u2022 A scrollable window you can read without leaving docsearch")
+            blank()
+            b("Use View Text when you want to quickly scan the matches in")
+            b("context. Use Open File when you want to edit, print, or")
+            b("share the original document.")
+            blank()
+
+            h("LINE NUMBERS")
+            b("Line numbers refer to the EXTRACTED text, not the original")
+            b("page or paragraph number in the source document. For plain")
+            b("text files, these are the same. For .docx, .pdf, .xlsx, and")
+            b("other formats, docsearch extracts the text content and")
+            b("numbers the resulting lines \u2014 so line 47 in the popup will")
+            b("match line 47 in the View Text window, but may not match")
+            b("a page number or paragraph number you see when you open")
+            b("the original file in Word or a PDF viewer.")
+            blank()
+            b("To jump directly to a match in context, click View Text")
+            b("and scroll to the highlighted line.")
+            blank()
+
+            h("WHY SOME FILES MAY BE MISSING")
+            b("If the popup shows fewer files than you expected, some")
+            b("files in the folder may have been excluded from the search.")
+            b("Close this popup and click the gray Excluded Files button")
+            b("on the status line to see exactly which files were skipped")
+            b("and why (unsupported type, oversized, hidden, prior")
+            b("docsearch output, etc.).")
+            blank()
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
+
+        def _show_save_load_help(self):
+            """Show help for the Save Search and Load Search buttons."""
+            import tkinter as tk
+            help_win = tk.Toplevel(self)
+            help_win.title("Save Search & Load Search \u2014 Help")
+            help_win.geometry("740x680")
+            help_win.resizable(True, True)
+            help_win.transient(self)
+            help_win.grab_set()
+
+            txt_frame = tk.Frame(help_win)
+            txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            scrollbar = tk.Scrollbar(txt_frame)
+            scrollbar.pack(side="right", fill="y")
+            txt = tk.Text(
+                txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                yscrollcommand=scrollbar.set, padx=10, pady=10,
+                borderwidth=1, relief="sunken",
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=8, spacing3=4)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=10, lmargin2=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            def h(s): txt.insert("end", s + "\n", "heading")
+            def b(s): txt.insert("end", s + "\n", "body")
+            def e(s): txt.insert("end", s + "\n", "example")
+            def blank(): txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "What Save Search Does",
+                "What Load Search Does",
+                "Where Saved Searches Are Stored",
+                "Using Saved Searches in Suites",
+                "Editing a Saved Search",
+                "Deleting a Saved Search",
+                "Sharing Saved Searches",
+                "Tips",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            h("WHAT SAVE SEARCH DOES")
+            b("Save Search takes everything you currently have configured")
+            b("on the main screen \u2014 search terms, mode (AND/OR/Boolean/")
+            b("regex/fuzzy/wildcard/whole word), inverse, file type filters,")
+            b("exclude terms, proximity, range filters, context lines,")
+            b("recursive, OCR, max file size, and use-index \u2014 and stores")
+            b("it under a name you choose.")
+            blank()
+            b("Once saved, you can reload the exact same configuration")
+            b("later, add it to a search suite, run it on a schedule, or")
+            b("share it with a colleague. Nothing is \"locked in\" \u2014 you")
+            b("can always edit and re-save it.")
+            blank()
+            b("Saving does NOT run the search. If you want to verify that")
+            b("the search works the way you expect, click Run Search")
+            b("first, check the results, then click Save Search.")
+            blank()
+
+            h("WHAT LOAD SEARCH DOES")
+            b("Load Search \u25bc opens a popup listing every saved search in")
+            b("the current folder's collection. Click one to load it back")
+            b("into the main screen \u2014 the search terms and all options")
+            b("are restored exactly as they were when you saved.")
+            blank()
+            b("After loading, you can:")
+            b("\u2022 Click Run Search to execute it as-is")
+            b("\u2022 Modify any field and click Run Search to try a variation")
+            b("\u2022 Click Save Search to overwrite the saved version (use")
+            b("  the same name) or save it as a new one (use a new name)")
+            b("\u2022 Delete the saved search from the Load Search popup")
+            blank()
+
+            h("WHERE SAVED SEARCHES ARE STORED")
+            b("Saved searches live in a file called .docsearch_collection.json")
+            b("inside the search folder itself. Each folder has its own")
+            b("collection \u2014 the saved searches for ~/Documents/Contracts are")
+            b("separate from those in ~/Documents/HR_Files. When you switch")
+            b("folders on the main screen, the Load Search dropdown")
+            b("automatically shows that folder's collection.")
+            blank()
+            b("This is deliberate: searches that matter for contracts")
+            b("probably do not apply to HR files, and storing them")
+            b("alongside the documents means they travel with the folder")
+            b("if you copy, move, or back it up.")
+            blank()
+            b("The collection file also stores any search suites built")
+            b("from these saved searches. See the Search Suites section")
+            b("of the User Guide for details.")
+            blank()
+
+            h("USING SAVED SEARCHES IN SUITES")
+            b("Search suites are built entirely out of saved searches.")
+            b("To create a suite:")
+            blank()
+            b("1. Configure a search and click Save Search, give it a name")
+            b("2. Repeat for each check you want in the suite")
+            b("3. Open Manage Suites, click Build a New Suite, and add")
+            b("   your saved searches with pass/fail criteria")
+            blank()
+            b("If you edit a saved search (load it, change settings, and")
+            b("Save Search under the same name), every suite that")
+            b("references that search picks up the change on its next run.")
+            b("There are no duplicates to keep in sync.")
+            blank()
+
+            h("EDITING A SAVED SEARCH")
+            b("1. Click Load Search \u25bc and pick the one you want to edit")
+            b("2. The search bar and Advanced Search Options are filled in")
+            b("   with the saved values")
+            b("3. Change whatever you need to (terms, filters, options)")
+            b("4. Click Run Search to verify the new version works")
+            b("5. Click Save Search and give it the SAME name \u2014 you'll")
+            b("   be asked to confirm overwriting the existing entry")
+            blank()
+            b("If you give it a new name instead, you'll end up with two")
+            b("saved searches: the original and your modified version.")
+            blank()
+
+            h("DELETING A SAVED SEARCH")
+            b("Open Load Search \u25bc. Each entry in the popup has a Delete")
+            b("button next to it. Click Delete to remove that saved search")
+            b("from the collection. You'll be asked to confirm.")
+            blank()
+            b("Deleting a saved search does NOT delete any files in the")
+            b("folder. It only removes the entry from the")
+            b(".docsearch_collection.json file. Any suites that referenced")
+            b("the deleted search will skip it on their next run and")
+            b("report the missing entry.")
+            blank()
+
+            h("SHARING SAVED SEARCHES")
+            b("To share a saved search (or a whole suite) with someone else:")
+            blank()
+            b("1. Open Manage Suites")
+            b("2. Select the suite that contains the saved search(es) you")
+            b("   want to share")
+            b("3. Click Export Suite to save it as a .json file")
+            b("4. Send the .json file to your colleague")
+            b("5. They click Import Template in Manage Suites to load it")
+            b("   into their own collection")
+            blank()
+            b("To share a single saved search that is not part of a suite,")
+            b("create a suite that contains just that one search, export")
+            b("it, and the recipient can pull the search out of the")
+            b("imported suite.")
+            blank()
+            b("You can also copy .docsearch_collection.json directly \u2014")
+            b("it is a plain-text JSON file \u2014 but Import/Export Suite")
+            b("is the recommended way.")
+            blank()
+
+            h("TIPS")
+            b("\u2022 Use descriptive names: \"contracts_missing_signature\"")
+            b("  is more useful than \"search1\"")
+            b("\u2022 Always Run Search to verify a search works BEFORE")
+            b("  saving it. A saved search that doesn't work won't")
+            b("  magically start working inside a suite")
+            b("\u2022 Think of saved searches as building blocks. Small,")
+            b("  focused searches (one check per search) combine into")
+            b("  better suites than one giant search that tries to do")
+            b("  everything")
+            b("\u2022 If you're building a compliance suite from scratch,")
+            b("  try the Compliance Wizard first \u2014 it creates all the")
+            b("  saved searches AND the suite in one click, and you")
+            b("  can customize them afterwards")
+            blank()
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
 
         def _show_file_text_view(self, filepath, filename):
             """Display extracted text of a file with line numbers and match highlighting."""
