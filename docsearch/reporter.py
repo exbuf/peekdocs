@@ -392,13 +392,38 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     # Detail sections per category with matches
     doc.add_heading("Details", level=2)
 
+    # Map severity → RGB color for the category headings
+    _heading_colors = {
+        "high": RGBColor(0xCC, 0x00, 0x00),      # red
+        "moderate": RGBColor(0xCC, 0x66, 0x00),  # amber
+        "info": RGBColor(0x1F, 0x6A, 0xA5),      # blue
+    }
+
     for result in sorted_results:
         if result["match_count"] == 0:
             continue
 
         sev = SEVERITY_COLORS.get(result["severity"], SEVERITY_COLORS["info"])
-        doc.add_heading(f"[{sev['label']}] {result['category']}", level=3)
-        doc.add_paragraph(f"{result['description']} — {result['match_count']} match(es) in {result['file_count']} file(s)")
+
+        # Visual separator above each category — blank line for breathing room
+        doc.add_paragraph("")
+
+        # Prominent category heading: level 2, large colored bold text
+        # with a bracketed severity label prefix
+        cat_heading = doc.add_heading(level=2)
+        heading_color = _heading_colors.get(result["severity"], _heading_colors["info"])
+        run = cat_heading.add_run(f"[{sev['label']}]  {result['category']}")
+        run.bold = True
+        run.font.size = Pt(18)
+        run.font.color.rgb = heading_color
+
+        # Summary line under the heading (description + counts)
+        summary_para = doc.add_paragraph()
+        summary_run = summary_para.add_run(
+            f"{result['description']} — {result['match_count']} match(es) in {result['file_count']} file(s)"
+        )
+        summary_run.font.size = Pt(11)
+        summary_run.italic = True
 
         # Build highlight pattern from this category's regex
         regex = result.get("regex", "")

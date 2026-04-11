@@ -6228,8 +6228,16 @@ def _launch_gui():
                 else:
                     self._pii_scan_enabled = {cat for cat, _, _, _ in SENSITIVE_PATTERNS}
 
+            # Load saved dollar amount range (defaults to $10,000 – $999,999,999)
+            from docsearch.cli import _load_config
+            _cfg = _load_config()
+            saved_min = _cfg.get("pii_scan_dollar_min", "10000")
+            saved_max = _cfg.get("pii_scan_dollar_max", "999999999")
+
             # Checkboxes for each pattern
             check_vars = []
+            dollar_min_entry = None
+            dollar_max_entry = None
             checks_frame = tk.Frame(win)
             checks_frame.pack(fill="x", padx=20)
 
@@ -6248,9 +6256,24 @@ def _launch_gui():
                 cb = tk.Checkbutton(row, variable=var, text=category, font=("TkDefaultFont", 12))
                 cb.pack(side="left")
 
-                tk.Label(
-                    row, text=f"  {description}", font=("TkDefaultFont", 10), fg="gray",
-                ).pack(side="left")
+                if category == "Dollar Amounts":
+                    # Inline Min/Max entries for the dollar amount range
+                    tk.Label(
+                        row, text="  Min $", font=("TkDefaultFont", 11),
+                    ).pack(side="left", padx=(10, 2))
+                    dollar_min_entry = tk.Entry(row, width=12, font=("TkDefaultFont", 11))
+                    dollar_min_entry.insert(0, str(saved_min))
+                    dollar_min_entry.pack(side="left")
+                    tk.Label(
+                        row, text="  Max $", font=("TkDefaultFont", 11),
+                    ).pack(side="left", padx=(10, 2))
+                    dollar_max_entry = tk.Entry(row, width=12, font=("TkDefaultFont", 11))
+                    dollar_max_entry.insert(0, str(saved_max))
+                    dollar_max_entry.pack(side="left")
+                else:
+                    tk.Label(
+                        row, text=f"  {description}", font=("TkDefaultFont", 10), fg="gray",
+                    ).pack(side="left")
 
             # Select All / Deselect All
             toggle_frame = tk.Frame(win)
@@ -6276,18 +6299,44 @@ def _launch_gui():
                 if not selected:
                     self._show_error("Select at least one category.")
                     return
+
+                # Validate Dollar Amounts min/max if that category is selected
+                dollar_min = dollar_max = None
+                dollar_selected = any(
+                    SENSITIVE_PATTERNS[i][0] == "Dollar Amounts"
+                    for i, v in enumerate(check_vars) if v.get()
+                )
+                if dollar_selected and dollar_min_entry is not None:
+                    min_str = dollar_min_entry.get().strip().replace(",", "").replace("$", "")
+                    max_str = dollar_max_entry.get().strip().replace(",", "").replace("$", "")
+                    try:
+                        dollar_min = float(min_str) if min_str else 0.0
+                        dollar_max = float(max_str) if max_str else 999999999.0
+                    except ValueError:
+                        self._show_error("Dollar amount Min and Max must be numbers.")
+                        return
+                    if dollar_min < 0 or dollar_max < 0:
+                        self._show_error("Dollar amount Min and Max must be non-negative.")
+                        return
+                    if dollar_min > dollar_max:
+                        self._show_error("Dollar amount Min must be less than or equal to Max.")
+                        return
+
                 # Remember selections for next time
                 self._pii_scan_enabled = {SENSITIVE_PATTERNS[i][0] for i, v in enumerate(check_vars) if v.get()}
                 try:
                     from docsearch.cli import _load_config, _save_config
                     config = _load_config()
                     config["pii_scan_categories"] = sorted(self._pii_scan_enabled)
+                    if dollar_selected and dollar_min is not None:
+                        config["pii_scan_dollar_min"] = str(int(dollar_min)) if dollar_min.is_integer() else str(dollar_min)
+                        config["pii_scan_dollar_max"] = str(int(dollar_max)) if dollar_max.is_integer() else str(dollar_max)
                     _save_config(config)
                 except Exception:
                     pass
                 pii_folder = _pii_folder_label.cget("text")
                 win.destroy()
-                self._run_sensitive_scan(selected, pii_folder)
+                self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None)
 
             tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack(side="left", padx=5)
             tk.Button(btn_frame, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=5)
@@ -6520,7 +6569,7 @@ def _launch_gui():
             )
             close_btn.pack(pady=(5, 10))
 
-        def _run_sensitive_scan(self, selected_patterns, folder=None):
+        def _run_sensitive_scan(self, selected_patterns, folder=None, dollar_range=None):
             """Launch the sensitive data scan with the selected patterns."""
             if not folder:
                 folder = self.folder_entry.get().strip()
@@ -6545,12 +6594,12 @@ def _launch_gui():
 
             thread = threading.Thread(
                 target=self._sensitive_scan_thread,
-                args=(folder, recursive, file_types, selected_patterns),
+                args=(folder, recursive, file_types, selected_patterns, dollar_range),
                 daemon=True,
             )
             thread.start()
 
-        def _sensitive_scan_thread(self, folder, recursive, file_types, selected_patterns=None):
+        def _sensitive_scan_thread(self, folder, recursive, file_types, selected_patterns=None, dollar_range=None):
             """Run selected sensitive data patterns in a background thread."""
             from docsearch.api import search
             from docsearch.sensitive_patterns import SENSITIVE_PATTERNS
@@ -6568,6 +6617,16 @@ def _launch_gui():
                         text_color="blue",
                     )
                 )
+                # For the Dollar Amounts category, inject a range filter and
+                # update the display name/description to reflect the user's range
+                range_filters = None
+                if category == "Dollar Amounts" and dollar_range is not None:
+                    lo, hi = dollar_range
+                    range_filters = [f"amount:{lo}..{hi}"]
+                    lo_label = f"${int(lo):,}" if float(lo).is_integer() else f"${lo:,}"
+                    hi_label = f"${int(hi):,}" if float(hi).is_integer() else f"${hi:,}"
+                    category = f"Dollar Amounts ({lo_label} – {hi_label})"
+                    description = f"Dollar amounts between {lo_label} and {hi_label}"
                 try:
                     result = search(
                         [regex],
@@ -6576,6 +6635,7 @@ def _launch_gui():
                         use_regex=True,
                         use_index=False,
                         file_types=file_types,
+                        range_filters=range_filters,
                     )
                     files_searched = max(files_searched, len(result.files_searched))
                     # Build per-file breakdown
@@ -6758,10 +6818,11 @@ def _launch_gui():
 
                     files_data = result["files"]
                     cat_name = result["category"]
+                    cat_regex = result.get("regex")
                     view_btn = tk.Button(
                         row, text="View Files",
                         font=("TkDefaultFont", 10),
-                        command=lambda f=files_data, c=cat_name, p=popup: self._show_sensitive_category_files(f, c, p),
+                        command=lambda f=files_data, c=cat_name, p=popup, r=cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
                     )
                     view_btn.pack(side="right", padx=(0, 5))
 
@@ -6974,8 +7035,13 @@ def _launch_gui():
             )
             close_btn.pack(pady=(5, 10))
 
-        def _show_sensitive_category_files(self, files_data, category, parent):
-            """Show files for a specific sensitive data category."""
+        def _show_sensitive_category_files(self, files_data, category, parent, regex=None):
+            """Show files for a specific sensitive data category.
+
+            If regex is provided, the View Text button opens the extracted-text
+            view with that regex highlighted (so the user sees the actual PII
+            matches for this category, not whatever is in the main search bar).
+            """
             import tkinter as tk
             import subprocess, sys
 
@@ -7038,11 +7104,51 @@ def _launch_gui():
             listbox.bind("<Double-1>", _on_double_click)
 
             tk.Label(
-                popup, text="Double-click a file to open it",
-                font=("TkDefaultFont", 10), fg="gray",
-            ).pack()
+                popup, text="Double-click a file to open it in its default application, "
+                            "or select a file and click View Text below to see the "
+                            "extracted text with line numbers and matches highlighted.",
+                font=("TkDefaultFont", 10), fg="gray", wraplength=700, justify="center",
+            ).pack(padx=10)
 
-            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+            def _view_text():
+                sel = listbox.curselection()
+                if not sel or sel[0] not in file_paths:
+                    return
+                path = file_paths[sel[0]]
+                if not os.path.exists(path):
+                    self._show_error(f"File not found: {path}")
+                    return
+                self._show_file_text_view(
+                    path, os.path.basename(path),
+                    highlight_regex_pattern=regex,
+                )
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            view_btn = tk.Label(
+                btn_frame, text="View Text (with line numbers)",
+                font=("TkDefaultFont", 13, "bold"),
+                bg="#FF6B35", fg="white",
+                relief="raised", borderwidth=2,
+                padx=20, pady=8, cursor="hand2",
+            )
+            view_btn.pack(side="left", padx=5)
+            view_btn.bind("<Button-1>", lambda e: _view_text())
+            view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#E55A2B"))
+            view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF6B35"))
+
+            close_btn = tk.Label(
+                btn_frame, text="Close",
+                font=("TkDefaultFont", 13, "bold"),
+                bg="#888888", fg="white",
+                relief="raised", borderwidth=2,
+                padx=20, pady=8, cursor="hand2",
+            )
+            close_btn.pack(side="left", padx=5)
+            close_btn.bind("<Button-1>", lambda e: popup.destroy())
+            close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
+            close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
 
         def start_search(self):
             """Validate inputs, build the CLI command, and launch a search thread."""
@@ -9656,8 +9762,15 @@ def _launch_gui():
             )
             close_btn.pack(pady=(5, 10))
 
-        def _show_file_text_view(self, filepath, filename):
-            """Display extracted text of a file with line numbers and match highlighting."""
+        def _show_file_text_view(self, filepath, filename, highlight_regex_pattern=None):
+            """Display extracted text of a file with line numbers and match highlighting.
+
+            If highlight_regex_pattern is provided, matches for that regex are
+            highlighted instead of matches for the main search bar's terms. This
+            is used by the PII Scan View Files popup so the highlights reflect
+            the PII category (SSN, credit card, etc.) rather than whatever is
+            currently in the search bar.
+            """
             import tkinter as tk
             from docsearch.scanner import _extract_lines, _ocr_image
             import re as _re_view
@@ -9704,32 +9817,36 @@ def _launch_gui():
             txt.tag_configure("line_num", foreground="#888888")
             txt.tag_configure("match", background="#FF6B35", foreground="white")
 
-            # Build highlight pattern from current search
-            search_text = self.search_entry.get().strip()
+            # Build highlight pattern — either from the caller-supplied regex
+            # (PII Scan path) or from the main search bar (normal path).
             patterns = []
-            if search_text:
-                use_regex = self.regex_var.get() == "on"
-                use_wildcard = self.wildcard_var.get() == "on"
-                use_whole_word = self.whole_word_var.get() == "on"
-                is_expression = self.expression_var.get() == "on"
-                if is_expression:
-                    try:
-                        from docsearch.expr_parser import parse_expression, extract_positive_terms
-                        terms = extract_positive_terms(parse_expression(search_text))
-                    except Exception:
-                        terms = search_text.split()
-                else:
-                    terms = search_text.split()
-                for term in terms:
-                    if use_wildcard:
-                        from docsearch.scanner import _wildcard_to_regex
-                        patterns.append(_wildcard_to_regex(term))
-                    elif use_regex:
-                        patterns.append(term)
-                    elif use_whole_word:
-                        patterns.append(r'\b' + _re_view.escape(term) + r'\b')
+            if highlight_regex_pattern:
+                patterns.append(highlight_regex_pattern)
+            else:
+                search_text = self.search_entry.get().strip()
+                if search_text:
+                    use_regex = self.regex_var.get() == "on"
+                    use_wildcard = self.wildcard_var.get() == "on"
+                    use_whole_word = self.whole_word_var.get() == "on"
+                    is_expression = self.expression_var.get() == "on"
+                    if is_expression:
+                        try:
+                            from docsearch.expr_parser import parse_expression, extract_positive_terms
+                            terms = extract_positive_terms(parse_expression(search_text))
+                        except Exception:
+                            terms = search_text.split()
                     else:
-                        patterns.append(_re_view.escape(term))
+                        terms = search_text.split()
+                    for term in terms:
+                        if use_wildcard:
+                            from docsearch.scanner import _wildcard_to_regex
+                            patterns.append(_wildcard_to_regex(term))
+                        elif use_regex:
+                            patterns.append(term)
+                        elif use_whole_word:
+                            patterns.append(r'\b' + _re_view.escape(term) + r'\b')
+                        else:
+                            patterns.append(_re_view.escape(term))
 
             combined_re = None
             if patterns:

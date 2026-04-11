@@ -46,10 +46,10 @@ SENSITIVE_PATTERNS = [
         "Date-of-birth patterns",
     ),
     (
-        "Dollar Amounts Over $10,000",
-        r"\$\d{2,3},\d{3}(?:\.\d{2})?",
+        "Dollar Amounts",
+        r"\$[\d,]+(?:\.\d{2})?",
         "info",
-        "Dollar amounts $10,000 and above",
+        "Dollar amounts in a user-specified range (see Min/Max fields)",
     ),
 ]
 
