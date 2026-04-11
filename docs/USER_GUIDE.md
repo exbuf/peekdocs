@@ -409,6 +409,8 @@ The Compliance Wizard shows the current **Search Folder** at the top of the wind
 
 Click the **?** button in the Compliance Wizard for detailed help on how each check works, what pass/fail criteria mean, and all available templates.
 
+> **Important:** The built-in templates are examples of the kinds of checks that tend to come up in each industry. They do not necessarily cover everything needed to be compliant in any given industry, and they are not certified against any specific regulation. Compliance requirements vary by jurisdiction, organization size, contract terms, and how the rules are interpreted — so what "fully compliant" looks like is for you (and your legal, audit, or compliance advisors) to decide. Treat the built-in templates as a head start: run them, review the checks, then add, remove, or edit checks to match what your organization actually needs to verify.
+
 **Search Wizard vs Compliance Wizard:** The Search Wizard configures one search at a time — you pick a type, click Apply, and run or save that single search. The Compliance Wizard creates multiple searches AND a suite in one step. Use the Search Wizard for individual searches and learning. Use the Compliance Wizard when you need a full set of document review checks ready to run as a batch.
 
 **No hidden capabilities — just automation:** Everything the Search Wizard and Compliance Wizard do can also be done manually using the search bar, Advanced Search Options, Save Search, and Manage Suites. The wizards automate what would otherwise be a multi-step process, but they use the same fields and checkboxes you see on the main screen. After a wizard runs, all settings are visible and editable — nothing is locked or hidden.
@@ -1912,6 +1914,10 @@ Now that you're comfortable with individual advanced searches, you can:
 ---
 
 ## Search Suites
+
+**What is a suite?** A suite is a named group of individual searches that run together as a batch against the same folder. Each search in the suite has its own terms, options, and pass/fail criteria (for example: *"contract must contain 'confidentiality'"* or *"no file may contain an SSN"*). When you run the suite, docsearch executes every search in order and produces a single audit-ready report showing which checks passed, which failed, and exactly which files were in scope — evidence that every document was reviewed against every rule. Suites can also be scheduled to auto-run on a timer with email alerts on failure.
+
+**Why a suite beats one complicated search.** Several focused searches grouped into a suite is more reliable, easier to understand, and easier to maintain than one complicated search trying to do everything. Each check stays simple enough to verify on its own, the suite report tells you exactly which check passed or failed (not just *"something matched"*), and you can update, reuse, or swap out one check without rebuilding the rest. Small, focused checks also produce cleaner audit evidence — a reviewer can read each stage report and understand what was being verified. (See also [Breaking Down Complex Searches](#breaking-down-complex-searches) for a worked example.)
 
 Search suites let you save individual searches, group them into named suites, and run them as a batch with pass/fail tracking. This turns docsearch into a **verifiable document audit** tool — define a set of checks, run them against a collection of documents, and generate a report that proves what was searched, what passed, what failed, and which files were in scope. Run the same checks repeatedly and get a report showing which checks passed and which failed.
 

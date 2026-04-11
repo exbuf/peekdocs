@@ -255,7 +255,7 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — retired electri
 
 ## Disclaimer
 
-docsearch is a search and reporting tool. It does not provide legal, regulatory, or compliance advice. Templates are document search configurations, not compliance certifications — pass/fail results indicate whether search criteria were met, not whether documents satisfy regulatory requirements. Users are solely responsible for determining whether search results meet their specific compliance obligations. This software is provided "as is" without warranty of any kind (see [MIT License](LICENSE)).
+docsearch is a search and reporting tool. It does not provide legal, regulatory, or compliance advice. Templates are document search configurations, not compliance certifications — pass/fail results indicate whether search criteria were met, not whether documents satisfy regulatory requirements. The built-in industry templates are examples of the kinds of checks that tend to come up in each industry; they do not necessarily cover everything needed to be compliant in any given industry, and they are not certified against any specific regulation. Users are solely responsible for determining whether search results meet their specific compliance obligations and for adding, removing, or editing checks to match what their organization actually needs to verify. This software is provided "as is" without warranty of any kind (see [MIT License](LICENSE)).
 
 ## License
 
