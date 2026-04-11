@@ -443,7 +443,7 @@ def _launch_gui():
             self.grid_rowconfigure(0, weight=1)
 
             # Tab view: Getting Started + Search
-            self._tabview = ctk.CTkTabview(self, anchor="nw")
+            self._tabview = ctk.CTkTabview(self, anchor="nw", command=self._on_tab_changed)
             self._tabview.grid(row=0, column=0, sticky="nsew", padx=5, pady=(5, 0))
 
             self._tab_started = self._tabview.add("Getting Started")
@@ -501,7 +501,30 @@ def _launch_gui():
                 self._tabview.set("Getting Started")
             else:
                 self._tabview.set("Search")
+            # Apply the Search-tab-visibility rules to the initial tab
+            # (fire after deiconify so the segmented button is fully laid out)
+            self.after(1200, self._on_tab_changed)
             self.after(500, self._resume_suite_schedule)
+
+        def _on_tab_changed(self):
+            """Hide the Search tab button when on Search (redundant), and
+            rename it to 'Return' when on Getting Started so clicking it
+            returns the user to where they started."""
+            try:
+                current = self._tabview.get()
+                seg = self._tabview._segmented_button
+                search_btn = seg._buttons_dict.get("Search")
+                if search_btn is None:
+                    return
+                if current == "Search":
+                    # User is already on Search — hide the redundant tab button
+                    search_btn.grid_remove()
+                else:
+                    # On Getting Started — show the button labeled "Return"
+                    search_btn.grid()
+                    search_btn.configure(text="Return")
+            except Exception:
+                pass
 
         def _center_window(self, width, height):
             """Center the application window on screen with the given dimensions."""
@@ -551,7 +574,7 @@ def _launch_gui():
                 tk.Label(text_frame, text=desc, font=("TkDefaultFont", 12), fg="gray",
                          anchor="w", justify="left", wraplength=800).pack(anchor="w", fill="x")
 
-            _step(1, "Choose a folder", "Click the Search tab above, then click Browse next to '1. Search Folder' to select the folder containing your documents.")
+            _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
             _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
             _step(3, "Click Run Search", "docsearch scans every supported file and shows results with matches highlighted in yellow.")
             _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. DOCX requires a word processor on your computer (Microsoft Word, LibreOffice, Google Docs, or Apple Pages). TXT opens in any text editor.")
@@ -576,20 +599,8 @@ def _launch_gui():
 
             tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
-            tk.Label(inner, text="Ready? Click the Search tab at the top of this window, or the button below.",
-                     font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 5), **pad)
-
-            def _go_to_search():
-                self._tabview.set("Search")
-
-            _go_btn_frame = ctk.CTkFrame(inner, fg_color="transparent")
-            _go_btn_frame.pack(pady=(10, 30), padx=30, anchor="w")
-            ctk.CTkButton(
-                _go_btn_frame, text="Go to Search \u2192", width=180, height=40,
-                font=ctk.CTkFont(size=16, weight="bold"),
-                fg_color="#2196F3", hover_color="#1976D2",
-                command=_go_to_search,
-            ).pack()
+            tk.Label(inner, text="You've got this! Click the Return tab above and discover what's hiding in your documents.",
+                     font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 30), **pad)
 
         def _build_search_row(self):
             """Build the search bar with entry field, action buttons, and tooltips."""
