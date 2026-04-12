@@ -59,6 +59,11 @@
 
 - **Python 3.10+** — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/)
   - **Windows users:** When installing Python, make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `docsearch` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
+  - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv` or `pip`. You must install them separately before creating a virtual environment:
+    ```bash
+    sudo apt install python3-venv python3-pip
+    ```
+    Without this, `python3 -m venv venv` will fail with an `ensurepip` error. This is a one-time setup — once installed, venv and pip work for all future projects.
 - **Tkinter** (optional, for GUI) — included on Windows/macOS; Linux: `sudo apt install python3-tk`
 - **Tesseract** (optional, for OCR) — macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
@@ -94,10 +99,13 @@ git clone https://github.com/exbuf/docsearch.git
 cd docsearch
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install --upgrade pip       # required on some Linux distros — see note below
 pip install -e .
 ```
 
 **Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `docsearch`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
+
+**"setup.py not found" error on Linux?** Some Linux distributions ship an older version of pip that doesn't support `pyproject.toml`-based builds (which docsearch uses). The fix is `pip install --upgrade pip` inside the virtual environment before running `pip install -e .` — this is already included in the commands above.
 
 ### Option C: Manual Install (no git, no sign-up)
 
@@ -122,6 +130,7 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
    cd ~/Downloads/docsearch-main
    python3 -m venv venv
    source venv/bin/activate
+   pip install --upgrade pip
    pip install -e .
    ```
 

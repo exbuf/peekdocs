@@ -203,6 +203,40 @@ Your operating system may be blocking docsearch (or your terminal) from accessin
 
 ---
 
+**"ensurepip" error when creating a virtual environment (Linux)**
+
+On Debian-based Linux distributions (Ubuntu, Linux Mint, Pop!_OS, Debian), the base `python3` package does not include the `venv` or `pip` modules. Running `python3 -m venv venv` fails with an error like:
+
+```
+The virtual environment was not created successfully because ensurepip is not available.
+```
+
+**Fix:** Install the missing packages:
+
+```bash
+sudo apt install python3-venv python3-pip
+```
+
+Then re-run `python3 -m venv venv` — it will work. This is a one-time setup. On Fedora/RHEL, use `sudo dnf install python3-pip` instead. On Arch, `venv` and `pip` are included in the base `python` package.
+
+---
+
+**"setup.py not found" or "No setup.py, setup.cfg, or pyproject.toml" (Linux)**
+
+This happens when the version of pip inside your virtual environment is too old to support `pyproject.toml`-based builds (which docsearch uses instead of the older `setup.py` format). Older Linux distributions sometimes ship pip versions from 2021–2022 that don't have this support.
+
+**Fix:** Upgrade pip inside the virtual environment before installing docsearch:
+
+```bash
+source venv/bin/activate
+pip install --upgrade pip
+pip install -e .
+```
+
+The `pip install --upgrade pip` command updates pip to the latest version, which fully supports `pyproject.toml`. This only needs to be done once per virtual environment.
+
+---
+
 **"'pip' is not recognized" or "'python' is not recognized" (Windows)**
 
 This means Python is installed but not on your system PATH. The most common cause is forgetting to check **"Add Python to PATH"** during the Python installer. The easiest fix:
