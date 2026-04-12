@@ -4,9 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> Search Word docs, PDFs, spreadsheets, emails, archives, and more — 46 file types, all at once, all offline. No uploads, no cloud, no subscriptions. Everything stays on your computer. Free, open-source. Windows/Mac/Linux.
+> Search your documents in any language — English, Spanish, Chinese, Arabic, Hindi, Japanese, and 100+ more. 46 file types, all at once, all offline. No uploads, no cloud, no subscriptions. Everything stays on your computer. Free, open-source. Windows/Mac/Linux.
 >
-> **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
+> **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Advanced users can add their own regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, and more). Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
 >
 > Terminal, GUI, or Python API. For home users and anyone who wants to see what's in their own files.
 
