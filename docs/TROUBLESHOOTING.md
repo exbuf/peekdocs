@@ -225,15 +225,15 @@ Then re-run `python3 -m venv venv` — it will work. This is a one-time setup. O
 
 This happens when the version of pip inside your virtual environment is too old to support `pyproject.toml`-based builds (which docsearch uses instead of the older `setup.py` format). Older Linux distributions sometimes ship pip versions from 2021–2022 that don't have this support.
 
-**Fix:** Upgrade pip inside the virtual environment before installing docsearch:
+**Fix:** Upgrade pip, setuptools, and wheel inside the virtual environment before installing docsearch:
 
 ```bash
 source venv/bin/activate
-pip install --upgrade pip
+pip install --upgrade pip setuptools wheel
 pip install -e .
 ```
 
-The `pip install --upgrade pip` command updates pip to the latest version, which fully supports `pyproject.toml`. This only needs to be done once per virtual environment.
+This updates the build tools to the latest versions, which fully support `pyproject.toml`. This only needs to be done once per virtual environment. Make sure the `(venv)` prefix is showing in your terminal prompt — if it's not, reactivate with `source venv/bin/activate` first.
 
 ---
 

@@ -99,13 +99,13 @@ git clone https://github.com/exbuf/docsearch.git
 cd docsearch
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install --upgrade pip       # required on some Linux distros — see note below
+pip install --upgrade pip setuptools wheel   # required on some Linux distros — see note below
 pip install -e .
 ```
 
 **Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `docsearch`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
 
-**"setup.py not found" error on Linux?** Some Linux distributions ship an older version of pip that doesn't support `pyproject.toml`-based builds (which docsearch uses). The fix is `pip install --upgrade pip` inside the virtual environment before running `pip install -e .` — this is already included in the commands above.
+**"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which docsearch uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
 
 ### Option C: Manual Install (no git, no sign-up)
 
@@ -130,7 +130,7 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
    cd ~/Downloads/docsearch-main
    python3 -m venv venv
    source venv/bin/activate
-   pip install --upgrade pip
+   pip install --upgrade pip setuptools wheel
    pip install -e .
    ```
 
