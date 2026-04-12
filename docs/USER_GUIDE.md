@@ -18,6 +18,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
   - [Command Translation](#command-translation)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
+- [PII Scan](#pii-scan)
 - [Boolean Expression Search](#boolean-expression-search)
 - [Range Queries](#range-queries)
 - [Combining Modes](#combining-modes)
@@ -876,6 +877,78 @@ Normal docsearch shows files that **contain** your search terms. Inverse search 
 **In the GUI:** Check the **Inverse** checkbox in the Search Bar (next to the Wizard button) before clicking **Run Search**. The results summary will show how many files are missing the search terms.
 
 **Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
+
+## PII Scan
+
+The **PII Scan** is docsearch's one-click scan for sensitive data (PII) in your own files. Click the red **PII Scan** button on the main screen — docsearch runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
+
+The PII Scan is a **GUI feature only** — the CLI (`docsearch`) runs individual searches but does not currently expose the PII Scan as a flag.
+
+### What it does
+
+- Runs the eight built-in PII regex patterns against every file in your selected search folder (respecting Recursive and File Type settings).
+- Groups findings by category (SSN, credit card, tax ID, email, phone, password, DOB, dollar amounts).
+- Categorizes each category by severity (HIGH for SSNs, credit cards, and tax IDs; MODERATE for emails, phones, passwords, and dates of birth; INFO for dollar amounts).
+- Produces a consolidated `.docx` report with a summary table, a detail section per category, every affected file listed with match counts and line numbers, and the matched text highlighted in yellow.
+- Everything runs locally on your machine. Nothing is uploaded, transmitted, or sent to any third party.
+
+### How to use it
+
+1. Open the GUI: `docsearch-gui`.
+2. Browse to the folder you want to scan (use **Change Folder** inside the PII Scan popup if you want to scan a different folder without changing the main screen).
+3. Click the red **PII Scan** button in the main Search Bar.
+4. A configuration popup appears. All eight categories are checked by default. Uncheck any you don't want, or use **Select All** / **Deselect All**.
+5. For **Dollar Amounts**, set the **Min $** and **Max $** range. Defaults are $10,000 and $999,999,999. The scan uses a loose regex to match any dollar amount and then filters results to those within your range.
+6. Click **Run Scan**. The status bar shows progress through each category.
+7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
+8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Double-click a row to open the original file in its default application, or select a row and click **View Text (with line numbers)** to see the extracted file content with line numbers and every match highlighted in orange.
+9. Click **Open Report** in the main results popup to open the `.docx` report that was automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`, saved in your search folder (or the Output Dir if set in Advanced Search Options). Each category heading in the report is color-coded by severity (red for HIGH, amber for MODERATE, blue for INFO) so you can find what matters quickly.
+
+### Categories
+
+| Category | Severity | What it finds |
+|----------|----------|---------------|
+| Social Security Numbers | HIGH | SSN patterns (XXX-XX-XXXX) |
+| Credit Card Numbers | HIGH | Visa, Mastercard, Amex, Discover patterns |
+| Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
+| Email Addresses | MODERATE | Email address patterns |
+| Phone Numbers | MODERATE | US phone number patterns |
+| Passwords / Secrets | MODERATE | Lines containing password, secret, or API key assignments |
+| Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
+| Dollar Amounts | INFO | Dollar amounts in a user-specified range |
+
+### When to use it
+
+The PII Scan answers the question *"what sensitive data is hiding in my own files?"* Common uses:
+
+- **Before sharing a file or folder** — run a scan to check what's about to go out the door.
+- **Before selling, donating, or retiring a computer** — see what's still sitting on the disk.
+- **Helping a relative with a device** — check an elderly parent's laptop or an estate's records before handing it off.
+- **Periodic personal audit** — once or twice a year, see what's accumulated in your Documents folder over the years.
+- **Small-business file hygiene** — scan a shared folder for data that shouldn't be there anymore.
+
+The PII Scan runs entirely on the user's own files, on the user's own machine, so there's no custody relationship with anyone else's data — it's just you looking at what's already on your disk.
+
+### Important disclaimers
+
+The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.
+
+- **Pattern-based detection produces false positives.** A 9-digit account number can look like an SSN. A tracking number can match the credit card pattern. The word "password" can appear in a help document that contains no actual passwords. Always review findings in context before taking action — the report shows the matched text with surrounding context precisely so you can judge whether each finding is real.
+- **Pattern-based detection also produces false negatives.** docsearch cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format docsearch doesn't know about will not be flagged. **A clean PII Scan report does not prove that a file is free of sensitive data.** It proves only that docsearch's specific regex patterns did not match anything in the file's extracted text.
+- **Some file formats may not be fully extracted.** docsearch searches 46 file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Files that docsearch could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
+- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and reports. If you decide based on the report that a file needs to be removed or redacted, that's your decision to make and your action to take — docsearch does not modify your files.
+- **The PII Scan is not compliance software.** A clean scan does not certify HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory compliance. If your organization has compliance obligations, the PII Scan can be one input to your review process, but it is not a substitute for professional compliance expertise or a formal audit.
+- **docsearch is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
+
+In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.
+
+### Privacy and the local-only model
+
+The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of docsearch, reads your files directly from local disk, and writes the resulting `.docx` report back to local disk. Nothing is sent to a server, an API, a cloud service, or any third party.
+
+This matters for two reasons. First, you can scan files containing real PII (your own tax returns, your own credit card statements, your own medical records) without worrying that the tool is creating a new exposure. Second, there is no network traffic for a firewall or ISP to observe, no API key to leak, no cloud bill to pay, and no vendor relationship to audit.
+
+The one thing to be aware of is the output file itself. The generated report contains snippets of matched text, including the actual sensitive data that was detected, highlighted in yellow. That file lives on your local disk like any other document — if your disk is backed up to the cloud, or shared over a network, or readable by other users on a shared machine, the report is subject to whatever access policies apply to that location. See the [Security Best Practices](#security-best-practices) section for handling tips.
 
 ## Boolean Expression Search
 

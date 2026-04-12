@@ -357,18 +357,18 @@ def _launch_gui():
                 return
             try:
                 import tkinter as tk
+
+                # Initial x position; y for above-* is computed after the
+                # tooltip is rendered so it never overlaps the widget.
                 if self.anchor == "left":
                     x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
                     y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
                 elif self.anchor in ("above", "above-left", "above-mid", "above-high"):
-                    y = self.widget.winfo_rooty() - 75
                     x = self.widget.winfo_rootx()
-                    if self.anchor == "above-mid":
-                        y = self.widget.winfo_rooty() - 95
-                    elif self.anchor == "above-high":
-                        y = self.widget.winfo_rooty() - 120
-                    elif self.anchor == "above-left":
+                    if self.anchor == "above-left":
                         x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
+                    # Placeholder y; will be corrected after tooltip is laid out
+                    y = self.widget.winfo_rooty() - 200
                 else:
                     x = self.widget.winfo_rootx() + 20
                     y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
@@ -387,6 +387,16 @@ def _launch_gui():
                     padx=6, pady=4, wraplength=300, justify="left",
                 )
                 label.pack()
+
+                # For "above" variants, measure the rendered tooltip height
+                # and place it so its bottom edge sits just above the widget.
+                # This guarantees the tooltip never covers the widget itself,
+                # regardless of how much text it contains.
+                if self.anchor in ("above", "above-left", "above-mid", "above-high"):
+                    tw.update_idletasks()
+                    tip_h = tw.winfo_height()
+                    y = self.widget.winfo_rooty() - tip_h - 6
+                    tw.wm_geometry(f"+{x}+{y}")
             except Exception:
                 self.tip_window = None
 
@@ -1705,13 +1715,24 @@ def _launch_gui():
             import tkinter as tk
             help_win = tk.Toplevel(self.advanced_window or self)
             help_win.title("Advanced Search Options — Help")
-            help_win.geometry("750x520")
+            help_win.geometry("750x620")
             help_win.resizable(True, True)
             if self.advanced_window:
                 help_win.transient(self.advanced_window)
 
+            # Pack the Close button FIRST, anchored to the bottom, so the
+            # scrollable text frame below cannot push it off-screen.
+            close_btn = ctk.CTkButton(
+                help_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(side="bottom", pady=(5, 10))
+
             text_frame = tk.Frame(help_win)
-            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+            text_frame.pack(side="top", fill="both", expand=True, padx=10, pady=(10, 5))
             scrollbar = tk.Scrollbar(text_frame)
             scrollbar.pack(side="right", fill="y")
             txt = tk.Text(
@@ -2009,15 +2030,6 @@ def _launch_gui():
             b("\u2022 Off \u2014 rebuild manually with Build Index(es) when needed")
 
             txt.configure(state="disabled")
-
-            close_btn = ctk.CTkButton(
-                help_win, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=help_win.destroy,
-                font=ctk.CTkFont(size=12),
-            )
-            close_btn.pack(pady=(5, 10))
 
         def _build_folder_row(self):
             """Build the folder selection row with entry field and Browse button."""
@@ -3243,9 +3255,11 @@ def _launch_gui():
             tk.Button(toggle_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=5)
             tk.Button(toggle_frame, text="Deselect All", width=10, command=_deselect_all).pack(side="left", padx=5)
 
-            # Run / Cancel buttons
+            # Run button on its own row; Close button on a separate row below
             btn_frame = tk.Frame(win)
-            btn_frame.pack(pady=(8, 12))
+            btn_frame.pack(pady=(8, 2))
+            close_frame = tk.Frame(win)
+            close_frame.pack(pady=(0, 12))
 
             def _run():
                 selected = [SENSITIVE_PATTERNS[i] for i, v in enumerate(check_vars) if v.get()]
@@ -3291,8 +3305,14 @@ def _launch_gui():
                 win.destroy()
                 self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None)
 
-            tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack(side="left", padx=5)
-            tk.Button(btn_frame, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=5)
+            tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack()
+            ctk.CTkButton(
+                close_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=win.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack()
 
         def _show_pii_scan_help(self, parent):
             """Show help for the PII Scan."""
@@ -3341,10 +3361,11 @@ def _launch_gui():
                 "Severity Levels",
                 "Understanding Results",
                 "The Highlighted Report",
-                "False Positives",
                 "Saving Your Selections",
                 "Search Folder",
                 "How It Differs from Regular Search",
+                "Disclaimer",
+                "MIT License",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
@@ -3462,21 +3483,6 @@ def _launch_gui():
             b("your documents \u2014 for example, a dedicated 'reports' folder.")
             blank()
 
-            h("FALSE POSITIVES")
-            b("Pattern-based detection will produce false positives. For")
-            b("example:")
-            b("\u2022 A 9-digit number that looks like an SSN but is an")
-            b("  account number or ZIP+4 code")
-            b("\u2022 A number matching the credit card pattern that is")
-            b("  actually a serial number or tracking ID")
-            b("\u2022 The word 'password' in a help document rather than")
-            b("  an actual exposed password")
-            blank()
-            b("Always review findings in context before taking action.")
-            b("The report shows the matched text with surrounding context")
-            b("so you can quickly judge whether a finding is real.")
-            blank()
-
             h("SAVING YOUR SELECTIONS")
             b("Your checkbox selections are saved to ~/.docsearchrc and")
             b("remembered between sessions. The next time you open the PII")
@@ -3507,6 +3513,87 @@ def _launch_gui():
             b("you want to reuse the same regex patterns as normal searches,")
             b("use the Search Wizard to build an equivalent search and then")
             b("click Save Search to store it by name.")
+            blank()
+
+            h("DISCLAIMER")
+            b("The PII Scan is a pattern-matching discovery aid, not a")
+            b("security product or a compliance certification. Please read")
+            b("the following before relying on it.")
+            blank()
+            b("\u2022 False positives happen. A 9-digit account number can")
+            b("  look like an SSN. A tracking number can match the credit")
+            b("  card pattern. The word 'password' can appear in a help")
+            b("  document that contains no actual passwords. Always review")
+            b("  findings in context before taking action \u2014 the report")
+            b("  shows the matched text with surrounding context precisely")
+            b("  so you can judge whether each finding is real.")
+            blank()
+            b("\u2022 False negatives happen. The PII Scan cannot find PII")
+            b("  that does not match its built-in regex patterns. An SSN")
+            b("  written as '123 45 6789' (spaces instead of dashes) may")
+            b("  not be detected. A credit card number without separators")
+            b("  may be missed. A foreign tax ID in a format docsearch")
+            b("  does not know will not be flagged. A clean report does")
+            b("  NOT prove that a file is free of sensitive data \u2014 it")
+            b("  proves only that docsearch's specific regex patterns did")
+            b("  not match anything in the file's extracted text.")
+            blank()
+            b("\u2022 Some file formats may not be fully extracted. docsearch")
+            b("  searches 46 file types, but extraction quality varies. A")
+            b("  scanned PDF without OCR enabled will not surface any")
+            b("  text. An image file is ignored unless OCR is on. Complex")
+            b("  binary formats may yield partial text. Files that")
+            b("  docsearch could not read will not produce findings even")
+            b("  if they contain PII. Check View N excluded file(s) after")
+            b("  each scan to see which files were skipped.")
+            blank()
+            b("\u2022 Not a breach prevention tool. The PII Scan finds and")
+            b("  reports only. It does not block, encrypt, move, delete,")
+            b("  or otherwise secure any data. Any action taken based on")
+            b("  this report is the reader's decision and responsibility.")
+            blank()
+            b("\u2022 Not compliance software. A clean scan does not certify")
+            b("  HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory")
+            b("  compliance. The PII Scan can be one input to a review")
+            b("  process, but it is not a substitute for professional")
+            b("  compliance expertise or a formal audit.")
+            blank()
+            b("\u2022 Provided as-is under the MIT License. docsearch comes")
+            b("  with no warranty of any kind, express or implied. Users")
+            b("  are solely responsible for how they interpret and act on")
+            b("  these results. The full MIT License text is reproduced")
+            b("  below.")
+            blank()
+            b("In short: the PII Scan is a helpful set of eyes on your own")
+            b("files. It is not a guarantee, a certification, or a security")
+            b("system. Use the results as a starting point for your own")
+            b("review, not as a final answer.")
+            blank()
+
+            h("MIT LICENSE")
+            b("Copyright (c) 2026 exbuf")
+            blank()
+            b("Permission is hereby granted, free of charge, to any person")
+            b("obtaining a copy of this software and associated documentation")
+            b("files (the \"Software\"), to deal in the Software without")
+            b("restriction, including without limitation the rights to use,")
+            b("copy, modify, merge, publish, distribute, sublicense, and/or")
+            b("sell copies of the Software, and to permit persons to whom")
+            b("the Software is furnished to do so, subject to the following")
+            b("conditions:")
+            blank()
+            b("The above copyright notice and this permission notice shall")
+            b("be included in all copies or substantial portions of the")
+            b("Software.")
+            blank()
+            b("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY")
+            b("KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE")
+            b("WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR")
+            b("PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS")
+            b("OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR")
+            b("OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR")
+            b("OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE")
+            b("SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
             blank()
 
             txt.configure(state="disabled")
