@@ -203,6 +203,27 @@ Your operating system may be blocking docsearch (or your terminal) from accessin
 
 ---
 
+**"'pip' is not recognized" or "'python' is not recognized" (Windows)**
+
+This means Python is installed but not on your system PATH. The most common cause is forgetting to check **"Add Python to PATH"** during the Python installer. The easiest fix:
+
+1. Re-run the Python installer from [python.org/downloads](https://www.python.org/downloads/)
+2. On the first screen, check the box at the bottom that says **"Add Python to PATH"** (or "Add python.exe to PATH")
+3. Click "Install Now" (or "Modify" if it offers that option)
+4. Close and reopen Command Prompt
+
+After that, `pip`, `python`, and `docsearch` will all work from any Command Prompt window.
+
+**Quick workaround (without reinstalling):** Use `py -m pip` instead of `pip`:
+
+```cmd
+py -m pip install pipx
+```
+
+The `py` launcher is usually available even when `pip` isn't on PATH.
+
+---
+
 **"ModuleNotFoundError: No module named 'fitz'" (or any other module)**
 
 A required dependency is missing. This can happen after a Python upgrade or if the install was interrupted.
