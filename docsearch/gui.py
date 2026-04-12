@@ -423,20 +423,10 @@ def _launch_gui():
             self._recent_searches = []
             self._excluded_files = []
             self.advanced_visible = False
-            self.suite_visible = False
-            self.suite_running = False
-            self.suite_cancel_requested = False
             self.elapsed_timer_id = None
             self.search_start_time = None
             self._refresh_timer_id = None
             self._refresh_running = False
-            self._suite_schedule_timer_id = None
-            self._suite_schedule_running = False
-            self._suite_scheduled_run = False
-            self._scheduled_suite_name = None
-            self._scheduled_suite_interval = None
-            self._scheduled_next_run_time = None
-            self._countdown_timer_id = None
             self._text_size_var = ctk.StringVar(value="Normal")
 
             self.grid_columnconfigure(0, weight=1)
@@ -459,7 +449,7 @@ def _launch_gui():
             self._search_parent.grid_columnconfigure(1, weight=1)
             self._search_parent.grid_rowconfigure(8, weight=1)
 
-            # Shared toggle row for Advanced Search Options, Search Suites, Manage Indexes
+            # Shared toggle row for Advanced Search Options and Manage Indexes
             self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")
             self._toggle_row.grid(
                 row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
@@ -472,7 +462,6 @@ def _launch_gui():
             self._build_progress_area()
             self._build_open_report()
             self._build_index_panel()
-            self.suite_window = None
             self._build_bottom_row()
 
             # Show the View Report row on startup (buttons grayed out until a search runs)
@@ -490,7 +479,6 @@ def _launch_gui():
             self._load_saved_settings()
             self._update_index_button_color()
             self._refresh_load_search_menu()
-            self._update_run_suite_button_color()
             # Re-apply settings after event loop starts (CTkToplevel widgets may
             # reset their variables during initialization on Windows)
             self.after(200, self._load_saved_settings)
@@ -504,7 +492,6 @@ def _launch_gui():
             # Apply the Search-tab-visibility rules to the initial tab
             # (fire after deiconify so the segmented button is fully laid out)
             self.after(1200, self._on_tab_changed)
-            self.after(500, self._resume_suite_schedule)
 
         def _on_tab_changed(self):
             """Hide the Search tab button when on Search (redundant), and
@@ -586,8 +573,7 @@ def _launch_gui():
             features = [
                 ("\U0001f50d  PII Scan", "One click finds SSNs, credit cards, passwords, and other sensitive data hiding in your files.", "#0D9488"),
                 ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
-                ("\u2705  Compliance Wizard", "Create a compliance suite from 9 industry templates — Financial, Healthcare, Legal, and more.", "#8B5CF6"),
-                ("\U0001f4ca  Search Suites", "Save searches, group them into suites, run with pass/fail tracking and scheduled auto-runs.", "#2196F3"),
+                ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
                 ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
             ]
 
@@ -703,27 +689,15 @@ def _launch_gui():
             self.cb_index_search.pack(side="right", padx=(5, 2))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
-            # Right-aligned grouped: Search Wizard + Compliance Wizard
-            wizard_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
-            wizard_group.pack(side="right", padx=(0, 5))
-
+            # Right-aligned: Search Wizard button
             self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Search Wizard", width=0,
+                btn_frame, text="Search Wizard", width=0,
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
             )
-            search_wiz_btn.pack(side="left", padx=(4, 2), pady=3)
+            search_wiz_btn.pack(side="right", padx=(0, 5))
             Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
-
-            self._compliance_wiz_btn = compliance_wiz_btn = ctk.CTkButton(
-                wizard_group, text="Compliance Wizard", width=0,
-                command=self._open_compliance_wizard,
-                font=ctk.CTkFont(size=12),
-                fg_color="#8B5CF6", hover_color="#7C3AED",
-            )
-            compliance_wiz_btn.pack(side="left", padx=(2, 4), pady=3)
-            Tooltip(compliance_wiz_btn, "Create a search suite from 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR) — customize to fit your needs. Templates are search configurations, not compliance certifications")
 
             # PII Scan — to the left of the save group
             self.sensitive_scan_btn = ctk.CTkButton(
@@ -744,7 +718,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
-            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection for reuse in search suites")
+            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
 
             self.load_search_btn = ctk.CTkButton(
                 save_group, text="Load Search \u25bc", width=0,
@@ -762,20 +736,6 @@ def _launch_gui():
             )
             self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
-
-
-            self.suite_toggle = ctk.CTkButton(
-                self._toggle_row,
-                text="\u25b6 Manage Suites",
-                width=110,
-                fg_color="transparent",
-                text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                anchor="w",
-                command=self._toggle_suite_panel,
-                font=ctk.CTkFont(size=13),
-            )
-            # Packed later in _build_advanced_toggle so Advanced Search Options appears first
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -867,10 +827,10 @@ def _launch_gui():
             b("documents for SSNs, credit cards, tax IDs, emails, phone")
             b("numbers, passwords, and more \u2014 one click, no setup needed.")
             blank()
-            s("Build search suites")
-            b("Save individual searches and group them into suites")
-            b("that run as a batch with pass/fail tracking. Click")
-            b("Search Suites to get started.")
+            s("Save your searches")
+            b("Once you've configured a search you'll want to reuse,")
+            b("click Save Search to store it by name. Click Load Search")
+            b("later to recall it with one click.")
             blank()
             s("Get help anytime")
             b("Click the ? button in the bottom-left corner for the")
@@ -1035,11 +995,11 @@ def _launch_gui():
                  lambda v: self._apply_wizard(search_text=v["keyword"], file_types=v["types"])),
 
                 ("Find keywords in subfolders", "Search the folder and all subfolders",
-                 [("Keywords:", "keyword", "compliance audit SOX")],
+                 [("Keywords:", "keyword", "budget revenue 2025")],
                  lambda v: self._apply_wizard(search_text=v["keyword"], recursive=True)),
 
                 ("Find misspelled terms (fuzzy)", "Fuzzy match for typos or OCR errors",
-                 [("Terms:", "term", "compliance accommodation")],
+                 [("Terms:", "term", "accommodation receipt")],
                  lambda v: self._apply_wizard(search_text=v["term"], fuzzy=True)),
 
                 ("Find words near each other", "Two terms within N words of each other",
@@ -1206,274 +1166,6 @@ def _launch_gui():
             if context_after:
                 self.context_after_entry.insert(0, context_after)
 
-        def _open_compliance_wizard(self):
-            """Open the Compliance Wizard to create a search suite from an industry starter template."""
-            import tkinter as tk
-            from tkinter import ttk, messagebox
-            from docsearch.compliance_templates import COMPLIANCE_TEMPLATES, COMPLIANCE_CATEGORY_ORDER
-            from docsearch.collection import load_collection, add_saved_search, add_test_suite
-
-
-            win = ctk.CTkToplevel(self)
-            win.title("Compliance Wizard")
-            win.geometry("1000x650")
-            win.resizable(True, True)
-            win.after(50, win.lift)
-            win.after(100, win.focus_force)
-            win.after(200, lambda: win.title("Compliance Wizard"))
-            win.after(300, win.lift)
-            win.after(400, win.focus_force)
-
-            header_frame = ctk.CTkFrame(win, fg_color="transparent")
-            header_frame.pack(fill="x", padx=15, pady=(10, 5))
-            ctk.CTkLabel(
-                header_frame,
-                text="Choose an industry, review the checks, customize if needed, and click Create Suite.",
-                font=ctk.CTkFont(size=12),
-                text_color=("gray50", "gray50"),
-            ).pack(side="left")
-            ctk.CTkButton(
-                header_frame, text="?", width=30,
-                command=lambda: self._show_compliance_help(win),
-                font=ctk.CTkFont(size=14, weight="bold"),
-            ).pack(side="right")
-
-            _cw_folder_label = self._add_folder_bar(win, "Your suite will be saved in the above folder and run against that folder. See ? help (Search Folder \u2014 Where the Suite Runs) for details.")
-
-            # Category selector
-            _sf = self._scaled_font
-            cat_frame = ctk.CTkFrame(win, fg_color="transparent")
-            cat_frame.pack(fill="x", padx=15, pady=(0, 5))
-            ctk.CTkLabel(cat_frame, text="Industry:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
-            cat_var = tk.StringVar(value=COMPLIANCE_CATEGORY_ORDER[0])
-            cat_combo = ttk.Combobox(
-                cat_frame, textvariable=cat_var, values=COMPLIANCE_CATEGORY_ORDER,
-                state="readonly", width=35, font=_sf(12),
-            )
-            cat_combo.pack(side="left", padx=(8, 0))
-
-            # Suite name
-            name_frame = ctk.CTkFrame(win, fg_color="transparent")
-            name_frame.pack(fill="x", padx=15, pady=(0, 5))
-            ctk.CTkLabel(name_frame, text="Suite name:", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
-            name_entry = tk.Entry(name_frame, font=_sf(12), width=30)
-            name_entry.pack(side="left", padx=(8, 0))
-            name_entry.insert(0, "financial_compliance")
-
-            # Scrollable checks area
-            checks_outer = tk.Frame(win)
-            checks_outer.pack(fill="both", expand=True, padx=10, pady=(0, 5))
-            canvas = tk.Canvas(checks_outer, highlightthickness=0)
-            scrollbar = tk.Scrollbar(checks_outer, orient="vertical", command=canvas.yview)
-            checks_inner = tk.Frame(canvas)
-            checks_inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-            canvas.create_window((0, 0), window=checks_inner, anchor="nw")
-            canvas.configure(yscrollcommand=scrollbar.set)
-            scrollbar.pack(side="right", fill="y")
-            canvas.pack(side="left", fill="both", expand=True)
-
-            # Enable mousewheel scrolling (cross-platform)
-            def _bind_mousewheel_cw(c, parent_win):
-                def _scroll(event):
-                    if sys.platform == "darwin":
-                        # Clamp to ±1 for smooth scrolling on macOS trackpads
-                        direction = -1 if event.delta > 0 else 1
-                        c.yview_scroll(direction, "units")
-                    elif sys.platform == "linux":
-                        pass
-                    else:
-                        c.yview_scroll(int(-event.delta / 40), "units")
-                c.configure(yscrollincrement=10)
-                parent_win.bind("<MouseWheel>", _scroll)
-                if sys.platform == "linux":
-                    parent_win.bind("<Button-4>", lambda e: c.yview_scroll(-1, "units"))
-                    parent_win.bind("<Button-5>", lambda e: c.yview_scroll(1, "units"))
-            _bind_mousewheel_cw(canvas, win)
-
-            # State for current checks
-            check_widgets = []  # list of dicts with widgets for each check
-
-            def _load_checks(*_args):
-                """Load checks for the selected industry."""
-                for w in checks_inner.winfo_children():
-                    w.destroy()
-                check_widgets.clear()
-
-                category = cat_var.get()
-                checks = COMPLIANCE_TEMPLATES.get(category, [])
-
-                # Update suite name suggestion
-                safe = category.split("(")[0].strip().lower().replace(" ", "_").replace("/", "_")
-                name_entry.delete(0, "end")
-                name_entry.insert(0, f"{safe}_compliance")
-
-                for i, check in enumerate(checks):
-                    frame = tk.LabelFrame(
-                        checks_inner,
-                        text=f"  {i+1}. {check['name']}  ",
-                        font=_sf(11, "bold"),
-                        padx=8, pady=4,
-                    )
-                    frame.pack(fill="x", padx=5, pady=(0, 4))
-
-                    # Description
-                    tk.Label(frame, text=check["desc"], font=_sf(10),
-                             fg="gray", anchor="w").pack(anchor="w")
-
-                    # Editable fields row
-                    field_frame = tk.Frame(frame)
-                    field_frame.pack(fill="x", pady=(2, 0))
-
-                    tk.Label(field_frame, text="Search:", font=_sf(10)).grid(row=0, column=0, sticky="e", padx=(0, 3))
-                    search_entry = tk.Entry(field_frame, font=_sf(10), width=35)
-                    search_entry.insert(0, check["search_text"])
-                    search_entry.grid(row=0, column=1, padx=(0, 10))
-
-                    # Mode indicators
-                    modes = []
-                    if check.get("regex"):
-                        modes.append("regex")
-                    if check.get("expression"):
-                        modes.append("expression")
-                    if check.get("inverse"):
-                        modes.append("inverse")
-                    if check.get("range_filters"):
-                        modes.append(f"range: {check['range_filters']}")
-                    mode_text = ", ".join(modes) if modes else "plain"
-                    tk.Label(field_frame, text=f"[{mode_text}]", font=_sf(9),
-                             fg="gray").grid(row=0, column=2, padx=(0, 10))
-
-                    # Pass criteria
-                    tk.Label(field_frame, text="Pass:", font=_sf(10)).grid(row=0, column=3, sticky="e", padx=(0, 3))
-                    op_var = tk.StringVar(value=check["operator"])
-                    op_combo = ttk.Combobox(field_frame, textvariable=op_var,
-                                            values=["==", ">=", "<=", ">", "<", "!="],
-                                            state="readonly", width=4, font=_sf(10))
-                    op_combo.grid(row=0, column=4, padx=(0, 3))
-                    thresh_entry = tk.Entry(field_frame, font=_sf(10), width=5)
-                    thresh_entry.insert(0, str(check["threshold"]))
-                    thresh_entry.grid(row=0, column=5)
-
-                    # Enable/disable checkbox
-                    enabled_var = tk.BooleanVar(value=True)
-                    tk.Checkbutton(field_frame, text="Include", variable=enabled_var,
-                                   font=_sf(10)).grid(row=0, column=6, padx=(10, 0))
-
-                    check_widgets.append({
-                        "template": check,
-                        "search_entry": search_entry,
-                        "op_var": op_var,
-                        "thresh_entry": thresh_entry,
-                        "enabled_var": enabled_var,
-                    })
-
-            cat_combo.bind("<<ComboboxSelected>>", _load_checks)
-
-            # Buttons
-            btn_frame = ctk.CTkFrame(win, fg_color="transparent")
-            btn_frame.pack(fill="x", padx=15, pady=(5, 12))
-
-            def _create_suite():
-                folder = _cw_folder_label.cget("text")
-                if not folder or folder == "(none)" or not os.path.isdir(folder):
-                    messagebox.showerror("Error", "Select a valid search folder first.", parent=win)
-                    return
-                suite_name = name_entry.get().strip()
-                if not suite_name:
-                    messagebox.showerror("Error", "Enter a suite name.", parent=win)
-                    return
-
-                # Check if suite already exists
-                data = load_collection(folder)
-                if suite_name in data.get("test_suites", {}):
-                    if not messagebox.askyesno("Suite Exists",
-                                               f"Suite '{suite_name}' already exists. Overwrite?",
-                                               parent=win):
-                        return
-
-                # Create saved searches and collect names
-                search_names = []
-                pass_criteria = {}
-                for w in check_widgets:
-                    if not w["enabled_var"].get():
-                        continue
-                    tmpl = w["template"]
-                    sname = tmpl["name"]
-                    search_text = w["search_entry"].get().strip()
-                    if not search_text:
-                        continue
-
-                    # Build search params
-                    params = {"search_text": search_text}
-                    if tmpl.get("regex"):
-                        params["regex"] = True
-                    if tmpl.get("expression"):
-                        params["expression"] = True
-                    if tmpl.get("inverse"):
-                        params["inverse"] = True
-                    if tmpl.get("and_mode"):
-                        params["and_mode"] = True
-                    if tmpl.get("range_filters"):
-                        params["range_filters"] = tmpl["range_filters"]
-                    if tmpl.get("fuzzy"):
-                        params["fuzzy"] = True
-
-                    # Save the search
-                    add_saved_search(folder, sname, params)
-                    search_names.append(sname)
-
-                    # Pass criteria
-                    op = w["op_var"].get()
-                    try:
-                        thresh = int(w["thresh_entry"].get().strip())
-                    except ValueError:
-                        thresh = 0
-                    pass_criteria[sname] = {"op": op, "n": thresh}
-
-                if not search_names:
-                    messagebox.showerror("Error", "No checks enabled.", parent=win)
-                    return
-
-                # Create the suite
-                category = cat_var.get()
-                desc = f"Auto-generated by Compliance Wizard — {category}"
-                add_test_suite(folder, suite_name, desc, search_names,
-                               cascade=False, pass_criteria=pass_criteria)
-
-                # Refresh UI
-                if self.suite_visible:
-                    self._refresh_suite_panel()
-                self._update_run_suite_button_color()
-
-                messagebox.showinfo(
-                    "Suite Created",
-                    f"Created suite '{suite_name}' with {len(search_names)} checks.\n\n"
-                    f"The suite will run against the current Search Folder:\n"
-                    f"{folder}\n\n"
-                    f"Reports will be saved there (or to Output Dir if set in Manage Suites).\n\n"
-                    f"Click Run Suite or open Manage Suites to run it.",
-                    parent=win,
-                )
-                win.destroy()
-
-            ctk.CTkButton(
-                btn_frame, text="Create Suite", width=120,
-                command=_create_suite,
-                font=ctk.CTkFont(size=14, weight="bold"),
-                fg_color="green", hover_color="darkgreen",
-            ).pack(side="left", padx=(0, 5))
-
-            ctk.CTkButton(
-                btn_frame, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=win.destroy,
-                font=ctk.CTkFont(size=12),
-            ).place(relx=0.5, rely=0.5, anchor="center")
-
-            # Load initial category
-            _load_checks()
-
         def _show_search_wizard_help(self, parent):
             """Show help for the Search Wizard."""
             import tkinter as tk
@@ -1518,7 +1210,6 @@ def _launch_gui():
             for section in [
                 "What Is the Search Wizard?", "How to Use It",
                 "Available Search Types", "Saving Your Search", "Tips",
-                "Search Wizard vs Compliance Wizard",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
@@ -1600,7 +1291,7 @@ def _launch_gui():
             e("  Keywords: budget  Types: pdf,docx,xlsx")
             blank()
             b("Fuzzy matching — find misspelled terms or OCR errors")
-            e("  Terms: compliance accommodation")
+            e("  Terms: accommodation receipt")
             blank()
             b("Proximity — find two terms within N words of each other")
             e("  Term 1: breach  Term 2: contract  N words: 5")
@@ -1626,33 +1317,10 @@ def _launch_gui():
 
             h("SAVING YOUR SEARCH")
             b("After the wizard configures your search, click Save Search on the")
-            b("main screen to save it by name. Saved searches can be reused individually or")
-            b("grouped into search suites for compliance auditing. It doesn't")
-            b("matter whether the wizard configured it or you did it manually —")
-            b("Save Search preserves everything.")
-            blank()
-
-            h("BUILDING MULTIPLE SEARCHES")
-            b("Each time you use the wizard, it configures one search. If")
-            b("you need to check for several things, create several smaller")
-            b("searches rather than trying to write one complex search:")
-            blank()
-            b("1. Use the wizard to configure a search (e.g., find SSNs)")
-            b("2. Click Save Search on the main screen to save it")
-            b("3. Use the wizard again for the next check (e.g., missing")
-            b("   signatures)")
-            b("4. Save that search too")
-            b("5. Open Manage Suites and group them into a suite")
-            blank()
-            b("Several focused searches grouped into a suite is more")
-            b("reliable, easier to understand, and easier to maintain")
-            b("than one complicated search trying to do everything.")
-            blank()
-            b("Technical note: saved searches and suites are stored in a")
-            b("file called .docsearch_collection.json in your search folder.")
-            b("Each folder has its own collection. If you copy or move a")
-            b("folder, the saved searches travel with it. This file is the")
-            b("only one you need to back up \u2014 everything else can be rebuilt.")
+            b("main screen to save it by name. Saved searches can be reused later")
+            b("with Load Search. It doesn't matter whether the wizard configured")
+            b("the search or you did it manually \u2014 Save Search preserves")
+            b("everything.")
             blank()
 
             h("TIPS")
@@ -1660,31 +1328,8 @@ def _launch_gui():
             b("  you click Apply \u2014 save your search first if you want to keep it")
             b("\u2022 Placeholder values (gray text) are examples \u2014 replace them")
             b("  with your own values before clicking Apply")
-            b("\u2022 For document review checks across multiple searches, use the")
-            b("  Compliance Wizard instead \u2014 it creates an entire suite at once")
-            blank()
-
-            h("SEARCH WIZARD vs COMPLIANCE WIZARD")
-            b("Both wizards use the same search fields and checkboxes available")
-            b("on the main screen \u2014 they just fill them in for you. The difference")
-            b("is scope:")
-            blank()
-            b("Search Wizard \u2014 configures one search at a time. You pick a type")
-            b("(SSN, keywords, dollar range, etc.), click Apply, and the main")
-            b("screen is set up for that single search. Run it or save it.")
-            b("Use this for individual searches and for learning how the")
-            b("search options work.")
-            blank()
-            b("Compliance Wizard \u2014 creates multiple searches AND a suite in one")
-            b("step. Pick an industry template (9 available), review the pre-built")
-            b("checks, customize if needed, and click Create. The wizard saves")
-            b("all the searches and builds a suite with pass/fail criteria.")
-            b("Use this when you need a full set of document review checks")
-            b("ready to run as a batch.")
-            blank()
-            b("You can mix both: build some searches with the Search Wizard,")
-            b("create a suite with the Compliance Wizard, then combine them")
-            b("in Manage Suites.")
+            b("\u2022 Use Save Search to store a useful configuration by name so")
+            b("  you can reload it later without reconfiguring everything")
             blank()
 
             b("* Tesseract is a free, open-source OCR engine that extracts")
@@ -1694,375 +1339,6 @@ def _launch_gui():
             b("  download from github.com/UB-Mannheim/tesseract | Linux:")
             b("  sudo apt install tesseract-ocr. See the User Guide")
             b("  'Prerequisites' section for full details.")
-            blank()
-
-            txt.configure(state="disabled")
-
-            close_btn = ctk.CTkButton(
-                help_win, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=help_win.destroy,
-                font=ctk.CTkFont(size=12),
-            )
-            close_btn.pack(pady=(5, 10))
-
-        def _show_compliance_help(self, parent):
-            """Show help for the Compliance Wizard."""
-            import tkinter as tk
-            help_win = tk.Toplevel(parent)
-            help_win.title("Compliance Wizard — Help")
-            help_win.geometry("700x580")
-            help_win.resizable(True, True)
-            help_win.transient(parent)
-            help_win.grab_set()
-
-            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
-                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
-            scroll = tk.Scrollbar(help_win, command=txt.yview)
-            txt.configure(yscrollcommand=scroll.set)
-            scroll.pack(side="right", fill="y")
-            txt.pack(fill="both", expand=True)
-
-            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
-                              spacing1=10, spacing3=5)
-            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
-            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
-                              lmargin2=30, spacing1=2)
-
-            def h(text):
-                txt.insert("end", text + "\n", "heading")
-
-            def b(text):
-                txt.insert("end", text + "\n", "body")
-
-            def e(text):
-                txt.insert("end", text + "\n", "example")
-
-            def blank():
-                txt.insert("end", "\n")
-
-            # Table of contents
-            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
-            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                              foreground="gray40")
-
-            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
-            for section in [
-                "What Is the Compliance Wizard?",
-                "Who Should Use the Compliance Wizard?",
-                "Search Wizard vs Compliance Wizard",
-                "How It Works",
-                "Search Folder — Where the Suite Runs",
-                "What Each Check Does", "Understanding Pass and Fail",
-                "Mixing Industries",
-                "After Creating the Suite", "Suite Reports",
-                "Available Templates", "Customizing Templates",
-                "Building Your Own Templates",
-            ]:
-                txt.insert("end", f"\u2022 {section}\n", "toc_item")
-            txt.insert("end", "\n")
-
-            b("The Compliance Wizard creates a complete search suite for a")
-            b("specific industry or regulation in one click \u2014 9 templates available.")
-            blank()
-
-            h("WHAT IS THE COMPLIANCE WIZARD?")
-            b("The Compliance Wizard creates a complete search suite for a specific")
-            b("industry or regulation in one click. docsearch ships with 9 built-in")
-            b("industry templates, and you can also build your own for any")
-            b("industry, regulation, or internal standard (see 'Building Your Own")
-            b("Templates' below). Instead of manually building individual searches")
-            b("and assembling them into a suite, you pick an industry template and")
-            b("the wizard does it all for you.")
-            blank()
-            b("What is a suite? A suite is a named group of individual searches")
-            b("that run together as a batch against the same folder. Each search")
-            b("in the suite has its own terms, options, and pass/fail criteria")
-            b("(for example: \"contract must contain 'confidentiality'\" or \"no")
-            b("file may contain an SSN\"). When you run the suite, docsearch")
-            b("executes every search in order and produces a single audit-ready")
-            b("report showing which checks passed, which failed, and exactly")
-            b("which files were in scope \u2014 evidence that every document was")
-            b("reviewed against every rule. Suites can also be scheduled to")
-            b("auto-run on a timer with email alerts on failure.")
-            blank()
-            b("Why a suite beats one complicated search: several focused")
-            b("searches grouped into a suite is more reliable, easier to")
-            b("understand, and easier to maintain than one complicated search")
-            b("trying to do everything. Each check stays simple enough to")
-            b("verify on its own, the suite report tells you exactly which")
-            b("check passed or failed (not just \"something matched\"), and")
-            b("you can update, reuse, or swap out one check without")
-            b("rebuilding the rest. Small, focused checks also produce")
-            b("cleaner audit evidence \u2014 a reviewer can read each stage")
-            b("report and understand what was being verified.")
-            blank()
-
-            h("WHO SHOULD USE THE COMPLIANCE WIZARD?")
-            b("\u2022 Compliance officers auditing documents for regulatory requirements")
-            b("  (SOX, HIPAA, FERPA, ISO 9001, BSA/AML, etc.)")
-            b("\u2022 Internal auditors reviewing contracts, records, or policies")
-            b("\u2022 Legal teams doing document review or privilege detection")
-            b("\u2022 HR managers verifying employee files have required documents")
-            b("\u2022 Healthcare administrators checking for PII exposure")
-            b("\u2022 Financial services teams monitoring transactions and disclosures")
-            b("\u2022 Consultants delivering document review services to clients")
-            b("\u2022 Anyone who needs repeatable, evidence-grade document checks")
-            blank()
-            # Merged paragraph with bolded "Home users:" prefix
-            txt.tag_configure("body_bold_inline", font=("TkDefaultFont", 12, "bold"))
-            txt.insert("end", "Home users: ", "body_bold_inline")
-            txt.insert("end",
-                "the Compliance Wizard is overkill for typical personal needs like "
-                "finding a tax return, searching old emails, or looking for a phrase "
-                "in a document. For those tasks, just use the main search bar, and for "
-                "periodically checking your personal files for sensitive data (SSNs, "
-                "credit cards, passwords) use the PII Scan button \u2014 one click, no "
-                "suite needed. If you only need to find text in a single document or "
-                "folder, use the main search bar or the Search Wizard instead. The "
-                "Compliance Wizard is designed for structured, repeatable reviews "
-                "that produce audit-ready reports.\n",
-                "body",
-            )
-            blank()
-
-            h("SEARCH WIZARD VS COMPLIANCE WIZARD")
-            b("The Search Wizard configures one search at a time. You pick a")
-            b("search type, click Apply, and it fills in the search bar and")
-            b("Advanced Search Options. You then run or save that single search.")
-            blank()
-            b("The Compliance Wizard creates multiple searches AND a suite in")
-            b("one step. Each industry template includes 8 pre-built searches")
-            b("with pass/fail criteria, all grouped into a named suite. One")
-            b("click replaces what would take many trips to the Search Wizard.")
-            blank()
-            b("Use the Search Wizard for individual searches and learning.")
-            b("Use the Compliance Wizard when you need a full set of document")
-            b("review checks ready to run as a batch.")
-            blank()
-
-            h("HOW IT WORKS")
-            b("1. Choose an industry from the dropdown (e.g., Healthcare/HIPAA)")
-            b("2. Review the pre-built checks — each one is a search that will")
-            b("   be saved and added to a suite")
-            b("3. Customize if needed — edit search terms, change pass/fail")
-            b("   thresholds, or uncheck any check to exclude it")
-            b("4. Give the suite a name (a default is suggested)")
-            b("5. Click Create Suite — the wizard creates all the saved searches")
-            b("   and the suite in one step")
-            blank()
-
-            h("SEARCH FOLDER — WHERE THE SUITE RUNS")
-            b("Before creating a suite, make sure the Search Folder at the top")
-            b("of the wizard points to the right place. The suite and its saved")
-            b("searches are stored in that folder, and when you run the suite,")
-            b("it searches the documents in that folder.")
-            blank()
-            b("If you want the suite to check all files across many subfolders,")
-            b("point the Search Folder to the top-level parent folder and make")
-            b("sure Recursive is checked in Advanced Search Options. The suite")
-            b("will search every document in every subfolder beneath it.")
-            blank()
-            b("You can use the Change Folder button in the wizard to switch")
-            b("folders without closing the wizard.")
-            blank()
-            b("Suites are stored per-folder. If you switch to a different folder")
-            b("later, the suite won't appear there — it only exists in the")
-            b("folder where you created it. To run the same checks against a")
-            b("different folder, you would need to create a new suite there.")
-            blank()
-            b("This is why building your suite in a higher-level folder with")
-            b("Recursive checked is the best approach if you want broad")
-            b("coverage. One suite in the parent folder covers everything")
-            b("beneath it — no need to duplicate suites across subfolders.")
-            blank()
-            b("Use the All Collections button on the bottom toolbar to see")
-            b("all suites across all your folders.")
-            blank()
-
-            h("WHAT EACH CHECK DOES")
-            b("Each check has a search term, a mode, and a pass criterion:")
-            blank()
-            b("Search — the text or pattern to look for in your documents")
-            b("Mode — how the search works:")
-            e("  plain      = simple keyword search")
-            e("  regex      = pattern matching (SSNs, dates, amounts)")
-            e("  expression = Boolean logic (AND, OR, NOT)")
-            e("  inverse    = find files MISSING the term")
-            e("  range      = filter by dollar amount or date range")
-            blank()
-            b("Pass criteria — how many matches determine pass or fail:")
-            e("  == 0   means 'must find ZERO matches' (nothing bad found)")
-            e("  >= 1   means 'must find AT LEAST one match' (required item exists)")
-            e("  You can change the operator and threshold for any check")
-            blank()
-
-            h("UNDERSTANDING PASS AND FAIL")
-            b("Checks that look for BAD things (SSNs, drafts, expired certs)")
-            b("use == 0 — they PASS when nothing is found.")
-            blank()
-            b("Checks that look for REQUIRED things (signatures, compliance")
-            b("references, documentation) use >= 1 — they PASS when at least")
-            b("one match is found.")
-            blank()
-            b("Inverse checks (e.g., 'every file has a signature') search for")
-            b("files MISSING the term. Pass == 0 means no files are missing it.")
-            blank()
-
-            h("MIXING INDUSTRIES")
-            b("You're not limited to one industry. You can run the Compliance")
-            b("Wizard multiple times with different templates \u2014 all the saved")
-            b("searches go into the same folder's collection. Then open Manage")
-            b("Suites and build a custom suite that picks searches from any")
-            b("industry. For example, combine HIPAA patient checks with HR")
-            b("employee checks and SOX financial checks into one suite.")
-            blank()
-
-            h("AFTER CREATING THE SUITE")
-            b("The wizard saves all the searches and the suite to a file")
-            b("called .docsearch_collection.json in the search folder. This")
-            b("single file holds everything for that folder — all saved")
-            b("searches and all suites, whether created by the Compliance")
-            b("Wizard, the Search Wizard, or manually. You never need to")
-            b("edit this file — the GUI manages it for you.")
-            blank()
-            b("Back up this file — it represents all the work you put into")
-            b("building searches and suites. If it's deleted, all of that")
-            b("is gone with no undo. It's a small JSON text file you can")
-            b("copy to a safe location anytime. If you search multiple")
-            b("folders, back up the .docsearch_collection.json in each one.")
-            blank()
-            b("Once created, you can:")
-            b("• Click Run Suite to execute all checks immediately")
-            b("• Open Manage Suites to schedule automatic runs")
-            b("• View the suite report in the preview pane")
-            b("• Set up email alerts for failures")
-            blank()
-            b("If files are added, removed, or modified in the folder after")
-            b("creating the suite, you don't need to change anything. Suites")
-            b("store search instructions, not file references \u2014 each run")
-            b("discovers files fresh from the folder at that moment. New files")
-            b("are included automatically, removed files are skipped, and")
-            b("modified files are searched with their new content.")
-            blank()
-
-            h("SUITE REPORTS")
-            b("Each suite run produces three report files, saved in")
-            b("the search folder (or output directory if set):")
-            blank()
-            b("• .docx — formatted Word document with color-coded")
-            b("  PASS/FAIL summary table, per-stage details, search")
-            b("  criteria, report fingerprint, and source file manifest")
-            b("• .txt — plain text version with the same information")
-            b("• .json — machine-readable version for automation")
-            blank()
-            b("Filenames start with DO_NOT_SEARCH_ so they are never")
-            b("included in future search results.")
-            blank()
-            b("Each report includes a disclaimer at the bottom stating")
-            b("that pass/fail results indicate whether search criteria")
-            b("were met, not whether documents satisfy regulatory")
-            b("requirements.")
-            blank()
-
-            h("AVAILABLE TEMPLATES")
-            b("• Financial Services (SOX/BSA/AML) — signatures, SSNs, drafts,")
-            b("  dates, SOX references, anti-money laundering, transactions")
-            b("• Healthcare (HIPAA) — SSNs, HIPAA references, diagnosis codes,")
-            b("  billing, medical records, patient consent")
-            b("• Legal Document Review — signatures, indemnification, effective")
-            b("  dates, privileged documents, settlements, case numbers, NDAs")
-            b("• Government Records — classified markings, procurement, budgets,")
-            b("  purchase orders, FOIA compliance")
-            b("• Manufacturing (ISO 9001) — expired certs, ISO references, lot")
-            b("  numbers, part numbers, nonconformance, calibration")
-            b("• Education (FERPA) — student SSNs, FERPA references, grants,")
-            b("  accreditation, student IDs, financial aid")
-            b("• Real Estate Closing — disclosures, property values, square")
-            b("  footage, title search, inspection reports")
-            b("• Insurance Compliance — lapsed policies, state-mandated language,")
-            b("  premiums, policy numbers, claims, underwriting")
-            b("• HR Compliance — SSNs, offer letters, I-9 verification, salary")
-            b("  ranges, EEOC, FLSA references")
-            blank()
-
-            h("CUSTOMIZING TEMPLATES")
-            b("Every field is editable before you create the suite. You can:")
-            b("• Change search terms to match your organization's terminology")
-            b("• Adjust thresholds (e.g., change >= 1 to >= 5)")
-            b("• Uncheck 'Include' to skip irrelevant checks")
-            b("• The created searches appear in your saved searches and can be")
-            b("  edited individually later via Load Saved Search")
-            blank()
-            b("To apply the same search suite to multiple folders, browse to")
-            b("each folder and run the Compliance Wizard again. Each folder gets")
-            b("its own copy of the searches and suite in its .docsearch_collection.json")
-            b("file, so you can customize per folder without affecting the others.")
-            blank()
-            b("To customize a folder's suite after creating it:")
-            b("• Click Load Saved Search to open any of the wizard's searches")
-            b("• Edit the search terms, change modes, adjust settings")
-            b("• Click Save Search to save your changes (use the same name")
-            b("  to overwrite, or a new name to keep both versions)")
-            b("• Open Manage Suites to add, remove, or reorder checks in")
-            b("  the suite, or change pass/fail thresholds")
-            blank()
-            b("You can also import custom templates from a .json file using")
-            b("the Import Template button in Manage Suites. This merges the")
-            b("imported searches and suites into your existing collection")
-            b("without overwriting non-conflicting items.")
-            blank()
-
-            h("BUILDING YOUR OWN TEMPLATES")
-            b("The 9 built-in industry templates are starting points, not a")
-            b("fixed set. You can build your own compliance suites for any")
-            b("industry, regulation, or internal standard \u2014 there is no limit.")
-            b("Create saved searches manually, group them into a suite with")
-            b("pass/fail criteria, and export the suite as a .json file.")
-            b("The result is identical to a wizard-generated template.")
-            blank()
-            b("Important: the built-in templates are examples of the kinds of")
-            b("checks that tend to come up in each industry. They do not")
-            b("necessarily cover everything needed to be compliant in any")
-            b("given industry, and they are not certified against any")
-            b("specific regulation. Compliance requirements vary by")
-            b("jurisdiction, organization size, contract terms, and how the")
-            b("rules are interpreted \u2014 so what \"fully compliant\" looks like")
-            b("is for you (and your legal, audit, or compliance advisors) to")
-            b("decide. Treat the built-in templates as a head start: run")
-            b("them, review the checks, then add, remove, or edit checks to")
-            b("match what your organization actually needs to verify.")
-            blank()
-            b("Other industries and use cases where custom templates make sense:")
-            b("\u2022 Construction \u2014 permit documents, contractor licenses,")
-            b("  safety certifications, change orders, lien waivers")
-            b("\u2022 Engineering \u2014 design specs, test reports, calibration")
-            b("  records, material certifications, drawing revisions")
-            b("\u2022 Pharmaceutical / biotech \u2014 clinical trial records, FDA")
-            b("  submissions, batch records, GMP documentation")
-            b("\u2022 Agriculture / food safety \u2014 HACCP plans, USDA compliance,")
-            b("  organic certification, traceability records")
-            b("\u2022 Transportation / logistics \u2014 DOT compliance, driver logs,")
-            b("  shipping manifests, hazmat documentation")
-            b("\u2022 Energy / utilities \u2014 NERC/FERC compliance, environmental")
-            b("  permits, safety inspections, OSHA records")
-            b("\u2022 Nonprofits \u2014 grant reporting, donor records, 990 filings,")
-            b("  volunteer background checks")
-            b("\u2022 Technology / SaaS \u2014 SOC 2 evidence, GDPR compliance,")
-            b("  data retention, access reviews")
-            b("\u2022 Accounting / tax \u2014 client file completeness, tax return")
-            b("  review, workpaper standards")
-            b("\u2022 Nonprofit / academic research \u2014 IRB approvals, consent")
-            b("  forms, data handling records")
-            blank()
-            b("If you work in any industry with document review requirements,")
-            b("you can build a compliance suite for it \u2014 the tool is industry-agnostic.")
-            blank()
-            b("Building custom templates is straightforward \u2014 the format")
-            b("and steps are described above. If your organization needs help")
-            b("designing a custom compliance template for a specific regulatory")
-            b("environment, feel free to contact the author at robertdschoening.com.")
             blank()
 
             txt.configure(state="disabled")
@@ -2133,7 +1409,7 @@ def _launch_gui():
                 "Saving and Loading Searches", "Simple Search",
                 "Phrase Search (Quoted Terms)", "AND Mode",
                 "Boolean Expressions", "Breaking Down Complex Searches",
-                "Tips", "Search Suites", "Troubleshooting",
+                "Tips", "Troubleshooting",
                 "Files Created by docsearch", "Search Mode Checkboxes",
                 "Text Fields", "Combining Modes", "Settings Buttons",
             ]:
@@ -2161,16 +1437,6 @@ def _launch_gui():
             txt.insert("end", " \u2014 find information across contracts,\n", "body")
             b("  invoices, reports, and correspondence. Use AND mode,")
             b("  file type filters, and range queries to narrow results.")
-            blank()
-            txt.insert("end", "\u2022 Compliance and auditing", "body_bold_who")
-            txt.insert("end", " \u2014 create search suites that\n", "body")
-            b("  check every document for required language, flag prohibited")
-            b("  content, detect PII like Social Security numbers, and")
-            b("  verify dollar amounts fall within policy ranges. Run")
-            b("  suites on a schedule with pass/fail reports and email")
-            b("  alerts. Use the Compliance Wizard to set up industry-")
-            b("  specific suites (SOX, HIPAA, Legal, Government, ISO,")
-            b("  FERPA, Real Estate, Insurance, HR) in one click.")
             blank()
             b("You don't need to use every feature. Start with a simple")
             b("keyword search and explore from there.")
@@ -2210,13 +1476,10 @@ def _launch_gui():
             b("the Search Wizard set it up for you \u2014 as long as you remember")
             b("to save the search, everything gets preserved.")
             blank()
-            b("Saved searches are also the building blocks for Search Suites \u2014")
-            b("group them into suites with pass/fail criteria for compliance audits.")
-            blank()
             s("Save Search vs Save Defaults \u2014 what's the difference?")
             b("\u2022 Save Search (main screen) \u2014 saves the current search terms")
             b("  and settings by name for reuse. Stored per folder in")
-            b("  .docsearch_collection.json. Use this to build suites.")
+            b("  .docsearch_collection.json.")
             b("\u2022 Save Defaults (Advanced Search Options) \u2014 saves your")
             b("  preferred settings as defaults for every future session.")
             b("  Stored once in ~/.docsearchrc. Use this to set your")
@@ -2267,95 +1530,28 @@ def _launch_gui():
 
             h("BREAKING DOWN COMPLEX SEARCHES")
             b("When a single search becomes too complex, break it into")
-            b("several focused searches and combine them in a suite.")
+            b("several focused searches and run them one at a time, or")
+            b("save each one and reload them later with Load Search.")
             blank()
             s("Why this helps")
             b("\u2022 Each search is simpler to configure and understand")
-            b("\u2022 You see which specific check passed or failed")
-            b("\u2022 Different criteria per search (>= 1, == 0, <= N)")
-            b("\u2022 Easy to update one check without affecting others")
-            b("\u2022 Reusable across multiple suites")
+            b("\u2022 You see exactly which files matched which check")
+            b("\u2022 Easy to update one check without affecting the others")
+            b("\u2022 Saved searches can be reloaded and re-run later")
             blank()
-            s("Example: Contract compliance audit")
-            b("Instead of one giant search, create these saved searches:")
-            e("1. \"has_signature\"     \u2014 Regex: Authorized\\s+Signature  (>= 1)")
-            e("2. \"has_date\"          \u2014 Regex: \\d{2}/\\d{2}/\\d{4}      (>= 1)")
-            e("3. \"no_draft_stamp\"    \u2014 Terms: DRAFT                   (== 0)")
-            e("4. \"amount_in_range\"   \u2014 Range: amount:1000..50000      (>= 1)")
-            e("5. \"no_pii\"            \u2014 Regex: \\d{3}-\\d{2}-\\d{4}      (== 0)")
-            b("Group them into a 'contract_review' suite. Run with one click")
-            b("and get a report showing exactly which checks passed or failed.")
-            blank()
-            s("Example: Cascade pipeline")
-            b("Use cascade mode to progressively narrow results:")
-            e("Stage 1: Find all PDFs mentioning \"contract\"")
-            e("Stage 2: Of those, find ones with \"termination\"")
-            e("Stage 3: Of those, find ones with dollar amounts")
-            b("Each stage feeds its matched files into the next stage.")
+            s("Example: Breaking down a document review")
+            b("Instead of one giant search, save a series of focused searches:")
+            e('1. "find_contracts"   \u2014 Terms: contract')
+            e('2. "missing_date"     \u2014 Regex: \\d{2}/\\d{2}/\\d{4}   + Inverse')
+            e('3. "no_draft_stamp"   \u2014 Terms: DRAFT')
+            e('4. "amounts_in_range" \u2014 Range: amount:1000..50000')
+            e('5. "has_ssn"          \u2014 Regex: \\d{3}-\\d{2}-\\d{4}')
+            b("Use Load Search to reload each one when you need it.")
             blank()
 
             h("TIPS")
-            b("\u2022 Use Save Search to save a search for reuse in Search Suites.")
+            b("\u2022 Use Save Search to save useful configurations by name for reuse.")
             b("\u2022 Click User Guide in the toolbar for full documentation on GitHub.")
-            blank()
-
-            h("SEARCH SUITES")
-            b("Search Suites let you save individual searches, group them into named")
-            b("suites, and run them as a batch with pass/fail tracking. This turns")
-            b("docsearch into an audit automation tool.")
-            blank()
-            s("How to use")
-            b("1. Configure a search in the main GUI and click Save Search.")
-            b("2. Click Search Suites in the Search Bar to open the suites window.")
-            b("3. Click Build a New Suite, give it a name, and use the dual-panel selector")
-            b("   to choose and order your saved searches (\u2192/\u2190 to add/remove,")
-            b("   \u25b2/\u25bc to reorder).")
-            b("4. Select a suite and click Run Selected Suite. Each search runs")
-            b("   sequentially with real-time PASS/FAIL indicators.")
-            b("5. Reports are auto-generated with timestamps after each run.")
-            blank()
-            s("Cascade mode")
-            b("Check Cascade when creating a suite to enable progressive narrowing.")
-            b("Each stage's matched files become the input for the next stage,")
-            b("creating a pipeline that narrows results step by step.")
-            e("Stage 1: \"contract\"       \u2192  finds 50 files")
-            e("Stage 2: \"termination\"    \u2192  searches only those 50 files")
-            e("Stage 3: \"penalty\"        \u2192  searches only Stage 2's matches")
-            blank()
-            s("Import Template")
-            b("Click Import Template in Manage Suites to load saved searches")
-            b("and suites from an external .json file. This merges them into")
-            b("your existing collection. Use this to receive custom templates")
-            b("or to copy suites between folders.")
-            blank()
-            s("Auto-Run scheduling")
-            b("Select a suite and use the Auto-Run dropdown to schedule it at")
-            b("an interval (30 min, 1 hour, 4 hours, 12 hours, 24 hours).")
-            b("Scheduled runs are skipped if a search or build is in progress.")
-            b("The Last Run label shows the suite name and timestamp of its")
-            b("most recent run (manual or scheduled).")
-            blank()
-            s("Pass criteria")
-            b("By default, a search passes if it finds >= 1 match. You can set")
-            b("custom criteria per-search in the suite editor. Select a search")
-            b("in the right panel and use the Pass criteria dropdown:")
-            e(">= N    Pass if matches >= N   (e.g., >= 5 = at least 5)")
-            e("<= N    Pass if matches <= N   (e.g., <= 3 = at most 3)")
-            e("== N    Pass if matches == N   (e.g., == 0 = no matches)")
-            b("Results show the criteria: [PASS] search \u2014 12 match(es) (need >= 1)")
-            blank()
-            s("Output & cleanup")
-            b("Each search produces its own stage report file. Set Output Dir to")
-            b("write suite files to a separate folder. All generated files use a")
-            b("DO_NOT_SEARCH prefix so they are never re-searched. Use the")
-            b("Clean Up Suite Files button to delete all generated suite files.")
-            blank()
-            s("Use cases")
-            b("\u2022 Compliance audits \u2014 repeat the same checks on document sets")
-            b("\u2022 Quality assurance \u2014 verify required terms exist in deliverables")
-            b("\u2022 Data discovery \u2014 batch-find SSNs, emails, account numbers")
-            b("\u2022 Due diligence \u2014 systematic contract or financial review")
-            b("\u2022 Expressions and range filters are fully preserved in saved searches")
             blank()
 
             h("TROUBLESHOOTING: SEARCH NOT FINDING EXPECTED RESULTS?")
@@ -2405,25 +1601,23 @@ def _launch_gui():
             b("hidden file, etc.). This explains any difference between")
             b("docsearch's file count and a manual count of the folder.")
             blank()
-            b("Sanity check for compliance: searched + excluded should")
-            b("equal the total number of files in the folder. Count all")
-            b("files with:")
+            b("Sanity check: searched + excluded should equal the total")
+            b("number of files in the folder. Count all files with:")
             blank()
             e("  macOS/Linux:  find \"/path/to/folder\" -type f | wc -l")
             e("  Windows PS:   (Get-ChildItem -Recurse -File -Force).Count")
             blank()
-            b("See the User Guide 'Verifying File Coverage' section for")
-            b("details. This gives you proof that every file was either")
-            b("searched or explicitly excluded with a documented reason.")
+            b("This shows that every file was either searched or explicitly")
+            b("excluded with a documented reason.")
             blank()
 
             h("FILES CREATED BY DOCSEARCH")
             b("docsearch never modifies, moves, or deletes your original")
             b("documents. It creates its own files for reports, indexes, and")
-            b("settings. Buttons like Clear Results, Delete Index, and Clean")
-            b("Up Suite Files only delete files that docsearch created \u2014 never")
-            b("your documents. All docsearch files are safe to delete manually")
-            b("too \u2014 docsearch recreates them as needed.")
+            b("settings. Buttons like Clear Results and Delete Index only")
+            b("delete files that docsearch created \u2014 never your documents.")
+            b("All docsearch files are safe to delete manually too \u2014")
+            b("docsearch recreates them as needed.")
             blank()
             s("Search reports (overwritten each search)")
             e("docsearch_results.txt       \u2014 text report")
@@ -2435,10 +1629,8 @@ def _launch_gui():
             e("DO_NOT_SEARCH_{name}.txt/docx          \u2014 saved with -s")
             e("DO_NOT_SEARCH_ACCUMULATED_{name}.*     \u2014 appended with -sa")
             blank()
-            s("Suite files (auto-generated per run)")
-            e("DO_NOT_SEARCH_SUITE_{suite}_stage*.*   \u2014 per-stage results")
-            e("DO_NOT_SEARCH_docsearch_suite_*.*      \u2014 suite summary (.docx/.txt/.json)")
-            e("DO_NOT_SEARCH_autorun_log.txt          \u2014 scheduled run history")
+            s("PII scan reports")
+            e("DO_NOT_SEARCH_pii_scan_report.docx     \u2014 PII Scan report")
             blank()
             s("Error log")
             e("docsearch_errors.log        \u2014 files that couldn't be read + crash reports")
@@ -2448,7 +1640,7 @@ def _launch_gui():
             e(".docsearch.db-wal/-shm      \u2014 temporary SQLite files")
             blank()
             s("Settings & data")
-            e(".docsearch_collection.json  \u2014 saved searches & suites (per folder)")
+            e(".docsearch_collection.json  \u2014 saved searches (per folder)")
             e("~/.docsearchrc              \u2014 user settings (home directory)")
             b("The 'rc' in .docsearchrc stands for 'run commands' \u2014 a Unix naming")
             b("convention meaning 'config file' (same as .bashrc, .vimrc, etc.).")
@@ -2457,22 +1649,20 @@ def _launch_gui():
             b("\u2022 All DO_NOT_SEARCH_ files are automatically excluded from searches")
             b("\u2022 All docsearch internal files (.db, .log, .json config) are excluded")
             b("\u2022 Most files are safe to delete \u2014 docsearch recreates them as needed")
-            b("\u2022 Use Clean Up Practice Files to remove everything except saved")
-            b("  searches and settings (for starting fresh after experimenting)")
             blank()
             s("Upgrading docsearch")
             b("When you upgrade to a new version, only the code is replaced.")
-            b("Your saved searches, suites, settings, indexes, and reports")
-            b("are stored in your home directory and document folders \u2014 they")
-            b("are never touched by an upgrade. No migration needed.")
+            b("Your saved searches, settings, indexes, and reports are stored")
+            b("in your home directory and document folders \u2014 they are never")
+            b("touched by an upgrade. No migration needed.")
             blank()
             s("Backing up your work")
             b("Only two files matter \u2014 everything else can be regenerated:")
             blank()
-            b("\u2022 ~/.docsearchrc \u2014 your settings and email config")
+            b("\u2022 ~/.docsearchrc \u2014 your settings")
             b("  (one file in your home directory)")
             blank()
-            b("\u2022 .docsearch_collection.json \u2014 your saved searches and suites")
+            b("\u2022 .docsearch_collection.json \u2014 your saved searches")
             b("  (one per search folder, hidden file)")
             blank()
             b("Copy these to a safe location before major changes. If you")
@@ -2484,14 +1674,13 @@ def _launch_gui():
             s("If ~/.docsearchrc is deleted")
             b("Nothing breaks \u2014 docsearch uses built-in defaults. To recover:")
             b("1. Open Advanced Search Options, set your preferences, click Save Defaults")
-            b("2. Re-enter email alerts via Configure Email Alerts in Search Suites")
-            b("3. Change Text Size dropdown if needed (auto-saves immediately)")
-            b("\u2022 Use Clean Up Suite Files, Clear Auto-Run History, Clear Error Log,")
-            b("  or Delete Index to manage files from the GUI")
+            b("2. Change Text Size dropdown if needed (auto-saves immediately)")
+            b("\u2022 Use Clear Results, Clear Error Log, or Delete Index to manage")
+            b("  files from the GUI")
             blank()
             s("Building a search index")
             b("1. Browse to the folder you want to index")
-            b("2. Click Manage Indexes (below Search Suites)")
+            b("2. Click Manage Indexes (below Advanced Search Options)")
             b("3. Click Build Index(es)")
             b("4. Check Search Using Index(es) in Advanced Search Options")
             b("The index automatically includes all subfolders \u2014 one")
@@ -2595,7 +1784,7 @@ def _launch_gui():
             b("documents with typos.")
             e("accomodation          \u2192  finds \"accommodation\"")
             e("recieve               \u2192  finds \"receive\"")
-            e("comp1iance            \u2192  finds \"compliance\" (OCR error)")
+            e("rec1pe                \u2192  finds \"recipe\" (OCR error)")
             blank()
 
             s("Wildcard")
@@ -2640,9 +1829,10 @@ def _launch_gui():
 
             s("Inverse")
             b("Show files that do NOT contain the search terms.")
-            b("Useful for compliance: \"which files are missing a required clause?\"")
-            e("Terms: Authorized Signature    Inverse: ON")
-            e("\u2192  lists files WITHOUT \"Authorized Signature\"")
+            b("Useful when you want to find files that are missing something")
+            b("they should contain.")
+            e("Terms: confidentiality    Inverse: ON")
+            e("\u2192  lists files WITHOUT the word \"confidentiality\"")
             blank()
 
             h("TEXT FIELDS")
@@ -2779,9 +1969,10 @@ def _launch_gui():
             b("only for making your choices persist across sessions.")
             blank()
             b("This is different from Save Search on the main screen, which")
-            b("saves the current search terms and settings by name for reuse")
-            b("in suites. Save Defaults sets your preferred starting")
-            b("configuration. Save Search saves a specific named search.")
+            b("saves the current search terms and settings by name so you")
+            b("can reload them later. Save Defaults sets your preferred")
+            b("starting configuration. Save Search saves a specific named")
+            b("search.")
             s("Restore Settings")
             b("Reload saved defaults from ~/.docsearchrc into the GUI.")
             s("Reset All Fields")
@@ -2887,7 +2078,7 @@ def _launch_gui():
             Tooltip(self.folder_entry, "The folder or file to search. Use Folder to pick a folder, File to pick a specific file")
 
         def _build_advanced_toggle(self):
-            """Build the toggle buttons for Advanced Search Options and Search Suites."""
+            """Build the toggle button for Advanced Search Options."""
             self.advanced_toggle = ctk.CTkButton(
                 self._toggle_row,
                 text="\u25b6 Advanced Search Options",
@@ -2900,8 +2091,6 @@ def _launch_gui():
             )
             self.advanced_toggle.pack(side="left")
             Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
-            self.suite_toggle.pack(side="left", padx=(10, 0))
-            Tooltip(self.suite_toggle, "Open the Manage Suites panel — create, edit, run, and schedule search suites with pass/fail tracking")
 
         def _build_advanced_panel(self):
             """Build the Advanced Search Options popup window with all search mode checkboxes and fields."""
@@ -2925,7 +2114,7 @@ def _launch_gui():
             adv_header_frame.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(
                 adv_header_frame,
-                text="All regular and compliance-related searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
+                text="All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
                 font=ctk.CTkFont(size=11),
                 text_color=("gray50", "gray50"),
                 justify="left",
@@ -3120,7 +2309,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             outdir_browse_btn.grid(row=0, column=1, padx=(0, 0))
-            Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder. This is independent from the Output Dir on the Search Suites panel — each can point to a different location")
+            Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
 
             # Row 9: additional output formats
             output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -3292,13 +2481,6 @@ def _launch_gui():
             self._matched_files_link.pack(side="left", padx=(5, 0))
             self._matched_files_link.pack_forget()  # Hidden until matches found
             Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
-
-            # Auto-run indicator (right side of status row)
-            self._autorun_indicator = ctk.CTkLabel(
-                status_row, text="", font=ctk.CTkFont(size=10),
-                text_color=("gray50", "gray50"),
-            )
-            self._autorun_indicator.pack(side="right", padx=(5, 0))
 
             self._excluded_files_btn = ctk.CTkButton(
                 status_row, text="", font=ctk.CTkFont(size=10),
@@ -3570,903 +2752,6 @@ def _launch_gui():
             # For index_frame compatibility with _update_index_button_color
             self.index_frame = idx_frame
 
-        def _build_suite_panel(self):
-            """Build the Search Suites window (standalone, shown/hidden)."""
-            import tkinter as tk
-            from tkinter import ttk
-
-            self.suite_window = ctk.CTkToplevel(self)
-            self.suite_window.title("Search Suites")
-            self.suite_window.after(100, lambda: self.suite_window.title("Search Suites"))
-            self.suite_window.geometry("780x750")
-            self.suite_window.protocol("WM_DELETE_WINDOW", self._on_suite_window_close)
-            self.suite_window.after(50, self.suite_window.lift)
-
-            import tkinter as _tk_suite
-
-            # Scrollable container
-            self._suite_canvas = _tk_suite.Canvas(self.suite_window, highlightthickness=0)
-            self._suite_scrollbar = _tk_suite.Scrollbar(self.suite_window, command=self._suite_canvas.yview)
-            self._suite_canvas.configure(yscrollcommand=self._suite_scrollbar.set)
-            self._suite_scrollbar.pack(side="right", fill="y")
-            self._suite_canvas.pack(side="left", fill="both", expand=True)
-
-            self.suite_frame = ctk.CTkFrame(self._suite_canvas)
-            self._suite_canvas_window = self._suite_canvas.create_window(
-                (0, 0), window=self.suite_frame, anchor="nw"
-            )
-
-            def _on_suite_frame_configure(event):
-                self._suite_canvas.configure(scrollregion=self._suite_canvas.bbox("all"))
-
-            def _on_suite_canvas_configure(event):
-                self._suite_canvas.itemconfig(self._suite_canvas_window, width=event.width)
-
-            self.suite_frame.bind("<Configure>", _on_suite_frame_configure)
-            self._suite_canvas.bind("<Configure>", _on_suite_canvas_configure)
-
-            # Mousewheel scrolling
-            def _on_suite_mousewheel(event):
-                delta = event.delta
-                if abs(delta) > 10:
-                    delta = 1 if delta > 0 else -1
-                else:
-                    delta = max(-1, min(1, delta))
-                self._suite_canvas.yview_scroll(-delta, "units")
-
-            self._suite_canvas.bind_all("<MouseWheel>", _on_suite_mousewheel)
-            self._suite_canvas.configure(yscrollincrement=10)
-
-            # Header with description and Help button
-            header_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            header_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
-            ctk.CTkLabel(
-                header_frame,
-                text="Save searches, group them into suites, and run them with pass/fail tracking.\nUse for compliance audits, quality checks, and repeatable document reviews.",
-                font=ctk.CTkFont(size=11),
-                text_color=("gray50", "gray50"),
-                justify="left",
-            ).pack(side="left")
-            help_btn = ctk.CTkButton(
-                header_frame, text="?", width=28, height=28,
-                font=ctk.CTkFont(size=14, weight="bold"),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._show_suite_help,
-            )
-            help_btn.pack(side="right")
-            Tooltip(help_btn, "How Search Suites work")
-
-            # Current folder display
-            folder_info = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            folder_info.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 0), sticky="ew")
-            # Shift header to row -1 equivalent by re-gridding
-            header_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
-            folder_info.grid(row=1, column=0, columnspan=2, padx=10, pady=(2, 5), sticky="ew")
-
-            ctk.CTkLabel(
-                folder_info, text="Search Folder:",
-                font=ctk.CTkFont(size=11, weight="bold"),
-            ).pack(side="left")
-            self._suite_folder = self.folder_entry.get().strip()
-            self._suite_folder_label = ctk.CTkLabel(
-                folder_info, text=self._suite_folder or "(none)",
-                font=ctk.CTkFont(size=11),
-                text_color=("blue", "deepskyblue"),
-            )
-            self._suite_folder_label.pack(side="left", padx=(5, 0))
-            Tooltip(self._suite_folder_label, "The suite will run against this folder")
-
-            def _change_suite_folder():
-                from tkinter import filedialog
-                new_folder = filedialog.askdirectory(
-                    parent=self.suite_window,
-                    title="Select Search Folder",
-                    initialdir=self._suite_folder or os.path.expanduser("~"),
-                )
-                if new_folder:
-                    self._suite_folder = new_folder
-                    self._suite_folder_label.configure(text=new_folder)
-                    self._refresh_suite_panel()
-
-            ctk.CTkButton(
-                folder_info, text="Change Folder", width=100,
-                font=ctk.CTkFont(size=11),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=_change_suite_folder,
-            ).pack(side="right")
-
-            # No polling — the suite panel folder only changes via its own Change Folder button
-
-            # Suites
-            right = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            right.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
-            self.suite_frame.grid_columnconfigure(0, weight=1)
-
-            ctk.CTkLabel(right, text="Suites", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
-            suite_selector_frame = tk.Frame(right)
-            suite_selector_frame.pack(fill="x", pady=(2, 5))
-            self.suite_selector = tk.Listbox(suite_selector_frame, height=4, selectmode="extended", font=("TkDefaultFont", 11))
-            suite_sel_scroll = tk.Scrollbar(suite_selector_frame, command=self.suite_selector.yview)
-            self.suite_selector.configure(yscrollcommand=suite_sel_scroll.set)
-            self.suite_selector.pack(side="left", fill="both", expand=True)
-            suite_sel_scroll.pack(side="right", fill="y")
-            self.suite_selector.bind("<<ListboxSelect>>", lambda e: self._on_suite_selected())
-
-            ctk.CTkLabel(right, text="These searches are in the selected suite", font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w")
-            suite_contents_frame = tk.Frame(right)
-            suite_contents_frame.pack(fill="both", expand=True, pady=(0, 5))
-            self.suite_contents_listbox = tk.Listbox(suite_contents_frame, height=8, width=25, font=("TkDefaultFont", 11))
-            suite_contents_scroll = tk.Scrollbar(suite_contents_frame, command=self.suite_contents_listbox.yview)
-            self.suite_contents_listbox.configure(yscrollcommand=suite_contents_scroll.set)
-            self.suite_contents_listbox.pack(side="left", fill="both", expand=True)
-            suite_contents_scroll.pack(side="right", fill="y")
-
-            suite_btn_frame = ctk.CTkFrame(right, fg_color="transparent")
-            suite_btn_frame.pack(fill="x")
-            _build_btn = ctk.CTkButton(
-                suite_btn_frame, text="Build a New Suite", width=130, font=ctk.CTkFont(size=12),
-                command=self._create_suite_dialog,
-            )
-            _build_btn.pack(side="left", padx=(0, 5))
-            Tooltip(_build_btn, "Create a new suite from your saved searches — name it, pick which searches to include, set pass/fail criteria, and choose execution order")
-            _edit_btn = ctk.CTkButton(
-                suite_btn_frame, text="Edit Suite", width=90, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._edit_suite_dialog,
-            )
-            _edit_btn.pack(side="left", padx=(0, 5))
-            Tooltip(_edit_btn, "Modify which searches are in the selected suite, change execution order, or update pass/fail criteria")
-            _delete_btn = ctk.CTkButton(
-                suite_btn_frame, text="Delete Suite", width=90, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._delete_suite,
-            )
-            _delete_btn.pack(side="left", padx=(0, 5))
-            Tooltip(_delete_btn, "Remove the selected suite(s) — saved searches are not affected")
-            self.cleanup_suite_btn = ctk.CTkButton(
-                suite_btn_frame, text="Clean Up Suite Files", width=160, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._cleanup_suite_files,
-            )
-            self.cleanup_suite_btn.pack(side="left")
-            Tooltip(self.cleanup_suite_btn, "Delete all generated suite and stage report files from the search folder")
-
-            # Second row: Import / Export
-            suite_btn_frame2 = ctk.CTkFrame(right, fg_color="transparent")
-            suite_btn_frame2.pack(fill="x", pady=(3, 0))
-
-            _import_btn = ctk.CTkButton(
-                suite_btn_frame2, text="Import Template", width=120, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._import_template,
-            )
-            _import_btn.pack(side="left", padx=(0, 5))
-            Tooltip(_import_btn, "Load saved searches and suites from an external .json file — merges into your existing collection without overwriting non-conflicting items")
-
-            _export_btn = ctk.CTkButton(
-                suite_btn_frame2, text="Export Suite", width=100, font=ctk.CTkFont(size=12),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._export_suite,
-            )
-            _export_btn.pack(side="left", padx=(0, 5))
-            Tooltip(_export_btn, "Save the selected suite and all its saved searches to a .json file for sharing with colleagues or other machines")
-
-            # Status label (under Suites column)
-            status_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            status_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
-            ctk.CTkLabel(status_frame, text="Messages:", font=ctk.CTkFont(size=12)).pack(side="left")
-            self.suite_status_label = ctk.CTkLabel(status_frame, text="", font=ctk.CTkFont(size=12))
-            self.suite_status_label.pack(side="left", padx=(5, 10))
-            self.cancel_suite_btn = ctk.CTkButton(
-                status_frame, text="Cancel", width=80, font=ctk.CTkFont(size=13),
-                fg_color="red", hover_color="darkred",
-                command=self._cancel_suite,
-            )
-            Tooltip(self.cancel_suite_btn, "Stop the currently running suite after the current search finishes")
-            # Cancel hidden by default
-
-            # Schedule + Last Run row
-            schedule_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            schedule_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
-
-            ctk.CTkLabel(schedule_frame, text="Auto-Run every:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
-            self.suite_schedule_var = ctk.StringVar(value="Off")
-            self.suite_schedule_menu = ctk.CTkOptionMenu(
-                schedule_frame, variable=self.suite_schedule_var,
-                values=["Off", "30 min", "1 hour", "4 hours", "12 hours", "24 hours"],
-                width=100, font=ctk.CTkFont(size=12),
-                command=self._on_suite_schedule_changed,
-            )
-            self.suite_schedule_menu.grid(row=0, column=1, padx=(0, 15))
-
-            ctk.CTkLabel(schedule_frame, text="Last run:", font=ctk.CTkFont(size=12)).grid(row=0, column=2, padx=(0, 5))
-            self.suite_last_run_label = ctk.CTkLabel(
-                schedule_frame, text="Never", font=ctk.CTkFont(size=12),
-                text_color=("gray50", "gray50"),
-            )
-            self.suite_last_run_label.grid(row=0, column=3, padx=(0, 15))
-
-            ctk.CTkLabel(schedule_frame, text="Next Auto-Run:", font=ctk.CTkFont(size=12)).grid(row=0, column=4, padx=(0, 5))
-            self.suite_next_run_label = ctk.CTkLabel(
-                schedule_frame, text="—", font=ctk.CTkFont(size=12),
-                text_color=("gray50", "gray50"),
-            )
-            self.suite_next_run_label.grid(row=0, column=5, padx=(0, 5))
-
-            ctk.CTkLabel(schedule_frame, text="Auto-Run Suite:", font=ctk.CTkFont(size=12)).grid(row=1, column=0, padx=(0, 5), pady=(5, 0))
-            autorun_name = self._scheduled_suite_name or "None"
-            self.suite_autorun_name_label = ctk.CTkLabel(
-                schedule_frame, text=autorun_name, font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=("gray50", "gray50"),
-            )
-            self.suite_autorun_name_label.grid(row=1, column=1, columnspan=5, padx=(0, 5), pady=(5, 0), sticky="w")
-
-            # Output Dir row for suites
-            suite_outdir_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            suite_outdir_frame.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky="ew")
-
-            ctk.CTkLabel(suite_outdir_frame, text="Output Dir:", font=ctk.CTkFont(size=12)).grid(row=0, column=0, padx=(0, 5))
-            self.suite_output_dir_entry = ctk.CTkEntry(suite_outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
-            self.suite_output_dir_entry.grid(row=0, column=1, padx=(0, 5), sticky="ew")
-            saved_sod = getattr(self, '_saved_suite_output_dir', '')
-            if saved_sod:
-                self.suite_output_dir_entry.insert(0, saved_sod)
-            suite_outdir_frame.grid_columnconfigure(1, weight=1)
-
-            suite_outdir_browse_btn = ctk.CTkButton(
-                suite_outdir_frame, text="Browse", width=70,
-                command=self._browse_suite_output_dir,
-                font=ctk.CTkFont(size=12),
-            )
-            suite_outdir_browse_btn.grid(row=0, column=2)
-            Tooltip(suite_outdir_browse_btn, "Choose a folder for suite output files (stage reports, suite reports)")
-            Tooltip(self.suite_output_dir_entry, "Directory for suite output files (stage reports, suite reports). Leave empty to write to the search folder. This is independent from the Output Dir in Advanced Search Options — each can point to a different location")
-
-            # Stage reports checkbox
-            stage_opts_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            stage_opts_frame.grid(row=6, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="ew")
-            self._generate_stage_reports_var = ctk.StringVar(value="on")
-            self._stage_reports_cb = ctk.CTkCheckBox(
-                stage_opts_frame, text="Generate stage reports (per-search detail files)",
-                variable=self._generate_stage_reports_var,
-                onvalue="on", offvalue="off",
-                font=ctk.CTkFont(size=12),
-            )
-            self._stage_reports_cb.pack(side="left")
-            Tooltip(self._stage_reports_cb, "When checked, each search in the suite produces its own detail report file with the actual matched text and highlighting. Uncheck to generate only the summary suite report")
-
-            # Auto-Run History + Email Alerts links row
-            links_frame = ctk.CTkFrame(self.suite_frame, fg_color="transparent")
-            links_frame.grid(row=8, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="ew")
-
-            autorun_label = ctk.CTkLabel(
-                links_frame, text="Open Auto-Run History",
-                font=ctk.CTkFont(size=12, underline=True),
-                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
-            )
-            autorun_label.pack(side="left")
-            autorun_label.bind("<Button-1>", lambda e: self._open_autorun_history())
-            Tooltip(autorun_label, "Open the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
-
-            sep_label = ctk.CTkLabel(links_frame, text="  |  ", font=ctk.CTkFont(size=12),
-                                     text_color=("gray60", "gray40"))
-            sep_label.pack(side="left")
-
-            clear_autorun_label = ctk.CTkLabel(
-                links_frame, text="Clear Auto-Run History",
-                font=ctk.CTkFont(size=12, underline=True),
-                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
-            )
-            clear_autorun_label.pack(side="left")
-            clear_autorun_label.bind("<Button-1>", lambda e: self._clear_autorun_history())
-            Tooltip(clear_autorun_label, "Delete the auto-run log file (DO_NOT_SEARCH_autorun_log.txt)")
-
-            email_alert_label = ctk.CTkLabel(
-                links_frame, text="Configure Email Alerts",
-                font=ctk.CTkFont(size=12, underline=True),
-                text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
-            )
-            email_alert_label.pack(side="right")
-            email_alert_label.bind("<Button-1>", lambda e: self._configure_email_alerts())
-            Tooltip(email_alert_label, "Configure email notifications for suite auto-run results")
-
-            # View Suite Report button (hidden until a suite run completes)
-            self.view_suite_report_btn = ctk.CTkButton(
-                self.suite_frame, text="View Suite Report", width=160, font=ctk.CTkFont(size=13),
-                command=self._open_suite_report,
-            )
-            self._suite_report_path = None
-            Tooltip(self.view_suite_report_btn, "Open the .docx suite report from the last run")
-
-            # Run Selected Suite button (centered)
-            self.run_suite_btn = ctk.CTkButton(
-                self.suite_frame, text="Run Selected Suite", width=160, font=ctk.CTkFont(size=14, weight="bold"),
-                command=self._run_suite,
-            )
-            self.run_suite_btn.grid(row=9, column=0, columnspan=2, pady=(10, 10))
-            Tooltip(self.run_suite_btn, "Run all searches in the selected suite(s) against the current Search Folder and evaluate pass/fail criteria. Reports are saved to the Search Folder (or Output Dir if set). Make sure your Search Folder points to the documents you want to check before clicking")
-
-            _close_btn = ctk.CTkButton(
-                self.suite_frame, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=self._on_suite_window_close,
-                font=ctk.CTkFont(size=12),
-            )
-            _close_btn.grid(row=11, column=0, columnspan=2, pady=(0, 10))
-            Tooltip(_close_btn, "Close this panel — auto-run schedules continue in the background")
-
-        def _open_autorun_history(self):
-            """Open the auto-run log file in the default text editor."""
-            import subprocess, sys
-            folder = self._get_suite_folder()
-            report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
-            if not report_dir or not os.path.isdir(report_dir):
-                self._show_error("Select a valid folder first.")
-                return
-            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
-            if not os.path.exists(log_path):
-                self._show_error("No auto-run history found yet.")
-                return
-            if sys.platform == "darwin":
-                subprocess.Popen(["open", log_path])
-            elif sys.platform == "win32":
-                os.startfile(log_path)
-            else:
-                subprocess.Popen(["xdg-open", log_path])
-
-        def _clear_autorun_history(self):
-            """Delete the auto-run log file after confirmation."""
-            folder = self._get_suite_folder()
-            report_dir = getattr(self, '_saved_suite_output_dir', '') or folder
-            if not report_dir or not os.path.isdir(report_dir):
-                self._show_error("Select a valid folder first.")
-                return
-            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
-            if not os.path.exists(log_path):
-                self.suite_status_label.configure(text="No auto-run history to clear.")
-                return
-            from tkinter import messagebox
-            if messagebox.askyesno("Clear Auto-Run History",
-                                   f"Delete {os.path.basename(log_path)}?\n\nThis cannot be undone."):
-                try:
-                    os.remove(log_path)
-                    self.suite_status_label.configure(text="Auto-run history cleared.")
-                except OSError as e:
-                    self._show_error(f"Could not delete log file: {e}")
-
-        def _cleanup_suite_files(self):
-            """Delete all generated suite and stage report files from the search/output folder."""
-            import glob
-            from tkinter import messagebox
-
-            folder = self._get_suite_folder()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Select a valid folder first.")
-                return
-
-            # Scan both search folder and output dir (if different)
-            try:
-                od = self.suite_output_dir_entry.get().strip() if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry') else ""
-            except Exception:
-                od = getattr(self, '_saved_suite_output_dir', '')
-            dirs_to_scan = [folder]
-            if od and od != folder and os.path.isdir(od):
-                dirs_to_scan.append(od)
-
-            # Find suite-generated files only (not user-saved -s/-sa reports)
-            files = []
-            for d in dirs_to_scan:
-                patterns = [
-                    os.path.join(d, "DO_NOT_SEARCH_SUITE_*"),
-                    os.path.join(d, "DO_NOT_SEARCH_docsearch_suite_*"),
-                ]
-                for pat in patterns:
-                    files.extend(glob.glob(pat))
-            files = sorted(set(files))
-
-            if not files:
-                self.suite_status_label.configure(text="No suite files found to clean up.")
-                return
-
-            names = "\n".join(os.path.basename(f) for f in files[:20])
-            if len(files) > 20:
-                names += f"\n... and {len(files) - 20} more"
-            if not messagebox.askyesno(
-                "Clean Up Suite Files",
-                f"Delete {len(files)} suite file(s) from:\n{folder}\n\n{names}",
-            ):
-                return
-
-            for f in files:
-                try:
-                    os.remove(f)
-                except OSError:
-                    pass
-            self.suite_status_label.configure(text=f"Deleted {len(files)} suite file(s).")
-
-        def _show_suite_help(self):
-            """Show an informational popup explaining how Search Suites work."""
-            import tkinter as tk
-            help_win = tk.Toplevel(self.suite_window)
-            help_win.title("Search Suites — How They Work")
-            help_win.geometry("750x520")
-            help_win.resizable(True, True)
-            help_win.transient(self.suite_window)
-            help_win.grab_set()
-
-            # Scrollable text widget
-            text_frame = tk.Frame(help_win)
-            text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
-
-            scrollbar = tk.Scrollbar(text_frame)
-            scrollbar.pack(side="right", fill="y")
-
-            txt = tk.Text(
-                text_frame, wrap="word", font=("TkDefaultFont", 12),
-                state="normal", yscrollcommand=scrollbar.set,
-                padx=12, pady=10, spacing3=2,
-            )
-            txt.pack(side="left", fill="both", expand=True)
-            scrollbar.config(command=txt.yview)
-
-            # Configure tags
-            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=12, spacing3=4)
-            txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=10, spacing3=2)
-            txt.tag_configure("example", font=("Courier", 12), lmargin1=20, lmargin2=20)
-            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
-
-            def h(text):
-                txt.insert("end", text + "\n", "heading")
-
-            def s(text):
-                txt.insert("end", text + "\n", "subhead")
-
-            def e(text):
-                txt.insert("end", text + "\n", "example")
-
-            def b(text):
-                txt.insert("end", text + "\n", "body")
-
-            def blank():
-                txt.insert("end", "\n")
-
-            # Table of contents
-            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
-            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                              foreground="gray40")
-
-            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
-            for section in [
-                "How to Use",
-                "Import Template",
-                "Export Suite",
-                "Cascade Mode",
-                "Search Order",
-                "Pass Criteria",
-                "What It's Good For",
-                "Compliance Audit Patterns",
-                "Files Generated",
-                "How the Collection File Works",
-                "When Files Change",
-                "Output Directory",
-                "Auto-Run Scheduling",
-                "Email Alerts",
-            ]:
-                txt.insert("end", f"\u2022 {section}\n", "toc_item")
-            txt.insert("end", "\n")
-
-            b("Search Suites let you save individual searches, group them into")
-            b("named suites, and run them as a batch with pass/fail tracking.")
-            blank()
-
-            h("HOW TO USE")
-            b("1. Save a search: configure in the main GUI, click Save Search, give it a name.")
-            b("2. Build a suite: click Build a New Suite, name it, add searches and set execution order.")
-            b("3. Run: select one or more suites, click Run Selected Suite.")
-            b("4. Reports are generated automatically.")
-            blank()
-            b("Running multiple suites: you can select multiple suites in")
-            b("the list (Shift+click or Cmd/Ctrl+click) and run them")
-            b("together. Their searches are combined into a single run.")
-            b("If both suites contain a search with the same name, it")
-            b("runs only once (deduplicated). One combined report is")
-            b("generated covering all searches from all selected suites.")
-            blank()
-            b("Important: the suite runs against whatever folder is in the")
-            b("Search Folder field on the main screen. Reports are saved to")
-            b("that folder (or to Output Dir if set below). Make sure your")
-            b("Search Folder points to the documents you want to check.")
-            blank()
-
-            h("IMPORT TEMPLATE")
-            b("Click Import Template to load saved searches and suites from")
-            b("an external .json file. This merges the imported searches and")
-            b("suites into your existing collection without overwriting items")
-            b("that don't conflict. If a search or suite with the same name")
-            b("already exists, you'll be warned before it's overwritten.")
-            blank()
-            b("Use this to receive custom templates from a consultant or to")
-            b("copy suites between folders. The imported suites appear in the")
-            b("Suites list alongside your existing ones.")
-            blank()
-
-            h("EXPORT SUITE")
-            b("Select a suite in the list and click Export Suite to save it")
-            b("as a .json file. The export includes the suite definition and")
-            b("all of its referenced saved searches \u2014 everything the recipient")
-            b("needs to import it with Import Template.")
-            blank()
-            b("Use this to share compliance suites with colleagues, send")
-            b("templates to clients, or copy suites between folders on")
-            b("different machines. You can select multiple suites to export")
-            b("them all into a single file.")
-            blank()
-
-            h("CASCADE MODE")
-            b("Check 'Cascade mode' to enable progressive narrowing \u2014 each stage's")
-            b("matched files become the file list for the next stage. Use the order")
-            b("controls (\u25b2/\u25bc) to set the pipeline sequence.")
-            blank()
-
-            h("SEARCH ORDER")
-            b("When creating or editing a suite, use the dual-panel selector to pick")
-            b("and reorder searches. \u2192/\u2190 move searches between panels; \u25b2/\u25bc set")
-            b("execution order. Order matters for cascade mode.")
-            blank()
-
-            h("PASS CRITERIA")
-            b("Each search in a suite can have its own pass/fail criteria:")
-            e(">= N   pass if match count is at least N (default: >= 1)")
-            e("<= N   pass if match count is at most N")
-            e("== N   pass if match count is exactly N (e.g., == 0 for 'no matches')")
-            b("Set criteria when creating or editing a suite. Searches without")
-            b("explicit criteria default to >= 1 (at least one match to pass).")
-            blank()
-
-            h("WHAT IT'S GOOD FOR")
-            b("\u2022 Compliance audits: repeat checks on document sets")
-            b("\u2022 Quality assurance: verify required terms exist")
-            b("\u2022 Data discovery: batch-find SSNs, emails, etc.")
-            b("\u2022 Due diligence: systematic contract review")
-            blank()
-
-            h("COMPLIANCE AUDIT PATTERNS")
-            b("Combine search modes with pass criteria to build document-level")
-            b("document review checks that flag exactly which files pass or fail:")
-            blank()
-            s("Every file must contain a term")
-            b("Search for the term with Inverse on. Set criteria to == 0.")
-            b("Passes if all files have it. If it fails, the stage report")
-            b("lists every file missing the term.")
-            blank()
-            s("No file should contain a term")
-            b("Search for the term normally. Set criteria to == 0.")
-            b("Passes if no file contains it. If it fails, the stage report")
-            b("lists every file that still has it.")
-            blank()
-            s("Required clause with complex wording")
-            b("Use an Expression like (signature AND date) AND NOT draft")
-            b("with Inverse on. Set criteria to == 0.")
-            b("Flags files missing the required combination.")
-            blank()
-            s("Limit violations")
-            b("Search for 'TBD' or 'TODO' normally. Set criteria to <= 3.")
-            b("Passes if 3 or fewer matches remain across all files.")
-            blank()
-            s("Sensitive data detection")
-            b("Search for SSN/PII patterns with Regex on. Set criteria to == 0.")
-            b("Flags every file containing sensitive data.")
-            blank()
-
-            h("FILES GENERATED")
-            b("\u2022 Suite report: DO_NOT_SEARCH_docsearch_suite_{name}.docx/.txt/.json")
-            b("  Consolidated pass/fail summary with color-coded results,")
-            b("  source file manifest, File \u00d7 Test matrix, and stage details.")
-            b("  Overwritten on each run.")
-            b("\u2022 Stage reports (optional): DO_NOT_SEARCH_SUITE_{suite}_stage{NN}_{search}.txt/.docx")
-            b("  Each search gets its own detail report file with the actual")
-            b("  matched text and highlighting. Useful for drilling into a")
-            b("  specific finding. Overwritten on each run.")
-            b("\u2022 Collection: .docsearch_collection.json")
-            b("  Saves searches & suite definitions per folder.")
-            b("\u2022 Auto-run log: DO_NOT_SEARCH_autorun_log.txt")
-            b("  Persistent history of all scheduled runs.")
-            blank()
-            b("Check 'Generate stage reports' in the suites panel to produce")
-            b("per-search detail files. Uncheck it to generate only the suite")
-            b("summary report. The suite report always includes the File \u00d7 Test")
-            b("matrix showing per-file, per-test results regardless of this setting.")
-            blank()
-
-            h("HOW THE COLLECTION FILE WORKS")
-            b("When you save a search or build a suite, docsearch stores")
-            b("everything in a single file called .docsearch_collection.json")
-            b("inside the current search folder. This one file holds all of")
-            b("your work for that folder:")
-            blank()
-            b("\u2022 All saved searches \u2014 whether created manually, by the")
-            b("  Search Wizard, or by the Compliance Wizard")
-            b("\u2022 All suites \u2014 with their ordered search lists, pass/fail")
-            b("  criteria, cascade settings, and schedules")
-            blank()
-            b("There is no distinction between a search saved manually and")
-            b("one created by a wizard \u2014 they are all entries in the same")
-            b("file. Suites reference saved searches by name, so everything")
-            b("is interconnected within the collection.")
-            blank()
-            b("Key points:")
-            b("\u2022 Created automatically when you first save a search")
-            b("\u2022 One per folder \u2014 each folder has its own collection")
-            b("\u2022 Lives with your documents \u2014 copy/move a folder and")
-            b("  the searches and suites travel with it")
-            b("\u2022 Updated instantly by the GUI when you save, edit, or delete")
-            b("\u2022 Loaded automatically when you browse to a folder")
-            b("\u2022 Do NOT delete \u2014 it contains all your suite work")
-            b("\u2022 Back it up \u2014 it's a JSON text file you can copy anywhere")
-            b("\u2022 You never need to edit it directly \u2014 the GUI manages it")
-            blank()
-            b("If you search multiple folders, each one has its own collection")
-            b("file. Back up the .docsearch_collection.json in each folder")
-            b("where you've built searches or suites.")
-            blank()
-
-            h("WHEN FILES CHANGE")
-            b("Suites store search instructions, not results. They don't")
-            b("reference specific files \u2014 each time a suite runs, it")
-            b("discovers files fresh from the folder at that moment.")
-            blank()
-            b("\u2022 Files added \u2014 included in the next suite run automatically")
-            b("\u2022 Files removed \u2014 no longer searched (match counts may change,")
-            b("  possibly flipping a pass/fail result)")
-            b("\u2022 Files modified \u2014 the new content is searched")
-            blank()
-            b("You never need to rebuild or update a suite when files change.")
-            b("Suites are living checks that always run against the current")
-            b("state of the folder.")
-            blank()
-            b("Note: if Use Index is checked, the index may not reflect recent")
-            b("file changes. Use Auto-Refresh in Manage Indexes to keep it")
-            b("current, or uncheck Use Index to search files directly.")
-            blank()
-
-            h("OUTPUT DIRECTORY")
-            b("Set Output Dir to write suite files to a separate folder.")
-            b("Independent from the Output Dir in Advanced Search Options.")
-            b("All files use DO_NOT_SEARCH prefix to auto-exclude from future searches.")
-            b("This setting is automatically saved to ~/.docsearchrc when you close")
-            b("the Suites window and restored on next launch.")
-            blank()
-
-            h("AUTO-RUN SCHEDULING")
-            b("Use the Auto-Run every: dropdown to schedule periodic suite runs.")
-            b("Intervals: Off, 30 min, 1 hour, 4 hours, 12 hours, 24 hours.")
-            b("Only one suite can be scheduled for auto-run at a time.")
-            b("The Auto-Run Suite: label shows which suite is scheduled. This is")
-            b("independent of the listbox selection — you can select and run a")
-            b("different suite manually without affecting the auto-run schedule.")
-            b("To change which suite auto-runs, select it in the list and")
-            b("pick an interval from the dropdown. This replaces any previous schedule.")
-            b("Safety guards skip a scheduled run if a")
-            b("search, index build, or another suite is already in progress.")
-            blank()
-            s("Display")
-            b("\u2022 Auto-Run Suite: shows the name of the scheduled suite.")
-            b("\u2022 Last run: shows the suite name and timestamp of the most recent run.")
-            b("\u2022 Next Auto-Run: shows a countdown timer (e.g., 4h 22m, 15m, <1m)")
-            b("  that updates every minute.")
-            blank()
-            s("Persistence")
-            b("Schedules persist across app restarts. On launch, the app reads")
-            b("the last run time from the collection, calculates when the next")
-            b("run is due, and resumes automatically. If a run is overdue (e.g.,")
-            b("the app was closed during the interval), it runs shortly after")
-            b("launch. The Suites window does not need to be open. When you")
-            b("reopen the Suites window, the scheduled suite is automatically")
-            b("re-selected and highlighted in the list.")
-            blank()
-            s("Auto-Run Output")
-            b("When a scheduled run completes, three things happen automatically:")
-            blank()
-            b("1. Suite reports are generated with timestamps:")
-            e("DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.docx")
-            e("DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.txt")
-            e("DO_NOT_SEARCH_docsearch_suite_{name}_{timestamp}.json")
-            b("The .docx report includes a color-coded summary table, per-stage")
-            b("details, a report fingerprint, and a source file manifest.")
-            blank()
-            b("2. An entry is appended to the auto-run log:")
-            e("DO_NOT_SEARCH_autorun_log.txt")
-            b("Each entry records the suite name, time, pass/fail summary,")
-            b("and per-search results:")
-            e("[2026-03-28 14:30:00] Suite: quarterly_compliance \u2014 4/5 passed \u2014 FAILED")
-            e("  [PASS] find_contracts \u2014 12 match(es) (need >= 1)")
-            e("  [FAIL] no_pii \u2014 2 match(es) (need == 0)")
-            blank()
-            b("3. An email alert is sent (if configured) with the suite name,")
-            b("pass/fail summary, and per-test details. By default, alerts are")
-            b("sent only when a suite has FAIL results.")
-            blank()
-            b("Files are written to the suite's Output Dir if set, otherwise")
-            b("to the search folder. The DO_NOT_SEARCH prefix ensures they")
-            b("are never re-searched.")
-            blank()
-            b("Click Open Auto-Run History to view the log file.")
-            b("Click Clear Auto-Run History to delete it.")
-            b("The log is automatically recreated on the next auto-run.")
-            blank()
-
-            h("EMAIL ALERTS")
-            b("Click Configure Email Alerts to set up email notifications.")
-            b("docsearch sends alerts via your email provider's SMTP server.")
-            b("You need your email address, an app password (not your regular")
-            b("login password), and your provider's SMTP server address.")
-            blank()
-            s("Quick Setup")
-            e("Gmail:     smtp.gmail.com, port 587")
-            e("Outlook:   smtp.office365.com, port 587")
-            e("Yahoo:     smtp.mail.yahoo.com, port 587")
-            e("Corporate: ask your IT department")
-            blank()
-            b("App passwords: Most providers require an app password instead")
-            b("of your regular password. For Gmail, go to myaccount.google.com")
-            b("\u2192 Security \u2192 App passwords. For Outlook, go to")
-            b("account.microsoft.com \u2192 Security \u2192 App passwords.")
-            blank()
-            s("Alert Options")
-            b("\u2022 failure \u2014 only send when a suite has FAIL results (default)")
-            b("\u2022 always \u2014 send after every scheduled run")
-            b("\u2022 off \u2014 no emails")
-            blank()
-            b("Click Send Test Email to verify your settings before saving.")
-            b("Settings are saved to ~/.docsearchrc.")
-
-            txt.configure(state="disabled")
-
-            close_btn = ctk.CTkButton(
-                help_win, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=help_win.destroy,
-                font=ctk.CTkFont(size=12),
-            )
-            close_btn.pack(pady=(5, 10))
-
-        def _capture_suite_output_dir(self):
-            """Save the suite output dir entry value and persist to ~/.docsearchrc."""
-            if hasattr(self, 'suite_output_dir_entry'):
-                try:
-                    val = self.suite_output_dir_entry.get().strip()
-                    self._saved_suite_output_dir = val
-                    # Persist to ~/.docsearchrc
-                    from docsearch.cli import _save_config, _load_config
-                    config = _load_config()
-                    if val:
-                        config["suite_output_dir"] = val
-                    else:
-                        config.pop("suite_output_dir", None)
-                    _save_config(config)
-                except Exception:
-                    pass
-
-        def _on_suite_window_close(self):
-            """Handle the suite window close button."""
-            if self.suite_running:
-                return  # Don't close while a suite is running
-            self._capture_suite_output_dir()
-            try:
-                self._suite_canvas.unbind_all("<MouseWheel>")
-            except Exception:
-                pass
-            self.suite_window.destroy()
-            self.suite_window = None
-            self.suite_toggle.configure(text="\u25b6 Manage Suites")
-            self.suite_visible = False
-
-        def _toggle_suite_panel(self):
-            """Toggle the Search Suites window open or closed."""
-            if self.suite_visible:
-                if self.suite_running:
-                    return
-                self._capture_suite_output_dir()
-                self.suite_window.destroy()
-                self.suite_window = None
-                self.suite_toggle.configure(text="\u25b6 Manage Suites")
-                self.suite_visible = False
-            else:
-                # Guard against schedule reset during panel construction
-                self._restoring_schedule = True
-                self._build_suite_panel()
-                self.suite_toggle.configure(text="\u25bc Manage Suites")
-                self.suite_visible = True
-                self._refresh_suite_panel()
-                # Re-select the scheduled suite if any
-                self._restore_suite_selection()
-                # Refresh schedule display without resetting the timer
-                if self._scheduled_suite_interval:
-                    self.suite_schedule_var.set(self._scheduled_suite_interval)
-                self._restoring_schedule = False
-                self._update_last_run_label()
-                self._update_countdown()
-                self._update_autorun_name_label()
-
-        def _update_run_suite_button_color(self):
-            """Set Run Suite button green if suites exist, red if not."""
-            from docsearch.collection import load_collection
-            folder = self._get_suite_folder()
-            has_suites = False
-            if folder and os.path.isdir(folder):
-                try:
-                    data = load_collection(folder)
-                    has_suites = bool(data.get("test_suites"))
-                except Exception:
-                    pass
-            pass  # Run Suite button removed from row 3
-
-        def _run_suite_from_main(self):
-            """Open the Search Suites panel (if not already open) so the user can run a suite."""
-            if not self.suite_visible:
-                self._toggle_suite_panel()
-            elif self.suite_window and self.suite_window.winfo_exists():
-                self.suite_window.lift()
-                self.suite_window.focus_force()
-
-        def _refresh_suite_panel(self):
-            """Reload saved searches and suites from the collection file."""
-            if not hasattr(self, "suite_selector"):
-                return
-            from docsearch.collection import load_collection
-            folder = self._get_suite_folder()
-            self.suite_selector.delete(0, "end")
-            self.suite_contents_listbox.delete(0, "end")
-            if not folder or not os.path.isdir(folder):
-                return
-            data = load_collection(folder)
-            for name in sorted(data["test_suites"]):
-                self.suite_selector.insert("end", name)
-
-        def _restore_suite_selection(self):
-            """Re-select the scheduled suite in the listbox after rebuild."""
-            name = self._scheduled_suite_name
-            if not name or not hasattr(self, 'suite_selector'):
-                return
-            for i in range(self.suite_selector.size()):
-                if self.suite_selector.get(i) == name:
-                    self.suite_selector.selection_set(i)
-                    self.suite_selector.see(i)
-                    self._on_suite_selected()
-                    break
-
-        def _on_suite_selected(self, event=None):
-            """Populate the suite contents listbox from all selected suites."""
-            from docsearch.collection import get_suite
-            folder = self._get_suite_folder()
-            self.suite_contents_listbox.delete(0, "end")
-            sel = self.suite_selector.curselection()
-            if not sel or not folder:
-                self._update_last_run_label()
-                return
-            seen = set()
-            for idx in sel:
-                suite_name = self.suite_selector.get(idx)
-                suite = get_suite(folder, suite_name)
-                if suite:
-                    suite_pc = suite.get("pass_criteria", {})
-                    for search_name in suite["searches"]:
-                        if search_name not in seen:
-                            seen.add(search_name)
-                            pc = suite_pc.get(search_name, {"op": ">=", "n": 1})
-                            label = f"{search_name}  ({pc['op']} {pc['n']})"
-                            self.suite_contents_listbox.insert("end", label)
-            self._update_last_run_label()
-
         def _open_load_search_popup(self):
             """Open a popup with saved searches listbox and Select/Delete buttons."""
             import tkinter as tk
@@ -4562,7 +2847,6 @@ def _launch_gui():
                     return
                 remove_saved_search(folder, name)
                 listbox.delete(sel[0])
-                self._refresh_suite_panel()
                 self.status_label.configure(
                     text=f"Deleted saved search '{name}'.",
                     text_color="blue",
@@ -4595,1323 +2879,6 @@ def _launch_gui():
             """No-op — popup rebuilds its list each time it opens."""
             pass
 
-
-        def _build_search_shuttle(self, dialog, available, selected_order, criteria=None):
-            """Build a dual-listbox shuttle widget for ordering suite searches.
-
-            Args:
-                dialog: Parent tk.Toplevel.
-                available: List of search names to show on the left (not yet selected).
-                selected_order: List of search names for the right (pre-selected, in order).
-                criteria: Dict of per-search pass criteria, e.g. {"s1": {"op": ">=", "n": 1}}.
-
-            Returns:
-                A callable that returns (search_list, criteria_dict).
-            """
-            import tkinter as tk
-
-            _criteria = dict(criteria) if criteria else {}
-
-            # Labels row
-            label_frame = tk.Frame(dialog)
-            label_frame.pack(padx=15, fill="x")
-            tk.Label(label_frame, text="Available searches:", font=("TkDefaultFont", 13)).pack(
-                side="left", expand=True, anchor="w"
-            )
-            tk.Label(label_frame, text="Selected (run order):", font=("TkDefaultFont", 13)).pack(
-                side="right", expand=True, anchor="w", padx=(40, 0)
-            )
-
-            # Main shuttle frame
-            shuttle = tk.Frame(dialog)
-            shuttle.pack(padx=15, fill="both", expand=True)
-
-            # Left listbox — available searches
-            left_frame = tk.Frame(shuttle)
-            left_frame.pack(side="left", fill="both", expand=True)
-            left_scroll = tk.Scrollbar(left_frame)
-            left_scroll.pack(side="right", fill="y")
-            left_lb = tk.Listbox(
-                left_frame, font=("TkDefaultFont", 12), selectmode="extended",
-                yscrollcommand=left_scroll.set, activestyle="none",
-            )
-            left_lb.pack(side="left", fill="both", expand=True)
-            left_scroll.config(command=left_lb.yview)
-
-            # Center buttons — Add / Remove
-            center_frame = tk.Frame(shuttle)
-            center_frame.pack(side="left", padx=8, anchor="center")
-            tk.Button(center_frame, text="\u2192", width=3, command=lambda: _add()).pack(pady=2)
-            tk.Button(center_frame, text="\u2190", width=3, command=lambda: _remove()).pack(pady=2)
-
-            # Right listbox — selected searches in order
-            right_frame = tk.Frame(shuttle)
-            right_frame.pack(side="left", fill="both", expand=True)
-            right_scroll = tk.Scrollbar(right_frame)
-            right_scroll.pack(side="right", fill="y")
-            right_lb = tk.Listbox(
-                right_frame, font=("TkDefaultFont", 12), selectmode="extended",
-                yscrollcommand=right_scroll.set, activestyle="none",
-            )
-            right_lb.pack(side="left", fill="both", expand=True)
-            right_scroll.config(command=right_lb.yview)
-
-            # Right-side buttons — Up / Down
-            order_frame = tk.Frame(shuttle)
-            order_frame.pack(side="left", padx=(8, 0), anchor="center")
-            tk.Button(order_frame, text="\u25b2 Up", width=5, command=lambda: _move_up()).pack(pady=2)
-            tk.Button(order_frame, text="\u25bc Down", width=5, command=lambda: _move_down()).pack(pady=2)
-
-            # Pass criteria row — below the shuttle
-            criteria_frame = tk.Frame(dialog)
-            criteria_frame.pack(padx=15, fill="x", pady=(5, 0))
-            tk.Label(criteria_frame, text="Pass criteria:", font=("TkDefaultFont", 12)).pack(side="left")
-            criteria_op_var = tk.StringVar(value=">=")
-            op_menu = tk.OptionMenu(criteria_frame, criteria_op_var, ">=", "<=", "==")
-            op_menu.config(font=("TkDefaultFont", 12), width=3)
-            op_menu.pack(side="left", padx=(5, 2))
-            criteria_n_var = tk.StringVar(value="1")
-            criteria_n_entry = tk.Entry(criteria_frame, textvariable=criteria_n_var, width=5, font=("TkDefaultFont", 12))
-            criteria_n_entry.pack(side="left", padx=(0, 5))
-            tk.Label(criteria_frame, text="match(es)", font=("TkDefaultFont", 12)).pack(side="left")
-            criteria_hint = tk.Label(
-                criteria_frame, text="  (select a search on the right to set its criteria)",
-                font=("TkDefaultFont", 10), fg="gray50",
-            )
-            criteria_hint.pack(side="left", padx=(10, 0))
-
-            _current_search = [None]  # track which search's criteria we're editing
-
-            def _save_current_criteria():
-                """Save the current criteria UI values back to the dict."""
-                name = _current_search[0]
-                if name is None:
-                    return
-                op = criteria_op_var.get()
-                try:
-                    n = int(criteria_n_var.get())
-                except ValueError:
-                    n = 1
-                _criteria[name] = {"op": op, "n": n}
-
-            def _load_criteria_for_selection(event=None):
-                """Load criteria for the selected search in the right listbox."""
-                _save_current_criteria()
-                sel = right_lb.curselection()
-                if not sel:
-                    _current_search[0] = None
-                    criteria_hint.config(text="  (select a search on the right to set its criteria)")
-                    return
-                name = right_lb.get(sel[0])
-                _current_search[0] = name
-                pc = _criteria.get(name, {"op": ">=", "n": 1})
-                criteria_op_var.set(pc["op"])
-                criteria_n_var.set(str(pc["n"]))
-                criteria_hint.config(text=f"  for: {name}")
-
-            right_lb.bind("<<ListboxSelect>>", _load_criteria_for_selection)
-
-            # Save criteria when op or n changes
-            criteria_op_var.trace_add("write", lambda *_: _save_current_criteria())
-            criteria_n_var.trace_add("write", lambda *_: _save_current_criteria())
-
-            # Populate
-            for name in sorted(available):
-                left_lb.insert("end", name)
-            for name in selected_order:
-                right_lb.insert("end", name)
-
-            # Double-click to add/remove
-            left_lb.bind("<Double-Button-1>", lambda e: _add())
-            right_lb.bind("<Double-Button-1>", lambda e: _remove())
-
-            def _add():
-                sel = list(left_lb.curselection())
-                if not sel:
-                    return
-                names = [left_lb.get(i) for i in sel]
-                for i in reversed(sel):
-                    left_lb.delete(i)
-                for name in names:
-                    right_lb.insert("end", name)
-
-            def _remove():
-                sel = list(right_lb.curselection())
-                if not sel:
-                    return
-                names = [right_lb.get(i) for i in sel]
-                for i in reversed(sel):
-                    right_lb.delete(i)
-                # Clean up criteria for removed searches
-                for name in names:
-                    _criteria.pop(name, None)
-                _current_search[0] = None
-                criteria_hint.config(text="  (select a search on the right to set its criteria)")
-                for name in sorted(names):
-                    # Insert in alphabetical position (re-read each time)
-                    left_items = list(left_lb.get(0, "end"))
-                    pos = len(left_items)
-                    for j, existing in enumerate(left_items):
-                        if name.lower() < existing.lower():
-                            pos = j
-                            break
-                    left_lb.insert(pos, name)
-
-            def _move_up():
-                sel = list(right_lb.curselection())
-                if not sel or sel[0] == 0:
-                    return
-                for i in sel:
-                    text = right_lb.get(i)
-                    right_lb.delete(i)
-                    right_lb.insert(i - 1, text)
-                    right_lb.selection_set(i - 1)
-
-            def _move_down():
-                sel = list(right_lb.curselection())
-                if not sel or sel[-1] >= right_lb.size() - 1:
-                    return
-                for i in reversed(sel):
-                    text = right_lb.get(i)
-                    right_lb.delete(i)
-                    right_lb.insert(i + 1, text)
-                    right_lb.selection_set(i + 1)
-
-            def _get_result():
-                _save_current_criteria()
-                return list(right_lb.get(0, "end")), dict(_criteria)
-
-            return _get_result
-
-        def _create_suite_dialog(self):
-            """Open dialog to create a new search suite."""
-            import tkinter as tk
-            from docsearch.collection import load_collection, add_test_suite
-
-            folder = self._get_suite_folder()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Select a valid folder first.")
-                return
-            data = load_collection(folder)
-            search_names = sorted(data["saved_searches"])
-            if not search_names:
-                self._show_error("Save at least one search to the collection first.")
-                return
-
-            parent = self.suite_window or self
-            dialog = tk.Toplevel(parent)
-            dialog.title("Create Search Suite")
-            dialog.resizable(True, True)
-            w, h = 700, 480
-            x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
-            y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
-            dialog.geometry(f"{w}x{h}+{x}+{y}")
-            dialog.transient(parent)
-            dialog.grab_set()
-
-            tk.Label(dialog, text="Suite name:", font=("TkDefaultFont", 13)).pack(
-                padx=15, pady=(15, 2), anchor="w"
-            )
-            name_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
-            name_entry.pack(padx=15, fill="x")
-            name_entry.focus_set()
-
-            tk.Label(dialog, text="Description (optional):", font=("TkDefaultFont", 13)).pack(
-                padx=15, pady=(10, 2), anchor="w"
-            )
-            desc_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
-            desc_entry.pack(padx=15, fill="x")
-
-            cascade_var = tk.BooleanVar(value=False)
-            tk.Checkbutton(
-                dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
-                variable=cascade_var, font=("TkDefaultFont", 11),
-            ).pack(padx=15, pady=(5, 5), anchor="w")
-
-            # Buttons at the bottom (pack first so they're never pushed off)
-            btn_frame = tk.Frame(dialog)
-            btn_frame.pack(side="bottom", pady=(10, 15))
-
-            get_selected = self._build_search_shuttle(dialog, search_names, [])
-
-            def do_create():
-                suite_name = name_entry.get().strip()
-                if not suite_name:
-                    return
-                selected, criteria = get_selected()
-                if not selected:
-                    return
-                desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get(),
-                               pass_criteria=criteria)
-                dialog.destroy()
-                self._refresh_suite_panel()
-                self._update_run_suite_button_color()
-                # Select the newly created suite
-                for i in range(self.suite_selector.size()):
-                    if self.suite_selector.get(i) == suite_name:
-                        self.suite_selector.selection_set(i)
-                        break
-                self._on_suite_selected()
-
-            tk.Button(btn_frame, text="Create", width=10, command=do_create).pack(side="left", padx=5)
-            tk.Button(btn_frame, text="Cancel", width=10, command=dialog.destroy).pack(side="left", padx=5)
-
-        def _edit_suite_dialog(self):
-            """Open dialog to edit an existing search suite's search list."""
-            import tkinter as tk
-            from docsearch.collection import load_collection, add_test_suite
-
-            sel = self.suite_selector.curselection()
-            if not sel or len(sel) != 1:
-                return
-            suite_name = self.suite_selector.get(sel[0])
-            folder = self._get_suite_folder()
-            data = load_collection(folder)
-            suite = data["test_suites"].get(suite_name)
-            if not suite:
-                return
-            all_search_names = sorted(data["saved_searches"])
-            current_order = suite["searches"]
-            current_set = set(current_order)
-            available = [n for n in all_search_names if n not in current_set]
-
-            parent = self.suite_window or self
-            dialog = tk.Toplevel(parent)
-            dialog.title(f"Edit Suite: {suite_name}")
-            dialog.resizable(True, True)
-            w, h = 700, 480
-            x = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
-            y = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
-            dialog.geometry(f"{w}x{h}+{x}+{y}")
-            dialog.transient(parent)
-            dialog.grab_set()
-
-            tk.Label(dialog, text="Description:", font=("TkDefaultFont", 13)).pack(
-                padx=15, pady=(15, 2), anchor="w"
-            )
-            desc_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
-            desc_entry.pack(padx=15, fill="x")
-            desc_entry.insert(0, suite.get("description", ""))
-
-            cascade_var = tk.BooleanVar(value=suite.get("cascade", False))
-            tk.Checkbutton(
-                dialog, text="Cascade mode (each stage searches only files matched by previous stage)",
-                variable=cascade_var, font=("TkDefaultFont", 11),
-            ).pack(padx=15, pady=(5, 5), anchor="w")
-
-            # Buttons at the bottom (pack first so they're never pushed off)
-            btn_frame = tk.Frame(dialog)
-            btn_frame.pack(side="bottom", pady=(10, 15))
-
-            existing_criteria = suite.get("pass_criteria", {})
-            get_selected = self._build_search_shuttle(dialog, available, current_order, criteria=existing_criteria)
-
-            def do_save():
-                selected, criteria = get_selected()
-                if not selected:
-                    return
-                desc = desc_entry.get().strip()
-                add_test_suite(folder, suite_name, desc, selected, cascade=cascade_var.get(),
-                               schedule=suite.get("schedule", "Off"),
-                               last_run_time=suite.get("last_run_time"),
-                               pass_criteria=criteria)
-                dialog.destroy()
-                self._refresh_suite_panel()
-                for i in range(self.suite_selector.size()):
-                    if self.suite_selector.get(i) == suite_name:
-                        self.suite_selector.selection_set(i)
-                        break
-                self._on_suite_selected()
-
-            tk.Button(btn_frame, text="Save", width=10, command=do_save).pack(side="left", padx=5)
-            tk.Button(btn_frame, text="Cancel", width=10, command=dialog.destroy).pack(side="left", padx=5)
-
-        def _export_suite(self):
-            """Export the selected suite and its saved searches to a .json file."""
-            from tkinter import filedialog, messagebox
-            import json
-
-            folder = self._get_suite_folder()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Please select a search folder first.")
-                return
-
-            # Get selected suite(s)
-            sel = self.suite_selector.curselection()
-            if not sel:
-                self._show_error("Select a suite to export.")
-                return
-
-            from docsearch.collection import load_collection
-            data = load_collection(folder)
-
-            export = {"version": data.get("version", 1), "saved_searches": {}, "test_suites": {}}
-
-            for idx in sel:
-                suite_name = self.suite_selector.get(idx)
-                suite = data.get("test_suites", {}).get(suite_name)
-                if not suite:
-                    continue
-                export["test_suites"][suite_name] = suite
-                # Include all saved searches referenced by this suite
-                for search_name in suite.get("searches", []):
-                    params = data.get("saved_searches", {}).get(search_name)
-                    if params:
-                        export["saved_searches"][search_name] = params
-
-            if not export["test_suites"]:
-                self._show_error("No suite data found to export.")
-                return
-
-            n_suites = len(export["test_suites"])
-            n_searches = len(export["saved_searches"])
-
-            # Default filename from suite name
-            if n_suites == 1:
-                default_name = list(export["test_suites"].keys())[0] + ".json"
-            else:
-                default_name = "docsearch_export.json"
-
-            filepath = filedialog.asksaveasfilename(
-                parent=self.suite_window or self,
-                title="Export Suite — save as .json template",
-                defaultextension=".json",
-                initialfile=default_name,
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            )
-            if not filepath:
-                return
-
-            try:
-                with open(filepath, "w", encoding="utf-8") as f:
-                    json.dump(export, f, indent=2, ensure_ascii=False)
-            except Exception as e:
-                self._show_error(f"Could not write export file: {e}")
-                return
-
-            self.suite_status_label.configure(
-                text=f"Exported {n_suites} suite(s) and {n_searches} search(es) to {os.path.basename(filepath)}"
-            )
-
-        def _import_template(self):
-            """Import saved searches and suites from an external .json template file."""
-            from tkinter import filedialog, messagebox
-            import json
-
-            folder = self._get_suite_folder()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Please select a search folder first.")
-                return
-
-            filepath = filedialog.askopenfilename(
-                parent=self.suite_window or self,
-                title="Import Template — select a .json template file",
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            )
-            if not filepath:
-                return
-
-            # Read the template file
-            try:
-                with open(filepath, encoding="utf-8") as f:
-                    template = json.load(f)
-            except Exception as e:
-                self._show_error(f"Could not read template file: {e}")
-                return
-
-            if not isinstance(template, dict):
-                self._show_error("Invalid template file — expected a JSON object.")
-                return
-
-            # Count what we're importing
-            new_searches = template.get("saved_searches", {})
-            new_suites = template.get("test_suites", {})
-            if not new_searches and not new_suites:
-                self._show_error("Template file contains no saved searches or suites.")
-                return
-
-            # Load existing collection
-            from docsearch.collection import load_collection, save_collection
-            existing = load_collection(folder)
-
-            # Check for conflicts
-            search_conflicts = set(new_searches.keys()) & set(existing.get("saved_searches", {}).keys())
-            suite_conflicts = set(new_suites.keys()) & set(existing.get("test_suites", {}).keys())
-
-            # Build confirmation message
-            msg = f"Import from: {os.path.basename(filepath)}\n\n"
-            msg += f"Saved searches to import: {len(new_searches)}\n"
-            msg += f"Suites to import: {len(new_suites)}\n"
-            if search_conflicts:
-                msg += f"\n⚠ {len(search_conflicts)} saved search(es) already exist and will be overwritten:\n"
-                msg += ", ".join(sorted(search_conflicts)[:10])
-                if len(search_conflicts) > 10:
-                    msg += f" ... and {len(search_conflicts) - 10} more"
-                msg += "\n"
-            if suite_conflicts:
-                msg += f"\n⚠ {len(suite_conflicts)} suite(s) already exist and will be overwritten:\n"
-                msg += ", ".join(sorted(suite_conflicts)[:10])
-                if len(suite_conflicts) > 10:
-                    msg += f" ... and {len(suite_conflicts) - 10} more"
-                msg += "\n"
-            msg += "\nYour existing searches and suites that don't conflict will not be affected."
-            msg += "\n\nProceed?"
-
-            if not messagebox.askyesno("Import Template", msg,
-                                       parent=self.suite_window or self):
-                return
-
-            # Merge into existing collection
-            existing.setdefault("saved_searches", {}).update(new_searches)
-            existing.setdefault("test_suites", {}).update(new_suites)
-            save_collection(folder, existing)
-
-            # Refresh the suite panel
-            self._refresh_suite_panel()
-            self._update_run_suite_button_color()
-
-            imported_total = len(new_searches) + len(new_suites)
-            self.suite_status_label.configure(
-                text=f"Imported {len(new_searches)} search(es) and {len(new_suites)} suite(s) from {os.path.basename(filepath)}"
-            )
-
-        def _delete_suite(self):
-            """Delete the selected search suite(s)."""
-            from tkinter import messagebox
-            from docsearch.collection import remove_test_suite
-            sel = self.suite_selector.curselection()
-            if not sel:
-                return
-            names = [self.suite_selector.get(i) for i in sel]
-            label = ", ".join(names)
-            if not messagebox.askyesno("Delete?", f"Delete suite(s): {label}?"):
-                return
-            folder = self._get_suite_folder()
-            for name in names:
-                remove_test_suite(folder, name)
-            # Cancel suite schedule if active
-            if self._suite_schedule_timer_id is not None:
-                self.after_cancel(self._suite_schedule_timer_id)
-                self._suite_schedule_timer_id = None
-            self._scheduled_suite_name = None
-            self._scheduled_suite_interval = None
-            self.suite_schedule_var.set("Off")
-            self._update_last_run_label()
-            self._refresh_suite_panel()
-            self._update_run_suite_button_color()
-
-        # ── Suite Execution ────────────────────────────────────
-
-        def _run_suite_by_name(self, folder, suite_name):
-            """Run a suite by name — works even when the Suites window is closed."""
-            from docsearch.collection import load_collection, get_search_params
-            data = load_collection(folder)
-            suite = data["test_suites"].get(suite_name)
-            if not suite:
-                self._suite_schedule_running = False
-                self._suite_scheduled_run = False
-                self._reschedule_suite()
-                return
-
-            searches = []
-            search_criteria = {}
-            suite_pc = suite.get("pass_criteria", {})
-            for name in suite["searches"]:
-                params = get_search_params(folder, name)
-                if params:
-                    searches.append((name, params))
-                if name in suite_pc:
-                    search_criteria[name] = suite_pc[name]
-            if not searches:
-                self._suite_schedule_running = False
-                self._suite_scheduled_run = False
-                self._reschedule_suite()
-                return
-
-            # Set up suite state
-            self.suite_running = True
-            self.suite_cancel_requested = False
-            self.search_button.configure(state="disabled")
-
-            # UI elements — only touch if the suites window is open
-            suite_window_open = hasattr(self, 'suite_window') and self.suite_window is not None
-            if suite_window_open:
-                try:
-                    self.run_suite_btn.configure(state="disabled")
-                    self.cancel_suite_btn.pack(side="left", padx=(0, 5))
-                    self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
-                except Exception:
-                    pass
-
-            self._suite_results_data = []
-            self._suite_start_time = time.time()
-            self._suite_name = suite_name
-            self._suite_names_list = [suite_name]
-            od = ""
-            if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry'):
-                try:
-                    od = self.suite_output_dir_entry.get().strip()
-                except Exception:
-                    pass
-            if not od:
-                od = getattr(self, '_saved_suite_output_dir', '')
-            self._suite_output_dir = od if od else folder
-            self._search_criteria = search_criteria
-
-            thread = threading.Thread(
-                target=self._suite_execution_thread,
-                args=(folder, searches),
-                daemon=True,
-            )
-            thread.start()
-
-        def _run_suite(self):
-            """Run all searches in the selected suite(s) sequentially."""
-            from docsearch.collection import load_collection, get_search_params
-            sel = self.suite_selector.curselection()
-            if not sel:
-                return
-            folder = self._get_suite_folder()
-            if not folder or not os.path.isdir(folder):
-                self._show_error("Select a valid folder.")
-                return
-            data = load_collection(folder)
-
-            # Gather searches and pass criteria from all selected suites (dedup, preserve order)
-            suite_names = [self.suite_selector.get(i) for i in sel]
-            searches = []
-            search_criteria = {}
-            seen = set()
-            for sn in suite_names:
-                suite = data["test_suites"].get(sn)
-                if not suite:
-                    continue
-                suite_pc = suite.get("pass_criteria", {})
-                for name in suite["searches"]:
-                    if name not in seen:
-                        seen.add(name)
-                        params = get_search_params(folder, name)
-                        if params:
-                            searches.append((name, params))
-                        if name in suite_pc:
-                            search_criteria[name] = suite_pc[name]
-            if not searches:
-                self._show_error("No valid searches found in selected suite(s).")
-                return
-
-            suite_label = ", ".join(suite_names)
-
-            # Disable UI
-            self.suite_running = True
-            self.suite_cancel_requested = False
-            self.run_suite_btn.configure(state="disabled")
-            self.cancel_suite_btn.pack(side="left", padx=(0, 5))
-            self.search_button.configure(state="disabled")
-
-            self.status_label.configure(
-                text=f"Running suite: {suite_label}...",
-                text_color="blue",
-            )
-
-            self._suite_results_data = []
-            self._suite_start_time = time.time()
-            self._suite_name = suite_label
-            self._suite_names_list = suite_names
-
-            od = ""
-            if self._suite_window_open() and hasattr(self, 'suite_output_dir_entry'):
-                try:
-                    od = self.suite_output_dir_entry.get().strip()
-                except Exception:
-                    pass
-            if not od:
-                od = getattr(self, '_saved_suite_output_dir', '')
-            self._suite_output_dir = od if od else folder
-
-            self.suite_status_label.configure(text=f"Running 0/{len(searches)}...")
-
-            self._search_criteria = search_criteria
-            thread = threading.Thread(
-                target=self._suite_execution_thread,
-                args=(folder, searches),
-                daemon=True,
-            )
-            thread.start()
-
-        def _suite_execution_thread(self, folder, searches):
-            """Run each search in sequence in a background thread."""
-            import re as _re
-            from docsearch.reporter import copy_stage_reports, cleanup_stage_reports
-
-            results = []
-            total = len(searches)
-            output_dir = self._suite_output_dir
-
-            # Collect source file manifest for the suite report
-            from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
-            all_exts = SUPPORTED_TYPES | OCR_IMAGE_TYPES
-            _MANIFEST_EXCLUDE = {
-                ".docsearch_collection.json", ".docsearch.db",
-                ".docsearch.db-wal", ".docsearch.db-shm",
-                "docsearch_errors.log", ".docsearchrc",
-            }
-            source_files = []
-            try:
-                for fname in sorted(os.listdir(folder)):
-                    if fname in _MANIFEST_EXCLUDE:
-                        continue
-                    if fname.startswith("DO_NOT_SEARCH"):
-                        continue
-                    if fname.startswith("docsearch_results"):
-                        continue
-                    fpath = os.path.join(folder, fname)
-                    if os.path.isfile(fpath) and os.path.splitext(fname)[1].lower() in all_exts:
-                        stat = os.stat(fpath)
-                        mod_time = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-                        source_files.append((fpath, stat.st_size, mod_time))
-            except OSError:
-                pass
-            self._suite_source_files = source_files
-
-            # Clean up stage files from any previous run of this suite
-            cleanup_stage_reports(output_dir, self._suite_name)
-
-            # Cascade: active only for single-suite runs with cascade=True
-            cascade_active = False
-            if len(self._suite_names_list) == 1:
-                from docsearch.collection import load_collection
-                sd = load_collection(folder)["test_suites"].get(self._suite_names_list[0], {})
-                cascade_active = sd.get("cascade", False)
-            cascade_files = None  # None = no restriction
-
-            for i, (name, params) in enumerate(searches):
-                if self.suite_cancel_requested:
-                    break
-
-                def _update_progress(idx=i, n=name, t=total, p=params):
-                    self._apply_params_to_gui(p)
-                    # Update main screen status
-                    self.status_label.configure(
-                        text=f"Running suite ({idx+1}/{t}): {n}...",
-                        text_color="blue",
-                    )
-                    # Update suite panel status if window is open
-                    if hasattr(self, "suite_status_label") and self._suite_window_open():
-                        try:
-                            self.suite_status_label.configure(text=f"Running {idx+1}/{t}: {n}...")
-                        except Exception:
-                            pass
-                self.after(0, _update_progress)
-
-                cmd = _build_command_from_values(
-                    search_text=params.get("search_text", ""),
-                    folder=folder,
-                    and_mode=params.get("and_mode", False),
-                    recursive=params.get("recursive", False),
-                    fuzzy=params.get("fuzzy", False),
-                    wildcard=params.get("wildcard", False),
-                    ocr=params.get("ocr", False),
-                    regex=params.get("regex", False),
-                    exclude=params.get("exclude", ""),
-                    file_types=params.get("file_types", ""),
-                    proximity=params.get("proximity", ""),
-                    context_before=params.get("context_before", ""),
-                    context_after=params.get("context_after", ""),
-                    cores=params.get("cores", ""),
-                    specific_files=params.get("specific_files", ""),
-                    index_search=params.get("index_search", False),
-                    inverse=params.get("inverse", False),
-                    expression=params.get("expression", False),
-                    whole_word=params.get("whole_word", False),
-                    max_matches=params.get("max_matches", ""),
-                    max_file_size_mb=params.get("max_file_size_mb", ""),
-                    range_filters=params.get("range_filters", ""),
-                )
-
-                # Cascade: track input file count and inject file list
-                cascade_input_count = len(cascade_files) if (cascade_active and cascade_files is not None) else None
-                # Inject --output-dir when output directory differs from search folder
-                if output_dir != folder and cmd is not None and cmd != "FLAGS_IN_SEARCH":
-                    cmd.extend(["--output-dir", output_dir])
-
-                if cascade_active and cascade_files is not None and cmd is not None and cmd != "FLAGS_IN_SEARCH":
-                    # Remove any existing -f flag from saved search params
-                    if "-f" in cmd:
-                        f_idx = cmd.index("-f")
-                        cmd = cmd[:f_idx] + cmd[f_idx + 2:]
-                    cmd.extend(["-f", ",".join(cascade_files)])
-
-                if cmd is None or cmd == "FLAGS_IN_SEARCH":
-                    result = {
-                        "name": name,
-                        "search_text": params.get("search_text", ""),
-                        "inverse": params.get("inverse", False),
-                        "return_code": 2,
-                        "passed": False,
-                        "match_count": 0,
-                        "pass_criteria": self._search_criteria.get(name, {"op": ">=", "n": 1}),
-                        "summary": "Invalid search configuration",
-                        "stage_files": {},
-                        "cascade_input_count": cascade_input_count,
-                        "cascade_file_count": None if not cascade_active else 0,
-                    }
-                    if cascade_active:
-                        cascade_files = None  # break chain
-                    results.append(result)
-                    self.after(0, self._suite_test_completed, result)
-                    continue
-
-                try:
-                    proc = subprocess.Popen(
-                        cmd, cwd=folder,
-                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                        text=True,
-                    )
-                    stdout, _ = proc.communicate()
-                    returncode = proc.returncode
-                except Exception as exc:
-                    result = {
-                        "name": name,
-                        "search_text": params.get("search_text", ""),
-                        "inverse": params.get("inverse", False),
-                        "return_code": 2,
-                        "passed": False,
-                        "match_count": 0,
-                        "pass_criteria": self._search_criteria.get(name, {"op": ">=", "n": 1}),
-                        "summary": str(exc),
-                        "stage_files": {},
-                        "cascade_input_count": cascade_input_count,
-                        "cascade_file_count": None if not cascade_active else 0,
-                    }
-                    if cascade_active:
-                        cascade_files = None  # break chain
-                    results.append(result)
-                    self.after(0, self._suite_test_completed, result)
-                    continue
-
-                # Parse match count from stdout
-                match_count = 0
-                if stdout:
-                    clean = _re.sub(r"\033\[[0-9;]*m", "", stdout)
-                    m = _re.search(r"Found (\d+) match", clean)
-                    if m:
-                        match_count = int(m.group(1))
-                    else:
-                        m = _re.search(r"Found (\d+) file\(s\) WITHOUT", clean)
-                        if m:
-                            match_count = int(m.group(1))
-
-                # Copy per-stage reports before the next search overwrites them
-                generate_stage = True
-                if hasattr(self, "_generate_stage_reports_var"):
-                    try:
-                        generate_stage = self._generate_stage_reports_var.get() == "on"
-                    except Exception:
-                        pass
-                if generate_stage:
-                    stage_files = copy_stage_reports(output_dir, self._suite_name, i + 1, name)
-                else:
-                    stage_files = {}
-
-                # Evaluate pass/fail using per-search criteria
-                pc = self._search_criteria.get(name, {"op": ">=", "n": 1})
-                if returncode == 2:
-                    passed = False
-                elif pc["op"] == ">=":
-                    passed = match_count >= pc["n"]
-                elif pc["op"] == "<=":
-                    passed = match_count <= pc["n"]
-                elif pc["op"] == "==":
-                    passed = match_count == pc["n"]
-                else:
-                    passed = returncode == 0
-
-                result = {
-                    "name": name,
-                    "search_text": params.get("search_text", ""),
-                    "inverse": params.get("inverse", False),
-                    "return_code": returncode,
-                    "passed": passed,
-                    "match_count": match_count,
-                    "pass_criteria": pc,
-                    "summary": _parse_summary_text(stdout) if stdout else "",
-                    "stage_files": stage_files,
-                    "cascade_input_count": cascade_input_count,
-                    "cascade_file_count": None,
-                }
-
-                # Collect matched files for the report (parse before next search overwrites)
-                try:
-                    matched = _parse_matched_files(output_dir)
-                    matched_file_list = []
-                    for item in matched:
-                        fname = item[1] if len(item) > 1 else str(item[0])
-                        count = item[2] if len(item) > 2 else 0
-                        matched_file_list.append((fname, count))
-                    result["matched_files"] = matched_file_list
-                except Exception:
-                    result["matched_files"] = []
-
-                # Cascade: extract matched files for next stage
-                if cascade_active:
-                    if result["passed"] and match_count > 0:
-                        matched = _parse_matched_files(output_dir)
-                        cascade_files = list({filename for _fp, filename, _count in matched})
-                        result["cascade_file_count"] = len(cascade_files)
-                    else:
-                        cascade_files = None  # break chain
-                        result["cascade_file_count"] = 0
-
-                results.append(result)
-                self.after(0, self._suite_test_completed, result)
-
-            self.after(0, self._suite_finished, results)
-
-        def _suite_window_open(self):
-            """Check if the suite window and its widgets are available."""
-            return (hasattr(self, 'suite_window') and self.suite_window is not None
-                    and self.suite_window.winfo_exists())
-
-        def _suite_test_completed(self, result):
-            """Record one test result (results text area removed)."""
-            pass
-
-        def _suite_finished(self, results):
-            """All tests done. Show summary and re-enable UI."""
-            from docsearch.collection import update_suite_field
-            self._suite_results_data = results
-            self._suite_end_time = time.time()
-
-            passed = sum(1 for r in results if r["passed"])
-            total = len(results)
-            verdict = "PASSED" if passed == total else "FAILED"
-
-            suite_open = self._suite_window_open()
-
-            elapsed = self._suite_end_time - self._suite_start_time
-            if suite_open:
-                if self.suite_cancel_requested:
-                    self.suite_status_label.configure(text=f"Cancelled after {elapsed:.1f}s")
-                else:
-                    self.suite_status_label.configure(text=f"Done in {elapsed:.1f}s — {verdict}")
-
-            # Update main screen status
-            if self.suite_cancel_requested:
-                self.status_label.configure(
-                    text=f"Suite cancelled after {elapsed:.1f}s",
-                    text_color="blue",
-                )
-            else:
-                color = "green" if verdict == "PASSED" else "red"
-                self.status_label.configure(
-                    text=f"Suite '{self._suite_name}' — {passed}/{total} passed — {verdict} ({elapsed:.1f}s)",
-                    text_color=color,
-                )
-
-            # Record last_run_time for each suite that was run
-            folder = self._get_suite_folder()
-            run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            if folder:
-                for sn in self._suite_names_list:
-                    update_suite_field(folder, sn, "last_run_time", run_time)
-            self._update_last_run_label()
-
-            # Auto-generate suite reports
-            if results and not self.suite_cancel_requested:
-                self._generate_suite_report()
-
-            # Re-enable UI
-            self.suite_running = False
-            if suite_open:
-                self.run_suite_btn.configure(state="normal")
-                self.cancel_suite_btn.pack_forget()
-                # Show View Suite Report button if a report was generated
-                if self._suite_report_path and os.path.exists(self._suite_report_path):
-                    self.view_suite_report_btn.grid(row=10, column=0, columnspan=2, pady=(0, 10))
-            self.search_button.configure(state="normal")
-
-            # Show suite report in main preview pane
-            if self._suite_report_path and os.path.exists(self._suite_report_path):
-                self._show_suite_report_preview()
-
-            # Handle scheduled run completion
-            if self._suite_scheduled_run:
-                self._suite_scheduled_run = False
-                self._suite_schedule_running = False
-                self._log_autorun(folder, results, run_time, passed, total, verdict)
-                self._reschedule_suite()
-
-
-        def _cancel_suite(self):
-            """Signal the suite execution thread to stop after the current test."""
-            self.suite_cancel_requested = True
-            self.suite_status_label.configure(text="Cancelling...")
-
-        def _generate_suite_report(self):
-            """Generate TXT, JSON, and DOCX reports for the last suite run."""
-            from docsearch.reporter import (write_suite_report_txt,
-                                            write_suite_report_json,
-                                            write_suite_report_docx)
-            from docsearch import __version__
-            folder = self._get_suite_folder()
-            if not folder or not self._suite_results_data:
-                return
-            report_dir = getattr(self, '_suite_output_dir', folder)
-            safe_name = self._suite_name.replace(" ", "_").replace("/", "_")
-            txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.txt")
-            json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.json")
-            docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.docx")
-            write_suite_report_txt(
-                txt_path, self._suite_name, folder,
-                self._suite_results_data,
-                self._suite_start_time, self._suite_end_time,
-            )
-            write_suite_report_json(
-                json_path, self._suite_name, folder,
-                self._suite_results_data,
-                self._suite_start_time, self._suite_end_time,
-            )
-            write_suite_report_docx(
-                docx_path, self._suite_name, folder,
-                self._suite_results_data,
-                self._suite_start_time, self._suite_end_time,
-                version=__version__,
-                source_files=getattr(self, '_suite_source_files', None),
-            )
-            self._suite_report_path = docx_path
-            suite_open = self._suite_window_open()
-            if suite_open:
-                self.suite_status_label.configure(
-                    text=f"Reports saved: {os.path.basename(docx_path)} (+txt, json)"
-                )
-
-        def _open_suite_report(self):
-            """Open the .docx suite report from the last run."""
-            path = self._suite_report_path
-            if not path or not os.path.exists(path):
-                self.suite_status_label.configure(text="No suite report found.")
-                return
-            system = platform.system()
-            if system == "Darwin":
-                subprocess.Popen(["open", path])
-            elif system == "Windows":
-                os.startfile(path)
-            else:
-                subprocess.Popen(["xdg-open", path])
-
-        def _configure_email_alerts(self):
-            """Open a dialog to configure email alert settings."""
-            from docsearch.cli import _load_config, _save_config
-
-            dialog = ctk.CTkToplevel(self)
-            dialog.title("Email Alert Settings")
-            dialog.geometry("500x520")
-            dialog.transient(self)
-            dialog.grab_set()
-
-            cfg = _load_config()
-
-            header = ctk.CTkFrame(dialog, fg_color="transparent")
-            header.pack(fill="x", padx=15, pady=(15, 0))
-            ctk.CTkLabel(header, text="Email Alert Settings", font=ctk.CTkFont(size=16, weight="bold")).pack(side="left")
-            ctk.CTkButton(
-                header, text="?", width=28, height=28,
-                font=ctk.CTkFont(size=14, weight="bold"),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=lambda: self._show_email_alert_help(dialog),
-            ).pack(side="right")
-            ctk.CTkLabel(dialog, text="Send email notifications when scheduled suite runs complete.",
-                         font=ctk.CTkFont(size=11), text_color="gray50").pack(pady=(0, 10))
-
-            form = ctk.CTkFrame(dialog, fg_color="transparent")
-            form.pack(fill="x", padx=20)
-
-            fields = {}
-            row = 0
-            for label, key, default, tooltip in [
-                ("SMTP Server:", "smtp_host", "", "e.g., smtp.gmail.com or smtp.office365.com"),
-                ("SMTP Port:", "smtp_port", "587", "587 for STARTTLS (Gmail, Outlook), 465 for SSL, 25 for plain"),
-                ("Username:", "smtp_user", "", "Your email login (often your full email address)"),
-                ("Password:", "smtp_password", "", "App password (Gmail) or account password"),
-                ("From Address:", "email_from", "", "Sender address (defaults to username if blank)"),
-                ("To Address:", "email_to", "", "Recipient email address for alerts"),
-            ]:
-                ctk.CTkLabel(form, text=label, font=ctk.CTkFont(size=12)).grid(row=row, column=0, padx=(0, 10), pady=4, sticky="e")
-                entry = ctk.CTkEntry(form, width=300,
-                                     show="*" if "password" in key.lower() else "")
-                entry.grid(row=row, column=1, pady=4, sticky="w")
-                val = cfg.get(key, default)
-                if val:
-                    entry.insert(0, str(val))
-                Tooltip(entry, tooltip)
-                fields[key] = entry
-                row += 1
-
-            # Email on: failure only vs always
-            ctk.CTkLabel(form, text="Send alerts:", font=ctk.CTkFont(size=12)).grid(row=row, column=0, padx=(0, 10), pady=4, sticky="e")
-            email_on_var = ctk.StringVar(value=cfg.get("email_on", "failure"))
-            email_on_menu = ctk.CTkOptionMenu(form, variable=email_on_var,
-                                               values=["failure", "always", "off"], width=150)
-            email_on_menu.grid(row=row, column=1, pady=4, sticky="w")
-            Tooltip(email_on_menu, "failure = only when a suite has FAIL results. always = every auto-run. off = no emails")
-            row += 1
-
-            status_label = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11))
-            status_label.pack(pady=(10, 0))
-
-            btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-            btn_frame.pack(pady=(10, 15))
-
-            def _save():
-                cfg_update = _load_config()
-                for key, entry in fields.items():
-                    cfg_update[key] = entry.get().strip()
-                cfg_update["email_on"] = email_on_var.get()
-                _save_config(cfg_update)
-                status_label.configure(text="Settings saved to ~/.docsearchrc", text_color="green")
-
-            def _test():
-                from docsearch.email_alert import send_suite_alert
-                test_cfg = {}
-                for key, entry in fields.items():
-                    test_cfg[key] = entry.get().strip()
-                test_cfg["email_on"] = "always"  # Force send for test
-                status_label.configure(text="Sending test email...", text_color="gray50")
-                dialog.update()
-                err = send_suite_alert(
-                    test_cfg, "Test Suite", "/test/folder",
-                    [{"name": "test_check", "passed": True, "match_count": 5,
-                      "pass_criteria": {"op": ">=", "n": 1}}],
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    1, 1, "PASSED",
-                )
-                if err:
-                    status_label.configure(text=err, text_color="red")
-                else:
-                    status_label.configure(text="Test email sent successfully!", text_color="green")
-
-            ctk.CTkButton(btn_frame, text="Save", width=100, command=_save).pack(side="left", padx=5)
-            ctk.CTkButton(btn_frame, text="Send Test Email", width=140, command=_test).pack(side="left", padx=5)
-            ctk.CTkButton(btn_frame, text="Close", width=100, fg_color="transparent",
-                          text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"),
-                          command=dialog.destroy).pack(side="left", padx=5)
-
-        def _show_email_alert_help(self, parent):
-            """Show help for email alert configuration."""
-            import tkinter as tk
-            help_win = tk.Toplevel(parent)
-            help_win.title("Email Alerts — Help")
-            help_win.geometry("800x620")
-            help_win.resizable(True, True)
-            help_win.transient(parent)
-            help_win.grab_set()
-
-            txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
-                          padx=15, pady=10, borderwidth=0, highlightthickness=0)
-            scroll = tk.Scrollbar(help_win, command=txt.yview)
-            txt.configure(yscrollcommand=scroll.set)
-            scroll.pack(side="right", fill="y")
-            txt.pack(fill="both", expand=True)
-
-            txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
-                              spacing1=10, spacing3=5)
-            txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
-            txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
-                              lmargin2=30, spacing1=2)
-            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
-                              spacing1=5, spacing3=8)
-            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
-                              lmargin2=20, foreground="gray40")
-
-            def h(text):
-                txt.insert("end", text + "\n", "heading")
-            def b(text):
-                txt.insert("end", text + "\n", "body")
-            def e(text):
-                txt.insert("end", text + "\n", "example")
-            def blank():
-                txt.insert("end", "\n")
-
-            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
-            for section in [
-                "What Are Email Alerts?",
-                "What You Need",
-                "SMTP Server and Port",
-                "Username and Password",
-                "Gmail Setup",
-                "Outlook / Microsoft 365 Setup",
-                "Other Providers",
-                "From and To Addresses",
-                "Send Alerts Setting",
-                "Testing Your Configuration",
-            ]:
-                txt.insert("end", f"\u2022 {section}\n", "toc_item")
-            txt.insert("end", "\n")
-
-            b("docsearch can send email notifications when scheduled suite")
-            b("runs complete, so you know immediately if a check failed.")
-            blank()
-
-            h("WHAT ARE EMAIL ALERTS?")
-            b("When a suite is scheduled to auto-run (e.g., every 24 hours),")
-            b("docsearch can send you an email with the pass/fail results")
-            b("after each run. The email arrives in your inbox with a")
-            b("summary of which checks passed and which failed.")
-            blank()
-            b("Important: the docsearch app must be running and your")
-            b("computer must be on for scheduled suites to run and email")
-            b("alerts to be sent. docsearch does not run in the background")
-            b("after you close the app \u2014 it only checks schedules while")
-            b("the GUI is open. If the app was closed during a scheduled")
-            b("interval, the overdue run executes shortly after you")
-            b("relaunch the app.")
-            blank()
-            b("Only one suite can be scheduled for auto-run at a time.")
-            b("When you schedule a different suite, it replaces the")
-            b("previous schedule. The email alert settings (SMTP server,")
-            b("credentials, recipient) are shared \u2014 whichever suite is")
-            b("scheduled will use the same email configuration.")
-            blank()
-
-            h("WHAT YOU NEED")
-            b("To send email, docsearch connects to an SMTP server \u2014 this")
-            b("is the outgoing mail server that your email provider operates.")
-            b("You need four pieces of information:")
-            blank()
-            b("1. SMTP Server \u2014 your provider's outgoing mail server address")
-            b("2. SMTP Port \u2014 the port number (587 works for most providers)")
-            b("3. Username \u2014 your email address")
-            b("4. Password \u2014 an app password (not your regular login password)")
-            blank()
-
-            h("SMTP SERVER AND PORT")
-            b("Every email provider has an SMTP server. Common ones:")
-            blank()
-            e("  Gmail:          smtp.gmail.com         port 587")
-            e("  Outlook/365:    smtp.office365.com     port 587")
-            e("  Yahoo:          smtp.mail.yahoo.com    port 587")
-            e("  iCloud:         smtp.mail.me.com       port 587")
-            blank()
-            b("If you use a corporate email system, ask your IT department")
-            b("for the SMTP server address and port. Port 587 is the")
-            b("standard for secure email sending (STARTTLS).")
-            blank()
-
-            h("USERNAME AND PASSWORD")
-            b("Username is your full email address \u2014 the account docsearch")
-            b("will send alerts from (e.g., you@gmail.com).")
-            blank()
-            b("Password is NOT your regular email login password. Most")
-            b("providers require an app password \u2014 a special one-time")
-            b("password generated specifically for applications like")
-            b("docsearch. This is a security measure to protect your")
-            b("account.")
-            blank()
-
-            h("GMAIL SETUP")
-            b("1. Go to myaccount.google.com")
-            b("2. Click Security (left sidebar)")
-            b("3. Under 'How you sign in to Google', make sure 2-Step")
-            b("   Verification is turned ON (required for app passwords)")
-            b("4. Search for 'App passwords' in the search bar at the top")
-            b("5. Click App passwords")
-            b("6. Enter a name (e.g., 'docsearch') and click Create")
-            b("7. Copy the 16-character password that appears")
-            b("8. Paste it into the Password field here")
-            blank()
-            e("  SMTP Server:  smtp.gmail.com")
-            e("  SMTP Port:    587")
-            e("  Username:     you@gmail.com")
-            e("  Password:     (the 16-character app password)")
-            blank()
-
-            h("OUTLOOK / MICROSOFT 365 SETUP")
-            b("1. Go to account.microsoft.com")
-            b("2. Click Security, then Advanced security options")
-            b("3. Under App passwords, click 'Create a new app password'")
-            b("4. Copy the generated password")
-            b("5. Paste it into the Password field here")
-            blank()
-            b("Note: If your organization uses Microsoft 365 with modern")
-            b("authentication, app passwords may be disabled by your admin.")
-            b("Contact your IT department for SMTP credentials.")
-            blank()
-            e("  SMTP Server:  smtp.office365.com")
-            e("  SMTP Port:    587")
-            e("  Username:     you@company.com")
-            e("  Password:     (the app password)")
-            blank()
-
-            h("OTHER PROVIDERS")
-            b("For Yahoo, iCloud, or other providers, search for")
-            b("'[provider name] app password' or '[provider name] SMTP")
-            b("settings' in your browser. The process is similar:")
-            b("enable 2-factor authentication, generate an app password,")
-            b("and use it here.")
-            blank()
-            b("For corporate email, ask your IT department for:")
-            b("\u2022 SMTP server address")
-            b("\u2022 SMTP port number")
-            b("\u2022 Whether app passwords or regular credentials are used")
-            b("\u2022 Whether external SMTP access is allowed")
-            blank()
-
-            h("FROM AND TO ADDRESSES")
-            b("From Address \u2014 the sender shown on the alert email.")
-            b("Leave blank to use your username. Some providers require")
-            b("this to match your account email.")
-            blank()
-            b("To Address \u2014 who receives the alerts. This can be:")
-            b("\u2022 Your own email address (for personal use)")
-            b("\u2022 Your manager's email")
-            b("\u2022 A team distribution list (e.g., compliance-team@company.com)")
-            blank()
-
-            h("SEND ALERTS SETTING")
-            b("failure \u2014 send an email only when a suite has FAIL results.")
-            b("This is the recommended setting. You only get notified")
-            b("when something needs attention.")
-            blank()
-            b("always \u2014 send an email after every auto-run, whether it")
-            b("passed or failed. Useful when you want confirmation that")
-            b("the check actually ran.")
-            blank()
-            b("off \u2014 no emails. Suite still runs on schedule and generates")
-            b("reports, but no notification is sent.")
-            blank()
-
-            h("TESTING YOUR CONFIGURATION")
-            b("Click Send Test Email to verify your settings before relying")
-            b("on them. docsearch will attempt to send a test email and")
-            b("report success or the specific error (wrong password,")
-            b("connection refused, etc.).")
-            blank()
-            b("Common errors:")
-            b("\u2022 'Authentication failed' \u2014 wrong password or username.")
-            b("  Make sure you're using an app password, not your login")
-            b("  password")
-            b("\u2022 'Connection refused' \u2014 wrong SMTP server or port, or")
-            b("  your firewall is blocking the connection")
-            b("\u2022 'Connection timed out' \u2014 your network or corporate")
-            b("  firewall is blocking outgoing SMTP traffic. Contact")
-            b("  your IT department")
-            blank()
-            b("Settings are saved to ~/.docsearchrc when you click Save.")
-            blank()
-
-            txt.configure(state="disabled")
-
-            close_btn = ctk.CTkButton(
-                help_win, text="Close", width=80,
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-                command=help_win.destroy,
-                font=ctk.CTkFont(size=12),
-            )
-            close_btn.pack(pady=(5, 10))
-
         def _build_bottom_row(self):
             """Build the bottom toolbar with help, about, tools, and close."""
             self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
@@ -5938,7 +2905,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.help_button.pack(side="left")
-            Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, COMPLIANCE_GUIDE.md, and API.md are under 'docs' on GitHub", anchor="above")
+            Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
 
             # Center: Close button
             ctk.CTkButton(
@@ -6096,7 +3063,6 @@ def _launch_gui():
                 self.recursive_var.set("off")
                 self._update_index_button_color()
                 self._refresh_load_search_menu()
-                self._update_run_suite_button_color()
                 self.status_label.configure(
                     text=f"File selected: {filename} in {folder}",
                     text_color="blue",
@@ -6122,12 +3088,7 @@ def _launch_gui():
                 self.folder_entry.insert(0, folder)
                 self._update_index_button_color()
                 self._on_refresh_interval_changed(self.refresh_interval_var.get())
-                # Resume suite schedule from new folder's collection
-                if self.suite_visible:
-                    self._refresh_suite_panel()
                 self._refresh_load_search_menu()
-                self._update_run_suite_button_color()
-                self._resume_suite_schedule()
 
         def _browse_output_dir(self):
             """Open a folder picker for the search output directory."""
@@ -6136,14 +3097,6 @@ def _launch_gui():
             if folder:
                 self.output_dir_entry.delete(0, "end")
                 self.output_dir_entry.insert(0, folder)
-
-        def _browse_suite_output_dir(self):
-            """Open a folder picker for the suite output directory."""
-            initial = self.suite_output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
-            folder = filedialog.askdirectory(initialdir=initial)
-            if folder:
-                self.suite_output_dir_entry.delete(0, "end")
-                self.suite_output_dir_entry.insert(0, folder)
 
         def _show_recent_searches(self):
             """Show a popup with recent searches to re-use."""
@@ -6195,8 +3148,8 @@ def _launch_gui():
             import tkinter as tk
             from docsearch.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_COLORS
 
-            if self.suite_running or self.process is not None:
-                self._show_error("A search or suite is already running.")
+            if self.process is not None:
+                self._show_error("A search is already running.")
                 return
 
             win = tk.Toplevel(self)
@@ -6408,9 +3361,9 @@ def _launch_gui():
             b("large dollar amounts \u2014 and shows you exactly where they are.")
             blank()
             b("Use it to discover sensitive data hiding in your files before")
-            b("someone else finds it. A home user can check years of personal")
-            b("documents for exposed SSNs. A compliance officer can verify")
-            b("that no PII has leaked into a shared drive.")
+            b("someone else finds it. Check years of personal documents for")
+            b("exposed SSNs, scan an old laptop before you sell it, or review")
+            b("files in a shared drive to see what might need to be cleaned up.")
             blank()
 
             h("HOW TO USE IT")
@@ -6549,13 +3502,11 @@ def _launch_gui():
             b("types of sensitive data. You don't need to know regex \u2014")
             b("the patterns are built in.")
             blank()
-            b("The PII Scan is not a suite \u2014 it doesn't create saved")
-            b("searches or appear in Manage Suites. It's a standalone")
-            b("one-click scan with its own report. If you want to run")
-            b("PII checks as part of a recurring compliance suite, use")
-            b("the Search Wizard or Compliance Wizard to create saved")
-            b("searches with the same regex patterns and add them to a")
-            b("suite.")
+            b("The PII Scan is a standalone one-click scan with its own")
+            b("report. It does not save anything to your collection. If")
+            b("you want to reuse the same regex patterns as normal searches,")
+            b("use the Search Wizard to build an equivalent search and then")
+            b("click Save Search to store it by name.")
             blank()
 
             txt.configure(state="disabled")
@@ -7152,8 +4103,6 @@ def _launch_gui():
 
         def start_search(self):
             """Validate inputs, build the CLI command, and launch a search thread."""
-            if self.suite_running:
-                return
             if self.process is not None:
                 self.process.terminate()
                 return
@@ -7564,42 +4513,6 @@ def _launch_gui():
                 row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
             )
 
-        def _show_suite_report_preview(self):
-            """Show the suite txt report in the main preview pane."""
-            if not self._suite_report_path:
-                return
-            # Find the txt report (same base name as docx)
-            txt_path = self._suite_report_path.rsplit(".", 1)[0] + ".txt"
-            if not os.path.exists(txt_path):
-                return
-            try:
-                with open(txt_path, encoding="utf-8", errors="replace") as f:
-                    content = f.read()
-            except Exception:
-                return
-
-            self.preview_text.configure(state="normal")
-            self.preview_text.delete("1.0", "end")
-
-            for line in content.splitlines():
-                if line.startswith("=") or line.startswith("-"):
-                    self.preview_text.insert("end", line + "\n", "filename")
-                elif "PASS" in line:
-                    self.preview_text.insert("end", line + "\n", "match")
-                elif "FAIL" in line:
-                    self.preview_text.insert("end", line + "\n")
-                else:
-                    self.preview_text.insert("end", line + "\n")
-
-            self.preview_text.configure(state="disabled")
-            self.preview_text.see("1.0")
-
-            self._preview_count_label.configure(text="Suite Report")
-
-            self.preview_frame.grid(
-                row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
-            )
-
         def _hide_preview(self):
             """Hide the results preview pane."""
             self.preview_frame.grid_remove()
@@ -7906,7 +4819,7 @@ def _launch_gui():
                 return
 
             # Files to delete — anything docsearch created during searches
-            # Preserved: .docsearch_collection.json (saved searches/suites)
+            # Preserved: .docsearch_collection.json (saved searches)
             #           .docsearchrc (in home dir, not search folder anyway)
             to_delete = []  # list of (path, reason)
 
@@ -7916,9 +4829,9 @@ def _launch_gui():
                     # Search result files
                     if fname.startswith("docsearch_results"):
                         to_delete.append((filepath, "search results"))
-                    # Suite reports and stage reports
+                    # docsearch-generated reports (e.g., PII scan report)
                     elif fname.startswith("DO_NOT_SEARCH"):
-                        to_delete.append((filepath, "suite report"))
+                        to_delete.append((filepath, "docsearch report"))
                     # Error log
                     elif fname == "docsearch_errors.log":
                         to_delete.append((filepath, "error log"))
@@ -7943,7 +4856,7 @@ def _launch_gui():
                 f"{folder}\n\n"
                 f"{reason_lines}\n\n"
                 f"PRESERVED:\n"
-                f"  \u2022 Your saved searches and suites (.docsearch_collection.json)\n"
+                f"  \u2022 Your saved searches (.docsearch_collection.json)\n"
                 f"  \u2022 Your settings (~/.docsearchrc)\n"
                 f"  \u2022 Your original documents\n\n"
                 f"This cannot be undone."
@@ -8067,9 +4980,6 @@ def _launch_gui():
             if self.build_index_button.cget("text") == "Building...":
                 self._reschedule_refresh()
                 return
-            if self.suite_running:
-                self._reschedule_refresh()
-                return
             if self._refresh_running:
                 self._reschedule_refresh()
                 return
@@ -8126,341 +5036,6 @@ def _launch_gui():
             minutes = self._REFRESH_INTERVALS.get(self.refresh_interval_var.get(), 0)
             if minutes > 0:
                 self._refresh_timer_id = self.after(minutes * 60 * 1000, self._auto_refresh_tick)
-
-        # ── Suite Scheduling ───────────────────────────────────
-
-        _SUITE_SCHEDULE_INTERVALS = {
-            "Off": 0, "30 min": 30, "1 hour": 60,
-            "4 hours": 240, "12 hours": 720, "24 hours": 1440,
-        }
-
-        def _on_suite_schedule_changed(self, value):
-            """Handle suite schedule interval change."""
-            if getattr(self, '_restoring_schedule', False):
-                return
-            from docsearch.collection import update_suite_field
-            # Cancel any existing timer
-            if self._suite_schedule_timer_id is not None:
-                self.after_cancel(self._suite_schedule_timer_id)
-                self._suite_schedule_timer_id = None
-
-            minutes = self._SUITE_SCHEDULE_INTERVALS.get(value, 0)
-
-            # Persist schedule to collection for selected suite
-            suite_name = None
-            folder = self.folder_entry.get().strip()
-            if folder and hasattr(self, 'suite_selector'):
-                sel = self.suite_selector.curselection()
-                if sel:
-                    suite_name = self.suite_selector.get(sel[0])
-                    update_suite_field(folder, suite_name, "schedule", value)
-
-            if minutes > 0 and suite_name:
-                self._scheduled_suite_name = suite_name
-                self._scheduled_suite_interval = value
-                self._scheduled_next_run_time = time.time() + minutes * 60
-                ms = minutes * 60 * 1000
-                self._suite_schedule_timer_id = self.after(ms, self._suite_schedule_tick)
-                self._start_countdown()
-                self._update_autorun_name_label()
-                self._update_last_run_label()
-                self._update_autorun_indicator()
-            else:
-                # Clear schedule but preserve last run info for the suite
-                prev_name = self._scheduled_suite_name or suite_name
-                self._scheduled_suite_name = None
-                self._scheduled_suite_interval = None
-                self._scheduled_next_run_time = None
-                self._stop_countdown()
-                self._update_autorun_name_label()
-                self._update_last_run_label(for_suite=prev_name)
-                self._update_autorun_indicator()
-
-        def _update_autorun_name_label(self):
-            """Update the Auto-Run Suite label with the scheduled suite name."""
-            if self._suite_label_available() and hasattr(self, 'suite_autorun_name_label'):
-                name = self._scheduled_suite_name or "None"
-                self.suite_autorun_name_label.configure(text=name)
-
-        def _update_autorun_indicator(self):
-            """Update the auto-run indicator on the main screen status row."""
-            if not hasattr(self, "_autorun_indicator"):
-                return
-            name = self._scheduled_suite_name
-            interval = self._scheduled_suite_interval
-            if name and interval:
-                self._autorun_indicator.configure(
-                    text=f"\u23f0 Auto-run: {name} ({interval})",
-                    text_color=("blue", "deepskyblue"),
-                )
-            else:
-                self._autorun_indicator.configure(text="", text_color=("gray50", "gray50"))
-
-        def _start_countdown(self):
-            """Start the 1-minute countdown display timer."""
-            self._stop_countdown()
-            self._update_countdown()
-
-        def _suite_label_available(self):
-            """Check if suite schedule labels are visible (window is open)."""
-            return (self._suite_window_open()
-                    and hasattr(self, 'suite_next_run_label'))
-
-        def _stop_countdown(self):
-            """Stop the countdown display timer."""
-            if self._countdown_timer_id is not None:
-                self.after_cancel(self._countdown_timer_id)
-                self._countdown_timer_id = None
-            if self._suite_label_available():
-                self.suite_next_run_label.configure(text="—")
-
-        def _update_countdown(self):
-            """Update the countdown label and reschedule in 1 minute."""
-            self._countdown_timer_id = None
-            if not self._scheduled_next_run_time:
-                if self._suite_label_available():
-                    self.suite_next_run_label.configure(text="—")
-                return
-            remaining = self._scheduled_next_run_time - time.time()
-            if remaining <= 0:
-                if self._suite_label_available():
-                    self.suite_next_run_label.configure(text="Running...")
-                # Update main screen indicator
-                if hasattr(self, "_autorun_indicator") and self._scheduled_suite_name:
-                    self._autorun_indicator.configure(
-                        text=f"\u23f0 Auto-run: {self._scheduled_suite_name} \u2014 Running...",
-                        text_color=("blue", "deepskyblue"),
-                    )
-                return
-            hours = int(remaining // 3600)
-            mins = int((remaining % 3600) // 60)
-            if hours > 0:
-                countdown_text = f"{hours}h {mins}m"
-            else:
-                countdown_text = f"{mins}m" if mins > 0 else "<1m"
-            if self._suite_label_available():
-                self.suite_next_run_label.configure(text=countdown_text)
-            # Update main screen indicator with countdown
-            if hasattr(self, "_autorun_indicator") and self._scheduled_suite_name:
-                self._autorun_indicator.configure(
-                    text=f"\u23f0 Auto-run: {self._scheduled_suite_name} \u2014 next in {countdown_text}",
-                    text_color=("blue", "deepskyblue"),
-                )
-            # Keep ticking even if window is closed so it's correct when reopened
-            self._countdown_timer_id = self.after(60000, self._update_countdown)
-
-        def _suite_schedule_tick(self):
-            """Timer callback for scheduled suite run."""
-            self._suite_schedule_timer_id = None
-
-            suite_name = self._scheduled_suite_name
-            if not suite_name:
-                return
-
-            folder = self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
-                self._reschedule_suite()
-                return
-            if self.suite_running:
-                self._reschedule_suite()
-                return
-            if self.process is not None or self.search_start_time is not None:
-                self._reschedule_suite()
-                return
-            if self._refresh_running:
-                self._reschedule_suite()
-                return
-            if self._suite_schedule_running:
-                self._reschedule_suite()
-                return
-
-            self._suite_schedule_running = True
-            self._suite_scheduled_run = True
-            self._run_suite_by_name(folder, suite_name)
-
-        def _log_autorun(self, folder, results, run_time, passed, total, verdict):
-            """Log auto-run results to a persistent log file and auto-generate report."""
-            if not folder:
-                return
-            report_dir = getattr(self, '_suite_output_dir', folder)
-            suite_name = getattr(self, '_suite_name', 'unknown')
-
-            # Auto-generate suite report
-            if results:
-                from docsearch.reporter import (write_suite_report_txt,
-                                                write_suite_report_json,
-                                                write_suite_report_docx)
-                from docsearch import __version__
-                safe_name = suite_name.replace(" ", "_").replace("/", "_")
-                txt_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.txt")
-                json_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.json")
-                docx_path = os.path.join(report_dir, f"DO_NOT_SEARCH_docsearch_suite_{safe_name}.docx")
-                write_suite_report_txt(
-                    txt_path, suite_name, folder,
-                    results, self._suite_start_time, self._suite_end_time,
-                )
-                write_suite_report_json(
-                    json_path, suite_name, folder,
-                    results, self._suite_start_time, self._suite_end_time,
-                )
-                write_suite_report_docx(
-                    docx_path, suite_name, folder,
-                    results, self._suite_start_time, self._suite_end_time,
-                    version=__version__,
-                    source_files=getattr(self, '_suite_source_files', None),
-                )
-
-            # Append to auto-run log
-            log_path = os.path.join(report_dir, "DO_NOT_SEARCH_autorun_log.txt")
-            try:
-                new_file = not os.path.exists(log_path)
-                empty_file = not new_file and os.path.getsize(log_path) == 0
-                with open(log_path, "a", encoding="utf-8") as f:
-                    if new_file:
-                        f.write(f"Auto-Run History: {log_path}\n")
-                        f.write("=" * len(f"Auto-Run History: {log_path}") + "\n")
-                        f.write(f"(Recreated on {run_time} — previous history file was missing)\n\n")
-                    elif empty_file:
-                        f.write(f"Auto-Run History: {log_path}\n")
-                        f.write("=" * len(f"Auto-Run History: {log_path}") + "\n\n")
-                    f.write(f"[{run_time}] Suite: {suite_name} — {passed}/{total} passed — {verdict}\n")
-                    for r in results:
-                        status = "PASS" if r["passed"] else "FAIL"
-                        pc = r.get("pass_criteria", {"op": ">=", "n": 1})
-                        f.write(f"  [{status}] {r['name']} — {r['match_count']} match(es) (need {pc['op']} {pc['n']})\n")
-                    f.write("\n")
-            except OSError:
-                pass
-
-            # Send email alert if configured
-            try:
-                from docsearch.cli import _load_config
-                from docsearch.email_alert import send_suite_alert
-                cfg = _load_config()
-                if cfg.get("smtp_host") and cfg.get("email_to"):
-                    self.status_label.configure(
-                        text=f"Suite '{suite_name}' — {verdict}. Sending email alert to {cfg['email_to']}...",
-                        text_color="blue",
-                    )
-                    self.update_idletasks()
-                    docx_report = docx_path if results else None
-                    err = send_suite_alert(
-                        cfg, suite_name, folder, results, run_time,
-                        passed, total, verdict, report_path=docx_report,
-                    )
-                    if err:
-                        self.status_label.configure(
-                            text=f"Suite '{suite_name}' — {verdict}. Email alert failed: {err}",
-                            text_color="red",
-                        )
-                        # Log email failure to auto-run log
-                        try:
-                            with open(log_path, "a", encoding="utf-8") as f:
-                                f.write(f"  [EMAIL ALERT] {err}\n\n")
-                        except OSError:
-                            pass
-                    else:
-                        self.status_label.configure(
-                            text=f"Suite '{suite_name}' — {verdict}. Email alert sent to {cfg['email_to']}.",
-                            text_color="green" if verdict == "PASSED" else "red",
-                        )
-            except Exception:
-                pass  # Never let email failure break the auto-run
-
-        def _reschedule_suite(self):
-            """Schedule the next suite run tick based on stored interval."""
-            if self._suite_schedule_timer_id is not None:
-                return
-            if not self._scheduled_suite_interval:
-                return
-            minutes = self._SUITE_SCHEDULE_INTERVALS.get(self._scheduled_suite_interval, 0)
-            if minutes > 0:
-                self._scheduled_next_run_time = time.time() + minutes * 60
-                self._suite_schedule_timer_id = self.after(minutes * 60 * 1000, self._suite_schedule_tick)
-                self._start_countdown()
-
-        def _resume_suite_schedule(self):
-            """On startup or folder change, resume auto-run for any scheduled suite."""
-            from docsearch.collection import load_collection
-            folder = self.folder_entry.get().strip()
-            if not folder or not os.path.isdir(folder):
-                return
-
-            # Cancel any existing schedule
-            if self._suite_schedule_timer_id is not None:
-                self.after_cancel(self._suite_schedule_timer_id)
-                self._suite_schedule_timer_id = None
-            self._stop_countdown()
-
-            data = load_collection(folder)
-            for suite_name, suite in data.get("test_suites", {}).items():
-                schedule = suite.get("schedule", "Off")
-                minutes = self._SUITE_SCHEDULE_INTERVALS.get(schedule, 0)
-                if minutes <= 0:
-                    continue
-
-                # Found a scheduled suite — calculate when next run is due
-                last_run = suite.get("last_run_time")
-                if last_run:
-                    try:
-                        last_dt = datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S")
-                        elapsed_since = (datetime.now() - last_dt).total_seconds()
-                        remaining = (minutes * 60) - elapsed_since
-                    except (ValueError, TypeError):
-                        remaining = 0
-                else:
-                    remaining = 0
-
-                # If overdue, run soon (10 seconds); otherwise schedule the remainder
-                if remaining <= 0:
-                    delay_ms = 10000
-                    self._scheduled_next_run_time = time.time() + 10
-                else:
-                    delay_ms = int(remaining * 1000)
-                    self._scheduled_next_run_time = time.time() + remaining
-
-                self._scheduled_suite_name = suite_name
-                self._scheduled_suite_interval = schedule
-                self._suite_schedule_timer_id = self.after(delay_ms, self._suite_schedule_tick)
-                self._start_countdown()
-
-                # Update the schedule dropdown if suite window is open
-                if hasattr(self, 'suite_schedule_var'):
-                    self._restoring_schedule = True
-                    self.suite_schedule_var.set(schedule)
-                    self._restoring_schedule = False
-                self._update_autorun_indicator()
-                break  # Only one schedule at a time
-
-        def _update_last_run_label(self, for_suite=None):
-            """Update the last run label from the selected or scheduled suite."""
-            if not self._suite_label_available():
-                return
-            from docsearch.collection import get_suite
-            folder = self.folder_entry.get().strip()
-            if not folder:
-                self.suite_last_run_label.configure(text="Never")
-                return
-
-            # Try explicit name, then selected suite, then scheduled suite
-            suite_name = for_suite
-            if not suite_name and self._suite_window_open() and hasattr(self, 'suite_selector'):
-                sel = self.suite_selector.curselection()
-                if sel:
-                    suite_name = self.suite_selector.get(sel[0])
-            if not suite_name:
-                suite_name = self._scheduled_suite_name
-
-            if not suite_name:
-                self.suite_last_run_label.configure(text="Never")
-                return
-            suite = get_suite(folder, suite_name)
-            if suite and suite.get("last_run_time"):
-                self.suite_last_run_label.configure(
-                    text=f"{suite_name} \u2014 {suite['last_run_time']}"
-                )
-            else:
-                self.suite_last_run_label.configure(text="Never")
 
         def build_index_action(self):
             """Build a search index for the selected folder in a background thread."""
@@ -8533,7 +5108,6 @@ def _launch_gui():
                 self.build_index_button.configure(state="normal", text="Build Index(es)")
                 self.cancel_index_button.pack_forget()
                 self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
-                self._update_run_suite_button_color()
                 self._update_index_button_color()
                 if returncode == 0 and result:
                     fc = result.get("file_count", 0)
@@ -8746,9 +5320,8 @@ def _launch_gui():
             b("\u2022 The index is one file (.docsearch.db) in your search folder")
             b("\u2022 One index covers the folder and all subfolders")
             b("\u2022 Safe to delete \u2014 rebuild with Build Index(es) anytime")
-            b("\u2022 Suites use whatever index setting each search was saved with")
-            b("\u2022 If a suite search needs an index but none exists, it falls")
-            b("  back to direct scanning automatically")
+            b("\u2022 If Use Index is checked but no index exists, docsearch")
+            b("  falls back to direct scanning automatically")
             b("\u2022 Changing Max File Size (in Advanced Search Options) triggers")
             b("  an automatic rebuild on the next indexed search")
 
@@ -8874,12 +5447,12 @@ def _launch_gui():
 
                     if fname.startswith("docsearch_results"):
                         app_files.append((filepath, "Search results"))
-                    elif fname.startswith("DO_NOT_SEARCH_docsearch_suite"):
-                        app_files.append((filepath, "Suite reports"))
+                    elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
+                        app_files.append((filepath, "PII scan reports"))
                     elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
                         app_files.append((filepath, "Accumulated results"))
                     elif fname.startswith("DO_NOT_SEARCH"):
-                        app_files.append((filepath, "Saved/stage reports"))
+                        app_files.append((filepath, "docsearch reports"))
                     elif fname == "docsearch_errors.log":
                         app_files.append((filepath, "Error log"))
                     elif fname == ".docsearch.db":
@@ -8887,7 +5460,7 @@ def _launch_gui():
                     elif fname in (".docsearch.db-wal", ".docsearch.db-shm"):
                         app_files.append((filepath, "Index temp files"))
                     elif fname == ".docsearch_collection.json":
-                        app_files.append((filepath, "Saved searches & suites \u2014 DO NOT DELETE"))
+                        app_files.append((filepath, "Saved searches \u2014 DO NOT DELETE"))
 
             # Also check home directory for .docsearchrc
             rc_path = os.path.expanduser("~/.docsearchrc")
@@ -8917,8 +5490,8 @@ def _launch_gui():
             tk.Label(
                 popup, text="Files created by docsearch in this folder and subfolders. "
                             "Items marked DO NOT DELETE contain your saved work. "
-                            ".docsearch_collection.json holds all saved searches and suites "
-                            "for that folder \u2014 back it up before major changes.",
+                            ".docsearch_collection.json holds all saved searches for that "
+                            "folder \u2014 back it up before major changes.",
                 font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
             ).pack(pady=(0, 8), padx=15)
 
@@ -8945,21 +5518,21 @@ def _launch_gui():
                 by_category[category].append(display)
 
             _CATEGORY_DESCRIPTIONS = {
-                "Saved searches & suites \u2014 DO NOT DELETE":
-                    "    These .docsearch_collection.json files store your saved searches,\n"
-                    "    suites, pass/fail criteria, and schedules. One per folder.\n"
-                    "    Back these up — they represent all your suite-building work.",
+                "Saved searches \u2014 DO NOT DELETE":
+                    "    These .docsearch_collection.json files store your saved searches.\n"
+                    "    One per folder. Back these up \u2014 they represent all your saved\n"
+                    "    search configurations.",
                 "Settings \u2014 DO NOT DELETE":
-                    "    Your ~/.docsearchrc file stores your Advanced Search Options settings,\n"
-                    "    email config, and all other saved defaults.\n"
-                    "    Back this up — it contains your personalized configuration.",
+                    "    Your ~/.docsearchrc file stores your Advanced Search Options\n"
+                    "    settings and other saved defaults.\n"
+                    "    Back this up \u2014 it contains your personalized configuration.",
                 "Search index":
                     "    SQLite database storing extracted text for faster repeated searches.\n"
-                    "    Safe to delete — rebuild anytime with Build Index(es).",
+                    "    Safe to delete \u2014 rebuild anytime with Build Index(es).",
                 "Search results":
                     "    Output files from previous searches. Safe to delete.",
-                "Suite reports":
-                    "    Reports generated by suite runs. Safe to delete.",
+                "PII scan reports":
+                    "    Reports generated by the PII Scan feature. Safe to delete.",
                 "Error log":
                     "    Log of files that could not be read. Safe to delete.",
             }
@@ -8992,7 +5565,7 @@ def _launch_gui():
             self.update_idletasks()
 
             # Walk home directory to find all collection files
-            collections = []  # list of (folder_path, n_searches, n_suites, search_names, suite_names)
+            collections = []  # list of (folder_path, n_searches, search_names)
             try:
                 for root, dirs, files in os.walk(home):
                     # Skip hidden dirs (except those containing collection files),
@@ -9007,9 +5580,8 @@ def _launch_gui():
                         folder = root
                         data = load_collection(folder)
                         searches = sorted(data.get("saved_searches", {}).keys())
-                        suites = sorted(data.get("test_suites", {}).keys())
-                        if searches or suites:
-                            collections.append((folder, len(searches), len(suites), searches, suites))
+                        if searches:
+                            collections.append((folder, len(searches), searches))
             except (OSError, PermissionError):
                 pass
 
@@ -9035,11 +5607,10 @@ def _launch_gui():
             popup.geometry(f"+{x}+{y}")
 
             total_searches = sum(c[1] for c in collections)
-            total_suites = sum(c[2] for c in collections)
             tk.Label(
                 popup,
                 text=f"Saved Collections — {len(collections)} folder(s), "
-                     f"{total_searches} search(es), {total_suites} suite(s)",
+                     f"{total_searches} search(es)",
                 font=("TkDefaultFont", 13, "bold"),
             ).pack(pady=(10, 2))
             tk.Label(
@@ -9068,33 +5639,21 @@ def _launch_gui():
             # Track which folder each listbox index belongs to (for double-click-to-switch)
             folder_indices = {}  # index -> folder_path
 
-            for folder, n_searches, n_suites, searches, suites in sorted(collections, key=lambda c: c[0]):
+            for folder, n_searches, searches in sorted(collections, key=lambda c: c[0]):
                 idx = listbox.size()
                 listbox.insert("end", f"\u2500\u2500 {folder} \u2500\u2500")
                 listbox.itemconfig(idx, fg="#FFD700")
                 folder_indices[idx] = folder
 
-                summary = f"    {n_searches} saved search(es), {n_suites} suite(s)"
+                summary = f"    {n_searches} saved search(es)"
                 idx = listbox.size()
                 listbox.insert("end", summary)
                 folder_indices[idx] = folder
 
-                if searches:
+                for s in searches:
                     idx = listbox.size()
-                    listbox.insert("end", "    Searches:")
+                    listbox.insert("end", f"        {s}")
                     folder_indices[idx] = folder
-                    for s in searches:
-                        idx = listbox.size()
-                        listbox.insert("end", f"        {s}")
-                        folder_indices[idx] = folder
-                if suites:
-                    idx = listbox.size()
-                    listbox.insert("end", "    Suites:")
-                    folder_indices[idx] = folder
-                    for s in suites:
-                        idx = listbox.size()
-                        listbox.insert("end", f"        {s}")
-                        folder_indices[idx] = folder
                 listbox.insert("end", "")
 
             def _on_double_click(event):
@@ -9106,8 +5665,6 @@ def _launch_gui():
                     folder = folder_indices[idx]
                     self.folder_entry.delete(0, "end")
                     self.folder_entry.insert(0, folder)
-                    if self.suite_visible:
-                        self._refresh_suite_panel()
                     self._refresh_load_search_menu()
                     self.status_label.configure(
                         text=f"Switched to: {folder}",
@@ -9222,7 +5779,7 @@ def _launch_gui():
                 "Why Files Get Excluded",
                 "How the List Is Organized",
                 "What to Do About Excluded Files",
-                "Why This Matters for Audits",
+                "Why This Matters",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
@@ -9305,18 +5862,12 @@ def _launch_gui():
             b("  supposed to be excluded")
             blank()
 
-            h("WHY THIS MATTERS FOR AUDITS")
-            b("For compliance and audit workflows, one of the first")
-            b("questions a reviewer asks is: \"Can you prove every file")
-            b("was accounted for?\" This popup is the answer. Every file")
+            h("WHY THIS MATTERS")
+            b("If you ever wondered \"did docsearch actually look at every")
+            b("file in my folder?\", this popup is the answer. Every file")
             b("in your folder is either in the Matched Files popup, in")
             b("this Excluded Files popup, or in the search results with")
             b("zero matches \u2014 nothing falls through the cracks.")
-            blank()
-            b("Suite reports also include a source file manifest listing")
-            b("every document that was in scope and every document that")
-            b("was excluded, so the evidence is preserved in the .docx")
-            b("report you hand to an auditor.")
             blank()
 
             txt.configure(state="disabled")
@@ -9615,7 +6166,6 @@ def _launch_gui():
                 "What Save Search Does",
                 "What Load Search Does",
                 "Where Saved Searches Are Stored",
-                "Using Saved Searches in Suites",
                 "Editing a Saved Search",
                 "Deleting a Saved Search",
                 "Sharing Saved Searches",
@@ -9633,9 +6183,8 @@ def _launch_gui():
             b("it under a name you choose.")
             blank()
             b("Once saved, you can reload the exact same configuration")
-            b("later, add it to a search suite, run it on a schedule, or")
-            b("share it with a colleague. Nothing is \"locked in\" \u2014 you")
-            b("can always edit and re-save it.")
+            b("later with one click from Load Search. Nothing is \"locked")
+            b("in\" \u2014 you can always edit and re-save it.")
             blank()
             b("Saving does NOT run the search. If you want to verify that")
             b("the search works the way you expect, click Run Search")
@@ -9655,6 +6204,10 @@ def _launch_gui():
             b("  the same name) or save it as a new one (use a new name)")
             b("\u2022 Delete the saved search from the Load Search popup")
             blank()
+            b("Saving does NOT run the search. To verify a search works")
+            b("the way you expect, click Run Search first, check the")
+            b("results, then click Save Search.")
+            blank()
 
             h("WHERE SAVED SEARCHES ARE STORED")
             b("Saved searches live in a file called .docsearch_collection.json")
@@ -9668,25 +6221,6 @@ def _launch_gui():
             b("probably do not apply to HR files, and storing them")
             b("alongside the documents means they travel with the folder")
             b("if you copy, move, or back it up.")
-            blank()
-            b("The collection file also stores any search suites built")
-            b("from these saved searches. See the Search Suites section")
-            b("of the User Guide for details.")
-            blank()
-
-            h("USING SAVED SEARCHES IN SUITES")
-            b("Search suites are built entirely out of saved searches.")
-            b("To create a suite:")
-            blank()
-            b("1. Configure a search and click Save Search, give it a name")
-            b("2. Repeat for each check you want in the suite")
-            b("3. Open Manage Suites, click Build a New Suite, and add")
-            b("   your saved searches with pass/fail criteria")
-            blank()
-            b("If you edit a saved search (load it, change settings, and")
-            b("Save Search under the same name), every suite that")
-            b("references that search picks up the change on its next run.")
-            b("There are no duplicates to keep in sync.")
             blank()
 
             h("EDITING A SAVED SEARCH")
@@ -9709,30 +6243,15 @@ def _launch_gui():
             blank()
             b("Deleting a saved search does NOT delete any files in the")
             b("folder. It only removes the entry from the")
-            b(".docsearch_collection.json file. Any suites that referenced")
-            b("the deleted search will skip it on their next run and")
-            b("report the missing entry.")
+            b(".docsearch_collection.json file.")
             blank()
 
             h("SHARING SAVED SEARCHES")
-            b("To share a saved search (or a whole suite) with someone else:")
-            blank()
-            b("1. Open Manage Suites")
-            b("2. Select the suite that contains the saved search(es) you")
-            b("   want to share")
-            b("3. Click Export Suite to save it as a .json file")
-            b("4. Send the .json file to your colleague")
-            b("5. They click Import Template in Manage Suites to load it")
-            b("   into their own collection")
-            blank()
-            b("To share a single saved search that is not part of a suite,")
-            b("create a suite that contains just that one search, export")
-            b("it, and the recipient can pull the search out of the")
-            b("imported suite.")
-            blank()
-            b("You can also copy .docsearch_collection.json directly \u2014")
-            b("it is a plain-text JSON file \u2014 but Import/Export Suite")
-            b("is the recommended way.")
+            b("The .docsearch_collection.json file is plain-text JSON. To")
+            b("share a saved search with someone else, you can copy the")
+            b("collection file directly, or copy the relevant entry out of")
+            b("it into another folder's collection file. The file is human-")
+            b("readable and easy to edit.")
             blank()
 
             h("TIPS")
@@ -9740,15 +6259,10 @@ def _launch_gui():
             b("  is more useful than \"search1\"")
             b("\u2022 Always Run Search to verify a search works BEFORE")
             b("  saving it. A saved search that doesn't work won't")
-            b("  magically start working inside a suite")
-            b("\u2022 Think of saved searches as building blocks. Small,")
-            b("  focused searches (one check per search) combine into")
-            b("  better suites than one giant search that tries to do")
-            b("  everything")
-            b("\u2022 If you're building a compliance suite from scratch,")
-            b("  try the Compliance Wizard first \u2014 it creates all the")
-            b("  saved searches AND the suite in one click, and you")
-            b("  can customize them afterwards")
+            b("  magically start working when you reload it later")
+            b("\u2022 Saved searches remember everything on the main screen")
+            b("  and in Advanced Search Options \u2014 terms, mode, filters,")
+            b("  range queries, file types, everything")
             blank()
 
             txt.configure(state="disabled")
@@ -9931,9 +6445,8 @@ def _launch_gui():
             tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
             tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
             tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack()
-            tk.Label(about_win, text="docsearch is a search tool, not compliance software.\n"
-                     "Templates are starting points, not certifications.\n"
-                     "Pass/fail results do not constitute compliance advice.",
+            tk.Label(about_win, text="Provided as-is, without warranty of any kind.\n"
+                     "See the LICENSE file for details.",
                      font=("TkDefaultFont", 9), fg="gray", justify="center",
                      wraplength=280).pack(pady=(5, 10))
 
@@ -9982,7 +6495,6 @@ def _launch_gui():
                         "save": "Save",
                         "load": "\u25bc",
                         "search_wiz": "Search Wiz",
-                        "compliance_wiz": "Compl Wiz",
                     }
                 else:
                     labels = {
@@ -9991,7 +6503,6 @@ def _launch_gui():
                         "save": "Save Search",
                         "load": "Load Search \u25bc",
                         "search_wiz": "Search Wizard",
-                        "compliance_wiz": "Compliance Wizard",
                     }
                 pairs = [
                     (self.search_button, labels["search"]),
@@ -10005,11 +6516,8 @@ def _launch_gui():
                             btn.configure(text=text)
                         except Exception:
                             pass
-                # Wizard buttons if we can find them by searching the wizard_group
                 if hasattr(self, "_search_wiz_btn"):
                     self._search_wiz_btn.configure(text=labels["search_wiz"])
-                if hasattr(self, "_compliance_wiz_btn"):
-                    self._compliance_wiz_btn.configure(text=labels["compliance_wiz"])
             except Exception:
                 pass
             # Update preview size dropdown to match the scaled size
@@ -10164,16 +6672,6 @@ def _launch_gui():
             output_dir = self.output_dir_entry.get().strip()
             if output_dir:
                 settings["output_dir"] = output_dir
-            suite_od = ""
-            if hasattr(self, 'suite_output_dir_entry'):
-                try:
-                    suite_od = self.suite_output_dir_entry.get().strip()
-                except Exception:
-                    pass
-            if not suite_od:
-                suite_od = getattr(self, '_saved_suite_output_dir', '')
-            if suite_od:
-                settings["suite_output_dir"] = suite_od
             range_val = self.range_entry.get().strip()
             if range_val:
                 settings["range"] = range_val
@@ -10267,7 +6765,6 @@ def _launch_gui():
             self.output_dir_entry.delete(0, "end")
             if "output_dir" in config:
                 self.output_dir_entry.insert(0, config["output_dir"])
-            self._saved_suite_output_dir = config.get("suite_output_dir", "")
             self.range_entry.delete(0, "end")
             if "range" in config:
                 self.range_entry.insert(0, config["range"])
@@ -10320,10 +6817,6 @@ def _launch_gui():
             self.range_entry.delete(0, "end")
             self.refresh_interval_var.set("Off")
             self._on_refresh_interval_changed("Off")
-            if hasattr(self, 'suite_schedule_var'):
-                self.suite_schedule_var.set("Off")
-                self._on_suite_schedule_changed("Off")
-                self._on_suite_schedule_changed("Off")
             self.search_entry.configure(placeholder_text="Enter search terms...")
             self.status_label.configure(
                 text="", text_color=("gray30", "gray70")
@@ -10340,10 +6833,6 @@ def _launch_gui():
             self.report_btn_csv.pack_forget()
             self.report_btn_json.pack_forget()
             self.report_btn_pdf.pack_forget()
-
-        def _get_suite_folder(self):
-            """Return the suite panel's folder (independent of main screen)."""
-            return getattr(self, "_suite_folder", None) or self.folder_entry.get().strip()
 
         def _show_error(self, message):
             """Display an error message in the status label and a modal dialog."""
@@ -10530,8 +7019,6 @@ def _launch_gui():
                         text=f"Search '{name}' saved to collection.",
                         text_color="blue", font=ctk.CTkFont(size=13),
                     )
-                    if self.suite_window is not None and self.suite_visible:
-                        self._refresh_suite_panel()
                     self._refresh_load_search_menu()
                 except Exception as exc:
                     self._show_error(f"Failed to save search: {exc}")

@@ -6,38 +6,29 @@
 
 > Search Word docs, PDFs, spreadsheets, emails, archives, and more — 46 file types, all at once, all offline. No uploads, no cloud, no subscriptions. Everything stays on your computer. Free, open-source. Windows/Mac/Linux.
 >
-> **For home users and small businesses:** **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
+> **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
 >
-> **For compliance, audit, and legal teams:** **Can you prove you checked every document?** Build search suites that verify 500 contracts all contain a required clause, flag any file still marked DRAFT, detect SSNs that shouldn't be there, and confirm dollar amounts fall within expected ranges — then run those checks on a schedule with pass/fail reports, highlighted evidence, and email alerts on failure. Auditors get a Word report documenting exactly what was searched, what passed, what failed, and which files were in scope. Includes starter templates for 9 industries. docsearch is a search tool, not compliance software — the checks you build and the conclusions you draw are yours.
->
-> Terminal, GUI, or Python API. From a home user scanning personal files for PII to an auditor reviewing 500 contracts, it just works.
+> Terminal, GUI, or Python API. For home users and anyone who wants to see what's in their own files.
 
 **[See docsearch in action →](https://robertdschoening.com/docsearch)**
 
 ## Who Is It For?
 
-docsearch scales from simple keyword searches to organized document review workflows — use as much or as little as you need:
-
 - **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration. Click **PII Scan** to check your personal files for Social Security numbers, credit cards, tax IDs, and other sensitive data hiding in your documents — one click, no setup
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches for reuse
-- **Compliance & audit workflows** — create search suites to help review documents for required language, flag prohibited content, detect PII (Personally Identifiable Information), and check that dollar amounts fall within expected ranges. Run suites on a schedule with pass/fail reports and email alerts. The Compliance Wizard provides starter templates for common industries — SOX (Sarbanes-Oxley), HIPAA (Health Insurance Portability and Accountability Act), Legal, Government, ISO (International Organization for Standardization), FERPA (Family Educational Rights and Privacy Act), Real Estate, Insurance, HR (Human Resources) — customize to fit your needs
-- **Legal** — search contracts for required clauses, find privileged documents, pre-litigation review
-- **Healthcare** — search patient records for PII, help organize HIPAA-related document reviews
-- **Finance** — search financial documents for SOX-related terms, transaction monitoring, range queries on dollar amounts
-- **HR (Human Resources)** — verify employee files have required documents, detect SSNs (Social Security Numbers) on shared drives
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches by name and reload them later
+- **Legal / HR / Finance** — search contracts, employee files, and financial documents privately and offline, with highlighted Word reports you can save and share
 - **Research** — search across papers, notes, and datasets in any format
 
 ## Features
 
-- **Sensitive Data Scan** — one-click scan for PII and sensitive data: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Results are categorized by severity (high/moderate/info) with per-file details and a highlighted `.docx` report
+- **PII Scan** — one-click scan for sensitive data: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Results are categorized by severity (high/moderate/info) with per-file details and a highlighted `.docx` report
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
 - **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
 - **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy, double-click a filename to open it. Matched files popup shows line numbers and includes a "View Text" option that displays the file's extracted content with line numbers and highlighted matches
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
-- **Compliance Wizard** — pick an industry starter template, customize checks, create a search suite in one click
-- **Search suites** — save searches, group into suites, run with pass/fail criteria and scheduled auto-runs. Import custom templates from `.json` files to add new suites
-- **Email alerts** — get notified when scheduled suites detect failures
+- **Save Search / Load Search** — save a configured search by name and reload it later with one click
+- **Search Wizard** — guided search builder with 20+ pre-built patterns (SSN, phone, email, dollar range, and more) — no flags or regex knowledge needed
 - **Inverse search** — find files that are *missing* required content
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
@@ -136,7 +127,7 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
 
 ### Upgrading
 
-Your saved searches, suites, settings, indexes, and reports are stored outside the docsearch installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
+Your saved searches, settings, indexes, and reports are stored outside the docsearch installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
 
 - **pipx:** `pipx upgrade docsearch`
 - **git:** `cd docsearch && git pull && pip install -e .`
@@ -175,7 +166,7 @@ docsearch-gui
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration, or the **Compliance Wizard** to create a search suite from 9 industry starter templates (Financial/SOX, Healthcare/HIPAA, Legal, Government, Manufacturing/ISO, Education/FERPA, Real Estate, Insurance, HR) — customize to fit your needs.
+Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration with 20+ pre-built patterns. Click **PII Scan** to find sensitive data with one click.
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 
@@ -197,8 +188,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 | Document | Description |
 |----------|-------------|
-| [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, suites, file reference |
-| [Compliance Guide](docs/COMPLIANCE_GUIDE.md) | Using docsearch for document review workflows — industry examples, sample suites, step-by-step setup |
+| [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Changelog](CHANGELOG.md) | Version history and release notes |
@@ -206,38 +196,16 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 ## Why docsearch?
 
-Most document search tools find text inside files. docsearch does that too — but it also helps you **prove what's in your documents and what's missing**. No other free tool lets you:
+Most document search tools find text inside files. docsearch does that and more — it also helps you **see what's hiding in your own documents**, privately and offline. No other free tool gives you:
 
-- Save a search, reuse it tomorrow, and get the same results
-- Group searches into suites that run as a batch with pass/fail verdicts
-- Detect files that are **missing** required content (inverse search)
-- Filter matches by dollar amount, date range, or percentage
-- Generate a highlighted Word report documenting what was searched and found
-- Schedule checks to run automatically with email alerts on failure
-- Start with industry-specific search templates and customize to fit your needs (Compliance Wizard)
+- A one-click PII Scan that finds Social Security numbers, credit cards, passwords, and other sensitive data in your own files, running entirely on your machine with nothing uploaded anywhere
+- Highlighted Word reports with every match shown in yellow
+- Save Search and Load Search so you can reuse a configured search with one click
+- The Search Wizard with 20+ pre-built search patterns for non-technical users
+- Range queries that filter by dollar amount, date range, or percentage
+- A built-in view that shows exactly which files were skipped and why, so nothing falls through the cracks
 
-If all you need is to find a word in a document, any search tool works. If you need to **systematically verify** that 500 documents meet a set of requirements — and produce evidence that you checked — that's what docsearch was built for.
-
-We call this **verifiable document audit** — the ability to define a set of checks, run them against a collection of documents, and generate a report that proves what was searched, what passed, what failed, and which files were in scope. Other tools search. docsearch searches *and proves it searched*.
-
-docsearch is a search and workflow tool that helps you organize document reviews. It does not certify compliance or provide legal advice — the checks you build and the conclusions you draw are yours.
-
-## What You Get at Each Price Point
-
-| Feature | docsearch (free) | Paid competitors ($29-249/yr) |
-|---------|-----------------|-------------------------------|
-| File types | 46 | 170+ |
-| CLI + GUI + API | All three | GUI only |
-| Cross-platform | Win/Mac/Linux | Windows only |
-| Highlighted .docx reports | Yes | No |
-| Compliance Wizard (9 industries) | Yes | No |
-| Search suites with pass/fail | Yes | No |
-| Range queries (dates, $, %) | Yes | Limited or none |
-| Email alerts | Yes | No |
-| OCR (scanned PDFs/images) | Yes | Varies |
-| Email search (.eml/.msg/.pst) | Yes | Yes |
-| Archive search (.zip/.7z/.rar) | Yes | No |
-| Open source | Yes | No |
+If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what docsearch was built for.
 
 ## Platform Notes
 
@@ -255,7 +223,7 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — retired electri
 
 ## Disclaimer
 
-docsearch is a search and reporting tool. It does not provide legal, regulatory, or compliance advice. Templates are document search configurations, not compliance certifications — pass/fail results indicate whether search criteria were met, not whether documents satisfy regulatory requirements. The built-in industry templates are examples of the kinds of checks that tend to come up in each industry; they do not necessarily cover everything needed to be compliant in any given industry, and they are not certified against any specific regulation. Users are solely responsible for determining whether search results meet their specific compliance obligations and for adding, removing, or editing checks to match what their organization actually needs to verify. This software is provided "as is" without warranty of any kind (see [MIT License](LICENSE)).
+docsearch is provided as-is under the [MIT License](LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns — always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
 
 ## License
 

@@ -123,8 +123,8 @@ Yes — docsearch searches inside .zip, .7z, .rar, .tar, .gz, .bz2, and .tgz arc
 **Does it work offline?**
 Yes — docsearch runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
-**Will upgrading docsearch delete my saved searches, suites, or settings?**
-No. Your saved searches, suites, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the docsearch code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for the complete list of what is preserved.
+**Will upgrading docsearch delete my saved searches or settings?**
+No. Your saved searches, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the docsearch code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for the complete list of what is preserved.
 
 ---
 

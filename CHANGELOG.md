@@ -2,6 +2,27 @@
 
 All notable changes to docsearch are documented here.
 
+## [Unreleased]
+
+### Removed
+
+- **Compliance feature removed — docsearch is now a focused home-user document search tool.** The following features were removed to simplify the product, eliminate legal-exposure concerns, and match docsearch's actual audience of individuals and small teams searching their own files:
+  - Compliance Wizard and the 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR)
+  - Search Suites (Manage Suites panel, suite builder, cascade mode, pass/fail criteria, suite execution)
+  - Auto-run scheduling for suites
+  - Email alerts (SMTP configuration, test email, alert sending)
+  - Suite reports (`.txt`/`.docx`/`.json` consolidated suite reports, stage reports, source file manifest, report fingerprint)
+  - Search Wizard pattern categories that were compliance-specific
+  - `compliance_templates.py` and `email_alert.py` modules (deleted)
+  - `docs/COMPLIANCE_GUIDE.md` (deleted)
+- Saved searches are preserved. Collection files with a legacy `test_suites` key continue to load — the key is silently dropped.
+
+### Changed
+
+- PII Scan, Save Search, Load Search, Search Wizard, and all other core features are unchanged and fully supported.
+- README and User Guide rewritten to focus on home-user workflows: search, PII Scan, saved searches, highlighted reports.
+- Disclaimers simplified — docsearch is now described straightforwardly as a local document search and pattern-matching tool.
+
 ## [0.2.0] — 2026-03-30
 
 ### Added

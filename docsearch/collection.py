@@ -1,4 +1,4 @@
-"""Saved search collections and search suites — per-folder JSON persistence."""
+"""Saved search collections — per-folder JSON persistence."""
 
 import json
 import os
@@ -17,7 +17,7 @@ SEARCH_PARAM_KEYS = [
 
 
 def _empty_collection():
-    return {"version": COLLECTION_VERSION, "saved_searches": {}, "test_suites": {}}
+    return {"version": COLLECTION_VERSION, "saved_searches": {}}
 
 
 def collection_path(folder):
@@ -26,7 +26,13 @@ def collection_path(folder):
 
 
 def load_collection(folder):
-    """Load and return the collection dict.  Returns empty structure if missing or corrupt."""
+    """Load and return the collection dict.  Returns empty structure if missing or corrupt.
+
+    Collection files created by older versions may contain a ``test_suites``
+    key from the removed compliance/suites feature. That key is silently
+    dropped on load so the file is treated as if it only ever had
+    ``saved_searches``.
+    """
     path = collection_path(folder)
     if not os.path.exists(path):
         return _empty_collection()
@@ -36,7 +42,8 @@ def load_collection(folder):
         # Ensure required keys exist
         data.setdefault("version", COLLECTION_VERSION)
         data.setdefault("saved_searches", {})
-        data.setdefault("test_suites", {})
+        # Drop legacy test_suites key from old compliance feature
+        data.pop("test_suites", None)
         # Migrate: rename "query" key to "search_text" in saved searches
         for params in data["saved_searches"].values():
             if "query" in params and "search_text" not in params:
@@ -61,51 +68,13 @@ def add_saved_search(folder, name, params):
 
 
 def remove_saved_search(folder, name):
-    """Remove a saved search and scrub it from any suites that reference it."""
+    """Remove a saved search from the collection."""
     data = load_collection(folder)
     data["saved_searches"].pop(name, None)
-    for suite in data["test_suites"].values():
-        suite["searches"] = [s for s in suite["searches"] if s != name]
     save_collection(folder, data)
-
-
-def add_test_suite(folder, suite_name, description, search_names, cascade=False,
-                   schedule="Off", last_run_time=None, pass_criteria=None):
-    """Create or overwrite a named search suite."""
-    data = load_collection(folder)
-    data["test_suites"][suite_name] = {
-        "description": description,
-        "searches": list(search_names),
-        "cascade": bool(cascade),
-        "schedule": schedule,
-        "last_run_time": last_run_time,
-        "pass_criteria": pass_criteria or {},
-    }
-    save_collection(folder, data)
-
-
-def remove_test_suite(folder, suite_name):
-    """Remove a search suite (saved searches are not affected)."""
-    data = load_collection(folder)
-    data["test_suites"].pop(suite_name, None)
-    save_collection(folder, data)
-
-
-def update_suite_field(folder, suite_name, key, value):
-    """Update a single field on an existing suite."""
-    data = load_collection(folder)
-    if suite_name in data["test_suites"]:
-        data["test_suites"][suite_name][key] = value
-        save_collection(folder, data)
 
 
 def get_search_params(folder, name):
     """Return the parameter dict for a named saved search, or None."""
     data = load_collection(folder)
     return data["saved_searches"].get(name)
-
-
-def get_suite(folder, suite_name):
-    """Return the suite dict for a named suite, or None."""
-    data = load_collection(folder)
-    return data["test_suites"].get(suite_name)
