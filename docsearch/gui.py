@@ -3169,7 +3169,12 @@ def _launch_gui():
             win.title("PII Scan — Select Categories")
             win.resizable(False, False)
             win.transient(self)
-            win.grab_set()
+            # No grab_set() — the help window (?) must remain interactive
+            # alongside this popup so users can copy regex examples and
+            # paste them into the Custom Pattern fields.
+            # Raise on focus so this window comes to front when clicked
+            # anywhere (macOS doesn't auto-reorder transient siblings).
+            win.bind("<FocusIn>", lambda e: win.lift())
 
             header = tk.Frame(win)
             header.pack(fill="x", padx=15, pady=(12, 4))
@@ -3256,7 +3261,7 @@ def _launch_gui():
             tk.Button(toggle_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=5)
             tk.Button(toggle_frame, text="Deselect All", width=10, command=_deselect_all).pack(side="left", padx=5)
 
-            # ── Advanced: user-supplied custom regex pattern ──
+            # ── Advanced: user-supplied custom regex patterns (2 rows) ──
             from tkinter import ttk as _ttk
             _ttk.Separator(win, orient="horizontal").pack(fill="x", padx=15, pady=(10, 4))
 
@@ -3264,73 +3269,79 @@ def _launch_gui():
             custom_outer.pack(fill="x", padx=20, pady=(0, 2))
             tk.Label(
                 custom_outer,
-                text="Advanced \u2014 Custom Pattern (optional)",
+                text="Advanced \u2014 Custom Patterns (optional)",
                 font=("TkDefaultFont", 11, "bold"),
             ).pack(anchor="w")
             tk.Label(
                 custom_outer,
-                text="Add your own regex to the scan. Requires regex knowledge. "
+                text="Add up to two of your own regex patterns to the scan. Requires regex knowledge. "
                      "See the ? help for examples and disclaimers.",
                 font=("TkDefaultFont", 9), fg="gray",
             ).pack(anchor="w")
 
-            # Load saved custom pattern from config
-            saved_custom_enabled = bool(_cfg.get("pii_scan_custom_enabled", False))
-            saved_custom_name = _cfg.get("pii_scan_custom_name", "")
-            saved_custom_regex = _cfg.get("pii_scan_custom_regex", "")
-            saved_custom_severity = _cfg.get("pii_scan_custom_severity", "moderate")
-            if saved_custom_severity not in ("high", "moderate", "info"):
-                saved_custom_severity = "moderate"
+            # Build two custom-pattern rows with shared structure.
+            # Config keys use "" for the first row and "2" for the second,
+            # so existing configs with pii_scan_custom_* still work.
+            _custom_suffixes = ["", "2"]
+            custom_rows = []  # list of (enabled_var, name_entry, regex_entry, severity_var)
+            for suffix in _custom_suffixes:
+                saved_enabled = bool(_cfg.get(f"pii_scan_custom{suffix}_enabled", False))
+                saved_name = _cfg.get(f"pii_scan_custom{suffix}_name", "")
+                saved_regex = _cfg.get(f"pii_scan_custom{suffix}_regex", "")
+                saved_severity = _cfg.get(f"pii_scan_custom{suffix}_severity", "moderate")
+                if saved_severity not in ("high", "moderate", "info"):
+                    saved_severity = "moderate"
 
-            custom_row = tk.Frame(custom_outer)
-            custom_row.pack(fill="x", pady=(4, 0))
+                row = tk.Frame(custom_outer)
+                row.pack(fill="x", pady=(4, 0))
 
-            custom_enabled_var = tk.BooleanVar(value=saved_custom_enabled)
-            tk.Checkbutton(
-                custom_row, variable=custom_enabled_var, font=("TkDefaultFont", 11),
-            ).pack(side="left")
+                enabled_var = tk.BooleanVar(value=saved_enabled)
+                tk.Checkbutton(
+                    row, variable=enabled_var, font=("TkDefaultFont", 11),
+                ).pack(side="left")
 
-            tk.Label(custom_row, text="Name:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            custom_name_entry = tk.Entry(custom_row, width=16, font=("TkDefaultFont", 11))
-            custom_name_entry.insert(0, saved_custom_name)
-            custom_name_entry.pack(side="left", padx=(0, 6))
+                tk.Label(row, text="Name:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+                name_entry = tk.Entry(row, width=16, font=("TkDefaultFont", 11))
+                name_entry.insert(0, saved_name)
+                name_entry.pack(side="left", padx=(0, 6))
 
-            tk.Label(custom_row, text="Regex:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            custom_regex_entry = tk.Entry(custom_row, width=26, font=("TkDefaultFont", 11))
-            custom_regex_entry.insert(0, saved_custom_regex)
-            custom_regex_entry.pack(side="left", padx=(0, 6))
-            Tooltip(
-                custom_regex_entry,
-                "Your custom regex. docsearch does NOT validate that it "
-                "correctly identifies the data you intend to find \u2014 you "
-                "own the outcome. Syntax errors are caught before the scan "
-                "runs, and obviously too-broad patterns will trigger a "
-                "warning. Findings from your pattern are marked '(custom)' "
-                "in the results and report. See the ? help for details.",
-            )
+                tk.Label(row, text="Regex:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+                regex_entry = tk.Entry(row, width=26, font=("TkDefaultFont", 11))
+                regex_entry.insert(0, saved_regex)
+                regex_entry.pack(side="left", padx=(0, 6))
+                Tooltip(
+                    regex_entry,
+                    "Your custom regex. docsearch does NOT validate that it "
+                    "correctly identifies the data you intend to find \u2014 you "
+                    "own the outcome. Syntax errors are caught before the scan "
+                    "runs, and obviously too-broad patterns will trigger a "
+                    "warning. Findings from your pattern are marked '(custom)' "
+                    "in the results and report. See the ? help for details.",
+                )
 
-            tk.Label(custom_row, text="Severity:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            custom_severity_var = tk.StringVar(value=saved_custom_severity)
-            _ttk.Combobox(
-                custom_row, textvariable=custom_severity_var,
-                values=["high", "moderate", "info"],
-                state="readonly", width=10,
-                font=("TkDefaultFont", 11),
-            ).pack(side="left")
+                tk.Label(row, text="Severity:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+                severity_var = tk.StringVar(value=saved_severity)
+                _ttk.Combobox(
+                    row, textvariable=severity_var,
+                    values=["high", "moderate", "info"],
+                    state="readonly", width=10,
+                    font=("TkDefaultFont", 11),
+                ).pack(side="left")
 
-            # Persistent amber warning below the custom-pattern row
-            warning_lbl = tk.Label(
+                custom_rows.append((enabled_var, name_entry, regex_entry, severity_var))
+
+            # Persistent amber warning below the custom-pattern rows
+            tk.Label(
                 custom_outer,
                 text=(
                     "\u26a0  docsearch does NOT validate your regex. You own the outcome. "
-                    "Findings from your pattern are marked '(custom)' in the results and report."
+                    "Findings from your patterns are marked '(custom)' in the results and report."
                 ),
                 font=("TkDefaultFont", 9, "italic"),
                 fg="#996600",
                 wraplength=820,
                 justify="left",
-            )
-            warning_lbl.pack(anchor="w", pady=(4, 0))
+            ).pack(anchor="w", pady=(4, 0))
 
             # Run button on its own row; Close button on a separate row below
             btn_frame = tk.Frame(win)
@@ -3365,50 +3376,48 @@ def _launch_gui():
                         self._show_error("Dollar amount Min must be less than or equal to Max.")
                         return
 
-                # Validate and include the custom pattern if enabled
-                custom_name = custom_name_entry.get().strip()
-                custom_regex = custom_regex_entry.get().strip()
-                custom_severity = custom_severity_var.get()
-                if custom_severity not in ("high", "moderate", "info"):
-                    custom_severity = "moderate"
-                custom_enabled = custom_enabled_var.get()
-
-                if custom_enabled:
-                    if not custom_name:
-                        self._show_error("Custom Pattern: please enter a Name for the pattern.")
-                        return
-                    if not custom_regex:
-                        self._show_error("Custom Pattern: please enter a Regex.")
-                        return
-                    # Compile check — catch syntax errors before launching the scan
-                    try:
-                        _re.compile(custom_regex)
-                    except _re.error as exc:
-                        self._show_error(
-                            f"Custom Pattern regex is invalid:\n\n{exc}\n\n"
-                            "Fix the pattern and try again."
-                        )
-                        return
-                    # Warn on suspiciously broad patterns that will flood the report
-                    stripped = custom_regex.strip()
-                    looks_too_broad = (
-                        len(stripped) < 3
-                        or stripped in (".", ".*", ".+", "\\w", "\\w+", "\\w*",
-                                        "\\S", "\\S+", "\\S*", "\\d", "\\d+",
-                                        "\\d*", "[^ ]", "[^ ]*", "[^ ]+")
-                    )
-                    if looks_too_broad:
-                        if not _mb.askyesno(
-                            "Very Broad Custom Pattern",
-                            f"Your custom regex is {repr(stripped)}, which is likely to "
-                            "match almost every file in the folder and produce a huge "
-                            "number of findings.\n\nRun the scan anyway?",
-                            parent=win,
-                        ):
+                # Validate and include custom patterns if enabled
+                for row_idx, (c_enabled_var, c_name_entry, c_regex_entry, c_sev_var) in enumerate(custom_rows):
+                    c_enabled = c_enabled_var.get()
+                    c_name = c_name_entry.get().strip()
+                    c_regex = c_regex_entry.get().strip()
+                    c_severity = c_sev_var.get()
+                    if c_severity not in ("high", "moderate", "info"):
+                        c_severity = "moderate"
+                    label = f"Custom Pattern {row_idx + 1}"
+                    if c_enabled:
+                        if not c_name:
+                            self._show_error(f"{label}: please enter a Name.")
                             return
-                    # Append to selected list
-                    description = f"Custom user pattern: {custom_regex}"
-                    selected.append((custom_name, custom_regex, custom_severity, description))
+                        if not c_regex:
+                            self._show_error(f"{label}: please enter a Regex.")
+                            return
+                        try:
+                            _re.compile(c_regex)
+                        except _re.error as exc:
+                            self._show_error(
+                                f"{label} regex is invalid:\n\n{exc}\n\n"
+                                "Fix the pattern and try again."
+                            )
+                            return
+                        stripped = c_regex.strip()
+                        looks_too_broad = (
+                            len(stripped) < 3
+                            or stripped in (".", ".*", ".+", "\\w", "\\w+", "\\w*",
+                                            "\\S", "\\S+", "\\S*", "\\d", "\\d+",
+                                            "\\d*", "[^ ]", "[^ ]*", "[^ ]+")
+                        )
+                        if looks_too_broad:
+                            if not _mb.askyesno(
+                                f"Very Broad {label}",
+                                f"Your custom regex is {repr(stripped)}, which is likely to "
+                                "match almost every file in the folder and produce a huge "
+                                "number of findings.\n\nRun the scan anyway?",
+                                parent=win,
+                            ):
+                                return
+                        description = f"Custom user pattern: {c_regex}"
+                        selected.append((c_name, c_regex, c_severity, description))
 
                 if not selected:
                     self._show_error("Select at least one category or add a custom pattern.")
@@ -3425,10 +3434,12 @@ def _launch_gui():
                         config["pii_scan_dollar_max"] = str(int(dollar_max)) if dollar_max.is_integer() else str(dollar_max)
                     # Always persist the custom-pattern fields so the popup
                     # restores them next time, even if the checkbox is off.
-                    config["pii_scan_custom_enabled"] = custom_enabled
-                    config["pii_scan_custom_name"] = custom_name
-                    config["pii_scan_custom_regex"] = custom_regex
-                    config["pii_scan_custom_severity"] = custom_severity
+                    for row_idx, (c_ev, c_ne, c_re, c_sv) in enumerate(custom_rows):
+                        suffix = _custom_suffixes[row_idx]
+                        config[f"pii_scan_custom{suffix}_enabled"] = c_ev.get()
+                        config[f"pii_scan_custom{suffix}_name"] = c_ne.get().strip()
+                        config[f"pii_scan_custom{suffix}_regex"] = c_re.get().strip()
+                        config[f"pii_scan_custom{suffix}_severity"] = c_sv.get()
                     _save_config(config)
                 except Exception:
                     pass
@@ -3446,14 +3457,24 @@ def _launch_gui():
             ).pack()
 
         def _show_pii_scan_help(self, parent):
-            """Show help for the PII Scan."""
+            """Show help for the PII Scan.
+
+            Non-modal (no grab_set) so the user can copy regex examples
+            from this window and paste them into the Custom Pattern fields
+            on the categories popup without closing the help first.
+            """
             import tkinter as tk
-            help_win = tk.Toplevel(parent)
+            # Both this help window and the categories popup are
+            # transient(self) so they stay above the main window as a
+            # group.  macOS doesn't auto-reorder transient siblings on
+            # click, so we add a <Button-1> → lift() binding on both
+            # windows — whichever you click comes to front.
+            help_win = tk.Toplevel(self)
             help_win.title("PII Scan — Help")
-            help_win.geometry("700x580")
+            help_win.geometry("750x700")
             help_win.resizable(True, True)
-            help_win.transient(parent)
-            help_win.grab_set()
+            help_win.transient(self)
+            help_win.bind("<FocusIn>", lambda e: help_win.lift())
 
             txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                           padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -3461,6 +3482,27 @@ def _launch_gui():
             txt.configure(yscrollcommand=scroll.set)
             scroll.pack(side="right", fill="y")
             txt.pack(fill="both", expand=True)
+
+            # Right-click context menu for copying selected text
+            _copy_menu = tk.Menu(txt, tearoff=0)
+            _copy_menu.add_command(
+                label="Copy",
+                command=lambda: (
+                    help_win.clipboard_clear(),
+                    help_win.clipboard_append(txt.get("sel.first", "sel.last")),
+                ) if txt.tag_ranges("sel") else None,
+            )
+
+            def _show_copy_menu(event):
+                try:
+                    _copy_menu.tk_popup(event.x_root, event.y_root)
+                finally:
+                    _copy_menu.grab_release()
+
+            # Bind right-click on all platforms
+            txt.bind("<Button-3>", _show_copy_menu)          # Windows / Linux
+            txt.bind("<Button-2>", _show_copy_menu)          # macOS
+            txt.bind("<Control-Button-1>", _show_copy_menu)  # macOS ctrl+click
 
             txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
                               spacing1=10, spacing3=5)
@@ -3584,7 +3626,37 @@ def _launch_gui():
             b("\u2014 the Custom Pattern section at the bottom of the category")
             b("selection popup lets you add your own regex to the scan.")
             blank()
-            b("How to use it:")
+
+            b("WHAT IS REGEX?")
+            blank()
+            b("Regex (short for 'regular expression') is a mini-language")
+            b("for describing text patterns. Instead of searching for an")
+            b("exact word like 'budget', a regex lets you describe a")
+            b("shape \u2014 for example, 'three digits, a dash, two digits,")
+            b("a dash, four digits' matches the SSN format 123-45-6789.")
+            blank()
+            b("You don't need to be a programmer to use basic regex.")
+            b("Most useful patterns are built from a handful of building")
+            b("blocks described below. If you can read a pattern like")
+            b("\\d{3}-\\d{2}-\\d{4} and understand that \\d means 'any digit'")
+            b("and {3} means 'exactly three,' you know enough to write")
+            b("your own custom patterns for the PII Scan.")
+            blank()
+            b("If you've never used regex before, these free resources")
+            b("can help you get started in 15\u201330 minutes:")
+            blank()
+            b("\u2022 regex101.com \u2014 an interactive regex tester where you can")
+            b("  type a pattern, paste some sample text, and see what")
+            b("  matches in real time. Choose the 'Python' flavor on the")
+            b("  left sidebar. This is the single best way to learn.")
+            b("\u2022 regexone.com \u2014 a free, step-by-step tutorial that teaches")
+            b("  one concept at a time with interactive exercises.")
+            b("\u2022 rexegg.com/regex-quickstart.html \u2014 a one-page cheat")
+            b("  sheet with every regex symbol and what it does.")
+            blank()
+
+            b("HOW TO USE THE CUSTOM PATTERN")
+            blank()
             b("1. Check the box next to 'Advanced \u2014 Custom Pattern'")
             b("2. Enter a short Name (e.g., 'UK NINO' or 'Client ID')")
             b("3. Enter the Regex pattern")
@@ -3593,28 +3665,120 @@ def _launch_gui():
             blank()
             b("The custom pattern runs alongside the built-in categories")
             b("you have checked. Findings appear in the results popup and")
-            b("report as a separate category with the name you entered.")
+            b("report as a separate category with the name you entered,")
+            b("marked with '(custom)' so you can tell it apart from the")
+            b("built-in categories.")
             blank()
-            b("Example patterns for common international formats:")
-            e("  UK NINO:       [A-Z]{2}\\d{6}[A-Z]")
-            e("  Canadian SIN:  \\d{3}[- ]?\\d{3}[- ]?\\d{3}")
-            e("  UK VAT:        GB\\d{9}")
-            e("  German Steuer: \\d{2}[ ]?\\d{3}[ ]?\\d{3}[ ]?\\d{3}")
-            e("  Indian PAN:    [A-Z]{5}\\d{4}[A-Z]")
-            e("  API keys:      [A-Za-z0-9_]{20,}")
+
+            b("REGEX BASICS")
             blank()
-            b("Regex basics, if you need a refresher:")
-            e("  \\d              any digit 0\u20139")
+            b("Characters and digits:")
+            e("  \\d              any single digit (0\u20139)")
+            e("  \\D              any character that is NOT a digit")
+            e("  \\w              any letter, digit, or underscore")
+            e("  \\W              any character that is NOT a letter/digit/_")
+            e("  \\s              any whitespace (space, tab, newline)")
+            e("  \\S              any character that is NOT whitespace")
+            e("  .               any single character except newline")
+            e("  \\.              a literal dot (the backslash 'escapes' it)")
+            blank()
+            b("Repetition (how many times to match):")
             e("  \\d{3}           exactly 3 digits")
             e("  \\d{3,5}         3 to 5 digits")
-            e("  [A-Z]           any uppercase letter")
-            e("  \\s              any whitespace character")
-            e("  .               any single character (escape as \\. for a dot)")
-            e("  ?               the previous item is optional")
-            e("  |               OR (e.g., cat|dog)")
-            e("  ( )             grouping")
+            e("  \\d{3,}          3 or more digits")
+            e("  \\d+             one or more digits (same as \\d{1,})")
+            e("  \\d*             zero or more digits")
+            e("  \\d?             zero or one digit (the digit is optional)")
             blank()
-            b("Important:")
+            b("Character classes (match one of a set):")
+            e("  [A-Z]           any uppercase letter A\u2013Z")
+            e("  [a-z]           any lowercase letter a\u2013z")
+            e("  [A-Za-z]        any letter (upper or lower)")
+            e("  [0-9]           any digit (same as \\d)")
+            e("  [A-Z0-9]        any uppercase letter or digit")
+            e("  [- ]            a dash or a space")
+            e("  [^0-9]          any character EXCEPT a digit")
+            blank()
+            b("Anchors and grouping:")
+            e("  ^               start of line")
+            e("  $               end of line")
+            e("  ( )             group characters together")
+            e("  |               OR  (e.g., cat|dog matches 'cat' or 'dog')")
+            e("  (?:  )          group without capturing (more efficient)")
+            blank()
+            b("Escaping special characters:")
+            b("These characters have special meaning in regex:")
+            e("  . * + ? [ ] ( ) { } ^ $ \\ |")
+            b("To search for one of them literally, put a backslash")
+            b("in front of it. For example:")
+            e("  \\.              matches a literal dot")
+            e("  \\$              matches a literal dollar sign")
+            e("  \\(              matches a literal opening parenthesis")
+            blank()
+            b("Putting it together \u2014 reading a pattern:")
+            e("  \\d{3}-\\d{2}-\\d{4}")
+            b("  means: 3 digits, a dash, 2 digits, a dash, 4 digits")
+            b("  matches: 123-45-6789 (SSN format)")
+            blank()
+            e("  [A-Z]{2}\\d{6}[A-Z]")
+            b("  means: 2 uppercase letters, 6 digits, 1 uppercase letter")
+            b("  matches: AB123456C (UK National Insurance Number)")
+            blank()
+            e("  \\$[\\d,]+\\.\\d{2}")
+            b("  means: a dollar sign, one or more digits/commas, a dot,")
+            b("  exactly 2 digits")
+            b("  matches: $1,234.56  $99.00  $1,000,000.00")
+            blank()
+
+            b("EXAMPLE PATTERNS FOR COMMON FORMATS")
+            blank()
+            b("National ID numbers:")
+            e("  US SSN:            \\d{3}-\\d{2}-\\d{4}")
+            e("  UK NINO:           [A-Z]{2}\\d{6}[A-Z]")
+            e("  Canadian SIN:      \\d{3}[- ]?\\d{3}[- ]?\\d{3}")
+            e("  Australian TFN:    \\d{3}[ ]?\\d{3}[ ]?\\d{3}")
+            e("  Indian PAN:        [A-Z]{5}\\d{4}[A-Z]")
+            e("  Indian Aadhaar:    \\d{4}[ ]?\\d{4}[ ]?\\d{4}")
+            e("  German Steuer-ID:  \\d{2}[ ]?\\d{3}[ ]?\\d{3}[ ]?\\d{3}")
+            e("  French INSEE/NIR:  [12]\\d{2}[01]\\d{9}([ ]?\\d{2})?")
+            e("  South Korean RRN:  \\d{6}-\\d{7}")
+            e("  Brazilian CPF:     \\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")
+            e("  Mexican CURP:      [A-Z]{4}\\d{6}[A-Z]{6}\\d{2}")
+            blank()
+            b("Tax and business numbers:")
+            e("  US EIN:            \\d{2}-\\d{7}")
+            e("  UK VAT:            GB\\d{9}")
+            e("  EU VAT (generic):  [A-Z]{2}\\d{8,12}")
+            e("  Australian ABN:    \\d{2}[ ]?\\d{3}[ ]?\\d{3}[ ]?\\d{3}")
+            blank()
+            b("Financial:")
+            e("  IBAN (generic):    [A-Z]{2}\\d{2}[A-Z0-9]{4,30}")
+            e("  SWIFT/BIC:         [A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?")
+            e("  Dollar amounts:    \\$[\\d,]+\\.\\d{2}")
+            e("  Euro amounts:      \\d+[,.]\\d{2}[ ]?\u20ac")
+            blank()
+            b("Technology:")
+            e("  AWS access key:    AKIA[0-9A-Z]{16}")
+            e("  Generic API key:   [A-Za-z0-9_]{20,}")
+            e("  IPv4 address:      \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
+            e("  Email address:     [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+            blank()
+            b("Other:")
+            e("  US passport:       [A-Z]\\d{8}")
+            e("  UK passport:       \\d{9}")
+            e("  US license plate:  [A-Z0-9]{2,7}")
+            e("  Dates (YYYY-MM-DD): \\d{4}-\\d{2}-\\d{2}")
+            e("  Dates (DD/MM/YYYY): \\d{2}/\\d{2}/\\d{4}")
+            e("  Phone (intl):      \\+\\d{1,3}[- ]?\\d{4,14}")
+            blank()
+            b("Tip: copy a pattern from above, paste it into the Regex")
+            b("field, give it a Name, and click Run Scan. You can also")
+            b("test patterns at regex101.com (choose the Python flavor)")
+            b("before running the scan.")
+            blank()
+
+            b("IMPORTANT NOTES")
+            blank()
             b("\u2022 Don't worry about getting your regex wrong. docsearch")
             b("  never modifies, moves, or deletes the files it searches")
             b("  \u2014 it only reads them and writes a summary report. The")
@@ -3798,6 +3962,21 @@ def _launch_gui():
             blank()
 
             txt.configure(state="disabled")
+
+            # Ensure Cmd+C (macOS) and Ctrl+C (Windows/Linux) copy the
+            # selected text even though the widget is in disabled state.
+            def _keyboard_copy(event):
+                try:
+                    sel = txt.get("sel.first", "sel.last")
+                    if sel:
+                        help_win.clipboard_clear()
+                        help_win.clipboard_append(sel)
+                except tk.TclError:
+                    pass  # No selection
+                return "break"
+
+            txt.bind("<Command-c>", _keyboard_copy)   # macOS
+            txt.bind("<Control-c>", _keyboard_copy)    # Windows / Linux
 
             close_btn = ctk.CTkButton(
                 help_win, text="Close", width=80,
