@@ -691,26 +691,16 @@ def _launch_gui():
             self._or_radio.pack(side="left", padx=(8, 6), pady=3)
             Tooltip(self._or_radio, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode checkbox in Advanced Search Options")
 
-            # Right-aligned: Use Index checkbox
+            # Right-aligned: Use Index checkbox (rightmost)
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
             )
-            self.cb_index_search.pack(side="right", padx=(5, 2))
+            self.cb_index_search.pack(side="right", padx=(5, 42))
             Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
-            # Right-aligned: Search Wizard button
-            self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
-                btn_frame, text="Search Wizard", width=0,
-                command=self._open_search_wizard_guide,
-                font=ctk.CTkFont(size=12),
-                fg_color="#8B5CF6", hover_color="#7C3AED",
-            )
-            search_wiz_btn.pack(side="right", padx=(0, 5))
-            Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
-
-            # PII Scan — to the left of the save group
+            # PII Scan
             self.sensitive_scan_btn = ctk.CTkButton(
                 btn_frame, text="PII Scan", width=0,
                 command=self._start_sensitive_scan,
@@ -747,6 +737,18 @@ def _launch_gui():
             )
             self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
+
+            # Search Wizard — packed last among right-packed items so it
+            # appears between the Run Search group (left) and the Save
+            # Search group (right).
+            self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
+                btn_frame, text="Search Wizard", width=0,
+                command=self._open_search_wizard_guide,
+                font=ctk.CTkFont(size=12),
+                fg_color="#8B5CF6", hover_color="#7C3AED",
+            )
+            search_wiz_btn.pack(side="right", padx=(0, 5))
+            Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -866,7 +868,7 @@ def _launch_gui():
 
             win = ctk.CTkToplevel(self)
             win.title("Search Wizard")
-            win.geometry("920x520")
+            win.geometry("920x680")
             win.resizable(True, True)
             win.after(50, win.lift)
             win.after(100, win.focus_force)
@@ -877,7 +879,7 @@ def _launch_gui():
             ctk.CTkLabel(
                 header_frame,
                 text="Select a search type (click its radio button), fill in your values, "
-                     "then click Apply at the bottom. Use the Save Search button on the main screen to save your settings.",
+                     "then click Apply. Close this window at any time to cancel \u2014 nothing changes until you click Apply.",
                 font=ctk.CTkFont(size=13),
                 wraplength=650, justify="center",
             ).pack(expand=True)
