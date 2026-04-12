@@ -329,6 +329,14 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
 
     # Summary table
     doc.add_heading("Summary", level=2)
+    hint = doc.add_paragraph()
+    hint_run = hint.add_run(
+        "Click a category name below to jump to its detail section. "
+        "(On Windows, hold Ctrl and click.)"
+    )
+    hint_run.font.size = Pt(9)
+    hint_run.italic = True
+    hint_run.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
     table = doc.add_table(rows=1, cols=4)
     table.style = "Light Grid Accent 1"
     hdr = table.rows[0].cells
@@ -338,16 +346,79 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     hdr[3].text = "Files"
 
     severity_rank = {s: i for i, s in enumerate(SEVERITY_ORDER)}
-    sorted_results = sorted(
-        scan_results,
+    # Separate built-in and custom results so custom patterns always
+    # appear at the bottom of both the summary table and the details
+    # section, where the user expects to find them.
+    builtin_results = [r for r in scan_results if not r.get("is_custom")]
+    custom_results = [r for r in scan_results if r.get("is_custom")]
+    builtin_sorted = sorted(
+        builtin_results,
         key=lambda r: (severity_rank.get(r["severity"], 99), -r["match_count"]),
     )
+    custom_sorted = sorted(
+        custom_results,
+        key=lambda r: (severity_rank.get(r["severity"], 99), -r["match_count"]),
+    )
+    sorted_results = builtin_sorted + custom_sorted
 
-    for result in sorted_results:
+    # Build bookmark names so the summary table can hyperlink to each
+    # detail section.  Only categories with findings get a bookmark.
+    _bookmark_names = {}  # result index → bookmark name
+    _bookmark_id = [100]  # mutable counter for unique bookmark IDs
+
+    def _add_bookmark(paragraph, name):
+        """Insert a Word bookmark into *paragraph*."""
+        bm_id = str(_bookmark_id[0])
+        _bookmark_id[0] += 1
+        bs = OxmlElement("w:bookmarkStart")
+        bs.set(qn("w:id"), bm_id)
+        bs.set(qn("w:name"), name)
+        be = OxmlElement("w:bookmarkEnd")
+        be.set(qn("w:id"), bm_id)
+        paragraph._p.insert(0, bs)
+        paragraph._p.append(be)
+
+    def _add_internal_hyperlink(paragraph, anchor, text):
+        """Append a clickable internal hyperlink (blue, underlined) to *paragraph*."""
+        hyperlink = OxmlElement("w:hyperlink")
+        hyperlink.set(qn("w:anchor"), anchor)
+        run_elem = OxmlElement("w:r")
+        rPr = OxmlElement("w:rPr")
+        color = OxmlElement("w:color")
+        color.set(qn("w:val"), "0563C1")
+        rPr.append(color)
+        underline = OxmlElement("w:u")
+        underline.set(qn("w:val"), "single")
+        rPr.append(underline)
+        run_elem.append(rPr)
+        t = OxmlElement("w:t")
+        t.text = text
+        t.set(qn("xml:space"), "preserve")
+        run_elem.append(t)
+        hyperlink.append(run_elem)
+        paragraph._p.append(hyperlink)
+
+    for idx, result in enumerate(sorted_results):
+        bm_name = f"_pii_cat_{idx}"
+        if result["match_count"] > 0:
+            _bookmark_names[idx] = bm_name
+
         row = table.add_row().cells
         sev = SEVERITY_COLORS.get(result["severity"], SEVERITY_COLORS["info"])
         row[0].text = sev["label"]
-        row[1].text = result["category"]
+
+        # Category cell — hyperlink to the detail section if findings exist
+        cat_label = result["category"]
+        if result.get("is_custom"):
+            cat_label += "  (custom)"
+        if idx in _bookmark_names:
+            # Clear the default empty paragraph text and add a hyperlink
+            cat_cell = row[1]
+            cat_cell.text = ""
+            _add_internal_hyperlink(cat_cell.paragraphs[0], bm_name, cat_label)
+        else:
+            row[1].text = cat_label
+
         row[2].text = str(result["match_count"])
         row[3].text = str(result["file_count"])
 
@@ -392,7 +463,7 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
         "info": RGBColor(0x1F, 0x6A, 0xA5),      # blue
     }
 
-    for result in sorted_results:
+    for idx, result in enumerate(sorted_results):
         if result["match_count"] == 0:
             continue
 
@@ -414,6 +485,11 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
         run.bold = True
         run.font.size = Pt(18)
         run.font.color.rgb = heading_color
+
+        # Insert a bookmark so the summary table hyperlink jumps here
+        bm_name = _bookmark_names.get(idx)
+        if bm_name:
+            _add_bookmark(cat_heading, bm_name)
 
         # For custom patterns, add a prominent warning line immediately below
         # the heading so the reader cannot miss that this category came from

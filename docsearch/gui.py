@@ -3352,7 +3352,9 @@ def _launch_gui():
             def _run():
                 from tkinter import messagebox as _mb
                 import re as _re
-                selected = [SENSITIVE_PATTERNS[i] for i, v in enumerate(check_vars) if v.get()]
+                # 5-tuples: (category, regex, severity, description, is_custom)
+                # Built-in patterns get is_custom=False explicitly.
+                selected = [(*SENSITIVE_PATTERNS[i], False) for i, v in enumerate(check_vars) if v.get()]
 
                 # Validate Dollar Amounts min/max if that category is selected
                 dollar_min = dollar_max = None
@@ -3417,7 +3419,7 @@ def _launch_gui():
                             ):
                                 return
                         description = f"Custom user pattern: {c_regex}"
-                        selected.append((c_name, c_regex, c_severity, description))
+                        selected.append((c_name, c_regex, c_severity, description, True))
 
                 if not selected:
                     self._show_error("Select at least one category or add a custom pattern.")
@@ -4028,7 +4030,14 @@ def _launch_gui():
             start = time.time()
             files_searched = 0
 
-            for pat_idx, (category, regex, severity, description) in enumerate(patterns, 1):
+            for pat_idx, pattern_tuple in enumerate(patterns, 1):
+                # 5-tuple: (category, regex, severity, description, is_custom)
+                # Fall back to 4-tuple with is_custom=False for safety.
+                if len(pattern_tuple) >= 5:
+                    category, regex, severity, description, is_custom = pattern_tuple[:5]
+                else:
+                    category, regex, severity, description = pattern_tuple[:4]
+                    is_custom = False
                 self.after(0, lambda i=pat_idx, t=total_patterns, c=category:
                     self.status_label.configure(
                         text=f"Scanning for sensitive data... ({i}/{t}) {c}",
@@ -4043,11 +4052,8 @@ def _launch_gui():
                     range_filters = [f"amount:{lo}..{hi}"]
                     lo_label = f"${int(lo):,}" if float(lo).is_integer() else f"${lo:,}"
                     hi_label = f"${int(hi):,}" if float(hi).is_integer() else f"${hi:,}"
-                    category = f"Dollar Amounts ({lo_label} – {hi_label})"
+                    category = f"Dollar Amounts ({lo_label} \u2013 {hi_label})"
                     description = f"Dollar amounts between {lo_label} and {hi_label}"
-                # Detect whether this is a user-supplied custom pattern so we
-                # can visually mark its findings in the results and the report.
-                is_custom = description.startswith("Custom user pattern:")
                 try:
                     result = search(
                         [regex],
@@ -4202,10 +4208,16 @@ def _launch_gui():
             canvas.pack(side="left", fill="both", expand=True)
             scrollbar.pack(side="right", fill="y")
 
-            # Sort by severity order, then by match count descending
+            # Sort built-in categories by severity, then custom patterns
+            # at the bottom where the user expects to find them.
             severity_rank = {s: i for i, s in enumerate(SEVERITY_ORDER)}
+            builtin = [r for r in scan_results if not r.get("is_custom")]
+            custom = [r for r in scan_results if r.get("is_custom")]
             sorted_results = sorted(
-                scan_results,
+                builtin,
+                key=lambda r: (severity_rank.get(r["severity"], 99), -r["match_count"]),
+            ) + sorted(
+                custom,
                 key=lambda r: (severity_rank.get(r["severity"], 99), -r["match_count"]),
             )
 
