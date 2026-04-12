@@ -581,10 +581,11 @@ def _launch_gui():
             tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
 
             features = [
-                ("\U0001f50d  PII Scan", "One click finds SSNs, credit cards, passwords, and other sensitive data hiding in your files.", "#0D9488"),
+                ("\U0001f50d  PII Scan", "One click finds SSNs, credit cards, passwords, and other sensitive data hiding in your files. Advanced users can add their own custom regex.", "#0D9488"),
                 ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
                 ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
                 ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
+                ("\U0001f30d  Any Language", "Search documents in English, Spanish, Chinese, Arabic, Hindi, Japanese, or any other language. All text handling is Unicode-based.", "#6B7280"),
             ]
 
             for emoji_title, desc, color in features:
@@ -717,7 +718,7 @@ def _launch_gui():
                 fg_color="#0D9488", hover_color="#0F766E",
             )
             self.sensitive_scan_btn.pack(side="right", padx=(0, 5))
-            Tooltip(self.sensitive_scan_btn, "Sensitive Data Scan — one-click scan for PII: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and large dollar amounts. Uses current folder and respects Recursive and File Type settings")
+            Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern. Uses current folder and respects Recursive and File Type settings")
 
             # Right-aligned grouped: Save Search, Load Saved Search
             save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
@@ -3255,6 +3256,82 @@ def _launch_gui():
             tk.Button(toggle_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=5)
             tk.Button(toggle_frame, text="Deselect All", width=10, command=_deselect_all).pack(side="left", padx=5)
 
+            # ── Advanced: user-supplied custom regex pattern ──
+            from tkinter import ttk as _ttk
+            _ttk.Separator(win, orient="horizontal").pack(fill="x", padx=15, pady=(10, 4))
+
+            custom_outer = tk.Frame(win)
+            custom_outer.pack(fill="x", padx=20, pady=(0, 2))
+            tk.Label(
+                custom_outer,
+                text="Advanced \u2014 Custom Pattern (optional)",
+                font=("TkDefaultFont", 11, "bold"),
+            ).pack(anchor="w")
+            tk.Label(
+                custom_outer,
+                text="Add your own regex to the scan. Requires regex knowledge. "
+                     "See the ? help for examples and disclaimers.",
+                font=("TkDefaultFont", 9), fg="gray",
+            ).pack(anchor="w")
+
+            # Load saved custom pattern from config
+            saved_custom_enabled = bool(_cfg.get("pii_scan_custom_enabled", False))
+            saved_custom_name = _cfg.get("pii_scan_custom_name", "")
+            saved_custom_regex = _cfg.get("pii_scan_custom_regex", "")
+            saved_custom_severity = _cfg.get("pii_scan_custom_severity", "moderate")
+            if saved_custom_severity not in ("high", "moderate", "info"):
+                saved_custom_severity = "moderate"
+
+            custom_row = tk.Frame(custom_outer)
+            custom_row.pack(fill="x", pady=(4, 0))
+
+            custom_enabled_var = tk.BooleanVar(value=saved_custom_enabled)
+            tk.Checkbutton(
+                custom_row, variable=custom_enabled_var, font=("TkDefaultFont", 11),
+            ).pack(side="left")
+
+            tk.Label(custom_row, text="Name:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+            custom_name_entry = tk.Entry(custom_row, width=16, font=("TkDefaultFont", 11))
+            custom_name_entry.insert(0, saved_custom_name)
+            custom_name_entry.pack(side="left", padx=(0, 6))
+
+            tk.Label(custom_row, text="Regex:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+            custom_regex_entry = tk.Entry(custom_row, width=26, font=("TkDefaultFont", 11))
+            custom_regex_entry.insert(0, saved_custom_regex)
+            custom_regex_entry.pack(side="left", padx=(0, 6))
+            Tooltip(
+                custom_regex_entry,
+                "Your custom regex. docsearch does NOT validate that it "
+                "correctly identifies the data you intend to find \u2014 you "
+                "own the outcome. Syntax errors are caught before the scan "
+                "runs, and obviously too-broad patterns will trigger a "
+                "warning. Findings from your pattern are marked '(custom)' "
+                "in the results and report. See the ? help for details.",
+            )
+
+            tk.Label(custom_row, text="Severity:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+            custom_severity_var = tk.StringVar(value=saved_custom_severity)
+            _ttk.Combobox(
+                custom_row, textvariable=custom_severity_var,
+                values=["high", "moderate", "info"],
+                state="readonly", width=10,
+                font=("TkDefaultFont", 11),
+            ).pack(side="left")
+
+            # Persistent amber warning below the custom-pattern row
+            warning_lbl = tk.Label(
+                custom_outer,
+                text=(
+                    "\u26a0  docsearch does NOT validate your regex. You own the outcome. "
+                    "Findings from your pattern are marked '(custom)' in the results and report."
+                ),
+                font=("TkDefaultFont", 9, "italic"),
+                fg="#996600",
+                wraplength=820,
+                justify="left",
+            )
+            warning_lbl.pack(anchor="w", pady=(4, 0))
+
             # Run button on its own row; Close button on a separate row below
             btn_frame = tk.Frame(win)
             btn_frame.pack(pady=(8, 2))
@@ -3262,10 +3339,9 @@ def _launch_gui():
             close_frame.pack(pady=(0, 12))
 
             def _run():
+                from tkinter import messagebox as _mb
+                import re as _re
                 selected = [SENSITIVE_PATTERNS[i] for i, v in enumerate(check_vars) if v.get()]
-                if not selected:
-                    self._show_error("Select at least one category.")
-                    return
 
                 # Validate Dollar Amounts min/max if that category is selected
                 dollar_min = dollar_max = None
@@ -3289,6 +3365,55 @@ def _launch_gui():
                         self._show_error("Dollar amount Min must be less than or equal to Max.")
                         return
 
+                # Validate and include the custom pattern if enabled
+                custom_name = custom_name_entry.get().strip()
+                custom_regex = custom_regex_entry.get().strip()
+                custom_severity = custom_severity_var.get()
+                if custom_severity not in ("high", "moderate", "info"):
+                    custom_severity = "moderate"
+                custom_enabled = custom_enabled_var.get()
+
+                if custom_enabled:
+                    if not custom_name:
+                        self._show_error("Custom Pattern: please enter a Name for the pattern.")
+                        return
+                    if not custom_regex:
+                        self._show_error("Custom Pattern: please enter a Regex.")
+                        return
+                    # Compile check — catch syntax errors before launching the scan
+                    try:
+                        _re.compile(custom_regex)
+                    except _re.error as exc:
+                        self._show_error(
+                            f"Custom Pattern regex is invalid:\n\n{exc}\n\n"
+                            "Fix the pattern and try again."
+                        )
+                        return
+                    # Warn on suspiciously broad patterns that will flood the report
+                    stripped = custom_regex.strip()
+                    looks_too_broad = (
+                        len(stripped) < 3
+                        or stripped in (".", ".*", ".+", "\\w", "\\w+", "\\w*",
+                                        "\\S", "\\S+", "\\S*", "\\d", "\\d+",
+                                        "\\d*", "[^ ]", "[^ ]*", "[^ ]+")
+                    )
+                    if looks_too_broad:
+                        if not _mb.askyesno(
+                            "Very Broad Custom Pattern",
+                            f"Your custom regex is {repr(stripped)}, which is likely to "
+                            "match almost every file in the folder and produce a huge "
+                            "number of findings.\n\nRun the scan anyway?",
+                            parent=win,
+                        ):
+                            return
+                    # Append to selected list
+                    description = f"Custom user pattern: {custom_regex}"
+                    selected.append((custom_name, custom_regex, custom_severity, description))
+
+                if not selected:
+                    self._show_error("Select at least one category or add a custom pattern.")
+                    return
+
                 # Remember selections for next time
                 self._pii_scan_enabled = {SENSITIVE_PATTERNS[i][0] for i, v in enumerate(check_vars) if v.get()}
                 try:
@@ -3298,6 +3423,12 @@ def _launch_gui():
                     if dollar_selected and dollar_min is not None:
                         config["pii_scan_dollar_min"] = str(int(dollar_min)) if dollar_min.is_integer() else str(dollar_min)
                         config["pii_scan_dollar_max"] = str(int(dollar_max)) if dollar_max.is_integer() else str(dollar_max)
+                    # Always persist the custom-pattern fields so the popup
+                    # restores them next time, even if the checkbox is off.
+                    config["pii_scan_custom_enabled"] = custom_enabled
+                    config["pii_scan_custom_name"] = custom_name
+                    config["pii_scan_custom_regex"] = custom_regex
+                    config["pii_scan_custom_severity"] = custom_severity
                     _save_config(config)
                 except Exception:
                     pass
@@ -3359,6 +3490,7 @@ def _launch_gui():
                 "How to Use It",
                 "Scan Categories",
                 "Severity Levels",
+                "Custom Pattern (Advanced)",
                 "Understanding Results",
                 "The Highlighted Report",
                 "Saving Your Selections",
@@ -3443,6 +3575,63 @@ def _launch_gui():
             b("INFO (blue) \u2014 Data that is noteworthy but not necessarily")
             b("sensitive: large dollar amounts. Useful for financial review")
             b("but unlikely to be a privacy risk on its own.")
+            blank()
+
+            h("CUSTOM PATTERN (ADVANCED)")
+            b("The eight built-in categories cover common US PII. If you")
+            b("need to scan for something else \u2014 an international ID, a")
+            b("company-specific account number, an internal reference code")
+            b("\u2014 the Custom Pattern section at the bottom of the category")
+            b("selection popup lets you add your own regex to the scan.")
+            blank()
+            b("How to use it:")
+            b("1. Check the box next to 'Advanced \u2014 Custom Pattern'")
+            b("2. Enter a short Name (e.g., 'UK NINO' or 'Client ID')")
+            b("3. Enter the Regex pattern")
+            b("4. Pick a Severity (HIGH / MODERATE / INFO)")
+            b("5. Click Run Scan")
+            blank()
+            b("The custom pattern runs alongside the built-in categories")
+            b("you have checked. Findings appear in the results popup and")
+            b("report as a separate category with the name you entered.")
+            blank()
+            b("Example patterns for common international formats:")
+            e("  UK NINO:       [A-Z]{2}\\d{6}[A-Z]")
+            e("  Canadian SIN:  \\d{3}[- ]?\\d{3}[- ]?\\d{3}")
+            e("  UK VAT:        GB\\d{9}")
+            e("  German Steuer: \\d{2}[ ]?\\d{3}[ ]?\\d{3}[ ]?\\d{3}")
+            e("  Indian PAN:    [A-Z]{5}\\d{4}[A-Z]")
+            e("  API keys:      [A-Za-z0-9_]{20,}")
+            blank()
+            b("Regex basics, if you need a refresher:")
+            e("  \\d              any digit 0\u20139")
+            e("  \\d{3}           exactly 3 digits")
+            e("  \\d{3,5}         3 to 5 digits")
+            e("  [A-Z]           any uppercase letter")
+            e("  \\s              any whitespace character")
+            e("  .               any single character (escape as \\. for a dot)")
+            e("  ?               the previous item is optional")
+            e("  |               OR (e.g., cat|dog)")
+            e("  ( )             grouping")
+            blank()
+            b("Important:")
+            b("\u2022 Don't worry about getting your regex wrong. docsearch")
+            b("  never modifies, moves, or deletes the files it searches")
+            b("  \u2014 it only reads them and writes a summary report. The")
+            b("  worst thing a bad regex can do is produce a useless or")
+            b("  confusing report, which you can fix by running the scan")
+            b("  again with a better pattern.")
+            b("\u2022 Syntax errors in your regex are caught before the scan")
+            b("  runs, so an invalid pattern will produce a friendly error")
+            b("  message and not start the scan.")
+            b("\u2022 Very broad patterns (like . or \\d) will match almost")
+            b("  everything and produce a flood of findings. docsearch")
+            b("  warns you before running the scan if it detects one.")
+            b("\u2022 Your Custom Pattern is saved between sessions. Uncheck")
+            b("  the box to skip it for a scan without losing the pattern.")
+            b("\u2022 Read the Disclaimer section below for the full list of")
+            b("  what docsearch does and does not promise about regex-based")
+            b("  detection. Custom patterns are your responsibility.")
             blank()
 
             h("UNDERSTANDING RESULTS")
@@ -3558,6 +3747,18 @@ def _launch_gui():
             b("  process, but it is not a substitute for professional")
             b("  compliance expertise or a formal audit.")
             blank()
+            b("\u2022 Custom user-supplied patterns are your responsibility.")
+            b("  When you enter your own regex in the Custom Pattern section,")
+            b("  docsearch does not validate that your pattern correctly")
+            b("  identifies the data you intend to find, and makes no")
+            b("  representation about whether a custom pattern will match")
+            b("  all instances of the data you are looking for. If you type")
+            b("  your own regex, you own the outcome. docsearch never")
+            b("  modifies, moves, or deletes the files it searches, so a")
+            b("  bad pattern cannot harm your documents \u2014 the worst outcome")
+            b("  is a useless report, which you can fix by editing the")
+            b("  pattern and re-running the scan.")
+            blank()
             b("\u2022 Provided as-is under the MIT License. docsearch comes")
             b("  with no warranty of any kind, express or implied. Users")
             b("  are solely responsible for how they interpret and act on")
@@ -3571,7 +3772,7 @@ def _launch_gui():
             blank()
 
             h("MIT LICENSE")
-            b("Copyright (c) 2026 exbuf")
+            b("Copyright (c) 2026 Robert D. Schoening")
             blank()
             b("Permission is hereby granted, free of charge, to any person")
             b("obtaining a copy of this software and associated documentation")
@@ -3665,6 +3866,9 @@ def _launch_gui():
                     hi_label = f"${int(hi):,}" if float(hi).is_integer() else f"${hi:,}"
                     category = f"Dollar Amounts ({lo_label} – {hi_label})"
                     description = f"Dollar amounts between {lo_label} and {hi_label}"
+                # Detect whether this is a user-supplied custom pattern so we
+                # can visually mark its findings in the results and the report.
+                is_custom = description.startswith("Custom user pattern:")
                 try:
                     result = search(
                         [regex],
@@ -3698,6 +3902,7 @@ def _launch_gui():
                         "match_count": len(result.matches),
                         "file_count": len(file_matches),
                         "files": file_matches,
+                        "is_custom": is_custom,
                     })
                 except Exception:
                     scan_results.append({
@@ -3707,6 +3912,7 @@ def _launch_gui():
                         "match_count": 0,
                         "file_count": 0,
                         "files": {},
+                        "is_custom": is_custom,
                     })
 
             elapsed = time.time() - start
@@ -3840,7 +4046,16 @@ def _launch_gui():
                 tk.Label(
                     row, text=result["category"],
                     font=("TkDefaultFont", 12, "bold"), anchor="w",
-                ).pack(side="left", padx=(0, 8))
+                ).pack(side="left", padx=(0, 4))
+
+                # Custom pattern marker — visually distinguish user-supplied
+                # pattern findings from docsearch's built-in categories
+                if result.get("is_custom"):
+                    tk.Label(
+                        row, text="(custom)",
+                        font=("TkDefaultFont", 10, "italic"),
+                        fg="#996600",
+                    ).pack(side="left", padx=(0, 8))
 
                 if result["match_count"] == 0:
                     tk.Label(
@@ -7298,7 +7513,9 @@ def _launch_gui():
 
             # Buttons
             btn_frame = tk.Frame(wiz)
-            btn_frame.pack(fill="x", padx=15, pady=(0, 12))
+            btn_frame.pack(fill="x", padx=15, pady=(0, 2))
+            close_frame = tk.Frame(wiz)
+            close_frame.pack(pady=(0, 12))
 
             def _select_all():
                 for var, _, _ in check_vars:
@@ -7362,7 +7579,13 @@ def _launch_gui():
             tk.Button(btn_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=(0, 5))
             tk.Button(btn_frame, text="Clear All", width=10, command=_clear_all).pack(side="left", padx=(0, 5))
             tk.Button(btn_frame, text="Apply", width=10, command=_apply).pack(side="right", padx=(5, 0))
-            tk.Button(btn_frame, text="Cancel", width=10, command=wiz.destroy).pack(side="right", padx=(5, 0))
+            ctk.CTkButton(
+                close_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=wiz.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack()
 
             # Load initial category
             _load_category()

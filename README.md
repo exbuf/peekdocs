@@ -21,7 +21,7 @@
 
 ## Features
 
-- **PII Scan** — one-click scan for sensitive data: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Results are categorized by severity (high/moderate/info) with per-file details and a highlighted `.docx` report
+- **PII Scan** — one-click scan for sensitive data: SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Results are categorized by severity (high/moderate/info) with per-file details and a highlighted `.docx` report. **Custom patterns:** advanced users can add their own regex (e.g., UK NINO, Canadian SIN, German Steuer-ID, company account IDs) to extend the scan beyond the built-in categories
 - **Offline and private** — your documents never leave your computer. No cloud, no uploads, no subscriptions
 - **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
@@ -33,6 +33,7 @@
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
+- **Works in any language** — docsearch searches documents written in English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Hindi, Russian, and every other language. All text handling is Unicode-based. Type your search terms in any language and docsearch finds them
 - **Three interfaces** — terminal CLI, point-and-click GUI (`docsearch-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
@@ -198,7 +199,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 Most document search tools find text inside files. docsearch does that and more — it also helps you **see what's hiding in your own documents**, privately and offline. No other free tool gives you:
 
-- A one-click PII Scan that finds Social Security numbers, credit cards, passwords, and other sensitive data in your own files, running entirely on your machine with nothing uploaded anywhere
+- A one-click PII Scan that finds Social Security numbers, credit cards, passwords, and other sensitive data in your own files, running entirely on your machine with nothing uploaded anywhere — and for users who need to scan for data the built-in patterns don't cover (international IDs, company-specific formats, API keys), an Advanced Custom Pattern section lets you add your own regex to the scan
 - Highlighted Word reports with every match shown in yellow
 - Save Search and Load Search so you can reuse a configured search with one click
 - The Search Wizard with 20+ pre-built search patterns for non-technical users

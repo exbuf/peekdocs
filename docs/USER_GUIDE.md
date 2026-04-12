@@ -929,6 +929,53 @@ The PII Scan answers the question *"what sensitive data is hiding in my own file
 
 The PII Scan runs entirely on the user's own files, on the user's own machine, so there's no custody relationship with anyone else's data — it's just you looking at what's already on your disk.
 
+### Custom Pattern (Advanced)
+
+The eight built-in categories cover common US PII. If you need something the built-ins don't match — an international ID number, a company-specific account format, an internal reference code, an API key shape — the **Advanced — Custom Pattern** section at the bottom of the PII Scan configuration popup lets you add your own regex to the scan.
+
+**How to use it:**
+
+1. Open **PII Scan** on the main screen.
+2. Scroll to the bottom of the category selection popup. You'll see a horizontal separator and a section labeled **Advanced — Custom Pattern (optional)**.
+3. Check the checkbox to include your custom pattern in the scan.
+4. Fill in three fields:
+   - **Name** — a short label for this pattern (e.g., `UK NINO` or `Client Account ID`). The name appears as a category in the results popup and report.
+   - **Regex** — the pattern to search for.
+   - **Severity** — `high`, `moderate`, or `info`. Used for the color badge in the results popup and the heading color in the report.
+5. Click **Run Scan**. Your custom pattern runs alongside the built-in categories you have checked, and findings appear as a separate category in the results.
+
+**Example patterns** for common international and use-case formats:
+
+| Pattern | What it matches |
+|---------|-----------------|
+| `[A-Z]{2}\d{6}[A-Z]` | UK National Insurance Number (NINO) |
+| `\d{3}[- ]?\d{3}[- ]?\d{3}` | Canadian Social Insurance Number (SIN) |
+| `GB\d{9}` | UK VAT number |
+| `\d{2}[ ]?\d{3}[ ]?\d{3}[ ]?\d{3}` | German Steuer-ID |
+| `[A-Z]{5}\d{4}[A-Z]` | Indian PAN (Permanent Account Number) |
+| `[A-Za-z0-9_]{20,}` | Long alphanumeric token (API keys, session tokens) |
+| `AKIA[0-9A-Z]{16}` | AWS access key ID |
+
+**Regex basics**, if you need a refresher:
+
+```
+\d              any digit 0–9
+\d{3}           exactly 3 digits
+\d{3,5}         3 to 5 digits
+[A-Z]           any uppercase letter
+\s              any whitespace character
+.               any single character (escape as \. for a literal dot)
+?               the previous item is optional
+|               OR (e.g., cat|dog)
+( )             grouping
+```
+
+**What can go wrong — and what can't.** Writing a custom regex is a power-user affordance, and it comes with the usual regex footguns: a broad pattern like `\d+` will match every digit sequence in every file and flood the report, and a pattern like `[0-9` (missing closing bracket) won't even compile. docsearch catches syntax errors before starting the scan and shows a friendly error message. docsearch also warns you if your pattern looks suspiciously broad (three characters or less, or one of the common too-broad patterns like `.`, `.*`, `\d+`) and asks you to confirm before running.
+
+**But note what can't go wrong:** docsearch never modifies, moves, or deletes the files it searches. A bad custom regex cannot corrupt your documents, change filenames, delete anything, or touch your data in any destructive way. The worst outcome of a poorly written pattern is a useless or overwhelming report, which you fix by editing the pattern and running the scan again.
+
+**Persistence.** Your custom pattern is saved to `~/.docsearchrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
+
 ### Important disclaimers
 
 The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.
@@ -938,6 +985,7 @@ The PII Scan is a **pattern-matching discovery aid**, not a security product. Pl
 - **Some file formats may not be fully extracted.** docsearch searches 46 file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Files that docsearch could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
 - **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and reports. If you decide based on the report that a file needs to be removed or redacted, that's your decision to make and your action to take — docsearch does not modify your files.
 - **The PII Scan is not compliance software.** A clean scan does not certify HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory compliance. If your organization has compliance obligations, the PII Scan can be one input to your review process, but it is not a substitute for professional compliance expertise or a formal audit.
+- **Custom user-supplied patterns are your responsibility.** When you enter your own regex in the Custom Pattern section, docsearch does not validate that your pattern correctly identifies the data you intend to find. A pattern that is too broad will produce many false positives; a pattern that is too narrow will miss the data you are looking for. If you type your own regex, you own the outcome. docsearch will catch regex syntax errors and warn you about obviously too-broad patterns, but it cannot judge whether your regex is *semantically* right for your data.
 - **docsearch is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
 
 In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.

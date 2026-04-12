@@ -402,13 +402,33 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
         doc.add_paragraph("")
 
         # Prominent category heading: level 2, large colored bold text
-        # with a bracketed severity label prefix
+        # with a bracketed severity label prefix. Custom user-supplied
+        # patterns also get a "(custom)" marker so readers can distinguish
+        # them from docsearch's built-in categories.
         cat_heading = doc.add_heading(level=2)
         heading_color = _heading_colors.get(result["severity"], _heading_colors["info"])
-        run = cat_heading.add_run(f"[{sev['label']}]  {result['category']}")
+        heading_text = f"[{sev['label']}]  {result['category']}"
+        if result.get("is_custom"):
+            heading_text += "  (custom)"
+        run = cat_heading.add_run(heading_text)
         run.bold = True
         run.font.size = Pt(18)
         run.font.color.rgb = heading_color
+
+        # For custom patterns, add a prominent warning line immediately below
+        # the heading so the reader cannot miss that this category came from
+        # a user-supplied regex that docsearch did not validate.
+        if result.get("is_custom"):
+            custom_notice = doc.add_paragraph()
+            custom_notice_run = custom_notice.add_run(
+                "USER-SUPPLIED CUSTOM PATTERN \u2014 not validated by docsearch. "
+                "Review findings carefully. See the Disclaimer section at the "
+                "end of this report."
+            )
+            custom_notice_run.bold = True
+            custom_notice_run.italic = True
+            custom_notice_run.font.size = Pt(10)
+            custom_notice_run.font.color.rgb = RGBColor(0x99, 0x66, 0x00)
 
         # Summary line under the heading (description + counts)
         summary_para = doc.add_paragraph()
@@ -534,6 +554,17 @@ def _write_pii_disclaimer_and_license(doc):
         "compliance expertise or a formal audit."
     )
     _add_disclaimer_point(
+        "Custom user-supplied patterns are your responsibility.",
+        "If a finding in this report comes from the Custom Pattern you "
+        "entered in the PII Scan configuration, docsearch did not validate "
+        "that your pattern correctly identifies the data you intended to "
+        "find. A custom pattern may produce many false positives (if it is "
+        "too broad) or miss the data you care about (if it is too narrow "
+        "or written incorrectly). docsearch never modifies, moves, or "
+        "deletes the files it searches, so a bad pattern cannot harm your "
+        "documents \u2014 but the interpretation of the results is yours."
+    )
+    _add_disclaimer_point(
         "Provided as-is under the MIT License.",
         "docsearch comes with no warranty of any kind, express or implied. "
         "Users are solely responsible for how they interpret and act on "
@@ -560,7 +591,7 @@ def _write_pii_disclaimer_and_license(doc):
     license_heading_run.font.color.rgb = _GRAY
 
     _MIT_LICENSE_PARAGRAPHS = [
-        "Copyright (c) 2026 exbuf",
+        "Copyright (c) 2026 Robert D. Schoening",
         "Permission is hereby granted, free of charge, to any person obtaining "
         "a copy of this software and associated documentation files (the "
         "\"Software\"), to deal in the Software without restriction, including "
