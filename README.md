@@ -59,12 +59,12 @@
 
 - **Python 3.10+** — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/)
   - **Windows users:** When installing Python, make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `docsearch` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
-  - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv` or `pip`. You must install them separately before creating a virtual environment:
+  - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv`, `pip`, or `tkinter`. You must install them before creating a virtual environment. Run this single command to get everything docsearch needs:
     ```bash
-    sudo apt install python3-venv python3-pip
+    sudo apt install python3-venv python3-pip python3-tk
     ```
-    Without this, `python3 -m venv venv` will fail with an `ensurepip` error. This is a one-time setup — once installed, venv and pip work for all future projects.
-- **Tkinter** (optional, for GUI) — included on Windows/macOS; Linux: `sudo apt install python3-tk`
+    Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`docsearch-gui`) will not launch. This is a one-time setup.
+- **Tkinter** (required for GUI) — included on Windows and macOS. On Linux you must install it: `sudo apt install python3-tk` (already included in the Linux command above)
 - **Tesseract** (optional, for OCR) — macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
 ### Option A: Quick Install with pipx (recommended)

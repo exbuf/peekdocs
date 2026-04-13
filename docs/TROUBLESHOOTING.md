@@ -203,6 +203,22 @@ Your operating system may be blocking docsearch (or your terminal) from accessin
 
 ---
 
+**"No module named '_tkinter'" or "ModuleNotFoundError: No module named 'tkinter'" (Linux)**
+
+The CLI (`docsearch`) works but the GUI (`docsearch-gui`) fails to launch. This happens because `python3-tk` is not included in the base Python installation on Linux — it must be installed separately as a system package.
+
+**Fix:**
+
+```bash
+sudo apt install python3-tk
+```
+
+On Fedora/RHEL: `sudo dnf install python3-tkinter`. On Arch: `sudo pacman -S tk`.
+
+After installing, `docsearch-gui` will launch normally. This is a one-time setup. Note: `python3-tk` is a system package — it cannot be installed via `pip`.
+
+---
+
 **"ensurepip" error when creating a virtual environment (Linux)**
 
 On Debian-based Linux distributions (Ubuntu, Linux Mint, Pop!_OS, Debian), the base `python3` package does not include the `venv` or `pip` modules. Running `python3 -m venv venv` fails with an error like:
