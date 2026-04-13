@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from docsearch.gui import _build_command_from_values, _parse_summary_text, _parse_matched_files, _parse_inverse_files
+from peekdocs.gui import _build_command_from_values, _parse_summary_text, _parse_matched_files, _parse_inverse_files
 
 
 def test_build_command_basic(tmp_path):
@@ -186,7 +186,7 @@ def test_parse_summary_with_ansi():
         "Files searched: 5 (1.23 MB)\n"
         "Found \033[1;94m12\033[0m match(es).\n"
         "Results ==> /tmp/docs\n"
-        "  docsearch_results.txt (2.50 KB), docsearch_results.docx (15.30 KB)\n"
+        "  peekdocs_results.txt (2.50 KB), peekdocs_results.docx (15.30 KB)\n"
         "Elapsed time: 1.45 seconds, Cores used: 4 of 8\n"
     )
     result = _parse_summary_text(stdout)
@@ -201,9 +201,9 @@ def test_parse_summary_with_errors():
         "Files searched: 97 (4.23 MB)\n"
         "Found \033[1;94m5\033[0m match(es).\n"
         "Results ==> /tmp/docs\n"
-        "  docsearch_results.txt (2.50 KB), docsearch_results.docx (15.30 KB)\n"
+        "  peekdocs_results.txt (2.50 KB), peekdocs_results.docx (15.30 KB)\n"
         "Elapsed time: 2.34 seconds, Cores used: 4 of 8\n"
-        "Errors logged to docsearch_errors.log (3 error(s))\n"
+        "Errors logged to peekdocs_errors.log (3 error(s))\n"
     )
     result = _parse_summary_text(stdout)
     assert "5 match(es)" in result
@@ -217,9 +217,9 @@ def test_parse_summary_empty():
 
 
 def test_parse_matched_files(tmp_path):
-    results = tmp_path / "docsearch_results.txt"
+    results = tmp_path / "peekdocs_results.txt"
     results.write_text(
-        'Program name: docsearch\n'
+        'Program name: peekdocs\n'
         '\n'
         'Document: report.pdf (2 matches), Line: 5, Match:\n'
         f'({tmp_path})\n'

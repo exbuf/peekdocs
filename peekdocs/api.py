@@ -1,4 +1,4 @@
-"""Public library API for docsearch — call search() programmatically."""
+"""Public library API for peekdocs — call search() programmatically."""
 
 import multiprocessing
 import os
@@ -7,9 +7,9 @@ import signal
 import time
 from dataclasses import dataclass
 
-from docsearch.constants import _default_cores
-from docsearch.indexer import index_exists, refresh_index, search_with_index
-from docsearch.scanner import _process_file, _ocr_image, discover_files
+from peekdocs.constants import _default_cores
+from peekdocs.indexer import index_exists, refresh_index, search_with_index
+from peekdocs.scanner import _process_file, _ocr_image, discover_files
 
 
 @dataclass
@@ -123,7 +123,7 @@ def search(
         For invalid parameter combinations (e.g. regex + fuzzy).
     """
     # ── Parse range filters ────────────────────────────────────
-    from docsearch.range_query import parse_range, split_ranges
+    from peekdocs.range_query import parse_range, split_ranges
     parsed_ranges = []
     if range_filters:
         for spec_str in range_filters:
@@ -138,7 +138,7 @@ def search(
             raise ValueError("Cannot combine expression with exclude_terms. Use NOT in the expression.")
         if proximity > 0:
             raise ValueError("Cannot combine expression with proximity search.")
-        from docsearch.expr_parser import parse_expression, extract_terms
+        from peekdocs.expr_parser import parse_expression, extract_terms
         expression_ast = parse_expression(expression)
         if not search_terms:
             search_terms = extract_terms(expression_ast)
@@ -224,7 +224,7 @@ def search(
         # If the index was built with a different max_file_size_mb, rebuild it
         # so search results match the current setting
         try:
-            from docsearch.indexer import index_status as _status, build_index as _rebuild
+            from peekdocs.indexer import index_status as _status, build_index as _rebuild
             status = _status(directory)
             # Rebuild if the DB is valid and the stored limit differs from current,
             # OR if the metadata is missing (old index from before this feature)

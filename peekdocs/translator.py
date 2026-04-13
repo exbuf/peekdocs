@@ -1,4 +1,4 @@
-"""Translate docsearch CLI commands into plain English, including regex and wildcard patterns."""
+"""Translate peekdocs CLI commands into plain English, including regex and wildcard patterns."""
 
 import re
 import shlex
@@ -717,7 +717,7 @@ def translate_search(search_terms, report_mode="ANY", use_regex=False,
 
 
 def translate_command(command_str):
-    """Translate a full docsearch CLI command string into plain English.
+    """Translate a full peekdocs CLI command string into plain English.
 
     NOTE: This parses the command string with shlex, which may lose
     backslashes. Prefer translate_search() with actual parsed values
@@ -731,12 +731,12 @@ def translate_command(command_str):
     except ValueError:
         return f"Could not parse command: {command_str}"
 
-    # Strip leading "docsearch" if present
-    if tokens and tokens[0].lower() in ("docsearch", "./docsearch"):
+    # Strip leading "peekdocs" if present
+    if tokens and tokens[0].lower() in ("peekdocs", "./peekdocs"):
         tokens = tokens[1:]
 
     if not tokens:
-        return "Run docsearch with no search terms"
+        return "Run peekdocs with no search terms"
 
     # Parse flags and search terms
     flags = {}

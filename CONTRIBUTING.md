@@ -1,24 +1,24 @@
-# Contributing to docsearch
+# Contributing to peekdocs
 
-Thank you for your interest in contributing to docsearch!
+Thank you for your interest in contributing to peekdocs!
 
 ## Project Model
 
-docsearch is MIT-licensed and free. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled, and the existing features will remain free.
+peekdocs is MIT-licensed and free. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled, and the existing features will remain free.
 
 If your organization needs help designing custom compliance templates for a specific regulatory environment, feel free to contact the author ([Robert D. Schoening](https://robertdschoening.com)).
 
 ## Reporting Bugs
 
 1. Check the [FAQ and Troubleshooting](docs/TROUBLESHOOTING.md) first — your issue may already be covered
-2. Search [existing issues](https://github.com/exbuf/docsearch/issues) to avoid duplicates
+2. Search [existing issues](https://github.com/exbuf/peekdocs/issues) to avoid duplicates
 3. Open a new issue with:
    - What you expected to happen
    - What actually happened
    - Steps to reproduce
    - Your OS (Windows/macOS/Linux) and Python version (`python3 --version`)
-   - The contents of `docsearch_errors.log` if it exists
-   - The output of `docsearch --check`
+   - The contents of `peekdocs_errors.log` if it exists
+   - The output of `peekdocs --check`
 
 ## Suggesting Features
 
@@ -47,7 +47,7 @@ Open an issue with the "enhancement" label. Describe:
 ### Project Structure
 
 ```
-docsearch/
+peekdocs/
   cli.py          — CLI entry point and argument parsing
   gui.py          — GUI (customtkinter)
   api.py          — Public Python API (search function)

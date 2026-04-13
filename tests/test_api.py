@@ -5,12 +5,12 @@ import os
 import pytest
 from docx import Document
 
-from docsearch.api import SearchMatch, SearchResult, search
+from peekdocs.api import SearchMatch, SearchResult, search
 
 
 @pytest.fixture(autouse=True)
 def isolate_home(tmp_path, monkeypatch):
-    """Prevent tests from reading the user's real ~/.docsearchrc."""
+    """Prevent tests from reading the user's real ~/.peekdocsrc."""
     monkeypatch.setenv("HOME", str(tmp_path))
 
 

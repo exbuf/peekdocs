@@ -1,6 +1,6 @@
 # Multilingual Sample Documents
 
-These files demonstrate docsearch's ability to search documents in any language.
+These files demonstrate peekdocs's ability to search documents in any language.
 
 ## Files
 
@@ -18,19 +18,19 @@ These files demonstrate docsearch's ability to search documents in any language.
 cd samples/multilingual
 
 # Search for Chinese text
-docsearch 预算
+peekdocs 预算
 
 # Search for Greek text
-docsearch προϋπολογισμού
+peekdocs προϋπολογισμού
 
 # Search for Arabic text
-docsearch الميزانية
+peekdocs الميزانية
 
 # Search for Spanish text
-docsearch factura
+peekdocs factura
 
 # Search across all files for dollar amounts
-docsearch -x "\$[\d,]+"
+peekdocs -x "\$[\d,]+"
 
 # Run the automated 14-language test
 python ../../tests/language_test.py

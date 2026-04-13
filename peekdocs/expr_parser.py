@@ -1,4 +1,4 @@
-"""Boolean expression parser for docsearch.
+"""Boolean expression parser for peekdocs.
 
 Parses expressions like:
     (bob AND amy) OR (fred AND wilma)
@@ -262,7 +262,7 @@ def evaluate_expression(ast, text, match_func, filename=None):
     if isinstance(ast, TermNode):
         return match_func(ast.value, text)
     elif isinstance(ast, RangeNode):
-        from docsearch.range_query import evaluate_single_range
+        from peekdocs.range_query import evaluate_single_range
         return evaluate_single_range(text, ast.spec, filename=filename)
     elif isinstance(ast, AndNode):
         return (evaluate_expression(ast.left, text, match_func, filename=filename)

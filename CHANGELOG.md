@@ -1,12 +1,12 @@
 # Changelog
 
-All notable changes to docsearch are documented here.
+All notable changes to peekdocs are documented here.
 
 ## [Unreleased]
 
 ### Removed
 
-- **Compliance feature removed — docsearch is now a focused home-user document search tool.** The following features were removed to simplify the product, eliminate legal-exposure concerns, and match docsearch's actual audience of individuals and small teams searching their own files:
+- **Compliance feature removed — peekdocs is now a focused home-user document search tool.** The following features were removed to simplify the product, eliminate legal-exposure concerns, and match peekdocs's actual audience of individuals and small teams searching their own files:
   - Compliance Wizard and the 9 industry starter templates (SOX, HIPAA, Legal, Government, ISO, FERPA, Real Estate, Insurance, HR)
   - Search Suites (Manage Suites panel, suite builder, cascade mode, pass/fail criteria, suite execution)
   - Auto-run scheduling for suites
@@ -21,7 +21,7 @@ All notable changes to docsearch are documented here.
 
 - PII Scan, Save Search, Load Search, Search Wizard, and all other core features are unchanged and fully supported.
 - README and User Guide rewritten to focus on home-user workflows: search, PII Scan, saved searches, highlighted reports.
-- Disclaimers simplified — docsearch is now described straightforwardly as a local document search and pattern-matching tool.
+- Disclaimers simplified — peekdocs is now described straightforwardly as a local document search and pattern-matching tool.
 
 ## [0.2.0] — 2026-03-30
 
@@ -54,23 +54,23 @@ All notable changes to docsearch are documented here.
 - **Excluded Files view** — "View N excluded file(s)" button appears after each search, opens a popup listing every file that was NOT searched, grouped by reason (unsupported type, prior output files, oversized, hidden, etc.)
 - **Compliance and auditing guide** with industry examples, step-by-step instructions, and 9 pre-built sample suites
 - **Limits and Constraints documentation**
-- **Files Created by docsearch reference** — complete catalog of every file docsearch generates
+- **Files Created by peekdocs reference** — complete catalog of every file peekdocs generates
 - **Index and subfolder documentation** — explains how indexes work across folder hierarchies and with search suites
 - **Search Wizard** — guided search configuration with 21 patterns (SSN, phone, email, dates, dollar amounts, etc.). Pick a type, click Apply, and the search bar is configured automatically
 - **Recent Searches dropdown** — button next to the search bar remembers your last 10 searches for quick recall
 - **PDF highlighted reports** — optional `.pdf` output with yellow-highlighted matches, matching the `.docx` report style. Enable with the PDF checkbox or `-o pdf` on the CLI
-- **App Files button** — bottom toolbar button listing all docsearch-created files in the search folder with full paths, grouped by category
-- **All Collections button** — bottom toolbar button that scans your home directory for all `.docsearch_collection.json` files, showing saved searches and suites across every folder. Double-click a folder to switch to it
+- **App Files button** — bottom toolbar button listing all peekdocs-created files in the search folder with full paths, grouped by category
+- **All Collections button** — bottom toolbar button that scans your home directory for all `.peekdocs_collection.json` files, showing saved searches and suites across every folder. Double-click a folder to switch to it
 - **Fuzzy search highlighting** — fuzzy matches are now highlighted in the results preview and reports, not just exact matches
 
 ### Changed
-- **"Save Settings" buttons renamed** — Search Bar button is now "Save Search" (saves to collection for suites); Advanced Search Options button is now "Save Defaults" (saves to ~/.docsearchrc)
+- **"Save Settings" buttons renamed** — Search Bar button is now "Save Search" (saves to collection for suites); Advanced Search Options button is now "Save Defaults" (saves to ~/.peekdocsrc)
 - **Advanced Search Options, Search Suites, Manage Indexes** consolidated onto one row
 - **README restructured** — slim landing page with detailed docs in `docs/` directory
 - **Marketing summary** updated to mention emails, archives, email alerts, and all three interfaces (terminal, GUI, API)
 - **Introduction** lists Word docs before PDFs (primary audience is Windows users)
-- **.docsearch_collection.json excluded** from search results on all platforms (was already hidden on macOS/Linux but not Windows)
-- **docsearch_errors.log and .docsearchrc** also excluded from search results
+- **.peekdocs_collection.json excluded** from search results on all platforms (was already hidden on macOS/Linux but not Windows)
+- **peekdocs_errors.log and .peekdocsrc** also excluded from search results
 
 ### Fixed
 - Last run label disappeared when auto-run schedule set to Off
@@ -83,7 +83,7 @@ All notable changes to docsearch are documented here.
 ### Initial release
 - Search 25 file types (PDF, DOCX, XLSX, PPTX, EPUB, ODT, ODS, ODP, RTF, HTML, CSV, JSON, XML, YAML, YML, TOML, MD, RST, TEX, INI, CFG, SQL, LOG, TSV, TXT)
 - CLI with full flag set (-a, -A, -B, -c, -e, -f, -m, -n, -o, -O, -p, -r, -R, -s, -sa, -t, -v, -w, -W, -x, -z)
-- GUI with customtkinter (docsearch-gui)
+- GUI with customtkinter (peekdocs-gui)
 - Boolean expression search with AND, OR, NOT, parentheses
 - Range queries on dates, dollar amounts, percentages, ages, file metadata
 - Fuzzy matching via rapidfuzz

@@ -1,4 +1,4 @@
-"""File processing and discovery for docsearch."""
+"""File processing and discovery for peekdocs."""
 
 import csv
 import glob
@@ -39,8 +39,8 @@ except ImportError:
 import py7zr
 import rarfile
 
-from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
-from docsearch.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
+from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
+from peekdocs.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
 
 
 def apply_context(all_lines, match_indices, before, after):
@@ -570,7 +570,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     def text_matches(text):
         """Return True if search terms are found in text (ANY or ALL based on mode)."""
         if expression_ast is not None:
-            from docsearch.expr_parser import evaluate_expression
+            from peekdocs.expr_parser import evaluate_expression
             return evaluate_expression(expression_ast, text, _single_term_matches, filename=filename)
         check = all if match_all else any
         if use_regex:
@@ -604,7 +604,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     def highlight_text(text):
         """Apply ** highlighting around matched search terms."""
         if expression_ast is not None:
-            from docsearch.expr_parser import extract_positive_terms
+            from peekdocs.expr_parser import extract_positive_terms
             terms_to_highlight = extract_positive_terms(expression_ast)
         else:
             terms_to_highlight = search_terms
@@ -750,24 +750,24 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
 
     docx_files = sorted(
         f for f in glob.glob(glob_prefix + ".docx", recursive=recursive)
-        if not os.path.basename(f).startswith("docsearch_results")
+        if not os.path.basename(f).startswith("peekdocs_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     doc_files = sorted(glob.glob(glob_prefix + ".doc", recursive=recursive))
     pdf_files = sorted(
         f for f in glob.glob(glob_prefix + ".pdf", recursive=recursive)
-        if not os.path.basename(f).startswith("docsearch_results")
+        if not os.path.basename(f).startswith("peekdocs_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     csv_files = sorted(
         f for f in glob.glob(glob_prefix + ".csv", recursive=recursive)
-        if not os.path.basename(f).startswith("docsearch_results")
+        if not os.path.basename(f).startswith("peekdocs_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     odt_files = sorted(glob.glob(glob_prefix + ".odt", recursive=recursive))
     txt_files = sorted(
         f for f in glob.glob(glob_prefix + ".txt", recursive=recursive)
-        if not os.path.basename(f).startswith("docsearch_results")
+        if not os.path.basename(f).startswith("peekdocs_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
     )
     html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
@@ -776,9 +776,9 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
     json_files = sorted(
         f for f in glob.glob(glob_prefix + ".json", recursive=recursive)
-        if not os.path.basename(f).startswith("docsearch_results")
+        if not os.path.basename(f).startswith("peekdocs_results")
         and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-        and os.path.basename(f) != ".docsearch_collection.json"
+        and os.path.basename(f) != ".peekdocs_collection.json"
     )
     rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
     pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
@@ -786,7 +786,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
     log_files = sorted(
         f for f in glob.glob(glob_prefix + ".log", recursive=recursive)
-        if os.path.basename(f) != "docsearch_errors.log"
+        if os.path.basename(f) != "peekdocs_errors.log"
     )
     yaml_files = sorted(glob.glob(glob_prefix + ".yaml", recursive=recursive))
     yml_files = sorted(glob.glob(glob_prefix + ".yml", recursive=recursive))
@@ -827,7 +827,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     all_files = sorted(
         f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + mbox_files + ics_files + vcf_files + pages_files + image_files
         if not os.path.basename(f).startswith("DO_NOT_SEARCH")
-        and os.path.basename(f) not in (".docsearch_collection.json", ".docsearch.db", ".docsearchrc")
+        and os.path.basename(f) not in (".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc")
     )
 
     if file_types is not None:

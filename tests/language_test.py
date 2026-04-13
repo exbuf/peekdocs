@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Multilingual search test — verifies docsearch finds text in 14 languages.
+"""Multilingual search test — verifies peekdocs finds text in 14 languages.
 
 Run from the repo root with the venv activated:
     source venv/bin/activate
     python tests/language_test.py
 
-Creates temporary test files, runs docsearch against each language,
+Creates temporary test files, runs peekdocs against each language,
 and prints a summary table. Cleans up after itself.
 """
 
@@ -18,7 +18,7 @@ from docx import Document
 
 
 def main():
-    test_dir = "/tmp/docsearch_language_test"
+    test_dir = "/tmp/peekdocs_language_test"
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)
     os.makedirs(test_dir)
@@ -77,7 +77,7 @@ def main():
 
     for lang, term, script in languages:
         r = subprocess.run(
-            ["docsearch", term],
+            ["peekdocs", term],
             capture_output=True, text=True, cwd=test_dir, timeout=30,
         )
         ok = r.returncode == 0

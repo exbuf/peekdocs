@@ -43,10 +43,10 @@ def main():
         print(f"Error: {test_dir} is not a directory")
         sys.exit(1)
 
-    print(f"\nTesting docsearch API against: {test_dir}")
+    print(f"\nTesting peekdocs API against: {test_dir}")
     print(f"{'=' * 60}\n")
 
-    from docsearch import search
+    from peekdocs import search
 
     # ── Basic search ──────────────────────────────────────────
 
@@ -202,7 +202,7 @@ def main():
     print("\nIndex:")
 
     def test_index_search():
-        from docsearch.indexer import index_exists, build_index
+        from peekdocs.indexer import index_exists, build_index
         if not index_exists(test_dir):
             print("         (building index for test...)")
             build_index(test_dir, recursive=True)

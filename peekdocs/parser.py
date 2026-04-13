@@ -1,10 +1,10 @@
-"""Flag parsing for docsearch CLI."""
+"""Flag parsing for peekdocs CLI."""
 
 import os
 import re
 import shutil
 
-from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, _default_cores
+from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, _default_cores
 
 
 def parse_flags(args, config):
@@ -40,14 +40,14 @@ def parse_flags(args, config):
             return (2,
                 "OCR requires the pytesseract Python package, which is not installed.\n\n"
                 "Install it with:  pip install pytesseract\n"
-                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
+                "Or reinstall peekdocs:  pip install --upgrade peekdocs\n")
         try:
             from PIL import Image  # noqa: F401
         except ImportError:
             return (2,
                 "OCR requires the Pillow Python package, which is not installed.\n\n"
                 "Install it with:  pip install Pillow\n"
-                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
+                "Or reinstall peekdocs:  pip install --upgrade peekdocs\n")
 
     use_fuzzy = "-z" in args or config.get("fuzzy", False)
     if "-z" in args:
@@ -60,7 +60,7 @@ def parse_flags(args, config):
             return (2,
                 "Fuzzy search requires the rapidfuzz Python package, which is not installed.\n\n"
                 "Install it with:  pip install rapidfuzz\n"
-                "Or reinstall docsearch:  pip install --upgrade docsearch\n")
+                "Or reinstall peekdocs:  pip install --upgrade peekdocs\n")
 
     use_wildcard = "-w" in args or config.get("wildcard", False)
     if "-w" in args:
@@ -81,7 +81,7 @@ def parse_flags(args, config):
     if "-n" in args:
         idx = args.index("-n")
         if idx + 1 >= len(args):
-            return (2, "No exclude terms provided. Usage: docsearch -n draft,obsolete budget\n")
+            return (2, "No exclude terms provided. Usage: peekdocs -n draft,obsolete budget\n")
         exclude_terms = [t.strip() for t in args[idx + 1].split(",")]
         args[:] = args[:idx] + args[idx + 2:]
 
@@ -90,7 +90,7 @@ def parse_flags(args, config):
     if "-e" in args:
         idx = args.index("-e")
         if idx + 1 >= len(args):
-            return (2, 'No expression provided. Usage: docsearch -e "(bob AND amy) OR fred"\n')
+            return (2, 'No expression provided. Usage: peekdocs -e "(bob AND amy) OR fred"\n')
         expression = args[idx + 1]
         args[:] = args[:idx] + args[idx + 2:]
 
@@ -98,7 +98,7 @@ def parse_flags(args, config):
     if "-t" in args:
         idx = args.index("-t")
         if idx + 1 >= len(args):
-            return (2, "No file types provided. Usage: docsearch -t pdf,docx search_term\n")
+            return (2, "No file types provided. Usage: peekdocs -t pdf,docx search_term\n")
         raw_types = args[idx + 1].split(",")
         file_types = set()
         valid_types = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
@@ -124,7 +124,7 @@ def parse_flags(args, config):
     if "-f" in args:
         idx = args.index("-f")
         if idx + 1 >= len(args):
-            return (2, "No file names provided. Usage: docsearch -f report.pdf,notes.txt search_term\n")
+            return (2, "No file names provided. Usage: peekdocs -f report.pdf,notes.txt search_term\n")
         file_names = [n.strip() for n in args[idx + 1].split(",")]
         valid_types_f = SUPPORTED_TYPES | OCR_IMAGE_TYPES if use_ocr else SUPPORTED_TYPES
         for n in file_names:
@@ -143,7 +143,7 @@ def parse_flags(args, config):
     if "-B" in args:
         idx = args.index("-B")
         if idx + 1 >= len(args):
-            return (2, "No count provided. Usage: docsearch -B 5 search_term\n")
+            return (2, "No count provided. Usage: peekdocs -B 5 search_term\n")
         try:
             context_before = int(args[idx + 1])
             if context_before < 0:
@@ -156,7 +156,7 @@ def parse_flags(args, config):
     if "-A" in args:
         idx = args.index("-A")
         if idx + 1 >= len(args):
-            return (2, "No count provided. Usage: docsearch -A 5 search_term\n")
+            return (2, "No count provided. Usage: peekdocs -A 5 search_term\n")
         try:
             context_after = int(args[idx + 1])
             if context_after < 0:
@@ -169,7 +169,7 @@ def parse_flags(args, config):
     if "-p" in args:
         idx = args.index("-p")
         if idx + 1 >= len(args):
-            return (2, "No count provided. Usage: docsearch -p 5 budget revenue\n")
+            return (2, "No count provided. Usage: peekdocs -p 5 budget revenue\n")
         try:
             proximity = int(args[idx + 1])
             if proximity < 1:
@@ -186,7 +186,7 @@ def parse_flags(args, config):
     if "-sa" in args:
         idx = args.index("-sa")
         if idx + 1 >= len(args):
-            return (2, "No filename provided. Usage: docsearch -sa my_report budget revenue\n")
+            return (2, "No filename provided. Usage: peekdocs -sa my_report budget revenue\n")
         append_name = args[idx + 1]
         args[:] = args[:idx] + args[idx + 2:]
 
@@ -194,7 +194,7 @@ def parse_flags(args, config):
     if "-c" in args:
         idx = args.index("-c")
         if idx + 1 >= len(args):
-            return (2, "No count provided. Usage: docsearch -c 4 search_term\n")
+            return (2, "No count provided. Usage: peekdocs -c 4 search_term\n")
         try:
             cores = int(args[idx + 1])
             if cores < 1:
@@ -207,7 +207,7 @@ def parse_flags(args, config):
     if "--max-file-size" in args:
         idx = args.index("--max-file-size")
         if idx + 1 >= len(args):
-            return (2, "No value provided. Usage: docsearch --max-file-size 500 search_term\n")
+            return (2, "No value provided. Usage: peekdocs --max-file-size 500 search_term\n")
         try:
             max_file_size_mb = int(args[idx + 1])
             if max_file_size_mb < 0:
@@ -220,7 +220,7 @@ def parse_flags(args, config):
     if "-m" in args:
         idx = args.index("-m")
         if idx + 1 >= len(args):
-            return (2, "No count provided. Usage: docsearch -m 5000 search_term\n")
+            return (2, "No count provided. Usage: peekdocs -m 5000 search_term\n")
         try:
             val = args[idx + 1]
             if val == "0":
@@ -237,7 +237,7 @@ def parse_flags(args, config):
     if "-o" in args:
         idx = args.index("-o")
         if idx + 1 >= len(args):
-            return (2, "No format provided. Usage: docsearch -o csv search_term\n")
+            return (2, "No format provided. Usage: peekdocs -o csv search_term\n")
         valid_formats = {"csv", "json", "pdf"}
         requested = [fmt.strip().lower() for fmt in args[idx + 1].split(",")]
         for fmt in requested:
@@ -259,7 +259,7 @@ def parse_flags(args, config):
             return (2, "Cannot combine -e (expression) with -n (exclude). Use NOT in the expression.\n")
         if use_proximity:
             return (2, "Cannot combine -e (expression) with -p (proximity).\n")
-        from docsearch.expr_parser import parse_expression, extract_terms
+        from peekdocs.expr_parser import parse_expression, extract_terms
         try:
             expression_ast = parse_expression(expression)
         except ValueError as e:

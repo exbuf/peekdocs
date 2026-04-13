@@ -1,4 +1,4 @@
-# docsearch
+# peekdocs
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -19,7 +19,7 @@
 
 That's it. No server, no configuration, no account. Just search.
 
-**[See docsearch in action →](https://robertdschoening.com/docsearch)**
+**[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
 
 ## Who Is It For?
 
@@ -42,13 +42,13 @@ That's it. No server, no configuration, no account. Just search.
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
-- **Works in any language** — docsearch searches documents written in English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, and every other language. All text handling is Unicode-based. Type your search terms in any language and docsearch finds them. **Note:** docsearch performs exact text matching — it finds the character sequence you type, which works well for all languages including CJK (Chinese, Japanese, Korean). It does not perform language-specific processing such as word segmentation, stemming, or stop-word removal. Documentation and the GUI are in English only
-- **Three interfaces** — terminal CLI, point-and-click GUI (`docsearch-gui`), Python API
+- **Works in any language** — peekdocs searches documents written in English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, and every other language. All text handling is Unicode-based. Type your search terms in any language and peekdocs finds them. **Note:** peekdocs performs exact text matching — it finds the character sequence you type, which works well for all languages including CJK (Chinese, Japanese, Korean). It does not perform language-specific processing such as word segmentation, stemming, or stop-word removal. Documentation and the GUI are in English only
+- **Three interfaces** — terminal CLI, point-and-click GUI (`peekdocs-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
-- **Read-only** — docsearch never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
-- **Safe defaults** — files over 100 MB are automatically skipped to prevent slow searches and memory issues. Very large files (huge PDFs, massive spreadsheets, database exports) can take minutes to parse and may exhaust available memory. Skipped files are logged to `docsearch_errors.log` so you know what was missed. To change the limit, set **Max File Size (MB)** in Advanced Search Options — or set it to 0 for no limit. Changing the limit automatically rebuilds the index on the next search. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs
-- **Excluded Files view** — after each search, click the **View N excluded file(s)** button to see exactly which files were skipped and why (unsupported type, prior output, oversized, hidden, etc.) — no more guessing why a `find` count differs from docsearch's file count
+- **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
+- **Safe defaults** — files over 100 MB are automatically skipped to prevent slow searches and memory issues. Very large files (huge PDFs, massive spreadsheets, database exports) can take minutes to parse and may exhaust available memory. Skipped files are logged to `peekdocs_errors.log` so you know what was missed. To change the limit, set **Max File Size (MB)** in Advanced Search Options — or set it to 0 for no limit. Changing the limit automatically rebuilds the index on the next search. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs
+- **Excluded Files view** — after each search, click the **View N excluded file(s)** button to see exactly which files were skipped and why (unsupported type, prior output, oversized, hidden, etc.) — no more guessing why a `find` count differs from peekdocs's file count
 
 ### Supported File Types
 
@@ -67,12 +67,12 @@ That's it. No server, no configuration, no account. Just search.
 ### Prerequisites
 
 - **Python 3.10+** — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/)
-  - **Windows users:** When installing Python, make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `docsearch` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
-  - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv`, `pip`, or `tkinter`. You must install them before creating a virtual environment. Run this single command to get everything docsearch needs:
+  - **Windows users:** When installing Python, make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `peekdocs` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
+  - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv`, `pip`, or `tkinter`. You must install them before creating a virtual environment. Run this single command to get everything peekdocs needs:
     ```bash
     sudo apt install python3-venv python3-pip python3-tk
     ```
-    Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`docsearch-gui`) will not launch. This is a one-time setup.
+    Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`peekdocs-gui`) will not launch. This is a one-time setup.
 - **Tkinter** (required for GUI) — included on Windows and macOS. On Linux you must install it: `sudo apt install python3-tk` (already included in the Linux command above)
 - **Tesseract** (optional, for OCR) — macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
@@ -85,50 +85,50 @@ pip install pipx          # Windows: if pip isn't recognized, use: python -m pip
 pipx ensurepath           # adds pipx to your PATH
 ```
 
-**Close and reopen your terminal** after running `ensurepath` (it only takes effect in a new window). Then install docsearch:
+**Close and reopen your terminal** after running `ensurepath` (it only takes effect in a new window). Then install peekdocs:
 
 ```bash
-pipx install git+https://github.com/exbuf/docsearch.git
+pipx install git+https://github.com/exbuf/peekdocs.git
 ```
 
 **Getting a git error?** If you see "do you have git installed," use this instead (downloads as a ZIP — no git required):
 
 ```bash
-pipx install https://github.com/exbuf/docsearch/archive/refs/heads/main.zip
+pipx install https://github.com/exbuf/peekdocs/archive/refs/heads/main.zip
 ```
 
-After installation, `docsearch` and `docsearch-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
+After installation, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
 
-**Fully isolated.** pipx installs docsearch in its own private environment, completely separate from your system Python and all other programs. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`docsearch` and `docsearch-gui`). To uninstall completely: `pipx uninstall docsearch`. See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for details.
+**Fully isolated.** pipx installs peekdocs in its own private environment, completely separate from your system Python and all other programs. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
 
 ### Option B: Manual Install (with git)
 
 ```bash
-git clone https://github.com/exbuf/docsearch.git
-cd docsearch
+git clone https://github.com/exbuf/peekdocs.git
+cd peekdocs
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install --upgrade pip setuptools wheel   # required on some Linux distros — see note below
 pip install -e .
 ```
 
-**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `docsearch`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
+**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. If you see "command not found" when typing `peekdocs`, this is why. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
 
-**"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which docsearch uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
+**"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which peekdocs uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
 
 ### Option C: Manual Install (no git, no sign-up)
 
-No git? No problem. Download docsearch as a ZIP file directly from your browser:
+No git? No problem. Download peekdocs as a ZIP file directly from your browser:
 
-1. Go to [github.com/exbuf/docsearch](https://github.com/exbuf/docsearch)
+1. Go to [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs)
 2. Click the green **Code** button
 3. Click **Download ZIP**
-4. Extract the ZIP file, copy the extracted `docsearch-main` folder and paste it to where you want it
+4. Extract the ZIP file, copy the extracted `peekdocs-main` folder and paste it to where you want it
 5. Open a terminal and navigate to the extracted folder:
 
    **Windows:**
    ```cmd
-   cd C:\Users\YourName\Downloads\docsearch-main
+   cd C:\Users\YourName\Downloads\peekdocs-main
    python -m venv venv
    venv\Scripts\activate
    pip install -e .
@@ -136,7 +136,7 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
 
    **macOS/Linux:**
    ```bash
-   cd ~/Downloads/docsearch-main
+   cd ~/Downloads/peekdocs-main
    python3 -m venv venv
    source venv/bin/activate
    pip install --upgrade pip setuptools wheel
@@ -147,13 +147,13 @@ No git? No problem. Download docsearch as a ZIP file directly from your browser:
 
 ### Upgrading
 
-Your saved searches, settings, indexes, and reports are stored outside the docsearch installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
+Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
 
-- **pipx:** `pipx upgrade docsearch`
-- **git:** `cd docsearch && git pull && pip install -e .`
+- **pipx:** `pipx upgrade peekdocs`
+- **git:** `cd peekdocs && git pull && pip install -e .`
 - **ZIP:** download the new ZIP, replace the folder, run `pip install -e .`
 
-See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python-installation) for full details on what is and isn't preserved.
+See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
 ## Quick Start
 
@@ -161,24 +161,24 @@ See the [User Guide](docs/USER_GUIDE.md#will-docsearch-affect-my-existing-python
 
 ```bash
 cd /path/to/your/documents
-docsearch budget                      # search for "budget"
-docsearch budget revenue              # OR search (any term)
-docsearch -a budget revenue           # AND search (both terms)
-docsearch -r budget                   # include subfolders
-docsearch -t pdf,docx budget          # only PDFs and Word docs
-docsearch -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
-docsearch -e "(budget OR revenue) AND NOT draft"   # Boolean expression
-docsearch -R amount:1000..5000 budget # range query
+peekdocs budget                      # search for "budget"
+peekdocs budget revenue              # OR search (any term)
+peekdocs -a budget revenue           # AND search (both terms)
+peekdocs -r budget                   # include subfolders
+peekdocs -t pdf,docx budget          # only PDFs and Word docs
+peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
+peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
+peekdocs -R amount:1000..5000 budget # range query
 ```
 
-Results are saved to `docsearch_results.txt` and `docsearch_results.docx` (highlighted). The .docx report opens with whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
+Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted). The .docx report opens with whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
-Run `docsearch -h` for the full flag reference with examples.
+Run `peekdocs -h` for the full flag reference with examples.
 
 ### GUI
 
 ```bash
-docsearch-gui
+peekdocs-gui
 ```
 
 1. Click **Browse** to select a folder (or **File** to search a single file)
@@ -193,7 +193,7 @@ Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and a
 ### Python API
 
 ```python
-from docsearch import search
+from peekdocs import search
 
 result = search(["budget", "revenue"], directory="/path/to/docs")
 
@@ -214,9 +214,9 @@ See the [API Reference](docs/API.md) for all parameters and options.
 | [Changelog](CHANGELOG.md) | Version history and release notes |
 | [Contributing](CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
 
-## Why docsearch?
+## Why peekdocs?
 
-Most document search tools find text inside files. docsearch does that and more — it also helps you **see what's hiding in your own documents**, privately and offline. No other free tool gives you:
+Most document search tools find text inside files. peekdocs does that and more — it also helps you **see what's hiding in your own documents**, privately and offline. No other free tool gives you:
 
 - A one-click PII Scan that finds Social Security numbers, credit cards, passwords, and other sensitive data in your own files, running entirely on your machine with nothing uploaded anywhere — and for users who need to scan for data the built-in patterns don't cover (international IDs, company-specific formats, API keys), an Advanced Custom Pattern section lets you add your own regex to the scan
 - Highlighted Word reports with every match shown in yellow
@@ -225,18 +225,18 @@ Most document search tools find text inside files. docsearch does that and more 
 - Range queries that filter by dollar amount, date range, or percentage
 - A built-in view that shows exactly which files were skipped and why, so nothing falls through the cracks
 
-If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what docsearch was built for.
+If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
 ## Platform Notes
 
 **Tested on:** macOS (development machine), Windows 10/11, and Linux Mint 22.3 (Cinnamon) in a VirtualBox VM on Windows. The CLI and GUI work on all three platforms.
 
 - **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
-- **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If docsearch is blocked, add your Python installation or the docsearch folder to your antivirus allow list
-- **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If docsearch reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `docsearch_errors.log`
+- **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If peekdocs is blocked, add your Python installation or the peekdocs folder to your antivirus allow list
+- **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If peekdocs reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `peekdocs_errors.log`
 - **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [ZIP download](#option-c-manual-install-no-git-no-sign-up) installation method instead
-- **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not docsearch
-- **Linux GUI requires python3-tk** — the CLI works without it, but `docsearch-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
+- **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
+- **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -246,7 +246,7 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — retired electri
 
 ## Disclaimer
 
-docsearch is provided as-is under the [MIT License](LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns — always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
+peekdocs is provided as-is under the [MIT License](LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns — always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
 
 ## License
 

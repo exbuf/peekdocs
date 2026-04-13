@@ -3,7 +3,7 @@
 import json
 import os
 import pytest
-from docsearch.collection import (
+from peekdocs.collection import (
     COLLECTION_FILENAME,
     load_collection,
     save_collection,

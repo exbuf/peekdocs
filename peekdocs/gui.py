@@ -41,7 +41,7 @@ def _build_command_from_values(
     output_dir="",
     range_filters="",
 ):
-    """Build a docsearch CLI command list from GUI values.
+    """Build a peekdocs CLI command list from GUI values.
 
     Returns None on validation error, or "FLAGS_IN_SEARCH" if flags are
     detected in the search text.
@@ -59,7 +59,7 @@ def _build_command_from_values(
         if any(token in _CLI_FLAGS for token in tokens):
             return "FLAGS_IN_SEARCH"
 
-    cmd = [sys.executable, "-m", "docsearch", "-q"]
+    cmd = [sys.executable, "-m", "peekdocs", "-q"]
 
     if not index_search:
         cmd.append("--no-index")
@@ -204,8 +204,8 @@ def _parse_summary_text(stdout):
     return " ".join(parts) if parts else ""
 
 
-def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
-    """Parse docsearch_results.txt and return a list of (filepath, filename, count, line_nums) tuples.
+def _parse_matched_files(results_dir, results_filename="peekdocs_results.txt"):
+    """Parse peekdocs_results.txt and return a list of (filepath, filename, count, line_nums) tuples.
 
     Handles both normal results (Document: ..., Line: ...) and inverse results
     (Files WITHOUT matches: ... followed by filename/directory pairs).
@@ -276,8 +276,8 @@ def _parse_matched_files(results_dir, results_filename="docsearch_results.txt"):
     return [(fp, data[fp]["filename"], data[fp]["count"], data[fp]["lines"]) for fp in order]
 
 
-def _parse_inverse_files(results_dir, results_filename="docsearch_results.txt"):
-    """Parse docsearch_results.txt for inverse search and return (filepath, filename, 0, []) tuples."""
+def _parse_inverse_files(results_dir, results_filename="peekdocs_results.txt"):
+    """Parse peekdocs_results.txt for inverse search and return (filepath, filename, 0, []) tuples."""
     results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []
@@ -415,10 +415,10 @@ def _launch_gui():
             super().__init__()
 
             try:
-                version = pkg_version("docsearch")
+                version = pkg_version("peekdocs")
             except Exception:
                 version = ""
-            self.title(f"docsearch {version}".strip())
+            self.title(f"peekdocs {version}".strip())
             self.withdraw()  # Hide until setup is complete to prevent flicker
             self.geometry("1280x800")
             self.minsize(1280, 700)
@@ -484,7 +484,7 @@ def _launch_gui():
             )
 
             # Check for first run before loading settings (which creates the config file)
-            from docsearch.cli import _config_path
+            from peekdocs.cli import _config_path
             self._is_first_run = not os.path.exists(_config_path())
             self._load_saved_settings()
             self._update_index_button_color()
@@ -563,7 +563,7 @@ def _launch_gui():
 
             pad = {"padx": 30, "anchor": "w"}
 
-            tk.Label(inner, text="Welcome to docsearch!", font=("TkDefaultFont", 22, "bold")).pack(pady=(20, 5), **pad)
+            tk.Label(inner, text="Welcome to peekdocs!", font=("TkDefaultFont", 22, "bold")).pack(pady=(20, 5), **pad)
             tk.Label(inner, text="Search Word docs, PDFs, spreadsheets, emails, and 42 other file types — all offline.",
                      font=("TkDefaultFont", 13), fg="gray").pack(pady=(0, 15), **pad)
 
@@ -581,7 +581,7 @@ def _launch_gui():
 
             _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
             _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
-            _step(3, "Click Run Search", "docsearch scans every supported file and shows results with matches highlighted in yellow.")
+            _step(3, "Click Run Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
             _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. DOCX requires a word processor on your computer (Microsoft Word, LibreOffice, Google Docs, or Apple Pages). TXT opens in any text editor.")
 
             tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
@@ -760,7 +760,7 @@ def _launch_gui():
             """Show a getting-started guide for first-time users."""
             import tkinter as tk
             win = tk.Toplevel(self)
-            win.title("Welcome to docsearch")
+            win.title("Welcome to peekdocs")
             win.geometry("620x480")
             win.resizable(True, True)
             win.transient(self)
@@ -802,8 +802,8 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
-            h("Welcome to docsearch!")
-            b("docsearch lets you search Word docs, PDFs, spreadsheets,")
+            h("Welcome to peekdocs!")
+            b("peekdocs lets you search Word docs, PDFs, spreadsheets,")
             b("emails, calendars, contacts, and 40 other file types \u2014 all at once, all offline.")
             b("Results are saved to a highlighted Word report.")
             blank()
@@ -820,11 +820,11 @@ def _launch_gui():
             e("budget revenue")
             blank()
             st("Step 3: Click Run Search")
-            b("docsearch scans every supported file in the folder and")
+            b("peekdocs scans every supported file in the folder and")
             b("shows a summary when finished. Your results appear in")
             b("a preview below, and are saved to two report files:")
-            e("docsearch_results.txt   (plain text)")
-            e("docsearch_results.docx  (Word, with highlights)")
+            e("peekdocs_results.txt   (plain text)")
+            e("peekdocs_results.docx  (Word, with highlights)")
             blank()
             st("Step 4: View your results")
             b("Click the DOCX button next to View Report to open the")
@@ -1356,7 +1356,7 @@ def _launch_gui():
             blank()
 
             b("* Tesseract is a free, open-source OCR engine that extracts")
-            b("  text from scanned documents and images. docsearch uses it")
+            b("  text from scanned documents and images. peekdocs uses it")
             b("  when the OCR option is enabled. It must be installed")
             b("  separately: macOS: brew install tesseract | Windows:")
             b("  download from github.com/UB-Mannheim/tesseract | Linux:")
@@ -1434,23 +1434,23 @@ def _launch_gui():
 
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
-                "What Is docsearch?", "Who Is It For?", "Getting Started",
+                "What Is peekdocs?", "Who Is It For?", "Getting Started",
                 "Saving and Loading Searches", "Simple Search",
                 "Phrase Search (Quoted Terms)", "AND Mode",
                 "Boolean Expressions", "Breaking Down Complex Searches",
                 "Tips", "Troubleshooting",
-                "Files Created by docsearch", "Search Mode Checkboxes",
+                "Files Created by peekdocs", "Search Mode Checkboxes",
                 "Text Fields", "Combining Modes", "Settings Buttons",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
 
             h("WHAT IS DOCSEARCH?")
-            b("docsearch searches Word docs, PDFs, spreadsheets, emails,")
+            b("peekdocs searches Word docs, PDFs, spreadsheets, emails,")
             b("archives, and 46 file types \u2014 all at once, all offline. Your")
             b("files never leave your computer. Results are presented on")
             b("screen and in a Word document with every match highlighted")
-            b("in yellow. docsearch never modifies, moves, or deletes your")
+            b("in yellow. peekdocs never modifies, moves, or deletes your")
             b("files.")
             blank()
 
@@ -1475,7 +1475,7 @@ def _launch_gui():
             b("All searches are case-insensitive. Type your terms in the Search Bar,")
             b("pick a folder with Browse, and click Run Search. Use the checkboxes")
             b("under Advanced Search Options to change search modes \u2014 do not type flags in")
-            b("the search box. Results are saved to docsearch_results.txt and .docx.")
+            b("the search box. Results are saved to peekdocs_results.txt and .docx.")
             blank()
             b("Quick tips: Click the \u25bc button next to the search bar to reuse one of")
             b("your last 10 searches. While a search is running, the status line shows")
@@ -1494,7 +1494,7 @@ def _launch_gui():
             b("Advanced Search Options (checkboxes, file types, exclude terms, range")
             b("filters, proximity, etc.) as a named search. Give it a name like")
             b("'find_ssns' or 'missing_signature'. Saved searches are stored in")
-            b("the folder's .docsearch_collection.json file.")
+            b("the folder's .peekdocs_collection.json file.")
             blank()
             b("Load Saved Search restores a previously saved search \u2014 it loads")
             b("the search terms back into the search box AND restores all the")
@@ -1508,10 +1508,10 @@ def _launch_gui():
             s("Save Search vs Save Defaults \u2014 what's the difference?")
             b("\u2022 Save Search (main screen) \u2014 saves the current search terms")
             b("  and settings by name for reuse. Stored per folder in")
-            b("  .docsearch_collection.json.")
+            b("  .peekdocs_collection.json.")
             b("\u2022 Save Defaults (Advanced Search Options) \u2014 saves your")
             b("  preferred settings as defaults for every future session.")
-            b("  Stored once in ~/.docsearchrc. Use this to set your")
+            b("  Stored once in ~/.peekdocsrc. Use this to set your")
             b("  preferred starting configuration.")
             blank()
 
@@ -1628,7 +1628,7 @@ def _launch_gui():
             b("status line to see every file that was NOT searched, grouped")
             b("by reason (unsupported type, prior search output, oversized,")
             b("hidden file, etc.). This explains any difference between")
-            b("docsearch's file count and a manual count of the folder.")
+            b("peekdocs's file count and a manual count of the folder.")
             blank()
             b("Sanity check: searched + excluded should equal the total")
             b("number of files in the folder. Count all files with:")
@@ -1641,18 +1641,18 @@ def _launch_gui():
             blank()
 
             h("FILES CREATED BY DOCSEARCH")
-            b("docsearch never modifies, moves, or deletes your original")
+            b("peekdocs never modifies, moves, or deletes your original")
             b("documents. It creates its own files for reports, indexes, and")
             b("settings. Buttons like Clear Results and Delete Index only")
-            b("delete files that docsearch created \u2014 never your documents.")
-            b("All docsearch files are safe to delete manually too \u2014")
-            b("docsearch recreates them as needed.")
+            b("delete files that peekdocs created \u2014 never your documents.")
+            b("All peekdocs files are safe to delete manually too \u2014")
+            b("peekdocs recreates them as needed.")
             blank()
             s("Search reports (overwritten each search)")
-            e("docsearch_results.txt       \u2014 text report")
-            e("docsearch_results.docx      \u2014 Word report with highlights")
-            e("docsearch_results.csv       \u2014 optional (-o csv)")
-            e("docsearch_results.json      \u2014 optional (-o json)")
+            e("peekdocs_results.txt       \u2014 text report")
+            e("peekdocs_results.docx      \u2014 Word report with highlights")
+            e("peekdocs_results.csv       \u2014 optional (-o csv)")
+            e("peekdocs_results.json      \u2014 optional (-o json)")
             blank()
             s("Saved/archived reports")
             e("DO_NOT_SEARCH_{name}.txt/docx          \u2014 saved with -s")
@@ -1662,24 +1662,24 @@ def _launch_gui():
             e("DO_NOT_SEARCH_pii_scan_report.docx     \u2014 PII Scan report")
             blank()
             s("Error log")
-            e("docsearch_errors.log        \u2014 files that couldn't be read + crash reports")
+            e("peekdocs_errors.log        \u2014 files that couldn't be read + crash reports")
             blank()
             s("Index (optional)")
-            e(".docsearch.db               \u2014 search index (SQLite)")
-            e(".docsearch.db-wal/-shm      \u2014 temporary SQLite files")
+            e(".peekdocs.db               \u2014 search index (SQLite)")
+            e(".peekdocs.db-wal/-shm      \u2014 temporary SQLite files")
             blank()
             s("Settings & data")
-            e(".docsearch_collection.json  \u2014 saved searches (per folder)")
-            e("~/.docsearchrc              \u2014 user settings (home directory)")
-            b("The 'rc' in .docsearchrc stands for 'run commands' \u2014 a Unix naming")
+            e(".peekdocs_collection.json  \u2014 saved searches (per folder)")
+            e("~/.peekdocsrc              \u2014 user settings (home directory)")
+            b("The 'rc' in .peekdocsrc stands for 'run commands' \u2014 a Unix naming")
             b("convention meaning 'config file' (same as .bashrc, .vimrc, etc.).")
             blank()
             s("Key points")
             b("\u2022 All DO_NOT_SEARCH_ files are automatically excluded from searches")
-            b("\u2022 All docsearch internal files (.db, .log, .json config) are excluded")
-            b("\u2022 Most files are safe to delete \u2014 docsearch recreates them as needed")
+            b("\u2022 All peekdocs internal files (.db, .log, .json config) are excluded")
+            b("\u2022 Most files are safe to delete \u2014 peekdocs recreates them as needed")
             blank()
-            s("Upgrading docsearch")
+            s("Upgrading peekdocs")
             b("When you upgrade to a new version, only the code is replaced.")
             b("Your saved searches, settings, indexes, and reports are stored")
             b("in your home directory and document folders \u2014 they are never")
@@ -1688,20 +1688,20 @@ def _launch_gui():
             s("Backing up your work")
             b("Only two files matter \u2014 everything else can be regenerated:")
             blank()
-            b("\u2022 ~/.docsearchrc \u2014 your settings")
+            b("\u2022 ~/.peekdocsrc \u2014 your settings")
             b("  (one file in your home directory)")
             blank()
-            b("\u2022 .docsearch_collection.json \u2014 your saved searches")
+            b("\u2022 .peekdocs_collection.json \u2014 your saved searches")
             b("  (one per search folder, hidden file)")
             blank()
             b("Copy these to a safe location before major changes. If you")
-            b("search multiple folders, back up the .docsearch_collection.json")
+            b("search multiple folders, back up the .peekdocs_collection.json")
             b("in each one. On macOS, press Cmd+Shift+. in Finder to see")
             b("hidden files. On Windows, enable 'Show hidden items' in the")
             b("View tab of File Explorer.")
             blank()
-            s("If ~/.docsearchrc is deleted")
-            b("Nothing breaks \u2014 docsearch uses built-in defaults. To recover:")
+            s("If ~/.peekdocsrc is deleted")
+            b("Nothing breaks \u2014 peekdocs uses built-in defaults. To recover:")
             b("1. Open Advanced Search Options, set your preferences, click Save Defaults")
             b("2. Change Text Size dropdown if needed (auto-saves immediately)")
             b("\u2022 Use Clear Results, Clear Error Log, or Delete Index to manage")
@@ -1919,7 +1919,7 @@ def _launch_gui():
             s("Max File Size (MB)")
             b("Skip files larger than this size. Default: 100 MB. Very large files")
             b("(huge PDFs, massive spreadsheets) can cause slow searches or exhaust")
-            b("memory. Skipped files are logged to docsearch_errors.log with a message")
+            b("memory. Skipped files are logged to peekdocs_errors.log with a message")
             b("explaining why. Set to 0 for no limit if you need to search large files.")
             b("Changing this value automatically rebuilds the index on the next")
             b("indexed search, so results stay consistent.")
@@ -1999,11 +1999,11 @@ def _launch_gui():
             blank()
 
             h("SETTINGS BUTTONS")
-            s("Inspect .docsearchrc")
+            s("Inspect .peekdocsrc")
             b("View the current saved settings file (read-only).")
             s("Save As Defaults")
-            b("Save all current Advanced Search Options as defaults to ~/.docsearchrc.")
-            b("These are restored automatically when docsearch starts.")
+            b("Save all current Advanced Search Options as defaults to ~/.peekdocsrc.")
+            b("These are restored automatically when peekdocs starts.")
             b("Not required for the current search \u2014 your selections take")
             b("effect immediately on the next Run Search. Save Defaults is")
             b("only for making your choices persist across sessions.")
@@ -2014,7 +2014,7 @@ def _launch_gui():
             b("starting configuration. Save Search saves a specific named")
             b("search.")
             s("Restore Settings")
-            b("Reload saved defaults from ~/.docsearchrc into the GUI.")
+            b("Reload saved defaults from ~/.peekdocsrc into the GUI.")
             s("Reset All Fields")
             b("Clear all fields and reset to defaults. Does not modify the config file.")
             blank()
@@ -2389,7 +2389,7 @@ def _launch_gui():
                 onvalue="on", offvalue="off",
             )
             cb_ts.grid(row=0, column=4, padx=(0, 0))
-            Tooltip(cb_ts, "Add timestamp to report filenames (e.g., docsearch_results_20260327_143022.txt)")
+            Tooltip(cb_ts, "Add timestamp to report filenames (e.g., peekdocs_results_20260327_143022.txt)")
 
             # Row 10: Save Defaults + Restore Settings buttons
             settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -2447,9 +2447,9 @@ def _launch_gui():
             Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
             Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
             Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
-            Tooltip(cb_csv, "Also save results as a CSV file (docsearch_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
-            Tooltip(cb_json, "Also save results as a JSON file (docsearch_results.json) — machine-readable format for automation and integration")
-            Tooltip(cb_pdf, "Also save results as a PDF file (docsearch_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
+            Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
+            Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
+            Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
 
             # Note about saving
             # Note above bottom buttons
@@ -2464,7 +2464,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             adv_save_btn.pack(side="left", padx=(5, 0))
-            Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.docsearchrc")
+            Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc")
 
             ctk.CTkButton(
                 adv_bottom_frame, text="Close", width=80,
@@ -2480,16 +2480,16 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             adv_restore_btn.pack(side="right", padx=(0, 5))
-            Tooltip(adv_restore_btn, "Load saved defaults from ~/.docsearchrc into the GUI")
+            Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI")
 
             adv_inspect_link = ctk.CTkLabel(
-                adv_bottom_frame, text="Inspect .docsearchrc",
+                adv_bottom_frame, text="Inspect .peekdocsrc",
                 font=ctk.CTkFont(size=12, underline=True),
                 text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
             )
             adv_inspect_link.pack(side="left", padx=(5, 0))
             adv_inspect_link.bind("<Button-1>", lambda e: self._inspect_settings())
-            Tooltip(adv_inspect_link, "View the current saved settings in ~/.docsearchrc (read-only)")
+            Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only)")
 
         def _build_progress_area(self):
             """Build the progress bar, status label, and results preview pane."""
@@ -2539,7 +2539,7 @@ def _launch_gui():
             )
             self._excluded_files_btn.pack(side="left", padx=(5, 0))
             self._excluded_files_btn.pack_forget()  # Hidden until search completes
-            Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior docsearch output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number docsearch searched")
+            Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior peekdocs output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number peekdocs searched")
 
             self.matched_files = []
             self._inverse_results = False
@@ -2804,7 +2804,7 @@ def _launch_gui():
         def _open_load_search_popup(self):
             """Open a popup with saved searches listbox and Select/Delete buttons."""
             import tkinter as tk
-            from docsearch.collection import load_collection
+            from peekdocs.collection import load_collection
             if self._load_search_popup and self._load_search_popup.winfo_exists():
                 self._load_search_popup.destroy()
                 self._load_search_popup = None
@@ -2870,7 +2870,7 @@ def _launch_gui():
                 name = listbox.get(sel[0])
                 if name == "(no saved searches)":
                     return
-                from docsearch.collection import get_search_params
+                from peekdocs.collection import get_search_params
                 params = get_search_params(folder, name)
                 if params:
                     self._apply_params_to_gui(params)
@@ -2889,7 +2889,7 @@ def _launch_gui():
                 if name == "(no saved searches)":
                     return
                 from tkinter import messagebox
-                from docsearch.collection import remove_saved_search
+                from peekdocs.collection import remove_saved_search
                 if not messagebox.askyesno("Delete Saved Search",
                                            f"Delete saved search '{name}'?",
                                            parent=popup):
@@ -2988,12 +2988,12 @@ def _launch_gui():
             def _show_tools_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
-                menu.add_command(label="App Files — list docsearch-created files in the Search Folder", command=self._show_app_files)
+                menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
                 menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
-                menu.add_command(label="Error Log — open docsearch_errors.log", command=self.open_error_log)
+                menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
                 menu.add_separator()
-                menu.add_command(label="Clear Search Results — delete docsearch_results files", command=self._clear_results_files)
-                menu.add_command(label="Clear Error Log — delete docsearch_errors.log", command=self._clear_error_log)
+                menu.add_command(label="Clear Search Results — delete peekdocs_results files", command=self._clear_results_files)
+                menu.add_command(label="Clear Error Log — delete peekdocs_errors.log", command=self._clear_error_log)
                 menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
                 menu.add_separator()
                 # Text Size — direct items instead of a cascade submenu
@@ -3202,7 +3202,7 @@ def _launch_gui():
         def _start_sensitive_scan(self):
             """Show a configuration popup for the sensitive data scan."""
             import tkinter as tk
-            from docsearch.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_COLORS
+            from peekdocs.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_COLORS
 
             if self.process is not None:
                 self._show_error("A search is already running.")
@@ -3234,7 +3234,7 @@ def _launch_gui():
 
             # Load saved selections (default: all enabled)
             if not hasattr(self, "_pii_scan_enabled"):
-                from docsearch.cli import _load_config
+                from peekdocs.cli import _load_config
                 config = _load_config()
                 saved = config.get("pii_scan_categories")
                 if isinstance(saved, list):
@@ -3243,7 +3243,7 @@ def _launch_gui():
                     self._pii_scan_enabled = {cat for cat, _, _, _ in SENSITIVE_PATTERNS}
 
             # Load saved dollar amount range (defaults to $10,000 – $999,999,999)
-            from docsearch.cli import _load_config
+            from peekdocs.cli import _load_config
             _cfg = _load_config()
             saved_min = _cfg.get("pii_scan_dollar_min", "10000")
             saved_max = _cfg.get("pii_scan_dollar_max", "999999999")
@@ -3354,7 +3354,7 @@ def _launch_gui():
                 regex_entry.pack(side="left", padx=(0, 6))
                 Tooltip(
                     regex_entry,
-                    "Your custom regex. docsearch does NOT validate that it "
+                    "Your custom regex. peekdocs does NOT validate that it "
                     "correctly identifies the data you intend to find \u2014 you "
                     "own the outcome. Syntax errors are caught before the scan "
                     "runs, and obviously too-broad patterns will trigger a "
@@ -3377,7 +3377,7 @@ def _launch_gui():
             tk.Label(
                 custom_outer,
                 text=(
-                    "\u26a0  docsearch does NOT validate your regex. You own the outcome. "
+                    "\u26a0  peekdocs does NOT validate your regex. You own the outcome. "
                     "Findings from your patterns are marked '(custom)' in the results and report."
                 ),
                 font=("TkDefaultFont", 9, "italic"),
@@ -3471,7 +3471,7 @@ def _launch_gui():
                 # Remember selections for next time
                 self._pii_scan_enabled = {SENSITIVE_PATTERNS[i][0] for i, v in enumerate(check_vars) if v.get()}
                 try:
-                    from docsearch.cli import _load_config, _save_config
+                    from peekdocs.cli import _load_config, _save_config
                     config = _load_config()
                     config["pii_scan_categories"] = sorted(self._pii_scan_enabled)
                     if dollar_selected and dollar_min is not None:
@@ -3829,7 +3829,7 @@ def _launch_gui():
 
             b("IMPORTANT NOTES")
             blank()
-            b("\u2022 Don't worry about getting your regex wrong. docsearch")
+            b("\u2022 Don't worry about getting your regex wrong. peekdocs")
             b("  never modifies, moves, or deletes the files it searches")
             b("  \u2014 it only reads them and writes a summary report. The")
             b("  worst thing a bad regex can do is produce a useless or")
@@ -3839,12 +3839,12 @@ def _launch_gui():
             b("  runs, so an invalid pattern will produce a friendly error")
             b("  message and not start the scan.")
             b("\u2022 Very broad patterns (like . or \\d) will match almost")
-            b("  everything and produce a flood of findings. docsearch")
+            b("  everything and produce a flood of findings. peekdocs")
             b("  warns you before running the scan if it detects one.")
             b("\u2022 Your Custom Pattern is saved between sessions. Uncheck")
             b("  the box to skip it for a scan without losing the pattern.")
             b("\u2022 Read the Disclaimer section below for the full list of")
-            b("  what docsearch does and does not promise about regex-based")
+            b("  what peekdocs does and does not promise about regex-based")
             b("  detection. Custom patterns are your responsibility.")
             blank()
 
@@ -3887,7 +3887,7 @@ def _launch_gui():
             blank()
 
             h("SAVING YOUR SELECTIONS")
-            b("Your checkbox selections are saved to ~/.docsearchrc and")
+            b("Your checkbox selections are saved to ~/.peekdocsrc and")
             b("remembered between sessions. The next time you open the PII")
             b("Scan, the same categories will be checked. Use Select All")
             b("or Deselect All for quick toggling.")
@@ -3935,18 +3935,18 @@ def _launch_gui():
             b("  that does not match its built-in regex patterns. An SSN")
             b("  written as '123 45 6789' (spaces instead of dashes) may")
             b("  not be detected. A credit card number without separators")
-            b("  may be missed. A foreign tax ID in a format docsearch")
+            b("  may be missed. A foreign tax ID in a format peekdocs")
             b("  does not know will not be flagged. A clean report does")
             b("  NOT prove that a file is free of sensitive data \u2014 it")
-            b("  proves only that docsearch's specific regex patterns did")
+            b("  proves only that peekdocs's specific regex patterns did")
             b("  not match anything in the file's extracted text.")
             blank()
-            b("\u2022 Some file formats may not be fully extracted. docsearch")
+            b("\u2022 Some file formats may not be fully extracted. peekdocs")
             b("  searches 46 file types, but extraction quality varies. A")
             b("  scanned PDF without OCR enabled will not surface any")
             b("  text. An image file is ignored unless OCR is on. Complex")
             b("  binary formats may yield partial text. Files that")
-            b("  docsearch could not read will not produce findings even")
+            b("  peekdocs could not read will not produce findings even")
             b("  if they contain PII. Check View N excluded file(s) after")
             b("  each scan to see which files were skipped.")
             blank()
@@ -3963,17 +3963,17 @@ def _launch_gui():
             blank()
             b("\u2022 Custom user-supplied patterns are your responsibility.")
             b("  When you enter your own regex in the Custom Pattern section,")
-            b("  docsearch does not validate that your pattern correctly")
+            b("  peekdocs does not validate that your pattern correctly")
             b("  identifies the data you intend to find, and makes no")
             b("  representation about whether a custom pattern will match")
             b("  all instances of the data you are looking for. If you type")
-            b("  your own regex, you own the outcome. docsearch never")
+            b("  your own regex, you own the outcome. peekdocs never")
             b("  modifies, moves, or deletes the files it searches, so a")
             b("  bad pattern cannot harm your documents \u2014 the worst outcome")
             b("  is a useless report, which you can fix by editing the")
             b("  pattern and re-running the scan.")
             blank()
-            b("\u2022 Provided as-is under the MIT License. docsearch comes")
+            b("\u2022 Provided as-is under the MIT License. peekdocs comes")
             b("  with no warranty of any kind, express or implied. Users")
             b("  are solely responsible for how they interpret and act on")
             b("  these results. The full MIT License text is reproduced")
@@ -4069,8 +4069,8 @@ def _launch_gui():
 
         def _sensitive_scan_thread(self, folder, recursive, file_types, selected_patterns=None, dollar_range=None):
             """Run selected sensitive data patterns in a background thread."""
-            from docsearch.api import search
-            from docsearch.sensitive_patterns import SENSITIVE_PATTERNS
+            from peekdocs.api import search
+            from peekdocs.sensitive_patterns import SENSITIVE_PATTERNS
 
             patterns = selected_patterns if selected_patterns else SENSITIVE_PATTERNS
             total_patterns = len(patterns)
@@ -4179,7 +4179,7 @@ def _launch_gui():
             self._pii_report_path = None
             if total > 0:
                 try:
-                    from docsearch.reporter import write_pii_scan_report
+                    from peekdocs.reporter import write_pii_scan_report
                     report_name = "DO_NOT_SEARCH_pii_scan_report.docx"
                     output_dir = folder
                     # Use output dir if set in Advanced Search Options
@@ -4203,7 +4203,7 @@ def _launch_gui():
         def _show_sensitive_scan_results(self, scan_results, elapsed, files_searched):
             """Show a popup with categorized sensitive data scan results."""
             import tkinter as tk
-            from docsearch.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
+            from peekdocs.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
 
             popup = tk.Toplevel(self)
             popup.title("Sensitive Data Scan Results")
@@ -4288,7 +4288,7 @@ def _launch_gui():
                 ).pack(side="left", padx=(0, 4))
 
                 # Custom pattern marker — visually distinguish user-supplied
-                # pattern findings from docsearch's built-in categories
+                # pattern findings from peekdocs's built-in categories
                 if result.get("is_custom"):
                     tk.Label(
                         row, text="(custom)",
@@ -4446,7 +4446,7 @@ def _launch_gui():
             b("Each category with findings shows:")
             e("  12 match(es) in 3 file(s)")
             blank()
-            b("This means docsearch found 12 instances of that pattern across")
+            b("This means peekdocs found 12 instances of that pattern across")
             b("3 different files. Some files may contain multiple matches.")
             blank()
 
@@ -4678,7 +4678,7 @@ def _launch_gui():
             # Auto-save search terms, folder, and max file size for next launch
             # (max_file_size_mb must be saved here so the CLI subprocess picks it up)
             try:
-                from docsearch.cli import _load_config, _save_config
+                from peekdocs.cli import _load_config, _save_config
                 cfg = _load_config()
                 cfg["search_terms"] = search_text
                 cfg["folder"] = folder
@@ -4700,7 +4700,7 @@ def _launch_gui():
                 self._recent_searches.insert(0, search_text)
 
             if self.index_search_var.get() == "on":
-                index_path = os.path.join(folder, ".docsearch.db")
+                index_path = os.path.join(folder, ".peekdocs.db")
                 if not os.path.exists(index_path):
                     self._show_error(
                         "No search index found in this folder. "
@@ -4758,15 +4758,15 @@ def _launch_gui():
             # Remove stale output files for formats not requested (skip when timestamps are on)
             if not self._last_ts_suffix:
                 if self.output_csv_var.get() != "on":
-                    stale = os.path.join(self.results_dir, "docsearch_results.csv")
+                    stale = os.path.join(self.results_dir, "peekdocs_results.csv")
                     if os.path.exists(stale):
                         os.remove(stale)
                 if self.output_json_var.get() != "on":
-                    stale = os.path.join(self.results_dir, "docsearch_results.json")
+                    stale = os.path.join(self.results_dir, "peekdocs_results.json")
                     if os.path.exists(stale):
                         os.remove(stale)
                 if self.output_pdf_var.get() != "on":
-                    stale = os.path.join(self.results_dir, "docsearch_results.pdf")
+                    stale = os.path.join(self.results_dir, "peekdocs_results.pdf")
                     if os.path.exists(stale):
                         os.remove(stale)
             self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
@@ -4794,7 +4794,7 @@ def _launch_gui():
             _will_rebuild = False
             if self.index_search_var.get() == "on":
                 try:
-                    from docsearch.indexer import index_status as _istatus
+                    from peekdocs.indexer import index_status as _istatus
                     status = _istatus(folder)
                     if status:
                         stored = status.get("max_file_size_mb")
@@ -4855,7 +4855,7 @@ def _launch_gui():
             self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
         def _run_search(self, cmd, folder):
-            """Run the docsearch subprocess in a background thread and post results."""
+            """Run the peekdocs subprocess in a background thread and post results."""
             import re as _re
             try:
                 env = os.environ.copy()
@@ -4934,7 +4934,7 @@ def _launch_gui():
             if search_text and not use_fuzzy:
                 patterns = []
                 if is_expression:
-                    from docsearch.expr_parser import parse_expression, extract_positive_terms
+                    from peekdocs.expr_parser import parse_expression, extract_positive_terms
                     terms = extract_positive_terms(parse_expression(search_text))
                 else:
                     # Use shlex.split to respect quoted phrases (e.g., "insecure core")
@@ -4945,7 +4945,7 @@ def _launch_gui():
                         terms = search_text.split()
                 for term in terms:
                     if use_wildcard:
-                        from docsearch.scanner import _wildcard_to_regex
+                        from peekdocs.scanner import _wildcard_to_regex
                         patterns.append(_wildcard_to_regex(term))
                     elif use_regex:
                         patterns.append(term)
@@ -4972,7 +4972,7 @@ def _launch_gui():
                 elif _fuzzy_highlight:
                     # Highlight words that fuzzy-match the search terms
                     import re as _re_fz
-                    from docsearch.constants import FUZZY_THRESHOLD
+                    from peekdocs.constants import FUZZY_THRESHOLD
                     words = _re_fz.split(r'(\s+)', line)
                     for word in words:
                         if word.strip() and any(
@@ -4990,7 +4990,7 @@ def _launch_gui():
             results_path = None
             if self.results_dir:
                 suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-                results_path = os.path.join(self.results_dir, f"docsearch_results{suffix}.txt")
+                results_path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.txt")
 
             lines_added = 0
             max_preview_lines = 500  # Cap to keep the GUI responsive
@@ -5096,10 +5096,10 @@ def _launch_gui():
 
             # Check if any files were skipped (appears in subprocess output)
             import re as _re_fin
-            _skip_match = _re_fin.search(r"Errors logged to docsearch_errors\.log \((\d+) error", stdout or "")
+            _skip_match = _re_fin.search(r"Errors logged to peekdocs_errors\.log \((\d+) error", stdout or "")
             _skip_count = int(_skip_match.group(1)) if _skip_match else 0
 
-            # Compute excluded files list (unsupported types, docsearch outputs, etc.)
+            # Compute excluded files list (unsupported types, peekdocs outputs, etc.)
             folder = self.folder_entry.get().strip()
             recursive = self.recursive_var.get() == "on"
             try:
@@ -5129,7 +5129,7 @@ def _launch_gui():
                 # Post-search save (-s) if user filled in "Save as" field
                 save_name = self.save_name_entry.get().strip()
                 if save_name:
-                    save_cmd = [sys.executable, "-m", "docsearch", "-s", save_name]
+                    save_cmd = [sys.executable, "-m", "peekdocs", "-s", save_name]
                     try:
                         result = subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
                         if result.returncode != 0:
@@ -5140,7 +5140,7 @@ def _launch_gui():
                         return
                 # Populate file list for the popup button
                 ts = getattr(self, '_last_ts_suffix', '')
-                results_fn = f"docsearch_results_{ts}.txt" if ts else "docsearch_results.txt"
+                results_fn = f"peekdocs_results_{ts}.txt" if ts else "peekdocs_results.txt"
                 self._inverse_results = self.inverse_var.get() == "on"
                 if self._inverse_results:
                     self.matched_files = _parse_inverse_files(self.results_dir, results_fn)
@@ -5177,7 +5177,7 @@ def _launch_gui():
             elif returncode == 2:
                 # Check if results were produced despite the error (e.g., .docx generation failed)
                 ts = getattr(self, '_last_ts_suffix', '')
-                results_fn = f"docsearch_results_{ts}.txt" if ts else "docsearch_results.txt"
+                results_fn = f"peekdocs_results_{ts}.txt" if ts else "peekdocs_results.txt"
                 results_path = os.path.join(self.results_dir or folder, results_fn)
                 if os.path.exists(results_path):
                     # Search succeeded but something else failed (likely report generation)
@@ -5210,7 +5210,7 @@ def _launch_gui():
                 if _files_match:
                     _file_count = int(_files_match.group(1))
                     if _file_count >= 100:
-                        from docsearch.indexer import index_exists
+                        from peekdocs.indexer import index_exists
                         if not index_exists(folder):
                             current = self.status_label.cget("text")
                             self.status_label.configure(
@@ -5228,7 +5228,7 @@ def _launch_gui():
             if self.results_dir:
                 suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
                 for fmt in ("txt", "docx", "csv", "json", "pdf"):
-                    path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
+                    path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
                     report_formats[fmt] = os.path.exists(path)
 
             has_any_report = any(report_formats.values())
@@ -5260,7 +5260,7 @@ def _launch_gui():
                 row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
             )
         def open_error_log(self):
-            """Open the docsearch error log file in the default text editor."""
+            """Open the peekdocs error log file in the default text editor."""
             # Check results dir first (output dir if set), then search folder
             candidates = []
             if self.results_dir:
@@ -5273,7 +5273,7 @@ def _launch_gui():
                 return
             error_log_path = None
             for d in candidates:
-                p = os.path.join(d, "docsearch_errors.log")
+                p = os.path.join(d, "peekdocs_errors.log")
                 if os.path.exists(p):
                     error_log_path = p
                     break
@@ -5299,15 +5299,15 @@ def _launch_gui():
                 subprocess.Popen(["xdg-open", error_log_path])
 
         def _clear_results_files(self):
-            """Delete all docsearch_results* files from the search folder."""
+            """Delete all peekdocs_results* files from the search folder."""
             folder = self.results_dir or self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a folder first.")
                 return
-            # Find all docsearch_results* files
+            # Find all peekdocs_results* files
             results_files = [
                 f for f in os.listdir(folder)
-                if f.startswith("docsearch_results") and not f.startswith("docsearch_results_dir")
+                if f.startswith("peekdocs_results") and not f.startswith("peekdocs_results_dir")
             ]
             if not results_files:
                 self.status_label.configure(text="No results files to clear.")
@@ -5332,12 +5332,12 @@ def _launch_gui():
                 self._clear_action_buttons()
 
         def _clear_error_log(self):
-            """Delete the docsearch error log file after confirmation."""
+            """Delete the peekdocs error log file after confirmation."""
             folder = self.results_dir or self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a folder first.")
                 return
-            error_log_path = os.path.join(folder, "docsearch_errors.log")
+            error_log_path = os.path.join(folder, "peekdocs_errors.log")
             if not os.path.exists(error_log_path):
                 self.status_label.configure(text="No error log to clear.")
                 return
@@ -5351,7 +5351,7 @@ def _launch_gui():
                     self._show_error(f"Could not delete error log: {e}")
 
         def _clean_up_practice_files(self):
-            """Delete all docsearch-generated artifacts from the search folder
+            """Delete all peekdocs-generated artifacts from the search folder
             (and all subfolders), preserving saved searches and settings.
 
             For users who have been experimenting with the app and want to
@@ -5362,25 +5362,25 @@ def _launch_gui():
                 self._show_error("Please select a folder first.")
                 return
 
-            # Files to delete — anything docsearch created during searches
-            # Preserved: .docsearch_collection.json (saved searches)
-            #           .docsearchrc (in home dir, not search folder anyway)
+            # Files to delete — anything peekdocs created during searches
+            # Preserved: .peekdocs_collection.json (saved searches)
+            #           .peekdocsrc (in home dir, not search folder anyway)
             to_delete = []  # list of (path, reason)
 
             for root, dirs, files in os.walk(folder):
                 for fname in files:
                     filepath = os.path.join(root, fname)
                     # Search result files
-                    if fname.startswith("docsearch_results"):
+                    if fname.startswith("peekdocs_results"):
                         to_delete.append((filepath, "search results"))
-                    # docsearch-generated reports (e.g., PII scan report)
+                    # peekdocs-generated reports (e.g., PII scan report)
                     elif fname.startswith("DO_NOT_SEARCH"):
-                        to_delete.append((filepath, "docsearch report"))
+                        to_delete.append((filepath, "peekdocs report"))
                     # Error log
-                    elif fname == "docsearch_errors.log":
+                    elif fname == "peekdocs_errors.log":
                         to_delete.append((filepath, "error log"))
                     # Index database
-                    elif fname in (".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm"):
+                    elif fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
                         to_delete.append((filepath, "index database"))
 
             if not to_delete:
@@ -5400,8 +5400,8 @@ def _launch_gui():
                 f"{folder}\n\n"
                 f"{reason_lines}\n\n"
                 f"PRESERVED:\n"
-                f"  \u2022 Your saved searches (.docsearch_collection.json)\n"
-                f"  \u2022 Your settings (~/.docsearchrc)\n"
+                f"  \u2022 Your saved searches (.peekdocs_collection.json)\n"
+                f"  \u2022 Your settings (~/.peekdocsrc)\n"
                 f"  \u2022 Your original documents\n\n"
                 f"This cannot be undone."
             )
@@ -5436,7 +5436,7 @@ def _launch_gui():
         def _open_report_format(self, fmt):
             """Open the report file for the given format (txt, docx, csv, json)."""
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-            path = os.path.join(self.results_dir, f"docsearch_results{suffix}.{fmt}")
+            path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
             if not os.path.exists(path):
                 self._show_error(f"Report file not found: {os.path.basename(path)}")
                 return
@@ -5454,7 +5454,7 @@ def _launch_gui():
             """
             folder = self.folder_entry.get().strip()
             if folder and os.path.isdir(folder):
-                index_path = os.path.join(folder, ".docsearch.db")
+                index_path = os.path.join(folder, ".peekdocs.db")
                 if os.path.exists(index_path):
                     self.build_index_button.configure(fg_color=("#3B8ED0", "#1F6AA5"), hover_color=("#36719F", "#144870"))
                     self.cb_index_search.configure(state="normal")
@@ -5470,7 +5470,7 @@ def _launch_gui():
 
         def _show_last_updated(self, folder):
             """Display the index last_updated timestamp on the refresh status label."""
-            from docsearch.indexer import index_status
+            from peekdocs.indexer import index_status
             try:
                 status = index_status(folder)
                 if status:
@@ -5515,7 +5515,7 @@ def _launch_gui():
             if not folder or not os.path.isdir(folder):
                 self._reschedule_refresh()
                 return
-            if not os.path.exists(os.path.join(folder, ".docsearch.db")):
+            if not os.path.exists(os.path.join(folder, ".peekdocs.db")):
                 self._reschedule_refresh()
                 return
             if self.process is not None or self.search_start_time is not None:
@@ -5536,7 +5536,7 @@ def _launch_gui():
 
         def _run_auto_refresh(self, folder):
             """Background thread: run refresh_index and post result to main thread."""
-            from docsearch.indexer import refresh_index
+            from peekdocs.indexer import refresh_index
             try:
                 mfs = int(self.max_file_size_entry.get().strip() or "100")
             except (ValueError, AttributeError):
@@ -5627,7 +5627,7 @@ def _launch_gui():
             def _run():
                 build_result = None
                 try:
-                    from docsearch.indexer import build_index
+                    from peekdocs.indexer import build_index
                     self._index_process = "running"  # sentinel so start_search knows
                     try:
                         mfs = int(self.max_file_size_entry.get().strip() or "100")
@@ -5679,7 +5679,7 @@ def _launch_gui():
                 self._show_error("Please select a valid folder.")
                 return
 
-            cmd = [sys.executable, "-m", "docsearch", "-q", "--index-clear"]
+            cmd = [sys.executable, "-m", "peekdocs", "-q", "--index-clear"]
             try:
                 result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
                 msg = result.stdout.strip()
@@ -5703,8 +5703,8 @@ def _launch_gui():
 
             # Read index status directly — no subprocess needed
             try:
-                from docsearch.indexer import index_status as _idx_status
-                from docsearch.constants import INDEX_FILENAME as _IDX_FILE
+                from peekdocs.indexer import index_status as _idx_status
+                from peekdocs.constants import INDEX_FILENAME as _IDX_FILE
                 status = _idx_status(folder)
             except Exception as e:
                 self._show_error(f"Failed to get index status: {e}")
@@ -5718,7 +5718,7 @@ def _launch_gui():
                 return
 
             # Build status text
-            from docsearch.reporter import fmt_size as _fmt_size
+            from peekdocs.reporter import fmt_size as _fmt_size
             db_path = os.path.join(folder, _IDX_FILE)
             stdout = (
                 "Index status:\n"
@@ -5732,7 +5732,7 @@ def _launch_gui():
                 f"  Last updated:   {status.get('last_updated', status.get('created_at', '?'))}\n"
                 f"  Recursive:      {status.get('recursive', '?')}\n"
                 f"  OCR:            {status.get('use_ocr', '?')}\n"
-                f"  docsearch ver:  {status.get('docsearch_version', '?')}"
+                f"  peekdocs ver:  {status.get('peekdocs_version', '?')}"
             )
 
             import tkinter as tk
@@ -5806,7 +5806,7 @@ def _launch_gui():
             txt.insert("end", "\n")
 
             h("QUICK START")
-            b("Click Build Index(es) and you're done. docsearch reads")
+            b("Click Build Index(es) and you're done. peekdocs reads")
             b("your files once, enables Use Index, and sets Auto-Refresh")
             b("to 1 hour. All future searches are faster and the index")
             b("stays current automatically.")
@@ -5852,7 +5852,7 @@ def _launch_gui():
             h("DO I NEED AN INDEX?")
             b("Yes, if you search the same folder often (100+ files).")
             b("No, if your folder is small or you rarely re-search it.")
-            b("docsearch suggests building one when it would help.")
+            b("peekdocs suggests building one when it would help.")
             blank()
             b("If indexed search feels slower than direct search,")
             b("uncheck Use Index. This can happen with folders that")
@@ -5861,10 +5861,10 @@ def _launch_gui():
 
             h("GOOD TO KNOW")
             b("\u2022 Results are identical with or without an index")
-            b("\u2022 The index is one file (.docsearch.db) in your search folder")
+            b("\u2022 The index is one file (.peekdocs.db) in your search folder")
             b("\u2022 One index covers the folder and all subfolders")
             b("\u2022 Safe to delete \u2014 rebuild with Build Index(es) anytime")
-            b("\u2022 If Use Index is checked but no index exists, docsearch")
+            b("\u2022 If Use Index is checked but no index exists, peekdocs")
             b("  falls back to direct scanning automatically")
             b("\u2022 Changing Max File Size (in Advanced Search Options) triggers")
             b("  an automatic rebuild on the next indexed search")
@@ -5904,18 +5904,18 @@ def _launch_gui():
 
         def _compute_excluded_files(self, folder, recursive=True):
             """Walk the search folder and return a list of (filepath, reason) tuples
-            for files that docsearch did NOT include in its search pool.
+            for files that peekdocs did NOT include in its search pool.
 
             Files that were discovered but skipped at process time (e.g., oversized)
             are reported in the error log, not here — that avoids double-counting.
             """
-            from docsearch.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
-            from docsearch.scanner import discover_files as _discover
+            from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+            from peekdocs.scanner import discover_files as _discover
             excluded = []
             use_ocr = self.ocr_var.get() == "on"
             supported = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if use_ocr else set())
 
-            # Get the set of files docsearch would include in its search pool
+            # Get the set of files peekdocs would include in its search pool
             try:
                 disc = _discover(folder, recursive=recursive, use_ocr=use_ocr)
                 if isinstance(disc, tuple):
@@ -5926,9 +5926,9 @@ def _launch_gui():
                 searched_set = set()
 
             _DOCSEARCH_INTERNAL = {
-                ".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm",
-                ".docsearch_collection.json", ".docsearchrc",
-                "docsearch_errors.log",
+                ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
+                ".peekdocs_collection.json", ".peekdocsrc",
+                "peekdocs_errors.log",
             }
 
             walker = os.walk(folder) if recursive else [(folder, [], os.listdir(folder))]
@@ -5943,17 +5943,17 @@ def _launch_gui():
                     # Hidden file
                     if fname.startswith("."):
                         if fname in _DOCSEARCH_INTERNAL:
-                            excluded.append((filepath, "docsearch internal file (hidden)"))
+                            excluded.append((filepath, "peekdocs internal file (hidden)"))
                         else:
                             excluded.append((filepath, "hidden file (starts with .)"))
                         continue
 
-                    # docsearch output files
-                    if fname.startswith("docsearch_results") or fname.startswith("DO_NOT_SEARCH"):
-                        excluded.append((filepath, "docsearch output file (prior search results)"))
+                    # peekdocs output files
+                    if fname.startswith("peekdocs_results") or fname.startswith("DO_NOT_SEARCH"):
+                        excluded.append((filepath, "peekdocs output file (prior search results)"))
                         continue
                     if fname in _DOCSEARCH_INTERNAL:
-                        excluded.append((filepath, "docsearch internal file"))
+                        excluded.append((filepath, "peekdocs internal file"))
                         continue
 
                     # Unsupported file type
@@ -5971,55 +5971,55 @@ def _launch_gui():
             return excluded
 
         def _show_app_files(self):
-            """List all docsearch-created files in the search folder and subfolders."""
+            """List all peekdocs-created files in the search folder and subfolders."""
             import tkinter as tk
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a search folder first.")
                 return
 
-            # Categorize docsearch-generated files
+            # Categorize peekdocs-generated files
             app_files = []  # list of (filepath, category)
             _INTERNAL_NAMES = {
-                ".docsearch.db", ".docsearch.db-wal", ".docsearch.db-shm",
-                ".docsearch_collection.json", "docsearch_errors.log",
+                ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
+                ".peekdocs_collection.json", "peekdocs_errors.log",
             }
 
             for root, dirs, files in os.walk(folder):
                 for fname in files:
                     filepath = os.path.join(root, fname)
 
-                    if fname.startswith("docsearch_results"):
+                    if fname.startswith("peekdocs_results"):
                         app_files.append((filepath, "Search results"))
                     elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
                         app_files.append((filepath, "PII scan reports"))
                     elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
                         app_files.append((filepath, "Accumulated results"))
                     elif fname.startswith("DO_NOT_SEARCH"):
-                        app_files.append((filepath, "docsearch reports"))
-                    elif fname == "docsearch_errors.log":
+                        app_files.append((filepath, "peekdocs reports"))
+                    elif fname == "peekdocs_errors.log":
                         app_files.append((filepath, "Error log"))
-                    elif fname == ".docsearch.db":
+                    elif fname == ".peekdocs.db":
                         app_files.append((filepath, "Search index"))
-                    elif fname in (".docsearch.db-wal", ".docsearch.db-shm"):
+                    elif fname in (".peekdocs.db-wal", ".peekdocs.db-shm"):
                         app_files.append((filepath, "Index temp files"))
-                    elif fname == ".docsearch_collection.json":
+                    elif fname == ".peekdocs_collection.json":
                         app_files.append((filepath, "Saved searches \u2014 DO NOT DELETE"))
 
-            # Also check home directory for .docsearchrc
-            rc_path = os.path.expanduser("~/.docsearchrc")
+            # Also check home directory for .peekdocsrc
+            rc_path = os.path.expanduser("~/.peekdocsrc")
             if os.path.exists(rc_path):
                 app_files.append((rc_path, "Settings \u2014 DO NOT DELETE"))
 
             if not app_files:
                 self.status_label.configure(
-                    text="No docsearch files found in this folder.",
+                    text="No peekdocs files found in this folder.",
                     text_color="blue",
                 )
                 return
 
             popup = tk.Toplevel(self)
-            popup.title(f"docsearch App Files ({len(app_files)})")
+            popup.title(f"peekdocs App Files ({len(app_files)})")
             popup.resizable(True, True)
             popup.geometry("1000x500")
             self.update_idletasks()
@@ -6028,13 +6028,13 @@ def _launch_gui():
             popup.geometry(f"+{x}+{y}")
 
             tk.Label(
-                popup, text=f"docsearch Files ({len(app_files)} file(s) in {folder})",
+                popup, text=f"peekdocs Files ({len(app_files)} file(s) in {folder})",
                 font=("TkDefaultFont", 13, "bold"),
             ).pack(pady=(10, 2))
             tk.Label(
-                popup, text="Files created by docsearch in this folder and subfolders. "
+                popup, text="Files created by peekdocs in this folder and subfolders. "
                             "Items marked DO NOT DELETE contain your saved work. "
-                            ".docsearch_collection.json holds all saved searches for that "
+                            ".peekdocs_collection.json holds all saved searches for that "
                             "folder \u2014 back it up before major changes.",
                 font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
             ).pack(pady=(0, 8), padx=15)
@@ -6063,11 +6063,11 @@ def _launch_gui():
 
             _CATEGORY_DESCRIPTIONS = {
                 "Saved searches \u2014 DO NOT DELETE":
-                    "    These .docsearch_collection.json files store your saved searches.\n"
+                    "    These .peekdocs_collection.json files store your saved searches.\n"
                     "    One per folder. Back these up \u2014 they represent all your saved\n"
                     "    search configurations.",
                 "Settings \u2014 DO NOT DELETE":
-                    "    Your ~/.docsearchrc file stores your Advanced Search Options\n"
+                    "    Your ~/.peekdocsrc file stores your Advanced Search Options\n"
                     "    settings and other saved defaults.\n"
                     "    Back this up \u2014 it contains your personalized configuration.",
                 "Search index":
@@ -6099,10 +6099,10 @@ def _launch_gui():
             tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
 
         def _show_all_collections(self):
-            """Scan home directory for all .docsearch_collection.json files and display a summary."""
+            """Scan home directory for all .peekdocs_collection.json files and display a summary."""
             import tkinter as tk
             from collections import defaultdict
-            from docsearch.collection import COLLECTION_FILENAME, load_collection
+            from peekdocs.collection import COLLECTION_FILENAME, load_collection
 
             home = os.path.expanduser("~")
             self.status_label.configure(text="Scanning for saved collections…", text_color="blue")
@@ -6159,7 +6159,7 @@ def _launch_gui():
             ).pack(pady=(10, 2))
             tk.Label(
                 popup,
-                text="All .docsearch_collection.json files found under your home directory. "
+                text="All .peekdocs_collection.json files found under your home directory. "
                      "Double-click a folder path to switch to it.",
                 font=("TkDefaultFont", 11), fg="gray",
             ).pack(pady=(0, 8))
@@ -6337,7 +6337,7 @@ def _launch_gui():
             b("It lists every file that was in your search folder but was")
             b("NOT searched, grouped by the reason it was skipped.")
             blank()
-            b("This answers the question: \"Why did docsearch report fewer")
+            b("This answers the question: \"Why did peekdocs report fewer")
             b("files searched than my file manager shows in the folder?\"")
             b("If you expected 200 files and only 180 were searched, this")
             b("popup tells you exactly which 20 were skipped and why.")
@@ -6346,11 +6346,11 @@ def _launch_gui():
             h("WHY FILES GET EXCLUDED")
             b("Files are excluded for several reasons:")
             blank()
-            b("\u2022 Unsupported type \u2014 the file extension is not in docsearch's")
+            b("\u2022 Unsupported type \u2014 the file extension is not in peekdocs's")
             b("  list of 46 searchable formats (e.g., .exe, .dll, .dmg,")
-            b("  .iso, .mp3, .mp4, .psd). docsearch is a document search")
+            b("  .iso, .mp3, .mp4, .psd). peekdocs is a document search")
             b("  tool, not a binary/media scanner")
-            b("\u2022 Prior docsearch output \u2014 files docsearch created itself,")
+            b("\u2022 Prior peekdocs output \u2014 files peekdocs created itself,")
             b("  such as DO_NOT_SEARCH_*.docx reports, index databases,")
             b("  and collection files. Searching these would produce")
             b("  circular matches and pollute your results")
@@ -6363,7 +6363,7 @@ def _launch_gui():
             b("  do not want included")
             b("\u2022 Symlink \u2014 symbolic links to files outside your search")
             b("  folder, skipped to avoid searching the same file twice")
-            b("\u2022 Permission denied \u2014 docsearch does not have read")
+            b("\u2022 Permission denied \u2014 peekdocs does not have read")
             b("  access to the file (common on macOS for files in")
             b("  protected folders like ~/Documents without Full Disk")
             b("  Access granted)")
@@ -6381,7 +6381,7 @@ def _launch_gui():
             e("      photo2.jpg")
             e("      ...")
             e("")
-            e("  \u2500\u2500 Prior docsearch output (3 file(s)) \u2500\u2500")
+            e("  \u2500\u2500 Prior peekdocs output (3 file(s)) \u2500\u2500")
             e("      DO_NOT_SEARCH_results.docx")
             e("      ...")
             blank()
@@ -6405,12 +6405,12 @@ def _launch_gui():
             b("\u2022 Permission denied (macOS) \u2014 open System Settings >")
             b("  Privacy & Security > Full Disk Access and grant access")
             b("  to your terminal application (Terminal.app, iTerm, etc.)")
-            b("\u2022 Prior docsearch output \u2014 leave these alone. They are")
+            b("\u2022 Prior peekdocs output \u2014 leave these alone. They are")
             b("  supposed to be excluded")
             blank()
 
             h("WHY THIS MATTERS")
-            b("If you ever wondered \"did docsearch actually look at every")
+            b("If you ever wondered \"did peekdocs actually look at every")
             b("file in my folder?\", this popup is the answer. Every file")
             b("in your folder is either in the Matched Files popup, in")
             b("this Excluded Files popup, or in the search results with")
@@ -6632,11 +6632,11 @@ def _launch_gui():
             b(".docx, .pdf, .xlsx, or whatever format it is \u2014 in the")
             b("application your system uses for that file type.")
             blank()
-            b("View Text opens docsearch's extracted plain-text view of")
+            b("View Text opens peekdocs's extracted plain-text view of")
             b("the same file, with:")
             b("\u2022 Line numbers down the left side")
             b("\u2022 Every match highlighted in yellow")
-            b("\u2022 A scrollable window you can read without leaving docsearch")
+            b("\u2022 A scrollable window you can read without leaving peekdocs")
             blank()
             b("Use View Text when you want to quickly scan the matches in")
             b("context. Use Open File when you want to edit, print, or")
@@ -6647,7 +6647,7 @@ def _launch_gui():
             b("Line numbers refer to the EXTRACTED text, not the original")
             b("page or paragraph number in the source document. For plain")
             b("text files, these are the same. For .docx, .pdf, .xlsx, and")
-            b("other formats, docsearch extracts the text content and")
+            b("other formats, peekdocs extracts the text content and")
             b("numbers the resulting lines \u2014 so line 47 in the popup will")
             b("match line 47 in the View Text window, but may not match")
             b("a page number or paragraph number you see when you open")
@@ -6663,7 +6663,7 @@ def _launch_gui():
             b("Close this popup and click the gray Excluded Files button")
             b("on the status line to see exactly which files were skipped")
             b("and why (unsupported type, oversized, hidden, prior")
-            b("docsearch output, etc.).")
+            b("peekdocs output, etc.).")
             blank()
 
             txt.configure(state="disabled")
@@ -6763,7 +6763,7 @@ def _launch_gui():
             blank()
 
             h("WHERE SAVED SEARCHES ARE STORED")
-            b("Saved searches live in a file called .docsearch_collection.json")
+            b("Saved searches live in a file called .peekdocs_collection.json")
             b("inside the search folder itself. Each folder has its own")
             b("collection \u2014 the saved searches for ~/Documents/Contracts are")
             b("separate from those in ~/Documents/HR_Files. When you switch")
@@ -6796,11 +6796,11 @@ def _launch_gui():
             blank()
             b("Deleting a saved search does NOT delete any files in the")
             b("folder. It only removes the entry from the")
-            b(".docsearch_collection.json file.")
+            b(".peekdocs_collection.json file.")
             blank()
 
             h("SHARING SAVED SEARCHES")
-            b("The .docsearch_collection.json file is plain-text JSON. To")
+            b("The .peekdocs_collection.json file is plain-text JSON. To")
             b("share a saved search with someone else, you can copy the")
             b("collection file directly, or copy the relevant entry out of")
             b("it into another folder's collection file. The file is human-")
@@ -6839,7 +6839,7 @@ def _launch_gui():
             currently in the search bar.
             """
             import tkinter as tk
-            from docsearch.scanner import _extract_lines, _ocr_image
+            from peekdocs.scanner import _extract_lines, _ocr_image
             import re as _re_view
 
             try:
@@ -6898,7 +6898,7 @@ def _launch_gui():
                     is_expression = self.expression_var.get() == "on"
                     if is_expression:
                         try:
-                            from docsearch.expr_parser import parse_expression, extract_positive_terms
+                            from peekdocs.expr_parser import parse_expression, extract_positive_terms
                             terms = extract_positive_terms(parse_expression(search_text))
                         except Exception:
                             terms = search_text.split()
@@ -6906,7 +6906,7 @@ def _launch_gui():
                         terms = search_text.split()
                     for term in terms:
                         if use_wildcard:
-                            from docsearch.scanner import _wildcard_to_regex
+                            from peekdocs.scanner import _wildcard_to_regex
                             patterns.append(_wildcard_to_regex(term))
                         elif use_regex:
                             patterns.append(term)
@@ -6975,14 +6975,14 @@ def _launch_gui():
             ).pack(pady=(5, 10))
 
         def open_help(self):
-            """Open the docsearch User Guide in the default web browser."""
-            webbrowser.open("https://github.com/exbuf/docsearch/blob/main/docs/USER_GUIDE.md")
+            """Open the peekdocs User Guide in the default web browser."""
+            webbrowser.open("https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md")
 
         def show_about(self):
             """Show the About dialog with version and author information."""
             import tkinter as tk
             about_win = tk.Toplevel(self)
-            about_win.title("About docsearch")
+            about_win.title("About peekdocs")
             about_win.resizable(False, False)
             about_win.geometry("300x210")
             # Center on parent
@@ -6991,10 +6991,10 @@ def _launch_gui():
             y = self.winfo_rooty() + (self.winfo_height() - 120) // 2
             about_win.geometry(f"+{x}+{y}")
             try:
-                ver = pkg_version("docsearch")
+                ver = pkg_version("peekdocs")
             except Exception:
                 ver = "unknown"
-            tk.Label(about_win, text="docsearch", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
+            tk.Label(about_win, text="peekdocs", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
             tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
             tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
             tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack()
@@ -7060,7 +7060,7 @@ def _launch_gui():
                 self._apply_preview_font(scaled_size)
             # Auto-save so it persists between app invocations
             try:
-                from docsearch.cli import _load_config, _save_config
+                from peekdocs.cli import _load_config, _save_config
                 cfg = _load_config()
                 if value == "Normal":
                     cfg.pop("text_size", None)
@@ -7073,8 +7073,8 @@ def _launch_gui():
             self.after(200, self._sync_input_widths)
 
         def _inspect_settings(self):
-            """Show the current saved settings from ~/.docsearchrc in a read-only popup."""
-            from docsearch.cli import _config_path
+            """Show the current saved settings from ~/.peekdocsrc in a read-only popup."""
+            from peekdocs.cli import _config_path
             import tkinter as tk
 
             path = _config_path()
@@ -7112,8 +7112,8 @@ def _launch_gui():
             tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
 
         def _save_current_settings(self):
-            """Save current Advanced Search Options state to ~/.docsearchrc."""
-            from docsearch.cli import _save_config, _config_path
+            """Save current Advanced Search Options state to ~/.peekdocsrc."""
+            from peekdocs.cli import _save_config, _config_path
 
             settings = {}
             # Boolean settings — always save both True and False
@@ -7222,14 +7222,14 @@ def _launch_gui():
                 if os.path.exists(path):
                     os.remove(path)
             self.status_label.configure(
-                text="Settings saved to ~/.docsearchrc",
+                text="Settings saved to ~/.peekdocsrc",
                 text_color="blue",
                 font=ctk.CTkFont(size=13),
             )
 
         def _load_saved_settings(self):
-            """Load saved settings from ~/.docsearchrc and apply to GUI."""
-            from docsearch.cli import _load_config
+            """Load saved settings from ~/.peekdocsrc and apply to GUI."""
+            from peekdocs.cli import _load_config
 
             config = _load_config()
             # For first-time users (no config yet), default Recursive and Whole Word to ON
@@ -7505,7 +7505,7 @@ def _launch_gui():
         def _save_to_collection(self):
             """Save current search config to the folder's collection file."""
             import tkinter as tk
-            from docsearch.collection import add_saved_search, load_collection
+            from peekdocs.collection import add_saved_search, load_collection
 
             folder = self.folder_entry.get().strip()
             if not folder or not os.path.isdir(folder):
@@ -7571,7 +7571,7 @@ def _launch_gui():
             """Open the Search Wizard popup for building regex patterns."""
             import tkinter as tk
             from tkinter import ttk
-            from docsearch.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
+            from peekdocs.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
 
             # Initialize persistent state on first open
             if not hasattr(self, "_wizard_state"):
@@ -7865,7 +7865,7 @@ def _launch_gui():
 
 
 def main():
-    """Launch the docsearch graphical interface."""
+    """Launch the peekdocs graphical interface."""
     _launch_gui()
 
 

@@ -1,6 +1,6 @@
-# docsearch Library API Reference
+# peekdocs Library API Reference
 
-Use docsearch programmatically from Python code. For CLI and GUI usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
+Use peekdocs programmatically from Python code. For CLI and GUI usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ Use docsearch programmatically from Python code. For CLI and GUI usage, see the 
 ## Basic Usage
 
 ```python
-from docsearch import search
+from peekdocs import search
 
 result = search(["budget", "revenue"], directory="/path/to/docs")
 
@@ -26,7 +26,7 @@ for match in result.matches:
 ## With Options
 
 ```python
-from docsearch import search
+from peekdocs import search
 
 # Wildcard search in specific file types, with subdirectories
 result = search(
@@ -167,7 +167,7 @@ Each `SearchMatch` has fields: `file_dir`, `filename`, `line_num`, `text`.
 `search()` raises `ValueError` for invalid parameter combinations (e.g. combining regex + fuzzy) and `FileNotFoundError` if specified files are not found.
 
 ```python
-from docsearch import search
+from peekdocs import search
 
 try:
     result = search([r"[invalid"], use_regex=True)

@@ -3,7 +3,7 @@
 import json
 import os
 
-COLLECTION_FILENAME = ".docsearch_collection.json"
+COLLECTION_FILENAME = ".peekdocs_collection.json"
 COLLECTION_VERSION = 1
 
 # Keys stored for each saved search (matches _build_command_from_values params).

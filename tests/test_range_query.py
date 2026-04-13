@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 
-from docsearch.range_query import (
+from peekdocs.range_query import (
     RangeSpec,
     parse_range,
     split_ranges,

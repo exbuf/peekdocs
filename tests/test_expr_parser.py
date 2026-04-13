@@ -1,8 +1,8 @@
-"""Tests for docsearch.expr_parser — tokenizer, parser, evaluator, term extraction."""
+"""Tests for peekdocs.expr_parser — tokenizer, parser, evaluator, term extraction."""
 
 import pytest
 
-from docsearch.expr_parser import (
+from peekdocs.expr_parser import (
     AndNode,
     NotNode,
     OrNode,

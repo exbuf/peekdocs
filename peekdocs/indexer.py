@@ -1,4 +1,4 @@
-"""SQLite FTS5 index for docsearch."""
+"""SQLite FTS5 index for peekdocs."""
 
 import os
 import re
@@ -7,8 +7,8 @@ import time
 from datetime import datetime
 from importlib.metadata import version as pkg_version
 
-from docsearch.constants import INDEX_FILENAME
-from docsearch.scanner import _extract_lines, _ocr_image, _search_file_lines, discover_files
+from peekdocs.constants import INDEX_FILENAME
+from peekdocs.scanner import _extract_lines, _ocr_image, _search_file_lines, discover_files
 
 
 # ─── Database setup ───────────────────────────────────────
@@ -97,7 +97,7 @@ def _handle_corrupt_db(directory):
     clear_index(directory)
     print("Warning: Index database was corrupted and has been removed.",
           file=sys.stderr)
-    print("Rebuild with: docsearch --index", file=sys.stderr)
+    print("Rebuild with: peekdocs --index", file=sys.stderr)
     return True
 
 
@@ -243,7 +243,7 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
 
     # Update meta
     try:
-        version = pkg_version("docsearch")
+        version = pkg_version("peekdocs")
     except Exception:
         version = "unknown"
 
@@ -254,7 +254,7 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
         "recursive": str(recursive),
         "use_ocr": str(use_ocr),
         "max_file_size_mb": str(max_file_size_mb),
-        "docsearch_version": version,
+        "peekdocs_version": version,
     }
     for key, value in meta_values.items():
         conn.execute(
@@ -498,7 +498,7 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     # read during indexing. Use normalized paths to avoid false mismatches
     # on Windows (case-insensitive, backslashes vs forward slashes).
     max_mb = config.get("max_file_size_mb", 100)
-    from docsearch.scanner import discover_files as _discover
+    from peekdocs.scanner import discover_files as _discover
     use_ocr = config.get("use_ocr", False)
     disc = _discover(directory, recursive=True, use_ocr=use_ocr)
     if not isinstance(disc, tuple):
@@ -527,16 +527,16 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     content_ranges = config.get("content_ranges", [])
     metadata_ranges = config.get("metadata_ranges", [])
     if content_ranges:
-        from docsearch.range_query import line_matches_content_ranges
+        from peekdocs.range_query import line_matches_content_ranges
         matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
                    if line_matches_content_ranges(tx, content_ranges)]
     if metadata_ranges:
-        from docsearch.range_query import file_matches_metadata_ranges
+        from peekdocs.range_query import file_matches_metadata_ranges
         matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
                    if file_matches_metadata_ranges(os.path.join(fd, fn), metadata_ranges)]
     filename_ranges = config.get("filename_ranges", [])
     if filename_ranges:
-        from docsearch.range_query import file_matches_filename_ranges
+        from peekdocs.range_query import file_matches_filename_ranges
         matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
                    if file_matches_filename_ranges(fn, filename_ranges)]
 
@@ -593,7 +593,7 @@ def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
         return term.lower() in text.lower()
 
     if expression_ast is not None:
-        from docsearch.expr_parser import evaluate_expression
+        from peekdocs.expr_parser import evaluate_expression
 
         for file_dir, filename, line_num, text in rows:
             if evaluate_expression(expression_ast, text, _term_matches, filename=filename):
@@ -654,7 +654,7 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
     matches = []
 
     if expression_ast is not None:
-        from docsearch.expr_parser import evaluate_expression
+        from peekdocs.expr_parser import evaluate_expression
         use_whole_word = config.get("use_whole_word", False)
 
         def _term_matches(term, text):

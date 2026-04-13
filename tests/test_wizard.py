@@ -2,8 +2,8 @@
 
 import re
 import pytest
-from docsearch.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
-from docsearch.gui import _build_wizard_regex
+from peekdocs.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
+from peekdocs.gui import _build_wizard_regex
 
 
 # ── Pattern data structure tests ─────────────────────────────

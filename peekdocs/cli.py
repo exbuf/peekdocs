@@ -20,21 +20,21 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 
-VERSION = pkg_version("docsearch")
+VERSION = pkg_version("peekdocs")
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
 
-from docsearch.constants import (  # noqa: E402
+from peekdocs.constants import (  # noqa: E402
     SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD, INDEX_FILENAME,
     _default_cores, TESTED_PYTHON_MIN, TESTED_PYTHON_MAX,
 )
 
 BANNER_TOP = (
-    '\ndocsearch — search Word docs, PDFs, spreadsheets, emails, and 38 other file types, all at once, all offline.\n'
-    'Results are saved to highlighted .docx and .txt reports. GUI available: run docsearch-gui\n'
+    '\npeekdocs — search Word docs, PDFs, spreadsheets, emails, and 38 other file types, all at once, all offline.\n'
+    'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
-    'Usage: docsearch [OPTIONS] TERM [TERM ...]\n'
+    'Usage: peekdocs [OPTIONS] TERM [TERM ...]\n'
     '\n'
     'Supported file types:\n'
     '  Documents:  .doc .docx .epub .html .md .odt .pages .pdf .ppt .pptx .rst .rtf .tex\n'
@@ -46,14 +46,14 @@ BANNER_TOP = (
     '  Images (OCR): .bmp .jpg .jpeg .png .tif .tiff (requires -O flag)\n'
     '\n'
     '── Search Modes ─────────────────────────────────────────────────\n'
-    '  docsearch term1 term2           OR search (any term matches)\n'
-    '  docsearch -a term1 term2        AND search (all terms required in same line)\n'
-    '  docsearch -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
-    '  docsearch -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
-    '  docsearch -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
-    '  docsearch -z budgt              Fuzzy matching (typo-tolerant)\n'
-    '  docsearch -W bob                Whole-word only (not "bobcat")\n'
-    '  docsearch -p 5 budget revenue   Proximity (terms within 5 words of each other)'
+    '  peekdocs term1 term2           OR search (any term matches)\n'
+    '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
+    '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
+    '  peekdocs -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
+    '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
+    '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
+    '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
+    '  peekdocs -p 5 budget revenue   Proximity (terms within 5 words of each other)'
 )
 
 BANNER_BOTTOM = (
@@ -96,7 +96,7 @@ BANNER_BOTTOM = (
     '  -h                 Show this help\n'
     '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
-    'Full documentation: https://github.com/exbuf/docsearch/blob/main/README.md'
+    'Full documentation: https://github.com/exbuf/peekdocs/blob/main/README.md'
 )
 
 REGEX_PATTERNS = (
@@ -124,12 +124,12 @@ CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
 def _config_path():
-    """Return the path to ~/.docsearchrc."""
-    return os.path.join(os.path.expanduser("~"), ".docsearchrc")
+    """Return the path to ~/.peekdocsrc."""
+    return os.path.join(os.path.expanduser("~"), ".peekdocsrc")
 
 
 def _load_config():
-    """Load defaults from ~/.docsearchrc if it exists."""
+    """Load defaults from ~/.peekdocsrc if it exists."""
     path = _config_path()
     if not os.path.exists(path):
         return {}
@@ -158,10 +158,10 @@ def _load_config():
 
 
 def _save_config(settings):
-    """Write settings dict to ~/.docsearchrc."""
+    """Write settings dict to ~/.peekdocsrc."""
     path = _config_path()
     with open(path, "w", encoding="utf-8") as f:
-        f.write("# ~/.docsearchrc - docsearch defaults\n")
+        f.write("# ~/.peekdocsrc - peekdocs defaults\n")
         f.write("# Command-line flags always override these settings\n\n")
         for key in sorted(settings):
             value = settings[key]
@@ -171,14 +171,14 @@ def _save_config(settings):
                 f.write(f"{key} = {value}\n")
 
 
-# Re-export from scanner so tests can monkeypatch via docsearch.cli
-from docsearch.scanner import _process_file, _ocr_image, discover_files, _extract_lines, _search_file_lines  # noqa: E402
-from docsearch.parser import parse_flags  # noqa: E402
-from docsearch.indexer import (  # noqa: E402
+# Re-export from scanner so tests can monkeypatch via peekdocs.cli
+from peekdocs.scanner import _process_file, _ocr_image, discover_files, _extract_lines, _search_file_lines  # noqa: E402
+from peekdocs.parser import parse_flags  # noqa: E402
+from peekdocs.indexer import (  # noqa: E402
     index_exists, build_index, refresh_index, clear_index,
     index_status, search_with_index,
 )
-from docsearch.reporter import (  # noqa: E402
+from peekdocs.reporter import (  # noqa: E402
     fmt_size, write_txt_report, write_docx_report,
     insert_file_sizes, write_csv_report, write_json_report,
     write_pdf_report, append_results,
@@ -200,7 +200,7 @@ _OPTIONAL_MODULES = [
     ("rapidfuzz", "rapidfuzz", "Fuzzy matching (-z)"),
     ("pytesseract", "pytesseract", "OCR engine (-O)"),
     ("PIL", "Pillow", "OCR image processing (-O)"),
-    ("customtkinter", "customtkinter", "GUI (docsearch-gui)"),
+    ("customtkinter", "customtkinter", "GUI (peekdocs-gui)"),
 ]
 
 
@@ -260,10 +260,10 @@ def _check_python_version():
     if v < TESTED_PYTHON_MIN:
         return (f"Warning: Python {v[0]}.{v[1]} is below the minimum tested version "
                 f"({TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]}). "
-                "docsearch may not work correctly.")
+                "peekdocs may not work correctly.")
     if v > TESTED_PYTHON_MAX:
-        return (f"Warning: docsearch has not been tested with Python {v[0]}.{v[1]}. "
-                "If you experience issues, check docsearch_errors.log.")
+        return (f"Warning: peekdocs has not been tested with Python {v[0]}.{v[1]}. "
+                "If you experience issues, check peekdocs_errors.log.")
     return None
 
 
@@ -277,10 +277,10 @@ def _diagnose(exc):
         if module:
             return (f"The Python module '{module}' could not be loaded. "
                     "This is usually caused by a missing or incompatible dependency. "
-                    "Try: pip install --upgrade docsearch")
+                    "Try: pip install --upgrade peekdocs")
         return ("A required module could not be imported. "
                 "A dependency may be missing or incompatible with your Python version. "
-                "Try reinstalling: pip install --upgrade docsearch")
+                "Try reinstalling: pip install --upgrade peekdocs")
 
     if isinstance(exc, MemoryError):
         return ("The system ran out of memory. "
@@ -319,7 +319,7 @@ def _diagnose(exc):
 
     return (f"An unexpected {name} occurred. "
             "This may be a bug or a compatibility issue with your Python version. "
-            "Please report this at https://github.com/exbuf/docsearch/issues")
+            "Please report this at https://github.com/exbuf/peekdocs/issues")
 
 
 def main(argv=None):
@@ -343,17 +343,17 @@ def main(argv=None):
         print("\nSearch cancelled.\n")
         return 2
     except Exception as exc:
-        error_log_path = os.path.join(os.getcwd(), "docsearch_errors.log")
+        error_log_path = os.path.join(os.getcwd(), "peekdocs_errors.log")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         diagnosis = _diagnose(exc)
         with open(error_log_path, "a", encoding="utf-8") as log_f:
             log_f.write(f"\n{'='*60}\n")
             log_f.write(f"{timestamp}  CRASH REPORT\n")
-            log_f.write(f"docsearch {VERSION}\n")
+            log_f.write(f"peekdocs {VERSION}\n")
             log_f.write(f"Python {sys.version}\n")
             log_f.write(f"OS: {platform.system()} {platform.release()}\n")
             cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
-            log_f.write(f"Command: docsearch {cmd}\n")
+            log_f.write(f"Command: peekdocs {cmd}\n")
             log_f.write(f"\nDiagnosis: {diagnosis}\n")
             log_f.write(f"\nDependency versions:\n")
             try:
@@ -363,8 +363,8 @@ def main(argv=None):
             log_f.write(f"{'='*60}\n")
             traceback.print_exc(file=log_f)
             log_f.write("\n")
-        print(f"\nError: An unexpected error occurred. Details logged to docsearch_errors.log")
-        print(f"Run 'docsearch --check' to verify your installation.\n")
+        print(f"\nError: An unexpected error occurred. Details logged to peekdocs_errors.log")
+        print(f"Run 'peekdocs --check' to verify your installation.\n")
         return 2
 
 
@@ -377,7 +377,7 @@ def _main_inner(argv=None):
     # Python version guard — hard block if below minimum
     v = sys.version_info[:2]
     if v < TESTED_PYTHON_MIN:
-        print(f"Error: docsearch requires Python {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]} or later. "
+        print(f"Error: peekdocs requires Python {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]} or later. "
               f"You are running Python {v[0]}.{v[1]}.\n")
         print("To upgrade Python:")
         print("  macOS:   brew install python@3.12")
@@ -396,7 +396,7 @@ def _main_inner(argv=None):
         print("Error: Required dependencies are missing:\n")
         for desc, pkg in missing:
             print(f"  {desc} — install with: pip install {pkg}")
-        print(f"\nOr reinstall docsearch: pip install --upgrade docsearch\n")
+        print(f"\nOr reinstall peekdocs: pip install --upgrade peekdocs\n")
         return 2
 
     original_args = list(args)
@@ -416,7 +416,7 @@ def _main_inner(argv=None):
         print()
 
     if args and args[0] in ("-v", "-version"):
-        print(f"docsearch {VERSION}\n")
+        print(f"peekdocs {VERSION}\n")
         return 0
 
     if is_help:
@@ -430,7 +430,7 @@ def _main_inner(argv=None):
 
     if args and args[0] == "--check":
         import sqlite3
-        print(f"docsearch {VERSION}")
+        print(f"peekdocs {VERSION}")
         print(f"Python {sys.version}")
         print(f"OS: {platform.system()} {platform.release()}")
         print()
@@ -485,7 +485,7 @@ def _main_inner(argv=None):
         print()
 
         if not all_ok:
-            print("Fix missing dependencies with: pip install --upgrade docsearch")
+            print("Fix missing dependencies with: pip install --upgrade peekdocs")
             print()
 
         return 0 if all_ok else 2
@@ -550,7 +550,7 @@ def _main_inner(argv=None):
         cwd = os.getcwd()
         status = index_status(cwd)
         if status is None:
-            print("No index found. Build one with: docsearch --index\n")
+            print("No index found. Build one with: peekdocs --index\n")
             return 0
         db_path = os.path.join(cwd, INDEX_FILENAME)
         print("Index status:")
@@ -564,14 +564,14 @@ def _main_inner(argv=None):
         print(f"  Last updated:   {status.get('last_updated', status.get('created_at', '?'))}")
         print(f"  Recursive:      {status.get('recursive', '?')}")
         print(f"  OCR:            {status.get('use_ocr', '?')}")
-        print(f"  docsearch ver:  {status.get('docsearch_version', '?')}")
+        print(f"  peekdocs ver:  {status.get('peekdocs_version', '?')}")
         print()
         return 0
 
     if args and args[0] == "--index-refresh":
         cwd = os.getcwd()
         if not index_exists(cwd):
-            print("No index found. Build one first with: docsearch --index\n")
+            print("No index found. Build one first with: peekdocs --index\n")
             return 0
         use_ocr = "-O" in args[1:]
         print(f"Refreshing index in {cwd} ...")
@@ -586,13 +586,13 @@ def _main_inner(argv=None):
 
     if args and args[0] in ("-s", "-save"):
         if len(args) < 2:
-            print("Error: No filename provided. Usage: docsearch -s name_of_your_file\n")
+            print("Error: No filename provided. Usage: peekdocs -s name_of_your_file\n")
             return 2
         name = "_".join(args[1:]).replace(" ", "_")
         cwd = os.getcwd()
         save_dir = _load_config().get("output_dir", cwd)
-        src_docx = os.path.join(save_dir, "docsearch_results.docx")
-        src_txt = os.path.join(save_dir, "docsearch_results.txt")
+        src_docx = os.path.join(save_dir, "peekdocs_results.docx")
+        src_txt = os.path.join(save_dir, "peekdocs_results.txt")
         dest_docx = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.docx")
         dest_txt = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
@@ -611,7 +611,7 @@ def _main_inner(argv=None):
             if not current:
                 print("No config file found.\n")
             else:
-                print("Current settings (~/.docsearchrc):\n")
+                print("Current settings (~/.peekdocsrc):\n")
                 for key in sorted(current):
                     print(f"  {key} = {current[key]}")
                 print()
@@ -729,7 +729,7 @@ def _main_inner(argv=None):
     mode = parsed["mode"]
     report_mode = parsed["report_mode"]
 
-    command_str = "docsearch " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
+    command_str = "peekdocs " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
     print(command_str)
     start_time = time.time()
     cwd = os.getcwd()
@@ -746,7 +746,7 @@ def _main_inner(argv=None):
     # Parse range specs for reporter display
     parsed_range_specs = []
     if range_specs_raw:
-        from docsearch.range_query import parse_range
+        from peekdocs.range_query import parse_range
         for spec_str in range_specs_raw:
             parsed_range_specs.append(parse_range(spec_str))
     if _will_use_index:
@@ -804,7 +804,7 @@ def _main_inner(argv=None):
     spinner_t.start()
 
     try:
-        from docsearch.api import search as _api_search
+        from peekdocs.api import search as _api_search
         search_result = _api_search(
             search_terms,
             directory=cwd,
@@ -858,7 +858,7 @@ def _main_inner(argv=None):
         print(f"Warning: Could not read {skipped_name} ({error_msg})")
 
     if skipped_files:
-        error_log_path = os.path.join(output_dir, "docsearch_errors.log")
+        error_log_path = os.path.join(output_dir, "peekdocs_errors.log")
         with open(error_log_path, "a", encoding="utf-8") as log_f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             for skipped_name, error_msg in skipped_files:
@@ -888,8 +888,8 @@ def _main_inner(argv=None):
         return 2
 
     # Generate reports
-    output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.txt")
-    docx_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.docx")
+    output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.txt")
+    docx_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.docx")
 
     idx_meta = index_status(cwd) if use_index else None
 
@@ -933,11 +933,11 @@ def _main_inner(argv=None):
     pdf_output_path = None
 
     if "csv" in output_formats:
-        csv_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.csv")
+        csv_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.csv")
         write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
-        json_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.json")
+        json_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
@@ -945,7 +945,7 @@ def _main_inner(argv=None):
         )
 
     if "pdf" in output_formats:
-        pdf_output_path = os.path.join(output_dir, f"docsearch_results{ts_suffix}.pdf")
+        pdf_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.pdf")
         try:
             write_pdf_report(
                 pdf_output_path, matches, search_terms=search_terms,
@@ -993,7 +993,7 @@ def _main_inner(argv=None):
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     if skipped_files:
-        print(f"Errors logged to docsearch_errors.log ({len(skipped_files)} error(s))")
+        print(f"Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
     print()
     if inverse:
         return 0 if inverse_files else 1

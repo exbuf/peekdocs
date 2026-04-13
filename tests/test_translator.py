@@ -1,7 +1,7 @@
-"""Tests for docsearch command and regex translation."""
+"""Tests for peekdocs command and regex translation."""
 
 import pytest
-from docsearch.translator import (
+from peekdocs.translator import (
     translate_command, _translate_regex, _translate_wildcard, _identify_pattern,
 )
 
@@ -224,71 +224,71 @@ class TestTranslateWildcard:
 
 class TestTranslateCommand:
     def test_simple(self):
-        result = translate_command("docsearch budget")
+        result = translate_command("peekdocs budget")
         assert "budget" in result
         assert "Search" in result
 
     def test_and_recursive(self):
-        result = translate_command("docsearch -a -r budget revenue")
+        result = translate_command("peekdocs -a -r budget revenue")
         assert "ALL" in result
         assert "subdirectories" in result
         assert "budget" in result
         assert "revenue" in result
 
     def test_or_mode(self):
-        result = translate_command("docsearch budget revenue")
+        result = translate_command("peekdocs budget revenue")
         assert "ANY" in result
         assert "budget" in result
         assert "revenue" in result
 
     def test_regex_flag(self):
-        result = translate_command(r'docsearch -x "\d+"')
+        result = translate_command(r'peekdocs -x "\d+"')
         assert "regex" in result
         assert "digit" in result
 
     def test_with_exclude(self):
-        result = translate_command("docsearch -n draft budget")
+        result = translate_command("peekdocs -n draft budget")
         assert "exclud" in result
         assert "draft" in result
 
     def test_with_proximity(self):
-        result = translate_command("docsearch -p 5 term1 term2")
+        result = translate_command("peekdocs -p 5 term1 term2")
         assert "5" in result
         assert "word" in result
 
     def test_with_file_types(self):
-        result = translate_command("docsearch -t pdf,docx budget")
+        result = translate_command("peekdocs -t pdf,docx budget")
         assert "pdf" in result
         assert "docx" in result
 
     def test_with_ocr(self):
-        result = translate_command("docsearch -O budget")
+        result = translate_command("peekdocs -O budget")
         assert "OCR" in result
 
     def test_with_fuzzy(self):
-        result = translate_command("docsearch -z budgt")
+        result = translate_command("peekdocs -z budgt")
         assert "fuzzy" in result
 
     def test_with_wildcard(self):
-        result = translate_command('docsearch -w "budg*"')
+        result = translate_command('peekdocs -w "budg*"')
         assert "wildcard" in result
         assert "budg" in result
 
     def test_with_context(self):
-        result = translate_command("docsearch -A 5 -B 3 budget")
+        result = translate_command("peekdocs -A 5 -B 3 budget")
         assert "5" in result and "after" in result
         assert "3" in result and "before" in result
 
     def test_with_cores(self):
-        result = translate_command("docsearch -c 4 budget")
+        result = translate_command("peekdocs -c 4 budget")
         assert "4" in result and "core" in result
 
     def test_specific_files(self):
-        result = translate_command("docsearch -f report.pdf budget")
+        result = translate_command("peekdocs -f report.pdf budget")
         assert "report.pdf" in result
 
     def test_inverse(self):
-        result = translate_command("docsearch -i budget")
+        result = translate_command("peekdocs -i budget")
         assert "inverse" in result or "WITHOUT" in result
 
     def test_empty_command(self):
@@ -296,17 +296,17 @@ class TestTranslateCommand:
         assert isinstance(result, str)
 
     def test_no_terms(self):
-        result = translate_command("docsearch")
+        result = translate_command("peekdocs")
         assert isinstance(result, str)
 
     def test_single_term_no_any_all(self):
         """Single term should not mention ANY/ALL."""
-        result = translate_command("docsearch budget")
+        result = translate_command("peekdocs budget")
         assert "ANY" not in result
         assert "ALL" not in result
 
     def test_quoted_regex_with_spaces(self):
-        result = translate_command('docsearch -x "\\d{3} \\d{4}"')
+        result = translate_command('peekdocs -x "\\d{3} \\d{4}"')
         assert "digit" in result
 
     def test_complex_regex(self):

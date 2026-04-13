@@ -1,10 +1,10 @@
-# docsearch User Guide
+# peekdocs User Guide
 
-This is the complete reference guide for docsearch. For a quick overview, see the [README](../README.md).
+This is the complete reference guide for peekdocs. For a quick overview, see the [README](../README.md).
 
 ## Table of Contents
 
-- [Will docsearch affect my existing Python installation?](#will-docsearch-affect-my-existing-python-installation)
+- [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
 - [Security Best Practices](#security-best-practices)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
@@ -24,22 +24,22 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Combining Modes](#combining-modes)
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Saved Settings (Optional)](#saved-settings-optional)
-- [Files Created by docsearch](#files-created-by-docsearch)
+- [Files Created by peekdocs](#files-created-by-peekdocs)
 - [Limits and Constraints](#limits-and-constraints)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 
-## Will docsearch affect my existing Python installation?
+## Will peekdocs affect my existing Python installation?
 
-No. Both installation methods keep docsearch completely isolated from your existing Python setup, your other Python programs, and your system.
+No. Both installation methods keep peekdocs completely isolated from your existing Python setup, your other Python programs, and your system.
 
-**With pipx** (`pipx install docsearch`): pipx creates a private workspace for docsearch behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. docsearch's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`docsearch` and `docsearch-gui`) are added to your PATH so you can type them in any terminal.
+**With pipx** (`pipx install peekdocs`): pipx creates a private workspace for peekdocs behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. peekdocs's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`peekdocs` and `peekdocs-gui`) are added to your PATH so you can type them in any terminal.
 
-**With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything docsearch installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if docsearch doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
+**With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything peekdocs installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if peekdocs doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
 
-**What docsearch will NOT do:**
+**What peekdocs will NOT do:**
 
 - It will not upgrade or downgrade your existing Python packages
 - It will not break other Python programs on your computer
@@ -49,25 +49,25 @@ No. Both installation methods keep docsearch completely isolated from your exist
 
 **Upgrading to a new version — your data is preserved:**
 
-All your settings, saved searches, indexes, and reports are stored outside the docsearch installation — either in your home directory or in the folders where your documents are. When you upgrade, none of this is touched:
+All your settings, saved searches, indexes, and reports are stored outside the peekdocs installation — either in your home directory or in the folders where your documents are. When you upgrade, none of this is touched:
 
 | Your data | Where it lives | Preserved on upgrade? |
 |-----------|---------------|----------------------|
-| Settings | `~/.docsearchrc` (home directory) | Yes |
-| Saved searches | `.docsearch_collection.json` (each search folder) | Yes |
-| Search index | `.docsearch.db` (each search folder) | Yes |
-| Search reports | `docsearch_results.*` (each search folder) | Yes |
+| Settings | `~/.peekdocsrc` (home directory) | Yes |
+| Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
+| Search index | `.peekdocs.db` (each search folder) | Yes |
+| Search reports | `peekdocs_results.*` (each search folder) | Yes |
 | Saved reports and PII scan reports | `DO_NOT_SEARCH_*` (each search folder) | Yes |
-| Error log | `docsearch_errors.log` (each search folder) | Yes |
+| Error log | `peekdocs_errors.log` (each search folder) | Yes |
 
 **How to upgrade:**
 
-- **pipx:** `pipx upgrade docsearch` — replaces the code, preserves all your data
-- **Manual install:** download the new ZIP, replace the `docsearch-main` folder, run `pip install -e .` — your data is untouched
+- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data
+- **Manual install:** download the new ZIP, replace the `peekdocs-main` folder, run `pip install -e .` — your data is untouched
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.
 
-**Backing up your work — only two files matter:** `~/.docsearchrc` (your settings) and `.docsearch_collection.json` (your saved searches, one per folder). Everything else docsearch creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by docsearch](#files-created-by-docsearch) for the complete list of all files and what each one does.
+**Backing up your work — only two files matter:** `~/.peekdocsrc` (your settings) and `.peekdocs_collection.json` (your saved searches, one per folder). Everything else peekdocs creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by peekdocs](#files-created-by-peekdocs) for the complete list of all files and what each one does.
 
 **How to see hidden files:** These files start with a dot, which makes them hidden by default.
 - **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
@@ -76,19 +76,19 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 **If you want to uninstall completely:**
 
-- **pipx:** `pipx uninstall docsearch` — removes the docsearch code and its private workspace. Your settings (`~/.docsearchrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
-- **Manual install:** delete the `docsearch-main` folder you downloaded. Your settings and data in document folders remain.
+- **pipx:** `pipx uninstall peekdocs` — removes the peekdocs code and its private workspace. Your settings (`~/.peekdocsrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
+- **Manual install:** delete the `peekdocs-main` folder you downloaded. Your settings and data in document folders remain.
 
 ---
 
 ## Security Best Practices
 
-docsearch runs entirely on your computer — your documents are never uploaded, transmitted, or shared. But because docsearch works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
+peekdocs runs entirely on your computer — your documents are never uploaded, transmitted, or shared. But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
 
-- **Lock your screen when stepping away.** docsearch stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just docsearch, but email, browser, and all open files.
-- **Be careful with report files.** The `docsearch_results.docx`, `.txt`, and `DO_NOT_SEARCH_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
-- **Don't store docsearch results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
-- **Review the error log.** `docsearch_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
+- **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
+- **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `DO_NOT_SEARCH_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
+- **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
+- **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
 
 ---
 
@@ -96,41 +96,41 @@ docsearch runs entirely on your computer — your documents are never uploaded, 
 
 If you've never used a terminal before, this section walks you through everything from opening it to running your first search. If you're already comfortable with the command line, skip ahead to [GUI Mode](#gui-mode) or [Usage](#usage).
 
-**Prefer not to use the terminal?** That's completely fine — run `docsearch-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
+**Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
 
 ### Which installation method did you use?
 
-This matters for how you launch docsearch:
+This matters for how you launch peekdocs:
 
-- **If you installed with pipx** (`pipx install docsearch`): you're all set. `docsearch` and `docsearch-gui` work from any terminal, any folder, every time. Just open a terminal and start searching. Skip to [Step 1: Open your terminal](#step-1-open-your-terminal).
+- **If you installed with pipx** (`pipx install peekdocs`): you're all set. `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time. Just open a terminal and start searching. Skip to [Step 1: Open your terminal](#step-1-open-your-terminal).
 
-- **If you installed manually** (git clone + virtual environment): you need to **activate the virtual environment** every time you open a new terminal before docsearch will work. If you close your terminal and open a new one, typing `docsearch` will say "command not found" — this doesn't mean it's broken, it means the virtual environment isn't active. To fix it:
+- **If you installed manually** (git clone + virtual environment): you need to **activate the virtual environment** every time you open a new terminal before peekdocs will work. If you close your terminal and open a new one, typing `peekdocs` will say "command not found" — this doesn't mean it's broken, it means the virtual environment isn't active. To fix it:
 
   **macOS/Linux:**
   ```bash
-  cd /path/to/docsearch      # navigate to where you cloned docsearch
+  cd /path/to/peekdocs      # navigate to where you cloned peekdocs
   source venv/bin/activate    # activate the virtual environment
   ```
 
   **Windows (Command Prompt):**
   ```cmd
-  cd C:\path\to\docsearch
+  cd C:\path\to\peekdocs
   venv\Scripts\activate
   ```
 
   **Windows (PowerShell):**
   ```powershell
-  cd C:\path\to\docsearch
+  cd C:\path\to\peekdocs
   venv\Scripts\Activate.ps1
   ```
 
-  You'll see `(venv)` appear at the beginning of your command line — that means docsearch is ready. You need to do this activation step each time you open a new terminal window.
+  You'll see `(venv)` appear at the beginning of your command line — that means peekdocs is ready. You need to do this activation step each time you open a new terminal window.
 
-  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install docsearch`. After restarting your terminal, docsearch works everywhere without activation.
+  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install peekdocs`. After restarting your terminal, peekdocs works everywhere without activation.
 
 ### What is a terminal?
 
-A terminal (also called "command line," "command prompt," or "shell") is a text-based way to tell your computer what to do. Instead of clicking buttons, you type commands and press Enter. It looks intimidating at first, but you only need to learn a few commands to use docsearch.
+A terminal (also called "command line," "command prompt," or "shell") is a text-based way to tell your computer what to do. Instead of clicking buttons, you type commands and press Enter. It looks intimidating at first, but you only need to learn a few commands to use peekdocs.
 
 ### Step 1: Open your terminal
 
@@ -172,16 +172,16 @@ cd "/Users/YourName/My Documents"
 Type this and press Enter:
 
 ```bash
-docsearch budget
+peekdocs budget
 ```
 
-docsearch will scan every supported file in the folder and show a summary:
+peekdocs will scan every supported file in the folder and show a summary:
 
 ```
 Files searched: 47 (12.34 MB) — Found 23 match(es).
 Elapsed time: 1.2 seconds, Cores used: 4 of 8
 Results ==> /Users/YourName/Documents
-  docsearch_results.txt (5.67 KB), docsearch_results.docx (42.31 KB)
+  peekdocs_results.txt (5.67 KB), peekdocs_results.docx (42.31 KB)
 ```
 
 That's it — you just searched 47 files in 1.2 seconds. Your results are saved in two files.
@@ -192,20 +192,20 @@ The results are saved in the same folder where you ran the search. Open the Word
 
 **Windows:**
 ```cmd
-start docsearch_results.docx
+start peekdocs_results.docx
 ```
 
 **macOS:**
 ```bash
-open docsearch_results.docx
+open peekdocs_results.docx
 ```
 
 **Linux:**
 ```bash
-xdg-open docsearch_results.docx
+xdg-open peekdocs_results.docx
 ```
 
-Or simply navigate to the folder in your file manager and double-click `docsearch_results.docx`.
+Or simply navigate to the folder in your file manager and double-click `peekdocs_results.docx`.
 
 ### Step 5: Try a few more searches
 
@@ -213,37 +213,37 @@ Now that you know the basics, try these:
 
 **Search for multiple words (finds files containing any of them):**
 ```bash
-docsearch budget revenue expenses
+peekdocs budget revenue expenses
 ```
 
 **Search for files containing ALL of the words:**
 ```bash
-docsearch -a budget revenue
+peekdocs -a budget revenue
 ```
 
 **Search subfolders too:**
 ```bash
-docsearch -r budget
+peekdocs -r budget
 ```
 
 **Search only PDFs and Word documents:**
 ```bash
-docsearch -t pdf,docx budget
+peekdocs -t pdf,docx budget
 ```
 
 **Search for a pattern (like Social Security numbers):**
 ```bash
-docsearch -x "\d{3}-\d{2}-\d{4}"
+peekdocs -x "\d{3}-\d{2}-\d{4}"
 ```
 
 **Find files that are MISSING a required term:**
 ```bash
-docsearch --inverse "Authorized Signature"
+peekdocs --inverse "Authorized Signature"
 ```
 
 **Find dollar amounts in a range:**
 ```bash
-docsearch -R amount:1000..5000 budget
+peekdocs -R amount:1000..5000 budget
 ```
 
 ### Step 6: Get help
@@ -251,7 +251,7 @@ docsearch -R amount:1000..5000 budget
 To see all available options with examples:
 
 ```bash
-docsearch -h
+peekdocs -h
 ```
 
 This shows every flag, organized by category (Search Modes, Filters, Output, Index, Settings), with examples for each one.
@@ -260,28 +260,28 @@ This shows every flag, organized by category (Search Modes, Filters, Output, Ind
 
 - **Up arrow** — press it to recall your previous command. Press it again to go further back. This is how you re-run or modify a previous search without retyping it.
 - **Tab completion** — start typing a folder or file name and press Tab. The terminal fills in the rest. This saves typing and avoids typos.
-- **Ctrl+C** — cancels a search in progress. docsearch stops cleanly.
+- **Ctrl+C** — cancels a search in progress. peekdocs stops cleanly.
 - **History** — your terminal remembers every command you've typed. Use the up/down arrows to scroll through them.
 
 ### What's next?
 
 - See the [Flag Use Summary](#flag-use-summary) for a complete table of all options
 - See the [Command Examples](#command-examples) table for 150+ example commands
-- Try the GUI for a visual interface: just type `docsearch-gui`
+- Try the GUI for a visual interface: just type `peekdocs-gui`
 - Read [Your First Advanced Search](#your-first-advanced-search--step-by-step) for guided walkthroughs of regex, fuzzy, range queries, and more
 
 ---
 
 ## GUI Mode (Graphical User Interface)
 
-If you prefer pointing and clicking over typing commands, docsearch has a graphical interface. It works exactly like the terminal version — same search, same results, same reports — but with a familiar window instead of a command line.
+If you prefer pointing and clicking over typing commands, peekdocs has a graphical interface. It works exactly like the terminal version — same search, same results, same reports — but with a familiar window instead of a command line.
 
 **How to open it:**
 
 You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the virtual environment first (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git) for details). Then type:
 
 ```bash
-docsearch-gui
+peekdocs-gui
 ```
 
 A window will appear. From here, everything is point-and-click — no more terminal commands needed. The GUI can do everything the terminal can do; you don't give up any features by using it.
@@ -303,14 +303,14 @@ The GUI window is organized into these regions, from top to bottom:
 2. Click **Browse** in the **Folder Bar** to pick the folder containing your documents (your home folder is selected by default), or click **File** to pick a single file
 3. Click **Run Search** (or press Enter)
 
-**macOS vs Windows file picker:** On macOS, clicking **File** opens a file picker with a preview panel on the right — you can inspect the file's contents before selecting it. On Windows, the file picker does not include a preview. This is a difference in the operating systems, not docsearch.
-4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, or **PDF** to open the report in other formats. The PDF report also highlights matches in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `docsearch_errors.log` and see which files had problems and why
+**macOS vs Windows file picker:** On macOS, clicking **File** opens a file picker with a preview panel on the right — you can inspect the file's contents before selecting it. On Windows, the file picker does not include a preview. This is a difference in the operating systems, not peekdocs.
+4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, or **PDF** to open the report in other formats. The PDF report also highlights matches in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `peekdocs_errors.log` and see which files had problems and why
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. You can also use [Google Docs](https://docs.google.com) (upload the file), Apple Pages (free, Mac only), or any other application that supports .docx files. The .txt report can be opened on any computer with no additional software.
 
 **Sensitive Data Scan:**
 
-Click the red **PII Scan** button to scan your documents for PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.docsearchrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
+Click the red **PII Scan** button to scan your documents for PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.peekdocsrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
 
 | Category | Severity | What it finds |
 |----------|----------|---------------|
@@ -333,7 +333,7 @@ Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and
 
 **Advanced Search Options:**
 
-Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .docsearchrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.docsearchrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.docsearchrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.docsearchrc` are not changed unless you also click **Save Defaults** after resetting.
+Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
 
 **Save Search vs Save Defaults — what's the difference?**
 
@@ -341,8 +341,8 @@ These two buttons do different things:
 
 | Button | Location | What it saves | Where it's stored | Purpose |
 |--------|----------|--------------|-------------------|---------|
-| **Save Search** | Main screen | Current search terms + all settings, by name | `.docsearch_collection.json` in the search folder | Reusable named search |
-| **Save Defaults** | Advanced Search Options | Your preferred default settings | `~/.docsearchrc` in your home directory | Starting configuration for every future session |
+| **Save Search** | Main screen | Current search terms + all settings, by name | `.peekdocs_collection.json` in the search folder | Reusable named search |
+| **Save Defaults** | Advanced Search Options | Your preferred default settings | `~/.peekdocsrc` in your home directory | Starting configuration for every future session |
 
 Your selections in Advanced Search Options take effect immediately on the next Run Search — you do not need to press Save Defaults first. Save Defaults is only for making your choices persist across sessions.
 
@@ -392,18 +392,18 @@ The Search Wizard shows the current **Search Folder** at the top of the window w
 
 ## Usage
 
-If you installed with pipx (Option A), docsearch is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run docsearch with your search terms. See the [Command Examples](#command-examples) table for usage.
+If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run peekdocs with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Phrase search (quoted terms)
 
-By default, docsearch treats each space-separated word as a separate search term. To search for a multi-word phrase as a single unit, enclose it in **double quotes**:
+By default, peekdocs treats each space-separated word as a separate search term. To search for a multi-word phrase as a single unit, enclose it in **double quotes**:
 
 ```bash
-docsearch '"annual report"'             # find the exact phrase "annual report"
-docsearch -a '"Q4 2025" budget'         # AND mode: find "Q4 2025" AND budget
+peekdocs '"annual report"'             # find the exact phrase "annual report"
+peekdocs -a '"Q4 2025" budget'         # AND mode: find "Q4 2025" AND budget
 ```
 
-This works in both the terminal and the GUI — in the GUI, type `"annual report"` directly into the Search Terms field. Phrase searches also work inside Boolean expressions: `docsearch -e '"annual report" AND (2023 OR 2024)'`.
+This works in both the terminal and the GUI — in the GUI, type `"annual report"` directly into the Search Terms field. Phrase searches also work inside Boolean expressions: `peekdocs -e '"annual report" AND (2023 OR 2024)'`.
 
 Without quotes, `annual report` becomes two terms (`annual` and `report`) joined by OR logic (or AND if `-a` is used), which is usually not what you want for a phrase. Use quotes when you need the words to appear adjacent to each other in the same order.
 
@@ -418,7 +418,7 @@ Regex is powerful but can look intimidating at first. See the table below for co
 
 #### Common Regex Search Patterns
 
-Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes. The **Report translation** column shows how docsearch describes each pattern in the plain-English report header (see [Command Translation](#command-translation) below).
+Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes. The **Report translation** column shows how peekdocs describes each pattern in the plain-English report header (see [Command Translation](#command-translation) below).
 
 | Pattern | Matches | Example | Report translation |
 |---------|---------|---------|-------------------|
@@ -439,7 +439,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 
 ## Flag Use Summary
 
-docsearch has twenty-nine flags that can be mixed and matched:
+peekdocs has twenty-nine flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
@@ -455,10 +455,10 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | `-q` (quiet) | Quiet mode — suppress the banner |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
 | `-r` (recursive) | Search subdirectories recursively |
-| `-s` (save) | Archive results — copies docsearch_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `docsearch -s my_report` |
-| `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `docsearch -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
+| `-s` (save) | Archive results — copies peekdocs_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
+| `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
-| `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `docsearch_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
+| `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -485,7 +485,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-p` implies AND logic — all terms must appear within N words of each other
 - `-t` always needs its type list immediately after it (e.g., `-t pdf,docx`)
 - `-x` treats search terms as regex patterns instead of literal strings
-- `-s` is used separately after a search to save results: `docsearch -s my_report`
+- `-s` is used separately after a search to save results: `peekdocs -s my_report`
 - `-sa` always needs its filename immediately after it (e.g., `-sa my_report`)
 - `-sa` appends to existing DO_NOT_SEARCH_ACCUMULATED files, allowing you to accumulate results from multiple searches
 - `-e` always needs its expression immediately after it, enclosed in quotes (e.g., `-e "(bob AND amy) OR fred"`)
@@ -519,16 +519,16 @@ docsearch has twenty-nine flags that can be mixed and matched:
 - `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
 - `-o` supported formats are `csv`, `json`, and `pdf`
 - `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
-- `-o csv` creates `docsearch_results.csv` with columns: filename, folder, line_number, matched_text
-- `-o json` creates `docsearch_results.json` with metadata and a matches array
+- `-o csv` creates `peekdocs_results.csv` with columns: filename, folder, line_number, matched_text
+- `-o json` creates `peekdocs_results.json` with metadata and a matches array
 - `-o csv,json` creates both files; `-o csv,json,pdf` creates all three
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
 - `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Search Options panel
-- `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `docsearch_results_20260327_143022.txt`)
+- `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `peekdocs_results_20260327_143022.txt`)
 - `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Search Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
-- `--timestamp` and `-s` are independent — `-s` looks for `docsearch_results.txt` by name, so it only works when `--timestamp` is not used
+- `--timestamp` and `-s` are independent — `-s` looks for `peekdocs_results.txt` by name, so it only works when `--timestamp` is not used
 - `--output-dir` writes all output files to the specified directory instead of the search folder. The search still runs in the current directory — only the output destination changes
 - `--output-dir` creates the directory if it doesn't exist
 - `--output-dir` works with all other flags including `--timestamp`, `-s`, `-sa`, and `-o`
@@ -552,216 +552,216 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | # | Search Type | Command |
 |---|-------------|---------|
 | | **Basic Searches** | |
-| 1 | Single word | `docsearch budget` |
-| 2 | Multiple terms (OR logic) | `docsearch budget revenue expenses` |
-| 3 | Multi-word phrase | `docsearch "annual report"` |
-| 4 | Combine phrases and single terms | `docsearch "computer analysis" energy generation` |
-| 5 | Require ALL terms (AND logic) | `docsearch -a budget revenue expenses` |
+| 1 | Single word | `peekdocs budget` |
+| 2 | Multiple terms (OR logic) | `peekdocs budget revenue expenses` |
+| 3 | Multi-word phrase | `peekdocs "annual report"` |
+| 4 | Combine phrases and single terms | `peekdocs "computer analysis" energy generation` |
+| 5 | Require ALL terms (AND logic) | `peekdocs -a budget revenue expenses` |
 | | **Filter by File Name** | |
-| 6 | Search a specific file | `docsearch -f report.pdf budget` |
-| 7 | Search multiple specific files | `docsearch -f report.pdf,notes.txt budget` |
-| 8 | Specific files with AND logic | `docsearch -f report.pdf,data.csv -a budget revenue` |
-| 9 | Specific file recursive | `docsearch -f report.pdf -r budget` |
-| 10 | Specific file with regex | `docsearch -f report.pdf -x "\d{3}-\d{3}-\d{4}"` |
-| 11 | Specific file with context lines | `docsearch -f report.pdf -B 3 -A 3 budget` |
-| 12 | Specific file, regex, AND | `docsearch -f report.pdf -x -a "\d{3}" "\$\d+"` |
+| 6 | Search a specific file | `peekdocs -f report.pdf budget` |
+| 7 | Search multiple specific files | `peekdocs -f report.pdf,notes.txt budget` |
+| 8 | Specific files with AND logic | `peekdocs -f report.pdf,data.csv -a budget revenue` |
+| 9 | Specific file recursive | `peekdocs -f report.pdf -r budget` |
+| 10 | Specific file with regex | `peekdocs -f report.pdf -x "\d{3}-\d{3}-\d{4}"` |
+| 11 | Specific file with context lines | `peekdocs -f report.pdf -B 3 -A 3 budget` |
+| 12 | Specific file, regex, AND | `peekdocs -f report.pdf -x -a "\d{3}" "\$\d+"` |
 | | **Filter by File Type** | |
-| 13 | Search only specific file types | `docsearch -t pdf,docx budget` |
-| 14 | File type filter with OR search | `docsearch -t pdf,docx budget revenue` |
-| 15 | File type filter with AND search | `docsearch -a -t csv,xlsx budget revenue` |
+| 13 | Search only specific file types | `peekdocs -t pdf,docx budget` |
+| 14 | File type filter with OR search | `peekdocs -t pdf,docx budget revenue` |
+| 15 | File type filter with AND search | `peekdocs -a -t csv,xlsx budget revenue` |
 | | **Proximity Searches** | |
-| 16 | Terms within 5 words of each other | `docsearch -p 5 budget revenue` |
-| 17 | Proximity with file type filter | `docsearch -p 5 -t pdf,docx budget revenue` |
-| 18 | Proximity with recursive search | `docsearch -p 5 -r budget revenue` |
-| 19 | Proximity with specific file | `docsearch -p 5 -f report.pdf budget revenue` |
+| 16 | Terms within 5 words of each other | `peekdocs -p 5 budget revenue` |
+| 17 | Proximity with file type filter | `peekdocs -p 5 -t pdf,docx budget revenue` |
+| 18 | Proximity with recursive search | `peekdocs -p 5 -r budget revenue` |
+| 19 | Proximity with specific file | `peekdocs -p 5 -f report.pdf budget revenue` |
 | | **Recursive (Subdirectory) Searches** | |
-| 20 | Search all subdirectories | `docsearch -r budget` |
-| 21 | Recursive with AND logic | `docsearch -r -a budget revenue expenses` |
-| 22 | Recursive with file type filter | `docsearch -r -t pdf,docx budget` |
-| 23 | Recursive, AND, and file type filter | `docsearch -r -a -t txt budget revenue expenses` |
+| 20 | Search all subdirectories | `peekdocs -r budget` |
+| 21 | Recursive with AND logic | `peekdocs -r -a budget revenue expenses` |
+| 22 | Recursive with file type filter | `peekdocs -r -t pdf,docx budget` |
+| 23 | Recursive, AND, and file type filter | `peekdocs -r -a -t txt budget revenue expenses` |
 | | **Regex Pattern Searches** | |
-| 24 | Search for phone numbers | `docsearch -x "\d{3}-\d{3}-\d{4}"` |
-| 25 | Search for email addresses | `docsearch -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
-| 26 | Regex with AND logic | `docsearch -x -a "\d{3}" "\$\d+\.\d{2}"` |
-| 27 | Regex with file type filter | `docsearch -x -t pdf,docx "\$\d+(\.\d{2})?"` |
-| 28 | Regex recursive | `docsearch -x -r "\d{3}-\d{3}-\d{4}"` |
-| 29 | Regex, recursive, file type filter | `docsearch -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
-| 30 | Regex, AND, recursive, file type filter | `docsearch -x -a -r -t pdf "\d{3}" "\$\d+"` |
+| 24 | Search for phone numbers | `peekdocs -x "\d{3}-\d{3}-\d{4}"` |
+| 25 | Search for email addresses | `peekdocs -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
+| 26 | Regex with AND logic | `peekdocs -x -a "\d{3}" "\$\d+\.\d{2}"` |
+| 27 | Regex with file type filter | `peekdocs -x -t pdf,docx "\$\d+(\.\d{2})?"` |
+| 28 | Regex recursive | `peekdocs -x -r "\d{3}-\d{3}-\d{4}"` |
+| 29 | Regex, recursive, file type filter | `peekdocs -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
+| 30 | Regex, AND, recursive, file type filter | `peekdocs -x -a -r -t pdf "\d{3}" "\$\d+"` |
 | | **Context Lines (Before/After)** | |
-| 31 | Show 5 lines after each match | `docsearch -A 5 "John Smith"` |
-| 32 | Show 3 lines before each match | `docsearch -B 3 budget` |
-| 33 | Show lines before and after | `docsearch -B 2 -A 2 budget` |
-| 34 | Context lines with AND logic | `docsearch -B 3 -A 3 -a budget revenue` |
-| 35 | Context with file type filter | `docsearch -A 5 -t docx,pdf budget` |
-| 36 | Context with recursive search | `docsearch -B 3 -A 3 -r budget` |
-| 37 | Context with regex | `docsearch -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
-| 38 | Context, recursive, file type filter | `docsearch -B 5 -A 5 -r -t docx "John Smith"` |
-| 39 | Context, AND, recursive, file type filter | `docsearch -B 3 -A 3 -a -r -t txt budget revenue` |
+| 31 | Show 5 lines after each match | `peekdocs -A 5 "John Smith"` |
+| 32 | Show 3 lines before each match | `peekdocs -B 3 budget` |
+| 33 | Show lines before and after | `peekdocs -B 2 -A 2 budget` |
+| 34 | Context lines with AND logic | `peekdocs -B 3 -A 3 -a budget revenue` |
+| 35 | Context with file type filter | `peekdocs -A 5 -t docx,pdf budget` |
+| 36 | Context with recursive search | `peekdocs -B 3 -A 3 -r budget` |
+| 37 | Context with regex | `peekdocs -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
+| 38 | Context, recursive, file type filter | `peekdocs -B 5 -A 5 -r -t docx "John Smith"` |
+| 39 | Context, AND, recursive, file type filter | `peekdocs -B 3 -A 3 -a -r -t txt budget revenue` |
 | | **Parallel Processing** | |
-| 40 | Use 4 cores for search | `docsearch -c 4 budget` |
-| 41 | Parallel with recursive search | `docsearch -c 4 -r budget` |
-| 42 | Parallel with file type filter | `docsearch -c 4 -t pdf,docx budget` |
+| 40 | Use 4 cores for search | `peekdocs -c 4 budget` |
+| 41 | Parallel with recursive search | `peekdocs -c 4 -r budget` |
+| 42 | Parallel with file type filter | `peekdocs -c 4 -t pdf,docx budget` |
 | | **Save, Version, and Help** | |
-| 43 | Save results to a named file | `docsearch -s name_of_your_file` |
+| 43 | Save results to a named file | `peekdocs -s name_of_your_file` |
 | | **Save and Append Searches** | |
-| 44 | Search and append results to a file | `docsearch -sa my_report budget` |
-| 45 | Append with AND search | `docsearch -sa my_report -a budget revenue` |
-| 46 | Append with recursive search | `docsearch -sa my_report -r budget` |
-| 47 | Append with file type filter | `docsearch -sa my_report -t pdf budget` |
+| 44 | Search and append results to a file | `peekdocs -sa my_report budget` |
+| 45 | Append with AND search | `peekdocs -sa my_report -a budget revenue` |
+| 46 | Append with recursive search | `peekdocs -sa my_report -r budget` |
+| 47 | Append with file type filter | `peekdocs -sa my_report -t pdf budget` |
 | | **Quiet Mode** | |
-| 48 | Suppress banner | `docsearch -q budget` |
-| 49 | Quiet with recursive search | `docsearch -q -r budget` |
+| 48 | Suppress banner | `peekdocs -q budget` |
+| 49 | Quiet with recursive search | `peekdocs -q -r budget` |
 | | **OCR Searches** | |
-| 50 | Search scanned PDFs and images | `docsearch -O budget` |
-| 51 | OCR with file type filter | `docsearch -O -t pdf budget` |
-| 52 | Search only image files | `docsearch -O -t jpg,png budget` |
-| 53 | OCR with recursive search | `docsearch -O -r budget` |
-| 54 | OCR with AND logic | `docsearch -O -a budget revenue` |
-| 55 | OCR with context lines | `docsearch -O -B 3 -A 3 budget` |
+| 50 | Search scanned PDFs and images | `peekdocs -O budget` |
+| 51 | OCR with file type filter | `peekdocs -O -t pdf budget` |
+| 52 | Search only image files | `peekdocs -O -t jpg,png budget` |
+| 53 | OCR with recursive search | `peekdocs -O -r budget` |
+| 54 | OCR with AND logic | `peekdocs -O -a budget revenue` |
+| 55 | OCR with context lines | `peekdocs -O -B 3 -A 3 budget` |
 | | **Fuzzy Searches** | |
-| 56 | Fuzzy single term | `docsearch -z budget` |
-| 57 | Fuzzy with AND logic | `docsearch -z -a budget revenue` |
-| 58 | Fuzzy with file type filter | `docsearch -z -t pdf,docx budget` |
-| 59 | Fuzzy with recursive search | `docsearch -z -r budget` |
-| 60 | Fuzzy with proximity | `docsearch -z -p 5 budget revenue` |
-| 61 | Fuzzy with OCR | `docsearch -z -O budget` |
-| 62 | Fuzzy with context lines | `docsearch -z -B 3 -A 3 budget` |
-| 63 | Fuzzy, AND, recursive, file type | `docsearch -z -a -r -t pdf budget revenue` |
+| 56 | Fuzzy single term | `peekdocs -z budget` |
+| 57 | Fuzzy with AND logic | `peekdocs -z -a budget revenue` |
+| 58 | Fuzzy with file type filter | `peekdocs -z -t pdf,docx budget` |
+| 59 | Fuzzy with recursive search | `peekdocs -z -r budget` |
+| 60 | Fuzzy with proximity | `peekdocs -z -p 5 budget revenue` |
+| 61 | Fuzzy with OCR | `peekdocs -z -O budget` |
+| 62 | Fuzzy with context lines | `peekdocs -z -B 3 -A 3 budget` |
+| 63 | Fuzzy, AND, recursive, file type | `peekdocs -z -a -r -t pdf budget revenue` |
 | | **Wildcard Searches** | |
-| 64 | Wildcard single pattern | `docsearch -w "budg*"` |
-| 65 | Wildcard question mark | `docsearch -w "te?t"` |
-| 66 | Wildcard with AND logic | `docsearch -w -a "budg*" "rev*"` |
-| 67 | Wildcard with file type filter | `docsearch -w -t pdf,docx "budg*"` |
-| 68 | Wildcard with recursive search | `docsearch -w -r "budg*"` |
-| 69 | Wildcard with context lines | `docsearch -w -B 3 -A 3 "budg*"` |
+| 64 | Wildcard single pattern | `peekdocs -w "budg*"` |
+| 65 | Wildcard question mark | `peekdocs -w "te?t"` |
+| 66 | Wildcard with AND logic | `peekdocs -w -a "budg*" "rev*"` |
+| 67 | Wildcard with file type filter | `peekdocs -w -t pdf,docx "budg*"` |
+| 68 | Wildcard with recursive search | `peekdocs -w -r "budg*"` |
+| 69 | Wildcard with context lines | `peekdocs -w -B 3 -A 3 "budg*"` |
 | | **Whole-Word Searches** | |
-| 70 | Whole-word single term | `docsearch -W bob` |
-| 71 | Whole-word with AND logic | `docsearch -W -a bob amy` |
-| 72 | Whole-word with expression | `docsearch -W -e "bob AND amy"` |
+| 70 | Whole-word single term | `peekdocs -W bob` |
+| 71 | Whole-word with AND logic | `peekdocs -W -a bob amy` |
+| 72 | Whole-word with expression | `peekdocs -W -e "bob AND amy"` |
 | | **Exclude Searches** | |
-| 73 | Exclude lines containing a term | `docsearch -n draft budget` |
-| 74 | Exclude multiple terms | `docsearch -n draft,obsolete budget` |
-| 75 | Exclude with AND logic | `docsearch -n draft -a budget revenue` |
-| 76 | Exclude with recursive search | `docsearch -n draft -r budget` |
-| 77 | Exclude with file type filter | `docsearch -n draft -t pdf,docx budget` |
-| 78 | Exclude with wildcard search | `docsearch -w -n "dra*" "budg*"` |
+| 73 | Exclude lines containing a term | `peekdocs -n draft budget` |
+| 74 | Exclude multiple terms | `peekdocs -n draft,obsolete budget` |
+| 75 | Exclude with AND logic | `peekdocs -n draft -a budget revenue` |
+| 76 | Exclude with recursive search | `peekdocs -n draft -r budget` |
+| 77 | Exclude with file type filter | `peekdocs -n draft -t pdf,docx budget` |
+| 78 | Exclude with wildcard search | `peekdocs -w -n "dra*" "budg*"` |
 | | **Additional Output Formats** | |
-| 79 | Output results as CSV | `docsearch -o csv budget` |
-| 80 | Output results as JSON | `docsearch -o json budget` |
-| 81 | Output both CSV and JSON | `docsearch -o csv,json budget` |
-| 82 | CSV with recursive search | `docsearch -o csv -r budget` |
-| 82a | Output as PDF (highlighted) | `docsearch -o pdf budget` |
-| 82b | All extra formats at once | `docsearch -o csv,json,pdf budget` |
+| 79 | Output results as CSV | `peekdocs -o csv budget` |
+| 80 | Output results as JSON | `peekdocs -o json budget` |
+| 81 | Output both CSV and JSON | `peekdocs -o csv,json budget` |
+| 82 | CSV with recursive search | `peekdocs -o csv -r budget` |
+| 82a | Output as PDF (highlighted) | `peekdocs -o pdf budget` |
+| 82b | All extra formats at once | `peekdocs -o csv,json,pdf budget` |
 | | **Match Cap** | |
-| 83 | Set max matches to 5000 | `docsearch -m 5000 budget` |
-| 84 | Disable match cap (no limit) | `docsearch -m 0 budget` |
-| 85 | Match cap with AND and recursive | `docsearch -m 500 -a -r budget revenue` |
+| 83 | Set max matches to 5000 | `peekdocs -m 5000 budget` |
+| 84 | Disable match cap (no limit) | `peekdocs -m 0 budget` |
+| 85 | Match cap with AND and recursive | `peekdocs -m 500 -a -r budget revenue` |
 | | **Saved Settings** | |
-| 86 | View saved settings | `docsearch --config` |
-| 87 | Save a setting | `docsearch --config recursive=true` |
-| 88 | Save multiple settings | `docsearch --config recursive=true cores=4` |
-| 89 | Remove a saved setting | `docsearch --config recursive=` |
+| 86 | View saved settings | `peekdocs --config` |
+| 87 | Save a setting | `peekdocs --config recursive=true` |
+| 88 | Save multiple settings | `peekdocs --config recursive=true cores=4` |
+| 89 | Remove a saved setting | `peekdocs --config recursive=` |
 | | **Search Index** | |
-| 90 | Build index (includes all subfolders) | `docsearch --index` |
-| 91 | Build index with OCR | `docsearch --index -O` |
-| 92 | Show index info | `docsearch --index-status` |
-| 93 | Delete the index | `docsearch --index-clear` |
-| 93a | Incrementally refresh the index | `docsearch --index-refresh` |
-| 93b | Skip the index (direct scan) | `docsearch --no-index budget` |
+| 90 | Build index (includes all subfolders) | `peekdocs --index` |
+| 91 | Build index with OCR | `peekdocs --index -O` |
+| 92 | Show index info | `peekdocs --index-status` |
+| 93 | Delete the index | `peekdocs --index-clear` |
+| 93a | Incrementally refresh the index | `peekdocs --index-refresh` |
+| 93b | Skip the index (direct scan) | `peekdocs --no-index budget` |
 | | **Inverse Search** | |
-| 94 | Find files missing a term | `docsearch --inverse "indemnification"` |
-| 95 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
-| 96 | Files missing ALL required terms | `docsearch --inverse -a confidential signature date` |
-| 97 | Inverse with regex pattern | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| 98 | Inverse with file type filter | `docsearch --inverse -t pdf,docx "effective date"` |
-| 99 | Inverse recursive search | `docsearch --inverse -r "retention policy"` |
-| 100 | Inverse with CSV output | `docsearch --inverse -o csv "indemnification"` |
-| 101 | Inverse with JSON output | `docsearch --inverse -o json "authorization"` |
+| 94 | Find files missing a term | `peekdocs --inverse "indemnification"` |
+| 95 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
+| 96 | Files missing ALL required terms | `peekdocs --inverse -a confidential signature date` |
+| 97 | Inverse with regex pattern | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 98 | Inverse with file type filter | `peekdocs --inverse -t pdf,docx "effective date"` |
+| 99 | Inverse recursive search | `peekdocs --inverse -r "retention policy"` |
+| 100 | Inverse with CSV output | `peekdocs --inverse -o csv "indemnification"` |
+| 101 | Inverse with JSON output | `peekdocs --inverse -o json "authorization"` |
 | | **Boolean Expression Search** | |
-| 102 | AND expression | `docsearch -e "budget AND revenue"` |
-| 103 | OR expression | `docsearch -e "budget OR revenue"` |
-| 104 | AND NOT expression | `docsearch -e "budget AND NOT draft"` |
-| 105 | Grouped OR within AND | `docsearch -e "(budget OR revenue) AND (cost OR profit)"` |
-| 106 | Grouped AND with OR | `docsearch -e "(bob AND amy) OR (fred AND wilma)"` |
-| 107 | Complex with NOT | `docsearch -e "(merger OR acquisition) AND NOT draft"` |
-| 108 | Multi-word terms in expression | `docsearch -e '"annual report" AND (2023 OR 2024)'` |
-| 109 | Expression with wildcard | `docsearch -e -w "budg* AND rev*"` |
-| 110 | Expression with regex | `docsearch -e -x "\\d{3}-\\d{4} AND budget"` |
-| 111 | Expression with fuzzy | `docsearch -e -z "budgt AND revnue"` |
-| 112 | Expression with context | `docsearch -e -B 2 -A 2 "merger AND NOT confidential"` |
-| 113 | Expression recursive | `docsearch -e -r "(budget OR revenue) AND (cost OR profit)"` |
+| 102 | AND expression | `peekdocs -e "budget AND revenue"` |
+| 103 | OR expression | `peekdocs -e "budget OR revenue"` |
+| 104 | AND NOT expression | `peekdocs -e "budget AND NOT draft"` |
+| 105 | Grouped OR within AND | `peekdocs -e "(budget OR revenue) AND (cost OR profit)"` |
+| 106 | Grouped AND with OR | `peekdocs -e "(bob AND amy) OR (fred AND wilma)"` |
+| 107 | Complex with NOT | `peekdocs -e "(merger OR acquisition) AND NOT draft"` |
+| 108 | Multi-word terms in expression | `peekdocs -e '"annual report" AND (2023 OR 2024)'` |
+| 109 | Expression with wildcard | `peekdocs -e -w "budg* AND rev*"` |
+| 110 | Expression with regex | `peekdocs -e -x "\\d{3}-\\d{4} AND budget"` |
+| 111 | Expression with fuzzy | `peekdocs -e -z "budgt AND revnue"` |
+| 112 | Expression with context | `peekdocs -e -B 2 -A 2 "merger AND NOT confidential"` |
+| 113 | Expression recursive | `peekdocs -e -r "(budget OR revenue) AND (cost OR profit)"` |
 | | **Output Directory** | |
-| 114 | Write results to a specific folder | `docsearch --output-dir ~/reports budget` |
-| 115 | Output dir with recursive search | `docsearch --output-dir /tmp/results -r budget` |
-| 115a | Timestamped filenames | `docsearch --timestamp budget` |
-| 115b | Timestamp with output directory | `docsearch --timestamp --output-dir ~/reports -r budget` |
-| 115c | Max file size limit (skip large files) | `docsearch --max-file-size 50 budget` |
-| 115d | No file size limit | `docsearch --max-file-size 0 budget` |
+| 114 | Write results to a specific folder | `peekdocs --output-dir ~/reports budget` |
+| 115 | Output dir with recursive search | `peekdocs --output-dir /tmp/results -r budget` |
+| 115a | Timestamped filenames | `peekdocs --timestamp budget` |
+| 115b | Timestamp with output directory | `peekdocs --timestamp --output-dir ~/reports -r budget` |
+| 115c | Max file size limit (skip large files) | `peekdocs --max-file-size 50 budget` |
+| 115d | No file size limit | `peekdocs --max-file-size 0 budget` |
 | | **Real-World Workflow Combinations** | |
-| 115e | Recursive + types + AND + context | `docsearch -r -t pdf,docx -a -B 2 -A 2 budget revenue` |
-| 115f | Regex + range + output dir | `docsearch -x "\$[\d,]+" -R amount:5000..100000 --output-dir ~/reports` |
-| 115g | Inverse + recursive + types | `docsearch -r -t docx --inverse "confidentiality"` |
-| 115h | Fuzzy + recursive + CSV output | `docsearch -r -z accommodation -o csv` |
-| 115i | AND + exclude + file types + timestamp | `docsearch -a -n draft -t pdf,docx --timestamp budget revenue` |
-| 115j | Regex + context + recursive + JSON | `docsearch -x "\d{3}-\d{2}-\d{4}" -B 3 -A 3 -r -o json` |
+| 115e | Recursive + types + AND + context | `peekdocs -r -t pdf,docx -a -B 2 -A 2 budget revenue` |
+| 115f | Regex + range + output dir | `peekdocs -x "\$[\d,]+" -R amount:5000..100000 --output-dir ~/reports` |
+| 115g | Inverse + recursive + types | `peekdocs -r -t docx --inverse "confidentiality"` |
+| 115h | Fuzzy + recursive + CSV output | `peekdocs -r -z accommodation -o csv` |
+| 115i | AND + exclude + file types + timestamp | `peekdocs -a -n draft -t pdf,docx --timestamp budget revenue` |
+| 115j | Regex + context + recursive + JSON | `peekdocs -x "\d{3}-\d{2}-\d{4}" -B 3 -A 3 -r -o json` |
 | | **Range Queries** | |
-| 116 | Filter by dollar amount range | `docsearch -R amount:1000..5000 budget` |
-| 117 | Filter by date range | `docsearch -R date:2024-01-01..2024-12-31 report` |
-| 118 | Range-only search (no text terms) | `docsearch -R amount:1000..5000` |
-| 119 | Filter by file size | `docsearch -R filesize:1M..10M report` |
-| 120 | Multiple ranges (AND) | `docsearch -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
-| 121 | Open-ended range (minimum only) | `docsearch -R amount:10000.. contract` |
-| 122 | Percent range | `docsearch -R percent:10..50 growth` |
-| 123 | Age range | `docsearch -R age:18..65 patient` |
-| 124 | Time range | `docsearch -R time:09:00..17:00 meeting` |
-| 125 | Range with recursive search | `docsearch -R amount:1000..5000 -r budget` |
-| 126 | Open-ended range (maximum only) | `docsearch -R amount:..5000 invoice` |
-| 127 | Filter by file modification date | `docsearch -R filedate:2024-01-01..2024-06-30 report` |
-| 128 | Number range (any standalone number) | `docsearch -R number:100..999 report` |
-| 129 | Range with file type filter | `docsearch -R amount:1000.. -t .pdf,.docx invoice` |
-| 130 | Range with context lines | `docsearch -R amount:5000..10000 -B 2 -A 2 payment` |
-| 131 | Range with AND mode text search | `docsearch -R date:2024-01-01..2024-12-31 -a budget revenue` |
-| 132 | Range with exclude terms | `docsearch -R amount:1000..5000 -n draft invoice` |
-| 133 | Large file search | `docsearch -R filesize:10M.. -r report` |
-| 134 | Small recent files | `docsearch -R filesize:..100K -R filedate:2025-01-01.. memo` |
+| 116 | Filter by dollar amount range | `peekdocs -R amount:1000..5000 budget` |
+| 117 | Filter by date range | `peekdocs -R date:2024-01-01..2024-12-31 report` |
+| 118 | Range-only search (no text terms) | `peekdocs -R amount:1000..5000` |
+| 119 | Filter by file size | `peekdocs -R filesize:1M..10M report` |
+| 120 | Multiple ranges (AND) | `peekdocs -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
+| 121 | Open-ended range (minimum only) | `peekdocs -R amount:10000.. contract` |
+| 122 | Percent range | `peekdocs -R percent:10..50 growth` |
+| 123 | Age range | `peekdocs -R age:18..65 patient` |
+| 124 | Time range | `peekdocs -R time:09:00..17:00 meeting` |
+| 125 | Range with recursive search | `peekdocs -R amount:1000..5000 -r budget` |
+| 126 | Open-ended range (maximum only) | `peekdocs -R amount:..5000 invoice` |
+| 127 | Filter by file modification date | `peekdocs -R filedate:2024-01-01..2024-06-30 report` |
+| 128 | Number range (any standalone number) | `peekdocs -R number:100..999 report` |
+| 129 | Range with file type filter | `peekdocs -R amount:1000.. -t .pdf,.docx invoice` |
+| 130 | Range with context lines | `peekdocs -R amount:5000..10000 -B 2 -A 2 payment` |
+| 131 | Range with AND mode text search | `peekdocs -R date:2024-01-01..2024-12-31 -a budget revenue` |
+| 132 | Range with exclude terms | `peekdocs -R amount:1000..5000 -n draft invoice` |
+| 133 | Large file search | `peekdocs -R filesize:10M.. -r report` |
+| 134 | Small recent files | `peekdocs -R filesize:..100K -R filedate:2025-01-01.. memo` |
 | | **Filename Ranges** | |
-| 134a | Filter by date in filename | `docsearch -R fn:date:2024-01-01..2024-12-31 budget` |
-| 134b | Filename + content range | `docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice` |
-| 134c | Filename range in expression | `docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"` |
+| 134a | Filter by date in filename | `peekdocs -R fn:date:2024-01-01..2024-12-31 budget` |
+| 134b | Filename + content range | `peekdocs -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice` |
+| 134c | Filename range in expression | `peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"` |
 | | **Range Queries in Expressions** | |
-| 135 | Text AND amount range | `docsearch -e "budget AND amount:1000..5000"` |
-| 136 | Text AND date range | `docsearch -e "report AND date:2024-01-01..2024-12-31"` |
-| 137 | OR with range on one branch | `docsearch -e "(budget AND amount:1000..5000) OR revenue"` |
-| 138 | NOT with range (exclude high amounts) | `docsearch -e "invoice AND NOT amount:10000.."` |
-| 139 | Multiple ranges in expression | `docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"` |
-| 140 | Range-only expression | `docsearch -e "amount:1000..5000"` |
-| 141 | OR between two ranges | `docsearch -e "amount:1000..5000 OR percent:10..50"` |
-| 142 | Text with percent range | `docsearch -e "growth AND percent:20..100"` |
-| 143 | Text with age range | `docsearch -e "patient AND age:18..65"` |
-| 144 | Text with time range | `docsearch -e "meeting AND time:09:00..17:00"` |
-| 145 | Complex: text + range + NOT | `docsearch -e "(contract AND amount:5000..50000) AND NOT draft"` |
-| 146 | Complex: two branches with ranges | `docsearch -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
-| 147 | Expression + -R metadata filter | `docsearch -e "budget AND amount:1000..5000" -R filesize:..1M` |
-| 148 | Expression with wildcard + range | `docsearch -e -w "budg* AND amount:1000..5000"` |
-| 149 | Expression with regex + range | `docsearch -e -x "INV-\\d+ AND amount:1000..5000"` |
+| 135 | Text AND amount range | `peekdocs -e "budget AND amount:1000..5000"` |
+| 136 | Text AND date range | `peekdocs -e "report AND date:2024-01-01..2024-12-31"` |
+| 137 | OR with range on one branch | `peekdocs -e "(budget AND amount:1000..5000) OR revenue"` |
+| 138 | NOT with range (exclude high amounts) | `peekdocs -e "invoice AND NOT amount:10000.."` |
+| 139 | Multiple ranges in expression | `peekdocs -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"` |
+| 140 | Range-only expression | `peekdocs -e "amount:1000..5000"` |
+| 141 | OR between two ranges | `peekdocs -e "amount:1000..5000 OR percent:10..50"` |
+| 142 | Text with percent range | `peekdocs -e "growth AND percent:20..100"` |
+| 143 | Text with age range | `peekdocs -e "patient AND age:18..65"` |
+| 144 | Text with time range | `peekdocs -e "meeting AND time:09:00..17:00"` |
+| 145 | Complex: text + range + NOT | `peekdocs -e "(contract AND amount:5000..50000) AND NOT draft"` |
+| 146 | Complex: two branches with ranges | `peekdocs -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
+| 147 | Expression + -R metadata filter | `peekdocs -e "budget AND amount:1000..5000" -R filesize:..1M` |
+| 148 | Expression with wildcard + range | `peekdocs -e -w "budg* AND amount:1000..5000"` |
+| 149 | Expression with regex + range | `peekdocs -e -x "INV-\\d+ AND amount:1000..5000"` |
 | | **Installation Check** | |
-| 150 | Check installation health | `docsearch --check` |
+| 150 | Check installation health | `peekdocs --check` |
 | | **Version and Help** | |
-| 151 | Show version | `docsearch -v` |
-| 152 | Show help | `docsearch -h` |
-| 153 | Show help (no arguments) | `docsearch` |
+| 151 | Show version | `peekdocs -v` |
+| 152 | Show help | `peekdocs -h` |
+| 153 | Show help (no arguments) | `peekdocs` |
 
 ## Output
 
 Search results are always written to two files in the current directory:
 
-- **`docsearch_results.txt`** — Plain text with `**` markers around matched terms
-- **`docsearch_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
+- **`peekdocs_results.txt`** — Plain text with `**` markers around matched terms
+- **`peekdocs_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
 
 With the `-o` flag, additional output files are created:
 
-- **`docsearch_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
-- **`docsearch_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating docsearch into automated workflows, dashboards, or other tools.
+- **`peekdocs_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
+- **`peekdocs_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating peekdocs into automated workflows, dashboards, or other tools.
 
 ### Command Translation
 
@@ -769,7 +769,7 @@ Every report includes a **Translation** line that explains the search command in
 
 Example report header:
 ```
-Command ==> docsearch -a -x "\d{1,2}/\d{1,2}/\d{2,4}" budget
+Command ==> peekdocs -a -x "\d{1,2}/\d{1,2}/\d{2,4}" budget
 Translation ==> Search current directory, for ALL of: a date (e.g. MM/DD/YYYY or YYYY-MM-DD) AND "budget" (using regex)
 ```
 
@@ -790,31 +790,31 @@ Document: summary.docx (1 match), Line: 3, Match:
 "Revised **budget** proposal attached"
 ```
 
-If any files could not be read during a search, errors are logged to **`docsearch_errors.log`** in the current directory. Each entry includes a timestamp, the filename, and the reason it failed:
+If any files could not be read during a search, errors are logged to **`peekdocs_errors.log`** in the current directory. Each entry includes a timestamp, the filename, and the reason it failed:
 ```
 2026-03-22 14:05:12  Could not read report.pdf (encrypted PDF)
 2026-03-22 14:05:12  Could not read data.xlsx (file is corrupted)
 ```
 
-The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The error log appends across searches so you can track issues over time. You can safely delete `docsearch_errors.log` at any time — a new one will be created automatically the next time a file error occurs.
+The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The error log appends across searches so you can track issues over time. You can safely delete `peekdocs_errors.log` at any time — a new one will be created automatically the next time a file error occurs.
 
-If docsearch itself crashes unexpectedly, a crash report is also written to `docsearch_errors.log` with a diagnosis to help identify the cause:
+If peekdocs itself crashes unexpectedly, a crash report is also written to `peekdocs_errors.log` with a diagnosis to help identify the cause:
 ```
 ============================================================
 2026-03-25 14:30:12  CRASH REPORT
-docsearch 0.1.0
+peekdocs 0.1.0
 Python 3.13.2 (main, Feb 4 2025, 14:51:09)
 OS: Darwin 24.6.0
-Command: docsearch budget
+Command: peekdocs budget
 
 Diagnosis: The Python module 'fitz' could not be loaded. This is usually
-caused by a missing or incompatible dependency. Try: pip install --upgrade docsearch
+caused by a missing or incompatible dependency. Try: pip install --upgrade peekdocs
 ============================================================
 Traceback (most recent call last):
   ...
 ```
 
-If you experience a crash, check `docsearch_errors.log` in the folder where you ran the search. The diagnosis line suggests a likely cause and fix. Common causes include a missing or incompatible Python package (fix: `pip install --upgrade docsearch`), a corrupted file that couldn't be handled, or a Python version incompatibility. If the problem persists, the crash report contains everything needed to investigate — you can include it when reporting an issue.
+If you experience a crash, check `peekdocs_errors.log` in the folder where you ran the search. The diagnosis line suggests a likely cause and fix. Common causes include a missing or incompatible Python package (fix: `pip install --upgrade peekdocs`), a corrupted file that couldn't be handled, or a Python version incompatibility. If the problem persists, the crash report contains everything needed to investigate — you can include it when reporting an issue.
 
 The terminal also displays a summary with per-file match counts:
 ```
@@ -831,32 +831,32 @@ Indexing is a one-time setup that makes all future searches on a folder faster. 
 
 Under the hood, the index reads your files once, stores the extracted text in a small database, and searches that database instead of re-reading files each time. Results are identical — the index just skips the file-parsing step.
 
-You don't need an index for small folders or one-off searches. If you search a large folder (100+ files) without an index, docsearch suggests building one on the status line.
+You don't need an index for small folders or one-off searches. If you search a large folder (100+ files) without an index, peekdocs suggests building one on the status line.
 
 **Building an index:**
 
 | Method | Command |
 |--------|---------|
 | **GUI** | Click **Manage Indexes** → **Build Index(es)**. Use Index is enabled and Auto-Refresh is set to 1 hour automatically |
-| **Terminal** | `docsearch --index` (add `-O` to include OCR for scanned PDFs) |
+| **Terminal** | `peekdocs --index` (add `-O` to include OCR for scanned PDFs) |
 
-The index covers the folder and all subfolders. It's stored as `.docsearch.db` in the search folder — one file, typically 10–20% the size of your documents.
+The index covers the folder and all subfolders. It's stored as `.peekdocs.db` in the search folder — one file, typically 10–20% the size of your documents.
 
-**Staying current:** Auto-Refresh runs incremental updates in the background while the app is open (default: 1 hour after first build). In the terminal, use `docsearch --index-refresh` manually or with cron. Each search also checks for changes automatically.
+**Staying current:** Auto-Refresh runs incremental updates in the background while the app is open (default: 1 hour after first build). In the terminal, use `peekdocs --index-refresh` manually or with cron. Each search also checks for changes automatically.
 
 **Managing the index:**
 
 | Action | GUI | Terminal |
 |--------|-----|----------|
-| Build | **Build Index(es)** | `docsearch --index` |
-| Check status | **Index Status** | `docsearch --index-status` |
-| Refresh | Auto-Refresh dropdown | `docsearch --index-refresh` |
-| Delete | **Delete Index(es)** | `docsearch --index-clear` |
+| Build | **Build Index(es)** | `peekdocs --index` |
+| Check status | **Index Status** | `peekdocs --index-status` |
+| Refresh | Auto-Refresh dropdown | `peekdocs --index-refresh` |
+| Delete | **Delete Index(es)** | `peekdocs --index-clear` |
 | Toggle on/off | **Use Index** checkbox | Automatic (use `--no-index` to skip) |
 
 **When the index may be slower:** Folders with a few very large files (huge PDFs, massive spreadsheets) can be slower with an index than without one. Direct scanning stops reading a file after finding matches; the index searches all stored text. If indexed searches feel slow, uncheck **Use Index**.
 
-**Use Index with saved searches:** The index setting is saved per search. When you save a search with Use Index checked, reloading it restores that setting. If no index exists when Use Index is on, docsearch falls back to direct scanning automatically.
+**Use Index with saved searches:** The index setting is saved per search. When you save a search with Use Index checked, reloading it restores that setting. If no index exists when Use Index is on, peekdocs falls back to direct scanning automatically.
 
 **Subfolders:** One index in your top folder covers everything underneath. You can build separate indexes in subfolders too — they're independent and don't interfere with each other.
 
@@ -864,21 +864,21 @@ The index covers the folder and all subfolders. It's stored as `.docsearch.db` i
 
 ## Inverse Search
 
-Normal docsearch shows files that **contain** your search terms. Inverse search (`--inverse`) flips this — it shows files that **do not contain** the search terms. This answers the question: "Which documents are missing required content?"
+Normal peekdocs shows files that **contain** your search terms. Inverse search (`--inverse`) flips this — it shows files that **do not contain** the search terms. This answers the question: "Which documents are missing required content?"
 
 **Use cases:**
 
 | Scenario | Command |
 |----------|---------|
-| Contracts missing an indemnification clause | `docsearch --inverse -t pdf,docx "indemnification"` |
-| Policies missing a confidentiality notice | `docsearch --inverse -r "CONFIDENTIAL"` |
-| Documents without a required signature date | `docsearch --inverse -x "\d{1,2}/\d{1,2}/\d{2,4}"` |
-| Files missing SSNs (data hygiene check) | `docsearch --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| HR documents without employee IDs | `docsearch --inverse -t pdf,docx -x "[Ee]mp\.?\s*#?\s*\d{4,}"` |
+| Contracts missing an indemnification clause | `peekdocs --inverse -t pdf,docx "indemnification"` |
+| Policies missing a confidentiality notice | `peekdocs --inverse -r "CONFIDENTIAL"` |
+| Documents without a required signature date | `peekdocs --inverse -x "\d{1,2}/\d{1,2}/\d{2,4}"` |
+| Files missing SSNs (data hygiene check) | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| HR documents without employee IDs | `peekdocs --inverse -t pdf,docx -x "[Ee]mp\.?\s*#?\s*\d{4,}"` |
 
 **How it works:**
 
-1. docsearch searches all files normally and identifies which files have matches
+1. peekdocs searches all files normally and identifies which files have matches
 2. It then computes the **difference** — files that were searched but had no matches
 3. The console output, TXT/DOCX reports, and optional CSV/JSON/PDF exports all list the files without matches instead of match details
 
@@ -895,9 +895,9 @@ Normal docsearch shows files that **contain** your search terms. Inverse search 
 
 ## PII Scan
 
-The **PII Scan** is docsearch's one-click scan for sensitive data (PII) in your own files. Click the red **PII Scan** button on the main screen — docsearch runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
+The **PII Scan** is peekdocs's one-click scan for sensitive data (PII) in your own files. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
 
-The PII Scan is a **GUI feature only** — the CLI (`docsearch`) runs individual searches but does not currently expose the PII Scan as a flag.
+The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual searches but does not currently expose the PII Scan as a flag.
 
 ### What it does
 
@@ -909,7 +909,7 @@ The PII Scan is a **GUI feature only** — the CLI (`docsearch`) runs individual
 
 ### How to use it
 
-1. Open the GUI: `docsearch-gui`.
+1. Open the GUI: `peekdocs-gui`.
 2. Browse to the folder you want to scan (use **Change Folder** inside the PII Scan popup if you want to scan a different folder without changing the main screen).
 3. Click the red **PII Scan** button in the main Search Bar.
 4. A configuration popup appears. All eight categories are checked by default. Uncheck any you don't want, or use **Select All** / **Deselect All**.
@@ -985,29 +985,29 @@ The eight built-in categories cover common US PII. If you need something the bui
 ( )             grouping
 ```
 
-**What can go wrong — and what can't.** Writing a custom regex is a power-user affordance, and it comes with the usual regex footguns: a broad pattern like `\d+` will match every digit sequence in every file and flood the report, and a pattern like `[0-9` (missing closing bracket) won't even compile. docsearch catches syntax errors before starting the scan and shows a friendly error message. docsearch also warns you if your pattern looks suspiciously broad (three characters or less, or one of the common too-broad patterns like `.`, `.*`, `\d+`) and asks you to confirm before running.
+**What can go wrong — and what can't.** Writing a custom regex is a power-user affordance, and it comes with the usual regex footguns: a broad pattern like `\d+` will match every digit sequence in every file and flood the report, and a pattern like `[0-9` (missing closing bracket) won't even compile. peekdocs catches syntax errors before starting the scan and shows a friendly error message. peekdocs also warns you if your pattern looks suspiciously broad (three characters or less, or one of the common too-broad patterns like `.`, `.*`, `\d+`) and asks you to confirm before running.
 
-**But note what can't go wrong:** docsearch never modifies, moves, or deletes the files it searches. A bad custom regex cannot corrupt your documents, change filenames, delete anything, or touch your data in any destructive way. The worst outcome of a poorly written pattern is a useless or overwhelming report, which you fix by editing the pattern and running the scan again.
+**But note what can't go wrong:** peekdocs never modifies, moves, or deletes the files it searches. A bad custom regex cannot corrupt your documents, change filenames, delete anything, or touch your data in any destructive way. The worst outcome of a poorly written pattern is a useless or overwhelming report, which you fix by editing the pattern and running the scan again.
 
-**Persistence.** Your custom pattern is saved to `~/.docsearchrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
+**Persistence.** Your custom pattern is saved to `~/.peekdocsrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
 
 ### Important disclaimers
 
 The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.
 
 - **Pattern-based detection produces false positives.** A 9-digit account number can look like an SSN. A tracking number can match the credit card pattern. The word "password" can appear in a help document that contains no actual passwords. Always review findings in context before taking action — the report shows the matched text with surrounding context precisely so you can judge whether each finding is real.
-- **Pattern-based detection also produces false negatives.** docsearch cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format docsearch doesn't know about will not be flagged. **A clean PII Scan report does not prove that a file is free of sensitive data.** It proves only that docsearch's specific regex patterns did not match anything in the file's extracted text.
-- **Some file formats may not be fully extracted.** docsearch searches 46 file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Files that docsearch could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
-- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and reports. If you decide based on the report that a file needs to be removed or redacted, that's your decision to make and your action to take — docsearch does not modify your files.
+- **Pattern-based detection also produces false negatives.** peekdocs cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format peekdocs doesn't know about will not be flagged. **A clean PII Scan report does not prove that a file is free of sensitive data.** It proves only that peekdocs's specific regex patterns did not match anything in the file's extracted text.
+- **Some file formats may not be fully extracted.** peekdocs searches 46 file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Files that peekdocs could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
+- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and reports. If you decide based on the report that a file needs to be removed or redacted, that's your decision to make and your action to take — peekdocs does not modify your files.
 - **The PII Scan is not compliance software.** A clean scan does not certify HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory compliance. If your organization has compliance obligations, the PII Scan can be one input to your review process, but it is not a substitute for professional compliance expertise or a formal audit.
-- **Custom user-supplied patterns are your responsibility.** When you enter your own regex in the Custom Pattern section, docsearch does not validate that your pattern correctly identifies the data you intend to find. A pattern that is too broad will produce many false positives; a pattern that is too narrow will miss the data you are looking for. If you type your own regex, you own the outcome. docsearch will catch regex syntax errors and warn you about obviously too-broad patterns, but it cannot judge whether your regex is *semantically* right for your data.
-- **docsearch is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
+- **Custom user-supplied patterns are your responsibility.** When you enter your own regex in the Custom Pattern section, peekdocs does not validate that your pattern correctly identifies the data you intend to find. A pattern that is too broad will produce many false positives; a pattern that is too narrow will miss the data you are looking for. If you type your own regex, you own the outcome. peekdocs will catch regex syntax errors and warn you about obviously too-broad patterns, but it cannot judge whether your regex is *semantically* right for your data.
+- **peekdocs is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
 
 In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.
 
 ### Privacy and the local-only model
 
-The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of docsearch, reads your files directly from local disk, and writes the resulting `.docx` report back to local disk. Nothing is sent to a server, an API, a cloud service, or any third party.
+The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of peekdocs, reads your files directly from local disk, and writes the resulting `.docx` report back to local disk. Nothing is sent to a server, an API, a cloud service, or any third party.
 
 This matters for two reasons. First, you can scan files containing real PII (your own tax returns, your own credit card statements, your own medical records) without worrying that the tool is creating a new exposure. Second, there is no network traffic for a firewall or ISP to observe, no API key to leak, no cloud bill to pay, and no vendor relationship to audit.
 
@@ -1028,16 +1028,16 @@ With `-e`, you can express any combination:
 
 ```bash
 # Either topic A or topic B, where each topic requires multiple terms
-docsearch -e "(budget AND revenue) OR (cost AND profit)"
+peekdocs -e "(budget AND revenue) OR (cost AND profit)"
 
 # Synonyms within an AND query
-docsearch -e "(budget OR revenue) AND (cost OR profit)"
+peekdocs -e "(budget OR revenue) AND (cost OR profit)"
 
 # Different NOT conditions per group
-docsearch -e "(budget AND NOT draft) OR (revenue AND NOT obsolete)"
+peekdocs -e "(budget AND NOT draft) OR (revenue AND NOT obsolete)"
 
 # Complex nested logic
-docsearch -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND SEC)"
+peekdocs -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND SEC)"
 ```
 
 ### Operators
@@ -1059,16 +1059,16 @@ Expression search works with regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) —
 
 ```bash
 # Wildcard terms in an expression
-docsearch -e -w "budg* AND rev*"
+peekdocs -e -w "budg* AND rev*"
 
 # Regex terms in an expression
-docsearch -e -x "\\d{3}-\\d{4} AND budget"
+peekdocs -e -x "\\d{3}-\\d{4} AND budget"
 
 # Fuzzy terms in an expression (typo-tolerant)
-docsearch -e -z "budgt AND revnue"
+peekdocs -e -z "budgt AND revnue"
 
 # With context lines
-docsearch -e -B 2 -A 2 "(merger OR acquisition) AND NOT draft"
+peekdocs -e -B 2 -A 2 "(merger OR acquisition) AND NOT draft"
 ```
 
 ### Multi-word terms
@@ -1076,7 +1076,7 @@ docsearch -e -B 2 -A 2 "(merger OR acquisition) AND NOT draft"
 Use quotes inside the expression for multi-word terms:
 
 ```bash
-docsearch -e '"annual report" AND (2023 OR 2024)'
+peekdocs -e '"annual report" AND (2023 OR 2024)'
 ```
 
 ### Range filters in expressions
@@ -1085,22 +1085,22 @@ Range specs (`field:min..max`) can be embedded directly inside boolean expressio
 
 ```bash
 # Lines mentioning "budget" that contain amounts between $1,000 and $5,000
-docsearch -e "budget AND amount:1000..5000"
+peekdocs -e "budget AND amount:1000..5000"
 
 # OR logic: budget with amounts in range, or any line with "revenue"
-docsearch -e "(budget AND amount:1000..5000) OR revenue"
+peekdocs -e "(budget AND amount:1000..5000) OR revenue"
 
 # NOT logic: "invoice" lines without amounts over $10,000
-docsearch -e "invoice AND NOT amount:10000.."
+peekdocs -e "invoice AND NOT amount:10000.."
 
 # Multiple ranges: invoice with amount and date constraints
-docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
+peekdocs -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
 
 # Range-only expression (no text terms)
-docsearch -e "amount:1000..5000"
+peekdocs -e "amount:1000..5000"
 
 # Combine -e with -R for metadata filtering on top of expression logic
-docsearch -e "budget OR revenue" -R filesize:..1M
+peekdocs -e "budget OR revenue" -R filesize:..1M
 ```
 
 All content fields (date, amount, number, percent, age, time) work inside expressions. Metadata fields (filesize, filedate) only work with the `-R` flag, not inside expressions. See [Range Queries](#range-queries) for comprehensive examples of all range types in both `-R` and `-e` modes.
@@ -1108,7 +1108,7 @@ All content fields (date, amount, number, percent, age, time) work inside expres
 ### Limitations
 
 - `-e` cannot be combined with `-a` (AND mode), `-n` (exclude), or `-p` (proximity) — these features are built into the expression syntax
-- To search for the literal word "AND", "OR", or "NOT", enclose it in double quotes inside the expression: `docsearch -e '"AND" OR budget'`
+- To search for the literal word "AND", "OR", or "NOT", enclose it in double quotes inside the expression: `peekdocs -e '"AND" OR budget'`
 - Metadata range fields (`filesize`, `filedate`) cannot be used inside expressions — use `-R` for file-level filtering
 
 ## Range Queries
@@ -1158,117 +1158,117 @@ The `fn:` prefix works with all 6 content fields (date, amount, number, percent,
 
 ```bash
 # Find "budget" in lines that mention amounts between $1,000 and $5,000
-docsearch -R amount:1000..5000 budget
+peekdocs -R amount:1000..5000 budget
 
 # Find "report" in lines dated within 2024
-docsearch -R date:2024-01-01..2024-12-31 report
+peekdocs -R date:2024-01-01..2024-12-31 report
 
 # Find "meeting" in lines with times between 9 AM and 5 PM
-docsearch -R time:09:00..17:00 meeting
+peekdocs -R time:09:00..17:00 meeting
 
 # Find "growth" in lines with percentages between 10% and 50%
-docsearch -R percent:10..50 growth
+peekdocs -R percent:10..50 growth
 
 # Find "patient" in lines mentioning ages 18 to 65
-docsearch -R age:18..65 patient
+peekdocs -R age:18..65 patient
 
 # Find lines with any standalone number between 100 and 999
-docsearch -R number:100..999 report
+peekdocs -R number:100..999 report
 ```
 
 **Open-ended ranges** — omit min or max for unbounded filtering:
 
 ```bash
 # Amounts of $10,000 or more
-docsearch -R amount:10000.. contract
+peekdocs -R amount:10000.. contract
 
 # Amounts up to $500
-docsearch -R amount:..500 expense
+peekdocs -R amount:..500 expense
 
 # Files larger than 10 MB
-docsearch -R filesize:10M.. report
+peekdocs -R filesize:10M.. report
 
 # Files smaller than 100 KB
-docsearch -R filesize:..100K memo
+peekdocs -R filesize:..100K memo
 
 # Dates from 2024 onward
-docsearch -R date:2024-01-01.. report
+peekdocs -R date:2024-01-01.. report
 
 # Dates before July 2024
-docsearch -R date:..2024-06-30 invoice
+peekdocs -R date:..2024-06-30 invoice
 
 # After-hours times only
-docsearch -R time:17:00.. log
+peekdocs -R time:17:00.. log
 
 # Percentages above 90%
-docsearch -R percent:90.. performance
+peekdocs -R percent:90.. performance
 ```
 
 **Multiple ranges** combine with AND logic — all must match:
 
 ```bash
 # Invoices with amounts $1,000-$5,000 AND dated within 2024
-docsearch -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice
+peekdocs -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice
 
 # Payments over $500 in lines mentioning ages 18-65
-docsearch -R amount:500.. -R age:18..65 payment
+peekdocs -R amount:500.. -R age:18..65 payment
 
 # Small, recent files only
-docsearch -R filesize:..100K -R filedate:2025-01-01.. memo
+peekdocs -R filesize:..100K -R filedate:2025-01-01.. memo
 
 # Large files modified in 2024
-docsearch -R filesize:10M.. -R filedate:2024-01-01..2024-12-31 report
+peekdocs -R filesize:10M.. -R filedate:2024-01-01..2024-12-31 report
 ```
 
 **Filename ranges** — use `fn:` to filter files by values extracted from their filenames:
 
 ```bash
 # Only search files with 2024 dates in the filename (e.g., report-2024-06-15.pdf)
-docsearch -R fn:date:2024-01-01..2024-12-31 budget
+peekdocs -R fn:date:2024-01-01..2024-12-31 budget
 
 # Combine filename range with content range
-docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice
+peekdocs -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice
 
 # Filename range in an expression
-docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
+peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"
 ```
 
 **Range-only search** — use `-R` without text terms to find all lines containing values in range:
 
 ```bash
 # Find all lines with dollar amounts between $1,000 and $5,000
-docsearch -R amount:1000..5000
+peekdocs -R amount:1000..5000
 
 # Find all lines with dates in Q1 2024
-docsearch -R date:2024-01-01..2024-03-31
+peekdocs -R date:2024-01-01..2024-03-31
 
 # Find all lines with percentages over 50%
-docsearch -R percent:50..
+peekdocs -R percent:50..
 ```
 
 **Combining with other flags:**
 
 ```bash
 # Range with recursive search
-docsearch -R amount:1000..5000 -r budget
+peekdocs -R amount:1000..5000 -r budget
 
 # Range with file type filter
-docsearch -R amount:1000.. -t .pdf,.docx invoice
+peekdocs -R amount:1000.. -t .pdf,.docx invoice
 
 # Range with context lines
-docsearch -R amount:5000..10000 -B 2 -A 2 payment
+peekdocs -R amount:5000..10000 -B 2 -A 2 payment
 
 # Range with AND mode text search
-docsearch -R date:2024-01-01..2024-12-31 -a budget revenue
+peekdocs -R date:2024-01-01..2024-12-31 -a budget revenue
 
 # Range with exclude terms
-docsearch -R amount:1000..5000 -n draft invoice
+peekdocs -R amount:1000..5000 -n draft invoice
 
 # Range with whole-word matching
-docsearch -R amount:1000..5000 -W budget
+peekdocs -R amount:1000..5000 -W budget
 
 # Range with max matches limit
-docsearch -R amount:1000..5000 -m 50 invoice
+peekdocs -R amount:1000..5000 -m 50 invoice
 ```
 
 ### Range specs in boolean expressions
@@ -1277,118 +1277,118 @@ Range specs can also be embedded directly inside `-e` expressions using the same
 
 ```bash
 # Lines mentioning "budget" that contain amounts between $1,000 and $5,000
-docsearch -e "budget AND amount:1000..5000"
+peekdocs -e "budget AND amount:1000..5000"
 
 # Lines mentioning "report" with dates in 2024
-docsearch -e "report AND date:2024-01-01..2024-12-31"
+peekdocs -e "report AND date:2024-01-01..2024-12-31"
 
 # Lines with "growth" and a percentage above 20%
-docsearch -e "growth AND percent:20..100"
+peekdocs -e "growth AND percent:20..100"
 
 # Lines with "patient" and an age between 18 and 65
-docsearch -e "patient AND age:18..65"
+peekdocs -e "patient AND age:18..65"
 
 # Lines with "meeting" and a time between 9 AM and 5 PM
-docsearch -e "meeting AND time:09:00..17:00"
+peekdocs -e "meeting AND time:09:00..17:00"
 ```
 
 **OR logic** — match one condition or the other:
 
 ```bash
 # Lines with budget amounts in range, OR any line with "revenue"
-docsearch -e "(budget AND amount:1000..5000) OR revenue"
+peekdocs -e "(budget AND amount:1000..5000) OR revenue"
 
 # Match either high amounts OR high percentages
-docsearch -e "amount:10000.. OR percent:50.."
+peekdocs -e "amount:10000.. OR percent:50.."
 
 # Different criteria per branch
-docsearch -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"
+peekdocs -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"
 ```
 
 **NOT logic** — exclude lines matching a range:
 
 ```bash
 # "invoice" lines that do NOT have amounts over $10,000
-docsearch -e "invoice AND NOT amount:10000.."
+peekdocs -e "invoice AND NOT amount:10000.."
 
 # "contract" lines excluding dates before 2024
-docsearch -e "contract AND NOT date:..2023-12-31"
+peekdocs -e "contract AND NOT date:..2023-12-31"
 
 # Complex: require text + range, exclude another range
-docsearch -e "(contract AND amount:5000..50000) AND NOT date:..2023-12-31"
+peekdocs -e "(contract AND amount:5000..50000) AND NOT date:..2023-12-31"
 ```
 
 **Multiple ranges in one expression:**
 
 ```bash
 # Invoice lines with amounts $500-$5,000 AND dated in 2024
-docsearch -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
+peekdocs -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"
 
 # Payment lines with both amount and time constraints
-docsearch -e "payment AND amount:100..1000 AND time:09:00..17:00"
+peekdocs -e "payment AND amount:100..1000 AND time:09:00..17:00"
 ```
 
 **Range-only expressions** (no text terms):
 
 ```bash
 # All lines with amounts in range
-docsearch -e "amount:1000..5000"
+peekdocs -e "amount:1000..5000"
 
 # Lines with amounts in range OR percentages in range
-docsearch -e "amount:1000..5000 OR percent:10..50"
+peekdocs -e "amount:1000..5000 OR percent:10..50"
 ```
 
 **Combining with other modes:**
 
 ```bash
 # Wildcard terms with a range
-docsearch -e -w "budg* AND amount:1000..5000"
+peekdocs -e -w "budg* AND amount:1000..5000"
 
 # Regex terms with a range
-docsearch -e -x "INV-\\d+ AND amount:1000..5000"
+peekdocs -e -x "INV-\\d+ AND amount:1000..5000"
 
 # Fuzzy terms with a range
-docsearch -e -z "budgt AND amount:1000..5000"
+peekdocs -e -z "budgt AND amount:1000..5000"
 
 # Expression + -R flag for metadata filtering
-docsearch -e "budget AND amount:1000..5000" -R filesize:..1M
+peekdocs -e "budget AND amount:1000..5000" -R filesize:..1M
 
 # Expression + -R flag for file date filtering
-docsearch -e "budget OR revenue" -R filedate:2024-01-01..2024-12-31
+peekdocs -e "budget OR revenue" -R filedate:2024-01-01..2024-12-31
 ```
 
 **Real-world scenarios:**
 
 ```bash
 # Find contracts with payments over $50,000 signed in 2024
-docsearch -e "contract AND amount:50000.. AND date:2024-01-01..2024-12-31"
+peekdocs -e "contract AND amount:50000.. AND date:2024-01-01..2024-12-31"
 
 # HR: find employee records for people aged 55-65
-docsearch -e "(employee OR staff) AND age:55..65"
+peekdocs -e "(employee OR staff) AND age:55..65"
 
 # Finance: find Q4 invoices between $1,000 and $10,000
-docsearch -e "invoice AND amount:1000..10000 AND date:2024-10-01..2024-12-31"
+peekdocs -e "invoice AND amount:1000..10000 AND date:2024-10-01..2024-12-31"
 
 # Audit: find high-growth reports (over 25%) excluding drafts
-docsearch -e "growth AND percent:25.. AND NOT draft"
+peekdocs -e "growth AND percent:25.. AND NOT draft"
 
 # Legal: find settlements over $100,000 or judgments over $500,000
-docsearch -e "(settlement AND amount:100000..) OR (judgment AND amount:500000..)"
+peekdocs -e "(settlement AND amount:100000..) OR (judgment AND amount:500000..)"
 
 # Healthcare: after-hours patient records for ages 18-30
-docsearch -e "patient AND age:18..30 AND time:17:00.."
+peekdocs -e "patient AND age:18..30 AND time:17:00.."
 
 # Small recent PDFs with budget amounts over $5,000
-docsearch -e "budget AND amount:5000.." -R filesize:..1M -R filedate:2025-01-01.. -t .pdf
+peekdocs -e "budget AND amount:5000.." -R filesize:..1M -R filedate:2025-01-01.. -t .pdf
 
 # Find budget mentions only in files from 2024 (by filename date)
-docsearch -R fn:date:2024-01-01..2024-12-31 budget
+peekdocs -R fn:date:2024-01-01..2024-12-31 budget
 
 # Invoices from 2024 (filename) with amounts $1,000-$10,000 (content)
-docsearch -R fn:date:2024-01-01..2024-12-31 -R amount:1000..10000 invoice
+peekdocs -R fn:date:2024-01-01..2024-12-31 -R amount:1000..10000 invoice
 
 # Expression: budget lines in 2024-dated files
-docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
+peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"
 ```
 
 ### Notes on range queries
@@ -1406,7 +1406,7 @@ docsearch -e "budget AND fn:date:2024-01-01..2024-12-31"
 - **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
 - **Index search** — ranges work with the search index. Indexed results are post-filtered by content and metadata ranges
 - **Saved searches** — range filters are fully preserved in saved searches and restored when you reload them. Enter ranges in the GUI's Range field before clicking **Save Search**
-- **Settings persistence** — the Range field value is saved to `~/.docsearchrc` when you click **Save Defaults** in Advanced Search Options, and restored when the GUI opens or when you click Restore Settings
+- **Settings persistence** — the Range field value is saved to `~/.peekdocsrc` when you click **Save Defaults** in Advanced Search Options, and restored when the GUI opens or when you click Restore Settings
 
 In the GUI, enter range filters in the **Range** field in Advanced Search Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
 
@@ -1417,7 +1417,7 @@ You can mix multiple modes together for more powerful searches.
 **Regex + AND + Recursive** — Find files containing both an SSN and a dollar amount anywhere in nested subfolders:
 
 ```bash
-docsearch -x -a -r "\d{3}-\d{2}-\d{4}" "\$[\d,]+\.\d{2}"
+peekdocs -x -a -r "\d{3}-\d{2}-\d{4}" "\$[\d,]+\.\d{2}"
 ```
 
 In the GUI:
@@ -1430,7 +1430,7 @@ Checkboxes:  Regex, AND mode, Recursive
 **Wildcard + File Types** — Find any mention of "report" variations in PDFs only:
 
 ```bash
-docsearch -w -t pdf "report*"
+peekdocs -w -t pdf "report*"
 ```
 
 In the GUI:
@@ -1443,7 +1443,7 @@ Checkboxes:  Wildcard       File Types: .pdf
 **Expression + Range + Context** — Find lines mentioning budget or revenue (but not draft) with amounts over 10,000, showing surrounding lines:
 
 ```bash
-docsearch -e "(budget OR revenue) AND NOT draft" -R amount:10000..999999 -B 2 -A 2
+peekdocs -e "(budget OR revenue) AND NOT draft" -R amount:10000..999999 -B 2 -A 2
 ```
 
 In the GUI:
@@ -1457,7 +1457,7 @@ Context:     Before=2, After=2
 **Whole Word + AND + Proximity** — Find "breach" and "contract" as whole words within 5 words of each other (avoids matching "breached" or "contractor"):
 
 ```bash
-docsearch -W -p 5 "breach" "contract"
+peekdocs -W -p 5 "breach" "contract"
 ```
 
 In the GUI:
@@ -1470,7 +1470,7 @@ Checkboxes:  Whole Word, AND mode     Proximity: 5
 **Fuzzy + Recursive + File Types** — Find misspelled names across all Word docs in subfolders:
 
 ```bash
-docsearch -z -r -t docx "accommodation" "occurrence"
+peekdocs -z -r -t docx "accommodation" "occurrence"
 ```
 
 In the GUI:
@@ -1483,7 +1483,7 @@ Checkboxes:  Fuzzy, Recursive   File Types: .docx
 **Inverse + Regex** — Find files that do NOT contain a required signature line:
 
 ```bash
-docsearch --inverse -x "Authorized\s+Signature"
+peekdocs --inverse -x "Authorized\s+Signature"
 ```
 
 In the GUI:
@@ -1518,18 +1518,18 @@ Use Load Search to reload each one when you need it. The search bar and all Adva
 
 ## Saved Settings (Optional)
 
-If you find yourself typing the same flags every time, you can save them as defaults so docsearch remembers them for you. This is entirely optional — docsearch works fine without it.
+If you find yourself typing the same flags every time, you can save them as defaults so peekdocs remembers them for you. This is entirely optional — peekdocs works fine without it.
 
 Use the `--config` flag to manage your saved settings:
 
 ```bash
-docsearch --config recursive=true       # always search subdirectories
-docsearch --config quiet=true cores=4   # save multiple settings at once
-docsearch --config                      # view your saved settings
-docsearch --config recursive=           # remove a saved setting
+peekdocs --config recursive=true       # always search subdirectories
+peekdocs --config quiet=true cores=4   # save multiple settings at once
+peekdocs --config                      # view your saved settings
+peekdocs --config recursive=           # remove a saved setting
 ```
 
-Once saved, your settings apply automatically every time you run docsearch. For example, after running `docsearch --config recursive=true quiet=true cores=4`, typing `docsearch budget` behaves like `docsearch -r -q -c 4 budget`. You can always override a saved setting for a single search by typing the flag explicitly — this does not change your saved settings.
+Once saved, your settings apply automatically every time you run peekdocs. For example, after running `peekdocs --config recursive=true quiet=true cores=4`, typing `peekdocs budget` behaves like `peekdocs -r -q -c 4 budget`. You can always override a saved setting for a single search by typing the flag explicitly — this does not change your saved settings.
 
 **Available settings:**
 
@@ -1564,29 +1564,29 @@ Once saved, your settings apply automatically every time you run docsearch. For 
 | `folder` | path | — | empty (current directory) |
 | `pii_scan_categories` | list | — | all 8 categories enabled (SSNs, credit cards, tax IDs, emails, phones, passwords, DOB, dollar amounts) |
 
-If no settings are saved or if a value is invalid, docsearch uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
+If no settings are saved or if a value is invalid, peekdocs uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
 
-**Advanced:** Your settings are stored in a text file called `.docsearchrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
+**Advanced:** Your settings are stored in a text file called `.peekdocsrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
 
-## Files Created by docsearch
+## Files Created by peekdocs
 
-docsearch creates several types of files during normal operation. Understanding what each file is, where it lives, and how to manage it helps you keep your folders clean and troubleshoot issues.
+peekdocs creates several types of files during normal operation. Understanding what each file is, where it lives, and how to manage it helps you keep your folders clean and troubleshoot issues.
 
-**Important:** docsearch never modifies, moves, or deletes your original documents. All files listed below are created by docsearch itself. docsearch can delete its own files when you ask — for example, Clear Results removes report files and Delete Index removes the search index. These operations only affect files that docsearch created, never your documents.
+**Important:** peekdocs never modifies, moves, or deletes your original documents. All files listed below are created by peekdocs itself. peekdocs can delete its own files when you ask — for example, Clear Results removes report files and Delete Index removes the search index. These operations only affect files that peekdocs created, never your documents.
 
 ### Search reports
 
-These are your search results. By default, they are overwritten each time you run a new search. If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `docsearch_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
+These are your search results. By default, they are overwritten each time you run a new search. If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `docsearch_results.txt` | Plain text report | Search folder (or `--output-dir`) |
-| `docsearch_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
-| `docsearch_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
-| `docsearch_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
+| `peekdocs_results.txt` | Plain text report | Search folder (or `--output-dir`) |
+| `peekdocs_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
+| `peekdocs_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
+| `peekdocs_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
 
-**Protected from searching:** Yes — all filenames starting with `docsearch_results` are excluded so docsearch never searches its own reports (including timestamped versions).
-**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `docsearch_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search.
+**Protected from searching:** Yes — all filenames starting with `peekdocs_results` are excluded so peekdocs never searches its own reports (including timestamped versions).
+**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `peekdocs_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search.
 
 ### Saved and accumulated reports
 
@@ -1600,7 +1600,7 @@ Created when you use `-s` (save) or `-sa` (append) to archive results with a nam
 | `DO_NOT_SEARCH_ACCUMULATED_{name}.docx` | Accumulated results from multiple searches (Word) | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — the `DO_NOT_SEARCH_` prefix ensures these are never included in future searches.
-**How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove docsearch_results files.
+**How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove peekdocs_results files.
 
 ### PII scan report
 
@@ -1619,10 +1619,10 @@ An append-only log of file processing errors and crash reports.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `docsearch_errors.log` | Records files that couldn't be read (permission denied, corrupted, locked) and crash diagnostics | Search folder (or `--output-dir`) |
+| `peekdocs_errors.log` | Records files that couldn't be read (permission denied, corrupted, locked) and crash diagnostics | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — this filename is explicitly excluded.
-**How to delete:** Click **Clear Error Log** on the bottom toolbar, or delete manually. The file is automatically recreated the next time a file error occurs. If docsearch runs cleanly with no errors, no error log is created.
+**How to delete:** Click **Clear Error Log** on the bottom toolbar, or delete manually. The file is automatically recreated the next time a file error occurs. If peekdocs runs cleanly with no errors, no error log is created.
 
 ### Search index
 
@@ -1630,13 +1630,13 @@ An optional SQLite database that stores extracted text for faster repeated searc
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `.docsearch.db` | SQLite FTS5 full-text search index | Search folder |
-| `.docsearch.db-wal` | Write-Ahead Log (temporary, for concurrent access) | Search folder |
-| `.docsearch.db-shm` | Shared memory file (temporary, for concurrent access) | Search folder |
+| `.peekdocs.db` | SQLite FTS5 full-text search index | Search folder |
+| `.peekdocs.db-wal` | Write-Ahead Log (temporary, for concurrent access) | Search folder |
+| `.peekdocs.db-shm` | Shared memory file (temporary, for concurrent access) | Search folder |
 
 **Protected from searching:** Yes — excluded by filename.
-**How to delete:** Use `docsearch --index-clear` or the **Delete Index(es)** button in the GUI. This removes all three files. The index can be rebuilt at any time with `docsearch --index`. The `-wal` and `-shm` files are created and removed automatically by SQLite — if they persist after a crash, they are safe to delete manually.
-**How to recover:** If the index becomes corrupted, docsearch detects it automatically, deletes it, and falls back to direct file scanning. Rebuild with `docsearch --index`.
+**How to delete:** Use `peekdocs --index-clear` or the **Delete Index(es)** button in the GUI. This removes all three files. The index can be rebuilt at any time with `peekdocs --index`. The `-wal` and `-shm` files are created and removed automatically by SQLite — if they persist after a crash, they are safe to delete manually.
+**How to recover:** If the index becomes corrupted, peekdocs detects it automatically, deletes it, and falls back to direct file scanning. Rebuild with `peekdocs --index`.
 
 ### Collection file
 
@@ -1644,7 +1644,7 @@ Stores your saved searches for each folder.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `.docsearch_collection.json` | Saved searches | Each search folder |
+| `.peekdocs_collection.json` | Saved searches | Each search folder |
 
 **Protected from searching:** Yes — excluded by filename.
 **Caution:** This file contains all your saved searches for the folder. **Do not delete it unless you intend to lose them.** There is no undo — you would need to recreate every saved search from scratch in the GUI.
@@ -1656,20 +1656,20 @@ Your saved default settings.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `~/.docsearchrc` | Default values for all CLI flags and GUI settings | Home directory (`~` = `/Users/you` on Mac, `C:\Users\you` on Windows, `/home/you` on Linux) |
+| `~/.peekdocsrc` | Default values for all CLI flags and GUI settings | Home directory (`~` = `/Users/you` on Mac, `C:\Users\you` on Windows, `/home/you` on Linux) |
 
-**What does "rc" mean?** The "rc" in `.docsearchrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.docsearchrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
+**What does "rc" mean?** The "rc" in `.peekdocsrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.peekdocsrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
 
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
-**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Search Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .docsearchrc** in Advanced Search Options to view its current contents.
-**What happens if it's deleted?** docsearch runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Search Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .peekdocsrc** in Advanced Search Options to view its current contents.
+**What happens if it's deleted?** peekdocs runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
 **How to recover:**
-1. Open the GUI (`docsearch-gui`)
+1. Open the GUI (`peekdocs-gui`)
 2. Open **Advanced Search Options** and configure your preferred settings (recursive, file types, cores, max matches, etc.)
 3. Click **Save Defaults** — this recreates the file
 5. Change the **Text Size** dropdown if you had a non-default size — it auto-saves immediately
 
-The file is a plain text list of key-value pairs. You can also recreate it from the terminal: `docsearch --config recursive=true` saves a single setting, and each subsequent `--config` call adds to it.
+The file is a plain text list of key-value pairs. You can also recreate it from the terminal: `peekdocs --config recursive=true` saves a single setting, and each subsequent `--config` call adds to it.
 
 ### Summary
 
@@ -1683,44 +1683,44 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 | Collection file | 1 per folder | Yes | **No** — contains your saved searches. Back up before deleting |
 | Config file | 1 (home dir) | N/A | With caution — loses saved settings and email config |
 
-**Most of these files are safe to delete** — docsearch recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.docsearch_collection.json`), which contains your saved searches, and the **config file** (`~/.docsearchrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
+**Most of these files are safe to delete** — peekdocs recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.peekdocs_collection.json`), which contains your saved searches, and the **config file** (`~/.peekdocsrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
 
 ## Limits and Constraints
 
-**docsearch itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. The only constraints are your computer's available memory, disk space, and processing power.
+**peekdocs itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. The only constraints are your computer's available memory, disk space, and processing power.
 
 **Optional safeguards (all configurable, all removable):**
 
-The following defaults exist to prevent accidental slowdowns or memory issues on very large folders. They are **entirely optional** — set any of them to 0 or remove them if you prefer no limits. docsearch will search everything your hardware can handle.
+The following defaults exist to prevent accidental slowdowns or memory issues on very large folders. They are **entirely optional** — set any of them to 0 or remove them if you prefer no limits. peekdocs will search everything your hardware can handle.
 
 | Safeguard | Default | Flag | Why it exists | How to remove |
 |-----------|---------|------|---------------|---------------|
 | **Max matches in reports** | 1,000 | `-m N` | Writing 50,000 matches to a .docx file can take minutes and produce a very large report. The total match count is always accurate in the summary — only the report files are capped | Set `-m 0` for unlimited |
-| **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files are logged to `docsearch_errors.log` so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
+| **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files are logged to `peekdocs_errors.log` so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
 | **CPU cores** | Half of available | `-c N` | Using all cores speeds up searches but makes your computer unresponsive while searching | Set `-c` to your full core count for maximum speed |
 
 These safeguards exist because a user once searching a folder with multi-GB database exports shouldn't have to wonder why the app froze — the defaults protect against that while being easy to override. If you know your files are manageable, remove the limits entirely.
 
-**Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.docsearchrc`) so it applies automatically every time you run docsearch — you don't have to type the flag on every search. For example, if you always want a higher match cap:
+**Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.peekdocsrc`) so it applies automatically every time you run peekdocs — you don't have to type the flag on every search. For example, if you always want a higher match cap:
 
 ```bash
-docsearch --config max_matches=5000     # save the setting once
-docsearch budget                         # all future searches use max_matches=5000
+peekdocs --config max_matches=5000     # save the setting once
+peekdocs budget                         # all future searches use max_matches=5000
 ```
 
 You can still override a saved setting on any individual search by passing the flag directly:
 
 ```bash
-docsearch -m 0 budget                    # this search only: unlimited matches (overrides saved 5000)
+peekdocs -m 0 budget                    # this search only: unlimited matches (overrides saved 5000)
 ```
 
-To see all your saved settings: `docsearch --config`. To reset a setting to its default: `docsearch --config max_matches=`. The `--config` flag works for many settings — see the [Saved Settings](#saved-settings-optional) section for the full list.
+To see all your saved settings: `peekdocs --config`. To reset a setting to its default: `peekdocs --config max_matches=`. The `--config` flag works for many settings — see the [Saved Settings](#saved-settings-optional) section for the full list.
 
 **No limits on:**
 
 | Item | Notes |
 |------|-------|
-| **File size** | docsearch processes whatever the underlying libraries (PyMuPDF, openpyxl, python-docx, etc.) can handle. There is no hardcoded maximum. Very large files (multi-GB PDFs, spreadsheets with millions of rows) may cause high memory usage — use `-c 1` to reduce memory consumption |
+| **File size** | peekdocs processes whatever the underlying libraries (PyMuPDF, openpyxl, python-docx, etc.) can handle. There is no hardcoded maximum. Very large files (multi-GB PDFs, spreadsheets with millions of rows) may cause high memory usage — use `-c 1` to reduce memory consumption |
 | **Number of files** | No maximum. The only constraint is the operating system's file descriptor limit, which defaults to 256 on macOS and 1024 on Linux. Increase with `ulimit -n 4096` if needed. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) for details |
 | **PDF page count** | PDFs are processed page by page with no page count limit |
 | **Excel rows and sheets** | No maximum. openpyxl processes worksheets in read-only mode for memory efficiency |
@@ -1732,49 +1732,49 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 
 | Constraint | What happens | How to fix |
 |------------|-------------|------------|
-| **Memory** | Very large files, or many files searched in parallel across multiple cores, can exhaust available RAM. docsearch catches `MemoryError` and suggests reducing cores or limiting file types | Use `-c 1` to search single-threaded, or `-t` to limit file types |
+| **Memory** | Very large files, or many files searched in parallel across multiple cores, can exhaust available RAM. peekdocs catches `MemoryError` and suggests reducing cores or limiting file types | Use `-c 1` to search single-threaded, or `-t` to limit file types |
 | **Open files limit** | Searching thousands of files may exceed the OS file descriptor limit, causing "Too many open files" errors | Run `ulimit -n 4096` before searching. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
-| **Disk space** | docsearch checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
+| **Disk space** | peekdocs checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
 | **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
-| **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
+| **SQLite lock timeout** | If another process holds the index database lock, peekdocs waits up to 10 seconds before falling back to direct file scanning | Close other peekdocs instances, or delete stale lock files. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
 
 ## Multilingual Support
 
-docsearch searches documents written in any language — English, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, Spanish, German, French, Portuguese, Thai, Hebrew, and every other language that can be represented in Unicode. Type your search terms in any language and docsearch finds the exact character sequence in your files.
+peekdocs searches documents written in any language — English, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, Spanish, German, French, Portuguese, Thai, Hebrew, and every other language that can be represented in Unicode. Type your search terms in any language and peekdocs finds the exact character sequence in your files.
 
-This is not a special feature unique to docsearch. All modern search tools are built on Unicode, the universal standard for representing text in every writing system. docsearch uses Python's built-in Unicode string handling, which means it has the same multilingual capabilities — and the same limitations — as any other Unicode-based tool.
+This is not a special feature unique to peekdocs. All modern search tools are built on Unicode, the universal standard for representing text in every writing system. peekdocs uses Python's built-in Unicode string handling, which means it has the same multilingual capabilities — and the same limitations — as any other Unicode-based tool.
 
 ### What works
 
-- **Exact text matching in any language.** If your document contains `预算报告` and you search for `预算`, docsearch finds it. This works for every script: Latin, Chinese, Japanese, Korean, Arabic, Hebrew, Cyrillic, Devanagari, Thai, Greek, and all others.
+- **Exact text matching in any language.** If your document contains `预算报告` and you search for `预算`, peekdocs finds it. This works for every script: Latin, Chinese, Japanese, Korean, Arabic, Hebrew, Cyrillic, Devanagari, Thai, Greek, and all others.
 - **Regex in any language.** You can write regex patterns that match characters in any script. For example, `[A-Z]{2}\d{6}[A-Z]` matches a UK National Insurance Number, and `[\u4e00-\u9fff]+` matches Chinese characters.
-- **Mixed-language documents.** A single file can contain text in multiple languages. docsearch searches all of it — the same search can find English keywords in one file and Chinese keywords in another.
-- **All 46 file types.** Multilingual support applies to every format docsearch reads — .docx, .pdf, .xlsx, .eml, .txt, and all the rest. If the file's text extraction produces Unicode (which it does for all modern file formats), docsearch can search it.
+- **Mixed-language documents.** A single file can contain text in multiple languages. peekdocs searches all of it — the same search can find English keywords in one file and Chinese keywords in another.
+- **All 46 file types.** Multilingual support applies to every format peekdocs reads — .docx, .pdf, .xlsx, .eml, .txt, and all the rest. If the file's text extraction produces Unicode (which it does for all modern file formats), peekdocs can search it.
 - **PII Scan custom patterns.** The Custom Pattern feature in the PII Scan lets you add regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, German Steuer-ID, Brazilian CPF, and more).
 
 ### What doesn't work (limitations)
 
-- **No word segmentation for CJK languages.** Chinese, Japanese, and Korean do not use spaces between words. docsearch searches for exact character sequences, which works well for most searches, but features that depend on word boundaries (like whole-word matching with `-W`) may not behave as expected for CJK text.
-- **No stemming or lemmatization.** docsearch does not reduce words to their root form. In English, searching for "running" will not automatically find "run" or "ran." The same applies to all other languages. Fuzzy matching (`-z`) can help find some variations, but it is not a substitute for proper stemming.
-- **No stop-word removal.** docsearch does not filter out common words like "the," "and," or "of" (or their equivalents in other languages). Every term you type is searched for literally.
-- **No language detection.** docsearch does not detect which language a document is written in. It treats all text as a sequence of Unicode characters regardless of language.
+- **No word segmentation for CJK languages.** Chinese, Japanese, and Korean do not use spaces between words. peekdocs searches for exact character sequences, which works well for most searches, but features that depend on word boundaries (like whole-word matching with `-W`) may not behave as expected for CJK text.
+- **No stemming or lemmatization.** peekdocs does not reduce words to their root form. In English, searching for "running" will not automatically find "run" or "ran." The same applies to all other languages. Fuzzy matching (`-z`) can help find some variations, but it is not a substitute for proper stemming.
+- **No stop-word removal.** peekdocs does not filter out common words like "the," "and," or "of" (or their equivalents in other languages). Every term you type is searched for literally.
+- **No language detection.** peekdocs does not detect which language a document is written in. It treats all text as a sequence of Unicode characters regardless of language.
 - **No right-to-left layout in the GUI.** Arabic and Hebrew text is searchable and appears correctly in reports (Word handles bidirectional text natively), but the GUI's text widgets may not render right-to-left text perfectly on all platforms.
 - **No transliteration or translation.** Searching for "budget" will not find the Chinese word for budget (预算). You must search for the exact characters that appear in the document.
 
 ### Documentation and GUI language
 
-The docsearch GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload, PII Scan), so most non-English speakers can navigate the interface without difficulty.
+The peekdocs GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload, PII Scan), so most non-English speakers can navigate the interface without difficulty.
 
 ### Sample multilingual files
 
-The `samples/multilingual/` folder in the repository contains test documents in Chinese, Greek, Spanish, Arabic, and a 14-language text file. You can point docsearch at this folder to verify multilingual search on your system:
+The `samples/multilingual/` folder in the repository contains test documents in Chinese, Greek, Spanish, Arabic, and a 14-language text file. You can point peekdocs at this folder to verify multilingual search on your system:
 
 ```bash
 cd samples/multilingual
-docsearch 预算                    # Chinese: "budget"
-docsearch προϋπολογισμού         # Greek: "budget"
-docsearch الميزانية               # Arabic: "budget"
-docsearch factura                # Spanish: "invoice"
+peekdocs 预算                    # Chinese: "budget"
+peekdocs προϋπολογισμού         # Greek: "budget"
+peekdocs الميزانية               # Arabic: "budget"
+peekdocs factura                # Spanish: "invoice"
 ```
 
 ### The automated language test
@@ -1786,13 +1786,13 @@ source venv/bin/activate
 python tests/language_test.py
 ```
 
-This creates temporary test files, runs docsearch against each language, prints a summary table, and cleans up after itself.
+This creates temporary test files, runs peekdocs against each language, prints a summary table, and cleans up after itself.
 
 ## Your First Advanced Search — Step by Step
 
 You know how to do a basic search — type a word, click Run Search, see results. This section walks you through the most useful advanced features one at a time. Each example is a complete walkthrough: what to type, what to check, and what you'll see.
 
-All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a folder with some documents, and follow along.
+All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a folder with some documents, and follow along.
 
 ### Example 1: Find Social Security numbers with regex
 
@@ -1831,7 +1831,7 @@ All of these use the GUI. Open `docsearch-gui`, click **Browse** to select a fol
 1. In the **Search Terms** field, type: `payment` (or any related keyword, or leave it empty for a range-only search)
 2. Open **Advanced Search Options** and find the **Range** field
 3. In the Range field, type: `amount:10000..50000`
-   - This tells docsearch: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
+   - This tells peekdocs: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
 4. Click **Run Search**
 5. Look at the results preview:
    - Each match shows a line containing both your keyword and a dollar amount in the specified range
@@ -1930,16 +1930,16 @@ pytest tests/ -v
 ## Project Structure
 
 ```
-docsearch/
-├── docsearch/
+peekdocs/
+├── peekdocs/
 │   ├── __init__.py      # Package init, re-exports library API
-│   ├── __main__.py      # Enables python -m docsearch
+│   ├── __main__.py      # Enables python -m peekdocs
 │   ├── api.py           # Public library API (search(), SearchMatch, SearchResult)
 │   ├── cli.py           # CLI entry point (calls api.search internally)
 │   ├── collection.py    # Saved search collections
 │   ├── constants.py     # Shared constants and defaults
 │   ├── expr_parser.py   # Boolean expression parser (AND/OR/NOT)
-│   ├── gui.py           # Optional GUI (docsearch-gui)
+│   ├── gui.py           # Optional GUI (peekdocs-gui)
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
 │   ├── reporter.py      # Report generation (txt, docx, csv, json, pdf)
