@@ -1374,6 +1374,11 @@ def _launch_gui():
             help_win.resizable(True, True)
             help_win.transient(self)
             help_win.grab_set()
+            # Ensure the window is visible on Linux (X11 window managers
+            # can silently open new windows behind existing ones).
+            help_win.lift()
+            help_win.after(50, help_win.lift)
+            help_win.after(100, help_win.focus_force)
 
             # Scrollable text widget
             text_frame = tk.Frame(help_win)
@@ -3479,6 +3484,11 @@ def _launch_gui():
             help_win.resizable(True, True)
             help_win.transient(self)
             help_win.bind("<FocusIn>", lambda e: help_win.lift())
+            # Ensure the window is visible on Linux (X11 window managers
+            # can silently open new windows behind existing ones).
+            help_win.lift()
+            help_win.after(50, help_win.lift)
+            help_win.after(100, help_win.focus_force)
 
             txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                           padx=15, pady=10, borderwidth=0, highlightthickness=0)
