@@ -2996,11 +2996,15 @@ def _launch_gui():
                 menu.add_command(label="Clear Error Log — delete docsearch_errors.log", command=self._clear_error_log)
                 menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
                 menu.add_separator()
-                # Text Size submenu
-                size_menu = tk.Menu(menu, tearoff=0, font=("TkDefaultFont", 12))
+                # Text Size — direct items instead of a cascade submenu
+                # (cascades open to the right and go off-screen on small displays)
+                current_size = self._text_size_var.get()
                 for size in ["Small", "Normal", "Large", "Extra Large", "Huge"]:
-                    size_menu.add_command(label=size, command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)))
-                menu.add_cascade(label=f"Text Size — scales all GUI text, labels, and buttons (currently {self._text_size_var.get()})", menu=size_menu)
+                    marker = " \u2713" if size == current_size else ""
+                    menu.add_command(
+                        label=f"Text Size: {size}{marker}",
+                        command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)),
+                    )
                 # Hover text toggle
                 hover_label = (
                     "Disable Hover Text — hide tooltip popups when hovering over buttons and fields"
