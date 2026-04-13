@@ -26,6 +26,7 @@ This is the complete reference guide for docsearch. For a quick overview, see th
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Files Created by docsearch](#files-created-by-docsearch)
 - [Limits and Constraints](#limits-and-constraints)
+- [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
@@ -1736,6 +1737,56 @@ To see all your saved settings: `docsearch --config`. To reset a setting to its 
 | **Disk space** | docsearch checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
 | **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
 | **SQLite lock timeout** | If another process holds the index database lock, docsearch waits up to 10 seconds before falling back to direct file scanning | Close other docsearch instances, or delete stale lock files. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
+
+## Multilingual Support
+
+docsearch searches documents written in any language — English, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, Spanish, German, French, Portuguese, Thai, Hebrew, and every other language that can be represented in Unicode. Type your search terms in any language and docsearch finds the exact character sequence in your files.
+
+This is not a special feature unique to docsearch. All modern search tools are built on Unicode, the universal standard for representing text in every writing system. docsearch uses Python's built-in Unicode string handling, which means it has the same multilingual capabilities — and the same limitations — as any other Unicode-based tool.
+
+### What works
+
+- **Exact text matching in any language.** If your document contains `预算报告` and you search for `预算`, docsearch finds it. This works for every script: Latin, Chinese, Japanese, Korean, Arabic, Hebrew, Cyrillic, Devanagari, Thai, Greek, and all others.
+- **Regex in any language.** You can write regex patterns that match characters in any script. For example, `[A-Z]{2}\d{6}[A-Z]` matches a UK National Insurance Number, and `[\u4e00-\u9fff]+` matches Chinese characters.
+- **Mixed-language documents.** A single file can contain text in multiple languages. docsearch searches all of it — the same search can find English keywords in one file and Chinese keywords in another.
+- **All 46 file types.** Multilingual support applies to every format docsearch reads — .docx, .pdf, .xlsx, .eml, .txt, and all the rest. If the file's text extraction produces Unicode (which it does for all modern file formats), docsearch can search it.
+- **PII Scan custom patterns.** The Custom Pattern feature in the PII Scan lets you add regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, German Steuer-ID, Brazilian CPF, and more).
+
+### What doesn't work (limitations)
+
+- **No word segmentation for CJK languages.** Chinese, Japanese, and Korean do not use spaces between words. docsearch searches for exact character sequences, which works well for most searches, but features that depend on word boundaries (like whole-word matching with `-W`) may not behave as expected for CJK text.
+- **No stemming or lemmatization.** docsearch does not reduce words to their root form. In English, searching for "running" will not automatically find "run" or "ran." The same applies to all other languages. Fuzzy matching (`-z`) can help find some variations, but it is not a substitute for proper stemming.
+- **No stop-word removal.** docsearch does not filter out common words like "the," "and," or "of" (or their equivalents in other languages). Every term you type is searched for literally.
+- **No language detection.** docsearch does not detect which language a document is written in. It treats all text as a sequence of Unicode characters regardless of language.
+- **No right-to-left layout in the GUI.** Arabic and Hebrew text is searchable and appears correctly in reports (Word handles bidirectional text natively), but the GUI's text widgets may not render right-to-left text perfectly on all platforms.
+- **No transliteration or translation.** Searching for "budget" will not find the Chinese word for budget (预算). You must search for the exact characters that appear in the document.
+
+### Documentation and GUI language
+
+The docsearch GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload, PII Scan), so most non-English speakers can navigate the interface without difficulty.
+
+### Sample multilingual files
+
+The `samples/multilingual/` folder in the repository contains test documents in Chinese, Greek, Spanish, Arabic, and a 14-language text file. You can point docsearch at this folder to verify multilingual search on your system:
+
+```bash
+cd samples/multilingual
+docsearch 预算                    # Chinese: "budget"
+docsearch προϋπολογισμού         # Greek: "budget"
+docsearch الميزانية               # Arabic: "budget"
+docsearch factura                # Spanish: "invoice"
+```
+
+### The automated language test
+
+To verify multilingual support across all 14 tested languages at once:
+
+```bash
+source venv/bin/activate
+python tests/language_test.py
+```
+
+This creates temporary test files, runs docsearch against each language, prints a summary table, and cleans up after itself.
 
 ## Your First Advanced Search — Step by Step
 
