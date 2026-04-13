@@ -649,6 +649,8 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | 80 | Output results as JSON | `docsearch -o json budget` |
 | 81 | Output both CSV and JSON | `docsearch -o csv,json budget` |
 | 82 | CSV with recursive search | `docsearch -o csv -r budget` |
+| 82a | Output as PDF (highlighted) | `docsearch -o pdf budget` |
+| 82b | All extra formats at once | `docsearch -o csv,json,pdf budget` |
 | | **Match Cap** | |
 | 83 | Set max matches to 5000 | `docsearch -m 5000 budget` |
 | 84 | Disable match cap (no limit) | `docsearch -m 0 budget` |
@@ -664,6 +666,7 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | 92 | Show index info | `docsearch --index-status` |
 | 93 | Delete the index | `docsearch --index-clear` |
 | 93a | Incrementally refresh the index | `docsearch --index-refresh` |
+| 93b | Skip the index (direct scan) | `docsearch --no-index budget` |
 | | **Inverse Search** | |
 | 94 | Find files missing a term | `docsearch --inverse "indemnification"` |
 | 95 | Files missing any of several terms | `docsearch --inverse disclaimer warranty` |
@@ -689,6 +692,17 @@ docsearch has twenty-nine flags that can be mixed and matched:
 | | **Output Directory** | |
 | 114 | Write results to a specific folder | `docsearch --output-dir ~/reports budget` |
 | 115 | Output dir with recursive search | `docsearch --output-dir /tmp/results -r budget` |
+| 115a | Timestamped filenames | `docsearch --timestamp budget` |
+| 115b | Timestamp with output directory | `docsearch --timestamp --output-dir ~/reports -r budget` |
+| 115c | Max file size limit (skip large files) | `docsearch --max-file-size 50 budget` |
+| 115d | No file size limit | `docsearch --max-file-size 0 budget` |
+| | **Real-World Workflow Combinations** | |
+| 115e | Recursive + types + AND + context | `docsearch -r -t pdf,docx -a -B 2 -A 2 budget revenue` |
+| 115f | Regex + range + output dir | `docsearch -x "\$[\d,]+" -R amount:5000..100000 --output-dir ~/reports` |
+| 115g | Inverse + recursive + types | `docsearch -r -t docx --inverse "confidentiality"` |
+| 115h | Fuzzy + recursive + CSV output | `docsearch -r -z accommodation -o csv` |
+| 115i | AND + exclude + file types + timestamp | `docsearch -a -n draft -t pdf,docx --timestamp budget revenue` |
+| 115j | Regex + context + recursive + JSON | `docsearch -x "\d{3}-\d{2}-\d{4}" -B 3 -A 3 -r -o json` |
 | | **Range Queries** | |
 | 116 | Filter by dollar amount range | `docsearch -R amount:1000..5000 budget` |
 | 117 | Filter by date range | `docsearch -R date:2024-01-01..2024-12-31 report` |

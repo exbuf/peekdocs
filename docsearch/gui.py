@@ -600,7 +600,7 @@ def _launch_gui():
                 frame = tk.Frame(inner)
                 frame.pack(fill="x", padx=30, pady=(8, 0))
                 tk.Label(frame, text=emoji_title, font=("TkDefaultFont", 13, "bold"), fg=color, anchor="w").pack(anchor="w")
-                tk.Label(frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", wraplength=900).pack(anchor="w", padx=(24, 0))
+                tk.Label(frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", justify="left", wraplength=900).pack(anchor="w", padx=(24, 0))
 
             tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
@@ -638,7 +638,7 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=1, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
+            self.search_entry.grid(row=1, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
@@ -2056,7 +2056,7 @@ def _launch_gui():
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
+            self.folder_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             self._browse_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
