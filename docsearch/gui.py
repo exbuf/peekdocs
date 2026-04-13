@@ -502,6 +502,8 @@ def _launch_gui():
             # Apply the Search-tab-visibility rules to the initial tab
             # (fire after deiconify so the segmented button is fully laid out)
             self.after(1200, self._on_tab_changed)
+            # Sync entry field widths after layout is complete
+            self.after(1300, self._sync_input_widths)
 
         def _on_tab_changed(self):
             """Hide the Search tab button when on Search (redundant), and
@@ -520,6 +522,31 @@ def _launch_gui():
                     # On Getting Started — show the button labeled "Return"
                     search_btn.grid()
                     search_btn.configure(text="Return")
+            except Exception:
+                pass
+
+        def _sync_input_widths(self):
+            """Equalize the Search Folder and Search Terms entry field widths.
+
+            The two entries live in separate frames with separate grids, so
+            their columns can't share widths.  This method measures both
+            entries after layout, then adds right-padding to the wider one
+            so they match.  Called after text-size changes, window resizes,
+            and initial layout.
+            """
+            try:
+                base_padx = (5, 15)
+                self.folder_entry.grid_configure(padx=base_padx)
+                self.search_entry.grid_configure(padx=base_padx)
+                self.update_idletasks()
+                w1 = self.folder_entry.winfo_width()
+                w2 = self.search_entry.winfo_width()
+                if abs(w1 - w2) < 2 or w1 < 50 or w2 < 50:
+                    return
+                if w1 > w2:
+                    self.folder_entry.grid_configure(padx=(base_padx[0], base_padx[1] + (w1 - w2)))
+                else:
+                    self.search_entry.grid_configure(padx=(base_padx[0], base_padx[1] + (w2 - w1)))
             except Exception:
                 pass
 
@@ -610,7 +637,7 @@ def _launch_gui():
             self.search_bar_frame.grid_columnconfigure(2, minsize=40)
             self.search_bar_frame.grid_columnconfigure(3, minsize=145)
 
-            label = ctk.CTkLabel(self.search_bar_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"))
+            label = ctk.CTkLabel(self.search_bar_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self._assistant_label = ctk.CTkLabel(
@@ -622,7 +649,7 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
+            self.search_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
@@ -715,14 +742,14 @@ def _launch_gui():
             save_group.pack(side="right", padx=(0, 5))
 
             self.save_to_collection_btn = ctk.CTkButton(
-                save_group, text="Save Search", width=0, command=self._save_to_collection,
+                save_group, text="Save", width=0, command=self._save_to_collection,
                 font=ctk.CTkFont(size=12),
             )
             self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
 
             self.load_search_btn = ctk.CTkButton(
-                save_group, text="Load Search \u25bc", width=0,
+                save_group, text="Reload \u25bc", width=0,
                 font=ctk.CTkFont(size=12),
                 command=self._open_load_search_popup,
             )
@@ -742,7 +769,7 @@ def _launch_gui():
             # appears between the Run Search group (left) and the Save
             # Search group (right).
             self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
-                btn_frame, text="Search Wizard", width=0,
+                btn_frame, text="Wizard", width=0,
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=12),
                 fg_color="#8B5CF6", hover_color="#7C3AED",
@@ -2054,13 +2081,13 @@ def _launch_gui():
             )
             self.folder_bar_frame.grid_columnconfigure(0)
             self.folder_bar_frame.grid_columnconfigure(1, weight=1)
-            self.folder_bar_frame.grid_columnconfigure(2, minsize=170)
+            self.folder_bar_frame.grid_columnconfigure(2, minsize=185)
 
-            label = ctk.CTkLabel(self.folder_bar_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"))
+            label = ctk.CTkLabel(self.folder_bar_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
+            self.folder_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             browse_frame = ctk.CTkFrame(self.folder_bar_frame, fg_color="transparent")
@@ -7021,15 +7048,15 @@ def _launch_gui():
                         "pii": "PII",
                         "save": "Save",
                         "load": "\u25bc",
-                        "search_wiz": "Search Wiz",
+                        "search_wiz": "Wiz",
                     }
                 else:
                     labels = {
                         "search": "Run Search",
                         "pii": "PII Scan",
-                        "save": "Save Search",
-                        "load": "Load Search \u25bc",
-                        "search_wiz": "Search Wizard",
+                        "save": "Save",
+                        "load": "Reload \u25bc",
+                        "search_wiz": "Wizard",
                     }
                 pairs = [
                     (self.search_button, labels["search"]),
@@ -7065,6 +7092,8 @@ def _launch_gui():
                 _save_config(cfg)
             except Exception:
                 pass
+            # Re-sync input field widths after scaling change
+            self.after(200, self._sync_input_widths)
 
         def _inspect_settings(self):
             """Show the current saved settings from ~/.docsearchrc in a read-only popup."""
