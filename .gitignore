@@ -41,3 +41,5 @@ test_gui_debug.py
 # Claude Code
 .claude/
 CLAUDE.md
+peekdocs_results.*
+docsearch_results.*
