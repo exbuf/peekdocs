@@ -526,29 +526,10 @@ def _launch_gui():
                 pass
 
         def _sync_input_widths(self):
-            """Equalize the Search Folder and Search Terms entry field widths.
-
-            The two entries live in separate frames with separate grids, so
-            their columns can't share widths.  This method measures both
-            entries after layout, then adds right-padding to the wider one
-            so they match.  Called after text-size changes, window resizes,
-            and initial layout.
+            """No-op — kept for compatibility.  Entry alignment is now handled
+            by the shared _input_frame grid (both rows share the same columns).
             """
-            try:
-                base_padx = (5, 15)
-                self.folder_entry.grid_configure(padx=base_padx)
-                self.search_entry.grid_configure(padx=base_padx)
-                self.update_idletasks()
-                w1 = self.folder_entry.winfo_width()
-                w2 = self.search_entry.winfo_width()
-                if abs(w1 - w2) < 2 or w1 < 50 or w2 < 50:
-                    return
-                if w1 > w2:
-                    self.folder_entry.grid_configure(padx=(base_padx[0], base_padx[1] + (w1 - w2)))
-                else:
-                    self.search_entry.grid_configure(padx=(base_padx[0], base_padx[1] + (w2 - w1)))
-            except Exception:
-                pass
+            pass
 
         def _center_window(self, width, height):
             """Center the application window on screen with the given dimensions."""
@@ -627,56 +608,67 @@ def _launch_gui():
                      font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 30), **pad)
 
         def _build_search_row(self):
-            """Build the search bar with entry field, action buttons, and tooltips."""
-            self.search_bar_frame = ctk.CTkFrame(self._search_parent)
-            self.search_bar_frame.grid(
-                row=1, column=0, columnspan=3, padx=10, pady=(0, 2), sticky="ew"
-            )
-            self.search_bar_frame.grid_columnconfigure(0)
-            self.search_bar_frame.grid_columnconfigure(1, weight=1)
-            self.search_bar_frame.grid_columnconfigure(2, minsize=40)
-            self.search_bar_frame.grid_columnconfigure(3, minsize=145)
+            """Build the search bar with entry field, action buttons, and tooltips.
 
-            label = ctk.CTkLabel(self.search_bar_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
-            label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+            Both the folder row and search row share a single combined frame
+            (_input_frame) so their columns align perfectly.  The folder row
+            is built later by _build_folder_row at row 0; this method builds
+            the search row at rows 1-2.
+            """
+            # Combined frame for both input rows — shared grid columns
+            # guarantee the labels, entries, and button frames align.
+            self._input_frame = ctk.CTkFrame(self._search_parent)
+            self._input_frame.grid(
+                row=0, column=0, columnspan=3, rowspan=2,
+                padx=10, pady=(5, 2), sticky="nsew"
+            )
+            self._input_frame.grid_columnconfigure(0)
+            self._input_frame.grid_columnconfigure(1, weight=1)
+            self._input_frame.grid_columnconfigure(2, minsize=185)
+
+            label = ctk.CTkLabel(self._input_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
+            label.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self._assistant_label = ctk.CTkLabel(
-                self.search_bar_frame, text="", font=ctk.CTkFont(size=12),
+                self._input_frame, text="", font=ctk.CTkFont(size=12),
                 text_color=("#8B5CF6", "#A78BFA"), anchor="w",
             )
             # Hidden until Search Assistant sets a query
 
             self.search_entry = ctk.CTkEntry(
-                self.search_bar_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
+                self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
+            self.search_entry.grid(row=1, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
-            recent_btn = ctk.CTkButton(
-                self.search_bar_frame, text="\u25bc", width=30,
-                command=self._show_recent_searches,
-                font=ctk.CTkFont(size=14),
-            )
-            recent_btn.grid(row=0, column=2, padx=(0, 2), pady=(4, 8), sticky="w")
-            Tooltip(recent_btn, "Show recent searches — click to re-use a previous search")
+            self._search_btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+            self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
             clear_button = ctk.CTkButton(
-                self.search_bar_frame, text="Clear", width=70,
+                self._search_btn_frame, text="Clear", width=70,
                 command=lambda: self.search_entry.delete(0, "end"),
                 font=ctk.CTkFont(size=14),
             )
-            clear_button.grid(row=0, column=3, padx=(0, 10), pady=(4, 8))
-            Tooltip(clear_button, "Clear the search bar", anchor="left")
+            clear_button.pack(side="left", padx=(0, 3))
+            Tooltip(clear_button, "Clear the search bar")
 
-            # Row 1: "3." label + action buttons
+            recent_btn = ctk.CTkButton(
+                self._search_btn_frame, text="\u25bc", width=30,
+                command=self._show_recent_searches,
+                font=ctk.CTkFont(size=14),
+            )
+            recent_btn.pack(side="left")
+            Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
+
+            # Row 2: "3." label + action buttons
             ctk.CTkLabel(
-                self.search_bar_frame, text="3. Run Search:",
+                self._input_frame, text="3. Run Search:",
                 font=ctk.CTkFont(size=18, weight="bold"),
-            ).grid(row=1, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+            ).grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
 
-            btn_frame = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            btn_frame.grid(row=1, column=1, columnspan=3, padx=(5, 5), pady=(0, 8), sticky="ew")
+            btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+            btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
             # Run Search + AND/OR radio buttons grouped together
             run_group = ctk.CTkFrame(
@@ -2074,34 +2066,26 @@ def _launch_gui():
             txt.configure(state="disabled")
 
         def _build_folder_row(self):
-            """Build the folder selection row with entry field and Browse button."""
-            self.folder_bar_frame = ctk.CTkFrame(self._search_parent)
-            self.folder_bar_frame.grid(
-                row=0, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="ew"
-            )
-            self.folder_bar_frame.grid_columnconfigure(0)
-            self.folder_bar_frame.grid_columnconfigure(1, weight=1)
-            self.folder_bar_frame.grid_columnconfigure(2, minsize=185)
-
-            label = ctk.CTkLabel(self.folder_bar_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
+            """Build the folder selection row in the shared _input_frame at row 0."""
+            label = ctk.CTkLabel(self._input_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
-            self.folder_entry = ctk.CTkEntry(self.folder_bar_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
+            self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
+            self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
-            browse_frame = ctk.CTkFrame(self.folder_bar_frame, fg_color="transparent")
-            browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="e")
+            self._browse_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+            self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
             self.browse_button = ctk.CTkButton(
-                browse_frame, text="Browse", width=60, command=self.browse_folder,
+                self._browse_frame, text="Browse", width=60, command=self.browse_folder,
                 font=ctk.CTkFont(size=14),
             )
             self.browse_button.pack(side="left", padx=(0, 3))
             Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
 
             self.browse_file_button = ctk.CTkButton(
-                browse_frame, text="Single File", width=80, command=self._browse_file,
+                self._browse_frame, text="Single File", width=80, command=self._browse_file,
                 font=ctk.CTkFont(size=14),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2110,7 +2094,7 @@ def _launch_gui():
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
             self._clear_file_btn = ctk.CTkButton(
-                browse_frame, text="\u2715", width=24, height=24,
+                self._browse_frame, text="\u2715", width=24, height=24,
                 font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray50", "gray50"),
                 hover_color=("gray90", "gray25"),
@@ -2509,8 +2493,8 @@ def _launch_gui():
             # Starts hidden — shown only during search
 
             import tkinter as _tk_status
-            status_row = ctk.CTkFrame(self.search_bar_frame, fg_color="transparent")
-            status_row.grid(row=2, column=0, columnspan=4, padx=(10, 15), pady=(0, 4), sticky="ew")
+            status_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+            status_row.grid(row=3, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
 
             _status_label_size = 16 if sys.platform == "win32" else 14
             status_label_left = ctk.CTkLabel(
