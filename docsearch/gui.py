@@ -760,7 +760,10 @@ def _launch_gui():
             win.geometry("620x480")
             win.resizable(True, True)
             win.transient(self)
-            win.grab_set()
+            try:
+                win.grab_set()
+            except Exception:
+                win.after(150, lambda: win.grab_set() if win.winfo_exists() else None)
 
             text_frame = tk.Frame(win)
             text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
@@ -1187,7 +1190,10 @@ def _launch_gui():
             help_win.geometry("700x580")
             help_win.resizable(True, True)
             help_win.transient(parent)
-            help_win.grab_set()
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
             txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                           padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -1373,9 +1379,10 @@ def _launch_gui():
             help_win.geometry("750x700")
             help_win.resizable(True, True)
             help_win.transient(self)
-            help_win.grab_set()
-            # Ensure the window is visible on Linux (X11 window managers
-            # can silently open new windows behind existing ones).
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
             help_win.lift()
             help_win.after(50, help_win.lift)
             help_win.after(100, help_win.focus_force)
@@ -3132,7 +3139,10 @@ def _launch_gui():
             popup.title("Recent Searches")
             popup.resizable(False, False)
             popup.transient(self)
-            popup.grab_set()
+            try:
+                popup.grab_set()
+            except Exception:
+                popup.after(150, lambda: popup.grab_set() if popup.winfo_exists() else None)
             self.update_idletasks()
             x = self.winfo_rootx() + 50
             y = self.winfo_rooty() + 80
@@ -4337,7 +4347,10 @@ def _launch_gui():
             help_win.geometry("700x580")
             help_win.resizable(True, True)
             help_win.transient(parent)
-            help_win.grab_set()
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
             txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                           padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -6252,7 +6265,10 @@ def _launch_gui():
             help_win.geometry("720x680")
             help_win.resizable(True, True)
             help_win.transient(parent)
-            help_win.grab_set()
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
             txt_frame = tk.Frame(help_win)
             txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -6517,7 +6533,10 @@ def _launch_gui():
             help_win.geometry("720x640")
             help_win.resizable(True, True)
             help_win.transient(parent)
-            help_win.grab_set()
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
             txt_frame = tk.Frame(help_win)
             txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -6640,7 +6659,10 @@ def _launch_gui():
             help_win.geometry("740x680")
             help_win.resizable(True, True)
             help_win.transient(self)
-            help_win.grab_set()
+            try:
+                help_win.grab_set()
+            except Exception:
+                help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
             txt_frame = tk.Frame(help_win)
             txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -7497,7 +7519,10 @@ def _launch_gui():
             y = self.winfo_rooty() + (self.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
             dialog.transient(self)
-            dialog.grab_set()
+            try:
+                dialog.grab_set()
+            except Exception:
+                dialog.after(150, lambda: dialog.grab_set() if dialog.winfo_exists() else None)
 
             tk.Label(dialog, text="Search name:", font=("TkDefaultFont", 13)).pack(
                 padx=15, pady=(15, 5), anchor="w"
