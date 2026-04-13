@@ -593,7 +593,7 @@ def _launch_gui():
                 ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
                 ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
                 ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
-                ("\U0001f30d  Any Language", "Search documents in English, Spanish, Chinese, Arabic, Hindi, Japanese, or any other language. All text handling is Unicode-based.", "#6B7280"),
+                ("\U0001f30d  Any Language", "Search documents in English, Spanish, Chinese, Arabic, Hindi, Japanese, Greek, or any other language. All text handling is Unicode-based. Documentation and GUI are in English only.", "#6B7280"),
             ]
 
             for emoji_title, desc, color in features:
