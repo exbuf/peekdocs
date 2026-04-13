@@ -617,7 +617,7 @@ def _launch_gui():
             """
             # Combined frame for both input rows — shared grid columns
             # guarantee the labels, entries, and button frames align.
-            self._input_frame = ctk.CTkFrame(self._search_parent)
+            self._input_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
             self._input_frame.grid(
                 row=0, column=0, columnspan=3, rowspan=2,
                 padx=10, pady=(5, 2), sticky="nsew"
@@ -675,7 +675,7 @@ def _launch_gui():
                 btn_frame, border_width=2, border_color=("gray40", "gray60"),
                 corner_radius=8, fg_color=("gray85", "gray20"),
             )
-            run_group.pack(side="left", padx=(0, 8))
+            run_group.pack(side="left", padx=(0, 0))
 
             self.search_button = ctk.CTkButton(
                 run_group, text="Run Search", width=0, command=self.start_search,
@@ -710,64 +710,49 @@ def _launch_gui():
             self._or_radio.pack(side="left", padx=(8, 6), pady=3)
             Tooltip(self._or_radio, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode checkbox in Advanced Search Options")
 
-            # Right-aligned: Use Index checkbox (rightmost)
+            # Save and Reload — toggle-style buttons next to Run Search group
+            self.save_to_collection_btn = ctk.CTkButton(
+                btn_frame, text="\u25b6 Save", width=0,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._save_to_collection,
+                font=ctk.CTkFont(size=13),
+            )
+            self.save_to_collection_btn.pack(side="left", padx=(20, 20))
+            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
+
+            self.load_search_btn = ctk.CTkButton(
+                btn_frame, text="\u25b6 Reload", width=0,
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._open_load_search_popup,
+                font=ctk.CTkFont(size=13),
+            )
+            self.load_search_btn.pack(side="left", padx=(20, 20))
+            Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
+            self._load_search_popup = None
+
+            self.save_load_help_btn = ctk.CTkButton(
+                btn_frame, text="?", width=0, height=22,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_save_load_help,
+            )
+            self.save_load_help_btn.pack(side="left", padx=(20, 20))
+            Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
+
             self.index_search_var = ctk.StringVar(value="off")
             self.cb_index_search = ctk.CTkCheckBox(
                 btn_frame, text="Use Index", variable=self.index_search_var,
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
             )
-            self.cb_index_search.pack(side="right", padx=(5, 42))
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
+            self.cb_index_search.pack(side="left", padx=(20, 20))
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes")
 
-            # PII Scan
-            self.sensitive_scan_btn = ctk.CTkButton(
-                btn_frame, text="PII Scan", width=0,
-                command=self._start_sensitive_scan,
-                font=ctk.CTkFont(size=12),
-                fg_color="#0D9488", hover_color="#0F766E",
-            )
-            self.sensitive_scan_btn.pack(side="right", padx=(0, 5))
-            Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern. Uses current folder and respects Recursive and File Type settings")
-
-            # Right-aligned grouped: Save Search, Load Saved Search
-            save_group = ctk.CTkFrame(btn_frame, border_width=2, border_color=("gray40", "gray60"), corner_radius=8, fg_color=("gray85", "gray20"))
-            save_group.pack(side="right", padx=(0, 5))
-
-            self.save_to_collection_btn = ctk.CTkButton(
-                save_group, text="Save", width=0, command=self._save_to_collection,
-                font=ctk.CTkFont(size=12),
-            )
-            self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
-            Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
-
-            self.load_search_btn = ctk.CTkButton(
-                save_group, text="Reload \u25bc", width=0,
-                font=ctk.CTkFont(size=12),
-                command=self._open_load_search_popup,
-            )
-            self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
-            Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
-            self._load_search_popup = None
-
-            self.save_load_help_btn = ctk.CTkButton(
-                save_group, text="?", width=28, height=22,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                command=self._show_save_load_help,
-            )
-            self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
-            Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
-
-            # Search Wizard — packed last among right-packed items so it
-            # appears between the Run Search group (left) and the Save
-            # Search group (right).
-            self._search_wiz_btn = search_wiz_btn = ctk.CTkButton(
-                btn_frame, text="Wizard", width=0,
-                command=self._open_search_wizard_guide,
-                font=ctk.CTkFont(size=12),
-                fg_color="#8B5CF6", hover_color="#7C3AED",
-            )
-            search_wiz_btn.pack(side="right", padx=(0, 5))
-            Tooltip(search_wiz_btn, "Guided search builder — pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -2129,6 +2114,32 @@ def _launch_gui():
             )
             self.advanced_toggle.pack(side="left")
             Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+
+            self._search_wiz_btn = ctk.CTkButton(
+                self._toggle_row,
+                text="\u25b6 Wizard",
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                anchor="w",
+                command=self._open_search_wizard_guide,
+                font=ctk.CTkFont(size=13),
+            )
+            self._search_wiz_btn.pack(side="left", padx=(10, 0))
+            Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
+
+            self.sensitive_scan_btn = ctk.CTkButton(
+                self._toggle_row,
+                text="\u25b6 PII Scan",
+                fg_color="transparent",
+                text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                anchor="w",
+                command=self._start_sensitive_scan,
+                font=ctk.CTkFont(size=13),
+            )
+            self.sensitive_scan_btn.pack(side="left", padx=(10, 0))
+            Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern")
 
         def _build_advanced_panel(self):
             """Build the Advanced Search Options popup window with all search mode checkboxes and fields."""
@@ -4039,7 +4050,7 @@ def _launch_gui():
             self._sensitive_scan_saved_index = self.index_search_var.get()
             self.index_search_var.set("off")
 
-            self.sensitive_scan_btn.configure(state="disabled", text="Scanning...")
+            self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
             self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color="blue")
             self.progress_bar.configure(mode="indeterminate")
             self.progress_bar.start()
@@ -4140,7 +4151,7 @@ def _launch_gui():
             """Restore UI and show results popup after sensitive data scan."""
             self.progress_bar.stop()
             self.progress_bar.grid_remove()
-            self.sensitive_scan_btn.configure(state="normal", text="PII Scan")
+            self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
 
             # Restore Use Index checkbox
             if hasattr(self, "_sensitive_scan_saved_index"):
@@ -7027,35 +7038,13 @@ def _launch_gui():
             # Shorten row 3 button labels at Extra Large and Huge to save width
             try:
                 if value in ("Extra Large", "Huge"):
-                    labels = {
-                        "search": "Run",
-                        "pii": "PII",
-                        "save": "Save",
-                        "load": "\u25bc",
-                        "search_wiz": "Wiz",
-                    }
+                    self.search_button.configure(text="Run")
+                    self.save_to_collection_btn.configure(text="\u25b6 Save")
+                    self.load_search_btn.configure(text="\u25b6 Reload")
                 else:
-                    labels = {
-                        "search": "Run Search",
-                        "pii": "PII Scan",
-                        "save": "Save",
-                        "load": "Reload \u25bc",
-                        "search_wiz": "Wizard",
-                    }
-                pairs = [
-                    (self.search_button, labels["search"]),
-                    (self.sensitive_scan_btn, labels["pii"]),
-                    (self.save_to_collection_btn, labels["save"]),
-                    (self.load_search_btn, labels["load"]),
-                ]
-                for btn, text in pairs:
-                    if btn is not None:
-                        try:
-                            btn.configure(text=text)
-                        except Exception:
-                            pass
-                if hasattr(self, "_search_wiz_btn"):
-                    self._search_wiz_btn.configure(text=labels["search_wiz"])
+                    self.search_button.configure(text="Run Search")
+                    self.save_to_collection_btn.configure(text="\u25b6 Save")
+                    self.load_search_btn.configure(text="\u25b6 Reload")
             except Exception:
                 pass
             # Update preview size dropdown to match the scaled size
