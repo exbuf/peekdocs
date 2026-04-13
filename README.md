@@ -10,6 +10,15 @@
 >
 > Terminal, GUI, or Python API. For home users and anyone who wants to see what's in their own files.
 
+**How it works:**
+
+1. You point it at a folder on your computer
+2. It reads your actual files (.docx, .pdf, .xlsx, .eml, and 42 more formats)
+3. It shows you what's inside, including sensitive data
+4. It produces a highlighted Word report
+
+That's it. No server, no configuration, no account. Just search.
+
 **[See docsearch in action →](https://robertdschoening.com/docsearch)**
 
 ## Who Is It For?
