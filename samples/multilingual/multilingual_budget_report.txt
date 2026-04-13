@@ -1,0 +1,27 @@
+Multilingual Budget Report — docsearch Language Test
+====================================================
+
+This file contains the phrase "The budget report is ready for review"
+in 14 languages. Use it to verify that docsearch finds text in any
+language. Try searching for any term below — for example:
+
+    docsearch 预算
+    docsearch προϋπολογισμού
+    docsearch Бюджетный
+
+------------------------------------------------------------
+
+English:     The budget report is ready for review.
+Chinese:     预算报告已准备好供审查。
+Japanese:    予算報告書はレビューの準備ができました。
+Korean:      예산 보고서가 검토 준비가 되었습니다.
+Arabic:      تقرير الميزانية جاهز للمراجعة.
+Hindi:       बजट रिपोर्ट समीक्षा के लिए तैयार है।
+Russian:     Бюджетный отчёт готов к проверке.
+Greek:       Η αναφορά προϋπολογισμού είναι έτοιμη για έλεγχο.
+Spanish:     El informe presupuestario está listo para su revisión.
+German:      Der Haushaltsbericht ist zur Überprüfung bereit.
+French:      Le rapport budgétaire est prêt pour examen.
+Portuguese:  O relatório orçamentário está pronto para revisão.
+Thai:        รายงานงบประมาณพร้อมสำหรับการตรวจสอบ
+Hebrew:      דוח התקציב מוכן לבדיקה.
