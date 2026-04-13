@@ -1,0 +1,86 @@
+Header:
+
+Program name: peekdocs
+Program Source: https://github.com/exbuf
+Overview: Searches all supported file types in current directory for search terms.
+Supported file types:
+.7z, .bz2, .cfg, .csv, .doc, .docx, .eml, .epub, .gz, .html, .ini, .json, .log, .md, .msg,
+.ods, .odp, .odt, .pdf, .ppt, .pptx, .pst, .rar, .rst, .rtf, .sql, .tar, .tex, .tgz, .toml,
+.tsv, .txt, .xls, .xlsx, .xml, .yaml, .yml, .zip
+
+Report Generated On ==> 2026-04-13 14:25:11
+Report File Sizes ==> peekdocs_results.txt (3.47 KB), peekdocs_results.docx (37.98 KB)
+Command ==> peekdocs anything
+Translation ==> Search current directory, for "anything"
+Search Term(s) ==> anything (match: ANY)
+Hits ==> 12
+
+Search Settings:
+  AND mode: OFF  |  Recursive: OFF  |  Inverse: OFF  |  Expression: OFF
+  Fuzzy: OFF  |  Wildcard: OFF  |  Regex: OFF  |  Whole Word: OFF  |  OCR: OFF
+  Index: OFF
+  Output formats: TXT, DOCX
+
+Search Time ==> 0.40 seconds, Cores used ==> 7 of 14
+Files searched ==> 17 (157.89 KB)
+File Types Searched ==> .md: 4, .html: 1, .log: 1, .docx: 2, .pdf: 2, .txt: 3, .csv: 1, .odt: 1, .toml: 1, .xlsx: 1
+
+Results:
+
+Document: CONTRIBUTING.md (1 match), Line: 7, Match:
+(/Users/bob/Claude-DocSearch)
+"peekdocs is MIT-licensed and free. Every feature described in the documentation
+works without paying anything — there's no artificial limit on file count,
+search count, suite count, or template count. The free version is not crippled,
+and the existing features will remain free."
+
+Document: README.md (1 match), Line: 102, Match:
+(/Users/bob/Claude-DocSearch)
+"**Fully isolated.** pipx installs peekdocs in its own private environment,
+completely separate from your system Python and all other programs. It will not
+install, upgrade, downgrade, or conflict with anything else on your computer.
+The only change to your system is two new commands (`peekdocs` and `peekdocs-
+gui`). To uninstall completely: `pipx uninstall peekdocs`. See the [User
+Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation)
+for details."
+
+Document: docsearch_results.docx (5 matches), Line: 13, Match:
+(/Users/bob/Claude-DocSearch)
+"Command ==> docsearch anything"
+
+Document: docsearch_results.docx (5 matches), Line: 14, Match:
+(/Users/bob/Claude-DocSearch)
+"Translation ==> Search current directory, for "anything""
+
+Document: docsearch_results.docx (5 matches), Line: 15, Match:
+(/Users/bob/Claude-DocSearch)
+"Search Term(s) ==> anything (match: ANY)"
+
+Document: docsearch_results.docx (5 matches), Line: 33, Match:
+(/Users/bob/Claude-DocSearch)
+"works without paying anything — there's no artificial limit on file count,"
+
+Document: docsearch_results.docx (5 matches), Line: 41, Match:
+(/Users/bob/Claude-DocSearch)
+"install, upgrade, downgrade, or conflict with anything else on your computer."
+
+Document: docsearch_results.txt (5 matches), Line: 13, Match:
+(/Users/bob/Claude-DocSearch)
+"Command ==> docsearch anything"
+
+Document: docsearch_results.txt (5 matches), Line: 14, Match:
+(/Users/bob/Claude-DocSearch)
+"Translation ==> Search current directory, for "anything""
+
+Document: docsearch_results.txt (5 matches), Line: 15, Match:
+(/Users/bob/Claude-DocSearch)
+"Search Term(s) ==> anything (match: ANY)"
+
+Document: docsearch_results.txt (5 matches), Line: 33, Match:
+(/Users/bob/Claude-DocSearch)
+"works without paying anything — there's no artificial limit on file count,"
+
+Document: docsearch_results.txt (5 matches), Line: 41, Match:
+(/Users/bob/Claude-DocSearch)
+"install, upgrade, downgrade, or conflict with anything else on your computer."
+

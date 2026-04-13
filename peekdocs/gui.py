@@ -1,4 +1,4 @@
-"""Graphical interface for DocSearch."""
+"""Graphical interface for PeekDocs."""
 
 import os
 import platform
@@ -409,7 +409,7 @@ def _launch_gui():
                     pass
                 self.tip_window = None
 
-    class DocSearchApp(ctk.CTk):
+    class PeekDocsApp(ctk.CTk):
         def __init__(self):
             """Initialize the main application window, widgets, and saved settings."""
             super().__init__()
@@ -1445,7 +1445,7 @@ def _launch_gui():
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
             txt.insert("end", "\n")
 
-            h("WHAT IS DOCSEARCH?")
+            h("WHAT IS PEEKDOCS?")
             b("peekdocs searches Word docs, PDFs, spreadsheets, emails,")
             b("archives, and 46 file types \u2014 all at once, all offline. Your")
             b("files never leave your computer. Results are presented on")
@@ -1640,7 +1640,7 @@ def _launch_gui():
             b("excluded with a documented reason.")
             blank()
 
-            h("FILES CREATED BY DOCSEARCH")
+            h("FILES CREATED BY PEEKDOCS")
             b("peekdocs never modifies, moves, or deletes your original")
             b("documents. It creates its own files for reports, indexes, and")
             b("settings. Buttons like Clear Results and Delete Index only")
@@ -5925,7 +5925,7 @@ def _launch_gui():
             except Exception:
                 searched_set = set()
 
-            _DOCSEARCH_INTERNAL = {
+            _PEEKDOCS_INTERNAL = {
                 ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
                 ".peekdocs_collection.json", ".peekdocsrc",
                 "peekdocs_errors.log",
@@ -5942,7 +5942,7 @@ def _launch_gui():
 
                     # Hidden file
                     if fname.startswith("."):
-                        if fname in _DOCSEARCH_INTERNAL:
+                        if fname in _PEEKDOCS_INTERNAL:
                             excluded.append((filepath, "peekdocs internal file (hidden)"))
                         else:
                             excluded.append((filepath, "hidden file (starts with .)"))
@@ -5952,7 +5952,7 @@ def _launch_gui():
                     if fname.startswith("peekdocs_results") or fname.startswith("DO_NOT_SEARCH"):
                         excluded.append((filepath, "peekdocs output file (prior search results)"))
                         continue
-                    if fname in _DOCSEARCH_INTERNAL:
+                    if fname in _PEEKDOCS_INTERNAL:
                         excluded.append((filepath, "peekdocs internal file"))
                         continue
 
@@ -7860,7 +7860,7 @@ def _launch_gui():
                 self.expression_var.set("off")
                 self.search_entry.configure(placeholder_text="Enter search terms...")
 
-    app = DocSearchApp()
+    app = PeekDocsApp()
     app.mainloop()
 
 

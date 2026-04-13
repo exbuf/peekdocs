@@ -1,4 +1,4 @@
-"""Command-line interface for DocSearch."""
+"""Command-line interface for PeekDocs."""
 
 import logging
 import multiprocessing
