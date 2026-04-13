@@ -2104,7 +2104,7 @@ def _launch_gui():
             """Build the toggle button for Advanced Search Options."""
             self.advanced_toggle = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Advanced Search Options",
+                text="\u25b6 Advanced Search Options", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2112,12 +2112,12 @@ def _launch_gui():
                 command=self.toggle_advanced,
                 font=ctk.CTkFont(size=13),
             )
-            self.advanced_toggle.pack(side="left")
+            self.advanced_toggle.pack(side="left", padx=(0, 20))
             Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
             self._search_wiz_btn = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Wizard",
+                text="\u25b6 Wizard", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2125,12 +2125,12 @@ def _launch_gui():
                 command=self._open_search_wizard_guide,
                 font=ctk.CTkFont(size=13),
             )
-            self._search_wiz_btn.pack(side="left", padx=(10, 0))
+            self._search_wiz_btn.pack(side="left", padx=(20, 20))
             Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
             self.sensitive_scan_btn = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 PII Scan",
+                text="\u25b6 PII Scan", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2138,7 +2138,7 @@ def _launch_gui():
                 command=self._start_sensitive_scan,
                 font=ctk.CTkFont(size=13),
             )
-            self.sensitive_scan_btn.pack(side="left", padx=(10, 0))
+            self.sensitive_scan_btn.pack(side="left", padx=(20, 20))
             Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern")
 
         def _build_advanced_panel(self):
@@ -2678,7 +2678,7 @@ def _launch_gui():
             # Index toggle button — in the shared toggle row
             self.index_toggle_btn = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Manage Indexes",
+                text="\u25b6 Manage Indexes", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2686,7 +2686,7 @@ def _launch_gui():
                 command=self._toggle_index_options,
                 font=ctk.CTkFont(size=13),
             )
-            self.index_toggle_btn.pack(side="left", padx=(10, 0))
+            self.index_toggle_btn.pack(side="left", padx=(20, 20))
             Tooltip(self.index_toggle_btn, "Open the Manage Indexes panel — build, delete, and refresh search indexes for faster repeated searches")
 
             # Create popup window for Manage Indexes
