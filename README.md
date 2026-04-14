@@ -246,7 +246,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
 ## Author
 
-Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer.
+Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer. peekdocs exists to make powerful document search accessible to everyone, for free — no paywalls, no feature limits, no catch.
 
 ## Disclaimer
 
