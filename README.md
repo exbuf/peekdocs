@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. Every match is highlighted in yellow in a Word report with surrounding context, so you can see exactly what was found and where. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. It's fast, convenient, and does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context so you can see exactly what was found and where, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no regex knowledge needed. Works in any language. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
 
 **How it works:**
 
