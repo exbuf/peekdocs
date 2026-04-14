@@ -4,20 +4,18 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> Search your documents in any language — English, Spanish, Chinese, Arabic, Hindi, Japanese, and 100+ more. 46 file types, all at once, all offline. No uploads, no cloud, no subscriptions. Everything stays on your computer. Free, open-source. Windows/Mac/Linux.
+> **Do you know what's hiding in your documents?**
 >
-> **Do you know what's hiding in your documents?** One click scans your files for Social Security numbers, credit cards, tax IDs, passwords, and other sensitive data — with a highlighted report showing exactly where. Advanced users can add their own regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, and more). Search years of personal documents, Google Docs backups, tax records, contracts, and correspondence using plain keywords, regex, Boolean logic, fuzzy matching, wildcards, or range queries. Results come with every match highlighted in yellow.
->
-> Terminal, GUI, or Python API. For home users and anyone who wants to see what's in their own files.
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. One click finds Social Security numbers, credit cards, passwords, and other sensitive data, with a highlighted report showing exactly where. Everything stays on your computer. Nothing is uploaded anywhere.
 
 **How it works:**
 
-1. You point it at a folder on your computer
+1. Point it at a folder on your computer
 2. It reads your actual files (.docx, .pdf, .xlsx, .eml, and 42 more formats)
-3. It shows you what's inside, including sensitive data
-4. It produces a highlighted Word report
+3. It shows you what's inside — including sensitive data you forgot was there
+4. It produces a highlighted Word report you can save, print, or share
 
-That's it. No server, no configuration, no account. Just search.
+That's it. No server, no configuration, no account. Free and open-source.
 
 **[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
 
