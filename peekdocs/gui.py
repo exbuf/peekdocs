@@ -7552,7 +7552,7 @@ def _launch_gui():
             dialog = tk.Toplevel(self)
             dialog.title("Save to Collection")
             dialog.resizable(False, False)
-            w, h = 350, 120
+            w, h = 350, 150
             x = self.winfo_rootx() + (self.winfo_width() - w) // 2
             y = self.winfo_rooty() + (self.winfo_height() - h) // 2
             dialog.geometry(f"{w}x{h}+{x}+{y}")
@@ -7562,16 +7562,18 @@ def _launch_gui():
             except Exception:
                 dialog.after(150, lambda: dialog.grab_set() if dialog.winfo_exists() else None)
 
-            tk.Label(dialog, text="Search name:", font=("TkDefaultFont", 13)).pack(
+            frame = ctk.CTkFrame(dialog)
+            frame.pack(fill="both", expand=True)
+
+            ctk.CTkLabel(frame, text="Search name:", font=ctk.CTkFont(size=13)).pack(
                 padx=15, pady=(15, 5), anchor="w"
             )
-            name_entry = tk.Entry(dialog, font=("TkDefaultFont", 13))
+            name_entry = ctk.CTkEntry(frame, font=ctk.CTkFont(size=13))
             name_entry.pack(padx=15, fill="x")
             name_entry.focus_set()
 
             def do_save(_event=None):
                 name = name_entry.get().strip()
-                print(f"[DEBUG] do_save called, name='{name}', folder='{folder}'")
                 if not name:
                     return
                 try:
@@ -7592,10 +7594,17 @@ def _launch_gui():
                     self._show_error(f"Failed to save search: {exc}")
 
             name_entry.bind("<Return>", do_save)
-            btn_frame = tk.Frame(dialog)
-            btn_frame.pack(pady=(10, 10))
-            tk.Button(btn_frame, text="Save", width=10, command=do_save).pack(side="left", padx=5)
-            tk.Button(btn_frame, text="Cancel", width=10, command=dialog.destroy).pack(side="left", padx=5)
+            btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+            btn_frame.pack(pady=(10, 2))
+            ctk.CTkButton(btn_frame, text="Save", width=70, font=ctk.CTkFont(size=12),
+                          command=do_save).pack(side="left", padx=5)
+            close_frame = ctk.CTkFrame(frame, fg_color="transparent")
+            close_frame.pack(pady=(0, 10))
+            ctk.CTkButton(close_frame, text="Close", width=80,
+                          fg_color="transparent", text_color=("gray30", "gray70"),
+                          hover_color=("gray90", "gray25"),
+                          font=ctk.CTkFont(size=12),
+                          command=dialog.destroy).pack()
 
         # ── Search Wizard ────────────────────────────────────────
 
