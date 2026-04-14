@@ -1,0 +1,24 @@
+From: alerts@bankofspringfield.com
+To: john.smith@email.com
+Date: November 15, 2024
+Subject: Your new debit card has been activated
+
+Dear John Smith,
+
+Your new debit card ending in 8832 has been activated. Your 
+temporary PIN is 4721 — please change it at any ATM.
+
+If you did not request this card, call us immediately at 
+1-800-555-0199. Have your account number ready: 
+CHK-4417-8832-2951.
+
+For security purposes, please do not share your PIN, 
+password, or account number by email.
+
+Thank you,
+Bank of Springfield
+Member FDIC
+
+---
+This email was sent to john.smith@email.com.
+To update your email preferences, log in at bankofspringfield.com.

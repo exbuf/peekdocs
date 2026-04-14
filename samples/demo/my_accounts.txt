@@ -1,0 +1,29 @@
+Personal Account Information
+Last updated: January 2025
+
+Electric Company - PowerGrid Services
+  Account: 4417-8832
+  Website: powergrid.com
+  Username: jsmith2025
+  Password: Sunshine!42
+
+Internet Provider - FastNet
+  Account: FN-992341
+  Password: myDog&Bella99
+
+Bank of Springfield
+  Online banking password: B@nk$pring2025
+  Security question: Mother's maiden name
+  Answer: Anderson
+
+Netflix
+  Email: john.smith@email.com
+  Password: StreamH0use!
+
+Doctor's Office - Dr. Williams
+  Patient ID: PT-445921
+  Date of birth: 03/15/1962
+  SSN on file: 287-45-9831
+
+Notes: Remember to change the bank password every 90 days.
+Old WiFi password was "Tr33house" - changed to "Mountain$kyline8"
