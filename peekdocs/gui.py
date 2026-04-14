@@ -3000,7 +3000,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.about_button.pack(side="right", padx=5)
-            Tooltip(self.about_button, "About peekdocs — version, author, and license information", anchor="above")
+            Tooltip(self.about_button, "About peekdocs — version, author, and license information", anchor="above-left")
 
             # Tools menu — consolidates utilities, settings, and maintenance
             def _show_tools_menu():
