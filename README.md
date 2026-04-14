@@ -10,7 +10,7 @@
 
 - **Highlighted results** — matches are highlighted two ways: instantly in the **Results Preview** pane inside the app as you search, and in a standalone `.docx` **Word report** with every match in yellow and surrounding context you can save, print, email, or share with anyone. Not just a list of filenames — a readable report. Don't have Microsoft Word? The report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, Apple Pages, or others.
 - **One-click PII Scan** — finds Social Security numbers, credit cards, passwords, and other sensitive data hiding in your files. One button, no setup.
-- **Search Wizard** — configures searches for you. No regex or technical knowledge needed.
+- **Search Wizard** — configures more complex searches for you. No regex or technical knowledge needed.
 - **Scanned documents** — OCR reads text from scanned PDFs and images that other tools can't search.
 - **46 file types at once** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, calendars, contacts, and 30+ more. All searched simultaneously.
 - **Hover tips everywhere** — not sure what a button or field does? Hover your mouse over it and a helpful tooltip explains what it does and how to use it. No need to open the manual.
