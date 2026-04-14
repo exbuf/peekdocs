@@ -753,6 +753,27 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 
 ## Output
 
+### Results Preview vs. Reports
+
+When a search completes, you see results in two places:
+
+**Results Preview pane** (inside the app):
+- Appears immediately after the search finishes — no need to open a separate file
+- Shows matching lines with search terms highlighted in color
+- Right-click any line to copy it to the clipboard
+- Double-click a filename to open the original file in its default application
+- Best for: quick scanning, checking if a search found what you expected, copying a specific match
+
+**Report files** (on disk):
+- A `.txt` and `.docx` report are generated automatically after every search
+- The `.docx` report is a standalone Word document with every match highlighted in yellow, organized by file, with surrounding context, match counts, line numbers, and a full header showing what was searched, when, and with which settings
+- The `.txt` report contains the same matches in plain text with `**` markers around matched terms
+- Best for: saving a permanent record, printing, emailing to someone, reviewing later, sharing with a colleague who doesn't have peekdocs
+
+**Both show the same matches.** Every result that appears in the Results Preview also appears in the reports, and vice versa (subject to the max-matches limit, which applies equally to both). The difference is presentation: the preview is for instant review inside the app; the reports are polished documents for keeping or sharing.
+
+### Report Files
+
 Search results are always written to two files in the current directory:
 
 - **`peekdocs_results.txt`** — Plain text with `**` markers around matched terms
