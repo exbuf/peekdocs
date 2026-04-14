@@ -2092,7 +2092,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             self._folder_recursive_cb.pack(side="left", padx=(10, 0))
-            Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with the Recursive checkbox in Advanced Search Options")
+            Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with the Recursive checkbox in Advanced Search Options", anchor="left")
 
             self._clear_file_btn = ctk.CTkButton(
                 self._browse_frame, text="\u2715", width=24, height=24,
