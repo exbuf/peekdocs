@@ -3000,6 +3000,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self.about_button.pack(side="right", padx=5)
+            Tooltip(self.about_button, "About peekdocs — version, author, and license information", anchor="above")
 
             # Tools menu — consolidates utilities, settings, and maintenance
             def _show_tools_menu():
@@ -7018,7 +7019,15 @@ def _launch_gui():
             tk.Label(about_win, text="Provided as-is, without warranty of any kind.\n"
                      "See the LICENSE file for details.",
                      font=("TkDefaultFont", 9), fg="gray", justify="center",
-                     wraplength=280).pack(pady=(5, 10))
+                     wraplength=280).pack(pady=(5, 5))
+
+            ctk.CTkButton(
+                about_win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=about_win.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack(pady=(0, 10))
 
         _TEXT_SIZE_SCALES = {
             "Small": 0.85,
