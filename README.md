@@ -4,20 +4,28 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. Type a word, click a button, see your results. No manual needed.
->
-> Under the hood, it does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no technical knowledge needed. Power users can build sophisticated searches with regex, Boolean logic, range queries, and more — or automate with the command-line interface and Python API. Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted. If you have documents on your computer, peekdocs is a must-have.
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — 46 formats in all — at once, all offline. Type a word, click a button, see your results. No manual needed.
+
+**What makes it different:**
+
+- **Highlighted Word reports** — every match shown in yellow with surrounding context, in a standalone `.docx` document you can save, print, email, or share with anyone. Not just a list of filenames — a readable report.
+- **One-click PII Scan** — finds Social Security numbers, credit cards, passwords, and other sensitive data hiding in your files. One button, no setup.
+- **Search Wizard** — configures searches for you. No regex or technical knowledge needed.
+- **Scanned documents** — OCR reads text from scanned PDFs and images that other tools can't search.
+- **46 file types at once** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, calendars, contacts, and 30+ more. All searched simultaneously.
 
 **How it works:**
 
 1. Point it at a folder on your computer
 2. Type what you're looking for
 3. Click Run Search
-4. Open the highlighted Word report — every match in yellow, with context
+4. Open the highlighted Word report
 
-That's it. No server, no configuration, no account. Free and open-source.
+That's it. No server, no configuration, no account.
 
-**Simple for everyone, powerful for those who need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean expressions, range queries, fuzzy matching, wildcards, a command-line interface, and a Python API.
+**Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
+
+Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted. Free and open-source.
 
 **[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
 
