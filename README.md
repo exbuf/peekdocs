@@ -33,7 +33,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 ## Who Is It For?
 
-- **Home users** — type your keyword(s), click Run Search, done. No setup, no configuration, no manual. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
+- **Home users** — type your keyword(s), click Run Search, done. No setup, no configuration, no manual. Designed to be easy to use for non-technical people. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
 - **Tax season** — search years of tax returns, W-2s, 1099s, and receipts for a specific deduction, amount, or account number. Find what you need in seconds instead of opening files one by one
 - **Estate and family documents** — handling a relative's files? Search for wills, insurance policies, account numbers, passwords, and important records across an entire folder of unfamiliar documents
 - **Selling or donating a computer** — run the PII Scan before handing off a device to make sure no Social Security numbers, credit cards, or passwords are left behind
