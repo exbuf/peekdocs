@@ -8,7 +8,7 @@
 
 **What makes it different:**
 
-- **Highlighted Word reports** — every match shown in yellow with surrounding context, in a standalone `.docx` document you can save, print, email, or share with anyone. Not just a list of filenames — a readable report.
+- **Highlighted Word reports** — every match shown in yellow with surrounding context, in a standalone `.docx` document you can save, print, email, or share with anyone. Not just a list of filenames — a readable report. Don't have Microsoft Word? The report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, Apple Pages, or others.
 - **One-click PII Scan** — finds Social Security numbers, credit cards, passwords, and other sensitive data hiding in your files. One button, no setup.
 - **Search Wizard** — configures searches for you. No regex or technical knowledge needed.
 - **Scanned documents** — OCR reads text from scanned PDFs and images that other tools can't search.
