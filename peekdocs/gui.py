@@ -449,6 +449,14 @@ def _launch_gui():
             self._tab_started = self._tabview.add("Getting Started")
             self._tab_search = self._tabview.add("Search")
 
+            # Add tooltip to the Getting Started tab button
+            try:
+                gs_btn = self._tabview._segmented_button._buttons_dict.get("Getting Started")
+                if gs_btn:
+                    Tooltip(gs_btn, "A quick introduction to peekdocs — what it does, how to use it, and what features are available")
+            except Exception:
+                pass
+
             # Build Getting Started tab
             self._build_getting_started_tab()
 
