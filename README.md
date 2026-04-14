@@ -27,6 +27,8 @@ That's it. No server, no configuration, no account.
 
 ### See it in action
 
+*Click any screenshot to enlarge it.*
+
 **Search for "password" — results highlighted instantly:**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
