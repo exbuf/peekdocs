@@ -225,7 +225,9 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 ## Why peekdocs?
 
-Most search tools find text inside files. peekdocs does that — and then goes further. It produces a highlighted Word report you can hand to someone, scans for sensitive data with one click, and searches 46 file types simultaneously, all without uploading anything or installing a server.
+Every search tool — from Google to Spotlight to $2,500 enterprise software — does the same thing at its core: match a pattern against text. The difference is never the matching. It's what happens around it: what files can it read, how does it present the results, how easy is it to use, and what can you do with the output.
+
+peekdocs reads 46 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click. And it does all of this in a GUI that a non-technical person can use without reading a manual.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
