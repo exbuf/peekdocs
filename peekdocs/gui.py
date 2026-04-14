@@ -2668,27 +2668,27 @@ def _launch_gui():
                 self.report_frame, text="TXT", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("txt"),
             )
-            Tooltip(self.report_btn_txt, f"Open the plain-text report (.txt). {_report_color_note}")
+            Tooltip(self.report_btn_txt, f"Open the plain-text report (.txt). {_report_color_note}", anchor="above")
             self.report_btn_docx = ctk.CTkButton(
                 self.report_frame, text="DOCX", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("docx"),
             )
-            Tooltip(self.report_btn_docx, f"Open the highlighted Word report (.docx) — every match in yellow with context. {_report_color_note}")
+            Tooltip(self.report_btn_docx, f"Open the highlighted Word report (.docx) — every match in yellow with context. {_report_color_note}", anchor="above")
             self.report_btn_csv = ctk.CTkButton(
                 self.report_frame, text="CSV", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("csv"),
             )
-            Tooltip(self.report_btn_csv, f"Open the CSV report — one row per match, importable into Excel or Google Sheets. {_report_color_note}")
+            Tooltip(self.report_btn_csv, f"Open the CSV report — one row per match, importable into Excel or Google Sheets. {_report_color_note}", anchor="above")
             self.report_btn_json = ctk.CTkButton(
                 self.report_frame, text="JSON", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("json"),
             )
-            Tooltip(self.report_btn_json, f"Open the JSON report — structured data for scripting or further processing. {_report_color_note}")
+            Tooltip(self.report_btn_json, f"Open the JSON report — structured data for scripting or further processing. {_report_color_note}", anchor="above")
             self.report_btn_pdf = ctk.CTkButton(
                 self.report_frame, text="PDF", width=btn_w, font=btn_font,
                 command=lambda: self._open_report_format("pdf"),
             )
-            Tooltip(self.report_btn_pdf, f"Open the PDF report — highlighted matches, portable format. {_report_color_note}")
+            Tooltip(self.report_btn_pdf, f"Open the PDF report — highlighted matches, portable format. {_report_color_note}", anchor="above")
 
         def _build_index_panel(self):
             """Build the Manage Indexes popup window with build, delete, status, and auto-refresh controls."""
