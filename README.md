@@ -20,7 +20,7 @@
 1. Point it at a folder on your computer
 2. Type what you're looking for
 3. Click Run Search
-4. Open the highlighted Word report
+4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
 
 That's it. No server, no configuration, no account.
 
