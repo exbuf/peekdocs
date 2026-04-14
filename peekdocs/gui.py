@@ -626,6 +626,10 @@ def _launch_gui():
             self._input_frame.grid_columnconfigure(1, weight=1)
             self._input_frame.grid_columnconfigure(2, minsize=185)
 
+            # Create recursive_var early so both the folder row checkbox
+            # and Advanced Search Options can share it.
+            self.recursive_var = ctk.StringVar(value="off")
+
             label = ctk.CTkLabel(self._input_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
             label.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
@@ -638,7 +642,7 @@ def _launch_gui():
             self.search_entry = ctk.CTkEntry(
                 self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
             )
-            self.search_entry.grid(row=1, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
+            self.search_entry.grid(row=1, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
             self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
             self.search_entry.bind("<Return>", lambda e: self.start_search())
 
@@ -2056,7 +2060,7 @@ def _launch_gui():
             label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
 
             self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
-            self.folder_entry.grid(row=0, column=1, padx=(5, 15), pady=(4, 8), sticky="ew")
+            self.folder_entry.grid(row=0, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
             self.folder_entry.insert(0, os.path.expanduser("~"))
 
             self._browse_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
@@ -2078,6 +2082,14 @@ def _launch_gui():
             self.browse_file_button.pack(side="left")
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
+            self._folder_recursive_cb = ctk.CTkCheckBox(
+                self._browse_frame, text="Recursive", variable=self.recursive_var,
+                onvalue="on", offvalue="off",
+                font=ctk.CTkFont(size=12),
+            )
+            self._folder_recursive_cb.pack(side="left", padx=(10, 0))
+            Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with the Recursive checkbox in Advanced Search Options")
+
             self._clear_file_btn = ctk.CTkButton(
                 self._browse_frame, text="\u2715", width=24, height=24,
                 font=ctk.CTkFont(size=12),
@@ -2098,7 +2110,7 @@ def _launch_gui():
             search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
             Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
-            Tooltip(self.folder_entry, "The folder or file to search. Use Folder to pick a folder, File to pick a specific file")
+            Tooltip(self.folder_entry, "The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file. Check Recursive to include all subfolders")
 
         def _build_advanced_toggle(self):
             """Build the toggle button for Advanced Search Options."""
@@ -2185,8 +2197,7 @@ def _launch_gui():
             cb_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
             cb_frame.grid(row=1, column=0, columnspan=3, padx=15, pady=(10, 5), sticky="w")
 
-            # and_mode_var is already created in _build_search_row (AND/OR radio)
-            self.recursive_var = ctk.StringVar(value="off")
+            # and_mode_var and recursive_var are already created in _build_search_row
             self.fuzzy_var = ctk.StringVar(value="off")
 
             cb_and = ctk.CTkCheckBox(
