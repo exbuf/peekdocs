@@ -33,7 +33,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 - **Home users** — type your keyword(s), click Run Search, done. No setup, no configuration, no manual. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
 - **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later
-- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. Everything the GUI does is also available from the command line
+- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The PII Scan and Search Wizard are GUI-only features
 - **Research** — search across papers, notes, and datasets in any format
 
 ## Features
