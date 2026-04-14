@@ -2584,6 +2584,7 @@ def _launch_gui():
                 command=self._on_preview_size_changed,
             )
             preview_size_menu.pack(side="right")
+            Tooltip(preview_size_menu, "Adjust the font size of the Results Preview text. For the overall app text size (all labels, buttons, and fields), use Tools \u25b2 \u2192 Text Size")
             ctk.CTkLabel(preview_header, text="Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
 
             preview_text_frame = tk.Frame(self.preview_frame)
