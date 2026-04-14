@@ -2555,9 +2555,11 @@ def _launch_gui():
             self.matched_files = []
             self._inverse_results = False
 
-            # Results preview pane — hidden until search completes
+            # Results preview pane — shown on launch with empty content
             self.preview_frame = ctk.CTkFrame(self._search_parent)
-            # Don't grid yet — shown by _show_preview after search
+            self.preview_frame.grid(
+                row=8, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
+            )
 
             import tkinter as tk
             preview_header = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
