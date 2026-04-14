@@ -7598,6 +7598,8 @@ def _launch_gui():
             btn_frame.pack(pady=(10, 2))
             ctk.CTkButton(btn_frame, text="Save", width=70, font=ctk.CTkFont(size=12),
                           command=do_save).pack(side="left", padx=5)
+            ctk.CTkButton(btn_frame, text="Cancel", width=70, font=ctk.CTkFont(size=12),
+                          command=dialog.destroy).pack(side="left", padx=5)
             close_frame = ctk.CTkFrame(frame, fg_color="transparent")
             close_frame.pack(pady=(0, 10))
             ctk.CTkButton(close_frame, text="Close", width=80,
