@@ -27,7 +27,7 @@ That's it. No server, no configuration, no account.
 
 ### See it in action
 
-*Click any screenshot to enlarge it.*
+*Screenshots are small due to GitHub's fixed page width. Click any image to enlarge, or visit [robertdschoening.com/peekdocs](https://robertdschoening.com/peekdocs) for full-size screenshots and a video walkthrough.*
 
 **Search for "password" — results highlighted instantly:**
 
