@@ -29,21 +29,21 @@ That's it. No server, no configuration, no account.
 
 **Search for "password" — results highlighted instantly:**
 
-![Main screen with search results](docs/images/main--screen-password.png)
+<img src="docs/images/main--screen-password.png" alt="Main screen with search results" width="900">
 
 **PII Scan — one click finds sensitive data hiding in your files:**
 
-![PII Scan category selection](docs/images/PII_Scan.png)
+<img src="docs/images/PII_Scan.png" alt="PII Scan category selection" width="900">
 
-![PII Scan results with severity badges](docs/images/PII_scan_results.png)
+<img src="docs/images/PII_scan_results.png" alt="PII Scan results with severity badges" width="900">
 
 **Highlighted Word report — every match in yellow, with context:**
 
-![Highlighted .docx report open in Word](docs/images/main-screen-report.png)
+<img src="docs/images/main-screen-report.png" alt="Highlighted .docx report open in Word" width="900">
 
 **Getting Started tab — friendly introduction for first-time users:**
 
-![Getting Started tab](docs/images/getting-started-tab.png)
+<img src="docs/images/getting-started-tab.png" alt="Getting Started tab" width="900">
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
