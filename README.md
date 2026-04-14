@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — 46 formats in all — at once, all offline. Type a word, click a button, see your results. No manual needed.
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 46 file types in all — at once, all offline. Type a word, click a button, see your results. No manual needed.
 
 **What makes it different:**
 
@@ -225,14 +225,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 ## Why peekdocs?
 
-Most document search tools find text inside files. peekdocs does that and more — it also helps you **see what's hiding in your own documents**, privately and offline. No other free tool gives you:
-
-- A one-click PII Scan that finds Social Security numbers, credit cards, passwords, and other sensitive data in your own files, running entirely on your machine with nothing uploaded anywhere — and for users who need to scan for data the built-in patterns don't cover (international IDs, company-specific formats, API keys), an Advanced Custom Pattern section lets you add your own regex to the scan
-- Highlighted Word reports with every match shown in yellow
-- Save Search and Load Search so you can reuse a configured search with one click
-- The Search Wizard with 20+ pre-built search patterns for non-technical users
-- Range queries that filter by dollar amount, date range, or percentage
-- A built-in view that shows exactly which files were skipped and why, so nothing falls through the cracks
+Most search tools find text inside files. peekdocs does that — and then goes further. It produces a highlighted Word report you can hand to someone, scans for sensitive data with one click, and searches 46 file types simultaneously, all without uploading anything or installing a server.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
