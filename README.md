@@ -6,7 +6,7 @@
 
 > peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. Type a word, click a button, see your results. No manual needed.
 >
-> Under the hood, it does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no technical knowledge needed. Power users can build sophisticated searches with regex, Boolean logic, range queries, and more — or automate with the command-line interface and Python API. Works in any language. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
+> Under the hood, it does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no technical knowledge needed. Power users can build sophisticated searches with regex, Boolean logic, range queries, and more — or automate with the command-line interface and Python API. Works in any language. Runs on Windows, macOS, and Linux. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
 
 **How it works:**
 
