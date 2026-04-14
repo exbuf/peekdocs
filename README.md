@@ -4,24 +4,28 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. It's fast, convenient, and does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context so you can see exactly what was found and where, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no regex knowledge needed. Works in any language. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 42 more file types — all at once, all offline. Type a word, click a button, see your results. No manual needed.
+>
+> Under the hood, it does things no other free tool does: every match is highlighted in yellow in a Word report with surrounding context, a one-click PII Scan finds sensitive data hiding in your files, and a built-in Search Wizard configures searches for you — no technical knowledge needed. Works in any language. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted.
 
 **How it works:**
 
 1. Point it at a folder on your computer
-2. It reads your actual files (.docx, .pdf, .xlsx, .eml, and 42 more formats)
-3. It shows you what's inside — including sensitive data you forgot was there
-4. It produces a highlighted Word report you can save, print, or share
+2. Type what you're looking for
+3. Click Run Search
+4. Open the highlighted Word report — every match in yellow, with context
 
 That's it. No server, no configuration, no account. Free and open-source.
+
+**Simple for everyone, powerful for those who need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean expressions, range queries, fuzzy matching, wildcards, a command-line interface, and a Python API.
 
 **[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
 
 ## Who Is It For?
 
-- **Home users** — search years of personal documents, Google Docs backups, tax records, family files. Type a keyword, click Run Search, done. No setup, no configuration. Click **PII Scan** to check your personal files for Social Security numbers, credit cards, tax IDs, and other sensitive data hiding in your documents — one click, no setup
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Use AND mode, file type filters, exclude terms, and range queries to narrow results. Save searches by name and reload them later
-- **Legal / HR / Finance** — search contracts, employee files, and financial documents privately and offline, with highlighted Word reports you can save and share
+- **Home users** — type a keyword, click Run Search, done. No setup, no configuration, no manual. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later
+- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. Everything the GUI does is also available from the command line
 - **Research** — search across papers, notes, and datasets in any format
 
 ## Features
