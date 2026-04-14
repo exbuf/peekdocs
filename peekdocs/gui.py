@@ -2989,7 +2989,7 @@ def _launch_gui():
             Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
 
             # Center: Close button
-            ctk.CTkButton(
+            close_main_btn = ctk.CTkButton(
                 self.bottom_frame,
                 text="Close",
                 width=70,
@@ -2998,7 +2998,9 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
                 command=self.destroy,
                 font=ctk.CTkFont(size=13),
-            ).grid(row=0, column=1)
+            )
+            close_main_btn.grid(row=0, column=1)
+            Tooltip(close_main_btn, "Close peekdocs", anchor="above")
 
             # Right group
             right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
