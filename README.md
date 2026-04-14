@@ -254,4 +254,4 @@ peekdocs is provided as-is under the [MIT License](LICENSE), without warranty of
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+Copyright (c) 2026 Robert D. Schoening. This project is licensed under the [MIT License](LICENSE).
