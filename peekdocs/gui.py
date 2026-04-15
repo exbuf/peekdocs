@@ -3616,6 +3616,8 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11), lmargin1=20,
+                              lmargin2=20, foreground="red")
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
                 "What Is the PII Scan?",
@@ -3628,7 +3630,10 @@ def _launch_gui():
                 "Saving Your Selections",
                 "Search Folder",
                 "How It Differs from Regular Search",
-                "Think Before You Print",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\u2022 Think Before You Print\n", "toc_item_red")
+            for section in [
                 "Disclaimer",
                 "MIT License",
             ]:
@@ -4461,6 +4466,8 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
+            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11), lmargin1=20,
+                              lmargin2=20, foreground="red")
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
                 "What This Window Shows",
@@ -4470,9 +4477,10 @@ def _launch_gui():
                 "Open Report Button",
                 "The Highlighted Report",
                 "What to Do Next",
-                "False Positives",
             ]:
                 txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\u2022 Think Before You Print\n", "toc_item_red")
+            txt.insert("end", "\u2022 False Positives\n", "toc_item")
             txt.insert("end", "\n")
 
             b("This window shows the results of the PII Scan \u2014 each")
