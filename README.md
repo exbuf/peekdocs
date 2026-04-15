@@ -29,6 +29,10 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 *Click any image to enlarge, or visit [robertdschoening.com/peekdocs](https://robertdschoening.com/peekdocs) for full-size screenshots and a video walkthrough.*
 
+**Getting Started tab — friendly introduction for first-time users:**
+
+![Getting Started tab](docs/images/getting-started-tab.png)
+
 **Search for "password" — results highlighted instantly:**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
@@ -42,10 +46,6 @@ That's it. No server, no configuration, no account. Typical searches complete in
 **Highlighted Word report — every match in yellow, with context:**
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report.png)
-
-**Getting Started tab — friendly introduction for first-time users:**
-
-![Getting Started tab](docs/images/getting-started-tab.png)
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
