@@ -3616,7 +3616,7 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
-            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11), lmargin1=20,
+            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11, "bold"), lmargin1=20,
                               lmargin2=20, foreground="red")
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
@@ -4466,7 +4466,7 @@ def _launch_gui():
             def blank():
                 txt.insert("end", "\n")
 
-            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11), lmargin1=20,
+            txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11, "bold"), lmargin1=20,
                               lmargin2=20, foreground="red")
             txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
             for section in [
