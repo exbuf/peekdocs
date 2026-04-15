@@ -4543,6 +4543,18 @@ def _launch_gui():
             b("legitimate (e.g., your own email address in a template).")
             blank()
 
+            h("THINK BEFORE YOU PRINT")
+            b("The PII Scan report contains the actual sensitive data it")
+            b("found \u2014 real SSNs, real credit card numbers, real passwords,")
+            b("highlighted in yellow. Before printing or sharing the report,")
+            b("consider whether you want that information on paper or in")
+            b("someone else's hands. A printed report left on a desk or in")
+            b("a recycling bin is itself a data exposure. If you need to")
+            b("share findings with someone, consider describing the results")
+            b("(e.g., '3 SSNs found in tax_return.docx') rather than")
+            b("sending the report with the actual data visible.")
+            blank()
+
             h("FALSE POSITIVES")
             b("Pattern-based detection produces false positives. For example:")
             b("\u2022 A 9-digit account number that looks like an SSN")
