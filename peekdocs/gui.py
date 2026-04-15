@@ -3598,9 +3598,14 @@ def _launch_gui():
                               spacing1=5, spacing3=8)
             txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
                               lmargin2=20, foreground="gray40")
+            txt.tag_configure("heading_red", font=("TkDefaultFont", 14, "bold"),
+                              spacing1=10, spacing3=5, foreground="red")
 
             def h(text):
                 txt.insert("end", text + "\n", "heading")
+
+            def h_red(text):
+                txt.insert("end", text + "\n", "heading_red")
 
             def b(text):
                 txt.insert("end", text + "\n", "body")
@@ -3954,7 +3959,7 @@ def _launch_gui():
             b("click Save Search to store it by name.")
             blank()
 
-            h("THINK BEFORE YOU PRINT")
+            h_red("THINK BEFORE YOU PRINT")
             b("The PII Scan report contains the actual sensitive data it")
             b("found \u2014 real SSNs, real credit card numbers, real passwords,")
             b("highlighted in yellow. Before printing or sharing the report,")
@@ -4442,9 +4447,13 @@ def _launch_gui():
                               spacing1=5, spacing3=8)
             txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
                               lmargin2=20, foreground="gray40")
+            txt.tag_configure("heading_red", font=("TkDefaultFont", 13, "bold"),
+                              spacing1=8, spacing3=4, foreground="red")
 
             def h(text):
                 txt.insert("end", text + "\n", "heading")
+            def h_red(text):
+                txt.insert("end", text + "\n", "heading_red")
             def b(text):
                 txt.insert("end", text + "\n", "body")
             def e(text):
@@ -4556,7 +4565,7 @@ def _launch_gui():
             b("legitimate (e.g., your own email address in a template).")
             blank()
 
-            h("THINK BEFORE YOU PRINT")
+            h_red("THINK BEFORE YOU PRINT")
             b("The PII Scan report contains the actual sensitive data it")
             b("found \u2014 real SSNs, real credit card numbers, real passwords,")
             b("highlighted in yellow. Before printing or sharing the report,")
