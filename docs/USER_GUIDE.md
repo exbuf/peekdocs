@@ -1012,6 +1012,10 @@ The eight built-in categories cover common US PII. If you need something the bui
 
 **Persistence.** Your custom pattern is saved to `~/.peekdocsrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
 
+### Think before you print
+
+The PII Scan report contains the actual sensitive data it found — real SSNs, real credit card numbers, real passwords, highlighted in yellow. Before printing or sharing the report, consider whether you want that information on paper or in someone else's hands. A printed report left on a desk or in a recycling bin is itself a data exposure. If you need to share findings with someone, consider describing the results (e.g., "3 SSNs found in tax_return.docx") rather than sending the report with the actual data visible.
+
 ### Important disclaimers
 
 The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.

@@ -3623,6 +3623,7 @@ def _launch_gui():
                 "Saving Your Selections",
                 "Search Folder",
                 "How It Differs from Regular Search",
+                "Think Before You Print",
                 "Disclaimer",
                 "MIT License",
             ]:
@@ -3951,6 +3952,18 @@ def _launch_gui():
             b("you want to reuse the same regex patterns as normal searches,")
             b("use the Search Wizard to build an equivalent search and then")
             b("click Save Search to store it by name.")
+            blank()
+
+            h("THINK BEFORE YOU PRINT")
+            b("The PII Scan report contains the actual sensitive data it")
+            b("found \u2014 real SSNs, real credit card numbers, real passwords,")
+            b("highlighted in yellow. Before printing or sharing the report,")
+            b("consider whether you want that information on paper or in")
+            b("someone else's hands. A printed report left on a desk or in")
+            b("a recycling bin is itself a data exposure. If you need to")
+            b("share findings with someone, consider describing the results")
+            b("(e.g., '3 SSNs found in tax_return.docx') rather than")
+            b("sending the report with the actual data visible.")
             blank()
 
             h("DISCLAIMER")
