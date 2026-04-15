@@ -23,7 +23,7 @@
 3. Click Run Search
 4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
 
-That's it. No server, no configuration, no account.
+That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster.
 
 ### See it in action
 
