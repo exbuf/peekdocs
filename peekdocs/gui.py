@@ -3174,6 +3174,9 @@ def _launch_gui():
                 folder = os.path.normpath(folder)
                 self.folder_entry.delete(0, "end")
                 self.folder_entry.insert(0, folder)
+                # Clear any single-file selection so the search covers
+                # the entire folder, not the previously selected file.
+                self._clear_specific_file()
                 self._update_index_button_color()
                 self._on_refresh_interval_changed(self.refresh_interval_var.get())
                 self._refresh_load_search_menu()
