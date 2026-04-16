@@ -3228,24 +3228,32 @@ def _launch_gui():
             def _show_tools_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
-                menu.add_command(label="File Inventory — summary of all files by type, size, and date", command=self._run_file_inventory)
+                def _dark_sep():
+                    menu.add_command(label="─" * 50, state="disabled",
+                                     font=("TkDefaultFont", 2),
+                                     foreground="gray40")
+                # Folder analysis (alphabetical)
                 menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
-                menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
                 menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
-                menu.add_command(label="Recent Changes — files modified in the last 7 / 30 / 90 days", command=self._run_recent_changes)
+                menu.add_command(label="File Inventory — summary of all files by type, size, and date", command=self._run_file_inventory)
+                menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
                 menu.add_command(label="Protected Files — find password-protected or encrypted files", command=self._run_protected_scan)
-                menu.add_separator()
-                menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
+                menu.add_command(label="Recent Changes — files modified in the last 7 / 30 / 90 days", command=self._run_recent_changes)
+                _dark_sep()
+                # User tools (alphabetical)
                 menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
-                menu.add_separator()
-                menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
+                menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
+                _dark_sep()
+                # App management (alphabetical)
                 menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
+                menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
                 menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
-                menu.add_separator()
-                menu.add_command(label="Clear Search Results — delete peekdocs_results files", command=self._clear_results_files)
-                menu.add_command(label="Clear Error Log — delete peekdocs_errors.log", command=self._clear_error_log)
+                _dark_sep()
+                # Cleanup (alphabetical)
                 menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
-                menu.add_separator()
+                menu.add_command(label="Clear Error Log — delete peekdocs_errors.log", command=self._clear_error_log)
+                menu.add_command(label="Clear Search Results — delete peekdocs_results files", command=self._clear_results_files)
+                _dark_sep()
                 # Text Size — direct items instead of a cascade submenu
                 # (cascades open to the right and go off-screen on small displays)
                 current_size = self._text_size_var.get()
@@ -5572,6 +5580,42 @@ def _launch_gui():
             self.report_frame.grid(
                 row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
             )
+        def _show_simple_popup(self, title, heading, message):
+            """Show a simple informational popup with a consistent look and Close button."""
+            import tkinter as tk
+            popup = tk.Toplevel(self)
+            popup.title(title)
+            popup.resizable(False, False)
+            popup.geometry("520x280")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 520) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 280) // 2
+            popup.geometry(f"+{x}+{y}")
+            try:
+                popup.transient(self)
+            except Exception:
+                pass
+
+            # Close button anchored to the bottom row
+            ctk.CTkButton(
+                popup, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy,
+                font=ctk.CTkFont(size=12),
+            ).pack(side="bottom", pady=(5, 15))
+
+            tk.Label(
+                popup, text=heading,
+                font=("TkDefaultFont", 14, "bold"),
+            ).pack(pady=(18, 8))
+
+            tk.Label(
+                popup, text=message,
+                font=("TkDefaultFont", 12),
+                wraplength=470, justify="left",
+            ).pack(padx=20, pady=(0, 10), fill="both", expand=True)
+
         def open_error_log(self):
             """Open the peekdocs error log file in the default text editor."""
             # Check results dir first (output dir if set), then search folder
@@ -5591,12 +5635,15 @@ def _launch_gui():
                     error_log_path = p
                     break
             if not error_log_path:
-                from tkinter import messagebox
-                messagebox.showinfo(
-                    "No Error Log",
-                    "No error log found — this is good news! The log file is only "
-                    "created when a file error occurs during a search (e.g., a file "
-                    "couldn't be read). If you haven't had any errors, no log exists.",
+                self._show_simple_popup(
+                    title="Error Log",
+                    heading="No Error Log Found",
+                    message=(
+                        "No error log was found.\n\n"
+                        "This is good news — the log file is only created when a file error "
+                        "occurs during a search (e.g., a file couldn't be read). If you haven't "
+                        "had any errors, no log exists."
+                    ),
                 )
                 self.status_label.configure(
                     text="No error log found — no file errors have occurred.",
@@ -8037,6 +8084,15 @@ def _launch_gui():
                     text="No saved collections found.",
                     text_color="blue",
                 )
+                self._show_simple_popup(
+                    title="All Collections",
+                    heading="No Saved Collections Found",
+                    message=(
+                        "No .peekdocs_collection.json files were found under your home directory.\n\n"
+                        "Collections are created the first time you click Save on the main screen. "
+                        "Each folder gets its own collection of saved searches."
+                    ),
+                )
                 return
 
             self.status_label.configure(
@@ -8121,7 +8177,12 @@ def _launch_gui():
 
             listbox.bind("<Double-1>", _on_double_click)
 
-            tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+            ctk.CTkButton(
+                popup, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack(pady=(5, 10))
 
         def _show_excluded_files_popup(self):
             """Show a popup listing files excluded from the search with reasons."""
