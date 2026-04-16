@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 46 file types in all — at once, all offline. Type a word, click a button, see your results. No manual needed. peekdocs is a desktop application that runs on your local computer — not a browser app, not a cloud service. **Free, open-source. Point-and-click GUI. Full command line. Python API. For home users, professionals, and developers.**
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails, and 46 file types in all — at once, all offline. Highlighted results, PII scanning, OCR for scanned documents, and boolean/regex/fuzzy search modes. Runs entirely on your computer. **Free, open-source. Point-and-click GUI. Full command line. Python API. For home users, professionals, and developers.**
 
 **What makes it different:**
 
