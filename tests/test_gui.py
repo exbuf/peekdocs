@@ -207,7 +207,7 @@ def test_parse_summary_with_errors():
     )
     result = _parse_summary_text(stdout)
     assert "5 match(es)" in result
-    assert "97 files" in result
+    assert "97 file(s) searched" in result
     assert "3 file(s) could not be read" in result
 
 
@@ -311,8 +311,8 @@ def test_parse_summary_inverse():
         "Elapsed time: 0.42 seconds, Cores used: 4 of 8\n"
     )
     result = _parse_summary_text(stdout)
+    assert "10 file(s) searched" in result
     assert "3 file(s) WITHOUT matches" in result
-    assert "of 10" in result
 
 
 def test_build_command_expression(tmp_path):

@@ -85,6 +85,15 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
 - **Safe defaults** — files over 100 MB are automatically skipped to prevent slow searches and memory issues. Very large files (huge PDFs, massive spreadsheets, database exports) can take minutes to parse and may exhaust available memory. Skipped files are logged to `peekdocs_errors.log` so you know what was missed. To change the limit, set **Max File Size (MB)** in Advanced Search Options — or set it to 0 for no limit. Changing the limit automatically rebuilds the index on the next search. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs
 - **Excluded Files view** — after each search, click the **View N excluded file(s)** button to see exactly which files were skipped and why (unsupported type, prior output, oversized, hidden, etc.) — no more guessing why a `find` count differs from peekdocs's file count
+- **Tools menu** — built-in utilities beyond search:
+  - **File Inventory** — instant summary of every file in a folder: total count, size breakdown by type, oldest and newest files
+  - **Duplicate Finder** — finds identical files by content (not just name), shows how much space is wasted by extra copies
+  - **Large Files** — shows the 50 biggest files so you can reclaim disk space
+  - **Empty Files** — finds zero-byte files: failed downloads, placeholders, junk
+  - **Recent Changes** — which files were modified in the last 7, 30, or 90 days
+  - **Protected Files** — detects password-protected PDFs, Word/Excel/PowerPoint, ZIP/7z/RAR archives that peekdocs can't search
+  - **Search History** — automatic diary of every search you run: date, terms, match count, file count, elapsed time
+  - **Bookmarks** — pin files from search results for quick access later
 
 ### Supported File Types
 

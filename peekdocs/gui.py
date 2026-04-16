@@ -180,19 +180,20 @@ def _parse_summary_text(stdout):
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
 
     parts = []
+    # Lead with files searched count
+    if files_match:
+        file_part = f"{files_match.group(1)} file(s) searched"
+        if size_match:
+            file_part += f" ({size_match.group(1)})"
+        parts.append(file_part)
     if inverse_match:
-        searched = files_match.group(1) if files_match else "?"
-        parts.append(f"Found {inverse_match.group(1)} file(s) WITHOUT matches (of {searched} searched)")
+        parts.append(f"— Found {inverse_match.group(1)} file(s) WITHOUT matches")
     elif found_match:
         count = found_match.group(1)
         if capped_match:
-            parts.append(f"Found {count} match(es) — reports capped at {capped_match.group(1)}")
+            parts.append(f"— Found {count} match(es) — reports capped at {capped_match.group(1)}")
         else:
-            parts.append(f"Found {count} match(es)")
-    if files_match and not inverse_match:
-        parts.append(f"in {files_match.group(1)} files")
-    if size_match:
-        parts.append(f"({size_match.group(1)})")
+            parts.append(f"— Found {count} match(es)")
     if elapsed_match:
         parts.append(f"in {elapsed_match.group(1)}s")
 
@@ -636,7 +637,7 @@ def _launch_gui():
 
             # Create recursive_var early so both the folder row checkbox
             # and Advanced Search Options can share it.
-            self.recursive_var = ctk.StringVar(value="off")
+            self.recursive_var = ctk.StringVar(value="on")
 
             label = ctk.CTkLabel(self._input_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
             label.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
@@ -686,79 +687,145 @@ def _launch_gui():
             btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
             btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
-            # Run Search + AND/OR radio buttons grouped together
-            run_group = ctk.CTkFrame(
+            # Run Search button — standalone
+            self.search_button = ctk.CTkButton(
+                btn_frame, text="Run Search", width=100, height=32, command=self.start_search,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="green", hover_color="darkgreen",
+            )
+            self.search_button.pack(side="left", padx=(0, 10))
+            Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+
+            # Search options group: AND/OR, Recursive, Whole Word, ?
+            options_group = ctk.CTkFrame(
                 btn_frame, border_width=2, border_color=("gray40", "gray60"),
                 corner_radius=8, fg_color=("gray85", "gray20"),
             )
-            run_group.pack(side="left", padx=(0, 0))
+            options_group.pack(side="left", padx=(0, 10))
 
-            self.search_button = ctk.CTkButton(
-                run_group, text="Run Search", width=0, command=self.start_search,
-                font=ctk.CTkFont(size=12),
-                fg_color="green", hover_color="darkgreen",
-            )
-            self.search_button.pack(side="left", padx=(4, 4), pady=3)
-            Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
-
-            # AND/OR radio buttons — synced with AND mode checkbox in Advanced Search Options
+            # AND/OR toggle buttons — the active mode is highlighted green
             self.and_mode_var = ctk.StringVar(value="off")
-            def _on_radio_and():
-                # Ensure expression mode is off when AND is selected
-                if hasattr(self, "expression_var") and self.and_mode_var.get() == "on":
+            _and_on_fg = ("#4CAF50", "#43A047")
+            _and_off_fg = ("gray78", "gray45")
+            _and_on_text = ("white", "white")
+            _and_off_text = ("gray30", "gray70")
+
+            def _sync_and_or_colors():
+                is_and = self.and_mode_var.get() == "on"
+                self._and_btn.configure(
+                    fg_color=_and_on_fg if is_and else _and_off_fg,
+                    text_color=_and_on_text if is_and else _and_off_text,
+                )
+                self._or_btn.configure(
+                    fg_color=_and_on_fg if not is_and else _and_off_fg,
+                    text_color=_and_on_text if not is_and else _and_off_text,
+                )
+
+            def _on_and_click():
+                self.and_mode_var.set("on")
+                if hasattr(self, "expression_var"):
                     self.expression_var.set("off")
                 if hasattr(self, "search_entry"):
                     self.search_entry.configure(placeholder_text="Enter search terms...")
-            self._and_radio = ctk.CTkRadioButton(
-                run_group, text="AND", variable=self.and_mode_var, value="on",
-                font=ctk.CTkFont(size=11), command=_on_radio_and,
-                radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
-                width=38,
-            )
-            self._and_radio.pack(side="left", padx=0, pady=3)
-            Tooltip(self._and_radio, "AND mode — all search terms must appear in the same paragraph. Synced with AND mode checkbox in Advanced Search Options")
-            self._or_radio = ctk.CTkRadioButton(
-                run_group, text="OR", variable=self.and_mode_var, value="off",
-                font=ctk.CTkFont(size=11), command=_on_radio_and,
-                radiobutton_width=14, radiobutton_height=14, border_width_checked=4,
-                width=30,
-            )
-            self._or_radio.pack(side="left", padx=(8, 6), pady=3)
-            Tooltip(self._or_radio, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode checkbox in Advanced Search Options")
+                _sync_and_or_colors()
 
-            # Save and Reload — toggle-style buttons next to Run Search group
+            def _on_or_click():
+                self.and_mode_var.set("off")
+                if hasattr(self, "search_entry"):
+                    self.search_entry.configure(placeholder_text="Enter search terms...")
+                _sync_and_or_colors()
+
+            self._and_btn = ctk.CTkButton(
+                options_group, text="AND", width=40,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color=_and_off_fg, text_color=_and_off_text,
+                hover_color=("gray60", "gray50"),
+                command=_on_and_click,
+            )
+            self._and_btn.pack(side="left", padx=(4, 0), pady=3)
+            Tooltip(self._and_btn, "AND mode — all search terms must appear in the same paragraph")
+
+            self._or_btn = ctk.CTkButton(
+                options_group, text="OR", width=35,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color=_and_on_fg, text_color=_and_on_text,
+                hover_color=("gray60", "gray50"),
+                command=_on_or_click,
+            )
+            self._or_btn.pack(side="left", padx=(2, 4), pady=3)
+            Tooltip(self._or_btn, "OR mode (default) — find lines containing any of the search terms")
+            self._sync_and_or_colors = _sync_and_or_colors
+
+            # Separator
+            _sep = ctk.CTkFrame(options_group, width=2, height=20,
+                                fg_color=("gray55", "gray55"))
+            _sep.pack(side="left", padx=(14, 14), pady=3)
+
+            self._folder_recursive_cb = ctk.CTkCheckBox(
+                options_group, text="Recursive", variable=self.recursive_var,
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            )
+            self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
+            Tooltip(self._folder_recursive_cb, "Include all subfolders when searching")
+
+            self.whole_word_var = ctk.StringVar(value="on")
+            self._search_whole_word_cb = ctk.CTkCheckBox(
+                options_group, text="Whole Word", variable=self.whole_word_var,
+                onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            )
+            self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
+            Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'")
+
+            # ? help for this options group
+            options_help_btn = ctk.CTkButton(
+                options_group, text="?", width=0, height=22,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=self._show_search_options_help,
+            )
+            options_help_btn.pack(side="left", padx=(0, 4), pady=3)
+            Tooltip(options_help_btn, "Help — explains AND/OR, Recursive, and Whole Word")
+
+            # Save, Reload, and ? grouped together
+            save_group = ctk.CTkFrame(
+                btn_frame, border_width=2, border_color=("gray40", "gray60"),
+                corner_radius=8, fg_color=("gray85", "gray20"),
+            )
+            save_group.pack(side="left", padx=(15, 0))
+
             self.save_to_collection_btn = ctk.CTkButton(
-                btn_frame, text="\u25b6 Save", width=0,
+                save_group, text="\u25b6 Save", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._save_to_collection,
                 font=ctk.CTkFont(size=13),
             )
-            self.save_to_collection_btn.pack(side="left", padx=(20, 20))
+            self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
             Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
 
             self.load_search_btn = ctk.CTkButton(
-                btn_frame, text="\u25b6 Reload", width=0,
+                save_group, text="\u25b6 Reload", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._open_load_search_popup,
                 font=ctk.CTkFont(size=13),
             )
-            self.load_search_btn.pack(side="left", padx=(20, 20))
+            self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
             Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
             self._load_search_popup = None
 
             self.save_load_help_btn = ctk.CTkButton(
-                btn_frame, text="?", width=0, height=22,
+                save_group, text="?", width=0, height=22,
                 font=ctk.CTkFont(size=12, weight="bold"),
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=self._show_save_load_help,
             )
-            self.save_load_help_btn.pack(side="left", padx=(20, 20))
+            self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
             Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
 
             self.index_search_var = ctk.StringVar(value="off")
@@ -767,7 +834,7 @@ def _launch_gui():
                 onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
             )
             self.cb_index_search.pack(side="left", padx=(20, 20))
-            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes")
+            Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
 
 
             Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
@@ -1176,6 +1243,8 @@ def _launch_gui():
             if search_text:
                 self.search_entry.insert(0, search_text)
             self.and_mode_var.set("on" if and_mode else "off")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
             self.recursive_var.set("on" if recursive else "off")
             self.regex_var.set("on" if regex else "off")
             self.fuzzy_var.set("on" if fuzzy else "off")
@@ -1387,6 +1456,138 @@ def _launch_gui():
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=help_win.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(pady=(5, 10))
+
+        def _show_search_options_help(self):
+            """Show help for the search options group: AND/OR, Recursive, Whole Word."""
+            import tkinter as tk
+            win = tk.Toplevel(self)
+            win.title("Search Options \u2014 Help")
+            win.geometry("740x680")
+            win.resizable(True, True)
+            win.transient(self)
+            try:
+                win.grab_set()
+            except Exception:
+                win.after(150, lambda: win.grab_set() if win.winfo_exists() else None)
+
+            txt_frame = tk.Frame(win)
+            txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            scrollbar = tk.Scrollbar(txt_frame)
+            scrollbar.pack(side="right", fill="y")
+            txt = tk.Text(
+                txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                yscrollcommand=scrollbar.set, padx=10, pady=10,
+                borderwidth=1, relief="sunken",
+            )
+            txt.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=txt.yview)
+
+            txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=8, spacing3=4)
+            txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=10, lmargin2=10, spacing3=2)
+            txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
+            txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+            txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                              foreground="gray40")
+
+            def h(s): txt.insert("end", s + "\n", "heading")
+            def b(s): txt.insert("end", s + "\n", "body")
+            def e(s): txt.insert("end", s + "\n", "example")
+            def blank(): txt.insert("end", "\n")
+
+            txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+            for section in [
+                "AND / OR Mode",
+                "Recursive",
+                "Whole Word",
+                "Defaults & Saving",
+                "Advanced Search Options",
+            ]:
+                txt.insert("end", f"\u2022 {section}\n", "toc_item")
+            txt.insert("end", "\n")
+
+            h("AND / OR MODE")
+            b("Controls how multiple search terms are combined.")
+            blank()
+            b("OR mode (default, highlighted green)")
+            b("Finds lines containing ANY of your search terms. Each term is")
+            b("searched independently. More terms = more results.")
+            blank()
+            e("  Search: invoice receipt")
+            e("  Finds lines with 'invoice' OR 'receipt'")
+            blank()
+            b("AND mode")
+            b("Finds paragraphs where ALL search terms appear. Fewer results,")
+            b("but every result contains every term. Useful when searching for")
+            b("a combination of words.")
+            blank()
+            e("  Search: Smith invoice 2024")
+            e("  Finds paragraphs with 'Smith' AND 'invoice' AND '2024'")
+            blank()
+            b("The active mode is shown in green. Click the other button to")
+            b("switch. This setting is synced with the AND mode checkbox in")
+            b("Advanced Search Options.")
+            blank()
+
+            h("RECURSIVE")
+            b("When checked, peekdocs searches all subfolders inside the")
+            b("selected folder, no matter how deeply nested. When unchecked,")
+            b("only files directly in the chosen folder are searched \u2014")
+            b("subfolders are ignored.")
+            blank()
+            e("  \u2611 Recursive: /Documents and all its subfolders")
+            e("  \u2610 Recursive: only files directly in /Documents")
+            blank()
+            b("This is checked by default. If you have a large folder tree")
+            b("and want to search only the top level, uncheck it. Synced with")
+            b("the Recursive checkbox in Advanced Search Options.")
+            blank()
+
+            h("WHOLE WORD")
+            b("When checked, search terms must match complete words. A word")
+            b("boundary is a space, punctuation, or the start/end of a line.")
+            blank()
+            e("  \u2611 Whole Word: 'bob' matches 'bob' but NOT 'bobcat'")
+            e("  \u2610 Whole Word: 'bob' matches 'bob', 'bobcat', 'bobsled'")
+            blank()
+            b("This is checked by default to avoid partial matches that")
+            b("clutter your results. Uncheck it when you want to find word")
+            b("fragments, suffixes, or substrings. Synced with the Whole Word")
+            b("checkbox in Advanced Search Options.")
+            blank()
+
+            h("DEFAULTS & SAVING")
+            b("Recursive and Whole Word are checked by default on every")
+            b("launch. OR mode is the default search mode.")
+            blank()
+            b("To save your preferred settings for next time, open Advanced")
+            b("Search Options and click 'Save Settings'. Your choices are")
+            b("stored in ~/.peekdocsrc and restored automatically on the")
+            b("next launch.")
+            blank()
+
+            h("WHY THESE CONTROLS APPEAR ON THE MAIN SCREEN")
+            b("AND/OR, Recursive, and Whole Word are the most frequently")
+            b("used search options, so they are placed on the main screen")
+            b("for quick access. These same controls also appear inside")
+            b("the Advanced Search Options panel \u2014 they are always kept")
+            b("in sync, so changing one automatically updates the other.")
+            blank()
+            b("The Advanced Search Options panel (click the \u25b6 Advanced")
+            b("Search Options toggle to expand it) offers additional modes")
+            b("like Fuzzy, Wildcard, Regex, Expression, Inverse, OCR,")
+            b("file type filters, exclude terms, proximity, context lines,")
+            b("and range queries.")
+
+            txt.configure(state="disabled")
+
+            close_btn = ctk.CTkButton(
+                win, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=win.destroy,
                 font=ctk.CTkFont(size=12),
             )
             close_btn.pack(pady=(5, 10))
@@ -2094,14 +2295,6 @@ def _launch_gui():
             self.browse_file_button.pack(side="left")
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
-            self._folder_recursive_cb = ctk.CTkCheckBox(
-                self._browse_frame, text="Recursive", variable=self.recursive_var,
-                onvalue="on", offvalue="off",
-                font=ctk.CTkFont(size=12),
-            )
-            self._folder_recursive_cb.pack(side="left", padx=(10, 0))
-            Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with the Recursive checkbox in Advanced Search Options", anchor="left")
-
             self._clear_file_btn = ctk.CTkButton(
                 self._browse_frame, text="\u2715", width=24, height=24,
                 font=ctk.CTkFont(size=12),
@@ -2122,7 +2315,7 @@ def _launch_gui():
             search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
             Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
-            Tooltip(self.folder_entry, "The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file. Check Recursive to include all subfolders")
+            Tooltip(self.folder_entry, "The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
 
         def _build_advanced_toggle(self):
             """Build the toggle button for Advanced Search Options."""
@@ -2141,7 +2334,7 @@ def _launch_gui():
 
             self._search_wiz_btn = ctk.CTkButton(
                 self._toggle_row,
-                text="\u25b6 Wizard", width=0,
+                text="\u25b6 Search Wizard", width=0,
                 fg_color="transparent",
                 text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
@@ -2248,13 +2441,13 @@ def _launch_gui():
             )
             cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
 
-            self.whole_word_var = ctk.StringVar(value="off")
+            # whole_word_var already created in _build_search_row
             cb_whole_word = ctk.CTkCheckBox(
                 cb_frame, text="Whole Word", variable=self.whole_word_var,
                 onvalue="on", offvalue="off",
             )
             cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
-            Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'")
+            Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with the Whole Word checkbox on the search row")
 
             self.expression_var = ctk.StringVar(value="off")
             cb_expr = ctk.CTkCheckBox(
@@ -2583,6 +2776,18 @@ def _launch_gui():
                 text_color=("gray50", "gray50"))
             self._preview_count_label.pack(side="left", padx=(8, 0))
 
+            # App-wide text size dropdown
+            self._app_size_menu = ctk.CTkOptionMenu(
+                preview_header, variable=self._text_size_var,
+                values=["Small", "Normal", "Large", "Extra Large", "Huge"],
+                width=110, font=ctk.CTkFont(size=11),
+                command=self._on_text_size_changed,
+            )
+            self._app_size_menu.pack(side="right")
+            Tooltip(self._app_size_menu, "Adjust the overall app text size — changes all labels, buttons, and fields", anchor="left")
+            ctk.CTkLabel(preview_header, text="App Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(10, 3))
+
+            # Preview-only font size dropdown
             self._preview_font_size = 11
             self._preview_size_var = ctk.StringVar(value="11")
             preview_size_menu = ctk.CTkOptionMenu(
@@ -2592,8 +2797,8 @@ def _launch_gui():
                 command=self._on_preview_size_changed,
             )
             preview_size_menu.pack(side="right")
-            Tooltip(preview_size_menu, "Adjust the font size of the Results Preview text. For the overall app text size (all labels, buttons, and fields), use Tools \u25b2 \u2192 Text Size", anchor="left")
-            ctk.CTkLabel(preview_header, text="Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
+            Tooltip(preview_size_menu, "Adjust the font size of the Results Preview text only", anchor="left")
+            ctk.CTkLabel(preview_header, text="Preview Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
 
             preview_text_frame = tk.Frame(self.preview_frame)
             preview_text_frame.pack(fill="both", expand=True, padx=5, pady=(2, 5))
@@ -3023,6 +3228,16 @@ def _launch_gui():
             def _show_tools_menu():
                 import tkinter as tk
                 menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
+                menu.add_command(label="File Inventory — summary of all files by type, size, and date", command=self._run_file_inventory)
+                menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
+                menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
+                menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
+                menu.add_command(label="Recent Changes — files modified in the last 7 / 30 / 90 days", command=self._run_recent_changes)
+                menu.add_command(label="Protected Files — find password-protected or encrypted files", command=self._run_protected_scan)
+                menu.add_separator()
+                menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
+                menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
+                menu.add_separator()
                 menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
                 menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
                 menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
@@ -3063,7 +3278,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=13),
             )
             self._tools_btn.pack(side="right", padx=5)
-            Tooltip(self._tools_btn, "App Files, All Collections, Error Log, Text Size, Hover Text, Clear Results, Clean Up", anchor="above-left")
+            Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more", anchor="above-left")
 
             # Keep references for tooltip toggle (used by _toggle_tooltips)
             self.tooltip_toggle_btn = None
@@ -5174,6 +5389,24 @@ def _launch_gui():
 
             summary = _parse_summary_text(stdout)
 
+            # Log to search history
+            try:
+                import re as _re_hist
+                _clean = _re_hist.sub(r"\033\[[0-9;]*m", "", stdout or "")
+                _h_matches = _re_hist.search(r"Found\s+(\d+)\s+match", _clean)
+                _h_files = _re_hist.search(r"Files searched:\s*(\d+)", _clean)
+                _h_elapsed = _re_hist.search(r"Elapsed time:\s*([\d.]+)", _clean)
+                _h_search = self.search_entry.get().strip()
+                if _h_search:
+                    self._log_search_history(
+                        _h_search,
+                        int(_h_matches.group(1)) if _h_matches else 0,
+                        int(_h_files.group(1)) if _h_files else 0,
+                        _h_elapsed.group(1) if _h_elapsed else "",
+                    )
+            except Exception:
+                pass
+
             # Check if any files were skipped (appears in subprocess output)
             import re as _re_fin
             _skip_match = _re_fin.search(r"Errors logged to peekdocs_errors\.log \((\d+) error", stdout or "")
@@ -6050,6 +6283,1596 @@ def _launch_gui():
                     break
             return excluded
 
+        # ── File Inventory ────────────────────────────────────────
+
+        def _run_file_inventory(self):
+            """Launch a background scan to inventory all files in the search folder."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning folder for file inventory...", text_color="blue")
+            self.progress_bar.grid(
+                row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            self.progress_bar.start()
+            import threading
+            t = threading.Thread(
+                target=self._file_inventory_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _file_inventory_thread(self, folder, recursive):
+            """Worker thread: walk the folder tree and collect file stats."""
+            from collections import Counter
+            from datetime import datetime
+
+            type_counts = Counter()
+            type_sizes = Counter()
+            total_size = 0
+            total_files = 0
+            total_dirs = 0
+            oldest_date = None
+            oldest_file = None
+            newest_date = None
+            newest_file = None
+            skipped = 0
+
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    # Single level only
+                    top_entries = []
+                    try:
+                        top_entries = os.listdir(folder)
+                    except PermissionError:
+                        skipped += 1
+                    walker = [(folder, [], top_entries)]
+
+                for root, dirs, files in walker:
+                    total_dirs += len(dirs)
+                    for fname in files:
+                        filepath = os.path.join(root, fname)
+                        try:
+                            stat = os.stat(filepath)
+                            fsize = stat.st_size
+                            mtime = stat.st_mtime
+                        except (OSError, PermissionError):
+                            skipped += 1
+                            continue
+
+                        total_files += 1
+                        total_size += fsize
+
+                        ext = os.path.splitext(fname)[1].lower()
+                        if not ext:
+                            ext = "(no extension)"
+                        type_counts[ext] += 1
+                        type_sizes[ext] += fsize
+
+                        mdt = datetime.fromtimestamp(mtime)
+                        if oldest_date is None or mdt < oldest_date:
+                            oldest_date = mdt
+                            oldest_file = filepath
+                        if newest_date is None or mdt > newest_date:
+                            newest_date = mdt
+                            newest_file = filepath
+            except Exception:
+                pass
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "total_files": total_files,
+                "total_dirs": total_dirs,
+                "total_size": total_size,
+                "type_counts": type_counts,
+                "type_sizes": type_sizes,
+                "oldest_date": oldest_date,
+                "oldest_file": oldest_file,
+                "newest_date": newest_date,
+                "newest_file": newest_file,
+                "skipped": skipped,
+            }
+            self.after(0, self._file_inventory_finished, results)
+
+        def _file_inventory_finished(self, results):
+            """Handle inventory completion — stop progress and show popup."""
+            try:
+                self.progress_bar.stop()
+            except Exception:
+                pass
+            self.progress_bar.grid_remove()
+            self.status_label.configure(
+                text=f"File inventory complete — {results['total_files']} file(s) found.",
+                text_color="blue")
+            self._show_file_inventory_popup(results)
+
+        @staticmethod
+        def _format_file_size(size_bytes):
+            """Format bytes as a human-readable string."""
+            if size_bytes < 1024:
+                return f"{size_bytes} B"
+            elif size_bytes < 1024 * 1024:
+                return f"{size_bytes / 1024:.1f} KB"
+            elif size_bytes < 1024 * 1024 * 1024:
+                return f"{size_bytes / (1024 * 1024):.1f} MB"
+            else:
+                return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+
+        def _show_file_inventory_popup(self, results):
+            """Display the file inventory results in a popup window."""
+            import tkinter as tk
+            fmt = self._format_file_size
+
+            popup = tk.Toplevel(self)
+            popup.title("File Inventory")
+            popup.resizable(True, True)
+            popup.geometry("780x580")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 780) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 580) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            # Header
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=10, pady=(10, 2))
+            tk.Label(
+                header_frame,
+                text=f"File Inventory — {results['total_files']} file(s)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(side="left", expand=True)
+
+            # Folder path
+            tk.Label(
+                popup, text=results["folder"],
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            # Summary frame
+            summary_frame = tk.Frame(popup)
+            summary_frame.pack(fill="x", padx=15, pady=(0, 5))
+
+            lines = []
+            lines.append(f"Total files:     {results['total_files']}")
+            lines.append(f"Total size:      {fmt(results['total_size'])}")
+            if results["recursive"]:
+                lines.append(f"Subfolders:      {results['total_dirs']}")
+            lines.append(f"File types:      {len(results['type_counts'])}")
+            if results["oldest_date"] and results["oldest_file"]:
+                lines.append(f"Oldest file:     {os.path.basename(results['oldest_file'])}  ({results['oldest_date'].strftime('%Y-%m-%d')})")
+            if results["newest_date"] and results["newest_file"]:
+                lines.append(f"Newest file:     {os.path.basename(results['newest_file'])}  ({results['newest_date'].strftime('%Y-%m-%d')})")
+            if results["skipped"]:
+                lines.append(f"Skipped:         {results['skipped']} file(s) (permission denied)")
+
+            tk.Label(
+                summary_frame, text="\n".join(lines),
+                font=("Courier", 11), justify="left", anchor="nw",
+            ).pack(anchor="w")
+
+            # Separator
+            tk.Frame(popup, height=1, bg="gray60").pack(fill="x", padx=10, pady=(5, 5))
+
+            # File type breakdown label
+            tk.Label(
+                popup, text="Breakdown by File Type",
+                font=("TkDefaultFont", 12, "bold"),
+            ).pack(pady=(2, 4))
+
+            # Listbox with type breakdown
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("Courier", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            # Header row
+            listbox.insert("end", f"{'Extension':<20}{'Files':>8}{'Size':>14}")
+            listbox.insert("end", f"{'─' * 20}{'─' * 8}{'─' * 14}")
+
+            # Sort by count descending
+            sorted_types = sorted(
+                results["type_counts"].items(),
+                key=lambda x: x[1], reverse=True)
+
+            for ext, count in sorted_types:
+                size_str = fmt(results["type_sizes"][ext])
+                listbox.insert("end", f"{ext:<20}{count:>8}{size_str:>14}")
+
+            # Total row
+            listbox.insert("end", f"{'─' * 20}{'─' * 8}{'─' * 14}")
+            listbox.insert("end", f"{'TOTAL':<20}{results['total_files']:>8}{fmt(results['total_size']):>14}")
+
+            # Buttons
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            save_btn = ctk.CTkButton(
+                btn_frame, text="Save Report", width=100,
+                command=lambda: self._save_inventory_report(results),
+                font=ctk.CTkFont(size=12),
+            )
+            save_btn.pack(side="left", padx=5)
+            Tooltip(save_btn, "Save this inventory as a plain text file")
+
+            close_btn = ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(side="left", padx=5)
+
+        def _save_inventory_report(self, results):
+            """Save the file inventory as a plain text report."""
+            from tkinter import filedialog
+            from datetime import datetime
+            fmt = self._format_file_size
+
+            default_name = f"file_inventory_{datetime.now().strftime('%Y-%m-%d')}.txt"
+            filepath = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt")],
+                initialfile=default_name,
+                title="Save File Inventory Report",
+            )
+            if not filepath:
+                return
+
+            lines = []
+            lines.append("=" * 60)
+            lines.append("FILE INVENTORY REPORT")
+            lines.append("=" * 60)
+            lines.append(f"Folder:      {results['folder']}")
+            lines.append(f"Recursive:   {'Yes' if results['recursive'] else 'No'}")
+            lines.append(f"Generated:   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            lines.append("")
+            lines.append(f"Total files:     {results['total_files']}")
+            lines.append(f"Total size:      {fmt(results['total_size'])}")
+            if results["recursive"]:
+                lines.append(f"Subfolders:      {results['total_dirs']}")
+            lines.append(f"File types:      {len(results['type_counts'])}")
+            if results["oldest_date"] and results["oldest_file"]:
+                lines.append(f"Oldest file:     {os.path.basename(results['oldest_file'])}  ({results['oldest_date'].strftime('%Y-%m-%d')})")
+            if results["newest_date"] and results["newest_file"]:
+                lines.append(f"Newest file:     {os.path.basename(results['newest_file'])}  ({results['newest_date'].strftime('%Y-%m-%d')})")
+            if results["skipped"]:
+                lines.append(f"Skipped:         {results['skipped']} file(s) (permission denied)")
+            lines.append("")
+            lines.append("-" * 60)
+            lines.append(f"{'Extension':<20}{'Files':>8}{'Size':>14}")
+            lines.append("-" * 60)
+
+            sorted_types = sorted(
+                results["type_counts"].items(),
+                key=lambda x: x[1], reverse=True)
+            for ext, count in sorted_types:
+                size_str = fmt(results["type_sizes"][ext])
+                lines.append(f"{ext:<20}{count:>8}{size_str:>14}")
+
+            lines.append("-" * 60)
+            lines.append(f"{'TOTAL':<20}{results['total_files']:>8}{fmt(results['total_size']):>14}")
+            lines.append("")
+            lines.append("Generated by peekdocs")
+
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines) + "\n")
+                self.status_label.configure(
+                    text=f"Inventory report saved: {os.path.basename(filepath)}",
+                    text_color="blue")
+            except Exception as e:
+                self._show_error(f"Failed to save report: {e}")
+
+        # ── Password-Protected File Detector ─────────────────────
+
+        def _run_protected_scan(self):
+            """Launch a background scan for password-protected / encrypted files."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning for password-protected files...", text_color="blue")
+            self.progress_bar.grid(
+                row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            self.progress_bar.start()
+            import threading
+            t = threading.Thread(
+                target=self._protected_scan_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _protected_scan_thread(self, folder, recursive):
+            """Worker thread: check each file for password protection."""
+            import fitz
+            import olefile
+            import zipfile
+
+            protected = []  # list of (filepath, file_type, reason)
+            scanned = 0
+
+            # Extensions worth checking — only formats that support encryption
+            _check_exts = {
+                ".pdf", ".docx", ".xlsx", ".pptx",
+                ".doc", ".xls", ".ppt",
+                ".odt", ".ods", ".odp",
+                ".zip", ".7z", ".rar",
+            }
+
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    try:
+                        entries = os.listdir(folder)
+                    except PermissionError:
+                        entries = []
+                    walker = [(folder, [], entries)]
+
+                for root, dirs, files in walker:
+                    for fname in files:
+                        ext = os.path.splitext(fname)[1].lower()
+                        if ext not in _check_exts:
+                            continue
+                        filepath = os.path.join(root, fname)
+                        scanned += 1
+                        try:
+                            if ext == ".pdf":
+                                doc = fitz.open(filepath)
+                                if doc.is_encrypted:
+                                    protected.append((filepath, "PDF", "Encrypted PDF — requires a password to open"))
+                                doc.close()
+
+                            elif ext in (".docx", ".xlsx", ".pptx"):
+                                # Modern Office files are ZIP archives.
+                                # Encrypted ones are wrapped in an OLE container instead.
+                                try:
+                                    if olefile.isOleFile(filepath):
+                                        ole = olefile.OleFileIO(filepath)
+                                        if ole.exists("EncryptedPackage"):
+                                            label = {".docx": "Word", ".xlsx": "Excel", ".pptx": "PowerPoint"}[ext]
+                                            protected.append((filepath, label, f"Encrypted {label} document — requires a password to open"))
+                                        ole.close()
+                                    else:
+                                        # Try opening as ZIP — if it fails, file may be corrupt
+                                        try:
+                                            zf = zipfile.ZipFile(filepath)
+                                            zf.close()
+                                        except Exception:
+                                            pass
+                                except Exception:
+                                    pass
+
+                            elif ext in (".doc", ".xls", ".ppt"):
+                                # Old Office binary formats — check OLE encryption
+                                try:
+                                    if olefile.isOleFile(filepath):
+                                        ole = olefile.OleFileIO(filepath)
+                                        if ole.exists("EncryptedPackage") or ole.exists("encryption"):
+                                            label = {".doc": "Word (legacy)", ".xls": "Excel (legacy)", ".ppt": "PowerPoint (legacy)"}[ext]
+                                            protected.append((filepath, label, f"Encrypted {label} document"))
+                                        ole.close()
+                                except Exception:
+                                    pass
+
+                            elif ext in (".odt", ".ods", ".odp"):
+                                # ODF files are ZIPs; encrypted ones fail to open as ZIP
+                                try:
+                                    zf = zipfile.ZipFile(filepath)
+                                    # Check for encryption-data.xml (ODF encryption marker)
+                                    names = zf.namelist()
+                                    if "META-INF/encryption.xml" in names:
+                                        label = {".odt": "ODF Text", ".ods": "ODF Spreadsheet", ".odp": "ODF Presentation"}[ext]
+                                        protected.append((filepath, label, f"Encrypted {label} document"))
+                                    zf.close()
+                                except zipfile.BadZipFile:
+                                    pass
+
+                            elif ext == ".zip":
+                                try:
+                                    zf = zipfile.ZipFile(filepath)
+                                    for info in zf.infolist():
+                                        if info.flag_bits & 0x1:  # encryption bit
+                                            protected.append((filepath, "ZIP", "Encrypted ZIP archive — one or more files require a password"))
+                                            break
+                                    zf.close()
+                                except Exception:
+                                    pass
+
+                            elif ext == ".7z":
+                                try:
+                                    import py7zr
+                                    with py7zr.SevenZipFile(filepath, mode='r') as z:
+                                        if z.needs_password():
+                                            protected.append((filepath, "7-Zip", "Encrypted 7z archive — requires a password"))
+                                except py7zr.exceptions.PasswordRequired:
+                                    protected.append((filepath, "7-Zip", "Encrypted 7z archive — requires a password"))
+                                except Exception:
+                                    pass
+
+                            elif ext == ".rar":
+                                try:
+                                    import rarfile
+                                    rf = rarfile.RarFile(filepath)
+                                    if rf.needs_password():
+                                        protected.append((filepath, "RAR", "Encrypted RAR archive — requires a password"))
+                                    rf.close()
+                                except Exception:
+                                    pass
+
+                        except (OSError, PermissionError):
+                            pass
+            except Exception:
+                pass
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "scanned": scanned,
+                "protected": protected,
+            }
+            self.after(0, self._protected_scan_finished, results)
+
+        def _protected_scan_finished(self, results):
+            """Handle protected-file scan completion."""
+            try:
+                self.progress_bar.stop()
+            except Exception:
+                pass
+            self.progress_bar.grid_remove()
+            count = len(results["protected"])
+            if count == 0:
+                self.status_label.configure(
+                    text=f"No password-protected files found ({results['scanned']} file(s) checked).",
+                    text_color="blue")
+            else:
+                self.status_label.configure(
+                    text=f"Found {count} password-protected file(s) ({results['scanned']} checked).",
+                    text_color="blue")
+            self._show_protected_popup(results)
+
+        def _show_protected_popup(self, results):
+            """Display the password-protected file scan results."""
+            import tkinter as tk
+            count = len(results["protected"])
+
+            popup = tk.Toplevel(self)
+            popup.title("Password-Protected Files")
+            popup.resizable(True, True)
+            popup.geometry("800x500")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            # Header
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=10, pady=(10, 2))
+            tk.Label(
+                header_frame,
+                text=f"Password-Protected Files — {count} found",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(side="left", expand=True)
+
+            # Subtitle
+            tk.Label(
+                popup,
+                text=f"Checked {results['scanned']} file(s) in {results['folder']}",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            if count == 0:
+                tk.Label(
+                    popup,
+                    text="\nNo password-protected files were found.\n\n"
+                         "All files in this folder can be searched and scanned by peekdocs.",
+                    font=("TkDefaultFont", 12), justify="center",
+                ).pack(expand=True)
+            else:
+                # Warning
+                tk.Label(
+                    popup,
+                    text="These files cannot be searched or scanned for sensitive data by peekdocs.\n"
+                         "To include them, remove the password protection and search again.",
+                    font=("TkDefaultFont", 11), fg="#CC3333", justify="center",
+                ).pack(pady=(0, 5))
+
+                # Listbox
+                list_frame = tk.Frame(popup)
+                list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+                scrollbar = tk.Scrollbar(list_frame)
+                scrollbar.pack(side="right", fill="y")
+
+                listbox = tk.Listbox(
+                    list_frame, font=("TkDefaultFont", 11),
+                    selectmode=tk.SINGLE, activestyle="none",
+                    bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                    highlightthickness=0, borderwidth=1, relief="sunken",
+                    yscrollcommand=scrollbar.set,
+                )
+                listbox.pack(side="left", fill="both", expand=True)
+                scrollbar.config(command=listbox.yview)
+
+                # Group by file type
+                from collections import defaultdict
+                by_type = defaultdict(list)
+                for filepath, ftype, reason in results["protected"]:
+                    by_type[ftype].append((filepath, reason))
+
+                for ftype in sorted(by_type.keys()):
+                    files = by_type[ftype]
+                    listbox.insert("end", f"── {ftype} ({len(files)} file(s)) ──")
+                    for filepath, reason in sorted(files, key=lambda x: os.path.basename(x[0]).lower()):
+                        listbox.insert("end", f"    {os.path.basename(filepath)}")
+                        rel = os.path.relpath(os.path.dirname(filepath), results["folder"])
+                        if rel != ".":
+                            listbox.insert("end", f"        in {rel}")
+                    listbox.insert("end", "")
+
+            # Buttons
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            if count > 0:
+                save_btn = ctk.CTkButton(
+                    btn_frame, text="Save Report", width=100,
+                    command=lambda: self._save_protected_report(results),
+                    font=ctk.CTkFont(size=12),
+                )
+                save_btn.pack(side="left", padx=5)
+                Tooltip(save_btn, "Save this list as a plain text file")
+
+            close_btn = ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy,
+                font=ctk.CTkFont(size=12),
+            )
+            close_btn.pack(side="left", padx=5)
+
+        def _save_protected_report(self, results):
+            """Save the protected files list as a plain text report."""
+            from tkinter import filedialog
+            from datetime import datetime
+
+            default_name = f"protected_files_{datetime.now().strftime('%Y-%m-%d')}.txt"
+            filepath = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt")],
+                initialfile=default_name,
+                title="Save Protected Files Report",
+            )
+            if not filepath:
+                return
+
+            lines = []
+            lines.append("=" * 60)
+            lines.append("PASSWORD-PROTECTED FILES REPORT")
+            lines.append("=" * 60)
+            lines.append(f"Folder:      {results['folder']}")
+            lines.append(f"Recursive:   {'Yes' if results['recursive'] else 'No'}")
+            lines.append(f"Generated:   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            lines.append(f"Files checked: {results['scanned']}")
+            lines.append(f"Protected:     {len(results['protected'])}")
+            lines.append("")
+            lines.append("These files cannot be searched or scanned for sensitive")
+            lines.append("data by peekdocs. To include them, remove the password")
+            lines.append("protection and search again.")
+            lines.append("")
+            lines.append("-" * 60)
+
+            from collections import defaultdict
+            by_type = defaultdict(list)
+            for fpath, ftype, reason in results["protected"]:
+                by_type[ftype].append((fpath, reason))
+
+            for ftype in sorted(by_type.keys()):
+                files = by_type[ftype]
+                lines.append(f"\n{ftype} ({len(files)} file(s))")
+                lines.append("-" * 40)
+                for fpath, reason in sorted(files, key=lambda x: os.path.basename(x[0]).lower()):
+                    lines.append(f"  {os.path.basename(fpath)}")
+                    lines.append(f"    Location: {os.path.dirname(fpath)}")
+                    lines.append(f"    {reason}")
+
+            lines.append("")
+            lines.append("Generated by peekdocs")
+
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines) + "\n")
+                self.status_label.configure(
+                    text=f"Protected files report saved: {os.path.basename(filepath)}",
+                    text_color="blue")
+            except Exception as e:
+                self._show_error(f"Failed to save report: {e}")
+
+        # ── Duplicate File Finder ─────────────────────────────────
+
+        def _run_duplicate_scan(self):
+            """Launch a background scan for duplicate files."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning for duplicate files...", text_color="blue")
+            self.progress_bar.grid(
+                row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            self.progress_bar.start()
+            import threading
+            t = threading.Thread(
+                target=self._duplicate_scan_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _duplicate_scan_thread(self, folder, recursive):
+            """Worker thread: find files with identical content via hashing."""
+            import hashlib
+            from collections import defaultdict
+
+            # Phase 1: group files by size (fast pre-filter)
+            size_groups = defaultdict(list)
+            total_files = 0
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    try:
+                        entries = os.listdir(folder)
+                    except PermissionError:
+                        entries = []
+                    walker = [(folder, [], entries)]
+
+                for root, dirs, files in walker:
+                    for fname in files:
+                        filepath = os.path.join(root, fname)
+                        try:
+                            fsize = os.path.getsize(filepath)
+                            if fsize == 0:
+                                continue  # skip empty files
+                            total_files += 1
+                            size_groups[fsize].append(filepath)
+                        except (OSError, PermissionError):
+                            pass
+            except Exception:
+                pass
+
+            # Phase 2: hash only files that share a size
+            hash_groups = defaultdict(list)
+            for fsize, paths in size_groups.items():
+                if len(paths) < 2:
+                    continue
+                for filepath in paths:
+                    try:
+                        h = hashlib.md5()
+                        with open(filepath, "rb") as f:
+                            while True:
+                                chunk = f.read(65536)
+                                if not chunk:
+                                    break
+                                h.update(chunk)
+                        hash_groups[h.hexdigest()].append(filepath)
+                    except (OSError, PermissionError):
+                        pass
+
+            # Keep only groups with 2+ files
+            duplicates = []
+            wasted = 0
+            for digest, paths in hash_groups.items():
+                if len(paths) >= 2:
+                    fsize = 0
+                    try:
+                        fsize = os.path.getsize(paths[0])
+                    except OSError:
+                        pass
+                    duplicates.append((paths, fsize))
+                    wasted += fsize * (len(paths) - 1)
+
+            # Sort by wasted space descending
+            duplicates.sort(key=lambda x: x[1] * (len(x[0]) - 1), reverse=True)
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "total_files": total_files,
+                "groups": duplicates,
+                "wasted": wasted,
+            }
+            self.after(0, self._duplicate_scan_finished, results)
+
+        def _duplicate_scan_finished(self, results):
+            """Handle duplicate scan completion."""
+            try:
+                self.progress_bar.stop()
+            except Exception:
+                pass
+            self.progress_bar.grid_remove()
+            groups = results["groups"]
+            total_dupes = sum(len(g[0]) - 1 for g in groups)
+            if groups:
+                self.status_label.configure(
+                    text=f"Found {len(groups)} group(s) of duplicates ({total_dupes} extra copies, "
+                         f"{self._format_file_size(results['wasted'])} wasted).",
+                    text_color="blue")
+            else:
+                self.status_label.configure(
+                    text=f"No duplicate files found ({results['total_files']} file(s) checked).",
+                    text_color="blue")
+            self._show_duplicate_popup(results)
+
+        def _show_duplicate_popup(self, results):
+            """Display the duplicate file scan results."""
+            import tkinter as tk
+            fmt = self._format_file_size
+            groups = results["groups"]
+            total_dupes = sum(len(g[0]) - 1 for g in groups)
+
+            popup = tk.Toplevel(self)
+            popup.title("Duplicate Files")
+            popup.resizable(True, True)
+            popup.geometry("820x550")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 820) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=10, pady=(10, 2))
+            tk.Label(
+                header_frame,
+                text=f"Duplicate Files — {len(groups)} group(s), {total_dupes} extra copy(ies)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(side="left", expand=True)
+
+            tk.Label(
+                popup,
+                text=f"Checked {results['total_files']} file(s) in {results['folder']}"
+                     + (f"  —  {fmt(results['wasted'])} wasted by duplicates" if results['wasted'] else ""),
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            if not groups:
+                tk.Label(
+                    popup,
+                    text="\nNo duplicate files were found.\n\nEvery file in this folder is unique.",
+                    font=("TkDefaultFont", 12), justify="center",
+                ).pack(expand=True)
+            else:
+                list_frame = tk.Frame(popup)
+                list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+                scrollbar = tk.Scrollbar(list_frame)
+                scrollbar.pack(side="right", fill="y")
+
+                listbox = tk.Listbox(
+                    list_frame, font=("TkDefaultFont", 11),
+                    selectmode=tk.SINGLE, activestyle="none",
+                    bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                    highlightthickness=0, borderwidth=1, relief="sunken",
+                    yscrollcommand=scrollbar.set,
+                )
+                listbox.pack(side="left", fill="both", expand=True)
+                scrollbar.config(command=listbox.yview)
+
+                for i, (paths, fsize) in enumerate(groups, 1):
+                    listbox.insert("end",
+                        f"── Group {i}: {len(paths)} copies, {fmt(fsize)} each ──")
+                    for filepath in sorted(paths, key=lambda p: p.lower()):
+                        rel = os.path.relpath(filepath, results["folder"])
+                        listbox.insert("end", f"    {rel}")
+                    listbox.insert("end", "")
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            if groups:
+                save_btn = ctk.CTkButton(
+                    btn_frame, text="Save Report", width=100,
+                    command=lambda: self._save_duplicate_report(results),
+                    font=ctk.CTkFont(size=12),
+                )
+                save_btn.pack(side="left", padx=5)
+
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack(side="left", padx=5)
+
+        def _save_duplicate_report(self, results):
+            """Save the duplicate files report as plain text."""
+            from tkinter import filedialog
+            from datetime import datetime
+            fmt = self._format_file_size
+
+            filepath = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt")],
+                initialfile=f"duplicate_files_{datetime.now().strftime('%Y-%m-%d')}.txt",
+                title="Save Duplicate Files Report",
+            )
+            if not filepath:
+                return
+
+            groups = results["groups"]
+            total_dupes = sum(len(g[0]) - 1 for g in groups)
+            lines = []
+            lines.append("=" * 60)
+            lines.append("DUPLICATE FILES REPORT")
+            lines.append("=" * 60)
+            lines.append(f"Folder:        {results['folder']}")
+            lines.append(f"Recursive:     {'Yes' if results['recursive'] else 'No'}")
+            lines.append(f"Generated:     {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            lines.append(f"Files checked: {results['total_files']}")
+            lines.append(f"Duplicate groups: {len(groups)}")
+            lines.append(f"Extra copies:  {total_dupes}")
+            lines.append(f"Wasted space:  {fmt(results['wasted'])}")
+            lines.append("")
+
+            for i, (paths, fsize) in enumerate(groups, 1):
+                lines.append(f"Group {i}: {len(paths)} copies, {fmt(fsize)} each")
+                lines.append("-" * 40)
+                for p in sorted(paths, key=lambda p: p.lower()):
+                    lines.append(f"  {os.path.relpath(p, results['folder'])}")
+                lines.append("")
+
+            lines.append("Generated by peekdocs")
+
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines) + "\n")
+                self.status_label.configure(
+                    text=f"Duplicate report saved: {os.path.basename(filepath)}",
+                    text_color="blue")
+            except Exception as e:
+                self._show_error(f"Failed to save report: {e}")
+
+        # ── Large File Finder ────────────────────────────────────
+
+        def _run_large_file_scan(self):
+            """Find the largest files in the search folder."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning for large files...", text_color="blue")
+
+            import threading
+            t = threading.Thread(
+                target=self._large_file_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _large_file_thread(self, folder, recursive):
+            """Worker thread: collect all files sorted by size."""
+            import heapq
+            top_n = 50  # Show top 50 largest files
+            heap = []  # min-heap of (size, filepath)
+            total_files = 0
+            total_size = 0
+
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    try:
+                        entries = os.listdir(folder)
+                    except PermissionError:
+                        entries = []
+                    walker = [(folder, [], entries)]
+
+                for root, dirs, files in walker:
+                    for fname in files:
+                        filepath = os.path.join(root, fname)
+                        try:
+                            fsize = os.path.getsize(filepath)
+                            total_files += 1
+                            total_size += fsize
+                            if len(heap) < top_n:
+                                heapq.heappush(heap, (fsize, filepath))
+                            elif fsize > heap[0][0]:
+                                heapq.heapreplace(heap, (fsize, filepath))
+                        except (OSError, PermissionError):
+                            pass
+            except Exception:
+                pass
+
+            # Sort largest first
+            largest = sorted(heap, key=lambda x: x[0], reverse=True)
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "total_files": total_files,
+                "total_size": total_size,
+                "largest": largest,
+            }
+            self.after(0, self._large_file_finished, results)
+
+        def _large_file_finished(self, results):
+            """Handle large file scan completion."""
+            self.status_label.configure(
+                text=f"Found {len(results['largest'])} largest file(s) out of {results['total_files']}.",
+                text_color="blue")
+            self._show_large_file_popup(results)
+
+        def _show_large_file_popup(self, results):
+            """Display the largest files in a popup."""
+            import tkinter as tk
+            fmt = self._format_file_size
+
+            popup = tk.Toplevel(self)
+            popup.title("Largest Files")
+            popup.resizable(True, True)
+            popup.geometry("800x500")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup,
+                text=f"Largest Files — top {len(results['largest'])} of {results['total_files']}",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+
+            tk.Label(
+                popup,
+                text=f"Total folder size: {fmt(results['total_size'])}  —  {results['folder']}",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("Courier", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            listbox.insert("end", f"{'#':>4}  {'Size':>12}  {'File'}")
+            listbox.insert("end", f"{'─' * 4}  {'─' * 12}  {'─' * 50}")
+
+            for i, (fsize, filepath) in enumerate(results["largest"], 1):
+                rel = os.path.relpath(filepath, results["folder"])
+                listbox.insert("end", f"{i:>4}  {fmt(fsize):>12}  {rel}")
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack()
+
+        # ── Empty File Detector ──────────────────────────────────
+
+        def _run_empty_file_scan(self):
+            """Find zero-length or blank files in the search folder."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning for empty files...", text_color="blue")
+
+            import threading
+            t = threading.Thread(
+                target=self._empty_file_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _empty_file_thread(self, folder, recursive):
+            """Worker thread: find zero-byte files."""
+            empty_files = []
+            total_files = 0
+
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    try:
+                        entries = os.listdir(folder)
+                    except PermissionError:
+                        entries = []
+                    walker = [(folder, [], entries)]
+
+                for root, dirs, files in walker:
+                    for fname in files:
+                        filepath = os.path.join(root, fname)
+                        try:
+                            fsize = os.path.getsize(filepath)
+                            total_files += 1
+                            if fsize == 0:
+                                empty_files.append(filepath)
+                        except (OSError, PermissionError):
+                            pass
+            except Exception:
+                pass
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "total_files": total_files,
+                "empty": empty_files,
+            }
+            self.after(0, self._empty_file_finished, results)
+
+        def _empty_file_finished(self, results):
+            """Handle empty file scan completion."""
+            count = len(results["empty"])
+            self.status_label.configure(
+                text=f"Found {count} empty file(s) out of {results['total_files']}.",
+                text_color="blue")
+            self._show_empty_file_popup(results)
+
+        def _show_empty_file_popup(self, results):
+            """Display empty files in a popup."""
+            import tkinter as tk
+            count = len(results["empty"])
+
+            popup = tk.Toplevel(self)
+            popup.title("Empty Files")
+            popup.resizable(True, True)
+            popup.geometry("750x450")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 750) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 450) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup,
+                text=f"Empty Files — {count} found",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+
+            tk.Label(
+                popup,
+                text=f"Checked {results['total_files']} file(s) in {results['folder']}",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            if count == 0:
+                tk.Label(
+                    popup,
+                    text="\nNo empty files found.\n\nAll files in this folder contain data.",
+                    font=("TkDefaultFont", 12), justify="center",
+                ).pack(expand=True)
+            else:
+                tk.Label(
+                    popup,
+                    text="These files are zero bytes (completely empty). They may be"
+                         " placeholders, failed downloads, or leftover junk.",
+                    font=("TkDefaultFont", 11), fg="#CC3333",
+                ).pack(pady=(0, 5))
+
+                list_frame = tk.Frame(popup)
+                list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+                scrollbar = tk.Scrollbar(list_frame)
+                scrollbar.pack(side="right", fill="y")
+
+                listbox = tk.Listbox(
+                    list_frame, font=("TkDefaultFont", 11),
+                    selectmode=tk.SINGLE, activestyle="none",
+                    bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                    highlightthickness=0, borderwidth=1, relief="sunken",
+                    yscrollcommand=scrollbar.set,
+                )
+                listbox.pack(side="left", fill="both", expand=True)
+                scrollbar.config(command=listbox.yview)
+
+                for filepath in sorted(results["empty"], key=lambda p: p.lower()):
+                    rel = os.path.relpath(filepath, results["folder"])
+                    listbox.insert("end", f"  {rel}")
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack()
+
+        # ── Recent Changes Dashboard ─────────────────────────────
+
+        def _run_recent_changes(self):
+            """Show files modified recently in the search folder."""
+            folder = self.folder_entry.get().strip()
+            if not folder or not os.path.isdir(folder):
+                self._show_error("Please select a search folder first.")
+                return
+            recursive = self.recursive_var.get() == "on"
+            self.status_label.configure(
+                text="Scanning for recently modified files...", text_color="blue")
+
+            import threading
+            t = threading.Thread(
+                target=self._recent_changes_thread,
+                args=(folder, recursive), daemon=True)
+            t.start()
+
+        def _recent_changes_thread(self, folder, recursive):
+            """Worker thread: collect files and their modification times."""
+            from datetime import datetime, timedelta
+            import time
+
+            now = time.time()
+            cutoffs = {
+                "7 days": now - 7 * 86400,
+                "30 days": now - 30 * 86400,
+                "90 days": now - 90 * 86400,
+            }
+            buckets = {"7 days": [], "30 days": [], "90 days": [], "older": []}
+            total_files = 0
+
+            try:
+                if recursive:
+                    walker = os.walk(folder)
+                else:
+                    try:
+                        entries = os.listdir(folder)
+                    except PermissionError:
+                        entries = []
+                    walker = [(folder, [], entries)]
+
+                for root, dirs, files in walker:
+                    for fname in files:
+                        filepath = os.path.join(root, fname)
+                        try:
+                            mtime = os.path.getmtime(filepath)
+                            fsize = os.path.getsize(filepath)
+                            total_files += 1
+                            entry = (filepath, mtime, fsize)
+                            if mtime >= cutoffs["7 days"]:
+                                buckets["7 days"].append(entry)
+                            elif mtime >= cutoffs["30 days"]:
+                                buckets["30 days"].append(entry)
+                            elif mtime >= cutoffs["90 days"]:
+                                buckets["90 days"].append(entry)
+                            else:
+                                buckets["older"].append(entry)
+                        except (OSError, PermissionError):
+                            pass
+            except Exception:
+                pass
+
+            # Sort each bucket by mtime descending (most recent first)
+            for key in buckets:
+                buckets[key].sort(key=lambda x: x[1], reverse=True)
+
+            results = {
+                "folder": folder,
+                "recursive": recursive,
+                "total_files": total_files,
+                "buckets": buckets,
+            }
+            self.after(0, self._recent_changes_finished, results)
+
+        def _recent_changes_finished(self, results):
+            """Handle recent changes scan completion."""
+            b = results["buckets"]
+            recent = len(b["7 days"]) + len(b["30 days"]) + len(b["90 days"])
+            self.status_label.configure(
+                text=f"{recent} file(s) modified in the last 90 days ({results['total_files']} total).",
+                text_color="blue")
+            self._show_recent_changes_popup(results)
+
+        def _show_recent_changes_popup(self, results):
+            """Display recently modified files grouped by time period."""
+            import tkinter as tk
+            from datetime import datetime
+            fmt = self._format_file_size
+            b = results["buckets"]
+
+            popup = tk.Toplevel(self)
+            popup.title("Recent Changes")
+            popup.resizable(True, True)
+            popup.geometry("820x550")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 820) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            recent = len(b["7 days"]) + len(b["30 days"]) + len(b["90 days"])
+            tk.Label(
+                popup,
+                text=f"Recent Changes — {recent} file(s) modified in the last 90 days",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+
+            tk.Label(
+                popup,
+                text=f"{results['total_files']} total file(s) in {results['folder']}",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            for period in ["7 days", "30 days", "90 days"]:
+                files = b[period]
+                listbox.insert("end",
+                    f"── Last {period} ({len(files)} file(s)) ──")
+                if not files:
+                    listbox.insert("end", "    (none)")
+                for filepath, mtime, fsize in files:
+                    date_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+                    rel = os.path.relpath(filepath, results["folder"])
+                    listbox.insert("end", f"    {date_str}  {fmt(fsize):>10}  {rel}")
+                listbox.insert("end", "")
+
+            older_count = len(b["older"])
+            listbox.insert("end", f"── Older than 90 days ({older_count} file(s)) ──")
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack()
+
+        # ── Search History ───────────────────────────────────────
+
+        def _log_search_history(self, search_text, match_count, file_count, elapsed):
+            """Append a search entry to the history file."""
+            from datetime import datetime
+            folder = self.folder_entry.get().strip()
+            history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+            try:
+                import json
+                history = []
+                if os.path.exists(history_path):
+                    with open(history_path, "r", encoding="utf-8") as f:
+                        history = json.load(f)
+                entry = {
+                    "timestamp": datetime.now().isoformat(),
+                    "search_text": search_text,
+                    "folder": folder,
+                    "matches": match_count,
+                    "files": file_count,
+                    "elapsed": elapsed,
+                }
+                history.append(entry)
+                # Keep last 200 entries
+                history = history[-200:]
+                with open(history_path, "w", encoding="utf-8") as f:
+                    json.dump(history, f, indent=2)
+            except Exception:
+                pass
+
+        def _show_search_history(self):
+            """Display the search history log."""
+            import tkinter as tk
+
+            history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+            history = []
+            if os.path.exists(history_path):
+                try:
+                    import json
+                    with open(history_path, "r", encoding="utf-8") as f:
+                        history = json.load(f)
+                except Exception:
+                    pass
+
+            popup = tk.Toplevel(self)
+            popup.title("Search History")
+            popup.resizable(True, True)
+            popup.geometry("850x500")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 850) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup,
+                text=f"Search History — {len(history)} search(es)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+
+            tk.Label(
+                popup,
+                text="Your past searches with results — most recent first",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            if not history:
+                tk.Label(
+                    popup,
+                    text="\nNo search history yet.\n\nRun a search and it will be logged here automatically.",
+                    font=("TkDefaultFont", 12), justify="center",
+                ).pack(expand=True)
+            else:
+                list_frame = tk.Frame(popup)
+                list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+                scrollbar = tk.Scrollbar(list_frame)
+                scrollbar.pack(side="right", fill="y")
+
+                listbox = tk.Listbox(
+                    list_frame, font=("Courier", 11),
+                    selectmode=tk.SINGLE, activestyle="none",
+                    bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                    highlightthickness=0, borderwidth=1, relief="sunken",
+                    yscrollcommand=scrollbar.set,
+                )
+                listbox.pack(side="left", fill="both", expand=True)
+                scrollbar.config(command=listbox.yview)
+
+                listbox.insert("end", f"{'Date':>19}  {'Matches':>8}  {'Files':>6}  {'Time':>6}  Search Terms")
+                listbox.insert("end", f"{'─' * 19}  {'─' * 8}  {'─' * 6}  {'─' * 6}  {'─' * 30}")
+
+                for entry in reversed(history):
+                    ts = entry.get("timestamp", "")[:19].replace("T", " ")
+                    matches = entry.get("matches", "?")
+                    files = entry.get("files", "?")
+                    elapsed = entry.get("elapsed", "")
+                    elapsed_str = f"{float(elapsed):.1f}s" if elapsed else "—"
+                    terms = entry.get("search_text", "")
+                    if len(terms) > 40:
+                        terms = terms[:37] + "..."
+                    listbox.insert("end", f"{ts}  {matches:>8}  {files:>6}  {elapsed_str:>6}  {terms}")
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            if history:
+                clear_btn = ctk.CTkButton(
+                    btn_frame, text="Clear History", width=100,
+                    fg_color="#CC3333", hover_color="#AA2222",
+                    command=lambda: self._clear_search_history(popup),
+                    font=ctk.CTkFont(size=12),
+                )
+                clear_btn.pack(side="left", padx=5)
+
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack(side="left", padx=5)
+
+        def _clear_search_history(self, popup):
+            """Clear all search history after confirmation."""
+            from tkinter import messagebox
+            if messagebox.askyesno("Clear History",
+                                   "Delete all search history? This cannot be undone.",
+                                   parent=popup):
+                history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+                try:
+                    if os.path.exists(history_path):
+                        os.remove(history_path)
+                except Exception:
+                    pass
+                popup.destroy()
+                self.status_label.configure(
+                    text="Search history cleared.", text_color="blue")
+
+        # ── Bookmarks ────────────────────────────────────────────
+
+        def _get_bookmarks_path(self):
+            """Return the path to the bookmarks file."""
+            return os.path.join(os.path.expanduser("~"), ".peekdocs_bookmarks.json")
+
+        def _load_bookmarks(self):
+            """Load bookmarks from disk."""
+            import json
+            path = self._get_bookmarks_path()
+            if os.path.exists(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+                except Exception:
+                    pass
+            return []
+
+        def _save_bookmarks_list(self, bookmarks):
+            """Save bookmarks to disk."""
+            import json
+            path = self._get_bookmarks_path()
+            try:
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(bookmarks, f, indent=2)
+            except Exception:
+                pass
+
+        def add_bookmark(self, filepath, note=""):
+            """Add a file to bookmarks."""
+            from datetime import datetime
+            bookmarks = self._load_bookmarks()
+            # Don't add duplicates
+            for bm in bookmarks:
+                if bm.get("filepath") == filepath:
+                    self.status_label.configure(
+                        text=f"Already bookmarked: {os.path.basename(filepath)}",
+                        text_color="blue")
+                    return
+            bookmarks.append({
+                "filepath": filepath,
+                "filename": os.path.basename(filepath),
+                "note": note,
+                "added": datetime.now().isoformat(),
+            })
+            self._save_bookmarks_list(bookmarks)
+            self.status_label.configure(
+                text=f"Bookmarked: {os.path.basename(filepath)}",
+                text_color="blue")
+
+        def _show_bookmarks(self):
+            """Display bookmarked files."""
+            import tkinter as tk
+
+            bookmarks = self._load_bookmarks()
+
+            popup = tk.Toplevel(self)
+            popup.title("Bookmarks")
+            popup.resizable(True, True)
+            popup.geometry("800x480")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 480) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            tk.Label(
+                popup,
+                text=f"Bookmarks — {len(bookmarks)} file(s)",
+                font=("TkDefaultFont", 13, "bold"),
+            ).pack(pady=(10, 2))
+
+            tk.Label(
+                popup,
+                text="Double-click a file to open it. Use the Matched Files popup to add bookmarks.",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(pady=(0, 5))
+
+            if not bookmarks:
+                tk.Label(
+                    popup,
+                    text="\nNo bookmarks yet.\n\nIn the Matched Files popup after a search,\n"
+                         "right-click a file and choose 'Add Bookmark' to pin it here.",
+                    font=("TkDefaultFont", 12), justify="center",
+                ).pack(expand=True)
+            else:
+                list_frame = tk.Frame(popup)
+                list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+                scrollbar = tk.Scrollbar(list_frame)
+                scrollbar.pack(side="right", fill="y")
+
+                listbox = tk.Listbox(
+                    list_frame, font=("TkDefaultFont", 11),
+                    selectmode=tk.SINGLE, activestyle="none",
+                    bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                    highlightthickness=0, borderwidth=1, relief="sunken",
+                    yscrollcommand=scrollbar.set,
+                )
+                listbox.pack(side="left", fill="both", expand=True)
+                scrollbar.config(command=listbox.yview)
+
+                _bm_paths = []
+                for bm in bookmarks:
+                    fp = bm.get("filepath", "")
+                    fname = bm.get("filename", os.path.basename(fp))
+                    added = bm.get("added", "")[:10]
+                    note = bm.get("note", "")
+                    exists = os.path.exists(fp)
+                    marker = "" if exists else " [MISSING]"
+                    line = f"  {fname}{marker}"
+                    if note:
+                        line += f"  — {note}"
+                    line += f"  ({added})"
+                    listbox.insert("end", line)
+                    _bm_paths.append(fp)
+
+                def _on_double_click(event):
+                    sel = listbox.curselection()
+                    if not sel:
+                        return
+                    fp = _bm_paths[sel[0]]
+                    if os.path.exists(fp):
+                        import subprocess, sys
+                        if sys.platform == "darwin":
+                            subprocess.Popen(["open", fp])
+                        elif sys.platform == "win32":
+                            os.startfile(fp)
+                        else:
+                            subprocess.Popen(["xdg-open", fp])
+
+                listbox.bind("<Double-1>", _on_double_click)
+
+                def _remove_selected():
+                    sel = listbox.curselection()
+                    if not sel:
+                        return
+                    idx = sel[0]
+                    bookmarks.pop(idx)
+                    self._save_bookmarks_list(bookmarks)
+                    listbox.delete(idx)
+                    _bm_paths.pop(idx)
+
+                # Right-click context menu
+                ctx_menu = tk.Menu(popup, tearoff=0)
+                ctx_menu.add_command(label="Remove Bookmark", command=_remove_selected)
+
+                def _show_ctx(event):
+                    idx = listbox.nearest(event.y)
+                    if idx >= 0:
+                        listbox.selection_clear(0, "end")
+                        listbox.selection_set(idx)
+                    ctx_menu.tk_popup(event.x_root, event.y_root)
+
+                listbox.bind("<Button-3>", _show_ctx)
+                if sys.platform == "darwin":
+                    listbox.bind("<Button-2>", _show_ctx)
+
+            btn_frame = tk.Frame(popup)
+            btn_frame.pack(pady=(5, 10))
+
+            if bookmarks:
+                remove_btn = ctk.CTkButton(
+                    btn_frame, text="Remove Selected", width=120,
+                    fg_color="#CC3333", hover_color="#AA2222",
+                    command=lambda: _remove_selected() if bookmarks else None,
+                    font=ctk.CTkFont(size=12),
+                )
+                remove_btn.pack(side="left", padx=5)
+
+            ctk.CTkButton(
+                btn_frame, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack(side="left", padx=5)
+
         def _show_app_files(self):
             """List all peekdocs-created files in the search folder and subfolders."""
             import tkinter as tk
@@ -6593,6 +8416,29 @@ def _launch_gui():
                     subprocess.Popen(["xdg-open", filepath])
 
             listbox.bind("<Double-1>", _on_click)
+
+            # Right-click context menu with Bookmark option
+            _ctx = tk.Menu(popup, tearoff=0)
+
+            def _bookmark_selected():
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                fp = self.matched_files[sel[0]][0]
+                self.add_bookmark(fp)
+
+            _ctx.add_command(label="Add Bookmark", command=_bookmark_selected)
+
+            def _show_ctx(event):
+                idx = listbox.nearest(event.y)
+                if idx >= 0:
+                    listbox.selection_clear(0, "end")
+                    listbox.selection_set(idx)
+                _ctx.tk_popup(event.x_root, event.y_root)
+
+            listbox.bind("<Button-3>", _show_ctx)
+            if sys.platform == "darwin":
+                listbox.bind("<Button-2>", _show_ctx)
 
             def _view_text():
                 selection = listbox.curselection()
@@ -7299,9 +9145,8 @@ def _launch_gui():
             refresh_val = self.refresh_interval_var.get()
             if refresh_val != "Off":
                 settings["refresh_interval"] = refresh_val
-            text_size_val = self._text_size_var.get()
-            if text_size_val != "Normal":
-                settings["text_size"] = text_size_val
+            settings["text_size"] = self._text_size_var.get()
+            settings["preview_size"] = self._preview_size_var.get()
 
             if settings:
                 _save_config(settings)
@@ -7320,13 +9165,14 @@ def _launch_gui():
             from peekdocs.cli import _load_config
 
             config = _load_config()
-            # For first-time users (no config yet), default Recursive and Whole Word to ON
-            # For returning users, respect what they saved (missing key = off)
-            _recursive_default = True if self._is_first_run else False
-            _whole_word_default = True if self._is_first_run else False
-            # Set booleans — reset to off if not in config (except recursive/whole_word for new users)
+            # Default Recursive and Whole Word to ON unless config explicitly says otherwise
+            _recursive_default = True
+            _whole_word_default = True
+            # Set booleans — reset to off if not in config (except recursive/whole_word)
             self.recursive_var.set("on" if config.get("recursive", _recursive_default) else "off")
             self.and_mode_var.set("on" if config.get("match_all") else "off")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
             self.fuzzy_var.set("on" if config.get("fuzzy") else "off")
             self.wildcard_var.set("on" if config.get("wildcard") else "off")
             self.regex_var.set("on" if config.get("regex") else "off")
@@ -7402,11 +9248,19 @@ def _launch_gui():
                 text_size = "Normal"
             self._text_size_var.set(text_size)
             self._on_text_size_changed(text_size)
+            # Restore preview size
+            preview_size = config.get("preview_size", "11")
+            if preview_size not in ("8", "9", "10", "11", "12", "13", "14", "16", "18", "20"):
+                preview_size = "11"
+            self._preview_size_var.set(preview_size)
+            self._on_preview_size_changed(preview_size)
 
         def reset_form(self):
             """Reset all fields to their defaults."""
             self.search_entry.delete(0, "end")
             self.and_mode_var.set("off")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
             self.recursive_var.set("off")
             self.fuzzy_var.set("off")
             self.wildcard_var.set("off")
@@ -7548,6 +9402,8 @@ def _launch_gui():
             self.search_entry.delete(0, "end")
             self.search_entry.insert(0, params.get("search_text", ""))
             self.and_mode_var.set("on" if params.get("and_mode") else "off")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
             self.recursive_var.set("on" if params.get("recursive") else "off")
             self.fuzzy_var.set("on" if params.get("fuzzy") else "off")
             self.wildcard_var.set("on" if params.get("wildcard") else "off")
@@ -7907,6 +9763,8 @@ def _launch_gui():
                 # Enable AND mode if selected in wizard
                 if mode_var.get() == "AND":
                     self.and_mode_var.set("on")
+                if hasattr(self, "_sync_and_or_colors"):
+                    self._sync_and_or_colors()
                 wiz.destroy()
 
             tk.Button(btn_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=(0, 5))
@@ -7947,6 +9805,8 @@ def _launch_gui():
             """Handle expression toggle by disabling AND mode, exclude, and proximity."""
             if self.expression_var.get() == "on":
                 self.and_mode_var.set("off")
+                if hasattr(self, "_sync_and_or_colors"):
+                    self._sync_and_or_colors()
                 self.exclude_entry.delete(0, "end")
                 self.proximity_entry.delete(0, "end")
                 self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
@@ -7958,6 +9818,8 @@ def _launch_gui():
             if self.and_mode_var.get() == "on":
                 self.expression_var.set("off")
                 self.search_entry.configure(placeholder_text="Enter search terms...")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
 
     app = PeekDocsApp()
     app.mainloop()

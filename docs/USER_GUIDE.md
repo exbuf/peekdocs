@@ -67,7 +67,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.
 
-**Backing up your work — only two files matter:** `~/.peekdocsrc` (your settings) and `.peekdocs_collection.json` (your saved searches, one per folder). Everything else peekdocs creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by peekdocs](#files-created-by-peekdocs) for the complete list of all files and what each one does.
+**Backing up your work — only two files matter:** `~/.peekdocsrc` (your settings) and `.peekdocs_collection.json` (your saved searches, one per folder). You may also want to back up `~/.peekdocs_history.json` (search history) and `~/.peekdocs_bookmarks.json` (bookmarks). Everything else peekdocs creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by peekdocs](#files-created-by-peekdocs) for the complete list of all files and what each one does.
 
 **How to see hidden files:** These files start with a dot, which makes them hidden by default.
 - **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
@@ -388,6 +388,23 @@ You can also build up the Search Bar in multiple passes — use the wizard once,
 **Note:** The wizard enables regex mode. If you manually type additional terms containing special characters (`.` `+` `(` `)` `[` `]` etc.), escape them with `\` — for example, `cost\+fees`. Plain words like `budget` need no escaping.
 
 The Search Wizard shows the current **Search Folder** at the top of the window with a **Change Folder** button. You can switch folders without closing the wizard. When you click **Apply**, the main screen's Search Folder is updated to match the wizard's folder (since the search runs from the main screen).
+
+**Tools Menu:**
+
+The **Tools** button (top-right of the Search tab) opens a menu of built-in utilities that go beyond search. All folder-based tools respect the current **Search Folder** and **Recursive** checkbox setting.
+
+| Tool | What it does |
+|------|-------------|
+| **File Inventory** | Scans the folder and shows a summary: total file count, total size, breakdown by file type (extension, count, size), oldest and newest files with dates, and subfolder count. Click **Save Report** to export as a text file. |
+| **Duplicate Finder** | Finds groups of identical files by comparing content (MD5 hash), not just filenames. Two files with different names but identical content are flagged. Shows how many extra copies exist and how much disk space they waste. Click **Save Report** to export. |
+| **Large Files** | Lists the 50 largest files in the folder with their sizes. Useful for finding disk hogs — large files you may have forgotten about. |
+| **Empty Files** | Finds zero-byte files. These are completely empty — often failed downloads, placeholders, or leftover junk that can be safely deleted. |
+| **Recent Changes** | Shows files modified in the last 7, 30, and 90 days, grouped by time period. Each file is shown with its modification date and size. Useful for seeing what changed recently in a folder you haven't visited in a while. |
+| **Protected Files** | Detects password-protected and encrypted files: PDFs, Word/Excel/PowerPoint (both modern and legacy formats), ODF documents, ZIP/7z/RAR archives. These files cannot be searched or scanned for PII by peekdocs. The report tells you exactly which files are locked so you can decide whether to unprotect them. Click **Save Report** to export. |
+| **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
+| **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
+
+The Tools menu also includes: **App Files** (lists peekdocs-created files), **All Collections** (finds saved searches across folders), **Error Log**, **Text Size**, **Hover Text** toggle, and cleanup options (Clear Results, Clear Error Log, Clean Up Practice Files).
 
 
 ## Usage
@@ -1675,6 +1692,28 @@ Stores your saved searches for each folder.
 **Caution:** This file contains all your saved searches for the folder. **Do not delete it unless you intend to lose them.** There is no undo — you would need to recreate every saved search from scratch in the GUI.
 **How to back up:** Copy the file to a safe location. It's a standard JSON file that can be viewed in any text editor. Consider backing it up before major changes.
 
+### Search history
+
+Automatic log of every search you run.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `~/.peekdocs_history.json` | Records each search with date, terms, match count, file count, and elapsed time | Home directory |
+
+**Protected from searching:** Yes — located in your home directory.
+**How to delete:** Use **Clear History** in the Search History popup (Tools menu), or delete the file manually. Keeps the last 200 entries automatically.
+
+### Bookmarks
+
+Files you've pinned for quick access.
+
+| File | Purpose | Location |
+|------|---------|----------|
+| `~/.peekdocs_bookmarks.json` | List of bookmarked file paths with notes and dates | Home directory |
+
+**Protected from searching:** Yes — located in your home directory.
+**How to delete:** Remove individual bookmarks from the Bookmarks popup (right-click → Remove Bookmark), or delete the file to clear all bookmarks.
+
 ### Configuration file
 
 Your saved default settings.
@@ -1706,7 +1745,9 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 | Error log | 0-1 per folder | Yes | Yes — use Clear Error Log |
 | Search index | 1-3 per folder | Yes | Yes — use Delete Index or --index-clear |
 | Collection file | 1 per folder | Yes | **No** — contains your saved searches. Back up before deleting |
-| Config file | 1 (home dir) | N/A | With caution — loses saved settings and email config |
+| Config file | 1 (home dir) | N/A | With caution — loses saved settings |
+| Search history | 1 (home dir) | N/A | Yes — only loses search log |
+| Bookmarks | 1 (home dir) | N/A | Yes — only loses pinned files list |
 
 **Most of these files are safe to delete** — peekdocs recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.peekdocs_collection.json`), which contains your saved searches, and the **config file** (`~/.peekdocsrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
 
