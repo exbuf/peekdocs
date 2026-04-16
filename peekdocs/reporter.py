@@ -256,18 +256,37 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
                 para._p.append(hyperlink)
                 continue
 
+            if line.startswith("Translation ==> "):
+                prefix = "Translation ==> "
+                rest = line[len(prefix):]
+                run = para.add_run(prefix)
+                run.bold = True
+                run.font.size = Pt(13)
+                run = para.add_run(rest)
+                run.bold = True
+                run.font.size = Pt(13)
+                continue
+
             if line.startswith("Search Term(s) ==> "):
                 prefix = "Search Term(s) ==> "
                 rest = line[len(prefix):]
                 match = re.match(r"(.+?)( \(match: [A-Z+]+\))$", rest)
                 if match:
                     terms_str, mode_str = match.group(1), match.group(2)
-                    para.add_run(prefix)
+                    run = para.add_run(prefix)
+                    run.bold = True
+                    run.font.size = Pt(13)
                     run = para.add_run(terms_str)
                     run.font.highlight_color = WD_COLOR_INDEX.BRIGHT_GREEN
-                    para.add_run(mode_str)
+                    run.bold = True
+                    run.font.size = Pt(13)
+                    run = para.add_run(mode_str)
+                    run.bold = True
+                    run.font.size = Pt(13)
                 else:
-                    para.add_run(line)
+                    run = para.add_run(line)
+                    run.bold = True
+                    run.font.size = Pt(13)
                 continue
 
             if line in ("Header:", "Results:"):
