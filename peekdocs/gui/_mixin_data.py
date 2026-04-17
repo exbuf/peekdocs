@@ -152,7 +152,7 @@ class DataMixin:
                 os.remove(path)
         self.status_label.configure(
             text="Settings saved to ~/.peekdocsrc",
-            text_color="blue",
+            text_color=("blue", "#66BBFF"),
             font=ctk.CTkFont(size=13),
         )
 
@@ -480,7 +480,7 @@ class DataMixin:
                 pass
             popup.destroy()
             self.status_label.configure(
-                text="Search history cleared.", text_color="blue")
+                text="Search history cleared.", text_color=("blue", "#66BBFF"))
 
     # ── Bookmarks ────────────────────────────────────────────
 
@@ -527,7 +527,7 @@ class DataMixin:
             if bm.get("filepath") == filepath:
                 self.status_label.configure(
                     text=f"Already bookmarked: {os.path.basename(filepath)}",
-                    text_color="blue")
+                    text_color=("blue", "#66BBFF"))
                 return
         bookmarks.append({
             "filepath": filepath,
@@ -538,7 +538,7 @@ class DataMixin:
         self._save_bookmarks_list(bookmarks)
         self.status_label.configure(
             text=f"Bookmarked: {os.path.basename(filepath)}",
-            text_color="blue")
+            text_color=("blue", "#66BBFF"))
 
 
 
@@ -724,7 +724,7 @@ class DataMixin:
                 dialog.destroy()
                 self.status_label.configure(
                     text=f"Search '{name}' saved to collection.",
-                    text_color="blue", font=ctk.CTkFont(size=13),
+                    text_color=("blue", "#66BBFF"), font=ctk.CTkFont(size=13),
                 )
                 self._refresh_load_search_menu()
             except Exception as exc:
@@ -1096,7 +1096,7 @@ class DataMixin:
         if not app_files:
             self.status_label.configure(
                 text="No peekdocs files found in this folder.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             return
 
@@ -1190,7 +1190,7 @@ class DataMixin:
         from peekdocs.collection import COLLECTION_FILENAME, load_collection
 
         home = os.path.expanduser("~")
-        self.status_label.configure(text="Scanning for saved collections…", text_color="blue")
+        self.status_label.configure(text="Scanning for saved collections…", text_color=("blue", "#66BBFF"))
         self.update_idletasks()
 
         # Walk home directory to find all collection files
@@ -1217,7 +1217,7 @@ class DataMixin:
         if not collections:
             self.status_label.configure(
                 text="No saved collections found.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             self._show_simple_popup(
                 title="All Collections",
@@ -1232,7 +1232,7 @@ class DataMixin:
 
         self.status_label.configure(
             text=f"Found {len(collections)} collection(s).",
-            text_color="blue",
+            text_color=("blue", "#66BBFF"),
         )
 
         popup = tk.Toplevel(self)
@@ -1306,7 +1306,7 @@ class DataMixin:
                 self._refresh_load_search_menu()
                 self.status_label.configure(
                     text=f"Switched to: {folder}",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
                 popup.destroy()
 
@@ -1722,7 +1722,7 @@ class DataMixin:
         self.search_button.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
         self.status_label.configure(
             text="Building index... this may take a few minutes for large folders. Please wait.",
-            text_color="blue",
+            text_color=("blue", "#66BBFF"),
         )
 
         self._index_cancelled = False
@@ -1749,7 +1749,7 @@ class DataMixin:
                     short_name = short_name[:47] + "..."
                 self.status_label.configure(
                     text=f"Building index... {done}/{total} files: {short_name}",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
             self.after(300, _poll_progress)
 
@@ -1787,13 +1787,13 @@ class DataMixin:
                 lc = result.get("line_count", 0)
                 el = result.get("elapsed", 0)
                 display = f"Index built: {fc} files, {lc:,} lines in {el:.1f}s"
-                self.status_label.configure(text=display, text_color="blue")
+                self.status_label.configure(text=display, text_color=("blue", "#66BBFF"))
                 # Default auto-refresh to 1 hour if currently Off
                 if self.refresh_interval_var.get() == "Off":
                     self.refresh_interval_var.set("1 hour")
                     self._on_refresh_interval_changed("1 hour")
             elif returncode == 2:
-                self.status_label.configure(text="Index build cancelled.", text_color="blue")
+                self.status_label.configure(text="Index build cancelled.", text_color=("blue", "#66BBFF"))
             else:
                 err_msg = (result or {}).get("error", "Unknown error")
                 self.status_label.configure(text=f"Index build failed: {err_msg}", text_color="red")
@@ -1819,7 +1819,7 @@ class DataMixin:
             return
         self.status_label.configure(
             text=msg or "Index removed.",
-            text_color="blue",
+            text_color=("blue", "#66BBFF"),
         )
         self._update_index_button_color()
         self.refresh_interval_var.set("Off")
@@ -1846,7 +1846,7 @@ class DataMixin:
         if status is None:
             self.status_label.configure(
                 text="No index found. Click Build Index(es) to create one.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             return
 
@@ -1899,6 +1899,6 @@ class DataMixin:
                     self._index_process.terminate()
                 except Exception:
                     pass
-        self.status_label.configure(text="Cancelling index build...", text_color="blue")
+        self.status_label.configure(text="Cancelling index build...", text_color=("blue", "#66BBFF"))
 
 

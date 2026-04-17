@@ -32,7 +32,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning folder for file inventory...", text_color="blue")
+            text="Scanning folder for file inventory...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
             row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
@@ -130,7 +130,7 @@ class ToolsMixin:
         self.progress_bar.grid_remove()
         self.status_label.configure(
             text=f"File inventory complete — {results['total_files']} file(s) found.",
-            text_color="blue")
+            text_color=("blue", "#66BBFF"))
         self._show_file_inventory_popup(results)
 
     @staticmethod
@@ -312,7 +312,7 @@ class ToolsMixin:
                 f.write("\n".join(lines) + "\n")
             self.status_label.configure(
                 text=f"Inventory report saved: {os.path.basename(filepath)}",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         except Exception as e:
             self._show_error(f"Failed to save report: {e}")
 
@@ -328,7 +328,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning for password-protected files...", text_color="blue")
+            text="Scanning for password-protected files...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
             row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
@@ -484,11 +484,11 @@ class ToolsMixin:
         if count == 0:
             self.status_label.configure(
                 text=f"No password-protected files found ({results['scanned']} file(s) checked).",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         else:
             self.status_label.configure(
                 text=f"Found {count} password-protected file(s) ({results['scanned']} checked).",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         self._show_protected_popup(results)
 
 
@@ -650,7 +650,7 @@ class ToolsMixin:
                 f.write("\n".join(lines) + "\n")
             self.status_label.configure(
                 text=f"Protected files report saved: {os.path.basename(filepath)}",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         except Exception as e:
             self._show_error(f"Failed to save report: {e}")
 
@@ -666,7 +666,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning for duplicate files...", text_color="blue")
+            text="Scanning for duplicate files...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
             row=7, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
@@ -768,11 +768,11 @@ class ToolsMixin:
             self.status_label.configure(
                 text=f"Found {len(groups)} group(s) of duplicates ({total_dupes} extra copies, "
                      f"{self._format_file_size(results['wasted'])} wasted).",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         else:
             self.status_label.configure(
                 text=f"No duplicate files found ({results['total_files']} file(s) checked).",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         self._show_duplicate_popup(results)
 
 
@@ -904,7 +904,7 @@ class ToolsMixin:
                 f.write("\n".join(lines) + "\n")
             self.status_label.configure(
                 text=f"Duplicate report saved: {os.path.basename(filepath)}",
-                text_color="blue")
+                text_color=("blue", "#66BBFF"))
         except Exception as e:
             self._show_error(f"Failed to save report: {e}")
 
@@ -920,7 +920,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning for large files...", text_color="blue")
+            text="Scanning for large files...", text_color=("blue", "#66BBFF"))
 
         import threading
         t = threading.Thread(
@@ -982,7 +982,7 @@ class ToolsMixin:
         """Handle large file scan completion."""
         self.status_label.configure(
             text=f"Found {len(results['largest'])} largest file(s) out of {results['total_files']}.",
-            text_color="blue")
+            text_color=("blue", "#66BBFF"))
         self._show_large_file_popup(results)
 
 
@@ -1058,7 +1058,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning for empty files...", text_color="blue")
+            text="Scanning for empty files...", text_color=("blue", "#66BBFF"))
 
         import threading
         t = threading.Thread(
@@ -1111,7 +1111,7 @@ class ToolsMixin:
         count = len(results["empty"])
         self.status_label.configure(
             text=f"Found {count} empty file(s) out of {results['total_files']}.",
-            text_color="blue")
+            text_color=("blue", "#66BBFF"))
         self._show_empty_file_popup(results)
 
 
@@ -1198,7 +1198,7 @@ class ToolsMixin:
             return
         recursive = self.recursive_var.get() == "on"
         self.status_label.configure(
-            text="Scanning for recently modified files...", text_color="blue")
+            text="Scanning for recently modified files...", text_color=("blue", "#66BBFF"))
 
         import threading
         t = threading.Thread(
@@ -1273,7 +1273,7 @@ class ToolsMixin:
         recent = len(b["7 days"]) + len(b["30 days"]) + len(b["90 days"])
         self.status_label.configure(
             text=f"{recent} file(s) modified in the last 90 days ({results['total_files']} total).",
-            text_color="blue")
+            text_color=("blue", "#66BBFF"))
         self._show_recent_changes_popup(results)
 
 
@@ -2252,7 +2252,7 @@ class ToolsMixin:
         self.index_search_var.set("off")
 
         self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
-        self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color="blue")
+        self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
@@ -2288,7 +2288,7 @@ class ToolsMixin:
             self.after(0, lambda i=pat_idx, t=total_patterns, c=category:
                 self.status_label.configure(
                     text=f"Scanning for sensitive data... ({i}/{t}) {c}",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
             )
             # For the Dollar Amounts category, inject a range filter and

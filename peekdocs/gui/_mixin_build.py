@@ -919,7 +919,7 @@ class BuildMixin:
         _status_font_size = 16 if sys.platform == "win32" else 14
         self.status_label = ctk.CTkLabel(
             status_row, text="", font=ctk.CTkFont(size=_status_font_size), anchor="w",
-            wraplength=550, text_color="blue", justify="left",
+            wraplength=550, text_color=("blue", "#66BBFF"), justify="left",
         )
         self.status_label.pack(side="left")
 
@@ -1024,7 +1024,7 @@ class BuildMixin:
                 self.clipboard_clear()
                 self.clipboard_append(sel.strip())
                 self.status_label.configure(text="Copied to clipboard.",
-                                            text_color="blue")
+                                            text_color=("blue", "#66BBFF"))
         self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
         self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
 
@@ -1486,7 +1486,7 @@ class BuildMixin:
             self._refresh_load_search_menu()
             self.status_label.configure(
                 text=f"File selected: {filename} in {folder}",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             self._clear_file_btn.pack(side="left", padx=(2, 0))
 
@@ -1498,7 +1498,7 @@ class BuildMixin:
         self._clear_file_btn.pack_forget()
         self.status_label.configure(
             text="File selection cleared — searching entire folder.",
-            text_color="blue",
+            text_color=("blue", "#66BBFF"),
         )
 
 
@@ -1519,7 +1519,7 @@ class BuildMixin:
         if not self._recent_searches:
             self.status_label.configure(
                 text="No recent searches yet.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
                 font=ctk.CTkFont(size=13),
             )
             return
@@ -1789,7 +1789,7 @@ class BuildMixin:
                 self._apply_params_to_gui(params)
                 self.status_label.configure(
                     text=f"Loaded search '{name}' from collection.",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
             popup.destroy()
             self._load_search_popup = None
@@ -1811,7 +1811,7 @@ class BuildMixin:
             listbox.delete(sel[0])
             self.status_label.configure(
                 text=f"Deleted saved search '{name}'.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             if listbox.size() == 0:
                 listbox.insert("end", "(no saved searches)")

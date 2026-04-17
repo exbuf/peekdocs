@@ -30,7 +30,7 @@ class SearchMixin:
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
-            self.status_label.configure(text="Cancelling multi-folder search...", text_color="blue")
+            self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
             return
 
         # Wait for any in-progress index build or auto-refresh to finish
@@ -237,10 +237,10 @@ class SearchMixin:
         if _will_rebuild:
             self.status_label.configure(
                 text=f"Rebuilding index with new Max File Size, then searching ({_term_label})...",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
         else:
-            self.status_label.configure(text=f"Searching ({_term_label})...", text_color="blue")
+            self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("blue", "#66BBFF"))
         self.search_start_time = time.time()
         self._start_elapsed_timer()
 
@@ -260,7 +260,7 @@ class SearchMixin:
             return
 
         self.status_label.configure(
-            text=f"Searching {len(folders)} folder(s)...", text_color="blue")
+            text=f"Searching {len(folders)} folder(s)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
             row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
         self.progress_bar.start()
@@ -296,7 +296,7 @@ class SearchMixin:
 
             self.after(0, lambda i=i, f=folder: self.status_label.configure(
                 text=f"Searching folder {i+1}/{len(folders)}: {os.path.basename(f)}...",
-                text_color="blue"))
+                text_color=("blue", "#66BBFF")))
 
             cmd = _build_command_from_values(
                 search_text=search_text,
@@ -434,7 +434,7 @@ class SearchMixin:
                   f"— Found {total_matches} match(es) in {elapsed:.1f}s")
         if fail_count:
             status += f"  ({fail_count} folder(s) failed — see preview)"
-        self.status_label.configure(text=status, text_color="blue")
+        self.status_label.configure(text=status, text_color=("blue", "#66BBFF"))
 
         # Populate matched files popup
         self._inverse_results = self.inverse_var.get() == "on"
@@ -474,11 +474,11 @@ class SearchMixin:
                 import re as _re
                 new_text = _re.sub(r"\s*\(\d+s\)\s*$", "", current)
                 new_text = f"{new_text} ({elapsed:.0f}s)"
-                self.status_label.configure(text=new_text, text_color="blue")
+                self.status_label.configure(text=new_text, text_color=("blue", "#66BBFF"))
             else:
                 self.status_label.configure(
                     text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
         self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
@@ -593,7 +593,7 @@ class SearchMixin:
                 status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
             self.status_label.configure(
                 text=status_text,
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             # Post-search save (-s) if user filled in "Save as" field
             save_name = self.save_name_entry.get().strip()
@@ -635,7 +635,7 @@ class SearchMixin:
                 no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
             self.status_label.configure(
                 text=no_match_text,
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             self._matched_files_link.configure(
                 text="0 Matched File(s)",
@@ -652,7 +652,7 @@ class SearchMixin:
                 # Search succeeded but something else failed (likely report generation)
                 self.status_label.configure(
                     text=summary or "Search complete (with warnings — check error log).",
-                    text_color="blue",
+                    text_color=("blue", "#66BBFF"),
                 )
                 self._inverse_results = self.inverse_var.get() == "on"
                 if self._inverse_results:
@@ -667,7 +667,7 @@ class SearchMixin:
                 self._show_action_buttons()
         else:
             self.status_label.configure(
-                text="Search was cancelled.", text_color="blue",
+                text="Search was cancelled.", text_color=("blue", "#66BBFF"),
             )
 
         # Resume auto-refresh schedule if active
@@ -879,7 +879,7 @@ class SearchMixin:
             pct_display = int(pct * 100)
             self.status_label.configure(
                 text=f"Searching... {done}/{total} files  ({pct_display}%)  ({elapsed:.0f}s)",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
 
 
@@ -1118,7 +1118,7 @@ class SearchMixin:
         if not to_delete:
             self.status_label.configure(
                 text="Nothing to clean up — no practice files found.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
             return
 
@@ -1157,12 +1157,12 @@ class SearchMixin:
         if failed:
             self.status_label.configure(
                 text=f"Cleaned up {deleted} file(s). {failed} could not be deleted.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
         else:
             self.status_label.configure(
                 text=f"Cleaned up {deleted} practice file(s). Saved searches preserved.",
-                text_color="blue",
+                text_color=("blue", "#66BBFF"),
             )
 
 
