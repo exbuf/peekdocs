@@ -95,9 +95,18 @@ def _handle_corrupt_db(directory):
     """Delete a corrupt database and print a warning. Returns True if deleted."""
     import sys
     clear_index(directory)
-    print("Warning: Index database was corrupted and has been removed.",
-          file=sys.stderr)
-    print("Rebuild with: peekdocs --index", file=sys.stderr)
+    msg = (f"Warning: Index database in {directory} was corrupted and has been "
+           f"removed. Search will continue without the index. "
+           f"Rebuild with: peekdocs --index or use Manage Indexes in the GUI.")
+    print(msg, file=sys.stderr)
+    # Log to error log so the GUI can surface it
+    try:
+        import datetime
+        log_path = os.path.join(directory, "peekdocs_errors.log")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.datetime.now().isoformat()}] {msg}\n")
+    except Exception:
+        pass
     return True
 
 

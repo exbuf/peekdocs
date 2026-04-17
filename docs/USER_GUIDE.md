@@ -404,7 +404,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
 
-The Tools menu also includes: **App Files** (lists peekdocs-created files), **All Collections** (finds saved searches across folders), **Error Log**, **Text Size**, **Hover Text** toggle, and cleanup options (Clear Results, Clear Error Log, Clean Up Practice Files).
+The Tools menu also includes: **App Files** (lists peekdocs-created files), **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, **Hover Text** toggle, and cleanup options (Clear Results, Clear Error Log, Clean Up Practice Files). Your Appearance and Text Size choices are saved automatically between sessions.
 
 
 ## Usage

@@ -3287,6 +3287,14 @@ def _launch_gui():
                         label=f"Text Size: {size}{marker}",
                         command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)),
                     )
+                # Appearance mode (Dark / Light / System)
+                current_mode = ctk.get_appearance_mode()
+                for mode in ["System", "Light", "Dark"]:
+                    marker = " \u2713" if mode == current_mode else ""
+                    menu.add_command(
+                        label=f"Appearance: {mode}{marker}",
+                        command=lambda m=mode: self._set_appearance_mode(m),
+                    )
                 # Hover text toggle
                 hover_label = (
                     "Disable Hover Text — hide tooltip popups when hovering over buttons and fields"
@@ -3318,6 +3326,11 @@ def _launch_gui():
 
 
         # ── Actions ──────────────────────────────────────────────
+
+        def _set_appearance_mode(self, mode):
+            """Switch between Dark, Light, and System appearance modes."""
+            ctk.set_appearance_mode(mode)
+            self._appearance_mode = mode
 
         def _toggle_tooltips(self):
             """Toggle hover tooltip visibility on or off."""
@@ -5208,7 +5221,7 @@ def _launch_gui():
             finally:
                 self.process = None
 
-            self.after(0, self._search_finished, stdout, returncode)
+            self.after(0, self._search_finished, stdout, returncode, stderr)
 
         def _show_preview(self, stdout):
             """Populate the results preview pane from search output."""
@@ -5400,7 +5413,7 @@ def _launch_gui():
                     text_color="blue",
                 )
 
-        def _search_finished(self, stdout, returncode):
+        def _search_finished(self, stdout, returncode, stderr=""):
             """Handle search completion by updating status, reports, and preview."""
             try:
                 self.progress_bar.stop()
@@ -5458,7 +5471,16 @@ def _launch_gui():
             else:
                 self._excluded_files_btn.pack_forget()
 
-            # Error log tooltip removed — Error Log is now in Tools menu
+            # Notify user if the search index was corrupt and rebuilt
+            if stderr and "corrupted" in stderr.lower():
+                from tkinter import messagebox
+                messagebox.showwarning(
+                    "Index Corrupted",
+                    "The search index was corrupted and has been removed. "
+                    "This search ran without the index.\n\n"
+                    "To rebuild, go to Manage Indexes and click Build Index.",
+                    parent=self,
+                )
 
             if returncode == 0:
                 status_text = summary or "Search complete. Matches found."
@@ -9232,6 +9254,8 @@ def _launch_gui():
                 settings["refresh_interval"] = refresh_val
             settings["text_size"] = self._text_size_var.get()
             settings["preview_size"] = self._preview_size_var.get()
+            if hasattr(self, "_appearance_mode") and self._appearance_mode != "System":
+                settings["appearance_mode"] = self._appearance_mode
 
             if settings:
                 _save_config(settings)
@@ -9339,6 +9363,11 @@ def _launch_gui():
                 preview_size = "11"
             self._preview_size_var.set(preview_size)
             self._on_preview_size_changed(preview_size)
+            # Restore appearance mode
+            appearance = config.get("appearance_mode", "System")
+            if appearance not in ("System", "Light", "Dark"):
+                appearance = "System"
+            self._set_appearance_mode(appearance)
 
         def reset_form(self):
             """Reset all fields to their defaults."""
