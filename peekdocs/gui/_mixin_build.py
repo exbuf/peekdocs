@@ -1000,10 +1000,17 @@ class BuildMixin:
         self.preview_text.pack(side="left", fill="both", expand=True)
         preview_scroll.config(command=self.preview_text.yview)
 
+        # Apply dark theme to preview area if in dark mode
+        if ctk.get_appearance_mode() == "Dark":
+            preview_text_frame.configure(bg="#2b2b2b")
+            self.preview_text.configure(bg="#1e1e1e", fg="#e0e0e0", insertbackground="#e0e0e0")
+            preview_scroll.configure(bg="#404040", troughcolor="#2b2b2b")
+
         # Configure tags for highlighting
+        _is_dark = ctk.get_appearance_mode() == "Dark"
         self.preview_text.tag_configure("filename", font=("Courier", 11, "bold"),
-                                        foreground="#1a73e8")
-        self.preview_text.tag_configure("match", background="#FFFF00")
+                                        foreground="#66BBFF" if _is_dark else "#1a73e8")
+        self.preview_text.tag_configure("match", background="#FFFF00", foreground="#000000")
         self.preview_text.tag_configure("line_num", foreground="#888888")
 
         # Right-click to copy selected text or current line
@@ -1561,6 +1568,20 @@ class BuildMixin:
         """Switch between Dark, Light, and System appearance modes."""
         ctk.set_appearance_mode(mode)
         self._appearance_mode = mode
+        # Update the Results Preview pane colors
+        if hasattr(self, "preview_text"):
+            _dark = ctk.get_appearance_mode() == "Dark"
+            self.preview_text.configure(
+                bg="#1e1e1e" if _dark else "white",
+                fg="#e0e0e0" if _dark else "black",
+                insertbackground="#e0e0e0" if _dark else "black",
+            )
+            self.preview_text.tag_configure(
+                "filename", foreground="#66BBFF" if _dark else "#1a73e8")
+            try:
+                self.preview_text.master.configure(bg="#2b2b2b" if _dark else "white")
+            except Exception:
+                pass
 
     @staticmethod
 

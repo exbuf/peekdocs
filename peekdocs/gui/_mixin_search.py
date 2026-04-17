@@ -917,11 +917,13 @@ class SearchMixin:
                 btn.configure(
                     fg_color="green",
                     hover_color="darkgreen",
+                    text_color="white",
                 )
             else:
                 btn.configure(
                     fg_color="#CC3333",
                     hover_color="#AA2222",
+                    text_color="white",
                 )
         self.report_frame.grid(
             row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
