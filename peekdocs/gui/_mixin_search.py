@@ -364,7 +364,19 @@ class SearchMixin:
 
         elapsed = time.time() - start_time
 
-        # Combine all per-folder results.txt into one merged file in output_dir
+        # Read all per-folder results BEFORE writing the combined file
+        # (output_dir may be folders[0], so writing first would overwrite it)
+        folder_contents = []
+        for folder in folders:
+            txt = os.path.join(folder, "peekdocs_results.txt")
+            if os.path.exists(txt):
+                try:
+                    with open(txt, "r", encoding="utf-8", errors="replace") as src:
+                        folder_contents.append((folder, src.read()))
+                except Exception:
+                    pass
+
+        # Write combined results.txt to output_dir
         try:
             combined_txt_path = os.path.join(output_dir, "peekdocs_results.txt")
             with open(combined_txt_path, "w", encoding="utf-8") as out:
@@ -372,16 +384,12 @@ class SearchMixin:
                 out.write(f"Search terms: {search_text}\n")
                 out.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 out.write(f"Total matches: {total_matches}, Files searched: {total_files}\n\n")
-                for folder in folders:
-                    txt = os.path.join(folder, "peekdocs_results.txt")
-                    if os.path.exists(txt):
-                        with open(txt, "r", encoding="utf-8", errors="replace") as src:
-                            content = src.read()
-                        out.write(f"\n{'=' * 60}\n")
-                        out.write(f"Folder: {folder}\n")
-                        out.write(f"{'=' * 60}\n\n")
-                        out.write(content)
-                        out.write("\n")
+                for folder, content in folder_contents:
+                    out.write(f"\n{'=' * 60}\n")
+                    out.write(f"Folder: {folder}\n")
+                    out.write(f"{'=' * 60}\n\n")
+                    out.write(content)
+                    out.write("\n")
         except Exception:
             pass
 

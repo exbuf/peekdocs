@@ -2005,10 +2005,17 @@ peekdocs/
 │   ├── collection.py    # Saved search collections
 │   ├── constants.py     # Shared constants and defaults
 │   ├── expr_parser.py   # Boolean expression parser (AND/OR/NOT)
-│   ├── gui.py           # Optional GUI (peekdocs-gui)
+│   ├── gui/             # Optional GUI package (peekdocs-gui)
+│   │   ├── _app.py      #   Main app class
+│   │   ├── _helpers.py   #   Free functions (no GUI dependency)
+│   │   ├── _tooltip.py   #   Tooltip widget
+│   │   ├── _mixin_build.py  #   UI construction
+│   │   ├── _mixin_search.py #   Search execution
+│   │   ├── _mixin_tools.py  #   Tools, PII scan, wizard, help
+│   │   └── _mixin_data.py   #   Settings, history, bookmarks, index
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
-│   ├── reporter.py      # Report generation (txt, docx, csv, json, pdf)
+│   ├── reporter.py      # Report generation (txt, docx, csv, json, pdf, html)
 │   ├── scanner.py       # File processing and discovery
 │   ├── translator.py    # Plain-English translation of commands and regex
 │   └── wizard_patterns.py # Regex Wizard pattern presets
@@ -2018,6 +2025,7 @@ peekdocs/
 │   ├── test_expr_parser.py # Boolean expression parser tests
 │   ├── test_collection.py # Saved search collection tests
 │   ├── test_gui.py        # GUI test suite
+│   ├── test_pii_patterns.py # PII pattern accuracy tests
 │   ├── test_translator.py # Translator test suite
 │   └── test_wizard.py     # Wizard patterns test suite
 ├── pyproject.toml       # Project metadata and dependencies
