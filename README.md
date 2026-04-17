@@ -80,6 +80,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
 - **Works in any language** — peekdocs searches documents written in English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, and every other language. All text handling is Unicode-based. Type your search terms in any language and peekdocs finds them. **Note:** peekdocs performs exact text matching — it finds the character sequence you type, which works well for all languages including CJK (Chinese, Japanese, Korean). It does not perform language-specific processing such as word segmentation, stemming, or stop-word removal. Documentation and the GUI are in English only
+- **Multi-folder search** — search across multiple folders at once. Click **+Folder** to add folders, or type semicolon-separated paths. Results are combined from all folders
+- **HTML export** — in addition to TXT, DOCX, CSV, JSON, and PDF, results can be exported as a styled HTML page with highlighted matches — easy to share via email or open in any browser
 - **Three interfaces** — terminal CLI, point-and-click GUI (`peekdocs-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux
 - **Search index** — optional SQLite FTS5 index for faster repeated searches

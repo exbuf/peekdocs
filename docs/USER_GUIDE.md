@@ -291,7 +291,7 @@ The GUI window is organized into these regions, from top to bottom:
 | Region | Description |
 |--------|-------------|
 | **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search** and **PII Scan** buttons, **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
-| **Folder Bar** | Folder path entry, **Browse** button (select a folder), and **Single File** button (select a single file to search — click the ✕ to clear the selection and revert to full folder search) |
+| **Folder Bar** | Folder path entry, **Browse** button (select a folder), **Single File** button (select a single file to search — click the ✕ to clear), and **+Folder** button (add another folder for multi-folder search — folders are separated by semicolons) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
@@ -333,7 +333,7 @@ Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and
 
 **Advanced Search Options:**
 
-Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
+Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
 
 **Save Search vs Save Defaults — what's the difference?**
 
@@ -466,7 +466,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
-| `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, or any combination (`csv,json,pdf`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
+| `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
 | `-q` (quiet) | Quiet mode — suppress the banner |
@@ -534,11 +534,11 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-n` follows the current search mode — in fuzzy mode, exclude terms are fuzzy-matched; in wildcard mode, exclude terms are wildcard-matched
 - `-n` works with all flags and all search modes except `-e` (use NOT inside the expression instead)
 - `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
-- `-o` supported formats are `csv`, `json`, and `pdf`
+- `-o` supported formats are `csv`, `json`, `pdf`, and `html`
 - `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
 - `-o csv` creates `peekdocs_results.csv` with columns: filename, folder, line_number, matched_text
 - `-o json` creates `peekdocs_results.json` with metadata and a matches array
-- `-o csv,json` creates both files; `-o csv,json,pdf` creates all three
+- `-o csv,json` creates both files; `-o csv,json,pdf,html` creates all four
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
@@ -668,7 +668,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 81 | Output both CSV and JSON | `peekdocs -o csv,json budget` |
 | 82 | CSV with recursive search | `peekdocs -o csv -r budget` |
 | 82a | Output as PDF (highlighted) | `peekdocs -o pdf budget` |
-| 82b | All extra formats at once | `peekdocs -o csv,json,pdf budget` |
+| 82b | All extra formats at once | `peekdocs -o csv,json,pdf,html budget` |
 | | **Match Cap** | |
 | 83 | Set max matches to 5000 | `peekdocs -m 5000 budget` |
 | 84 | Disable match cap (no limit) | `peekdocs -m 0 budget` |

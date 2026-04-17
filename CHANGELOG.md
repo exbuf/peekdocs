@@ -11,6 +11,9 @@ All notable changes to peekdocs are documented here.
 - App Size and Preview Size dropdowns on the Results Preview header, both persisted between sessions
 - Status line now leads with files-searched count
 - Recursive and Whole Word default to ON at startup
+- **Multi-folder search** — search across multiple folders at once via +Folder button or semicolon-separated paths
+- **HTML export** — new `-o html` output format with styled, highlighted results for sharing via email or browser
+- **Search status shows active modes** — status line now displays AND/OR, Regex, Fuzzy, Wildcard, Whole Word, Inverse, and Index indicators while searching
 - **Dark mode** — Appearance toggle in Tools menu: Dark, Light, or System (follows OS). Saved between sessions
 - PII pattern test suite (74 tests validating sensitivity and specificity of all 8 categories)
 - Index corruption now notifies the user with a warning dialog and logs to peekdocs_errors.log

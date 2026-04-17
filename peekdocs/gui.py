@@ -31,6 +31,7 @@ def _build_command_from_values(
     output_csv=False,
     output_json=False,
     output_pdf=False,
+    output_html=False,
     index_search=False,
     inverse=False,
     expression=False,
@@ -123,6 +124,8 @@ def _build_command_from_values(
         output_parts.append("json")
     if output_pdf:
         output_parts.append("pdf")
+    if output_html:
+        output_parts.append("html")
     if output_parts:
         cmd.extend(["-o", ",".join(output_parts)])
 
@@ -2318,6 +2321,15 @@ def _launch_gui():
             self.browse_file_button.pack(side="left")
             Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
+            self._multi_folder_btn = ctk.CTkButton(
+                self._browse_frame, text="+Folder", width=65, command=self._add_folder,
+                font=ctk.CTkFont(size=14),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+            )
+            self._multi_folder_btn.pack(side="left", padx=(3, 0))
+            Tooltip(self._multi_folder_btn, "Add another folder to search multiple folders at once. Folders are separated by semicolons (;) in the Search Folder field", anchor="left")
+
             self._clear_file_btn = ctk.CTkButton(
                 self._browse_frame, text="\u2715", width=24, height=24,
                 font=ctk.CTkFont(size=12),
@@ -2608,6 +2620,7 @@ def _launch_gui():
             self.output_csv_var = ctk.StringVar(value="off")
             self.output_json_var = ctk.StringVar(value="off")
             self.output_pdf_var = ctk.StringVar(value="off")
+            self.output_html_var = ctk.StringVar(value="off")
             cb_csv = ctk.CTkCheckBox(
                 output_frame, text="CSV", variable=self.output_csv_var,
                 onvalue="on", offvalue="off",
@@ -2623,6 +2636,11 @@ def _launch_gui():
                 onvalue="on", offvalue="off",
             )
             cb_pdf.grid(row=0, column=3, padx=(0, 15))
+            cb_html = ctk.CTkCheckBox(
+                output_frame, text="HTML", variable=self.output_html_var,
+                onvalue="on", offvalue="off",
+            )
+            cb_html.grid(row=0, column=4, padx=(0, 15))
             self.timestamp_var = ctk.StringVar(value="off")
             cb_ts = ctk.CTkCheckBox(
                 output_frame, text="Timestamp Filename", variable=self.timestamp_var,
@@ -3440,6 +3458,21 @@ def _launch_gui():
                 self._update_index_button_color()
                 self._on_refresh_interval_changed(self.refresh_interval_var.get())
                 self._refresh_load_search_menu()
+
+        def _add_folder(self):
+            """Add another folder to the search folder field (multi-folder search)."""
+            current = self.folder_entry.get().strip()
+            # Use the last folder in the list as the initial dir for the picker
+            parts = [p.strip() for p in current.split(";") if p.strip()]
+            initial = parts[-1] if parts else os.path.expanduser("~")
+            folder = filedialog.askdirectory(initialdir=initial)
+            if folder:
+                folder = os.path.normpath(folder)
+                if folder not in parts:
+                    parts.append(folder)
+                    self.folder_entry.delete(0, "end")
+                    self.folder_entry.insert(0, "; ".join(parts))
+                    self._clear_specific_file()
 
         def _browse_output_dir(self):
             """Open a folder picker for the search output directory."""
@@ -5004,7 +5037,20 @@ def _launch_gui():
                 self.after_cancel(self._refresh_timer_id)
                 self._refresh_timer_id = None
 
-            folder = os.path.normpath(self.folder_entry.get().strip())
+            raw_folder = self.folder_entry.get().strip()
+            # Multi-folder support: semicolon-separated paths
+            if ";" in raw_folder:
+                folders = [os.path.normpath(f.strip()) for f in raw_folder.split(";") if f.strip()]
+                invalid = [f for f in folders if not os.path.isdir(f)]
+                if invalid:
+                    self._show_error(f"Invalid folder(s): {', '.join(invalid)}")
+                    return
+                if len(folders) > 1:
+                    self._multi_folder_search(folders)
+                    return
+                folder = folders[0]
+            else:
+                folder = os.path.normpath(raw_folder)
             if not folder or not os.path.isdir(folder):
                 self._show_error("Please select a valid folder.")
                 return
@@ -5074,6 +5120,7 @@ def _launch_gui():
                 output_csv=self.output_csv_var.get() == "on",
                 output_json=self.output_json_var.get() == "on",
                 output_pdf=self.output_pdf_var.get() == "on",
+                output_html=self.output_html_var.get() == "on",
                 index_search=self.index_search_var.get() == "on",
                 inverse=self.inverse_var.get() == "on",
                 expression=self.expression_var.get() == "on",
@@ -5109,6 +5156,10 @@ def _launch_gui():
                     stale = os.path.join(self.results_dir, "peekdocs_results.pdf")
                     if os.path.exists(stale):
                         os.remove(stale)
+                if self.output_html_var.get() != "on":
+                    stale = os.path.join(self.results_dir, "peekdocs_results.html")
+                    if os.path.exists(stale):
+                        os.remove(stale)
             self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
             self.search_entry.configure(state="disabled")
             self._clear_action_buttons()
@@ -5128,6 +5179,26 @@ def _launch_gui():
             except ValueError:
                 _term_count = len(search_text.split())
             _term_label = f"{_term_count} term{'s' if _term_count != 1 else ''}"
+            # Build mode indicators for status display
+            _modes = []
+            if self.and_mode_var.get() == "on":
+                _modes.append("AND")
+            if hasattr(self, "expression_var") and self.expression_var.get() == "on":
+                _modes.append("Expression")
+            elif hasattr(self, "regex_var") and self.regex_var.get() == "on":
+                _modes.append("Regex")
+            elif hasattr(self, "fuzzy_var") and self.fuzzy_var.get() == "on":
+                _modes.append("Fuzzy")
+            elif hasattr(self, "wildcard_var") and self.wildcard_var.get() == "on":
+                _modes.append("Wildcard")
+            if self.whole_word_var.get() == "on":
+                _modes.append("Whole Word")
+            if hasattr(self, "inverse_var") and self.inverse_var.get() == "on":
+                _modes.append("Inverse")
+            if self.index_search_var.get() == "on":
+                _modes.append("Index")
+            _mode_str = f", {'+'.join(_modes)}" if _modes else ""
+            _term_label += _mode_str
 
             # If Use Index is on and the index was built with a different max file
             # size, warn the user that the index will be rebuilt during this search
@@ -5168,6 +5239,122 @@ def _launch_gui():
                 target=self._run_search, args=(cmd, folder), daemon=True
             )
             self.search_thread.start()
+
+        def _multi_folder_search(self, folders):
+            """Run search across multiple folders sequentially and combine results."""
+            search_text = self.search_entry.get().strip()
+            range_text = self.range_entry.get().strip()
+            if not search_text and not range_text:
+                self._show_error("Please enter search terms or a range filter.")
+                return
+
+            self.status_label.configure(
+                text=f"Searching {len(folders)} folder(s)...", text_color="blue")
+            self.progress_bar.grid(
+                row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
+            self.progress_bar.start()
+            self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
+            self.search_entry.configure(state="disabled")
+
+            import threading
+            t = threading.Thread(
+                target=self._multi_folder_thread,
+                args=(folders, search_text), daemon=True)
+            t.start()
+
+        def _multi_folder_thread(self, folders, search_text):
+            """Worker thread: search each folder and combine output."""
+            import time
+            combined_stdout = []
+            total_matches = 0
+            total_files = 0
+            start_time = time.time()
+
+            for i, folder in enumerate(folders):
+                self.after(0, lambda i=i, f=folder: self.status_label.configure(
+                    text=f"Searching folder {i+1}/{len(folders)}: {os.path.basename(f)}...",
+                    text_color="blue"))
+
+                cmd = _build_command_from_values(
+                    search_text=search_text,
+                    folder=folder,
+                    and_mode=self.and_mode_var.get() == "on",
+                    recursive=self.recursive_var.get() == "on",
+                    fuzzy=self.fuzzy_var.get() == "on",
+                    wildcard=self.wildcard_var.get() == "on",
+                    ocr=self.ocr_var.get() == "on",
+                    regex=self.regex_var.get() == "on",
+                    exclude=self.exclude_entry.get(),
+                    file_types=self.file_types_entry.get(),
+                    proximity=self.proximity_entry.get(),
+                    context_before=self.context_before_entry.get(),
+                    context_after=self.context_after_entry.get(),
+                    cores=self.cores_entry.get(),
+                    specific_files=self.specific_files_entry.get(),
+                    output_csv=self.output_csv_var.get() == "on",
+                    output_json=self.output_json_var.get() == "on",
+                    output_pdf=self.output_pdf_var.get() == "on",
+                    output_html=self.output_html_var.get() == "on",
+                    index_search=self.index_search_var.get() == "on",
+                    inverse=self.inverse_var.get() == "on",
+                    expression=self.expression_var.get() == "on",
+                    whole_word=self.whole_word_var.get() == "on",
+                    max_matches=self.max_matches_entry.get(),
+                    max_file_size_mb=self.max_file_size_entry.get(),
+                    range_filters=self.range_entry.get(),
+                )
+                if cmd is None or cmd == "FLAGS_IN_SEARCH":
+                    continue
+
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONIOENCODING"] = "utf-8"
+                    proc = subprocess.Popen(
+                        cmd, cwd=folder,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        text=True, encoding="utf-8", errors="replace", env=env,
+                    )
+                    stdout, stderr = proc.communicate()
+                    if stdout:
+                        combined_stdout.append(f"── {folder} ──")
+                        combined_stdout.append(stdout)
+                        # Extract counts from this folder's output
+                        import re as _re_mf
+                        _clean = _re_mf.sub(r"\033\[[0-9;]*m", "", stdout)
+                        m = _re_mf.search(r"Found\s+(\d+)\s+match", _clean)
+                        if m:
+                            total_matches += int(m.group(1))
+                        f = _re_mf.search(r"Files searched:\s*(\d+)", _clean)
+                        if f:
+                            total_files += int(f.group(1))
+                except Exception:
+                    pass
+
+            elapsed = time.time() - start_time
+            combined = "\n".join(combined_stdout)
+            # Build a synthetic summary for _parse_summary_text
+            summary = (f"Files searched: {total_files}\n"
+                       f"Found {total_matches} match(es).\n"
+                       f"Elapsed time: {elapsed:.2f} seconds\n")
+            combined = combined + "\n" + summary
+
+            self.after(0, self._multi_folder_finished, combined, total_matches, total_files, elapsed, len(folders))
+
+        def _multi_folder_finished(self, combined_stdout, total_matches, total_files, elapsed, folder_count):
+            """Handle multi-folder search completion."""
+            try:
+                self.progress_bar.stop()
+            except Exception:
+                pass
+            self.progress_bar.grid_remove()
+            self.search_button.configure(text="Search", fg_color="green", hover_color="darkgreen")
+            self.search_entry.configure(state="normal")
+
+            self.status_label.configure(
+                text=f"{total_files} file(s) searched across {folder_count} folder(s) "
+                     f"— Found {total_matches} match(es) in {elapsed:.1f}s",
+                text_color="blue")
+            self._show_preview(combined_stdout)
 
         def _start_elapsed_timer(self):
             """Start the repeating timer that updates the elapsed-time display."""
@@ -9168,6 +9355,7 @@ def _launch_gui():
             settings["output_csv"] = (self.output_csv_var.get() == "on")
             settings["output_json"] = (self.output_json_var.get() == "on")
             settings["output_pdf"] = (self.output_pdf_var.get() == "on")
+            settings["output_html"] = (self.output_html_var.get() == "on")
             settings["inverse"] = (self.inverse_var.get() == "on")
             settings["expression"] = (self.expression_var.get() == "on")
             settings["whole_word"] = (self.whole_word_var.get() == "on")
@@ -9290,6 +9478,7 @@ def _launch_gui():
             self.output_csv_var.set("on" if config.get("output_csv") else "off")
             self.output_json_var.set("on" if config.get("output_json") else "off")
             self.output_pdf_var.set("on" if config.get("output_pdf") else "off")
+            self.output_html_var.set("on" if config.get("output_html") else "off")
             self.inverse_var.set("on" if config.get("inverse") else "off")
             self.expression_var.set("on" if config.get("expression") else "off")
             self.whole_word_var.set("on" if config.get("whole_word", _whole_word_default) else "off")
@@ -9397,6 +9586,7 @@ def _launch_gui():
             self.output_csv_var.set("off")
             self.output_json_var.set("off")
             self.output_pdf_var.set("off")
+            self.output_html_var.set("off")
             self.index_search_var.set("off")
             self.inverse_var.set("off")
             self.expression_var.set("off")
@@ -9505,6 +9695,7 @@ def _launch_gui():
                 "output_csv": self.output_csv_var.get() == "on",
                 "output_json": self.output_json_var.get() == "on",
                 "output_pdf": self.output_pdf_var.get() == "on",
+                "output_html": self.output_html_var.get() == "on",
                 "range_filters": self.range_entry.get().strip(),
                 "append_name": self.append_name_entry.get().strip(),
                 "save_name": self.save_name_entry.get().strip(),
@@ -9552,6 +9743,7 @@ def _launch_gui():
             self.output_csv_var.set("on" if params.get("output_csv") else "off")
             self.output_json_var.set("on" if params.get("output_json") else "off")
             self.output_pdf_var.set("on" if params.get("output_pdf") else "off")
+            self.output_html_var.set("on" if params.get("output_html") else "off")
             self.range_entry.delete(0, "end")
             self.range_entry.insert(0, params.get("range_filters", ""))
             self.append_name_entry.delete(0, "end")

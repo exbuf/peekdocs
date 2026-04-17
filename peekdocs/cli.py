@@ -72,7 +72,7 @@ BANNER_BOTTOM = (
     '  -A 5               Show 5 lines after each match\n'
     '  -B 5               Show 5 lines before each match\n'
     '  -m 5000            Max matches in reports (0 = no limit, default: 1000)\n'
-    '  -o csv,json,pdf    Additional output formats (csv, json, pdf, or any combination)\n'
+    '  -o csv,json,pdf,html  Additional output formats (any combination)\n'
     '  -s my_report       Save/archive the report with a name\n'
     '  -sa my_report      Append results to a named file across searches\n'
     '  --output-dir PATH  Write all output files to a specific folder\n'
@@ -117,7 +117,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "inverse", "timestamp", "pii_scan_custom_enabled", "pii_scan_custom2_enabled"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "pii_scan_custom_enabled", "pii_scan_custom2_enabled"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "pii_scan_custom_name", "pii_scan_custom_regex", "pii_scan_custom_severity", "pii_scan_custom2_name", "pii_scan_custom2_regex", "pii_scan_custom2_severity"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -187,7 +187,7 @@ from peekdocs.indexer import (  # noqa: E402
 from peekdocs.reporter import (  # noqa: E402
     fmt_size, write_txt_report, write_docx_report,
     insert_file_sizes, write_csv_report, write_json_report,
-    write_pdf_report, append_results,
+    write_pdf_report, write_html_report, append_results,
 )
 
 
@@ -960,6 +960,18 @@ def _main_inner(argv=None):
         except Exception as pdf_err:
             print(f"Warning: PDF report could not be generated ({pdf_err})")
             pdf_output_path = None
+
+    html_output_path = None
+    if "html" in output_formats:
+        html_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.html")
+        try:
+            write_html_report(
+                html_output_path, matches, search_terms=search_terms,
+                report_mode=report_mode, inverse_files=inverse_files,
+            )
+        except Exception as html_err:
+            print(f"Warning: HTML report could not be generated ({html_err})")
+            html_output_path = None
 
     if append_name is not None:
         append_results(append_name, output_dir, output_path, docx_output_path)
