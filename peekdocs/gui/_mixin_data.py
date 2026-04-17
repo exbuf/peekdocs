@@ -1,0 +1,1888 @@
+"""PeekDocs GUI — DataMixin."""
+
+import os
+import platform
+import re
+import subprocess
+import sys
+import threading
+import time
+from datetime import datetime
+
+import customtkinter as ctk
+
+from peekdocs.gui._tooltip import Tooltip
+from peekdocs.gui._helpers import (
+    _build_command_from_values,
+    _parse_summary_text,
+    _parse_matched_files,
+    _parse_inverse_files,
+    _build_wizard_regex,
+)
+import json
+import webbrowser
+from tkinter import filedialog, messagebox
+from importlib.metadata import version as pkg_version
+
+class DataMixin:
+    _TEXT_SIZE_SCALES = {
+        "Small": 0.85,
+        "Normal": 1.0,
+        "Large": 1.2,
+        "Extra Large": 1.4,
+        "Huge": 1.7,
+    }
+
+    _REFRESH_INTERVALS = {
+        "Off": 0, "5 min": 5, "15 min": 15, "30 min": 30,
+        "1 hour": 60, "4 hours": 240, "8 hours": 480, "24 hours": 1440,
+    }
+
+    def _save_current_settings(self):
+        """Save current Advanced Search Options state to ~/.peekdocsrc."""
+        from peekdocs.cli import _save_config, _config_path
+
+        settings = {}
+        # Boolean settings — always save both True and False
+        settings["recursive"] = (self.recursive_var.get() == "on")
+        settings["match_all"] = (self.and_mode_var.get() == "on")
+        settings["fuzzy"] = (self.fuzzy_var.get() == "on")
+        settings["wildcard"] = (self.wildcard_var.get() == "on")
+        settings["regex"] = (self.regex_var.get() == "on")
+        settings["ocr"] = (self.ocr_var.get() == "on")
+        settings["index_search"] = (self.index_search_var.get() == "on")
+        settings["output_csv"] = (self.output_csv_var.get() == "on")
+        settings["output_json"] = (self.output_json_var.get() == "on")
+        settings["output_pdf"] = (self.output_pdf_var.get() == "on")
+        settings["output_html"] = (self.output_html_var.get() == "on")
+        settings["inverse"] = (self.inverse_var.get() == "on")
+        settings["expression"] = (self.expression_var.get() == "on")
+        settings["whole_word"] = (self.whole_word_var.get() == "on")
+        settings["timestamp"] = (self.timestamp_var.get() == "on")
+        # Integer settings
+        cores_val = self.cores_entry.get().strip()
+        if cores_val:
+            try:
+                n = int(cores_val)
+                if n >= 1:
+                    settings["cores"] = n
+            except ValueError:
+                pass
+        cb = self.context_before_entry.get().strip()
+        if cb:
+            try:
+                n = int(cb)
+                if n >= 1:
+                    settings["context_before"] = n
+            except ValueError:
+                pass
+        ca = self.context_after_entry.get().strip()
+        if ca:
+            try:
+                n = int(ca)
+                if n >= 1:
+                    settings["context_after"] = n
+            except ValueError:
+                pass
+        prox = self.proximity_entry.get().strip()
+        if prox:
+            try:
+                n = int(prox)
+                if n >= 1:
+                    settings["proximity"] = n
+            except ValueError:
+                pass
+        mm = self.max_matches_entry.get().strip()
+        if mm:
+            try:
+                n = int(mm)
+                if n >= 0:
+                    settings["max_matches"] = n
+            except ValueError:
+                pass
+        mfs = self.max_file_size_entry.get().strip()
+        if mfs:
+            try:
+                n = int(mfs)
+                if n >= 0:
+                    settings["max_file_size_mb"] = n
+            except ValueError:
+                pass
+        # String settings
+        ft = self.file_types_entry.get().strip()
+        if ft:
+            settings["file_types"] = ft
+        search = self.search_entry.get().strip()
+        if search:
+            settings["search_terms"] = search
+        folder = self.folder_entry.get().strip()
+        if folder:
+            settings["folder"] = folder
+        exclude = self.exclude_entry.get().strip()
+        if exclude:
+            settings["exclude"] = exclude
+        specific = self.specific_files_entry.get().strip()
+        if specific:
+            settings["specific_files"] = specific
+        save_name = self.save_name_entry.get().strip()
+        if save_name:
+            settings["save_name"] = save_name
+        append_name = self.append_name_entry.get().strip()
+        if append_name:
+            settings["append_name"] = append_name
+        output_dir = self.output_dir_entry.get().strip()
+        if output_dir:
+            settings["output_dir"] = output_dir
+        range_val = self.range_entry.get().strip()
+        if range_val:
+            settings["range"] = range_val
+        refresh_val = self.refresh_interval_var.get()
+        if refresh_val != "Off":
+            settings["refresh_interval"] = refresh_val
+        settings["text_size"] = self._text_size_var.get()
+        settings["preview_size"] = self._preview_size_var.get()
+        if hasattr(self, "_appearance_mode") and self._appearance_mode != "System":
+            settings["appearance_mode"] = self._appearance_mode
+
+        if settings:
+            _save_config(settings)
+        else:
+            path = _config_path()
+            if os.path.exists(path):
+                os.remove(path)
+        self.status_label.configure(
+            text="Settings saved to ~/.peekdocsrc",
+            text_color="blue",
+            font=ctk.CTkFont(size=13),
+        )
+
+
+
+    def _load_saved_settings(self):
+        """Load saved settings from ~/.peekdocsrc and apply to GUI."""
+        from peekdocs.cli import _load_config
+
+        config = _load_config()
+        # Default Recursive and Whole Word to ON unless config explicitly says otherwise
+        _recursive_default = True
+        _whole_word_default = True
+        # Set booleans — reset to off if not in config (except recursive/whole_word)
+        self.recursive_var.set("on" if config.get("recursive", _recursive_default) else "off")
+        self.and_mode_var.set("on" if config.get("match_all") else "off")
+        if hasattr(self, "_sync_and_or_colors"):
+            self._sync_and_or_colors()
+        self.fuzzy_var.set("on" if config.get("fuzzy") else "off")
+        self.wildcard_var.set("on" if config.get("wildcard") else "off")
+        self.regex_var.set("on" if config.get("regex") else "off")
+        self.ocr_var.set("on" if config.get("ocr") else "off")
+        self.index_search_var.set("on" if config.get("index_search") else "off")
+        self.output_csv_var.set("on" if config.get("output_csv") else "off")
+        self.output_json_var.set("on" if config.get("output_json") else "off")
+        self.output_pdf_var.set("on" if config.get("output_pdf") else "off")
+        self.output_html_var.set("on" if config.get("output_html") else "off")
+        self.inverse_var.set("on" if config.get("inverse") else "off")
+        self.expression_var.set("on" if config.get("expression") else "off")
+        self.whole_word_var.set("on" if config.get("whole_word", _whole_word_default) else "off")
+        self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
+        # Clear and set entry fields
+        self.cores_entry.delete(0, "end")
+        if "cores" in config:
+            self.cores_entry.insert(0, str(config["cores"]))
+        self.context_before_entry.delete(0, "end")
+        if "context_before" in config:
+            self.context_before_entry.insert(0, str(config["context_before"]))
+        self.context_after_entry.delete(0, "end")
+        if "context_after" in config:
+            self.context_after_entry.insert(0, str(config["context_after"]))
+        self.proximity_entry.delete(0, "end")
+        if "proximity" in config:
+            self.proximity_entry.insert(0, str(config["proximity"]))
+        self.max_matches_entry.delete(0, "end")
+        if "max_matches" in config:
+            self.max_matches_entry.insert(0, str(config["max_matches"]))
+        else:
+            self.max_matches_entry.insert(0, "1000")
+        self.max_file_size_entry.delete(0, "end")
+        if "max_file_size_mb" in config:
+            self.max_file_size_entry.insert(0, str(config["max_file_size_mb"]))
+        else:
+            self.max_file_size_entry.insert(0, "100")
+        self.file_types_entry.delete(0, "end")
+        if "file_types" in config:
+            self.file_types_entry.insert(0, config["file_types"])
+        self.search_entry.delete(0, "end")
+        if "search_terms" in config:
+            self.search_entry.insert(0, config["search_terms"])
+        self.folder_entry.delete(0, "end")
+        if "folder" in config:
+            self.folder_entry.insert(0, config["folder"])
+        self.exclude_entry.delete(0, "end")
+        if "exclude" in config:
+            self.exclude_entry.insert(0, config["exclude"])
+        self.specific_files_entry.delete(0, "end")
+        if "specific_files" in config:
+            self.specific_files_entry.insert(0, config["specific_files"])
+        self.save_name_entry.delete(0, "end")
+        if "save_name" in config:
+            self.save_name_entry.insert(0, config["save_name"])
+        self.append_name_entry.delete(0, "end")
+        if "append_name" in config:
+            self.append_name_entry.insert(0, config["append_name"])
+        self.output_dir_entry.delete(0, "end")
+        if "output_dir" in config:
+            self.output_dir_entry.insert(0, config["output_dir"])
+        self.range_entry.delete(0, "end")
+        if "range" in config:
+            self.range_entry.insert(0, config["range"])
+        self._update_index_button_color()
+        # Restore auto-refresh interval
+        refresh_interval = config.get("refresh_interval", "Off")
+        if refresh_interval not in self._REFRESH_INTERVALS:
+            refresh_interval = "Off"
+        self.refresh_interval_var.set(refresh_interval)
+        self._on_refresh_interval_changed(refresh_interval)
+        # Restore text size
+        text_size = config.get("text_size", "Normal")
+        if text_size not in self._TEXT_SIZE_SCALES:
+            text_size = "Normal"
+        self._text_size_var.set(text_size)
+        self._on_text_size_changed(text_size)
+        # Restore preview size
+        preview_size = config.get("preview_size", "11")
+        if preview_size not in ("8", "9", "10", "11", "12", "13", "14", "16", "18", "20"):
+            preview_size = "11"
+        self._preview_size_var.set(preview_size)
+        self._on_preview_size_changed(preview_size)
+        # Restore appearance mode
+        appearance = config.get("appearance_mode", "System")
+        if appearance not in ("System", "Light", "Dark"):
+            appearance = "System"
+        self._set_appearance_mode(appearance)
+
+
+
+    def _inspect_settings(self):
+        """Show the current saved settings from ~/.peekdocsrc in a read-only popup."""
+        from peekdocs.cli import _config_path
+        import tkinter as tk
+
+        path = _config_path()
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+        else:
+            content = "(No settings file found)"
+
+        win = tk.Toplevel(self)
+        win.title("Saved Settings")
+        win.resizable(True, True)
+        line_count = content.count("\n") + 1
+        max_line_len = max((len(line) for line in content.split("\n")), default=30)
+        win_w = max(380, min(550, max_line_len * 9 + 40))
+        win_h = max(200, min(500, line_count * 26 + 80))
+        win.geometry(f"{win_w}x{win_h}")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - win_w) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+        win.geometry(f"+{x}+{y}")
+
+        tk.Label(
+            win, text="Saved Settings (read-only)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        tk.Label(
+            win, text=path,
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 8))
+        tk.Label(
+            win, text=content, font=("TkDefaultFont", 12),
+            justify="left", anchor="nw", padx=15, pady=10,
+        ).pack(fill="both", expand=True)
+        tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
+
+
+
+    def _on_preview_size_changed(self, value):
+        """Change the Results Preview font size."""
+        try:
+            size = int(value)
+        except ValueError:
+            return
+        self._preview_font_size = size
+        self._apply_preview_font(size)
+
+
+
+    def _apply_preview_font(self, size):
+        """Apply a font size to the preview text widget and its tags."""
+        if hasattr(self, 'preview_text'):
+            self.preview_text.configure(font=("Courier", size))
+            self.preview_text.tag_configure("filename", font=("Courier", size, "bold"))
+            self.preview_text.tag_configure("line_num", font=("Courier", size))
+
+
+
+    def _scaled_font(self, base_size=12, weight="normal"):
+        """Return a font tuple scaled by the current Text Size setting."""
+        scale = self._TEXT_SIZE_SCALES.get(self._text_size_var.get(), 1.0)
+        size = max(8, int(base_size * scale))
+        if weight == "bold":
+            return ("TkDefaultFont", size, "bold")
+        return ("TkDefaultFont", size)
+
+
+
+    def _on_text_size_changed(self, value):
+        """Scale all GUI widgets and auto-save the setting."""
+        scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
+        ctk.set_widget_scaling(scale)
+        # Shorten row 3 button labels at Extra Large and Huge to save width
+        try:
+            if value in ("Extra Large", "Huge"):
+                self.search_button.configure(text="Run")
+                self.save_to_collection_btn.configure(text="\u25b6 Save")
+                self.load_search_btn.configure(text="\u25b6 Reload")
+            else:
+                self.search_button.configure(text="Run Search")
+                self.save_to_collection_btn.configure(text="\u25b6 Save")
+                self.load_search_btn.configure(text="\u25b6 Reload")
+        except Exception:
+            pass
+        # Update preview size dropdown to match the scaled size
+        if hasattr(self, '_preview_size_var'):
+            base_size = 11
+            scaled_size = max(8, int(base_size * scale))
+            self._preview_font_size = scaled_size
+            self._preview_size_var.set(str(scaled_size))
+            self._apply_preview_font(scaled_size)
+        # Auto-save so it persists between app invocations
+        try:
+            from peekdocs.cli import _load_config, _save_config
+            cfg = _load_config()
+            if value == "Normal":
+                cfg.pop("text_size", None)
+            else:
+                cfg["text_size"] = value
+            _save_config(cfg)
+        except Exception:
+            pass
+        # Re-sync input field widths after scaling change
+        self.after(200, self._sync_input_widths)
+
+
+
+    def _show_search_history(self):
+        """Display the search history log."""
+        import tkinter as tk
+
+        history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+        history = []
+        if os.path.exists(history_path):
+            try:
+                import json
+                with open(history_path, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+            except Exception:
+                pass
+
+        popup = tk.Toplevel(self)
+        popup.title("Search History")
+        popup.resizable(True, True)
+        popup.geometry("850x500")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 850) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        tk.Label(
+            popup,
+            text=f"Search History — {len(history)} search(es)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+
+        tk.Label(
+            popup,
+            text="Your past searches with results — most recent first",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 5))
+
+        if not history:
+            tk.Label(
+                popup,
+                text="\nNo search history yet.\n\nRun a search and it will be logged here automatically.",
+                font=("TkDefaultFont", 12), justify="center",
+            ).pack(expand=True)
+        else:
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("Courier", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            listbox.insert("end", f"{'Date':>19}  {'Matches':>8}  {'Files':>6}  {'Time':>6}  Search Terms")
+            listbox.insert("end", f"{'─' * 19}  {'─' * 8}  {'─' * 6}  {'─' * 6}  {'─' * 30}")
+
+            for entry in reversed(history):
+                ts = entry.get("timestamp", "")[:19].replace("T", " ")
+                matches = entry.get("matches", "?")
+                files = entry.get("files", "?")
+                elapsed = entry.get("elapsed", "")
+                elapsed_str = f"{float(elapsed):.1f}s" if elapsed else "—"
+                terms = entry.get("search_text", "")
+                if len(terms) > 40:
+                    terms = terms[:37] + "..."
+                listbox.insert("end", f"{ts}  {matches:>8}  {files:>6}  {elapsed_str:>6}  {terms}")
+
+        btn_frame = tk.Frame(popup)
+        btn_frame.pack(pady=(5, 10))
+
+        if history:
+            clear_btn = ctk.CTkButton(
+                btn_frame, text="Clear History", width=100,
+                fg_color="#CC3333", hover_color="#AA2222",
+                command=lambda: self._clear_search_history(popup),
+                font=ctk.CTkFont(size=12),
+            )
+            clear_btn.pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            btn_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=5)
+
+
+
+    def _clear_search_history(self, popup):
+        """Clear all search history after confirmation."""
+        from tkinter import messagebox
+        if messagebox.askyesno("Clear History",
+                               "Delete all search history? This cannot be undone.",
+                               parent=popup):
+            history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+            try:
+                if os.path.exists(history_path):
+                    os.remove(history_path)
+            except Exception:
+                pass
+            popup.destroy()
+            self.status_label.configure(
+                text="Search history cleared.", text_color="blue")
+
+    # ── Bookmarks ────────────────────────────────────────────
+
+
+
+    def _get_bookmarks_path(self):
+        """Return the path to the bookmarks file."""
+        return os.path.join(os.path.expanduser("~"), ".peekdocs_bookmarks.json")
+
+
+
+    def _load_bookmarks(self):
+        """Load bookmarks from disk."""
+        import json
+        path = self._get_bookmarks_path()
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return []
+
+
+
+    def _save_bookmarks_list(self, bookmarks):
+        """Save bookmarks to disk."""
+        import json
+        path = self._get_bookmarks_path()
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(bookmarks, f, indent=2)
+        except Exception:
+            pass
+
+
+
+    def add_bookmark(self, filepath, note=""):
+        """Add a file to bookmarks."""
+        from datetime import datetime
+        bookmarks = self._load_bookmarks()
+        # Don't add duplicates
+        for bm in bookmarks:
+            if bm.get("filepath") == filepath:
+                self.status_label.configure(
+                    text=f"Already bookmarked: {os.path.basename(filepath)}",
+                    text_color="blue")
+                return
+        bookmarks.append({
+            "filepath": filepath,
+            "filename": os.path.basename(filepath),
+            "note": note,
+            "added": datetime.now().isoformat(),
+        })
+        self._save_bookmarks_list(bookmarks)
+        self.status_label.configure(
+            text=f"Bookmarked: {os.path.basename(filepath)}",
+            text_color="blue")
+
+
+
+    def _show_bookmarks(self):
+        """Display bookmarked files."""
+        import tkinter as tk
+
+        bookmarks = self._load_bookmarks()
+
+        popup = tk.Toplevel(self)
+        popup.title("Bookmarks")
+        popup.resizable(True, True)
+        popup.geometry("800x480")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 480) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        tk.Label(
+            popup,
+            text=f"Bookmarks — {len(bookmarks)} file(s)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+
+        tk.Label(
+            popup,
+            text="Double-click a file to open it. Use the Matched Files popup to add bookmarks.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 5))
+
+        if not bookmarks:
+            tk.Label(
+                popup,
+                text="\nNo bookmarks yet.\n\nIn the Matched Files popup after a search,\n"
+                     "right-click a file and choose 'Add Bookmark' to pin it here.",
+                font=("TkDefaultFont", 12), justify="center",
+            ).pack(expand=True)
+        else:
+            list_frame = tk.Frame(popup)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side="right", fill="y")
+
+            listbox = tk.Listbox(
+                list_frame, font=("TkDefaultFont", 11),
+                selectmode=tk.SINGLE, activestyle="none",
+                bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                highlightthickness=0, borderwidth=1, relief="sunken",
+                yscrollcommand=scrollbar.set,
+            )
+            listbox.pack(side="left", fill="both", expand=True)
+            scrollbar.config(command=listbox.yview)
+
+            _bm_paths = []
+            for bm in bookmarks:
+                fp = bm.get("filepath", "")
+                fname = bm.get("filename", os.path.basename(fp))
+                added = bm.get("added", "")[:10]
+                note = bm.get("note", "")
+                exists = os.path.exists(fp)
+                marker = "" if exists else " [MISSING]"
+                line = f"  {fname}{marker}"
+                if note:
+                    line += f"  — {note}"
+                line += f"  ({added})"
+                listbox.insert("end", line)
+                _bm_paths.append(fp)
+
+            def _on_double_click(event):
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                fp = _bm_paths[sel[0]]
+                if os.path.exists(fp):
+                    import subprocess, sys
+                    if sys.platform == "darwin":
+                        subprocess.Popen(["open", fp])
+                    elif sys.platform == "win32":
+                        os.startfile(fp)
+                    else:
+                        subprocess.Popen(["xdg-open", fp])
+
+            listbox.bind("<Double-1>", _on_double_click)
+
+            def _remove_selected():
+                sel = listbox.curselection()
+                if not sel:
+                    return
+                idx = sel[0]
+                bookmarks.pop(idx)
+                self._save_bookmarks_list(bookmarks)
+                listbox.delete(idx)
+                _bm_paths.pop(idx)
+
+            # Right-click context menu
+            ctx_menu = tk.Menu(popup, tearoff=0)
+            ctx_menu.add_command(label="Remove Bookmark", command=_remove_selected)
+
+            def _show_ctx(event):
+                idx = listbox.nearest(event.y)
+                if idx >= 0:
+                    listbox.selection_clear(0, "end")
+                    listbox.selection_set(idx)
+                ctx_menu.tk_popup(event.x_root, event.y_root)
+
+            listbox.bind("<Button-3>", _show_ctx)
+            if sys.platform == "darwin":
+                listbox.bind("<Button-2>", _show_ctx)
+
+        btn_frame = tk.Frame(popup)
+        btn_frame.pack(pady=(5, 10))
+
+        if bookmarks:
+            remove_btn = ctk.CTkButton(
+                btn_frame, text="Remove Selected", width=120,
+                fg_color="#CC3333", hover_color="#AA2222",
+                command=lambda: _remove_selected() if bookmarks else None,
+                font=ctk.CTkFont(size=12),
+            )
+            remove_btn.pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            btn_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=5)
+
+
+
+    def _save_to_collection(self):
+        """Save current search config to the folder's collection file."""
+        import tkinter as tk
+        from peekdocs.collection import add_saved_search, load_collection
+
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Select a valid folder before saving.")
+            return
+        search_text = self.search_entry.get().strip()
+        if not search_text:
+            self._show_error("Enter search terms before saving.")
+            return
+
+        # Prompt for a name
+        dialog = tk.Toplevel(self)
+        dialog.title("Save to Collection")
+        dialog.resizable(False, False)
+        w, h = 350, 150
+        x = self.winfo_rootx() + (self.winfo_width() - w) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - h) // 2
+        dialog.geometry(f"{w}x{h}+{x}+{y}")
+        dialog.transient(self)
+        try:
+            dialog.grab_set()
+        except Exception:
+            dialog.after(150, lambda: dialog.grab_set() if dialog.winfo_exists() else None)
+
+        frame = ctk.CTkFrame(dialog)
+        frame.pack(fill="both", expand=True)
+
+        ctk.CTkLabel(frame, text="Search name:", font=ctk.CTkFont(size=13)).pack(
+            padx=15, pady=(15, 5), anchor="w"
+        )
+        name_entry = ctk.CTkEntry(frame, font=ctk.CTkFont(size=13))
+        name_entry.pack(padx=15, fill="x")
+        name_entry.focus_set()
+
+        def do_save(_event=None):
+            name = name_entry.get().strip()
+            if not name:
+                return
+            try:
+                existing = load_collection(folder)
+                if name in existing["saved_searches"]:
+                    from tkinter import messagebox as mb
+                    if not mb.askyesno("Overwrite?", f"'{name}' already exists. Overwrite?", parent=dialog):
+                        return
+                params = self._collect_gui_params()
+                add_saved_search(folder, name, params)
+                dialog.destroy()
+                self.status_label.configure(
+                    text=f"Search '{name}' saved to collection.",
+                    text_color="blue", font=ctk.CTkFont(size=13),
+                )
+                self._refresh_load_search_menu()
+            except Exception as exc:
+                self._show_error(f"Failed to save search: {exc}")
+
+        name_entry.bind("<Return>", do_save)
+        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        btn_frame.pack(pady=(10, 2))
+        ctk.CTkButton(btn_frame, text="Save", width=70, font=ctk.CTkFont(size=12),
+                      command=do_save).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Cancel", width=70, font=ctk.CTkFont(size=12),
+                      command=dialog.destroy).pack(side="left", padx=5)
+        close_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        close_frame.pack(pady=(0, 10))
+        ctk.CTkButton(close_frame, text="Close", width=80,
+                      fg_color="transparent", text_color=("gray30", "gray70"),
+                      hover_color=("gray90", "gray25"),
+                      font=ctk.CTkFont(size=12),
+                      command=dialog.destroy).pack()
+
+    # ── Search Wizard ────────────────────────────────────────
+
+
+
+    def _collect_gui_params(self):
+        """Collect current search parameters from GUI widgets into a dict."""
+        return {
+            "search_text": self.search_entry.get().strip(),
+            "and_mode": self.and_mode_var.get() == "on",
+            "recursive": self.recursive_var.get() == "on",
+            "fuzzy": self.fuzzy_var.get() == "on",
+            "wildcard": self.wildcard_var.get() == "on",
+            "ocr": self.ocr_var.get() == "on",
+            "regex": self.regex_var.get() == "on",
+            "exclude": self.exclude_entry.get().strip(),
+            "file_types": self.file_types_entry.get().strip(),
+            "proximity": self.proximity_entry.get().strip(),
+            "context_before": self.context_before_entry.get().strip(),
+            "context_after": self.context_after_entry.get().strip(),
+            "cores": self.cores_entry.get().strip(),
+            "max_matches": self.max_matches_entry.get().strip(),
+            "max_file_size_mb": self.max_file_size_entry.get().strip(),
+            "specific_files": self.specific_files_entry.get().strip(),
+            "index_search": self.index_search_var.get() == "on",
+            "inverse": self.inverse_var.get() == "on",
+            "expression": self.expression_var.get() == "on",
+            "whole_word": self.whole_word_var.get() == "on",
+            "output_csv": self.output_csv_var.get() == "on",
+            "output_json": self.output_json_var.get() == "on",
+            "output_pdf": self.output_pdf_var.get() == "on",
+            "output_html": self.output_html_var.get() == "on",
+            "range_filters": self.range_entry.get().strip(),
+            "append_name": self.append_name_entry.get().strip(),
+            "save_name": self.save_name_entry.get().strip(),
+            "timestamp": self.timestamp_var.get() == "on",
+        }
+
+
+
+    def _apply_params_to_gui(self, params):
+        """Set GUI widgets to match a saved search's parameter dict."""
+        self.search_entry.delete(0, "end")
+        self.search_entry.insert(0, params.get("search_text", ""))
+        self.and_mode_var.set("on" if params.get("and_mode") else "off")
+        if hasattr(self, "_sync_and_or_colors"):
+            self._sync_and_or_colors()
+        self.recursive_var.set("on" if params.get("recursive") else "off")
+        self.fuzzy_var.set("on" if params.get("fuzzy") else "off")
+        self.wildcard_var.set("on" if params.get("wildcard") else "off")
+        self.ocr_var.set("on" if params.get("ocr") else "off")
+        self.regex_var.set("on" if params.get("regex") else "off")
+        self.exclude_entry.delete(0, "end")
+        self.exclude_entry.insert(0, params.get("exclude", ""))
+        self.file_types_entry.delete(0, "end")
+        self.file_types_entry.insert(0, params.get("file_types", ""))
+        self.proximity_entry.delete(0, "end")
+        self.proximity_entry.insert(0, params.get("proximity", ""))
+        self.context_before_entry.delete(0, "end")
+        self.context_before_entry.insert(0, params.get("context_before", ""))
+        self.context_after_entry.delete(0, "end")
+        self.context_after_entry.insert(0, params.get("context_after", ""))
+        self.cores_entry.delete(0, "end")
+        self.cores_entry.insert(0, params.get("cores", "") or str(self._default_cores))
+        self.max_matches_entry.delete(0, "end")
+        self.max_matches_entry.insert(0, params.get("max_matches", "") or "1000")
+        self.max_file_size_entry.delete(0, "end")
+        self.max_file_size_entry.insert(0, params.get("max_file_size_mb", "") or "100")
+        self.specific_files_entry.delete(0, "end")
+        self.specific_files_entry.insert(0, params.get("specific_files", ""))
+        self.index_search_var.set("on" if params.get("index_search") else "off")
+        self.inverse_var.set("on" if params.get("inverse") else "off")
+        self.expression_var.set("on" if params.get("expression") else "off")
+        self.whole_word_var.set("on" if params.get("whole_word") else "off")
+        if params.get("expression"):
+            self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
+        else:
+            self.search_entry.configure(placeholder_text="Enter search terms...")
+        self.output_csv_var.set("on" if params.get("output_csv") else "off")
+        self.output_json_var.set("on" if params.get("output_json") else "off")
+        self.output_pdf_var.set("on" if params.get("output_pdf") else "off")
+        self.output_html_var.set("on" if params.get("output_html") else "off")
+        self.range_entry.delete(0, "end")
+        self.range_entry.insert(0, params.get("range_filters", ""))
+        self.append_name_entry.delete(0, "end")
+        self.append_name_entry.insert(0, params.get("append_name", ""))
+        self.save_name_entry.delete(0, "end")
+        self.save_name_entry.insert(0, params.get("save_name", ""))
+        self.timestamp_var.set("on" if params.get("timestamp") else "off")
+
+
+
+    def _show_matched_files_popup(self):
+        """Show a popup listing all matched files. Click a file to open it."""
+        if not self.matched_files:
+            return
+        import tkinter as tk
+
+        popup = tk.Toplevel(self)
+        count = len(self.matched_files)
+        if self._inverse_results:
+            heading = f"Files Without Matches ({count})"
+        else:
+            heading = f"Matched Files ({count})"
+        popup.title(heading)
+        popup.resizable(True, True)
+        win_h = max(320, min(650, count * 28 + 180))
+        popup.geometry(f"500x{win_h}")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        header_frame = tk.Frame(popup)
+        header_frame.pack(fill="x", padx=10, pady=(10, 2))
+        tk.Label(
+            header_frame, text=heading,
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left", expand=True)
+        help_btn = ctk.CTkButton(
+            header_frame, text="?", width=30, height=26,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=lambda: self._show_matched_files_help(popup),
+        )
+        help_btn.pack(side="right")
+        tk.Label(
+            popup, text="Double-click a file to open it",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 8))
+
+        list_frame = tk.Frame(popup)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        listbox = tk.Listbox(
+            list_frame, font=("TkDefaultFont", 12),
+            selectmode=tk.SINGLE, activestyle="none",
+            bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+            highlightthickness=0, borderwidth=1, relief="sunken",
+            yscrollcommand=scrollbar.set,
+        )
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=listbox.yview)
+
+        for item in self.matched_files:
+            filepath, filename, match_count = item[0], item[1], item[2]
+            line_nums = item[3] if len(item) > 3 else []
+            label = f"{filename} ({match_count} match{'es' if match_count != 1 else ''}"
+            if line_nums:
+                # Show up to 10 line numbers, then ellipsis
+                shown = line_nums[:10]
+                lines_str = ", ".join(str(n) for n in shown)
+                if len(line_nums) > 10:
+                    lines_str += ", ..."
+                label += f" — lines {lines_str}"
+            label += ")"
+            listbox.insert("end", label)
+
+        def _on_click(event):
+            selection = listbox.curselection()
+            if not selection:
+                return
+            filepath = self.matched_files[selection[0]][0]
+            if not os.path.exists(filepath):
+                self._show_error(f"File not found: {filepath}")
+                return
+            system = platform.system()
+            if system == "Darwin":
+                subprocess.Popen(["open", filepath])
+            elif system == "Windows":
+                os.startfile(filepath)  # type: ignore[attr-defined]
+            else:
+                subprocess.Popen(["xdg-open", filepath])
+
+        listbox.bind("<Double-1>", _on_click)
+
+        # Right-click context menu with Bookmark option
+        _ctx = tk.Menu(popup, tearoff=0)
+
+        def _bookmark_selected():
+            sel = listbox.curselection()
+            if not sel:
+                return
+            fp = self.matched_files[sel[0]][0]
+            self.add_bookmark(fp)
+
+        _ctx.add_command(label="Add Bookmark", command=_bookmark_selected)
+
+        def _show_ctx(event):
+            idx = listbox.nearest(event.y)
+            if idx >= 0:
+                listbox.selection_clear(0, "end")
+                listbox.selection_set(idx)
+            _ctx.tk_popup(event.x_root, event.y_root)
+
+        listbox.bind("<Button-3>", _show_ctx)
+        if sys.platform == "darwin":
+            listbox.bind("<Button-2>", _show_ctx)
+
+        def _view_text():
+            selection = listbox.curselection()
+            if not selection:
+                return
+            filepath, filename = self.matched_files[selection[0]][0], self.matched_files[selection[0]][1]
+            if not os.path.exists(filepath):
+                self._show_error(f"File not found: {filepath}")
+                return
+            self._show_file_text_view(filepath, filename)
+
+        btn_frame = tk.Frame(popup)
+        btn_frame.pack(pady=(5, 10))
+
+        view_btn = tk.Label(
+            btn_frame, text="View Text (with line numbers)",
+            font=("TkDefaultFont", 13, "bold"),
+            bg="#FF6B35", fg="white",
+            relief="raised", borderwidth=2,
+            padx=20, pady=8, cursor="hand2",
+        )
+        view_btn.pack(side="left", padx=5)
+        view_btn.bind("<Button-1>", lambda e: _view_text())
+        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#E55A2B"))
+        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF6B35"))
+
+        close_btn = tk.Label(
+            btn_frame, text="Close",
+            font=("TkDefaultFont", 13, "bold"),
+            bg="#888888", fg="white",
+            relief="raised", borderwidth=2,
+            padx=20, pady=8, cursor="hand2",
+        )
+        close_btn.pack(side="left", padx=5)
+        close_btn.bind("<Button-1>", lambda e: popup.destroy())
+        close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
+        close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
+
+
+
+    def _show_excluded_files_popup(self):
+        """Show a popup listing files excluded from the search with reasons."""
+        import tkinter as tk
+        if not self._excluded_files:
+            return
+        popup = tk.Toplevel(self)
+        popup.title(f"Excluded Files ({len(self._excluded_files)})")
+        popup.resizable(True, True)
+        popup.geometry("800x500")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        header_frame = tk.Frame(popup)
+        header_frame.pack(fill="x", padx=10, pady=(10, 2))
+        tk.Label(
+            header_frame, text=f"Files Excluded from Search ({len(self._excluded_files)})",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left", expand=True)
+        help_btn = ctk.CTkButton(
+            header_frame, text="?", width=30, height=26,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=lambda: self._show_excluded_files_help(popup),
+        )
+        help_btn.pack(side="right")
+        tk.Label(
+            popup, text="These files were in your search folder but were not searched. "
+                        "Each is shown with the reason why.",
+            font=("TkDefaultFont", 11), fg="gray",
+        ).pack(pady=(0, 8))
+
+        list_frame = tk.Frame(popup)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        listbox = tk.Listbox(
+            list_frame, font=("TkDefaultFont", 11),
+            selectmode=tk.SINGLE, activestyle="none",
+            bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+            highlightthickness=0, borderwidth=1, relief="sunken",
+            yscrollcommand=scrollbar.set,
+        )
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=listbox.yview)
+
+        # Group by reason for easier scanning
+        from collections import defaultdict
+        by_reason = defaultdict(list)
+        for filepath, reason in self._excluded_files:
+            by_reason[reason].append(filepath)
+
+        for reason in sorted(by_reason.keys()):
+            files = by_reason[reason]
+            listbox.insert("end", f"── {reason} ({len(files)} file(s)) ──")
+            for fp in sorted(files):
+                listbox.insert("end", f"    {os.path.basename(fp)}")
+            listbox.insert("end", "")
+
+        tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+
+
+
+    def _show_app_files(self):
+        """List all peekdocs-created files in the search folder and subfolders."""
+        import tkinter as tk
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a search folder first.")
+            return
+
+        # Categorize peekdocs-generated files
+        app_files = []  # list of (filepath, category)
+        _INTERNAL_NAMES = {
+            ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
+            ".peekdocs_collection.json", "peekdocs_errors.log",
+        }
+
+        for root, dirs, files in os.walk(folder):
+            for fname in files:
+                filepath = os.path.join(root, fname)
+
+                if fname.startswith("peekdocs_results"):
+                    app_files.append((filepath, "Search results"))
+                elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
+                    app_files.append((filepath, "PII scan reports"))
+                elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
+                    app_files.append((filepath, "Accumulated results"))
+                elif fname.startswith("DO_NOT_SEARCH"):
+                    app_files.append((filepath, "peekdocs reports"))
+                elif fname == "peekdocs_errors.log":
+                    app_files.append((filepath, "Error log"))
+                elif fname == ".peekdocs.db":
+                    app_files.append((filepath, "Search index"))
+                elif fname in (".peekdocs.db-wal", ".peekdocs.db-shm"):
+                    app_files.append((filepath, "Index temp files"))
+                elif fname == ".peekdocs_collection.json":
+                    app_files.append((filepath, "Saved searches \u2014 DO NOT DELETE"))
+
+        # Also check home directory for .peekdocsrc
+        rc_path = os.path.expanduser("~/.peekdocsrc")
+        if os.path.exists(rc_path):
+            app_files.append((rc_path, "Settings \u2014 DO NOT DELETE"))
+
+        if not app_files:
+            self.status_label.configure(
+                text="No peekdocs files found in this folder.",
+                text_color="blue",
+            )
+            return
+
+        popup = tk.Toplevel(self)
+        popup.title(f"peekdocs App Files ({len(app_files)})")
+        popup.resizable(True, True)
+        popup.geometry("1000x500")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 1000) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        tk.Label(
+            popup, text=f"peekdocs Files ({len(app_files)} file(s) in {folder})",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        tk.Label(
+            popup, text="Files created by peekdocs in this folder and subfolders. "
+                        "Items marked DO NOT DELETE contain your saved work. "
+                        ".peekdocs_collection.json holds all saved searches for that "
+                        "folder \u2014 back it up before major changes.",
+            font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
+        ).pack(pady=(0, 8), padx=15)
+
+        list_frame = tk.Frame(popup)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        listbox = tk.Listbox(
+            list_frame, font=("TkDefaultFont", 11),
+            selectmode=tk.SINGLE, activestyle="none",
+            bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+            highlightthickness=0, borderwidth=1, relief="sunken",
+            yscrollcommand=scrollbar.set,
+        )
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=listbox.yview)
+
+        # Group by category
+        from collections import defaultdict
+        by_category = defaultdict(list)
+        for display, category in app_files:
+            by_category[category].append(display)
+
+        _CATEGORY_DESCRIPTIONS = {
+            "Saved searches \u2014 DO NOT DELETE":
+                "    These .peekdocs_collection.json files store your saved searches.\n"
+                "    One per folder. Back these up \u2014 they represent all your saved\n"
+                "    search configurations.",
+            "Settings \u2014 DO NOT DELETE":
+                "    Your ~/.peekdocsrc file stores your Advanced Search Options\n"
+                "    settings and other saved defaults.\n"
+                "    Back this up \u2014 it contains your personalized configuration.",
+            "Search index":
+                "    SQLite database storing extracted text for faster repeated searches.\n"
+                "    Safe to delete \u2014 rebuild anytime with Build Index(es).",
+            "Search results":
+                "    Output files from previous searches. Safe to delete.",
+            "PII scan reports":
+                "    Reports generated by the PII Scan feature. Safe to delete.",
+            "Error log":
+                "    Log of files that could not be read. Safe to delete.",
+        }
+
+        for category in sorted(by_category.keys()):
+            files = by_category[category]
+            idx = listbox.size()
+            listbox.insert("end", f"\u2500\u2500 {category} ({len(files)} file(s)) \u2500\u2500")
+            listbox.itemconfig(idx, fg="#FFD700")
+            desc = _CATEGORY_DESCRIPTIONS.get(category)
+            if desc:
+                for desc_line in desc.split("\n"):
+                    desc_idx = listbox.size()
+                    listbox.insert("end", desc_line)
+                    listbox.itemconfig(desc_idx, fg="#FFD700")
+            for fp in sorted(files):
+                listbox.insert("end", f"    {fp}")
+            listbox.insert("end", "")
+
+        tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+
+
+
+    def _show_all_collections(self):
+        """Scan home directory for all .peekdocs_collection.json files and display a summary."""
+        import tkinter as tk
+        from collections import defaultdict
+        from peekdocs.collection import COLLECTION_FILENAME, load_collection
+
+        home = os.path.expanduser("~")
+        self.status_label.configure(text="Scanning for saved collections…", text_color="blue")
+        self.update_idletasks()
+
+        # Walk home directory to find all collection files
+        collections = []  # list of (folder_path, n_searches, search_names)
+        try:
+            for root, dirs, files in os.walk(home):
+                # Skip hidden dirs (except those containing collection files),
+                # common large dirs, and virtual environments
+                dirs[:] = [
+                    d for d in dirs
+                    if not d.startswith(".")
+                    and d not in ("node_modules", "__pycache__", "venv", ".venv",
+                                  "Library", "Applications", "AppData")
+                ]
+                if COLLECTION_FILENAME in files:
+                    folder = root
+                    data = load_collection(folder)
+                    searches = sorted(data.get("saved_searches", {}).keys())
+                    if searches:
+                        collections.append((folder, len(searches), searches))
+        except (OSError, PermissionError):
+            pass
+
+        if not collections:
+            self.status_label.configure(
+                text="No saved collections found.",
+                text_color="blue",
+            )
+            self._show_simple_popup(
+                title="All Collections",
+                heading="No Saved Collections Found",
+                message=(
+                    "No .peekdocs_collection.json files were found under your home directory.\n\n"
+                    "Collections are created the first time you click Save on the main screen. "
+                    "Each folder gets its own collection of saved searches."
+                ),
+            )
+            return
+
+        self.status_label.configure(
+            text=f"Found {len(collections)} collection(s).",
+            text_color="blue",
+        )
+
+        popup = tk.Toplevel(self)
+        popup.title(f"All Saved Collections ({len(collections)} folder(s))")
+        popup.resizable(True, True)
+        popup.geometry("1050x550")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 1050) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        total_searches = sum(c[1] for c in collections)
+        tk.Label(
+            popup,
+            text=f"Saved Collections — {len(collections)} folder(s), "
+                 f"{total_searches} search(es)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        tk.Label(
+            popup,
+            text="All .peekdocs_collection.json files found under your home directory. "
+                 "Double-click a folder path to switch to it.",
+            font=("TkDefaultFont", 11), fg="gray",
+        ).pack(pady=(0, 8))
+
+        list_frame = tk.Frame(popup)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        listbox = tk.Listbox(
+            list_frame, font=("TkDefaultFont", 11),
+            selectmode=tk.SINGLE, activestyle="none",
+            bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+            highlightthickness=0, borderwidth=1, relief="sunken",
+            yscrollcommand=scrollbar.set,
+        )
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=listbox.yview)
+
+        # Track which folder each listbox index belongs to (for double-click-to-switch)
+        folder_indices = {}  # index -> folder_path
+
+        for folder, n_searches, searches in sorted(collections, key=lambda c: c[0]):
+            idx = listbox.size()
+            listbox.insert("end", f"\u2500\u2500 {folder} \u2500\u2500")
+            listbox.itemconfig(idx, fg="#FFD700")
+            folder_indices[idx] = folder
+
+            summary = f"    {n_searches} saved search(es)"
+            idx = listbox.size()
+            listbox.insert("end", summary)
+            folder_indices[idx] = folder
+
+            for s in searches:
+                idx = listbox.size()
+                listbox.insert("end", f"        {s}")
+                folder_indices[idx] = folder
+            listbox.insert("end", "")
+
+        def _on_double_click(event):
+            sel = listbox.curselection()
+            if not sel:
+                return
+            idx = sel[0]
+            if idx in folder_indices:
+                folder = folder_indices[idx]
+                self.folder_entry.delete(0, "end")
+                self.folder_entry.insert(0, folder)
+                self._refresh_load_search_menu()
+                self.status_label.configure(
+                    text=f"Switched to: {folder}",
+                    text_color="blue",
+                )
+                popup.destroy()
+
+        listbox.bind("<Double-1>", _on_double_click)
+
+        ctk.CTkButton(
+            popup, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
+
+
+    def _show_file_text_view(self, filepath, filename, highlight_regex_pattern=None):
+        """Display extracted text of a file with line numbers and match highlighting.
+
+        If highlight_regex_pattern is provided, matches for that regex are
+        highlighted instead of matches for the main search bar's terms. This
+        is used by the PII Scan View Files popup so the highlights reflect
+        the PII category (SSN, credit card, etc.) rather than whatever is
+        currently in the search bar.
+        """
+        import tkinter as tk
+        from peekdocs.scanner import _extract_lines, _ocr_image
+        import re as _re_view
+
+        try:
+            lines = _extract_lines(filepath, use_ocr=False, ocr_func=_ocr_image)
+        except Exception as e:
+            self._show_error(f"Could not extract text from {filename}: {e}")
+            return
+
+        win = tk.Toplevel(self)
+        win.title(f"Text View — {filename}")
+        win.geometry("900x600")
+        win.resizable(True, True)
+
+        tk.Label(
+            win, text=f"{filename}  —  {len(lines)} line(s) extracted",
+            font=("TkDefaultFont", 12, "bold"),
+        ).pack(pady=(10, 2))
+        tk.Label(
+            win, text="Line numbers match those shown in the Results Preview. "
+                      "Matches are highlighted in orange.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 2))
+        matching_lines_label = tk.Label(
+            win, text="", font=("TkDefaultFont", 11, "bold"),
+            fg="#FF6B35", anchor="w",
+        )
+        matching_lines_label.pack(fill="x", padx=15, pady=(0, 8))
+
+        text_frame = tk.Frame(win)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+        scrollbar = tk.Scrollbar(text_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        txt = tk.Text(
+            text_frame, wrap="word", font=("Courier", 11),
+            yscrollcommand=scrollbar.set, padx=8, pady=5,
+            bg="white", fg="black",
+        )
+        txt.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=txt.yview)
+
+        txt.tag_configure("line_num", foreground="#888888")
+        txt.tag_configure("match", background="#FF6B35", foreground="white")
+
+        # Build highlight pattern — either from the caller-supplied regex
+        # (PII Scan path) or from the main search bar (normal path).
+        patterns = []
+        if highlight_regex_pattern:
+            patterns.append(highlight_regex_pattern)
+        else:
+            search_text = self.search_entry.get().strip()
+            if search_text:
+                use_regex = self.regex_var.get() == "on"
+                use_wildcard = self.wildcard_var.get() == "on"
+                use_whole_word = self.whole_word_var.get() == "on"
+                is_expression = self.expression_var.get() == "on"
+                if is_expression:
+                    try:
+                        from peekdocs.expr_parser import parse_expression, extract_positive_terms
+                        terms = extract_positive_terms(parse_expression(search_text))
+                    except Exception:
+                        terms = search_text.split()
+                else:
+                    terms = search_text.split()
+                for term in terms:
+                    if use_wildcard:
+                        from peekdocs.scanner import _wildcard_to_regex
+                        patterns.append(_wildcard_to_regex(term))
+                    elif use_regex:
+                        patterns.append(term)
+                    elif use_whole_word:
+                        patterns.append(r'\b' + _re_view.escape(term) + r'\b')
+                    else:
+                        patterns.append(_re_view.escape(term))
+
+        combined_re = None
+        if patterns:
+            try:
+                combined_re = _re_view.compile("|".join(f"({p})" for p in patterns), _re_view.IGNORECASE)
+            except _re_view.error:
+                combined_re = None
+
+        # Calculate line number column width
+        max_ln = max((ln for ln, _ in lines), default=1)
+        ln_width = len(str(max_ln))
+
+        first_match_line = None
+        matched_line_nums = []
+        for line_num, text in lines:
+            prefix = f"{line_num:>{ln_width}}  "
+            txt.insert("end", prefix, "line_num")
+            line_start_idx = txt.index("end-1c")
+            txt.insert("end", text + "\n")
+            # Highlight matches on this line
+            if combined_re:
+                found_on_line = False
+                for m in combined_re.finditer(text):
+                    start_col = m.start()
+                    end_col = m.end()
+                    start_idx = f"{line_start_idx}+{start_col}c"
+                    end_idx = f"{line_start_idx}+{end_col}c"
+                    txt.tag_add("match", start_idx, end_idx)
+                    if first_match_line is None:
+                        first_match_line = line_num
+                    found_on_line = True
+                if found_on_line:
+                    matched_line_nums.append(line_num)
+
+        # Show matching line numbers
+        if matched_line_nums:
+            shown = matched_line_nums[:20]
+            lines_str = ", ".join(str(n) for n in shown)
+            if len(matched_line_nums) > 20:
+                lines_str += f", ... ({len(matched_line_nums)} total)"
+            matching_lines_label.configure(
+                text=f"Matching lines: {lines_str}"
+            )
+        else:
+            matching_lines_label.configure(text="No matches in this file")
+
+        txt.configure(state="disabled")
+
+        # Scroll to first match using the match tag
+        first_match_range = txt.tag_ranges("match")
+        if first_match_range:
+            txt.see(first_match_range[0])
+            # Also highlight the first match more prominently
+            txt.tag_configure("first_match", background="#FF6B35", foreground="white")
+            txt.tag_add("first_match", first_match_range[0], first_match_range[1])
+
+        tk.Button(
+            win, text="Close", width=10, command=win.destroy,
+        ).pack(pady=(5, 10))
+
+
+
+    def _add_folder_bar(self, parent, message="Your search will run against this folder."):
+        """Add a folder display bar with Change Folder button to a wizard window.
+
+        Returns the folder label widget so callers can read the current value.
+        """
+        import tkinter as tk
+        from tkinter import filedialog
+
+        bar = tk.Frame(parent, bd=1, relief="groove", padx=8, pady=5)
+        bar.pack(fill="x", padx=15, pady=(5, 5))
+
+        top_row = tk.Frame(bar)
+        top_row.pack(fill="x")
+
+        tk.Label(
+            top_row, text="Search Folder:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(side="left")
+
+        folder_label = tk.Label(
+            top_row, text=self.folder_entry.get().strip() or "(none)",
+            font=("TkDefaultFont", 11), fg="blue",
+        )
+        folder_label.pack(side="left", padx=(5, 10))
+
+        def _change_folder():
+            new_folder = filedialog.askdirectory(
+                parent=parent,
+                title="Select Search Folder",
+                initialdir=folder_label.cget("text") if folder_label.cget("text") != "(none)" else os.path.expanduser("~"),
+            )
+            if new_folder:
+                folder_label.configure(text=new_folder)
+
+        tk.Button(
+            top_row, text="Change Folder", command=_change_folder,
+            font=("TkDefaultFont", 10),
+        ).pack(side="right")
+
+        tk.Label(
+            bar, text=message,
+            font=("TkDefaultFont", 10), fg="gray", anchor="w",
+        ).pack(fill="x", pady=(2, 0))
+
+        return folder_label
+
+    # ── Search Collections ─────────────────────────────────
+
+
+
+    def open_help(self):
+        """Open the peekdocs User Guide in the default web browser."""
+        webbrowser.open("https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md")
+
+
+
+    def show_about(self):
+        """Show the About dialog with version and author information."""
+        import tkinter as tk
+        about_win = tk.Toplevel(self)
+        about_win.title("About peekdocs")
+        about_win.resizable(False, False)
+        about_win.geometry("300x210")
+        # Center on parent
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 300) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 120) // 2
+        about_win.geometry(f"+{x}+{y}")
+        try:
+            ver = pkg_version("peekdocs")
+        except Exception:
+            ver = "unknown"
+        tk.Label(about_win, text="peekdocs", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
+        tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
+        tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
+        tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack()
+        tk.Label(about_win, text="Provided as-is, without warranty of any kind.\n"
+                 "See the LICENSE file for details.",
+                 font=("TkDefaultFont", 9), fg="gray", justify="center",
+                 wraplength=280).pack(pady=(5, 5))
+
+        ctk.CTkButton(
+            about_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=about_win.destroy,
+            font=ctk.CTkFont(size=12),
+        ).pack(pady=(0, 10))
+
+
+
+    def _update_index_button_color(self):
+        """Set Build Index(es) button blue if index exists, red if not.
+        Also enable/disable the Search Using Index(es) checkbox and show last_updated.
+        """
+        folder = self.folder_entry.get().strip()
+        if folder and os.path.isdir(folder):
+            index_path = os.path.join(folder, ".peekdocs.db")
+            if os.path.exists(index_path):
+                self.build_index_button.configure(fg_color=("#3B8ED0", "#1F6AA5"), hover_color=("#36719F", "#144870"))
+                self.cb_index_search.configure(state="normal")
+                if self.index_search_var.get() == "off":
+                    self.index_search_var.set("on")
+                # Show last_updated if no active refresh status
+                if hasattr(self, 'refresh_status_label') and not self._refresh_running:
+                    self._show_last_updated(folder)
+                return
+        self.build_index_button.configure(fg_color="#CC3333", hover_color="#AA2222")
+        self.cb_index_search.configure(state="disabled")
+        self.index_search_var.set("off")
+
+
+
+    def _show_last_updated(self, folder):
+        """Display the index last_updated timestamp on the refresh status label."""
+        from peekdocs.indexer import index_status
+        try:
+            status = index_status(folder)
+            if status:
+                last = status.get("last_updated", status.get("created_at"))
+                if last:
+                    self.refresh_status_label.configure(
+                        text=f"Index last updated: {last}",
+                        text_color=("gray50", "gray50"),
+                    )
+                    return
+        except Exception:
+            pass
+
+
+
+    def _on_refresh_interval_changed(self, value):
+        """Handle auto-refresh interval selection change."""
+        # Cancel any existing timer
+        if self._refresh_timer_id is not None:
+            self.after_cancel(self._refresh_timer_id)
+            self._refresh_timer_id = None
+
+        minutes = self._REFRESH_INTERVALS.get(value, 0)
+
+        if minutes > 0:
+            ms = minutes * 60 * 1000
+            self._refresh_timer_id = self.after(ms, self._auto_refresh_tick)
+            self.refresh_status_label.configure(
+                text=f"Next refresh in {minutes} min",
+                text_color=("gray50", "gray50"),
+            )
+        else:
+            self.refresh_status_label.configure(text="")
+
+
+
+    def _auto_refresh_tick(self):
+        """Timer callback for auto-refresh."""
+        self._refresh_timer_id = None
+
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._reschedule_refresh()
+            return
+        if not os.path.exists(os.path.join(folder, ".peekdocs.db")):
+            self._reschedule_refresh()
+            return
+        if self.process is not None or self.search_start_time is not None:
+            self._reschedule_refresh()
+            return
+        if self.build_index_button.cget("text") == "Building...":
+            self._reschedule_refresh()
+            return
+        if self._refresh_running:
+            self._reschedule_refresh()
+            return
+
+        self._refresh_running = True
+        self.refresh_status_label.configure(
+            text="Refreshing...", text_color=("gray50", "gray50"),
+        )
+        threading.Thread(target=self._run_auto_refresh, args=(folder,), daemon=True).start()
+
+
+
+    def _run_auto_refresh(self, folder):
+        """Background thread: run refresh_index and post result to main thread."""
+        from peekdocs.indexer import refresh_index
+        try:
+            mfs = int(self.max_file_size_entry.get().strip() or "100")
+        except (ValueError, AttributeError):
+            mfs = 100
+        try:
+            result = refresh_index(folder, recursive=True, use_ocr=False, max_file_size_mb=mfs)
+        except Exception:
+            result = None
+        self.after(0, self._auto_refresh_finished, result)
+
+
+
+    def _auto_refresh_finished(self, result):
+        """Main-thread callback after auto-refresh completes."""
+        self._refresh_running = False
+
+        if result is not None:
+            time_str = datetime.now().strftime("%H:%M")
+            changes = result["added"] + result["updated"] + result["removed"]
+            if changes > 0:
+                self.refresh_status_label.configure(
+                    text=f"Refreshed at {time_str}: {result['added']} added, "
+                         f"{result['updated']} updated, {result['removed']} removed",
+                    text_color=("gray50", "gray50"),
+                )
+            else:
+                self.refresh_status_label.configure(
+                    text=f"Refreshed at {time_str}: no changes",
+                    text_color=("gray50", "gray50"),
+                )
+            self._update_index_button_color()
+        else:
+            self.refresh_status_label.configure(
+                text="Auto-refresh failed", text_color="red",
+            )
+
+        self._reschedule_refresh()
+
+
+
+    def _reschedule_refresh(self):
+        """Schedule the next auto-refresh tick based on current interval."""
+        if self._refresh_timer_id is not None:
+            return
+        minutes = self._REFRESH_INTERVALS.get(self.refresh_interval_var.get(), 0)
+        if minutes > 0:
+            self._refresh_timer_id = self.after(minutes * 60 * 1000, self._auto_refresh_tick)
+
+
+
+    def build_index_action(self):
+        """Build a search index for the selected folder in a background thread."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a valid folder.")
+            return
+
+        self.build_index_button.configure(state="disabled", text="Building...", width=120)
+        self.cancel_index_button.pack(side="left", padx=5)
+        self.search_button.configure(state="disabled", fg_color="#CC3333", hover_color="#AA2222")
+        self.status_label.configure(
+            text="Building index... this may take a few minutes for large folders. Please wait.",
+            text_color="blue",
+        )
+
+        self._index_cancelled = False
+        # Shared progress state (thread writes, main thread polls)
+        self._index_progress = {"done": 0, "total": 0, "filename": "", "finished": False, "result": None, "returncode": None}
+
+        def _progress_callback(done, total_count, filename):
+            if self._index_cancelled:
+                raise InterruptedError("Index build cancelled by user")
+            self._index_progress["done"] = done + 1
+            self._index_progress["total"] = total_count
+            self._index_progress["filename"] = filename or ""
+
+        def _poll_progress():
+            if self._index_progress["finished"]:
+                _finished(self._index_progress["result"], self._index_progress["returncode"])
+                return
+            done = self._index_progress["done"]
+            total = self._index_progress["total"]
+            fname = self._index_progress["filename"]
+            if total > 0:
+                short_name = os.path.basename(fname) if fname else ""
+                if len(short_name) > 50:
+                    short_name = short_name[:47] + "..."
+                self.status_label.configure(
+                    text=f"Building index... {done}/{total} files: {short_name}",
+                    text_color="blue",
+                )
+            self.after(300, _poll_progress)
+
+        def _run():
+            build_result = None
+            try:
+                from peekdocs.indexer import build_index
+                self._index_process = "running"  # sentinel so start_search knows
+                try:
+                    mfs = int(self.max_file_size_entry.get().strip() or "100")
+                except ValueError:
+                    mfs = 100
+                build_result = build_index(folder, recursive=True, use_ocr=False,
+                                           progress_callback=_progress_callback,
+                                           max_file_size_mb=mfs)
+                returncode = 0
+            except InterruptedError:
+                returncode = 2
+            except Exception as e:
+                build_result = {"error": str(e)}
+                returncode = -1
+            finally:
+                self._index_process = None
+            self._index_progress["result"] = build_result
+            self._index_progress["returncode"] = returncode
+            self._index_progress["finished"] = True
+
+        def _finished(result, returncode):
+            self.build_index_button.configure(state="normal", text="Build Index(es)")
+            self.cancel_index_button.pack_forget()
+            self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
+            self._update_index_button_color()
+            if returncode == 0 and result:
+                fc = result.get("file_count", 0)
+                lc = result.get("line_count", 0)
+                el = result.get("elapsed", 0)
+                display = f"Index built: {fc} files, {lc:,} lines in {el:.1f}s"
+                self.status_label.configure(text=display, text_color="blue")
+                # Default auto-refresh to 1 hour if currently Off
+                if self.refresh_interval_var.get() == "Off":
+                    self.refresh_interval_var.set("1 hour")
+                    self._on_refresh_interval_changed("1 hour")
+            elif returncode == 2:
+                self.status_label.configure(text="Index build cancelled.", text_color="blue")
+            else:
+                err_msg = (result or {}).get("error", "Unknown error")
+                self.status_label.configure(text=f"Index build failed: {err_msg}", text_color="red")
+
+        threading.Thread(target=_run, daemon=True).start()
+        self.after(300, _poll_progress)
+
+
+
+    def delete_index_action(self):
+        """Delete the search index from the selected folder."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a valid folder.")
+            return
+
+        cmd = [sys.executable, "-m", "peekdocs", "-q", "--index-clear"]
+        try:
+            result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            msg = result.stdout.strip()
+        except Exception:
+            self._show_error("Failed to delete index.")
+            return
+        self.status_label.configure(
+            text=msg or "Index removed.",
+            text_color="blue",
+        )
+        self._update_index_button_color()
+        self.refresh_interval_var.set("Off")
+        self._on_refresh_interval_changed("Off")
+
+
+
+    def index_status_action(self):
+        """Display index status information in a popup window."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a valid folder.")
+            return
+
+        # Read index status directly — no subprocess needed
+        try:
+            from peekdocs.indexer import index_status as _idx_status
+            from peekdocs.constants import INDEX_FILENAME as _IDX_FILE
+            status = _idx_status(folder)
+        except Exception as e:
+            self._show_error(f"Failed to get index status: {e}")
+            return
+
+        if status is None:
+            self.status_label.configure(
+                text="No index found. Click Build Index(es) to create one.",
+                text_color="blue",
+            )
+            return
+
+        # Build status text
+        from peekdocs.reporter import fmt_size as _fmt_size
+        db_path = os.path.join(folder, _IDX_FILE)
+        stdout = (
+            "Index status:\n"
+            f"  Index file:     {_IDX_FILE}\n"
+            f"  Folder:         {folder}\n"
+            f"  Full path:      {db_path}\n"
+            f"  Files indexed:  {status.get('file_count', '?')}\n"
+            f"  Lines indexed:  {status.get('line_count', '?')}\n"
+            f"  Database size:  {_fmt_size(status.get('db_size', 0))}\n"
+            f"  Created:        {status.get('created_at', '?')}\n"
+            f"  Last updated:   {status.get('last_updated', status.get('created_at', '?'))}\n"
+            f"  Recursive:      {status.get('recursive', '?')}\n"
+            f"  OCR:            {status.get('use_ocr', '?')}\n"
+            f"  peekdocs ver:  {status.get('peekdocs_version', '?')}"
+        )
+
+        import tkinter as tk
+        status_win = tk.Toplevel(self)
+        status_win.title("Index Status")
+        status_win.resizable(True, True)
+        line_count = stdout.count("\n") + 1
+        max_line_len = max((len(line) for line in stdout.split("\n")), default=30)
+        win_w = max(380, min(550, max_line_len * 9 + 40))
+        win_h = max(220, min(400, line_count * 26 + 60))
+        status_win.geometry(f"{win_w}x{win_h}")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - win_w) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
+        status_win.geometry(f"+{x}+{y}")
+        tk.Label(
+            status_win, text=stdout, font=("TkDefaultFont", 12),
+            justify="left", anchor="nw", padx=15, pady=15,
+        ).pack(fill="both", expand=True)
+
+
+
+    def _cancel_index_build(self):
+        """Cancel an in-progress index build."""
+        self._index_cancelled = True
+        # For older subprocess-based builds (safety), also try terminate
+        if hasattr(self, '_index_process') and self._index_process is not None:
+            if hasattr(self._index_process, 'terminate'):
+                try:
+                    self._index_process.terminate()
+                except Exception:
+                    pass
+        self.status_label.configure(text="Cancelling index build...", text_color="blue")
+
+

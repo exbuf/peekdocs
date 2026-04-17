@@ -1,0 +1,320 @@
+"""Graphical interface for PeekDocs."""
+
+import os
+import re
+import shlex
+import sys
+
+
+def _build_command_from_values(
+    search_text,
+    folder,
+    and_mode,
+    recursive,
+    fuzzy,
+    wildcard,
+    ocr,
+    regex,
+    exclude,
+    file_types,
+    proximity,
+    context_before,
+    context_after,
+    cores="",
+    specific_files="",
+    append_name="",
+    output_csv=False,
+    output_json=False,
+    output_pdf=False,
+    output_html=False,
+    index_search=False,
+    inverse=False,
+    expression=False,
+    whole_word=False,
+    max_matches="",
+    max_file_size_mb="",
+    timestamp_suffix="",
+    output_dir="",
+    range_filters="",
+):
+    """Build a peekdocs CLI command list from GUI values.
+
+    Returns None on validation error, or "FLAGS_IN_SEARCH" if flags are
+    detected in the search text.
+    """
+    if not search_text.strip() and not range_filters.strip():
+        return None
+
+    if not folder or not os.path.isdir(folder):
+        return None
+
+    # Block flags typed into the search box
+    _CLI_FLAGS = {"-a", "-A", "-B", "-c", "-e", "-f", "-h", "-m", "-n", "-o", "-O", "-p", "-q", "-r", "-R", "-s", "-sa", "-t", "-v", "-w", "-W", "-x", "-z", "--config", "--inverse", "--range", "--timestamp", "--ts-suffix", "--output-dir"}
+    if not expression:
+        tokens = search_text.strip().split()
+        if any(token in _CLI_FLAGS for token in tokens):
+            return "FLAGS_IN_SEARCH"
+
+    cmd = [sys.executable, "-m", "peekdocs", "-q"]
+
+    if not index_search:
+        cmd.append("--no-index")
+
+    if expression:
+        cmd.append("-e")
+        cmd.append(search_text.strip())
+    if not expression and and_mode:
+        cmd.append("-a")
+    if recursive:
+        cmd.append("-r")
+    if fuzzy:
+        cmd.append("-z")
+    if wildcard:
+        cmd.append("-w")
+    if ocr:
+        cmd.append("-O")
+    if regex:
+        cmd.append("-x")
+    if whole_word:
+        cmd.append("-W")
+    if inverse:
+        cmd.append("--inverse")
+
+    if not expression and exclude.strip():
+        cmd.extend(["-n", exclude.strip()])
+
+    if file_types.strip():
+        cmd.extend(["-t", file_types.strip()])
+
+    if not expression and proximity.strip():
+        if not proximity.strip().isdigit() or int(proximity.strip()) < 1:
+            return None
+        cmd.extend(["-p", proximity.strip()])
+
+    if context_before.strip():
+        if not context_before.strip().isdigit():
+            return None
+        cmd.extend(["-B", context_before.strip()])
+
+    if context_after.strip():
+        if not context_after.strip().isdigit():
+            return None
+        cmd.extend(["-A", context_after.strip()])
+
+    if cores.strip():
+        if not cores.strip().isdigit() or int(cores.strip()) < 1:
+            return None
+        cmd.extend(["-c", cores.strip()])
+
+    if specific_files.strip():
+        cmd.extend(["-f", specific_files.strip()])
+
+    if append_name.strip():
+        cmd.extend(["-sa", append_name.strip()])
+
+    output_parts = []
+    if output_csv:
+        output_parts.append("csv")
+    if output_json:
+        output_parts.append("json")
+    if output_pdf:
+        output_parts.append("pdf")
+    if output_html:
+        output_parts.append("html")
+    if output_parts:
+        cmd.extend(["-o", ",".join(output_parts)])
+
+    if str(max_matches).strip() and str(max_matches).strip() != "1000":
+        cmd.extend(["-m", str(max_matches).strip()])
+
+    if str(max_file_size_mb).strip() and str(max_file_size_mb).strip() != "100":
+        cmd.extend(["--max-file-size", str(max_file_size_mb).strip()])
+
+    if timestamp_suffix:
+        cmd.extend(["--ts-suffix", timestamp_suffix])
+
+    if output_dir.strip():
+        cmd.extend(["--output-dir", output_dir.strip()])
+
+    if range_filters.strip():
+        for spec in range_filters.split(","):
+            spec = spec.strip()
+            if spec:
+                cmd.extend(["-R", spec])
+
+    if expression:
+        pass  # already appended right after -e
+    elif regex:
+        # Preserve backslashes for regex patterns (shlex.split eats them)
+        lex = shlex.shlex(search_text.strip(), posix=True)
+        lex.escape = ""
+        lex.commenters = ""
+        lex.whitespace_split = True
+        try:
+            terms = list(lex)
+        except ValueError:
+            terms = search_text.strip().split()
+        cmd.extend(terms)
+    else:
+        try:
+            terms = shlex.split(search_text.strip())
+        except ValueError:
+            terms = search_text.strip().split()
+        cmd.extend(terms)
+
+    return cmd
+
+
+def _parse_summary_text(stdout):
+    """Parse CLI summary output into a short status string."""
+    if not stdout:
+        return ""
+    clean = re.sub(r"\033\[[0-9;]*m", "", stdout)
+    files_match = re.search(r"Files searched:\s*(\d+)", clean)
+    size_match = re.search(r"Files searched:\s*\d+\s*\(([\d.]+ [KMGT]?B)\)", clean)
+    found_match = re.search(r"Found\s+(\d+)\s+match", clean)
+    capped_match = re.search(r"Reports capped at ([\d,]+)", clean)
+    inverse_match = re.search(r"Found\s+(\d+)\s+file\(s\)\s+WITHOUT\s+matches", clean)
+    elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
+
+    parts = []
+    # Lead with files searched count
+    if files_match:
+        file_part = f"{files_match.group(1)} file(s) searched"
+        if size_match:
+            file_part += f" ({size_match.group(1)})"
+        parts.append(file_part)
+    if inverse_match:
+        parts.append(f"— Found {inverse_match.group(1)} file(s) WITHOUT matches")
+    elif found_match:
+        count = found_match.group(1)
+        if capped_match:
+            parts.append(f"— Found {count} match(es) — reports capped at {capped_match.group(1)}")
+        else:
+            parts.append(f"— Found {count} match(es)")
+    if elapsed_match:
+        parts.append(f"in {elapsed_match.group(1)}s")
+
+    errors_match = re.search(r"(\d+)\s+error\(s\)", clean)
+    if errors_match:
+        err_count = errors_match.group(1)
+        parts.append(f"— {err_count} file(s) could not be read")
+
+    return " ".join(parts) if parts else ""
+
+
+def _parse_matched_files(results_dir, results_filename="peekdocs_results.txt"):
+    """Parse peekdocs_results.txt and return a list of (filepath, filename, count, line_nums) tuples.
+
+    Handles both normal results (Document: ..., Line: ...) and inverse results
+    (Files WITHOUT matches: ... followed by filename/directory pairs).
+    """
+    results_path = os.path.join(results_dir, results_filename)
+    if not os.path.exists(results_path):
+        return []
+    data = {}  # filepath -> {"filename": ..., "count": int, "lines": [int, ...]}
+    order = []
+    with open(results_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    i = 0
+    in_inverse = False
+    while i < len(lines):
+        line = lines[i].strip()
+
+        # Detect inverse results section
+        if line.startswith("Files WITHOUT matches:"):
+            in_inverse = True
+            i += 1
+            continue
+
+        # Parse inverse file list: filename on one line, (directory) on next
+        if in_inverse:
+            if line and not line.startswith("("):
+                filename = line
+                if i + 1 < len(lines):
+                    dir_line = lines[i + 1].strip()
+                    if dir_line.startswith("(") and dir_line.endswith(")"):
+                        file_dir = dir_line[1:-1]
+                        filepath = os.path.join(file_dir, filename)
+                        if filepath not in data:
+                            data[filepath] = {
+                                "filename": filename,
+                                "count": 0,
+                                "lines": [],
+                            }
+                            order.append(filepath)
+                        i += 2
+                        continue
+            i += 1
+            continue
+
+        # Parse normal results: Document: ..., Line: ...
+        if line.startswith("Document: ") and ", Line: " in line:
+            if i + 1 < len(lines):
+                dir_line = lines[i + 1].strip()
+                if dir_line.startswith("(") and dir_line.endswith(")"):
+                    file_dir = dir_line[1:-1]
+                    raw_name = line.split("Document: ")[1].split(", Line: ")[0]
+                    filename = re.sub(r"\s+\(\d+ match(?:es)?\)$", "", raw_name)
+                    line_num_str = line.split(", Line: ")[1].strip()
+                    line_num_match = re.match(r"(\d+)", line_num_str)
+                    line_num = int(line_num_match.group(1)) if line_num_match else None
+                    filepath = os.path.join(file_dir, filename)
+                    if filepath in data:
+                        data[filepath]["count"] += 1
+                        if line_num is not None:
+                            data[filepath]["lines"].append(line_num)
+                    else:
+                        data[filepath] = {
+                            "filename": filename,
+                            "count": 1,
+                            "lines": [line_num] if line_num is not None else [],
+                        }
+                        order.append(filepath)
+        i += 1
+    return [(fp, data[fp]["filename"], data[fp]["count"], data[fp]["lines"]) for fp in order]
+
+
+def _parse_inverse_files(results_dir, results_filename="peekdocs_results.txt"):
+    """Parse peekdocs_results.txt for inverse search and return (filepath, filename, 0, []) tuples."""
+    results_path = os.path.join(results_dir, results_filename)
+    if not os.path.exists(results_path):
+        return []
+    result = []
+    with open(results_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    in_inverse = False
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith("Files WITHOUT matches:"):
+            in_inverse = True
+            i += 1
+            continue
+        if in_inverse:
+            # Stop at the first Document: line (match details section)
+            if line.startswith("Document:"):
+                break
+            # Each inverse file is two lines: "  filename" then "  (directory)"
+            if line and not line.startswith("("):
+                if i + 1 < len(lines):
+                    dir_line = lines[i + 1].strip()
+                    if dir_line.startswith("(") and dir_line.endswith(")"):
+                        file_dir = dir_line[1:-1]
+                        filename = line
+                        filepath = os.path.join(file_dir, filename)
+                        result.append((filepath, filename, 0, []))
+                        i += 2
+                        continue
+        i += 1
+    return result
+
+
+def _build_wizard_regex(selected_patterns):
+    """Combine selected (label, regex) tuples into a single regex.
+
+    Returns a regex string joining patterns with '|' (OR).
+    """
+    if not selected_patterns:
+        return ""
+    return "|".join(f"({regex})" for _, regex in selected_patterns)

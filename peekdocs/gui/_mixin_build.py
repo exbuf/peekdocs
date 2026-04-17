@@ -1,0 +1,1813 @@
+"""PeekDocs GUI — BuildMixin."""
+
+import os
+import platform
+import re
+import subprocess
+import sys
+import threading
+import time
+from datetime import datetime
+
+import customtkinter as ctk
+
+from peekdocs.gui._tooltip import Tooltip
+from peekdocs.gui._helpers import (
+    _build_command_from_values,
+    _parse_summary_text,
+    _parse_matched_files,
+    _parse_inverse_files,
+    _build_wizard_regex,
+)
+import webbrowser
+from tkinter import filedialog, messagebox
+
+class BuildMixin:
+    def _build_getting_started_tab(self):
+        """Build the Getting Started tab with a friendly guided introduction."""
+        import tkinter as tk
+        tab = self._tab_started
+
+        canvas = tk.Canvas(tab, highlightthickness=0)
+        scrollbar = tk.Scrollbar(tab, command=canvas.yview)
+        inner = tk.Frame(canvas)
+        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set, yscrollincrement=10)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        def _on_mousewheel(event):
+            delta = 1 if event.delta > 0 else -1
+            canvas.yview_scroll(-delta, "units")
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        pad = {"padx": 30, "anchor": "w"}
+
+        tk.Label(inner, text="Welcome to peekdocs!", font=("TkDefaultFont", 22, "bold")).pack(pady=(20, 5), **pad)
+        tk.Label(inner, text="Search Word docs, PDFs, spreadsheets, emails, and 42 other file types — all offline.",
+                 font=("TkDefaultFont", 13), fg="gray").pack(pady=(0, 15), **pad)
+
+        def _step(number, title, desc):
+            frame = tk.Frame(inner)
+            frame.pack(fill="x", padx=30, pady=(10, 0))
+            tk.Label(frame, text=f"Step {number}", font=("TkDefaultFont", 14, "bold"),
+                     fg="white", bg="#2196F3", width=7).pack(side="left", padx=(0, 12))
+            text_frame = tk.Frame(frame)
+            text_frame.pack(side="left", fill="x")
+            tk.Label(text_frame, text=title, font=("TkDefaultFont", 14, "bold"),
+                     anchor="w", justify="left").pack(anchor="w", fill="x")
+            tk.Label(text_frame, text=desc, font=("TkDefaultFont", 12), fg="gray",
+                     anchor="w", justify="left", wraplength=800).pack(anchor="w", fill="x")
+
+        _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
+        _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
+        _step(3, "Click Run Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
+        _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. DOCX requires a word processor on your computer (Microsoft Word, LibreOffice, Google Docs, or Apple Pages). TXT opens in any text editor.")
+
+        tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
+
+        tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
+
+        features = [
+            ("\U0001f50d  PII Scan", "One click finds SSNs, credit cards, passwords, and other sensitive data hiding in your files. Advanced users can add their own custom regex.", "#0D9488"),
+            ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
+            ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
+            ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
+            ("\U0001f30d  Any Language", "Search documents in English, Spanish, Chinese, Arabic, Hindi, Japanese, Greek, or any other language. All text handling is Unicode-based. Documentation and GUI are in English only.", "#6B7280"),
+        ]
+
+        for emoji_title, desc, color in features:
+            frame = tk.Frame(inner)
+            frame.pack(fill="x", padx=30, pady=(8, 0))
+            tk.Label(frame, text=emoji_title, font=("TkDefaultFont", 13, "bold"), fg=color, anchor="w").pack(anchor="w")
+            tk.Label(frame, text=desc, font=("TkDefaultFont", 12), fg="gray", anchor="w", justify="left", wraplength=900).pack(anchor="w", padx=(24, 0))
+
+        tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
+
+        tk.Label(inner, text="You've got this! Click the Return tab above and discover what's hiding in your documents.",
+                 font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 30), **pad)
+
+
+
+    def _show_welcome(self):
+        """Show a getting-started guide for first-time users."""
+        import tkinter as tk
+        win = tk.Toplevel(self)
+        win.title("Welcome to peekdocs")
+        win.geometry("620x480")
+        win.resizable(True, True)
+        win.transient(self)
+        try:
+            win.grab_set()
+        except Exception:
+            win.after(150, lambda: win.grab_set() if win.winfo_exists() else None)
+
+        text_frame = tk.Frame(win)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+
+        scrollbar = tk.Scrollbar(text_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        txt = tk.Text(
+            text_frame, wrap="word", font=("TkDefaultFont", 12),
+            state="normal", yscrollcommand=scrollbar.set,
+            padx=12, pady=10, spacing3=2,
+        )
+        txt.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=txt.yview)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"), spacing1=8, spacing3=4)
+        txt.tag_configure("subhead", font=("TkDefaultFont", 12, "bold"), spacing1=8, spacing3=2)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=20, lmargin2=20)
+        txt.tag_configure("step", font=("TkDefaultFont", 12, "bold"), lmargin1=20, lmargin2=40)
+        txt.tag_configure("example", font=("Courier", 12), lmargin1=30, lmargin2=30)
+
+        def h(text):
+            txt.insert("end", text + "\n", "heading")
+        def s(text):
+            txt.insert("end", text + "\n", "subhead")
+        def b(text):
+            txt.insert("end", text + "\n", "body")
+        def st(text):
+            txt.insert("end", text + "\n", "step")
+        def e(text):
+            txt.insert("end", text + "\n", "example")
+        def blank():
+            txt.insert("end", "\n")
+
+        h("Welcome to peekdocs!")
+        b("peekdocs lets you search Word docs, PDFs, spreadsheets,")
+        b("emails, calendars, contacts, and 40 other file types \u2014 all at once, all offline.")
+        b("Results are saved to a highlighted Word report.")
+        blank()
+
+        h("Quick Start \u2014 Your First Search")
+        blank()
+        st("Step 1: Choose a folder")
+        b("Click the Browse button next to the Search Folder field")
+        b("and navigate to the folder containing your documents.")
+        blank()
+        st("Step 2: Type your search terms")
+        b("In the Search Terms field, type what you're looking for.")
+        b("Separate multiple terms with spaces.")
+        e("budget revenue")
+        blank()
+        st("Step 3: Click Run Search")
+        b("peekdocs scans every supported file in the folder and")
+        b("shows a summary when finished. Your results appear in")
+        b("a preview below, and are saved to two report files:")
+        e("peekdocs_results.txt   (plain text)")
+        e("peekdocs_results.docx  (Word, with highlights)")
+        blank()
+        st("Step 4: View your results")
+        b("Click the DOCX button next to View Report to open the")
+        b("Word report with your matches highlighted in yellow.")
+        blank()
+
+        h("What's Next?")
+        blank()
+        s("Search subfolders")
+        b("Open Advanced Search Options and check Recursive to search")
+        b("all subfolders, not just the selected folder.")
+        blank()
+        s("Use advanced search modes")
+        b("Open Advanced Search Options for regex, fuzzy matching,")
+        b("wildcards, Boolean expressions, range queries, and more.")
+        b("Click the ? button inside Advanced Search Options for help.")
+        blank()
+        s("Scan for sensitive data")
+        b("Click the red Sensitive Data Scan button to check your")
+        b("documents for SSNs, credit cards, tax IDs, emails, phone")
+        b("numbers, passwords, and more \u2014 one click, no setup needed.")
+        blank()
+        s("Save your searches")
+        b("Once you've configured a search you'll want to reuse,")
+        b("click Save Search to store it by name. Click Load Search")
+        b("later to recall it with one click.")
+        blank()
+        s("Get help anytime")
+        b("Click the ? button in the bottom-left corner for the")
+        b("full search guide with examples.")
+        blank()
+
+        b("This welcome screen appears only on first launch.")
+        b("You won't see it again.")
+
+        txt.configure(state="disabled")
+
+        close_btn = ctk.CTkButton(
+            win, text="Get Started", width=120,
+            command=win.destroy,
+            font=ctk.CTkFont(size=14),
+        )
+        close_btn.pack(pady=(5, 10))
+
+
+
+    def _build_search_row(self):
+        """Build the search bar with entry field, action buttons, and tooltips.
+
+        Both the folder row and search row share a single combined frame
+        (_input_frame) so their columns align perfectly.  The folder row
+        is built later by _build_folder_row at row 0; this method builds
+        the search row at rows 1-2.
+        """
+        # Combined frame for both input rows — shared grid columns
+        # guarantee the labels, entries, and button frames align.
+        self._input_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
+        self._input_frame.grid(
+            row=0, column=0, columnspan=3, rowspan=2,
+            padx=10, pady=(5, 2), sticky="nsew"
+        )
+        self._input_frame.grid_columnconfigure(0)
+        self._input_frame.grid_columnconfigure(1, weight=1)
+        self._input_frame.grid_columnconfigure(2, minsize=185)
+
+        # Create recursive_var early so both the folder row checkbox
+        # and Advanced Search Options can share it.
+        self.recursive_var = ctk.StringVar(value="on")
+
+        label = ctk.CTkLabel(self._input_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
+        label.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+
+        self._assistant_label = ctk.CTkLabel(
+            self._input_frame, text="", font=ctk.CTkFont(size=12),
+            text_color=("#8B5CF6", "#A78BFA"), anchor="w",
+        )
+        # Hidden until Search Assistant sets a query
+
+        self.search_entry = ctk.CTkEntry(
+            self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
+        )
+        self.search_entry.grid(row=1, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
+        self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
+        self.search_entry.bind("<Return>", lambda e: self.start_search())
+
+        self._search_btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
+
+        clear_button = ctk.CTkButton(
+            self._search_btn_frame, text="Clear", width=70,
+            command=lambda: self.search_entry.delete(0, "end"),
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        clear_button.pack(side="left", padx=(0, 3))
+        Tooltip(clear_button, "Clear the search bar", anchor="left")
+
+        recent_btn = ctk.CTkButton(
+            self._search_btn_frame, text="\u25bc", width=30,
+            command=self._show_recent_searches,
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        recent_btn.pack(side="left")
+        Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
+
+        # Row 2: "3." label + action buttons
+        ctk.CTkLabel(
+            self._input_frame, text="3. Run Search:",
+            font=ctk.CTkFont(size=18, weight="bold"),
+        ).grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+
+        btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
+
+        # Run Search button — standalone
+        self.search_button = ctk.CTkButton(
+            btn_frame, text="Run Search", width=100, height=32, command=self.start_search,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="green", hover_color="darkgreen",
+        )
+        self.search_button.pack(side="left", padx=(0, 10))
+        Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+
+        # Search options group: AND/OR, Recursive, Whole Word, ?
+        options_group = ctk.CTkFrame(
+            btn_frame, border_width=2, border_color=("gray40", "gray60"),
+            corner_radius=8, fg_color=("gray85", "gray20"),
+        )
+        options_group.pack(side="left", padx=(0, 10))
+
+        # AND/OR toggle buttons — the active mode is highlighted green
+        self.and_mode_var = ctk.StringVar(value="off")
+        _and_on_fg = ("#4CAF50", "#43A047")
+        _and_off_fg = ("gray78", "gray45")
+        _and_on_text = ("white", "white")
+        _and_off_text = ("gray30", "gray70")
+
+        def _sync_and_or_colors():
+            is_and = self.and_mode_var.get() == "on"
+            self._and_btn.configure(
+                fg_color=_and_on_fg if is_and else _and_off_fg,
+                text_color=_and_on_text if is_and else _and_off_text,
+            )
+            self._or_btn.configure(
+                fg_color=_and_on_fg if not is_and else _and_off_fg,
+                text_color=_and_on_text if not is_and else _and_off_text,
+            )
+
+        def _on_and_click():
+            self.and_mode_var.set("on")
+            if hasattr(self, "expression_var"):
+                self.expression_var.set("off")
+            if hasattr(self, "search_entry"):
+                self.search_entry.configure(placeholder_text="Enter search terms...")
+            _sync_and_or_colors()
+
+        def _on_or_click():
+            self.and_mode_var.set("off")
+            if hasattr(self, "search_entry"):
+                self.search_entry.configure(placeholder_text="Enter search terms...")
+            _sync_and_or_colors()
+
+        self._and_btn = ctk.CTkButton(
+            options_group, text="AND", width=40,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color=_and_off_fg, text_color=_and_off_text,
+            hover_color=("gray60", "gray50"),
+            command=_on_and_click,
+        )
+        self._and_btn.pack(side="left", padx=(4, 0), pady=3)
+        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same paragraph")
+
+        self._or_btn = ctk.CTkButton(
+            options_group, text="OR", width=35,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color=_and_on_fg, text_color=_and_on_text,
+            hover_color=("gray60", "gray50"),
+            command=_on_or_click,
+        )
+        self._or_btn.pack(side="left", padx=(2, 4), pady=3)
+        Tooltip(self._or_btn, "OR mode (default) — find lines containing any of the search terms")
+        self._sync_and_or_colors = _sync_and_or_colors
+
+        # Separator
+        _sep = ctk.CTkFrame(options_group, width=2, height=20,
+                            fg_color=("gray55", "gray55"))
+        _sep.pack(side="left", padx=(14, 14), pady=3)
+
+        self._folder_recursive_cb = ctk.CTkCheckBox(
+            options_group, text="Recursive", variable=self.recursive_var,
+            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+        )
+        self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
+        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching")
+
+        self.whole_word_var = ctk.StringVar(value="on")
+        self._search_whole_word_cb = ctk.CTkCheckBox(
+            options_group, text="Whole Word", variable=self.whole_word_var,
+            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+        )
+        self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
+        Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'")
+
+        # ? help for this options group
+        options_help_btn = ctk.CTkButton(
+            options_group, text="?", width=0, height=22,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_search_options_help,
+        )
+        options_help_btn.pack(side="left", padx=(0, 4), pady=3)
+        Tooltip(options_help_btn, "Help — explains AND/OR, Recursive, and Whole Word")
+
+        # Save, Reload, and ? grouped together
+        save_group = ctk.CTkFrame(
+            btn_frame, border_width=2, border_color=("gray40", "gray60"),
+            corner_radius=8, fg_color=("gray85", "gray20"),
+        )
+        save_group.pack(side="left", padx=(15, 0))
+
+        self.save_to_collection_btn = ctk.CTkButton(
+            save_group, text="\u25b6 Save", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._save_to_collection,
+            font=ctk.CTkFont(size=13),
+        )
+        self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
+        Tooltip(self.save_to_collection_btn, "Save the current search settings to the folder's collection by name so you can load and reuse it later")
+
+        self.load_search_btn = ctk.CTkButton(
+            save_group, text="\u25b6 Reload", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._open_load_search_popup,
+            font=ctk.CTkFont(size=13),
+        )
+        self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
+        Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
+        self._load_search_popup = None
+
+        self.save_load_help_btn = ctk.CTkButton(
+            save_group, text="?", width=0, height=22,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_save_load_help,
+        )
+        self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
+        Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
+
+        self.index_search_var = ctk.StringVar(value="off")
+        self.cb_index_search = ctk.CTkCheckBox(
+            btn_frame, text="Use Index", variable=self.index_search_var,
+            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        self.cb_index_search.pack(side="left", padx=(20, 20))
+        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
+
+
+        Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+
+
+
+    def _build_folder_row(self):
+        """Build the folder selection row in the shared _input_frame at row 0."""
+        label = ctk.CTkLabel(self._input_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
+        label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+
+        self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
+        self.folder_entry.grid(row=0, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
+        self.folder_entry.insert(0, os.path.expanduser("~"))
+
+        self._browse_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
+
+        self.browse_button = ctk.CTkButton(
+            self._browse_frame, text="Browse", width=60, command=self.browse_folder,
+            font=ctk.CTkFont(size=14),
+        )
+        self.browse_button.pack(side="left", padx=(0, 3))
+        Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
+
+        self._multi_folder_btn = ctk.CTkButton(
+            self._browse_frame, text="+Folder", width=65, command=self._add_folder,
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        self._multi_folder_btn.pack(side="left", padx=(3, 0))
+        Tooltip(self._multi_folder_btn, "Search multiple top-level folders at once (e.g., Documents and Desktop). Different from Recursive, which searches subfolders within a single folder. Folders are separated by semicolons (;)", anchor="left")
+
+        self.browse_file_button = ctk.CTkButton(
+            self._browse_frame, text="Single File", width=80, command=self._browse_file,
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        self.browse_file_button.pack(side="left", padx=(3, 0))
+        Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
+
+        self._clear_file_btn = ctk.CTkButton(
+            self._browse_frame, text="\u2715", width=24, height=24,
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent", text_color=("gray50", "gray50"),
+            hover_color=("gray90", "gray25"),
+            command=self._clear_specific_file,
+        )
+        # Hidden until a file is selected
+        Tooltip(self._clear_file_btn, "Clear the selected file and search the entire folder", anchor="left")
+
+        search_help_btn = ctk.CTkButton(
+            self, text="?", width=28, height=28,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_search_help,
+        )
+        search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
+        Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
+
+        Tooltip(self.folder_entry, "The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
+
+
+
+    def _build_advanced_toggle(self):
+        """Build the toggle button for Advanced Search Options."""
+        self.advanced_toggle = ctk.CTkButton(
+            self._toggle_row,
+            text="\u25b6 Advanced Search Options", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self.toggle_advanced,
+            font=ctk.CTkFont(size=13),
+        )
+        self.advanced_toggle.pack(side="left", padx=(0, 20))
+        Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+
+        self._search_wiz_btn = ctk.CTkButton(
+            self._toggle_row,
+            text="\u25b6 Search Wizard", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._open_search_wizard_guide,
+            font=ctk.CTkFont(size=13),
+        )
+        self._search_wiz_btn.pack(side="left", padx=(20, 20))
+        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
+
+        self.sensitive_scan_btn = ctk.CTkButton(
+            self._toggle_row,
+            text="\u25b6 PII Scan", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._start_sensitive_scan,
+            font=ctk.CTkFont(size=13),
+        )
+        self.sensitive_scan_btn.pack(side="left", padx=(20, 20))
+        Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern")
+
+
+
+    def _build_advanced_panel(self):
+        """Build the Advanced Search Options popup window with all search mode checkboxes and fields."""
+        # Create popup window for Advanced Search Options
+        self.advanced_window = ctk.CTkToplevel(self)
+        self.advanced_window.title("Advanced Search Options")
+        self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
+        self.advanced_window.geometry("900x720")
+        self.advanced_window.resizable(True, True)
+        self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
+        # Withdraw after event loop starts to avoid flash
+        self.advanced_window.withdraw()
+        self.after(10, self.advanced_window.withdraw)
+
+        self.advanced_frame = ctk.CTkFrame(self.advanced_window)
+        self.advanced_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Header with description and ? help button
+        adv_header_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        adv_header_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=(0, 5), sticky="ew")
+        adv_header_frame.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(
+            adv_header_frame,
+            text="All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
+            font=ctk.CTkFont(size=11),
+            text_color=("gray50", "gray50"),
+            justify="left",
+            wraplength=600,
+        ).grid(row=0, column=0, sticky="w")
+        adv_help_btn = ctk.CTkButton(
+            adv_header_frame, text="?", width=28, height=28,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_advanced_help,
+        )
+        adv_help_btn.grid(row=0, column=1, sticky="e")
+        Tooltip(adv_help_btn, "Help — explains every Advanced Option with examples")
+
+        # Build all widgets into advanced_frame
+
+        # Rows 0-1: checkboxes in own frame so entry columns don't stretch them
+        cb_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        cb_frame.grid(row=1, column=0, columnspan=3, padx=15, pady=(10, 5), sticky="w")
+
+        # and_mode_var and recursive_var are already created in _build_search_row
+        self.fuzzy_var = ctk.StringVar(value="off")
+
+        cb_and = ctk.CTkCheckBox(
+            cb_frame, text="AND mode", variable=self.and_mode_var,
+            onvalue="on", offvalue="off", command=self._on_and_toggle,
+        )
+        cb_and.grid(row=0, column=0, padx=(0, 15), pady=(0, 5), sticky="w")
+        cb_rec = ctk.CTkCheckBox(
+            cb_frame, text="Recursive", variable=self.recursive_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_rec.grid(row=0, column=1, padx=(0, 15), pady=(0, 5), sticky="w")
+        cb_fuz = ctk.CTkCheckBox(
+            cb_frame, text="Fuzzy", variable=self.fuzzy_var,
+            onvalue="on", offvalue="off", command=self._on_fuzzy_toggle,
+        )
+        cb_fuz.grid(row=0, column=2, padx=(0, 15), pady=(0, 5), sticky="w")
+
+        self.wildcard_var = ctk.StringVar(value="off")
+        self.ocr_var = ctk.StringVar(value="off")
+        self.regex_var = ctk.StringVar(value="off")
+
+        cb_wild = ctk.CTkCheckBox(
+            cb_frame, text="Wildcard", variable=self.wildcard_var,
+            onvalue="on", offvalue="off", command=self._on_wildcard_toggle,
+        )
+        cb_wild.grid(row=1, column=0, padx=(0, 15), pady=0, sticky="w")
+        cb_ocr = ctk.CTkCheckBox(
+            cb_frame, text="OCR", variable=self.ocr_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_ocr.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
+        cb_regex = ctk.CTkCheckBox(
+            cb_frame, text="Regex", variable=self.regex_var,
+            onvalue="on", offvalue="off", command=self._on_regex_toggle,
+        )
+        cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
+
+        # whole_word_var already created in _build_search_row
+        cb_whole_word = ctk.CTkCheckBox(
+            cb_frame, text="Whole Word", variable=self.whole_word_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
+        Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with the Whole Word checkbox on the search row")
+
+        self.expression_var = ctk.StringVar(value="off")
+        cb_expr = ctk.CTkCheckBox(
+            cb_frame, text="Expression", variable=self.expression_var,
+            onvalue="on", offvalue="off", command=self._on_expression_toggle,
+        )
+        cb_expr.grid(row=0, column=3, padx=(0, 15), pady=(0, 5), sticky="w")
+
+        self.inverse_var = ctk.StringVar(value="off")
+        cb_inverse = ctk.CTkCheckBox(
+            cb_frame, text="Inverse", variable=self.inverse_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_inverse.grid(row=0, column=4, padx=(0, 15), pady=(0, 5), sticky="w")
+        Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
+
+        # Row 2: exclude
+        ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
+            row=2, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        self.exclude_entry = ctk.CTkEntry(
+            self.advanced_frame, placeholder_text="Ex: draft,obsolete"
+        )
+        self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+        # Row 3: file types
+        ctk.CTkLabel(self.advanced_frame, text="File types:").grid(
+            row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        self.file_types_entry = ctk.CTkEntry(
+            self.advanced_frame, placeholder_text="Ex: pdf,docx,txt"
+        )
+        self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+        # Row 3: proximity + context lines
+        ctk.CTkLabel(self.advanced_frame, text="Proximity:").grid(
+            row=4, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        num_frame.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+
+        self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
+        self.proximity_entry.grid(row=0, column=0)
+
+        num_frame.grid_columnconfigure(1, minsize=110)
+        ctk.CTkLabel(num_frame, text="Lines Before:").grid(row=0, column=1, padx=(20, 5), sticky="e")
+        self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
+        self.context_before_entry.grid(row=0, column=2)
+
+        ctk.CTkLabel(num_frame, text="Lines After:").grid(row=0, column=3, padx=(20, 5))
+        self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
+        self.context_after_entry.grid(row=0, column=4)
+
+        # Row 4: cores
+        self._default_cores = max(1, (os.cpu_count() or 1) // 2)
+        ctk.CTkLabel(self.advanced_frame, text="Cores to Use:").grid(
+            row=5, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        cores_frame.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+
+        self.cores_entry = ctk.CTkEntry(cores_frame, width=60)
+        self.cores_entry.insert(0, str(self._default_cores))
+        self.cores_entry.grid(row=0, column=0)
+
+        cores_frame.grid_columnconfigure(1, minsize=110)
+        ctk.CTkLabel(cores_frame, text="Max Matches:").grid(row=0, column=1, padx=(20, 5), sticky="e")
+        self.max_matches_entry = ctk.CTkEntry(cores_frame, width=60)
+        self.max_matches_entry.insert(0, "1000")
+        self.max_matches_entry.grid(row=0, column=2)
+
+        ctk.CTkLabel(cores_frame, text="Max File Size (MB):").grid(row=0, column=3, padx=(20, 5), sticky="e")
+        self.max_file_size_entry = ctk.CTkEntry(cores_frame, width=60)
+        self.max_file_size_entry.insert(0, "100")
+        self.max_file_size_entry.grid(row=0, column=4)
+
+        # Row 6: range filters
+        ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
+            row=6, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        self.range_entry = ctk.CTkEntry(
+            self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
+        )
+        self.range_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
+
+        # Row 7: specific files
+        ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
+            row=7, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        self.specific_files_entry = ctk.CTkEntry(
+            self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
+        )
+        self.specific_files_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+
+        # Row 7: save as + append to
+        ctk.CTkLabel(self.advanced_frame, text="Save report as:").grid(
+            row=8, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
+        )
+        save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        save_frame.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=(5, 10), sticky="w")
+
+        self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
+        self.save_name_entry.grid(row=0, column=0, padx=(0, 20))
+
+        ctk.CTkLabel(save_frame, text="Append report to:").grid(row=0, column=1, padx=(0, 5))
+        self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
+        self.append_name_entry.grid(row=0, column=2)
+
+        # Row 8: output directory
+        ctk.CTkLabel(self.advanced_frame, text="Output Dir:").grid(
+            row=9, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
+        )
+        outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        outdir_frame.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
+
+        self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
+        self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
+        outdir_frame.grid_columnconfigure(0, weight=1)
+
+        outdir_browse_btn = ctk.CTkButton(
+            outdir_frame, text="Browse", width=70,
+            command=self._browse_output_dir,
+            font=ctk.CTkFont(size=12),
+        )
+        outdir_browse_btn.grid(row=0, column=1, padx=(0, 0))
+        Tooltip(outdir_browse_btn, "Pick a folder where peekdocs should write its reports, error log, and other output files", anchor="left")
+        Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
+
+        # Row 9: additional output formats
+        output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
+        self.output_csv_var = ctk.StringVar(value="off")
+        self.output_json_var = ctk.StringVar(value="off")
+        self.output_pdf_var = ctk.StringVar(value="off")
+        self.output_html_var = ctk.StringVar(value="off")
+        cb_csv = ctk.CTkCheckBox(
+            output_frame, text="CSV", variable=self.output_csv_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_csv.grid(row=0, column=1, padx=(0, 15))
+        cb_json = ctk.CTkCheckBox(
+            output_frame, text="JSON", variable=self.output_json_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_json.grid(row=0, column=2, padx=(0, 15))
+        cb_pdf = ctk.CTkCheckBox(
+            output_frame, text="PDF", variable=self.output_pdf_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_pdf.grid(row=0, column=3, padx=(0, 15))
+        cb_html = ctk.CTkCheckBox(
+            output_frame, text="HTML", variable=self.output_html_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_html.grid(row=0, column=4, padx=(0, 15))
+        self.timestamp_var = ctk.StringVar(value="off")
+        cb_ts = ctk.CTkCheckBox(
+            output_frame, text="Timestamp Filename", variable=self.timestamp_var,
+            onvalue="on", offvalue="off",
+        )
+        cb_ts.grid(row=0, column=4, padx=(0, 0))
+        Tooltip(cb_ts, "Add timestamp to report filenames (e.g., peekdocs_results_20260327_143022.txt)")
+
+        # Row 10: Save Defaults + Restore Settings buttons
+        settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+
+
+
+
+        reset_btn = ctk.CTkButton(
+            settings_btn_frame, text="Reset All Fields", width=120,
+            fg_color="#CC3333", hover_color="#AA2222",
+            command=self.reset_form,
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
+        reset_btn.pack(side="left", padx=5)
+        Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it")
+
+
+        # Row 11: Search Using Index(es)
+        # Index checkbox moved to main panel (next to Load Settings)
+
+        self.advanced_frame.grid_columnconfigure(0, minsize=130)
+        self.advanced_frame.grid_columnconfigure(1, weight=1)
+
+        # Tooltips
+        Tooltip(cb_and, "All search terms must appear in the same paragraph")
+        Tooltip(cb_rec, "Search subfolders inside the Search Folder")
+        Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
+        Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
+        Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see Readme.md)")
+        Tooltip(cb_expr, (
+            "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
+            "\n"
+            "Examples:\n"
+            "  budget AND revenue\n"
+            "  budget OR revenue\n"
+            "  budget AND NOT draft\n"
+            "  (budget OR revenue) AND (cost OR profit)\n"
+            "  (bob AND amy) OR (fred AND wilma)\n"
+            '  "annual report" AND (2023 OR 2024)\n'
+            "\n"
+            "Operators: AND, OR, NOT (case-insensitive). Parentheses group expressions.\n"
+            "Precedence: NOT > AND > OR. Use parentheses to override.\n"
+            "Cannot combine with AND mode, Exclude, or Proximity."
+        ))
+        Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
+        Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
+        Tooltip(self.file_types_entry, "Comma-separated file extensions to search. Leave blank to search ALL 46 supported file types (not every file on disk — unsupported formats like .DS_Store, .exe, random binaries are always skipped). Supported types: 7z, bz2, cfg, csv, doc, docx, eml, epub, gz, html, ics, ini, json, log, mbox, md, msg, odp, ods, odt, pages, pdf, ppt, pptx, pst, rar, rst, rtf, sql, tar, tex, tgz, toml, tsv, txt, vcf, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
+        Tooltip(self.proximity_entry, "Find terms within this many words of each other")
+        Tooltip(self.context_before_entry, "Number of lines to show before each match")
+        Tooltip(self.context_after_entry, "Number of lines to show after each match")
+        Tooltip(self.cores_entry, f"Number of CPU cores to use. This machine has {os.cpu_count()}, default is {self._default_cores}")
+        Tooltip(self.max_matches_entry, "Maximum matches included in reports. Default 1000. Set to 0 for no limit.")
+        Tooltip(self.max_file_size_entry, "Skip files larger than this (in MB). Default 100. Set to 0 for no limit. Large files can cause slow searches or memory issues.")
+        Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
+        Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name")
+        Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
+        Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
+        Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
+        Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
+
+        # Note about saving
+        # Note above bottom buttons
+        import tkinter as _tk_adv
+        # Bottom buttons for the Advanced Search Options window
+        adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
+        adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+        adv_save_btn = ctk.CTkButton(
+            adv_bottom_frame, text="Save As Defaults", width=110,
+            command=self._save_current_settings,
+            font=ctk.CTkFont(size=13),
+        )
+        adv_save_btn.pack(side="left", padx=(5, 0))
+        Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc")
+
+        ctk.CTkButton(
+            adv_bottom_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._close_advanced_window,
+            font=ctk.CTkFont(size=13),
+        ).place(relx=0.5, rely=0.5, anchor="center")
+
+        adv_restore_btn = ctk.CTkButton(
+            adv_bottom_frame, text="Restore Saved Defaults", width=130,
+            command=self._load_saved_settings,
+            font=ctk.CTkFont(size=13),
+        )
+        adv_restore_btn.pack(side="right", padx=(0, 5))
+        Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI")
+
+        adv_inspect_link = ctk.CTkLabel(
+            adv_bottom_frame, text="Inspect .peekdocsrc",
+            font=ctk.CTkFont(size=12, underline=True),
+            text_color=("dodgerblue", "deepskyblue"), cursor="hand2",
+        )
+        adv_inspect_link.pack(side="left", padx=(5, 0))
+        adv_inspect_link.bind("<Button-1>", lambda e: self._inspect_settings())
+        Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only)")
+
+
+
+    def _build_progress_area(self):
+        """Build the progress bar, status label, and results preview pane."""
+        self.progress_bar = ctk.CTkProgressBar(
+            self._search_parent, mode="indeterminate", height=18,
+            progress_color=("#2196F3", "#1976D2"),
+            fg_color=("#E0E0E0", "#3A3A3A"),
+            corner_radius=5,
+            indeterminate_speed=1.2,
+        )
+        self.progress_bar.set(0)
+        # Starts hidden — shown only during search
+
+        import tkinter as _tk_status
+        status_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        status_row.grid(row=3, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
+
+        _status_label_size = 16 if sys.platform == "win32" else 14
+        status_label_left = ctk.CTkLabel(
+            status_row, text="Status:", font=ctk.CTkFont(size=_status_label_size, weight="bold"),
+        )
+        status_label_left.pack(side="left", padx=(0, 5))
+        Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
+
+        _status_font_size = 16 if sys.platform == "win32" else 14
+        self.status_label = ctk.CTkLabel(
+            status_row, text="", font=ctk.CTkFont(size=_status_font_size), anchor="w",
+            wraplength=550, text_color="blue", justify="left",
+        )
+        self.status_label.pack(side="left")
+
+        self._matched_files_link = ctk.CTkButton(
+            status_row, text="", font=ctk.CTkFont(size=10),
+            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
+            cursor="hand2", height=22, width=120,
+            command=self._show_matched_files_popup,
+        )
+        self._matched_files_link.pack(side="left", padx=(5, 0))
+        self._matched_files_link.pack_forget()  # Hidden until matches found
+        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
+
+        self._excluded_files_btn = ctk.CTkButton(
+            status_row, text="", font=ctk.CTkFont(size=10),
+            fg_color="#666666", hover_color="#555555", text_color="white",
+            cursor="hand2", height=22, width=120,
+            command=self._show_excluded_files_popup,
+        )
+        self._excluded_files_btn.pack(side="left", padx=(5, 0))
+        self._excluded_files_btn.pack_forget()  # Hidden until search completes
+        Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior peekdocs output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number peekdocs searched")
+
+        self.matched_files = []
+        self._inverse_results = False
+
+        # Results preview pane — shown on launch with empty content
+        self.preview_frame = ctk.CTkFrame(self._search_parent)
+        self.preview_frame.grid(
+            row=8, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
+        )
+
+        import tkinter as tk
+        preview_header = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
+        preview_header.pack(fill="x", padx=5, pady=(5, 0))
+        ctk.CTkLabel(preview_header, text="Results Preview:",
+                     font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
+        self._preview_count_label = ctk.CTkLabel(
+            preview_header, text="", font=ctk.CTkFont(size=12),
+            text_color=("gray50", "gray50"))
+        self._preview_count_label.pack(side="left", padx=(8, 0))
+
+        # App-wide text size dropdown
+        self._app_size_menu = ctk.CTkOptionMenu(
+            preview_header, variable=self._text_size_var,
+            values=["Small", "Normal", "Large", "Extra Large", "Huge"],
+            width=110, font=ctk.CTkFont(size=11),
+            command=self._on_text_size_changed,
+        )
+        self._app_size_menu.pack(side="right")
+        Tooltip(self._app_size_menu, "Adjust the overall app text size — changes all labels, buttons, and fields", anchor="left")
+        ctk.CTkLabel(preview_header, text="App Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(10, 3))
+
+        # Preview-only font size dropdown
+        self._preview_font_size = 11
+        self._preview_size_var = ctk.StringVar(value="11")
+        preview_size_menu = ctk.CTkOptionMenu(
+            preview_header, variable=self._preview_size_var,
+            values=["8", "9", "10", "11", "12", "13", "14", "16", "18", "20"],
+            width=65, font=ctk.CTkFont(size=11),
+            command=self._on_preview_size_changed,
+        )
+        preview_size_menu.pack(side="right")
+        Tooltip(preview_size_menu, "Adjust the font size of the Results Preview text only", anchor="left")
+        ctk.CTkLabel(preview_header, text="Preview Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
+
+        preview_text_frame = tk.Frame(self.preview_frame)
+        preview_text_frame.pack(fill="both", expand=True, padx=5, pady=(2, 5))
+
+        preview_scroll = tk.Scrollbar(preview_text_frame)
+        preview_scroll.pack(side="right", fill="y")
+
+        self.preview_text = tk.Text(
+            preview_text_frame, wrap="word", font=("Courier", 11),
+            state="disabled", yscrollcommand=preview_scroll.set,
+            padx=8, pady=5, height=15,
+        )
+        self.preview_text.pack(side="left", fill="both", expand=True)
+        preview_scroll.config(command=self.preview_text.yview)
+
+        # Configure tags for highlighting
+        self.preview_text.tag_configure("filename", font=("Courier", 11, "bold"),
+                                        foreground="#1a73e8")
+        self.preview_text.tag_configure("match", background="#FFFF00")
+        self.preview_text.tag_configure("line_num", foreground="#888888")
+
+        # Right-click to copy selected text or current line
+        def _preview_copy(event):
+            try:
+                sel = self.preview_text.get("sel.first", "sel.last")
+            except tk.TclError:
+                # No selection — copy current line
+                sel = self.preview_text.get("current linestart", "current lineend")
+            if sel.strip():
+                self.clipboard_clear()
+                self.clipboard_append(sel.strip())
+                self.status_label.configure(text="Copied to clipboard.",
+                                            text_color="blue")
+        self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
+        self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
+
+        # Double-click filename to open the file
+        def _preview_open_file(event):
+            idx = self.preview_text.index("current")
+            line = self.preview_text.get(f"{idx} linestart", f"{idx} lineend").strip()
+            # Filename lines are tagged with "filename" — check if clicked line has it
+            tags = self.preview_text.tag_names(f"{idx} linestart")
+            if "filename" not in tags:
+                return
+            # Extract path from the line (format: "── filename (dir) ──" or just a path)
+            # Try matched_files list first
+            for _item in getattr(self, 'matched_files', []):
+                filepath, fname = _item[0], _item[1]
+                if fname in line:
+                    if os.path.exists(filepath):
+                        system = platform.system()
+                        if system == "Darwin":
+                            subprocess.Popen(["open", filepath])
+                        elif system == "Windows":
+                            os.startfile(filepath)
+                        else:
+                            subprocess.Popen(["xdg-open", filepath])
+                    return
+        self.preview_text.bind("<Double-1>", _preview_open_file)
+
+
+
+    def _build_open_report(self):
+        """Build the Matched Files and View Report buttons."""
+        # Buttons are children of the search tab, gridded directly at row 6
+        self.matched_files_button = ctk.CTkButton(
+            self._search_parent,
+            text="Matched Files",
+            width=140,
+            command=self._show_matched_files_popup,
+            font=ctk.CTkFont(size=13),
+        )
+        Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
+
+        self.report_frame = ctk.CTkFrame(self._search_parent, fg_color=self._search_parent.cget("fg_color"))
+        ctk.CTkLabel(
+            self.report_frame, text="4.",
+            font=ctk.CTkFont(size=18, weight="bold"),
+        ).pack(side="left", padx=(0, 4))
+        report_lbl = ctk.CTkLabel(
+            self.report_frame, text="View Report:", font=ctk.CTkFont(size=18, weight="bold"),
+        )
+        report_lbl.pack(side="left", padx=(0, 4))
+
+        btn_font = ctk.CTkFont(size=12)
+        btn_w = 60
+        _report_color_note = "Green = report file exists and is ready to open. Red = not generated (enable in Advanced Search Options under Output Formats)."
+        self.report_btn_txt = ctk.CTkButton(
+            self.report_frame, text="TXT", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("txt"),
+        )
+        Tooltip(self.report_btn_txt, f"Open the plain-text report (.txt). {_report_color_note}", anchor="above")
+        self.report_btn_docx = ctk.CTkButton(
+            self.report_frame, text="DOCX", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("docx"),
+        )
+        Tooltip(self.report_btn_docx, f"Open the highlighted Word report (.docx) — every match in yellow with context. {_report_color_note}", anchor="above")
+        self.report_btn_csv = ctk.CTkButton(
+            self.report_frame, text="CSV", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("csv"),
+        )
+        Tooltip(self.report_btn_csv, f"Open the CSV report — one row per match, importable into Excel or Google Sheets. {_report_color_note}", anchor="above")
+        self.report_btn_json = ctk.CTkButton(
+            self.report_frame, text="JSON", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("json"),
+        )
+        Tooltip(self.report_btn_json, f"Open the JSON report — structured data for scripting or further processing. {_report_color_note}", anchor="above")
+        self.report_btn_pdf = ctk.CTkButton(
+            self.report_frame, text="PDF", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("pdf"),
+        )
+        Tooltip(self.report_btn_pdf, f"Open the PDF report — highlighted matches, portable format. {_report_color_note}", anchor="above")
+
+
+
+    def _build_index_panel(self):
+        """Build the Manage Indexes popup window with build, delete, status, and auto-refresh controls."""
+        # Index toggle button — in the shared toggle row
+        self.index_toggle_btn = ctk.CTkButton(
+            self._toggle_row,
+            text="\u25b6 Manage Indexes", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._toggle_index_options,
+            font=ctk.CTkFont(size=13),
+        )
+        self.index_toggle_btn.pack(side="left", padx=(20, 20))
+        Tooltip(self.index_toggle_btn, "Open the Manage Indexes panel — build, delete, and refresh search indexes for faster repeated searches")
+
+        # Create popup window for Manage Indexes
+        self.index_window = ctk.CTkToplevel(self)
+        self.index_window.title("Manage Indexes")
+        self.index_window.after(100, lambda: self.index_window.title("Manage Indexes"))
+        self.index_window.geometry("650x240")
+        self.index_window.resizable(True, True)
+        self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
+        self.index_window.withdraw()
+        self.after(10, self.index_window.withdraw)
+        self.index_visible = False
+
+        idx_frame = ctk.CTkFrame(self.index_window)
+        idx_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Header with description and ? help
+        idx_header = ctk.CTkFrame(idx_frame, fg_color="transparent")
+        idx_header.pack(fill="x", padx=5, pady=(0, 10))
+        ctk.CTkLabel(
+            idx_header,
+            text="Build a search index for faster repeated searches. The index includes all subfolders.",
+            font=ctk.CTkFont(size=11),
+            text_color=("gray50", "gray50"),
+        ).pack(side="left")
+        idx_help_btn = ctk.CTkButton(
+            idx_header, text="?", width=28, height=28,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_index_help,
+        )
+        idx_help_btn.pack(side="right")
+        Tooltip(idx_help_btn, "Help — explains what indexes are and when to use them")
+
+        # Buttons row
+        btn_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=5)
+
+        self.build_index_button = ctk.CTkButton(
+            btn_frame, text="Build Index(es)", width=120,
+            command=self.build_index_action, font=ctk.CTkFont(size=12),
+        )
+        self.build_index_button.pack(side="left", padx=(0, 5))
+        Tooltip(self.build_index_button, "Build a search index for faster repeated searches. Indexes all subfolders automatically")
+
+        self.cancel_index_button = ctk.CTkButton(
+            btn_frame, text="Cancel Build", width=100,
+            fg_color="red", hover_color="darkred",
+            command=self._cancel_index_build, font=ctk.CTkFont(size=12),
+        )
+        # Hidden by default — shown during build
+        Tooltip(self.cancel_index_button, "Cancel the index build in progress")
+
+        self.delete_index_button = ctk.CTkButton(
+            btn_frame, text="Delete Index(es)", width=120,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.delete_index_action, font=ctk.CTkFont(size=12),
+        )
+        self.delete_index_button.pack(side="left", padx=5)
+        Tooltip(self.delete_index_button, "Delete the search index from the selected folder")
+
+        self.index_status_button = ctk.CTkButton(
+            btn_frame, text="Index Status", width=100,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.index_status_action, font=ctk.CTkFont(size=12),
+        )
+        self.index_status_button.pack(side="left", padx=5)
+        Tooltip(self.index_status_button, "Show index info — file count, size, and settings")
+
+        # Auto-refresh row
+        refresh_frame = ctk.CTkFrame(idx_frame, fg_color="transparent")
+        refresh_frame.pack(fill="x", padx=5, pady=(10, 0))
+
+        ctk.CTkLabel(
+            refresh_frame, text="Auto-Refresh Index:",
+            font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=(0, 5))
+
+        self.refresh_interval_var = ctk.StringVar(value="Off")
+        self.refresh_interval_menu = ctk.CTkOptionMenu(
+            refresh_frame,
+            values=["Off", "5 min", "15 min", "30 min", "1 hour", "4 hours", "8 hours", "24 hours"],
+            variable=self.refresh_interval_var,
+            command=self._on_refresh_interval_changed,
+            width=100,
+            font=ctk.CTkFont(size=12),
+        )
+        self.refresh_interval_menu.pack(side="left")
+        Tooltip(self.refresh_interval_menu,
+                "Automatically refresh the index at this interval while the app is open. "
+                "Adds new files, re-indexes changed files, removes deleted files.")
+
+        # Status label
+        self.refresh_status_label = ctk.CTkLabel(
+            idx_frame, text="", font=ctk.CTkFont(size=11),
+            text_color=("gray50", "gray50"), anchor="w",
+        )
+        self.refresh_status_label.pack(anchor="w", padx=5, pady=(5, 0))
+
+        # Close button
+        ctk.CTkButton(
+            idx_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._close_index_window,
+            font=ctk.CTkFont(size=12),
+        ).pack(side="bottom", pady=(10, 10))
+
+        # For index_frame compatibility with _update_index_button_color
+        self.index_frame = idx_frame
+
+
+
+    def _build_bottom_row(self):
+        """Build the bottom toolbar with help, about, tools, and close."""
+        self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
+        self.bottom_frame.grid(
+            row=10, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
+        )
+
+        self.bottom_frame.grid_columnconfigure(0, weight=1)
+        self.bottom_frame.grid_columnconfigure(1, weight=1)
+        self.bottom_frame.grid_columnconfigure(2, weight=1)
+
+        # Left group
+        left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="w")
+
+        self.help_button = ctk.CTkButton(
+            left_frame,
+            text="User Guide",
+            width=90,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.open_help,
+            font=ctk.CTkFont(size=13),
+        )
+        self.help_button.pack(side="left")
+        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
+
+        # Center: Close button
+        close_main_btn = ctk.CTkButton(
+            self.bottom_frame,
+            text="Close",
+            width=70,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.destroy,
+            font=ctk.CTkFont(size=13),
+        )
+        close_main_btn.grid(row=0, column=1)
+        Tooltip(close_main_btn, "Close peekdocs", anchor="above")
+
+        # Right group
+        right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
+        right_frame.grid(row=0, column=2, sticky="e")
+
+        self.about_button = ctk.CTkButton(
+            right_frame,
+            text="About",
+            width=70,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.show_about,
+            font=ctk.CTkFont(size=13),
+        )
+        self.about_button.pack(side="right", padx=5)
+        Tooltip(self.about_button, "About peekdocs — version, author, and license information", anchor="above-left")
+
+        # Tools menu — consolidates utilities, settings, and maintenance
+        def _show_tools_menu():
+            import tkinter as tk
+            menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
+            def _dark_sep():
+                menu.add_command(label="─" * 50, state="disabled",
+                                 font=("TkDefaultFont", 2),
+                                 foreground="gray40")
+            # Folder analysis (alphabetical)
+            menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
+            menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
+            menu.add_command(label="File Inventory — summary of all files by type, size, and date", command=self._run_file_inventory)
+            menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
+            menu.add_command(label="Protected Files — find password-protected or encrypted files", command=self._run_protected_scan)
+            menu.add_command(label="Recent Changes — files modified in the last 7 / 30 / 90 days", command=self._run_recent_changes)
+            _dark_sep()
+            # User tools (alphabetical)
+            menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
+            menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
+            _dark_sep()
+            # App management (alphabetical)
+            menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
+            menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
+            menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
+            _dark_sep()
+            # Cleanup (alphabetical)
+            menu.add_command(label="Clean Up Practice Files — remove all except saved searches", command=self._clean_up_practice_files)
+            menu.add_command(label="Clear Error Log — delete peekdocs_errors.log", command=self._clear_error_log)
+            menu.add_command(label="Clear Search Results — delete peekdocs_results files", command=self._clear_results_files)
+            _dark_sep()
+            # Text Size — direct items instead of a cascade submenu
+            # (cascades open to the right and go off-screen on small displays)
+            current_size = self._text_size_var.get()
+            for size in ["Small", "Normal", "Large", "Extra Large", "Huge"]:
+                marker = " \u2713" if size == current_size else ""
+                menu.add_command(
+                    label=f"Text Size: {size}{marker}",
+                    command=lambda s=size: (self._text_size_var.set(s), self._on_text_size_changed(s)),
+                )
+            # Appearance mode (Dark / Light / System)
+            current_mode = ctk.get_appearance_mode()
+            for mode in ["System", "Light", "Dark"]:
+                marker = " \u2713" if mode == current_mode else ""
+                menu.add_command(
+                    label=f"Appearance: {mode}{marker}",
+                    command=lambda m=mode: self._set_appearance_mode(m),
+                )
+            # Hover text toggle
+            hover_label = (
+                "Disable Hover Text — hide tooltip popups when hovering over buttons and fields"
+                if Tooltip.enabled else
+                "Enable Hover Text — show tooltip popups when hovering over buttons and fields"
+            )
+            menu.add_command(label=hover_label, command=self._toggle_tooltips)
+            btn = self._tools_btn
+            x = btn.winfo_rootx() - 400
+            y = btn.winfo_rooty() - 350
+            menu.tk_popup(x, y)
+
+        self._tools_btn = ctk.CTkButton(
+            right_frame,
+            text="Tools \u25b2",
+            width=70,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=_show_tools_menu,
+            font=ctk.CTkFont(size=13),
+        )
+        self._tools_btn.pack(side="right", padx=5)
+        Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more", anchor="above-left")
+
+        # Keep references for tooltip toggle (used by _toggle_tooltips)
+        self.tooltip_toggle_btn = None
+        self.view_error_log_bottom = None
+
+
+    # ── Actions ──────────────────────────────────────────────
+
+
+
+    def toggle_advanced(self):
+        """Toggle the Advanced Search Options window open or closed."""
+        if self.advanced_visible:
+            self._close_advanced_window()
+        else:
+            self.advanced_window.deiconify()
+            self.advanced_window.lift()
+            self.advanced_toggle.configure(text="\u25bc Advanced Search Options")
+            self.advanced_visible = True
+
+
+
+    def _close_advanced_window(self):
+        """Hide the Advanced Search Options window and update the toggle button."""
+        self.advanced_window.withdraw()
+        self.advanced_toggle.configure(text="\u25b6 Advanced Search Options")
+        self.advanced_visible = False
+
+
+
+    def _toggle_index_options(self):
+        """Toggle the Manage Indexes window open or closed."""
+        if self.index_visible:
+            self._close_index_window()
+        else:
+            self.index_window.deiconify()
+            self.index_window.lift()
+            self.index_toggle_btn.configure(text="\u25bc Manage Indexes")
+            self.index_visible = True
+            self._update_index_button_color()
+
+
+
+    def _close_index_window(self):
+        """Hide the Manage Indexes window and update the toggle button."""
+        self.index_window.withdraw()
+        self.index_toggle_btn.configure(text="\u25b6 Manage Indexes")
+        self.index_visible = False
+
+
+
+    def browse_folder(self):
+        """Open a folder picker and update the search folder entry."""
+        initial = self.folder_entry.get() or os.path.expanduser("~")
+        folder = filedialog.askdirectory(initialdir=initial)
+        if folder:
+            folder = os.path.normpath(folder)
+            self.folder_entry.delete(0, "end")
+            self.folder_entry.insert(0, folder)
+            # Clear any single-file selection so the search covers
+            # the entire folder, not the previously selected file.
+            self._clear_specific_file()
+            self._update_index_button_color()
+            self._on_refresh_interval_changed(self.refresh_interval_var.get())
+            self._refresh_load_search_menu()
+
+
+
+    def _add_folder(self):
+        """Add another folder to the search folder field (multi-folder search)."""
+        current = self.folder_entry.get().strip()
+        # Use the last folder in the list as the initial dir for the picker
+        parts = [p.strip() for p in current.split(";") if p.strip()]
+        initial = parts[-1] if parts else os.path.expanduser("~")
+        folder = filedialog.askdirectory(initialdir=initial)
+        if folder:
+            folder = os.path.normpath(folder)
+            if folder not in parts:
+                parts.append(folder)
+                self.folder_entry.delete(0, "end")
+                self.folder_entry.insert(0, "; ".join(parts))
+                self._clear_specific_file()
+
+
+
+    def _browse_file(self):
+        """Open a file picker, set the folder to the file's directory and specific file to search."""
+        if getattr(self, '_file_dialog_open', False):
+            return
+        self._file_dialog_open = True
+        try:
+            self._browse_file_inner()
+        finally:
+            self.after(500, lambda: setattr(self, '_file_dialog_open', False))
+
+
+
+    def _browse_file_inner(self):
+        initial = self.folder_entry.get().strip()
+        if not initial or not os.path.isdir(initial):
+            initial = os.path.expanduser("~")
+        filepath = filedialog.askopenfilename(
+            parent=self,
+            initialdir=initial,
+            title="Select a file to search",
+        )
+        if filepath:
+            filepath = os.path.normpath(filepath)
+            folder = os.path.dirname(filepath)
+            filename = os.path.basename(filepath)
+            self.folder_entry.delete(0, "end")
+            self.folder_entry.insert(0, folder)
+            self.specific_files_entry.delete(0, "end")
+            self.specific_files_entry.insert(0, filename)
+            self.recursive_var.set("off")
+            self._update_index_button_color()
+            self._refresh_load_search_menu()
+            self.status_label.configure(
+                text=f"File selected: {filename} in {folder}",
+                text_color="blue",
+            )
+            self._clear_file_btn.pack(side="left", padx=(2, 0))
+
+
+
+    def _clear_specific_file(self):
+        """Clear the specific file selection and revert to full folder search."""
+        self.specific_files_entry.delete(0, "end")
+        self._clear_file_btn.pack_forget()
+        self.status_label.configure(
+            text="File selection cleared — searching entire folder.",
+            text_color="blue",
+        )
+
+
+
+    def _browse_output_dir(self):
+        """Open a folder picker for the search output directory."""
+        initial = self.output_dir_entry.get().strip() or self.folder_entry.get().strip() or os.path.expanduser("~")
+        folder = filedialog.askdirectory(initialdir=initial)
+        if folder:
+            self.output_dir_entry.delete(0, "end")
+            self.output_dir_entry.insert(0, folder)
+
+
+
+    def _show_recent_searches(self):
+        """Show a popup with recent searches to re-use."""
+        import tkinter as tk
+        if not self._recent_searches:
+            self.status_label.configure(
+                text="No recent searches yet.",
+                text_color="blue",
+                font=ctk.CTkFont(size=13),
+            )
+            return
+        popup = tk.Toplevel(self)
+        popup.title("Recent Searches")
+        popup.resizable(False, False)
+        popup.transient(self)
+        try:
+            popup.grab_set()
+        except Exception:
+            popup.after(150, lambda: popup.grab_set() if popup.winfo_exists() else None)
+        self.update_idletasks()
+        x = self.winfo_rootx() + 50
+        y = self.winfo_rooty() + 80
+        popup.geometry(f"+{x}+{y}")
+
+        tk.Label(popup, text="Click a search to re-use it:",
+                 font=("TkDefaultFont", 11), fg="gray").pack(padx=10, pady=(8, 4))
+
+        listbox = tk.Listbox(popup, font=("TkDefaultFont", 12),
+                             selectmode=tk.SINGLE, activestyle="none",
+                             bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+                             highlightthickness=0, borderwidth=1, relief="sunken",
+                             width=60, height=min(len(self._recent_searches), 10))
+        listbox.pack(padx=10, pady=(0, 8))
+        for s in self._recent_searches:
+            listbox.insert("end", s)
+
+        def _select(event=None):
+            sel = listbox.curselection()
+            if not sel:
+                return
+            text = listbox.get(sel[0])
+            self.search_entry.delete(0, "end")
+            self.search_entry.insert(0, text)
+            popup.destroy()
+
+        listbox.bind("<Double-1>", _select)
+        tk.Button(popup, text="Use", width=8, command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
+        tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+
+
+
+    def _set_appearance_mode(self, mode):
+        """Switch between Dark, Light, and System appearance modes."""
+        ctk.set_appearance_mode(mode)
+        self._appearance_mode = mode
+
+    @staticmethod
+
+
+
+    def _is_dark_mode():
+        """Return True if the current appearance is Dark."""
+        return ctk.get_appearance_mode() == "Dark"
+
+    @staticmethod
+
+
+
+    def _apply_dark_theme(widget):
+        """Recursively apply dark colors to plain tk widgets if Dark mode is active."""
+        if ctk.get_appearance_mode() != "Dark":
+            return
+        import tkinter as tk
+        _bg = "#2b2b2b"
+        _fg = "#e0e0e0"
+        _entry_bg = "#3a3a3a"
+        _btn_bg = "#404040"
+
+        def _apply(w):
+            cls = w.winfo_class()
+            try:
+                if cls in ("Frame", "Labelframe"):
+                    w.configure(bg=_bg)
+                elif cls == "Label":
+                    # Preserve colored labels (severity badges, warnings)
+                    cur_bg = str(w.cget("bg"))
+                    if cur_bg in ("#ffffff", "white", "SystemButtonFace",
+                                  "#f0f0f0", "#d9d9d9", "#ececec"):
+                        w.configure(bg=_bg, fg=_fg)
+                    elif cur_bg == _bg or cur_bg.startswith("#2"):
+                        w.configure(fg=_fg)
+                    else:
+                        # Colored label — only set bg if it's default
+                        try:
+                            w.configure(bg=_bg)
+                        except Exception:
+                            pass
+                elif cls == "Entry":
+                    w.configure(bg=_entry_bg, fg=_fg, insertbackground=_fg)
+                elif cls == "Checkbutton":
+                    w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
+                                activebackground=_bg, activeforeground=_fg)
+                elif cls == "Button":
+                    w.configure(bg=_btn_bg, fg=_fg,
+                                activebackground="#555555", activeforeground=_fg)
+                elif cls == "Radiobutton":
+                    w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
+                                activebackground=_bg, activeforeground=_fg)
+                elif cls == "Text":
+                    w.configure(bg=_entry_bg, fg=_fg, insertbackground=_fg)
+                elif cls == "Toplevel":
+                    w.configure(bg=_bg)
+                elif cls == "Canvas":
+                    w.configure(bg=_bg)
+            except Exception:
+                pass
+            for child in w.winfo_children():
+                _apply(child)
+
+        _apply(widget)
+
+
+
+    def _toggle_tooltips(self):
+        """Toggle hover tooltip visibility on or off."""
+        Tooltip.enabled = not Tooltip.enabled
+
+
+
+    def _on_fuzzy_toggle(self):
+        """Handle fuzzy toggle by disabling conflicting regex and wildcard modes."""
+        if self.fuzzy_var.get() == "on":
+            self.regex_var.set("off")
+            self.wildcard_var.set("off")
+
+
+
+    def _on_regex_toggle(self):
+        """Handle regex toggle by disabling conflicting fuzzy and wildcard modes."""
+        if self.regex_var.get() == "on":
+            self.fuzzy_var.set("off")
+            self.wildcard_var.set("off")
+
+
+
+    def _on_wildcard_toggle(self):
+        """Handle wildcard toggle by disabling conflicting fuzzy and regex modes."""
+        if self.wildcard_var.get() == "on":
+            self.fuzzy_var.set("off")
+            self.regex_var.set("off")
+
+
+
+    def _on_expression_toggle(self):
+        """Handle expression toggle by disabling AND mode, exclude, and proximity."""
+        if self.expression_var.get() == "on":
+            self.and_mode_var.set("off")
+            if hasattr(self, "_sync_and_or_colors"):
+                self._sync_and_or_colors()
+            self.exclude_entry.delete(0, "end")
+            self.proximity_entry.delete(0, "end")
+            self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
+        else:
+            self.search_entry.configure(placeholder_text="Enter search terms...")
+
+
+
+    def _on_and_toggle(self):
+        """Handle AND mode toggle by disabling the expression mode."""
+        if self.and_mode_var.get() == "on":
+            self.expression_var.set("off")
+            self.search_entry.configure(placeholder_text="Enter search terms...")
+        if hasattr(self, "_sync_and_or_colors"):
+            self._sync_and_or_colors()
+
+
+
+    def _open_load_search_popup(self):
+        """Open a popup with saved searches listbox and Select/Delete buttons."""
+        import tkinter as tk
+        from peekdocs.collection import load_collection
+        if self._load_search_popup and self._load_search_popup.winfo_exists():
+            self._load_search_popup.destroy()
+            self._load_search_popup = None
+            return
+
+        folder = self.folder_entry.get().strip()
+        names = []
+        if folder and os.path.isdir(folder):
+            data = load_collection(folder)
+            names = sorted(data.get("saved_searches", {}).keys())
+
+        popup = tk.Toplevel(self)
+        popup.title("Load Settings")
+        popup.resizable(False, False)
+        popup.transient(self)
+        self._load_search_popup = popup
+
+        # Position below the button
+        btn = self.load_search_btn
+        x = btn.winfo_rootx()
+        y = btn.winfo_rooty() + btn.winfo_height()
+        popup.geometry(f"+{x}+{y}")
+
+        frame = ctk.CTkFrame(popup)
+        frame.pack(fill="both", expand=True)
+
+        listbox = tk.Listbox(frame, width=30, height=min(len(names), 10) or 1,
+                             font=("TkDefaultFont", 13), selectmode="browse",
+                             exportselection=False, activestyle="none")
+        if names:
+            for n in names:
+                listbox.insert("end", n)
+            listbox.selection_set(0)
+        else:
+            listbox.insert("end", "(no saved searches)")
+        listbox.pack(side="top", fill="both", expand=True, padx=4, pady=(4, 2))
+
+        _motion_active = [True]
+
+        def _on_motion(event):
+            if not _motion_active[0]:
+                return
+            idx = listbox.nearest(event.y)
+            if idx >= 0:
+                listbox.selection_clear(0, "end")
+                listbox.selection_set(idx)
+
+        def _on_click(event):
+            _motion_active[0] = False
+
+        listbox.bind("<Motion>", _on_motion)
+        listbox.bind("<ButtonPress-1>", _on_click)
+
+        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        btn_frame.pack(side="top", fill="x", padx=4, pady=(2, 2))
+        cancel_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        cancel_frame.pack(side="top", fill="x", padx=4, pady=(0, 4))
+
+        def on_select():
+            sel = listbox.curselection()
+            if not sel:
+                return
+            name = listbox.get(sel[0])
+            if name == "(no saved searches)":
+                return
+            from peekdocs.collection import get_search_params
+            params = get_search_params(folder, name)
+            if params:
+                self._apply_params_to_gui(params)
+                self.status_label.configure(
+                    text=f"Loaded search '{name}' from collection.",
+                    text_color="blue",
+                )
+            popup.destroy()
+            self._load_search_popup = None
+
+        def on_delete():
+            sel = listbox.curselection()
+            if not sel:
+                return
+            name = listbox.get(sel[0])
+            if name == "(no saved searches)":
+                return
+            from tkinter import messagebox
+            from peekdocs.collection import remove_saved_search
+            if not messagebox.askyesno("Delete Saved Search",
+                                       f"Delete saved search '{name}'?",
+                                       parent=popup):
+                return
+            remove_saved_search(folder, name)
+            listbox.delete(sel[0])
+            self.status_label.configure(
+                text=f"Deleted saved search '{name}'.",
+                text_color="blue",
+            )
+            if listbox.size() == 0:
+                listbox.insert("end", "(no saved searches)")
+
+        def close_popup(event=None):
+            if self._load_search_popup and self._load_search_popup.winfo_exists():
+                self._load_search_popup.destroy()
+                self._load_search_popup = None
+
+        ctk.CTkButton(btn_frame, text="Select", width=70, font=ctk.CTkFont(size=12),
+                      command=on_select).pack(side="left")
+        ctk.CTkButton(btn_frame, text="Delete", width=70, font=ctk.CTkFont(size=12),
+                      fg_color="firebrick", hover_color="darkred",
+                      command=on_delete).pack(side="right")
+        ctk.CTkButton(cancel_frame, text="Cancel", width=80,
+                      fg_color="transparent", text_color=("gray30", "gray70"),
+                      hover_color=("gray90", "gray25"),
+                      font=ctk.CTkFont(size=12),
+                      command=close_popup).pack()
+
+        listbox.bind("<Double-1>", lambda e: on_select())
+        popup.bind("<Escape>", close_popup)
+        popup.protocol("WM_DELETE_WINDOW", close_popup)
+        listbox.focus_set()
+
+
+
+    def _refresh_load_search_menu(self):
+        """No-op — popup rebuilds its list each time it opens."""
+        pass
+
+
