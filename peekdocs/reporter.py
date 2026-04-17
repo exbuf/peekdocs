@@ -946,6 +946,7 @@ def write_html_report(output_path, matches, search_terms=None,
                       report_mode="ANY", inverse_files=None):
     """Write peekdocs_results.html with highlighted matches."""
     import html as html_mod
+    import re as _re_html
 
     if os.path.exists(output_path):
         os.remove(output_path)
@@ -999,7 +1000,6 @@ def write_html_report(output_path, matches, search_terms=None,
                 clean = html_mod.escape(_strip_highlights(text))
                 # Highlight search terms in the HTML output
                 for term in terms:
-                    import re as _re_html
                     escaped_term = _re_html.escape(html_mod.escape(term))
                     clean = _re_html.sub(
                         f"(?i)({escaped_term})",

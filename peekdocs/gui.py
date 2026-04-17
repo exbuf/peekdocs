@@ -5023,6 +5023,11 @@ def _launch_gui():
             if self.process is not None:
                 self.process.terminate()
                 return
+            # Cancel multi-folder search if running
+            if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
+                self._multi_folder_cancelled = True
+                self.status_label.configure(text="Cancelling multi-folder search...", text_color="blue")
+                return
 
             # Wait for any in-progress index build or auto-refresh to finish
             if hasattr(self, '_index_process') and self._index_process is not None:
@@ -5256,21 +5261,29 @@ def _launch_gui():
             self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
             self.search_entry.configure(state="disabled")
 
+            self._multi_folder_cancelled = False
             import threading
             t = threading.Thread(
                 target=self._multi_folder_thread,
                 args=(folders, search_text), daemon=True)
+            self.search_thread = t  # Allow cancel via search button
             t.start()
 
         def _multi_folder_thread(self, folders, search_text):
             """Worker thread: search each folder and combine output."""
+            import re as _re_mf
             import time
             combined_stdout = []
             total_matches = 0
             total_files = 0
+            failed_folders = []
             start_time = time.time()
 
             for i, folder in enumerate(folders):
+                if self._multi_folder_cancelled:
+                    combined_stdout.append(f"\n── Search cancelled after {i} of {len(folders)} folder(s) ──")
+                    break
+
                 self.after(0, lambda i=i, f=folder: self.status_label.configure(
                     text=f"Searching folder {i+1}/{len(folders)}: {os.path.basename(f)}...",
                     text_color="blue"))
@@ -5318,8 +5331,6 @@ def _launch_gui():
                     if stdout:
                         combined_stdout.append(f"── {folder} ──")
                         combined_stdout.append(stdout)
-                        # Extract counts from this folder's output
-                        import re as _re_mf
                         _clean = _re_mf.sub(r"\033\[[0-9;]*m", "", stdout)
                         m = _re_mf.search(r"Found\s+(\d+)\s+match", _clean)
                         if m:
@@ -5327,8 +5338,9 @@ def _launch_gui():
                         f = _re_mf.search(r"Files searched:\s*(\d+)", _clean)
                         if f:
                             total_files += int(f.group(1))
-                except Exception:
-                    pass
+                except Exception as e:
+                    failed_folders.append((folder, str(e)))
+                    combined_stdout.append(f"── {folder} — ERROR: {e} ──")
 
             elapsed = time.time() - start_time
             combined = "\n".join(combined_stdout)
@@ -5338,9 +5350,11 @@ def _launch_gui():
                        f"Elapsed time: {elapsed:.2f} seconds\n")
             combined = combined + "\n" + summary
 
-            self.after(0, self._multi_folder_finished, combined, total_matches, total_files, elapsed, len(folders))
+            self.after(0, self._multi_folder_finished, combined, total_matches,
+                       total_files, elapsed, len(folders), len(failed_folders))
 
-        def _multi_folder_finished(self, combined_stdout, total_matches, total_files, elapsed, folder_count):
+        def _multi_folder_finished(self, combined_stdout, total_matches, total_files,
+                                   elapsed, folder_count, fail_count):
             """Handle multi-folder search completion."""
             try:
                 self.progress_bar.stop()
@@ -5349,11 +5363,14 @@ def _launch_gui():
             self.progress_bar.grid_remove()
             self.search_button.configure(text="Search", fg_color="green", hover_color="darkgreen")
             self.search_entry.configure(state="normal")
+            self.process = None
+            self._multi_folder_cancelled = None  # Reset for next search
 
-            self.status_label.configure(
-                text=f"{total_files} file(s) searched across {folder_count} folder(s) "
-                     f"— Found {total_matches} match(es) in {elapsed:.1f}s",
-                text_color="blue")
+            status = (f"{total_files} file(s) searched across {folder_count} folder(s) "
+                      f"— Found {total_matches} match(es) in {elapsed:.1f}s")
+            if fail_count:
+                status += f"  ({fail_count} folder(s) failed — see preview)"
+            self.status_label.configure(text=status, text_color="blue")
             self._show_preview(combined_stdout)
 
         def _start_elapsed_timer(self):
