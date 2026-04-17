@@ -282,10 +282,12 @@ class SearchMixin:
         import re as _re_mf
         import time
         combined_stdout = []
+        all_matched_files = []  # (filepath, filename, count, line_nums)
         total_matches = 0
         total_files = 0
         failed_folders = []
         start_time = time.time()
+        output_dir = self.output_dir_entry.get().strip() or folders[0]
 
         for i, folder in enumerate(folders):
             if self._multi_folder_cancelled:
@@ -312,10 +314,10 @@ class SearchMixin:
                 context_after=self.context_after_entry.get(),
                 cores=self.cores_entry.get(),
                 specific_files=self.specific_files_entry.get(),
-                output_csv=self.output_csv_var.get() == "on",
-                output_json=self.output_json_var.get() == "on",
-                output_pdf=self.output_pdf_var.get() == "on",
-                output_html=self.output_html_var.get() == "on",
+                output_csv=False,  # Don't write per-folder extras
+                output_json=False,
+                output_pdf=False,
+                output_html=False,
                 index_search=self.index_search_var.get() == "on",
                 inverse=self.inverse_var.get() == "on",
                 expression=self.expression_var.get() == "on",
@@ -346,25 +348,57 @@ class SearchMixin:
                     f = _re_mf.search(r"Files searched:\s*(\d+)", _clean)
                     if f:
                         total_files += int(f.group(1))
+
+                # Collect matched files from this folder's results
+                is_inverse = self.inverse_var.get() == "on"
+                results_txt = os.path.join(folder, "peekdocs_results.txt")
+                if os.path.exists(results_txt):
+                    if is_inverse:
+                        folder_matches = _parse_inverse_files(folder, "peekdocs_results.txt")
+                    else:
+                        folder_matches = _parse_matched_files(folder, "peekdocs_results.txt")
+                    all_matched_files.extend(folder_matches)
             except Exception as e:
                 failed_folders.append((folder, str(e)))
                 combined_stdout.append(f"── {folder} — ERROR: {e} ──")
 
         elapsed = time.time() - start_time
+
+        # Combine all per-folder results.txt into one merged file in output_dir
+        try:
+            combined_txt_path = os.path.join(output_dir, "peekdocs_results.txt")
+            with open(combined_txt_path, "w", encoding="utf-8") as out:
+                out.write(f"Multi-folder search: {len(folders)} folder(s)\n")
+                out.write(f"Search terms: {search_text}\n")
+                out.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                out.write(f"Total matches: {total_matches}, Files searched: {total_files}\n\n")
+                for folder in folders:
+                    txt = os.path.join(folder, "peekdocs_results.txt")
+                    if os.path.exists(txt):
+                        with open(txt, "r", encoding="utf-8", errors="replace") as src:
+                            content = src.read()
+                        out.write(f"\n{'=' * 60}\n")
+                        out.write(f"Folder: {folder}\n")
+                        out.write(f"{'=' * 60}\n\n")
+                        out.write(content)
+                        out.write("\n")
+        except Exception:
+            pass
+
+        # Build synthetic summary for _parse_summary_text
         combined = "\n".join(combined_stdout)
-        # Build a synthetic summary for _parse_summary_text
         summary = (f"Files searched: {total_files}\n"
                    f"Found {total_matches} match(es).\n"
                    f"Elapsed time: {elapsed:.2f} seconds\n")
         combined = combined + "\n" + summary
 
         self.after(0, self._multi_folder_finished, combined, total_matches,
-                   total_files, elapsed, len(folders), len(failed_folders))
-
-
+                   total_files, elapsed, len(folders), len(failed_folders),
+                   all_matched_files, output_dir)
 
     def _multi_folder_finished(self, combined_stdout, total_matches, total_files,
-                               elapsed, folder_count, fail_count):
+                               elapsed, folder_count, fail_count,
+                               all_matched_files, output_dir):
         """Handle multi-folder search completion."""
         try:
             self.progress_bar.stop()
@@ -376,11 +410,39 @@ class SearchMixin:
         self.process = None
         self._multi_folder_cancelled = None  # Reset for next search
 
+        # Log to search history
+        try:
+            search_text = self.search_entry.get().strip()
+            if search_text:
+                self._log_search_history(search_text, total_matches, total_files, f"{elapsed:.2f}")
+        except Exception:
+            pass
+
+        # Set results directory for report opening
+        self.results_dir = output_dir
+
+        # Status line
         status = (f"{total_files} file(s) searched across {folder_count} folder(s) "
                   f"— Found {total_matches} match(es) in {elapsed:.1f}s")
         if fail_count:
             status += f"  ({fail_count} folder(s) failed — see preview)"
         self.status_label.configure(text=status, text_color="blue")
+
+        # Populate matched files popup
+        self._inverse_results = self.inverse_var.get() == "on"
+        self.matched_files = all_matched_files
+        self._show_action_buttons(inverse=self._inverse_results)
+
+        # Show matched files link
+        if self.matched_files:
+            if self._inverse_results:
+                link_text = f"{len(self.matched_files)} File(s) Without Matches"
+                self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
+            else:
+                link_text = f"{len(self.matched_files)} Matched File(s)"
+                self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
+            self._matched_files_link.pack(side="left", padx=(5, 0))
+
         self._show_preview(combined_stdout)
 
 
