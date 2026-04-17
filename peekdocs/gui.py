@@ -2312,15 +2312,6 @@ def _launch_gui():
             self.browse_button.pack(side="left", padx=(0, 3))
             Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
 
-            self.browse_file_button = ctk.CTkButton(
-                self._browse_frame, text="Single File", width=80, command=self._browse_file,
-                font=ctk.CTkFont(size=14),
-                fg_color="transparent", text_color=("gray30", "gray70"),
-                hover_color=("gray90", "gray25"),
-            )
-            self.browse_file_button.pack(side="left")
-            Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
-
             self._multi_folder_btn = ctk.CTkButton(
                 self._browse_frame, text="+Folder", width=65, command=self._add_folder,
                 font=ctk.CTkFont(size=14),
@@ -2329,6 +2320,15 @@ def _launch_gui():
             )
             self._multi_folder_btn.pack(side="left", padx=(3, 0))
             Tooltip(self._multi_folder_btn, "Add another folder to search multiple folders at once. Folders are separated by semicolons (;) in the Search Folder field", anchor="left")
+
+            self.browse_file_button = ctk.CTkButton(
+                self._browse_frame, text="Single File", width=80, command=self._browse_file,
+                font=ctk.CTkFont(size=14),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+            )
+            self.browse_file_button.pack(side="left", padx=(3, 0))
+            Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
             self._clear_file_btn = ctk.CTkButton(
                 self._browse_frame, text="\u2715", width=24, height=24,
@@ -3350,6 +3350,65 @@ def _launch_gui():
             ctk.set_appearance_mode(mode)
             self._appearance_mode = mode
 
+        @staticmethod
+        def _is_dark_mode():
+            """Return True if the current appearance is Dark."""
+            return ctk.get_appearance_mode() == "Dark"
+
+        @staticmethod
+        def _apply_dark_theme(widget):
+            """Recursively apply dark colors to plain tk widgets if Dark mode is active."""
+            if ctk.get_appearance_mode() != "Dark":
+                return
+            import tkinter as tk
+            _bg = "#2b2b2b"
+            _fg = "#e0e0e0"
+            _entry_bg = "#3a3a3a"
+            _btn_bg = "#404040"
+
+            def _apply(w):
+                cls = w.winfo_class()
+                try:
+                    if cls in ("Frame", "Labelframe"):
+                        w.configure(bg=_bg)
+                    elif cls == "Label":
+                        # Preserve colored labels (severity badges, warnings)
+                        cur_bg = str(w.cget("bg"))
+                        if cur_bg in ("#ffffff", "white", "SystemButtonFace",
+                                      "#f0f0f0", "#d9d9d9", "#ececec"):
+                            w.configure(bg=_bg, fg=_fg)
+                        elif cur_bg == _bg or cur_bg.startswith("#2"):
+                            w.configure(fg=_fg)
+                        else:
+                            # Colored label — only set bg if it's default
+                            try:
+                                w.configure(bg=_bg)
+                            except Exception:
+                                pass
+                    elif cls == "Entry":
+                        w.configure(bg=_entry_bg, fg=_fg, insertbackground=_fg)
+                    elif cls == "Checkbutton":
+                        w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
+                                    activebackground=_bg, activeforeground=_fg)
+                    elif cls == "Button":
+                        w.configure(bg=_btn_bg, fg=_fg,
+                                    activebackground="#555555", activeforeground=_fg)
+                    elif cls == "Radiobutton":
+                        w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
+                                    activebackground=_bg, activeforeground=_fg)
+                    elif cls == "Text":
+                        w.configure(bg=_entry_bg, fg=_fg, insertbackground=_fg)
+                    elif cls == "Toplevel":
+                        w.configure(bg=_bg)
+                    elif cls == "Canvas":
+                        w.configure(bg=_bg)
+                except Exception:
+                    pass
+                for child in w.winfo_children():
+                    _apply(child)
+
+            _apply(widget)
+
         def _toggle_tooltips(self):
             """Toggle hover tooltip visibility on or off."""
             Tooltip.enabled = not Tooltip.enabled
@@ -3831,6 +3890,8 @@ def _launch_gui():
                 command=win.destroy,
                 font=ctk.CTkFont(size=12),
             ).pack()
+
+            self._apply_dark_theme(win)
 
         def _show_pii_scan_help(self, parent):
             """Show help for the PII Scan.
@@ -4391,6 +4452,8 @@ def _launch_gui():
             )
             close_btn.pack(pady=(5, 10))
 
+            self._apply_dark_theme(help_win)
+
         def _run_sensitive_scan(self, selected_patterns, folder=None, dollar_range=None):
             """Launch the sensitive data scan with the selected patterns."""
             if not folder:
@@ -4719,6 +4782,8 @@ def _launch_gui():
                 command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()),
             ).pack(pady=(0, 10))
 
+            self._apply_dark_theme(popup)
+
         def _show_pii_scan_results_help(self, parent):
             """Show help for interpreting the PII Scan Results window."""
             import tkinter as tk
@@ -5017,6 +5082,8 @@ def _launch_gui():
             close_btn.bind("<Button-1>", lambda e: popup.destroy())
             close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
             close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
+
+            self._apply_dark_theme(popup)
 
         def start_search(self):
             """Validate inputs, build the CLI command, and launch a search thread."""
