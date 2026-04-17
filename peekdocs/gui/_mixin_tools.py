@@ -4923,6 +4923,15 @@ class ToolsMixin:
         if self.index_window:
             help_win.transient(self.index_window)
 
+        # Close button anchored to bottom row
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy,
+            font=ctk.CTkFont(size=12),
+        ).pack(side="bottom", pady=(5, 10))
+
         text_frame = tk.Frame(help_win)
         text_frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
         scrollbar = tk.Scrollbar(text_frame)
@@ -5030,14 +5039,5 @@ class ToolsMixin:
         b("  an automatic rebuild on the next indexed search")
 
         txt.configure(state="disabled")
-
-        close_btn = ctk.CTkButton(
-            help_win, text="Close", width=80,
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=help_win.destroy,
-            font=ctk.CTkFont(size=12),
-        )
-        close_btn.pack(pady=(5, 10))
 
 
