@@ -1583,6 +1583,11 @@ class BuildMixin:
         _fg = "#e0e0e0"
         _entry_bg = "#3a3a3a"
         _btn_bg = "#404040"
+        # Backgrounds that are intentionally colored (severity badges, etc.)
+        # — don't override these with the dark background
+        _keep_bg = {"#FF4444", "#ff4444", "#FFB800", "#ffb800", "#4488FF",
+                     "#4488ff", "#FF6B35", "#ff6b35", "#CC3333", "#cc3333",
+                     "#CC0000", "#cc0000", "#2196F3", "#888888", "#666666"}
 
         def _apply(w):
             cls = w.winfo_class()
@@ -1590,19 +1595,16 @@ class BuildMixin:
                 if cls in ("Frame", "Labelframe"):
                     w.configure(bg=_bg)
                 elif cls == "Label":
-                    # Preserve colored labels (severity badges, warnings)
                     cur_bg = str(w.cget("bg"))
-                    if cur_bg in ("#ffffff", "white", "SystemButtonFace",
-                                  "#f0f0f0", "#d9d9d9", "#ececec"):
-                        w.configure(bg=_bg, fg=_fg)
-                    elif cur_bg == _bg or cur_bg.startswith("#2"):
-                        w.configure(fg=_fg)
+                    if cur_bg.upper() in {c.upper() for c in _keep_bg}:
+                        pass  # Intentionally colored — leave it alone
                     else:
-                        # Colored label — only set bg if it's default
-                        try:
-                            w.configure(bg=_bg)
-                        except Exception:
-                            pass
+                        w.configure(bg=_bg)
+                        # Set fg to light unless it's intentionally colored
+                        cur_fg = str(w.cget("fg"))
+                        if cur_fg.lower() not in ("red", "#cc0000", "#cc3333",
+                                                   "green", "#008000", "blue"):
+                            w.configure(fg=_fg)
                 elif cls == "Entry":
                     w.configure(bg=_entry_bg, fg=_fg, insertbackground=_fg)
                 elif cls == "Checkbutton":
@@ -1620,6 +1622,8 @@ class BuildMixin:
                     w.configure(bg=_bg)
                 elif cls == "Canvas":
                     w.configure(bg=_bg)
+                elif cls == "Scrollbar":
+                    w.configure(bg=_btn_bg, troughcolor=_bg)
             except Exception:
                 pass
             for child in w.winfo_children():
