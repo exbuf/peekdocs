@@ -1611,8 +1611,9 @@ class BuildMixin:
                     w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
                                 activebackground=_bg, activeforeground=_fg)
                 elif cls == "Button":
-                    w.configure(bg=_btn_bg, fg=_fg,
-                                activebackground="#555555", activeforeground=_fg)
+                    w.configure(bg="#555555", fg="white",
+                                activebackground="#666666", activeforeground="white",
+                                highlightbackground=_bg)
                 elif cls == "Radiobutton":
                     w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
                                 activebackground=_bg, activeforeground=_fg)
