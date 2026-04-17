@@ -1489,9 +1489,11 @@ class DataMixin:
             font=("TkDefaultFont", 11, "bold"),
         ).pack(side="left")
 
+        _is_dark = ctk.get_appearance_mode() == "Dark"
         folder_label = tk.Label(
             top_row, text=self.folder_entry.get().strip() or "(none)",
-            font=("TkDefaultFont", 11), fg="blue",
+            font=("TkDefaultFont", 11),
+            fg="#66BBFF" if _is_dark else "blue",
         )
         folder_label.pack(side="left", padx=(5, 10))
 
@@ -1504,10 +1506,14 @@ class DataMixin:
             if new_folder:
                 folder_label.configure(text=new_folder)
 
-        tk.Button(
+        change_btn = tk.Button(
             top_row, text="Change Folder", command=_change_folder,
             font=("TkDefaultFont", 10),
-        ).pack(side="right")
+        )
+        if _is_dark:
+            change_btn.configure(bg="#555555", fg="white",
+                                 activebackground="#666666", activeforeground="white")
+        change_btn.pack(side="right")
 
         tk.Label(
             bar, text=message,
