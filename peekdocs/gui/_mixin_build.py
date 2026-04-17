@@ -1651,6 +1651,20 @@ class BuildMixin:
                     w.configure(bg=_bg)
                 elif cls == "Scrollbar":
                     w.configure(bg=_btn_bg, troughcolor=_bg)
+                elif cls == "TCombobox":
+                    # ttk.Combobox uses ttk styling
+                    from tkinter import ttk as _ttk_dt
+                    style = _ttk_dt.Style()
+                    style.configure("Dark.TCombobox",
+                                    fieldbackground=_entry_bg,
+                                    background=_btn_bg,
+                                    foreground=_fg,
+                                    selectbackground="#555555",
+                                    selectforeground=_fg)
+                    style.map("Dark.TCombobox",
+                              fieldbackground=[("readonly", _entry_bg)],
+                              foreground=[("readonly", _fg)])
+                    w.configure(style="Dark.TCombobox")
             except Exception:
                 pass
             for child in w.winfo_children():
