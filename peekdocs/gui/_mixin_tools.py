@@ -3172,7 +3172,8 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         ).pack(pady=(0, 10))
 
-
+        # Apply dark theme to the plain tk widgets inside this CTkToplevel
+        self._apply_dark_theme(win)
 
     def _apply_wizard(self, search_text="", regex=False, fuzzy=False,
                       wildcard=False, inverse=False, whole_word=False,
