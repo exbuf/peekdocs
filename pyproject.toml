@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "peekdocs"
-version = "0.2.0"
+version = "0.3.0"
 description = "A CLI tool for searching and retrieving content from documents"
 requires-python = ">=3.10"
 dependencies = ["python-docx", "PyMuPDF", "odfpy", "openpyxl", "striprtf", "python-pptx", "EbookLib", "Pillow", "pytesseract", "rapidfuzz", "customtkinter>=5.2.0", "olefile", "xlrd", "extract-msg", "py7zr", "rarfile", "fpdf2"]

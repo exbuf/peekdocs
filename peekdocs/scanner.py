@@ -75,11 +75,15 @@ def apply_context(all_lines, match_indices, before, after):
 
 
 def _wildcard_to_regex(term):
-    """Convert a wildcard pattern (* and ?) to a regex pattern."""
+    """Convert a wildcard pattern (* and ?) to a regex pattern.
+
+    * matches zero or more non-whitespace characters (including punctuation).
+    ? matches exactly one non-whitespace character.
+    """
     escaped = re.escape(term)
-    escaped = escaped.replace(r'\*', r'\w*')
-    escaped = escaped.replace(r'\?', r'\w')
-    return r'\b' + escaped + r'\b'
+    escaped = escaped.replace(r'\*', r'\S*')
+    escaped = escaped.replace(r'\?', r'\S')
+    return r'\b' + escaped
 
 
 def _ocr_image(image):

@@ -2,7 +2,21 @@
 
 All notable changes to peekdocs are documented here.
 
-## [Unreleased]
+## [0.3.0] — 2026-04-16
+
+### Added
+
+- **Tools menu** — eight new folder analysis and user utilities: File Inventory, Duplicate Finder, Large Files, Empty Files, Recent Changes, Protected Files, Search History, and Bookmarks
+- **Search Options group** on main screen with AND/OR toggle buttons, Recursive and Whole Word checkboxes, and help button
+- App Size and Preview Size dropdowns on the Results Preview header, both persisted between sessions
+- Status line now leads with files-searched count
+- Recursive and Whole Word default to ON at startup
+- PII pattern test suite (74 tests validating sensitivity and specificity of all 8 categories)
+
+### Fixed
+
+- Wildcard search now matches punctuation (e.g., `budg*` matches "budget!" and "budget.")
+- Single-file selection no longer persists after changing the search folder
 
 ### Removed
 

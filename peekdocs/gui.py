@@ -666,7 +666,7 @@ def _launch_gui():
                 hover_color=("gray90", "gray25"),
             )
             clear_button.pack(side="left", padx=(0, 3))
-            Tooltip(clear_button, "Clear the search bar")
+            Tooltip(clear_button, "Clear the search bar", anchor="left")
 
             recent_btn = ctk.CTkButton(
                 self._search_btn_frame, text="\u25bc", width=30,
@@ -1148,8 +1148,9 @@ def _launch_gui():
                  lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
             ]
 
-            # Track which row the user has selected via its radio button
-            selected_row = tk.IntVar(value=1)
+            # Track which row the user has selected via its radio button.
+            # 0 = nothing selected; radio values start at 1.
+            selected_row = tk.IntVar(value=0)
             row_applies = {}  # idx -> callable that applies the row's settings
 
             for idx, (title, desc, fields, apply_fn) in enumerate(patterns, 1):
@@ -1199,6 +1200,17 @@ def _launch_gui():
                 apply_fn = row_applies.get(idx)
                 if apply_fn:
                     apply_fn()
+                else:
+                    from tkinter import messagebox
+                    messagebox.showinfo(
+                        "No Selection",
+                        "Please click the radio button next to the search type you want, "
+                        "then click Apply.",
+                        parent=win,
+                    )
+
+            def _clear_selection():
+                selected_row.set(0)
 
             # Prominent bottom-center Apply button in a bordered group
             # (matches the Run Search button's look on the main screen)
@@ -1214,7 +1226,18 @@ def _launch_gui():
                 font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="green", hover_color="darkgreen",
             )
-            apply_btn.pack(padx=6, pady=6)
+            apply_btn.pack(side="left", padx=6, pady=6)
+            Tooltip(apply_btn, "Apply the selected row's settings to the main screen — fills the Search Bar and enables matching options (regex, AND, OCR, etc.)")
+
+            clear_sel_btn = ctk.CTkButton(
+                apply_group, text="Clear Selection", width=120, height=36,
+                command=_clear_selection,
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+            )
+            clear_sel_btn.pack(side="left", padx=6, pady=6)
+            Tooltip(clear_sel_btn, "Unpick the currently selected row so nothing is chosen — click a different radio button to pick a new one")
 
             ctk.CTkButton(
                 win, text="Close", width=80,
@@ -2574,6 +2597,7 @@ def _launch_gui():
                 font=ctk.CTkFont(size=12),
             )
             outdir_browse_btn.grid(row=0, column=1, padx=(0, 0))
+            Tooltip(outdir_browse_btn, "Pick a folder where peekdocs should write its reports, error log, and other output files", anchor="left")
             Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
 
             # Row 9: additional output formats
