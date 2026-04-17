@@ -202,6 +202,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=14),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(win)
 
 
 
@@ -1552,6 +1553,7 @@ class BuildMixin:
         listbox.bind("<Double-1>", _select)
         tk.Button(popup, text="Use", width=8, command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
         tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+        self._apply_dark_theme(popup)
 
 
 
@@ -1803,6 +1805,7 @@ class BuildMixin:
         popup.bind("<Escape>", close_popup)
         popup.protocol("WM_DELETE_WINDOW", close_popup)
         listbox.focus_set()
+        self._apply_dark_theme(popup)
 
 
 

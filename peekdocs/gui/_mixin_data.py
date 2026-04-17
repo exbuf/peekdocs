@@ -299,6 +299,7 @@ class DataMixin:
             justify="left", anchor="nw", padx=15, pady=10,
         ).pack(fill="both", expand=True)
         tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
+        self._apply_dark_theme(win)
 
 
 
@@ -461,6 +462,7 @@ class DataMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack(side="left", padx=5)
+        self._apply_dark_theme(popup)
 
 
 
@@ -665,6 +667,7 @@ class DataMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack(side="left", padx=5)
+        self._apply_dark_theme(popup)
 
 
 
@@ -741,6 +744,7 @@ class DataMixin:
                       hover_color=("gray90", "gray25"),
                       font=ctk.CTkFont(size=12),
                       command=dialog.destroy).pack()
+        self._apply_dark_theme(dialog)
 
     # ── Search Wizard ────────────────────────────────────────
 
@@ -978,6 +982,7 @@ class DataMixin:
         close_btn.bind("<Button-1>", lambda e: popup.destroy())
         close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
         close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
+        self._apply_dark_theme(popup)
 
 
 
@@ -1043,6 +1048,7 @@ class DataMixin:
             listbox.insert("end", "")
 
         tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+        self._apply_dark_theme(popup)
 
 
 
@@ -1173,6 +1179,7 @@ class DataMixin:
             listbox.insert("end", "")
 
         tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+        self._apply_dark_theme(popup)
 
 
 
@@ -1311,6 +1318,7 @@ class DataMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack(pady=(5, 10))
+        self._apply_dark_theme(popup)
 
 
 
@@ -1458,6 +1466,7 @@ class DataMixin:
         tk.Button(
             win, text="Close", width=10, command=win.destroy,
         ).pack(pady=(5, 10))
+        self._apply_dark_theme(win)
 
 
 
@@ -1549,6 +1558,7 @@ class DataMixin:
             command=about_win.destroy,
             font=ctk.CTkFont(size=12),
         ).pack(pady=(0, 10))
+        self._apply_dark_theme(about_win)
 
 
 
@@ -1870,6 +1880,7 @@ class DataMixin:
             status_win, text=stdout, font=("TkDefaultFont", 12),
             justify="left", anchor="nw", padx=15, pady=15,
         ).pack(fill="both", expand=True)
+        self._apply_dark_theme(status_win)
 
 
 

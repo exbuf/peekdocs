@@ -252,6 +252,7 @@ class ToolsMixin:
         )
         close_btn.pack(side="left", padx=5)
 
+        self._apply_dark_theme(popup)
 
 
     def _save_inventory_report(self, results):
@@ -592,6 +593,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(side="left", padx=5)
+        self._apply_dark_theme(popup)
 
 
 
@@ -854,6 +856,7 @@ class ToolsMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack(side="left", padx=5)
+        self._apply_dark_theme(popup)
 
 
 
@@ -1041,6 +1044,7 @@ class ToolsMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack()
+        self._apply_dark_theme(popup)
 
     # ── Empty File Detector ──────────────────────────────────
 
@@ -1180,6 +1184,7 @@ class ToolsMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack()
+        self._apply_dark_theme(popup)
 
     # ── Recent Changes Dashboard ─────────────────────────────
 
@@ -1341,6 +1346,7 @@ class ToolsMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
         ).pack()
+        self._apply_dark_theme(popup)
 
     # ── Search History ───────────────────────────────────────
 
@@ -2750,7 +2756,7 @@ class ToolsMixin:
         )
         close_btn.pack(pady=(5, 10))
 
-
+        self._apply_dark_theme(help_win)
 
     def _show_sensitive_category_files(self, files_data, category, parent, regex=None):
         """Show files for a specific sensitive data category.
@@ -3405,6 +3411,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
 
@@ -3666,6 +3673,7 @@ class ToolsMixin:
 
         # Load initial category
         _load_category()
+        self._apply_dark_theme(wiz)
 
     # ── Mutual exclusion for search modes ────────────────────
 
@@ -3802,6 +3810,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(win)
 
 
 
@@ -4158,6 +4167,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
 
@@ -4481,6 +4491,7 @@ class ToolsMixin:
         b("\u2022 Off \u2014 rebuild manually with Build Index(es) when needed")
 
         txt.configure(state="disabled")
+        self._apply_dark_theme(help_win)
 
 
 
@@ -4635,6 +4646,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
 
@@ -4763,6 +4775,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
 
@@ -4910,6 +4923,7 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         )
         close_btn.pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
 
@@ -5039,5 +5053,6 @@ class ToolsMixin:
         b("  an automatic rebuild on the next indexed search")
 
         txt.configure(state="disabled")
+        self._apply_dark_theme(help_win)
 
 

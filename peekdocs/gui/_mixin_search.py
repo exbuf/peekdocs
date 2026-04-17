@@ -976,6 +976,7 @@ class SearchMixin:
             font=("TkDefaultFont", 12),
             wraplength=470, justify="left",
         ).pack(padx=20, pady=(0, 10), fill="both", expand=True)
+        self._apply_dark_theme(popup)
 
 
 
