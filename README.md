@@ -57,13 +57,13 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 ## Who Is It For?
 
 - **Home users** — type your keyword(s), click Run Search, done. No setup, no configuration, no manual. Designed to be easy to use for non-technical people. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status
+- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The PII Scan and Search Wizard are GUI-only features
+- **Students and writers** — search across course notes, research papers, interview transcripts, and assignments in any format
 - **Tax season** — search years of tax returns, W-2s, 1099s, and receipts for a specific deduction, amount, or account number. Find what you need in seconds instead of opening files one by one
 - **Estate and family documents** — handling a relative's files? Search for wills, insurance policies, account numbers, passwords, and important records across an entire folder of unfamiliar documents
 - **Selling or donating a computer** — run the PII Scan before handing off a device to make sure no Social Security numbers, credit cards, or passwords are left behind
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. Most search tools can't read email formats — peekdocs can
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status
-- **Students and writers** — search across course notes, research papers, interview transcripts, and assignments in any format
-- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The PII Scan and Search Wizard are GUI-only features
 
 ## Features
 
