@@ -1506,13 +1506,10 @@ class DataMixin:
             if new_folder:
                 folder_label.configure(text=new_folder)
 
-        change_btn = tk.Button(
+        change_btn = ctk.CTkButton(
             top_row, text="Change Folder", command=_change_folder,
-            font=("TkDefaultFont", 10),
+            font=ctk.CTkFont(size=11), width=110, height=28,
         )
-        if _is_dark:
-            change_btn.configure(bg="#555555", fg="white",
-                                 activebackground="#666666", activeforeground="white")
         change_btn.pack(side="right")
 
         tk.Label(

@@ -1611,9 +1611,14 @@ class BuildMixin:
                     w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
                                 activebackground=_bg, activeforeground=_fg)
                 elif cls == "Button":
-                    w.configure(bg="#555555", fg="white",
-                                activebackground="#666666", activeforeground="white",
-                                highlightbackground=_bg)
+                    # macOS ignores bg/fg on native buttons; set
+                    # highlightbackground to control the border color only
+                    import sys as _sys_dt
+                    if _sys_dt.platform == "darwin":
+                        w.configure(highlightbackground=_bg)
+                    else:
+                        w.configure(bg="#555555", fg="white",
+                                    activebackground="#666666", activeforeground="white")
                 elif cls == "Radiobutton":
                     w.configure(bg=_bg, fg=_fg, selectcolor=_entry_bg,
                                 activebackground=_bg, activeforeground=_fg)
