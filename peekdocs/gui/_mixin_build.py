@@ -1551,8 +1551,8 @@ class BuildMixin:
             popup.destroy()
 
         listbox.bind("<Double-1>", _select)
-        tk.Button(popup, text="Use", width=8, command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
-        tk.Button(popup, text="Cancel", width=8, command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+        ctk.CTkButton(popup, text="Use", width=70, font=ctk.CTkFont(size=12), command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
+        ctk.CTkButton(popup, text="Cancel", width=70, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
         self._apply_dark_theme(popup)
 
 

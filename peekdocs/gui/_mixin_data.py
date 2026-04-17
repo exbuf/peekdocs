@@ -298,7 +298,7 @@ class DataMixin:
             win, text=content, font=("TkDefaultFont", 12),
             justify="left", anchor="nw", padx=15, pady=10,
         ).pack(fill="both", expand=True)
-        tk.Button(win, text="Close", width=10, command=win.destroy).pack(pady=(0, 10))
+        ctk.CTkButton(win, text="Close", width=80, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=win.destroy).pack(pady=(0, 10))
         self._apply_dark_theme(win)
 
 
@@ -1047,7 +1047,7 @@ class DataMixin:
                 listbox.insert("end", f"    {os.path.basename(fp)}")
             listbox.insert("end", "")
 
-        tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+        ctk.CTkButton(popup, text="Close", width=80, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=popup.destroy).pack(pady=(5, 10))
         self._apply_dark_theme(popup)
 
 
@@ -1178,7 +1178,7 @@ class DataMixin:
                 listbox.insert("end", f"    {fp}")
             listbox.insert("end", "")
 
-        tk.Button(popup, text="Close", width=10, command=popup.destroy).pack(pady=(5, 10))
+        ctk.CTkButton(popup, text="Close", width=80, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=popup.destroy).pack(pady=(5, 10))
         self._apply_dark_theme(popup)
 
 
@@ -1463,8 +1463,10 @@ class DataMixin:
             txt.tag_configure("first_match", background="#FF6B35", foreground="white")
             txt.tag_add("first_match", first_match_range[0], first_match_range[1])
 
-        tk.Button(
-            win, text="Close", width=10, command=win.destroy,
+        ctk.CTkButton(
+            win, text="Close", width=80, font=ctk.CTkFont(size=12),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"), command=win.destroy,
         ).pack(pady=(5, 10))
         self._apply_dark_theme(win)
 

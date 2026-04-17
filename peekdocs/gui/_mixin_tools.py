@@ -1391,8 +1391,8 @@ class ToolsMixin:
             header, text="Select which categories to scan for:",
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left")
-        tk.Button(
-            header, text="?", width=3, font=("TkDefaultFont", 12, "bold"),
+        ctk.CTkButton(
+            header, text="?", width=30, font=ctk.CTkFont(size=12, weight="bold"),
             command=lambda: self._show_pii_scan_help(win),
         ).pack(side="right")
 
@@ -1467,8 +1467,8 @@ class ToolsMixin:
             for v in check_vars:
                 v.set(False)
 
-        tk.Button(toggle_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=5)
-        tk.Button(toggle_frame, text="Deselect All", width=10, command=_deselect_all).pack(side="left", padx=5)
+        ctk.CTkButton(toggle_frame, text="Select All", width=80, font=ctk.CTkFont(size=12), command=_select_all).pack(side="left", padx=5)
+        ctk.CTkButton(toggle_frame, text="Deselect All", width=80, font=ctk.CTkFont(size=12), command=_deselect_all).pack(side="left", padx=5)
 
         # ── Advanced: user-supplied custom regex patterns (2 rows) ──
         from tkinter import ttk as _ttk
@@ -1658,7 +1658,7 @@ class ToolsMixin:
             win.destroy()
             self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None)
 
-        tk.Button(btn_frame, text="Run Scan", width=12, font=("TkDefaultFont", 12, "bold"), command=_run).pack()
+        ctk.CTkButton(btn_frame, text="Run Scan", width=100, font=ctk.CTkFont(size=12, weight="bold"), command=_run).pack()
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -2434,9 +2434,9 @@ class ToolsMixin:
             header_frame, text="Sensitive Data Scan Results",
             font=("TkDefaultFont", 14, "bold"),
         ).pack(side="left", expand=True)
-        tk.Button(
-            header_frame, text="?", width=3,
-            font=("TkDefaultFont", 12, "bold"),
+        ctk.CTkButton(
+            header_frame, text="?", width=30,
+            font=ctk.CTkFont(size=12, weight="bold"),
             command=lambda: self._show_pii_scan_results_help(popup),
         ).pack(side="right")
         tk.Label(
@@ -2514,9 +2514,9 @@ class ToolsMixin:
                 files_data = result["files"]
                 cat_name = result["category"]
                 cat_regex = result.get("regex")
-                view_btn = tk.Button(
+                view_btn = ctk.CTkButton(
                     row, text="View Files",
-                    font=("TkDefaultFont", 10),
+                    width=80, font=ctk.CTkFont(size=10),
                     command=lambda f=files_data, c=cat_name, p=popup, r=cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
                 )
                 view_btn.pack(side="right", padx=(0, 5))
@@ -2563,8 +2563,10 @@ class ToolsMixin:
             )
             open_btn.pack(pady=(8, 4))
 
-        tk.Button(
-            popup, text="Close", width=10,
+        ctk.CTkButton(
+            popup, text="Close", width=80, font=ctk.CTkFont(size=12),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
             command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()),
         ).pack(pady=(0, 10))
 
@@ -3661,9 +3663,9 @@ class ToolsMixin:
                 self._sync_and_or_colors()
             wiz.destroy()
 
-        tk.Button(btn_frame, text="Select All", width=10, command=_select_all).pack(side="left", padx=(0, 5))
-        tk.Button(btn_frame, text="Clear All", width=10, command=_clear_all).pack(side="left", padx=(0, 5))
-        tk.Button(btn_frame, text="Apply", width=10, command=_apply).pack(side="right", padx=(5, 0))
+        ctk.CTkButton(btn_frame, text="Select All", width=80, font=ctk.CTkFont(size=12), command=_select_all).pack(side="left", padx=(0, 5))
+        ctk.CTkButton(btn_frame, text="Clear All", width=80, font=ctk.CTkFont(size=12), command=_clear_all).pack(side="left", padx=(0, 5))
+        ctk.CTkButton(btn_frame, text="Apply", width=80, font=ctk.CTkFont(size=12), command=_apply).pack(side="right", padx=(5, 0))
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
