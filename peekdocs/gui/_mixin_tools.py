@@ -1441,13 +1441,13 @@ class ToolsMixin:
                 tk.Label(
                     row, text="  Min $", font=("TkDefaultFont", 11),
                 ).pack(side="left", padx=(10, 2))
-                dollar_min_entry = tk.Entry(row, width=12, font=("TkDefaultFont", 11))
+                dollar_min_entry = ctk.CTkEntry(row, width=100, font=ctk.CTkFont(size=11))
                 dollar_min_entry.insert(0, str(saved_min))
                 dollar_min_entry.pack(side="left")
                 tk.Label(
                     row, text="  Max $", font=("TkDefaultFont", 11),
                 ).pack(side="left", padx=(10, 2))
-                dollar_max_entry = tk.Entry(row, width=12, font=("TkDefaultFont", 11))
+                dollar_max_entry = ctk.CTkEntry(row, width=100, font=ctk.CTkFont(size=11))
                 dollar_max_entry.insert(0, str(saved_max))
                 dollar_max_entry.pack(side="left")
             else:
@@ -1510,12 +1510,12 @@ class ToolsMixin:
             ).pack(side="left")
 
             tk.Label(row, text="Name:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            name_entry = tk.Entry(row, width=16, font=("TkDefaultFont", 11))
+            name_entry = ctk.CTkEntry(row, width=130, font=ctk.CTkFont(size=11))
             name_entry.insert(0, saved_name)
             name_entry.pack(side="left", padx=(0, 6))
 
             tk.Label(row, text="Regex:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            regex_entry = tk.Entry(row, width=26, font=("TkDefaultFont", 11))
+            regex_entry = ctk.CTkEntry(row, width=220, font=ctk.CTkFont(size=11))
             regex_entry.insert(0, saved_regex)
             regex_entry.pack(side="left", padx=(0, 6))
             Tooltip(
@@ -1529,12 +1529,11 @@ class ToolsMixin:
             )
 
             tk.Label(row, text="Severity:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
-            severity_var = tk.StringVar(value=saved_severity)
-            _ttk.Combobox(
-                row, textvariable=severity_var,
+            severity_var = ctk.StringVar(value=saved_severity)
+            ctk.CTkOptionMenu(
+                row, variable=severity_var,
                 values=["high", "moderate", "info"],
-                state="readonly", width=10,
-                font=("TkDefaultFont", 11),
+                width=100, font=ctk.CTkFont(size=11),
             ).pack(side="left")
 
             custom_rows.append((enabled_var, name_entry, regex_entry, severity_var))
