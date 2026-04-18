@@ -1396,7 +1396,9 @@ class ToolsMixin:
             command=lambda: self._show_pii_scan_help(win),
         ).pack(side="right")
 
-        _pii_folder_label = self._add_folder_bar(win, "Scan will check files in this folder.")
+        _pii_folder_label = self._add_folder_bar(
+            win, "Scan will check files in this folder.",
+            initial_folder=getattr(self, "_last_pii_folder", None))
 
         # Load saved selections (default: all enabled)
         if not hasattr(self, "_pii_scan_enabled"):
@@ -1654,6 +1656,7 @@ class ToolsMixin:
             except Exception:
                 pass
             pii_folder = _pii_folder_label.cget("text")
+            self._last_pii_folder = pii_folder  # Remember for next invocation
             win.destroy()
             self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None)
 

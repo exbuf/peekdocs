@@ -1472,10 +1472,11 @@ class DataMixin:
 
 
 
-    def _add_folder_bar(self, parent, message="Your search will run against this folder."):
+    def _add_folder_bar(self, parent, message="Your search will run against this folder.", initial_folder=None):
         """Add a folder display bar with Change Folder button to a wizard window.
 
         Returns the folder label widget so callers can read the current value.
+        If initial_folder is provided, it overrides the main screen's folder.
         """
         import tkinter as tk
         from tkinter import filedialog
@@ -1492,8 +1493,9 @@ class DataMixin:
         ).pack(side="left")
 
         _is_dark = ctk.get_appearance_mode() == "Dark"
+        _folder_text = initial_folder or self.folder_entry.get().strip() or "(none)"
         folder_label = tk.Label(
-            top_row, text=self.folder_entry.get().strip() or "(none)",
+            top_row, text=_folder_text,
             font=("TkDefaultFont", 11),
             fg="#66BBFF" if _is_dark else "blue",
         )
