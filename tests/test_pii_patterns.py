@@ -165,6 +165,8 @@ class TestPasswords:
         "auth-token=abc123xyz",
         "access_token: sk-123456",
         "secret = very_secret_value",
+        "pass word: secret123",
+        "Pass Word=hunter2",
         "PW: secret123",
         "pw=hunter2",
         "p/w: mypassword",
