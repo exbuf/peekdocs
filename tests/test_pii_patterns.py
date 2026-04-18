@@ -181,6 +181,18 @@ class TestPasswords:
         "user_name: root",
         "user-name: root",
         "user-id: admin",
+        "passcode: 1234",
+        "pass-code=5678",
+        "passphrase: my secret phrase",
+        "pass_phrase: abc",
+        "pin: 5678",
+        "PIN=9999",
+        "signin: bob",
+        "sign-in: bob",
+        "logon: alice",
+        "log-on: alice",
+        "signon: charlie",
+        "sign-on: charlie",
     ])
     def test_matches(self, text):
         assert self.pat.search(text)
