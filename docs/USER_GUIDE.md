@@ -329,7 +329,7 @@ When findings are detected, a highlighted `.docx` report is automatically genera
 
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
-Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
+Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The PII Scan remembers its own folder between sessions (saved to `~/.peekdocsrc`), so you can point it at a different folder than your main search and it will stay there even after restarting the app. The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
 
 **Advanced Search Options:**
 
@@ -948,7 +948,7 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 ### How to use it
 
 1. Open the GUI: `peekdocs-gui`.
-2. Browse to the folder you want to scan (use **Change Folder** inside the PII Scan popup if you want to scan a different folder without changing the main screen).
+2. Browse to the folder you want to scan (use **Change Folder** inside the PII Scan popup if you want to scan a different folder without changing the main screen). The PII Scan folder is independent from the main Search Folder and is remembered between sessions.
 3. Click the red **PII Scan** button in the main Search Bar.
 4. A configuration popup appears. All eight categories are checked by default. Uncheck any you don't want, or use **Select All** / **Deselect All**.
 5. For **Dollar Amounts**, set the **Min $** and **Max $** range. Defaults are $10,000 and $999,999,999. The scan uses a loose regex to match any dollar amount and then filters results to those within your range.
