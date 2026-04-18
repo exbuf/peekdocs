@@ -63,6 +63,10 @@ class TestCreditCard:
         "1234-5678-9012-3456",  # doesn't start with valid prefix
         "4111-1111-1111",       # too short
         "not a card number",
+        "https://www.cnn.com/world/live-news/omicron-variant-coronavirus-news-12-23-21/h_f9aab70b4357549960098d6079771f9c",  # URL with digits
+        "file_4357549960098d60.txt",  # filename with digits
+        "/path/to/4111111111111111/resource",  # digits inside URL path
+        "token=abc4111111111111111def",  # digits inside alphanumeric string
     ])
     def test_no_match(self, text):
         assert not self.pat.search(text)

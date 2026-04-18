@@ -11,7 +11,7 @@ SENSITIVE_PATTERNS = [
     ),
     (
         "Credit Card Numbers",
-        r"(?<!\d)(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{1,4}(?!\d)",
+        r"(?<![\d/a-zA-Z_\-.])(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{1,4}(?![\d/a-zA-Z_])",
         "high",
         "Visa, Mastercard, Amex, Discover patterns",
     ),
