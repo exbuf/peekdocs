@@ -314,6 +314,7 @@ class DataMixin:
             return
         self._preview_font_size = size
         self._apply_preview_font(size)
+        self._save_ui_preference("preview_size", value)
 
 
 
