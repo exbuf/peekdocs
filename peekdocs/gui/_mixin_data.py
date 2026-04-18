@@ -258,6 +258,9 @@ class DataMixin:
         if appearance not in ("System", "Light", "Dark"):
             appearance = "System"
         self._set_appearance_mode(appearance)
+        # Restore hover text preference
+        hover = config.get("hover_text", True)
+        Tooltip.enabled = bool(hover)
 
 
 

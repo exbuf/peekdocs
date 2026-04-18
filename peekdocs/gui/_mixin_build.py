@@ -1564,10 +1564,21 @@ class BuildMixin:
 
 
 
+    def _save_ui_preference(self, key, value):
+        """Auto-save a single UI preference to ~/.peekdocsrc."""
+        try:
+            from peekdocs.cli import _load_config, _save_config
+            config = _load_config()
+            config[key] = value
+            _save_config(config)
+        except Exception:
+            pass
+
     def _set_appearance_mode(self, mode):
         """Switch between Dark, Light, and System appearance modes."""
         ctk.set_appearance_mode(mode)
         self._appearance_mode = mode
+        self._save_ui_preference("appearance_mode", mode)
         # Update the Results Preview pane colors
         if hasattr(self, "preview_text"):
             _dark = ctk.get_appearance_mode() == "Dark"
@@ -1677,6 +1688,7 @@ class BuildMixin:
     def _toggle_tooltips(self):
         """Toggle hover tooltip visibility on or off."""
         Tooltip.enabled = not Tooltip.enabled
+        self._save_ui_preference("hover_text", Tooltip.enabled)
 
 
 
