@@ -1396,9 +1396,17 @@ class ToolsMixin:
             command=lambda: self._show_pii_scan_help(win),
         ).pack(side="right")
 
+        # Use saved PII folder: in-memory first, then config file
+        _saved_pii_folder = getattr(self, "_last_pii_folder", None)
+        if not _saved_pii_folder:
+            try:
+                from peekdocs.cli import _load_config
+                _saved_pii_folder = _load_config().get("pii_scan_folder")
+            except Exception:
+                pass
         _pii_folder_label = self._add_folder_bar(
             win, "Scan will check files in this folder.",
-            initial_folder=getattr(self, "_last_pii_folder", None))
+            initial_folder=_saved_pii_folder)
 
         # Load saved selections (default: all enabled)
         if not hasattr(self, "_pii_scan_enabled"):
@@ -1652,6 +1660,9 @@ class ToolsMixin:
                     config[f"pii_scan_custom{suffix}_name"] = c_ne.get().strip()
                     config[f"pii_scan_custom{suffix}_regex"] = c_re.get().strip()
                     config[f"pii_scan_custom{suffix}_severity"] = c_sv.get()
+                pii_folder = _pii_folder_label.cget("text")
+                if pii_folder and pii_folder != "(none)":
+                    config["pii_scan_folder"] = pii_folder
                 _save_config(config)
             except Exception:
                 pass
