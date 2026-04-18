@@ -36,6 +36,9 @@ class TestSSN:
         "123456789",          # no dashes
         "phone 123-45-6789012",  # trailing digits
         "9123-45-6789",       # leading digit
+        "DOI: 10.1007/978-981-15-1792-1_20",  # DOI with embedded XXX-XX-XXXX
+        "ISBN 978-0-13-468599-1",  # ISBN with hyphenated digits
+        "part-number-123-45-6789-rev2",  # embedded in hyphenated string
     ])
     def test_no_match(self, text):
         assert not self.pat.search(text)

@@ -5,7 +5,7 @@ SENSITIVE_PATTERNS = [
     # severity: "high" (red), "moderate" (yellow), "info" (blue)
     (
         "Social Security Numbers",
-        r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)",
+        r"(?<![\d\-/a-zA-Z_.])\d{3}-\d{2}-\d{4}(?![\d\-/a-zA-Z_])",
         "high",
         "SSN patterns (XXX-XX-XXXX)",
     ),
