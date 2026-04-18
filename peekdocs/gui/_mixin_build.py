@@ -1303,7 +1303,7 @@ class BuildMixin:
             def _dark_sep():
                 menu.add_command(label="─" * 50, state="disabled",
                                  font=("TkDefaultFont", 2),
-                                 foreground="gray40")
+                                 foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
             # Folder analysis (alphabetical)
             menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
             menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
