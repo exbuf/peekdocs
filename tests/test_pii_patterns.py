@@ -161,7 +161,9 @@ class TestPasswords:
         "pwd: myp@ss!",
         "api_key: sk-abc123def456",
         "API-KEY=abcdef",
-        "token: eyJhbGciOi",
+        "api_token: eyJhbGciOi",
+        "auth-token=abc123xyz",
+        "access_token: sk-123456",
         "secret = very_secret_value",
     ])
     def test_matches(self, text):
@@ -175,6 +177,8 @@ class TestPasswords:
         "?token=eyJ0eXAiOiJKV1QiLCJhbGciOi",  # URL query parameter
         "&token=abc123&other=value",  # URL query parameter with &
         "https://example.com/path?token=xyz",  # full URL with token param
+        "token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9",  # bare JWT token assignment
+        "cookie_token=abc123",  # prefixed token (not api/auth/access)
     ])
     def test_no_match(self, text):
         assert not self.pat.search(text)

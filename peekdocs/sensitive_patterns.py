@@ -35,7 +35,7 @@ SENSITIVE_PATTERNS = [
     ),
     (
         "Passwords / Secrets",
-        r"(?i)(?<![?&/])(?:password|passwd|pwd|secret|api[_-]?key|token)\s*[:=]\s*\S+",
+        r"(?i)(?<![?&/a-zA-Z_])(?:password|passwd|pwd|secret|api[_-]?key|api[_-]?token|auth[_-]?token|access[_-]?token)\s*[:=]\s*\S+",
         "moderate",
         "Lines containing password, secret, or API key assignments",
     ),
