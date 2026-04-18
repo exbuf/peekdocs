@@ -2386,7 +2386,7 @@ class ToolsMixin:
         else:
             self.status_label.configure(
                 text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — {total} finding(s) ({high} high severity).",
-                text_color="red" if high > 0 else "black",
+                text_color="red" if high > 0 else ("black", "#e0e0e0"),
             )
         # Generate .docx report
         folder = self.folder_entry.get().strip()
