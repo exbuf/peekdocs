@@ -172,6 +172,9 @@ class TestPasswords:
         "forgot my password again",  # no assignment
         "the secret garden",         # no assignment
         "api key documentation",     # no assignment operator
+        "?token=eyJ0eXAiOiJKV1QiLCJhbGciOi",  # URL query parameter
+        "&token=abc123&other=value",  # URL query parameter with &
+        "https://example.com/path?token=xyz",  # full URL with token param
     ])
     def test_no_match(self, text):
         assert not self.pat.search(text)
