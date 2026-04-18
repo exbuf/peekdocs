@@ -319,7 +319,7 @@ Click the red **PII Scan** button to scan your documents for PII and sensitive d
 | Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
 | Email Addresses | MODERATE | Email address patterns |
 | Phone Numbers | MODERATE | US phone number patterns |
-| Passwords / Secrets | MODERATE | Lines containing password, pw, secret, login, username, user ID, UID, or API key/token assignments |
+| Passwords / Secrets | MODERATE | Lines containing password, pw, p/w, secret, login, username, user ID, UID, or API key/token assignments |
 | Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
 | Dollar Amounts Over $10,000 | INFO | Dollar amounts $10,000 and above |
 
@@ -966,7 +966,7 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 | Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
 | Email Addresses | MODERATE | Email address patterns |
 | Phone Numbers | MODERATE | US phone number patterns |
-| Passwords / Secrets | MODERATE | Lines containing password, pw, secret, login, username, user ID, UID, or API key/token assignments |
+| Passwords / Secrets | MODERATE | Lines containing password, pw, p/w, secret, login, username, user ID, UID, or API key/token assignments |
 | Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
 | Dollar Amounts | INFO | Dollar amounts in a user-specified range |
 
