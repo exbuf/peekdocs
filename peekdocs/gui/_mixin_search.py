@@ -490,6 +490,7 @@ class SearchMixin:
         try:
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"
+            env["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
             self.process = subprocess.Popen(
                 cmd,
                 cwd=folder,
