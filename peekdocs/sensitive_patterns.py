@@ -35,7 +35,7 @@ SENSITIVE_PATTERNS = [
     ),
     (
         "Passwords / Secrets",
-        r"(?i)(?<![?&/a-zA-Z_])(?:password|passwd|pwd|secret|api[_-]?key|api[_-]?token|auth[_-]?token|access[_-]?token)\s*[:=]\s*\S+",
+        r"(?i)(?<![?&/a-zA-Z_])(?:password|passwd|pwd|secret|api[_-]?key|api[_-]?token|auth[_-]?token|access[_-]?token)\s*[:=]\s*(?!os\.|env\(|process\.|getenv\(|environ|System\.|\$\{|\$ENV|%[A-Z])\S+",
         "moderate",
         "Lines containing password, secret, or API key assignments",
     ),

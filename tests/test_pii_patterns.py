@@ -179,6 +179,12 @@ class TestPasswords:
         "https://example.com/path?token=xyz",  # full URL with token param
         "token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9",  # bare JWT token assignment
         "cookie_token=abc123",  # prefixed token (not api/auth/access)
+        "api_key=os.getenv('OPENAI_API_KEY')",  # env var lookup (Python)
+        "password=process.env.DB_PASSWORD",  # env var lookup (Node.js)
+        "secret=getenv('SECRET')",  # env var lookup (C/PHP)
+        "api_key=environ['KEY']",  # env var lookup (Python dict)
+        "password=$ENV{DB_PASS}",  # env var lookup (Perl)
+        "secret=%APPDATA%",  # env var (Windows)
     ])
     def test_no_match(self, text):
         assert not self.pat.search(text)
