@@ -167,6 +167,8 @@ class TestPasswords:
         "secret = very_secret_value",
         "PW: secret123",
         "pw=hunter2",
+        "p/w: mypassword",
+        "P/W=secret",
         "user_id: admin",
         "User ID=jsmith",
         "UID: 12345",
