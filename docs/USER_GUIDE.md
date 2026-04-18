@@ -933,7 +933,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 
 ## PII Scan
 
-The **PII Scan** is peekdocs's one-click scan for sensitive data (PII) in your own files. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
+The **PII Scan** is peekdocs's one-click scan for sensitive data in your own files. PII stands for **Personally Identifiable Information** — any data that could identify a specific person or compromise their accounts. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
 
 The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual searches but does not currently expose the PII Scan as a flag.
 
