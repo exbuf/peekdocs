@@ -1731,7 +1731,7 @@ class ToolsMixin:
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
                           spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
-                          lmargin2=20, foreground="gray40")
+                          lmargin2=20, foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
         txt.tag_configure("heading_red", font=("TkDefaultFont", 14, "bold"),
                           spacing1=10, spacing3=5, foreground="red")
 
@@ -2601,7 +2601,7 @@ class ToolsMixin:
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
                           spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
-                          lmargin2=20, foreground="gray40")
+                          lmargin2=20, foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
         txt.tag_configure("heading_red", font=("TkDefaultFont", 13, "bold"),
                           spacing1=8, spacing3=4, foreground="red")
 
@@ -3266,7 +3266,7 @@ class ToolsMixin:
         # Table of contents
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
@@ -3711,7 +3711,7 @@ class ToolsMixin:
         txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         def h(s): txt.insert("end", s + "\n", "heading")
         def b(s): txt.insert("end", s + "\n", "body")
@@ -3871,7 +3871,7 @@ class ToolsMixin:
         # Table of contents
         txt.tag_configure("toc_title", font=("TkDefaultFont", 13, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
@@ -4225,7 +4225,7 @@ class ToolsMixin:
         # Table of contents
         txt.tag_configure("toc_title", font=("TkDefaultFont", 13, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
@@ -4527,7 +4527,7 @@ class ToolsMixin:
         txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         def h(s): txt.insert("end", s + "\n", "heading")
         def b(s): txt.insert("end", s + "\n", "body")
@@ -4682,7 +4682,7 @@ class ToolsMixin:
         txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         def h(s): txt.insert("end", s + "\n", "heading")
         def b(s): txt.insert("end", s + "\n", "body")
@@ -4811,7 +4811,7 @@ class ToolsMixin:
         txt.tag_configure("example", font=("Courier", 11), lmargin1=20, lmargin2=20, spacing3=2)
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         def h(s): txt.insert("end", s + "\n", "heading")
         def b(s): txt.insert("end", s + "\n", "body")
@@ -4966,7 +4966,7 @@ class ToolsMixin:
         txt.tag_configure("example", font=("Courier", 12), lmargin1=30, lmargin2=30)
         txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
         txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
-                          foreground="gray40")
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
 
         def h(text):
             txt.insert("end", text + "\n", "heading")
