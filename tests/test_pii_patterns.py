@@ -165,6 +165,14 @@ class TestPasswords:
         "auth-token=abc123xyz",
         "access_token: sk-123456",
         "secret = very_secret_value",
+        "PW: secret123",
+        "pw=hunter2",
+        "user_id: admin",
+        "User ID=jsmith",
+        "UID: 12345",
+        "login: bob",
+        "username=admin",
+        "user_name: root",
     ])
     def test_matches(self, text):
         assert self.pat.search(text)
