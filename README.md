@@ -1,6 +1,6 @@
 # peekdocs
 
-**Free · Open Source · Searches 77 file types all at once**
+**Free · Open-Source Document Search App · Searches 77 file types all at once**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
