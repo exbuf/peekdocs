@@ -876,7 +876,7 @@ class DataMixin:
         help_btn.pack(side="right")
         tk.Label(
             popup, text="Select a file, then double-click to open the original file or click View Text to view the highlighted report.",
-            font=("TkDefaultFont", 10), fg="gray",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=460,
         ).pack(pady=(0, 8))
 
         list_frame = tk.Frame(popup)
