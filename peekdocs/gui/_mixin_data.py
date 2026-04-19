@@ -918,12 +918,20 @@ class DataMixin:
                 self._show_error(f"File not found: {filepath}")
                 return
             system = platform.system()
-            if system == "Darwin":
-                subprocess.Popen(["open", filepath])
-            elif system == "Windows":
-                os.startfile(filepath)  # type: ignore[attr-defined]
-            else:
-                subprocess.Popen(["xdg-open", filepath])
+            try:
+                if system == "Darwin":
+                    result = subprocess.run(["open", filepath], capture_output=True)
+                    if result.returncode != 0:
+                        # No default app — open in TextEdit
+                        subprocess.Popen(["open", "-a", "TextEdit", filepath])
+                elif system == "Windows":
+                    os.startfile(filepath)  # type: ignore[attr-defined]
+                else:
+                    subprocess.Popen(["xdg-open", filepath])
+            except Exception:
+                # Last resort — try text editor
+                if system == "Darwin":
+                    subprocess.Popen(["open", "-a", "TextEdit", filepath])
 
         listbox.bind("<Double-1>", _on_click)
 
