@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
-> peekdocs searches your Word docs, PDFs, spreadsheets, emails — 46 file types, all searched at once, all offline. Yellow-highlighted results, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, and search modes from simple keywords to advanced patterns (regex). Runs entirely on your computer — your files are never uploaded, altered, or deleted. peekdocs creates its own report and index files, which you can delete at any time. **Free, open-source. Point-and-click GUI. Terminal CLI. Python API. For home users, professionals, and developers.**
+> peekdocs searches your Word docs, PDFs, spreadsheets, emails — 77 file types, all searched at once, all offline. Yellow-highlighted results, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, and search modes from simple keywords to advanced patterns (regex). Runs entirely on your computer — your files are never uploaded, altered, or deleted. peekdocs creates its own report and index files, which you can delete at any time. **Free, open-source. Point-and-click GUI. Terminal CLI. Python API. For home users, professionals, and developers.**
 
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
 
@@ -14,7 +14,7 @@
 - **One-click PII Scan** (Personally Identifiable Information) — worried about sensitive data inadvertently left in your files? One click finds Social Security numbers, credit cards, passwords, and more — before someone else does. One button, no setup.
 - **Search Wizard** — configures more complex searches for you. No regex (regular expressions — a pattern language for matching text) or technical knowledge needed.
 - **Scanned documents** — OCR reads text from scanned PDFs and images that other tools can't search.
-- **46 file types at once** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), e-books, calendars, contacts, and 30+ more. All searched simultaneously.
+- **77 file types at once** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously.
 - **Hover tips everywhere** — not sure what a button or field does? Hover your mouse over it and a helpful tooltip explains what it does and how to use it. No need to open the manual.
 - **Adjustable text size** — five sizes from Small to Huge, accessible from the Tools menu. All text, labels, and buttons scale together. Helpful for users with low vision or high-DPI displays. Saved automatically.
 - **Dark mode** — switch between Dark, Light, or System (follows your OS setting) from the Tools menu. Saved automatically.
@@ -83,7 +83,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 - **PII Scan** — **Do you know what's hiding in your documents?** One click finds Social Security numbers, credit cards, passwords (including pw, p/w, login, username, user ID, UID), tax IDs, emails, phone numbers, dates of birth, and user-configurable dollar-amount ranges — with a highlighted report showing exactly where. Results are categorized by severity (high/moderate/info) with per-file details. **Custom patterns:** advanced users can add their own regex (e.g., UK NINO, Canadian SIN, German Steuer-ID, company account IDs) to extend the scan beyond the built-in categories
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
-- **46 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and 30+ more
+- **77 file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF), Apple Pages, calendars (.ics), contacts (.vcf), e-books, HTML, and more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
 - **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy, double-click a filename to open it. Matched files popup shows line numbers and includes a "View Text" option that displays the file's extracted content with line numbers and highlighted matches
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
@@ -121,7 +121,9 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Email** | .eml .mbox .msg .pst |
 | **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip |
 | **Calendar/Contacts** | .ics .vcf |
-| **Data/Config** | .cfg .ini .json .log .sql .toml .txt .xml .yaml .yml |
+| **Source Code** | .asm .bat .c .cpp .cs .f .f90 .go .h .hpp .java .js .kt .pl .ps1 .py .r .rb .rs .s .sh .swift .tcl .ts .vb |
+| **Engineering** | .cir .dxf .m .sp .spice .sv .v .vhd .vhdl |
+| **Data/Config** | .cfg .ini .json .log .makefile .sql .toml .txt .xml .yaml .yml |
 | **Images (OCR)** | .bmp .jpg .jpeg .png .tif .tiff (requires `-O` flag) |
 
 ## Installation
@@ -280,7 +282,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 Every search tool — from Google to Spotlight to $2,500 enterprise software — does the same thing at its core: match a pattern against text. Any modern tool can search in any language, because they all use Unicode. The difference is never the matching. It's what happens around it: what files can it read, how does it present the results, how easy is it to use, and what can you do with the output.
 
-peekdocs reads 46 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click. And it does all of this in a GUI that a non-technical person can use without reading a manual.
+peekdocs reads 77 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click. And it does all of this in a GUI that a non-technical person can use without reading a manual.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
@@ -290,7 +292,7 @@ AI document tools (ChatGPT, Copilot, NotebookLM) require uploading your files to
 
 For finding specific content in your documents — keywords, patterns, SSNs, credit cards, phone numbers, account numbers — peekdocs does what AI does, without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
 
-There's also a practical problem: AI tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to ChatGPT — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 46 file types at once, on your machine, with no file count or size limit.
+There's also a practical problem: AI tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to ChatGPT — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 77 file types at once, on your machine, with no file count or size limit.
 
 What AI adds beyond search — summarization, question answering, semantic understanding — requires giving up your privacy. Most people searching for "where's my insurance policy number" or "do any of my files contain passwords" don't need that. They need to find something. peekdocs finds it.
 

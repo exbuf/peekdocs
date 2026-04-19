@@ -57,9 +57,9 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         f.write("Program Source: https://github.com/exbuf\n")
         f.write("Overview: Searches all supported file types in current directory for search terms.\n")
         f.write("Supported file types:\n")
-        f.write(".7z, .bz2, .cfg, .csv, .doc, .docx, .eml, .epub, .gz, .html, .ini, .json, .log, .md, .msg,\n")
-        f.write(".ods, .odp, .odt, .pdf, .ppt, .pptx, .pst, .rar, .rst, .rtf, .sql, .tar, .tex, .tgz, .toml,\n")
-        f.write(".tsv, .txt, .xls, .xlsx, .xml, .yaml, .yml, .zip\n")
+        from peekdocs.constants import SUPPORTED_TYPES
+        _sorted_types = ", ".join(sorted(SUPPORTED_TYPES))
+        f.write(f"{_sorted_types}\n")
         if use_ocr:
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
