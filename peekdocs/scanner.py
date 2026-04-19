@@ -468,6 +468,12 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                     except Exception:
                         continue  # Skip files that fail inside the archive
 
+    elif ext in SUPPORTED_TYPES:
+        # Plain text fallback — source code, engineering files, and any other
+        # text-based format in SUPPORTED_TYPES without a specialized parser.
+        with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+            all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
+
     return all_lines
 
 
@@ -752,87 +758,24 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         glob_prefix = os.path.join(cwd, "*")
 
-    docx_files = sorted(
-        f for f in glob.glob(glob_prefix + ".docx", recursive=recursive)
-        if not os.path.basename(f).startswith("peekdocs_results")
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    doc_files = sorted(glob.glob(glob_prefix + ".doc", recursive=recursive))
-    pdf_files = sorted(
-        f for f in glob.glob(glob_prefix + ".pdf", recursive=recursive)
-        if not os.path.basename(f).startswith("peekdocs_results")
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    csv_files = sorted(
-        f for f in glob.glob(glob_prefix + ".csv", recursive=recursive)
-        if not os.path.basename(f).startswith("peekdocs_results")
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    odt_files = sorted(glob.glob(glob_prefix + ".odt", recursive=recursive))
-    txt_files = sorted(
-        f for f in glob.glob(glob_prefix + ".txt", recursive=recursive)
-        if not os.path.basename(f).startswith("peekdocs_results")
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-    )
-    html_files = sorted(glob.glob(glob_prefix + ".html", recursive=recursive))
-    xlsx_files = sorted(glob.glob(glob_prefix + ".xlsx", recursive=recursive))
-    xls_files = sorted(glob.glob(glob_prefix + ".xls", recursive=recursive))
-    md_files = sorted(glob.glob(glob_prefix + ".md", recursive=recursive))
-    json_files = sorted(
-        f for f in glob.glob(glob_prefix + ".json", recursive=recursive)
-        if not os.path.basename(f).startswith("peekdocs_results")
-        and not os.path.basename(f).startswith("DO_NOT_SEARCH_")
-        and os.path.basename(f) != ".peekdocs_collection.json"
-    )
-    rtf_files = sorted(glob.glob(glob_prefix + ".rtf", recursive=recursive))
-    pptx_files = sorted(glob.glob(glob_prefix + ".pptx", recursive=recursive))
-    ppt_files = sorted(glob.glob(glob_prefix + ".ppt", recursive=recursive))
-    xml_files = sorted(glob.glob(glob_prefix + ".xml", recursive=recursive))
-    log_files = sorted(
-        f for f in glob.glob(glob_prefix + ".log", recursive=recursive)
-        if os.path.basename(f) != "peekdocs_errors.log"
-    )
-    yaml_files = sorted(glob.glob(glob_prefix + ".yaml", recursive=recursive))
-    yml_files = sorted(glob.glob(glob_prefix + ".yml", recursive=recursive))
-    tsv_files = sorted(glob.glob(glob_prefix + ".tsv", recursive=recursive))
-    epub_files = sorted(glob.glob(glob_prefix + ".epub", recursive=recursive))
-    ods_files = sorted(glob.glob(glob_prefix + ".ods", recursive=recursive))
-    odp_files = sorted(glob.glob(glob_prefix + ".odp", recursive=recursive))
-    toml_files = sorted(glob.glob(glob_prefix + ".toml", recursive=recursive))
-    rst_files = sorted(glob.glob(glob_prefix + ".rst", recursive=recursive))
-    tex_files = sorted(glob.glob(glob_prefix + ".tex", recursive=recursive))
-    ini_files = sorted(glob.glob(glob_prefix + ".ini", recursive=recursive))
-    cfg_files = sorted(glob.glob(glob_prefix + ".cfg", recursive=recursive))
-    sql_files = sorted(glob.glob(glob_prefix + ".sql", recursive=recursive))
-    eml_files = sorted(glob.glob(glob_prefix + ".eml", recursive=recursive))
-    msg_files = sorted(glob.glob(glob_prefix + ".msg", recursive=recursive))
-    pst_files = sorted(glob.glob(glob_prefix + ".pst", recursive=recursive))
-    zip_files = sorted(glob.glob(glob_prefix + ".zip", recursive=recursive))
-    tar_files = sorted(glob.glob(glob_prefix + ".tar", recursive=recursive))
-    gz_files = sorted(glob.glob(glob_prefix + ".gz", recursive=recursive))
-    bz2_files = sorted(glob.glob(glob_prefix + ".bz2", recursive=recursive))
-    tgz_files = sorted(glob.glob(glob_prefix + ".tgz", recursive=recursive))
-    sevenz_files = sorted(glob.glob(glob_prefix + ".7z", recursive=recursive))
-    rar_files = sorted(glob.glob(glob_prefix + ".rar", recursive=recursive))
-    mbox_files = sorted(glob.glob(glob_prefix + ".mbox", recursive=recursive))
-    ics_files = sorted(glob.glob(glob_prefix + ".ics", recursive=recursive))
-    vcf_files = sorted(glob.glob(glob_prefix + ".vcf", recursive=recursive))
-    pages_files = sorted(glob.glob(glob_prefix + ".pages", recursive=recursive))
-    if use_ocr:
-        jpg_files = sorted(glob.glob(glob_prefix + ".jpg", recursive=recursive))
-        jpeg_files = sorted(glob.glob(glob_prefix + ".jpeg", recursive=recursive))
-        png_files = sorted(glob.glob(glob_prefix + ".png", recursive=recursive))
-        tiff_files = sorted(glob.glob(glob_prefix + ".tiff", recursive=recursive))
-        tif_files = sorted(glob.glob(glob_prefix + ".tif", recursive=recursive))
-        bmp_files = sorted(glob.glob(glob_prefix + ".bmp", recursive=recursive))
-        image_files = jpg_files + jpeg_files + png_files + tiff_files + tif_files + bmp_files
-    else:
-        image_files = []
-    all_files = sorted(
-        f for f in docx_files + doc_files + pdf_files + csv_files + odt_files + txt_files + html_files + xlsx_files + xls_files + md_files + json_files + rtf_files + pptx_files + ppt_files + xml_files + log_files + yaml_files + yml_files + tsv_files + epub_files + ods_files + odp_files + toml_files + rst_files + tex_files + ini_files + cfg_files + sql_files + eml_files + msg_files + pst_files + zip_files + tar_files + gz_files + bz2_files + tgz_files + sevenz_files + rar_files + mbox_files + ics_files + vcf_files + pages_files + image_files
-        if not os.path.basename(f).startswith("DO_NOT_SEARCH")
-        and os.path.basename(f) not in (".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc")
-    )
+    # Filenames to exclude from search results
+    _EXCLUDE_NAMES = {".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc",
+                      "peekdocs_errors.log"}
+    _EXCLUDE_PREFIXES = ("peekdocs_results", "DO_NOT_SEARCH")
+
+    # Discover all supported file types dynamically
+    discovered = []
+    search_types = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if use_ocr else set())
+    for ext in sorted(search_types):
+        matches = glob.glob(glob_prefix + ext, recursive=recursive)
+        for f in matches:
+            basename = os.path.basename(f)
+            if basename in _EXCLUDE_NAMES:
+                continue
+            if any(basename.startswith(p) for p in _EXCLUDE_PREFIXES):
+                continue
+            discovered.append(f)
+    all_files = sorted(discovered)
 
     if file_types is not None:
         all_files = [f for f in all_files if os.path.splitext(f)[1].lower() in file_types]
