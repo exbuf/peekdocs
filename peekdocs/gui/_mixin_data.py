@@ -855,7 +855,7 @@ class DataMixin:
             heading = f"Matched Files ({count})"
         popup.title(heading)
         popup.resizable(True, True)
-        win_h = max(320, min(650, count * 28 + 180))
+        win_h = max(350, min(680, count * 28 + 210))
         popup.geometry(f"500x{win_h}")
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
@@ -876,7 +876,7 @@ class DataMixin:
         help_btn.pack(side="right")
         tk.Label(
             popup, text="Select a file, then double-click to open the original file or click View Text to view the highlighted report.",
-            font=("TkDefaultFont", 10), fg="gray", wraplength=460,
+            font=("TkDefaultFont", 10), fg="gray", wraplength=400,
         ).pack(pady=(0, 8))
 
         list_frame = tk.Frame(popup)
