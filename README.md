@@ -304,6 +304,14 @@ There's also a practical problem: AI tools have upload limits and format restric
 
 What AI adds beyond search — summarization, question answering, semantic understanding — requires giving up your privacy. Most people searching for "where's my insurance policy number" or "do any of my files contain passwords" don't need that. They need to find something. peekdocs finds it.
 
+## Why Not Just Use Grep?
+
+grep is a powerful command-line text search tool — if you know how to use it. But grep only reads plain text files. It can't open Word docs, PDFs, Excel spreadsheets, PowerPoint, email archives, or compressed files. It can't OCR a scanned document. It outputs matching lines to a terminal — no highlighted reports, no file-by-file organization, no GUI.
+
+peekdocs reads 77 file types that grep can't touch, produces a highlighted Word report you can save or share, and wraps everything in a point-and-click interface that doesn't require a terminal, flags, or regex knowledge. It also adds PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
+
+If you're comfortable in a terminal and only search plain text files, grep is fine. If you have Word docs, PDFs, emails, spreadsheets, or archives — or if you want results you can hand to someone who doesn't use a terminal — peekdocs is what grep would be if grep could read your actual documents.
+
 ## Platform Notes
 
 **Tested on:** macOS (development machine), Windows 10/11, and Linux Mint 22.3 (Cinnamon) in a VirtualBox VM on Windows. The CLI and GUI work on all three platforms.
