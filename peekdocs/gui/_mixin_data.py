@@ -1413,7 +1413,11 @@ class DataMixin:
                     except Exception:
                         terms = search_text.split()
                 else:
-                    terms = search_text.split()
+                    import shlex as _shlex_view
+                    try:
+                        terms = _shlex_view.split(search_text)
+                    except ValueError:
+                        terms = search_text.split()
                 for term in terms:
                     if use_wildcard:
                         from peekdocs.scanner import _wildcard_to_regex
@@ -1421,7 +1425,9 @@ class DataMixin:
                     elif use_regex:
                         patterns.append(term)
                     elif use_whole_word:
-                        patterns.append(r'\b' + _re_view.escape(term) + r'\b')
+                        _pfx = r'\b' if _re_view.match(r'\w', term) else ''
+                        _sfx = r'\b' if _re_view.search(r'\w$', term) else ''
+                        patterns.append(_pfx + _re_view.escape(term) + _sfx)
                     else:
                         patterns.append(_re_view.escape(term))
 
