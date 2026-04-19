@@ -83,7 +83,9 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 ## Security Best Practices
 
-peekdocs runs entirely on your computer — your documents are never uploaded, transmitted, or shared. But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
+peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files. All processing happens locally on your machine. No internet connection is required or used.
+
+But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
 - **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `DO_NOT_SEARCH_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
