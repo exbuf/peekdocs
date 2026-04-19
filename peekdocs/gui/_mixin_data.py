@@ -927,9 +927,14 @@ class DataMixin:
                 elif system == "Windows":
                     os.startfile(filepath)  # type: ignore[attr-defined]
                 else:
-                    subprocess.Popen(["xdg-open", filepath])
+                    result = subprocess.run(["xdg-open", filepath], capture_output=True)
+                    if result.returncode != 0:
+                        # No default app — try common text editors
+                        for editor in ("xed", "gedit", "mousepad", "kate", "nano"):
+                            if subprocess.run(["which", editor], capture_output=True).returncode == 0:
+                                subprocess.Popen([editor, filepath])
+                                break
             except Exception:
-                # Last resort — try text editor
                 if system == "Darwin":
                     subprocess.Popen(["open", "-a", "TextEdit", filepath])
 
