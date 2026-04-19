@@ -10,7 +10,7 @@
 >
 > Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own report and index files, which you can delete at any time.)
 >
-> Point-and-click GUI · Terminal CLI · Python API
+> Point-and-click GUI • Terminal CLI • Python API
 >
 > **For home users, professionals, and developers.**
 
