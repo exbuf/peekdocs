@@ -58,11 +58,14 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 ## Who Is It For?
 
 - **Home users** — type your keyword(s), click Run Search, done. No setup, no configuration, no manual. Designed to be easy to use for non-technical people. Click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data — one click, no setup
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates. Locate transactions and policy references before an audit. peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status
 - **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The PII Scan and Search Wizard are GUI-only features
+- **Programmers** — search the files VS Code can't: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), and API keys accidentally saved in documents (PII Scan). peekdocs fills the gap between your editor's search and the non-code files every project accumulates
 - **Students and writers** — search across course notes, research papers, interview transcripts, and assignments in any format
 - **Tax season** — search years of tax returns, W-2s, 1099s, and receipts for a specific deduction, amount, or account number. Find what you need in seconds instead of opening files one by one
+- **Medical records** — find old lab results, prescriptions, doctor names, and diagnoses across years of PDFs from patient portals
 - **Estate and family documents** — handling a relative's files? Search for wills, insurance policies, account numbers, passwords, and important records across an entire folder of unfamiliar documents
+- **Home renovation and vehicles** — find contractor invoices, permits, appliance model numbers, warranty dates, VIN numbers, and maintenance records buried in old documents
 - **Selling or donating a computer** — run the PII Scan before handing off a device to make sure no Social Security numbers, credit cards, or passwords are left behind
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. Most search tools can't read email formats — peekdocs can
 
