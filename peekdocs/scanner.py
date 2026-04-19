@@ -86,6 +86,20 @@ def _wildcard_to_regex(term):
     return r'\b' + escaped
 
 
+def _whole_word_pattern(term):
+    """Build a regex pattern for whole-word matching.
+
+    Only adds \\b where the term starts/ends with a word character.
+    This prevents matching failures when the term contains leading or
+    trailing punctuation (e.g., 'output_min;' ends with ';' which is
+    not a word character, so \\b after it would never match).
+    """
+    escaped = re.escape(term)
+    prefix = r'\b' if re.match(r'\w', term) else ''
+    suffix = r'\b' if re.search(r'\w$', term) else ''
+    return prefix + escaped + suffix
+
+
 def _ocr_image(image):
     """Run OCR on a PIL Image and return extracted text."""
     import pytesseract
@@ -534,7 +548,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         elif use_fuzzy:
             return _fuzzy_word_match(text, term) is not None
         elif use_whole_word:
-            return bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
+            return bool(re.search(_whole_word_pattern(term), text, re.IGNORECASE))
         else:
             return term.lower() in text.lower()
 
@@ -573,7 +587,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         if use_fuzzy:
             return any(_fuzzy_word_match(text, t) is not None for t in exclude_terms)
         if use_whole_word:
-            return any(re.search(r'\b' + re.escape(t) + r'\b', text, re.IGNORECASE) for t in exclude_terms)
+            return any(re.search(_whole_word_pattern(t), text, re.IGNORECASE) for t in exclude_terms)
         text_lower = text.lower()
         return any(t.lower() in text_lower for t in exclude_terms)
 
@@ -595,7 +609,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
                 matched = check(_fuzzy_word_match(text, term) is not None for term in search_terms)
         elif use_whole_word:
             matched = check(
-                bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
+                bool(re.search(_whole_word_pattern(term), text, re.IGNORECASE))
                 for term in search_terms
             )
             if matched and use_proximity:
@@ -637,7 +651,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
             elif use_regex:
                 pattern = term
             elif use_whole_word:
-                pattern = r'\b' + re.escape(term) + r'\b'
+                pattern = _whole_word_pattern(term)
             else:
                 pattern = re.escape(term)
             highlighted = re.sub(pattern, lambda m: f"**{m.group()}**", highlighted, flags=re.IGNORECASE)

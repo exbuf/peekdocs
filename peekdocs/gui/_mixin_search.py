@@ -756,7 +756,9 @@ class SearchMixin:
                 elif use_regex:
                     patterns.append(term)
                 elif use_whole_word:
-                    patterns.append(r'\b' + _re.escape(term) + r'\b')
+                    _pfx = r'\b' if _re.match(r'\w', term) else ''
+                    _sfx = r'\b' if _re.search(r'\w$', term) else ''
+                    patterns.append(_pfx + _re.escape(term) + _sfx)
                 else:
                     patterns.append(_re.escape(term))
             if patterns:

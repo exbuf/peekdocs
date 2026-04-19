@@ -191,7 +191,9 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
             elif use_regex:
                 highlight_patterns.append(term)
             elif use_whole_word:
-                highlight_patterns.append(r'\b' + re.escape(term) + r'\b')
+                prefix = r'\b' if re.match(r'\w', term) else ''
+                suffix = r'\b' if re.search(r'\w$', term) else ''
+                highlight_patterns.append(prefix + re.escape(term) + suffix)
             else:
                 highlight_patterns.append(re.escape(term))
 
