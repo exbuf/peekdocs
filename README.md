@@ -323,13 +323,13 @@ peekdocs was tested on 1,000,000 files to verify it handles large document colle
 
 **Benchmark results — warm cache.\*** Plain-text files on MacBook Pro, Apple M-series, 14 cores (7 used), SSD.
 
-| Files | Direct search | With index | Index build | Index size |
-|------:|--------------:|-----------:|------------:|-----------:|
-| 10,000 | 1.4 seconds* | — | — | — |
-| 50,000 | 4.1 seconds* | 9.1 seconds | 5.3 seconds | 17 MB |
-| 1,000,000 | 90 seconds* | 240 seconds | 110 seconds | 311 MB |
+| Files | Direct (warm cache) | Direct (cold cache) | With index | Index build | Index size |
+|------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
+| 10,000 | 1.4 seconds | — | — | — | — |
+| 50,000 | 4.1 seconds | 87.5 seconds | 9.1 seconds | 5.3 seconds | 17 MB |
+| 1,000,000 | 90 seconds | — | 240 seconds | 110 seconds | 311 MB |
 
-*\* Warm cache — files already in OS memory from recent access. Cold-cache times are significantly longer (see below).*
+The index pays for itself on cold-cache searches — 9.1 seconds vs 87.5 seconds for 50,000 files. On warm cache (files already in OS memory), direct search is faster for small text files because there's no parsing overhead to skip. For binary formats (PDF, Word, Excel), the index wins even on warm cache because it skips the expensive file parsing step entirely. See cold cache vs warm cache explanation below.
 
 **Cold cache vs warm cache — why the same search can take 4 seconds or 4 minutes:**
 
