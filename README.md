@@ -313,7 +313,7 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 
 ## Performance
 
-peekdocs was tested on 50,000 files to verify it handles large document collections without crashing, slowing to a crawl, or running out of memory.
+peekdocs was tested on up to 1,000,000 files to verify it handles large document collections without crashing, slowing to a crawl, or running out of memory.
 
 **Test setup:**
 - **Machine:** MacBook Pro, Apple M-series, 14 cores, macOS 24.6
