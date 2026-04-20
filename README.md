@@ -398,7 +398,7 @@ These are estimates for mixed binary formats (PDF, DOCX, XLSX), not benchmarks. 
 | PowerPoint (.pptx) | 5% | 50 | Presentations, pitches | 50–300 KB |
 | Other (.html, .rtf) | 2% | 20 | Saved web pages, legacy docs | 10–50 KB |
 
-Each file contains realistic multi-paragraph content. Average ~13 KB per file.
+Each file contains realistic multi-paragraph content. Average ~13 KB per file. (The mixed-format benchmark stops at 50,000 files because generating 1 million binary files — 350,000 PDFs, 250,000 Word docs, etc. — would take hours. The 1,000,000-file test in the plain-text benchmark above confirms peekdocs handles that scale.)
 
 Broad search ("invoice" — matches in most files, warm cache):
 
