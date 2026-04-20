@@ -329,7 +329,7 @@ For most users, searches are fast enough that you just click Run Search and resu
 
 **Detailed test results:**
 
-All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its default is half; adjustable in Advanced Search Options), SSD, Python 3.13.
+All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its default is half; adjustable in Advanced Search Options), 24 GB RAM, SSD, Python 3.13.
 
 **Plain-text stress test** — 10K / 50K / 1M single-line .txt files (~113 bytes each), keyword present in every file (worst case):
 
