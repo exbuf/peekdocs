@@ -329,9 +329,11 @@ For most users, searches are fast enough that you just click Run Search and resu
 
 **Detailed test results:**
 
+We conducted two benchmarks: Benchmark 1 used plain-text file types (.txt) to stress-test peekdocs at extreme scale (up to 1,000,000 files). Benchmark 2 used a realistic mix of file types (.pdf, .docx, .xlsx, .pptx, .eml, .txt, .html, .rtf) to measure real-world performance.
+
 All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its default is half; adjustable in Advanced Search Options), 24 GB RAM, SSD, Python 3.13.
 
-**Plain-text stress test** — 10K / 50K / 1M single-line .txt files (~113 bytes each), keyword present in every file (worst case):
+**Benchmark 1: Plain-text files** — 10K / 50K / 1M single-line .txt files (~113 bytes each), keyword present in every file (worst case):
 
 | Files | Direct Search (warm cache) | Direct Search (cold cache) | With index | Index build | Index size |
 |------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
@@ -360,7 +362,7 @@ At 1M files: no crashes, no memory issues, correct results. The index was slower
 
 **Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
-**Mixed-format benchmark.** Same machine. File mix designed to represent a typical home or small business folder:
+**Benchmark 2: Mixed-format files.** Same machine. File mix designed to represent a typical home or small business folder:
 
 | File type | % | Count per 1,000 | Why | Typical size |
 |-----------|--:|----------------:|-----|-------------|
