@@ -482,6 +482,29 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                     except Exception:
                         continue  # Skip files that fail inside the archive
 
+    elif ext == ".vsdx":
+        # Visio diagram — ZIP archive containing XML pages with text in shapes
+        import xml.etree.ElementTree as _vsdx_ET
+        line_num = 0
+        with zipfile.ZipFile(filepath, "r") as zf:
+            for name in sorted(zf.namelist()):
+                if not name.startswith("visio/pages/page") or not name.endswith(".xml"):
+                    continue
+                try:
+                    tree = _vsdx_ET.parse(zf.open(name))
+                    ns = {"v": "http://schemas.microsoft.com/office/visio/2012/main"}
+                    for text_elem in tree.iter("{http://schemas.microsoft.com/office/visio/2012/main}Text"):
+                        # Collect all text content including child elements
+                        full_text = "".join(text_elem.itertext()).strip()
+                        if full_text:
+                            for line in full_text.split("\n"):
+                                line = line.strip()
+                                if line:
+                                    line_num += 1
+                                    all_lines.append((line_num, line))
+                except Exception:
+                    continue
+
     elif ext in SUPPORTED_TYPES:
         # Plain text fallback — source code, engineering files, and any other
         # text-based format in SUPPORTED_TYPES without a specialized parser.
