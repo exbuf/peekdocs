@@ -1,0 +1,22 @@
+# Pinned dependency versions — tested and working with peekdocs v0.3.0
+# Use this file for reproducible installs: pip install -r requirements-pinned.txt
+# These are the exact versions used during development and testing.
+# Upgrading any dependency may introduce breaking changes — test thoroughly first.
+
+customtkinter==5.2.2
+EbookLib==0.20
+extract-msg==0.55.0
+fpdf2==2.8.7
+odfpy==1.4.1
+olefile==0.47
+openpyxl==3.1.5
+pillow==12.1.1
+py7zr==1.1.0
+PyMuPDF==1.27.2.2
+pytesseract==0.3.13
+python-docx==1.2.0
+python-pptx==1.0.2
+RapidFuzz==3.14.3
+rarfile==4.2
+striprtf==0.0.29
+xlrd==2.0.2
