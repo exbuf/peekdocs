@@ -133,6 +133,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Data/Config** | .cfg .ini .json .log .makefile .sql .toml .txt .xml .yaml .yml |
 | **Images (OCR)** | .bmp .jpg .jpeg .png .tif .tiff (requires `-O` flag) |
 
+**Note:** Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format. peekdocs extracts whatever readable text exists inside these files, which may be partial. Older iWork files extract fully. Apple Pages (.pages) is fully supported.
+
 ## Installation
 
 ### Prerequisites
