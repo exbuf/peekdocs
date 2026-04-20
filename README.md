@@ -386,7 +386,19 @@ These are estimates for mixed binary formats (PDF, DOCX, XLSX), not benchmarks. 
 
 **Limitations of the plain-text benchmark:** All files were small, single-line text files on a fast SSD — the cheapest format to read. Real-world folders contain binary formats that take longer to parse. To address this, we ran a second benchmark with realistic mixed-format files.
 
-**Mixed-format benchmark.** Same machine. Files: 35% PDF (multi-page), 25% Word (.docx), 10% Excel (.xlsx), 15% plain text (.txt/.csv/.log), 8% email (.eml), 5% PowerPoint (.pptx), 2% HTML/RTF. Each file contains realistic multi-paragraph content. Average ~13 KB per file.
+**Mixed-format benchmark.** Same machine. File mix designed to represent a typical home or small business folder:
+
+| File type | % | Count per 1,000 | Why | Typical size |
+|-----------|--:|----------------:|-----|-------------|
+| PDF | 35% | 350 | Bank statements, receipts, tax forms, manuals, scanned docs | 50–500 KB |
+| Word (.docx) | 25% | 250 | Letters, resumes, reports, notes, contracts | 20–200 KB |
+| Plain text (.txt, .csv, .log) | 15% | 150 | Notes, data exports, logs | 1–50 KB |
+| Excel (.xlsx) | 10% | 100 | Budgets, lists, inventory, financial records | 15–100 KB |
+| Email (.eml) | 8% | 80 | Exported correspondence | 5–30 KB |
+| PowerPoint (.pptx) | 5% | 50 | Presentations, pitches | 50–300 KB |
+| Other (.html, .rtf) | 2% | 20 | Saved web pages, legacy docs | 10–50 KB |
+
+Each file contains realistic multi-paragraph content. Average ~13 KB per file.
 
 Broad search ("invoice" — matches in most files, warm cache):
 
