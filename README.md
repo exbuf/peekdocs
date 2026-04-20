@@ -320,7 +320,7 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 | **1,000 files** | 13 MB | **~1 second** |
 | **10,000 files** | 133 MB | **~5 seconds** |
 | **50,000 files** | 663 MB | **~22 seconds** |
-| **105 real Word docs** | 1,878 MB | **~4 seconds** |
+| **105 real Word docs** | 1,878 MB | **~4 seconds** (0.24 seconds with index) |
 
 *\* Your results will vary depending on your machine's CPU speed, number of cores, RAM, and disk type (SSD vs hard drive).* These are direct search times (peekdocs opens and reads each file on the fly, no pre-built index needed) on a modern machine with SSD. Notice that 10× more files doesn't mean 10× longer — peekdocs processes files in parallel across multiple CPU cores, so search time scales much less than linearly. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
 
@@ -396,7 +396,7 @@ Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, w
 - **The index struggles with high match counts.** When "invoice" appeared in most of the 10,000 files (65,370 matches), the indexed search took 129 seconds vs 4.6 seconds for direct. At 50,000 files (326,850 matches), the indexed search timed out. The FTS5 engine has to process every matching row, which becomes the bottleneck when most files match.
 - **The index ties direct search when matches are few.** With a selective search term at 50,000 files, both direct and indexed search completed in 21.2 seconds — identical. The index doesn't hurt, but it doesn't help either on warm cache with few result rows.
 - **The index's real value is cold cache and repeat use.** The warm-cache test is biased toward direct search because the OS is serving files from memory. In real life — after rebooting, switching folders, or searching a folder you haven't touched in days — the index eliminates the cold-cache penalty entirely.
-- **Real-world confirmation:** A search of 105 actual Word documents (1,878 MB total — averaging ~18 MB per file, much larger than our test files) completed in 4.4 seconds with direct search, no index. This confirms that peekdocs handles large real-world documents efficiently, not just small generated test files.
+- **Real-world confirmation:** A search of 105 actual Word documents (1,878 MB total — averaging ~18 MB per file, much larger than our test files) completed in 4.4 seconds with direct search. With an index (21-second one-time build), the same search completed in 0.24 seconds — an 18× speedup. This is the clearest demonstration of the index's value: for large binary files, it skips the expensive parsing step entirely and searches pre-extracted text in a fraction of a second.
 
 **How the two benchmarks compare:**
 
