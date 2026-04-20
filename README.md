@@ -321,7 +321,7 @@ peekdocs was tested on 1,000,000 files to verify it handles large document colle
 - **Search term:** a single keyword present in every file (worst case — maximum matches)
 - **Python:** 3.13, peekdocs running via `pip install -e .` in a virtual environment
 
-**Benchmark results — warm cache.\*** Plain-text files on MacBook Pro, Apple M-series, 14 cores (7 used), SSD.
+**Benchmark results.** Plain-text files on MacBook Pro, Apple M-series, 14 cores (7 used), SSD.
 
 | Files | Direct Search (warm cache) | Direct Search (cold cache) | With index | Index build | Index size |
 |------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
