@@ -16,7 +16,7 @@
 
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
 
-**What makes it different:**
+**What makes peekdocs different:**
 
 - **Highlighted results** — matches are highlighted two ways. The **Results Preview** pane shows matches instantly inside the app for quick scanning — right-click to copy, double-click a filename to open it. The `.docx` **Word report** is a standalone document with every match highlighted in yellow, organized by file with surrounding context, search metadata, and match counts — a polished report you can save, print, email, or share with anyone. Both show the same matches; the preview is for quick review, the report is for keeping or sharing. (A `.txt` plain-text report is also generated automatically, and CSV, JSON, and PDF output are available optionally.) Don't have Microsoft Word? The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, Apple Pages, or others.
 - **One-click PII Scan** (Personally Identifiable Information) — worried about sensitive data inadvertently left in your files? One click finds Social Security numbers, credit cards, passwords, and more — before someone else does. One button, no setup.
