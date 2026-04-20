@@ -321,7 +321,7 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 | **10,000 files** | **~5 seconds** |
 | **50,000 files** | **~22 seconds** |
 
-*\* Your results will vary depending on your machine's CPU speed, number of cores, RAM, and disk type (SSD vs hard drive).* These are direct search times on a modern machine with SSD. No index needed. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
+*\* Your results will vary depending on your machine's CPU speed, number of cores, RAM, and disk type (SSD vs hard drive).* These are direct search times (peekdocs opens and reads each file on the fly, no pre-built index needed) on a modern machine with SSD. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
 
 For most users, searches are fast enough that you just click Run Search and results appear. Full test details, index comparisons, and cold-cache analysis below.
 
