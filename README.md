@@ -395,7 +395,7 @@ Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, w
 - **The index struggles with high match counts.** When "invoice" appeared in most of the 10,000 files (65,370 matches), the indexed search took 129 seconds vs 4.6 seconds for direct. At 50,000 files (326,850 matches), the indexed search timed out. The FTS5 engine has to process every matching row, which becomes the bottleneck when most files match.
 - **The index ties direct search when matches are few.** With a selective search term at 50,000 files, both direct and indexed search completed in 21.2 seconds — identical. The index doesn't hurt, but it doesn't help either on warm cache with few result rows.
 - **The index's real value is cold cache and repeat use.** The warm-cache test is biased toward direct search because the OS is serving files from memory. In real life — after rebooting, switching folders, or searching a folder you haven't touched in days — the index eliminates the cold-cache penalty entirely.
-- **Real-world confirmation:** A search of 105 actual Word documents (1,878 MB total — averaging ~18 MB per file, much larger than our test files) completed in 4.4 seconds with direct search. This confirms that peekdocs handles large real-world documents efficiently, not just small generated test files.
+- **Real-world confirmation:** A search of 105 actual Word documents (1,878 MB total — averaging ~18 MB per file, much larger than our test files) completed in 4.4 seconds with direct search, no index. This confirms that peekdocs handles large real-world documents efficiently, not just small generated test files.
 
 **How the two benchmarks compare:**
 
