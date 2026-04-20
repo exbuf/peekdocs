@@ -325,7 +325,7 @@ peekdocs was tested on 1,000,000 files to verify it handles large document colle
 
 | Files | Direct search | With index | Index build | Index size |
 |------:|--------------:|-----------:|------------:|-----------:|
-| 10,000 | 1.4 seconds | — | — | — |
+| 10,000 | 1.4 seconds* | — | — | — |
 | 50,000 | 4.1 seconds* | 9.1 seconds | 5.3 seconds | 17 MB |
 | 1,000,000 | 90 seconds* | 240 seconds | 110 seconds | 311 MB |
 
