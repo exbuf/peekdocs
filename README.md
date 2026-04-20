@@ -316,7 +316,7 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 peekdocs was tested on 1,000,000 files to verify it handles large document collections without crashing, slowing to a crawl, or running out of memory.
 
 **Test setup:**
-- **Machine:** MacBook Pro, Apple M-series, 14 cores, macOS 24.6
+- **Machine:** MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its default is half the available cores to leave CPU available for other programs), macOS 24.6
 - **Files:** 50,000 plain-text files (.txt), each containing one line of realistic text (~113 bytes per file, 5.6 MB total)
 - **Search term:** a single keyword present in every file (worst case — maximum matches)
 - **Python:** 3.13, peekdocs running via `pip install -e .` in a virtual environment
