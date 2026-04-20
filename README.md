@@ -345,7 +345,7 @@ All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its defa
 
 At 1M files: no crashes, no memory issues, correct results. The index was slower (240s vs 90s) because processing a million FTS5 result rows is more expensive than reading a million tiny cached text files. File discovery (listing all filenames) took over 200 seconds alone — an OS limitation, not peekdocs.
 
-**Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 20× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. An index eliminates this penalty — 9.1 seconds cold or warm.
+**Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 21× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. An index eliminates this penalty — 9.1 seconds cold or warm.
 
 **Should you build an index?** For most folders under 10,000 files, direct search is fast enough — you probably don't need one. An index helps most when your first search feels slow (cold cache) or you search the same large folder repeatedly. To try it: click Build Index in Manage Indexes or run `peekdocs --index`. If your files change, set Auto-Refresh to keep the index current automatically. Use the **Use Index** checkbox to switch between indexed and direct search anytime.
 
@@ -359,8 +359,6 @@ At 1M files: no crashes, no memory issues, correct results. The index was slower
 | Files change frequently | **Maybe** | Auto-Refresh helps, but frequent rebuilds have a cost |
 
 **Note on OCR:** If OCR is enabled for scanned images, add 1–3 seconds per image on the first search. The index stores OCR results so subsequent searches don't repeat it.
-
-**Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
 **Benchmark 2: Mixed-format files.** Same machine. File mix designed to represent a typical home or small business folder:
 
@@ -393,12 +391,10 @@ Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, w
 
 **What the mixed-format test revealed:**
 
-- **Direct search on real documents is faster than we estimated.** 1,000 mixed PDFs, Word docs, and spreadsheets searched in 1.1 seconds. 50,000 files in 22 seconds. Our earlier estimate of "15–30 seconds for 1,000 files" was too conservative — the C-backed parsers (PyMuPDF, python-docx, openpyxl) are faster than expected.
+- **Direct search on real documents is fast.** 1,000 mixed PDFs, Word docs, and spreadsheets searched in 1.1 seconds. 50,000 files in 22 seconds. The C-backed parsers (PyMuPDF, python-docx, openpyxl) handle binary formats efficiently.
 - **The index struggles with high match counts.** When "invoice" appeared in most of the 10,000 files (65,370 matches), the indexed search took 129 seconds vs 4.6 seconds for direct. At 50,000 files (326,850 matches), the indexed search timed out. The FTS5 engine has to process every matching row, which becomes the bottleneck when most files match.
 - **The index ties direct search when matches are few.** With a selective search term at 50,000 files, both direct and indexed search completed in 21.2 seconds — identical. The index doesn't hurt, but it doesn't help either on warm cache with few result rows.
 - **The index's real value is cold cache and repeat use.** The warm-cache test is biased toward direct search because the OS is serving files from memory. In real life — after rebooting, switching folders, or searching a folder you haven't touched in days — the index eliminates the cold-cache penalty entirely.
-
-**Bottom line for users:** For most home and small business folders (under 10,000 files), direct search completes in seconds and you don't need an index. If you search the same large folder repeatedly, or if your first search feels slow (cold cache), build an index — it pre-pays the parsing cost once and makes every future search fast.
 
 **How the two benchmarks compare:**
 
@@ -413,7 +409,7 @@ The plain-text and mixed-format tests used different file types and sizes but pr
 
 One result that might look odd: 10,000 plain-text files (1.4s) is faster than 1,000 mixed files (1.1s), even though it has 10× more files. The reason is data volume — 10K text files total just 1.12 MB, while 1K mixed files total 13 MB with expensive binary formats (PDF, DOCX, XLSX) that require decompression and parsing. File count matters less than format complexity and total data size.
 
-The executive summary at the top of this section uses the mixed-format numbers because that's what real document folders look like.
+**Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
 ## Platform Notes
 
