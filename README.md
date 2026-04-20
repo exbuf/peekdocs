@@ -356,7 +356,7 @@ At 1M files: no crashes, no memory issues, correct results. The index was slower
 
 **Note on OCR:** If OCR is enabled for scanned images, add 1–3 seconds per image on the first search. The index stores OCR results so subsequent searches don't repeat it.
 
-**Why Python?** The performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries (PyMuPDF, openpyxl, Python's `re` module). Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
+**Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
 **Mixed-format benchmark.** Same machine. File mix designed to represent a typical home or small business folder:
 
