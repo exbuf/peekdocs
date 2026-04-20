@@ -331,9 +331,27 @@ peekdocs was tested on 50,000 files to verify it handles large document collecti
 
 **What "cold cache" and "warm cache" mean:** Your operating system keeps recently accessed files in RAM so they don't have to be read from disk again. A "warm cache" search runs after the files have already been read once — the OS serves them from memory, which is fast. A "cold cache" search happens when the files haven't been accessed recently and must be read from disk — this is slower, especially on spinning hard drives. The search index eliminates this penalty because all extracted text is stored in a single SQLite database file that loads quickly regardless of how many source files exist.
 
+**Realistic estimate — 1,000 mixed files (typical home or small business folder):**
+
+A real document folder isn't 1,000 identical text files. It's a mix of PDFs, Word docs, spreadsheets, emails, and a few other formats. Each type takes a different amount of time to parse:
+
+| File type | Typical parse time per file | Why |
+|-----------|---------------------------|-----|
+| Plain text (.txt, .csv, .log, source code) | 1–5 ms | Just reading bytes — no decoding needed |
+| Email (.eml) | 5–10 ms | Parse headers and body text |
+| Word (.docx) | 20–50 ms | Unzip container, parse XML |
+| Excel (.xlsx) | 30–100 ms | Unzip, parse multiple sheet XMLs |
+| PowerPoint (.pptx) | 30–80 ms | Unzip, parse slide XMLs |
+| PDF | 50–200 ms | Decode page streams, font tables, layout |
+| Scanned image (OCR) | 1–3 seconds | Full optical character recognition |
+
+For a folder with roughly 300 PDFs, 200 Word docs, 150 spreadsheets, 100 emails, 100 text files, and 50 PowerPoint files (~1,000 files, ~100–200 MB total), expect **15–30 seconds without an index** on a modern multi-core machine. With an index already built, the same search completes in **2–5 seconds** because the text is pre-extracted. If OCR is enabled and 50 of those files are scanned images, add another 30–60 seconds to the first search (the index stores OCR results too, so subsequent searches don't repeat it).
+
+These are estimates, not benchmarks — actual times depend on file sizes, page counts, disk speed, and available CPU cores. The search itself (matching text against your terms) is nearly instantaneous; the time is spent opening and parsing files.
+
 **What this means in practice:**
-- For typical personal document collections (hundreds to a few thousand files), searches complete in 1–5 seconds
-- For very large collections (tens of thousands of files), the search index is recommended — it makes cold-start searches 10× faster
+- For typical personal document collections (hundreds to a few thousand files), most searches complete in under 30 seconds without an index, and under 5 seconds with one
+- For very large collections (tens of thousands of files), the search index is strongly recommended — it makes cold-start searches 10× faster
 - Binary formats (PDF, Word, Excel) are slower per file than plain text because the parser must decompress and decode them. The index eliminates this overhead on subsequent searches by storing the extracted text
 - The bottleneck is always file I/O and parsing, not the search itself. Once text is in memory, regex matching runs at millions of characters per second
 
