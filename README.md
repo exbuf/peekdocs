@@ -335,9 +335,11 @@ All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its defa
 
 | Files | Direct Search (warm cache) | Direct Search (cold cache) | With index | Index build | Index size |
 |------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
-| 10,000 | 1.4 seconds | — | — | — | — |
+| 10,000 | 1.4 seconds | ~1.4 seconds† | 4.0 seconds | 1.0 seconds | 3 MB |
 | 50,000 | 4.1 seconds | 87.5 seconds | 9.1 seconds | 5.3 seconds | 17 MB |
-| 1,000,000 | 90 seconds | — | 240 seconds | 110 seconds | 311 MB |
+| 1,000,000 | 90 seconds | ~90 seconds† | 240 seconds | 110 seconds | 311 MB |
+
+*† Cold-cache times for 10K and 1M were nearly identical to warm cache. On a machine with 24 GB RAM, the OS has enough memory to keep these files cached even after attempting to flush. The 87.5-second cold-cache result at 50K was captured from a genuinely cold session earlier in testing. Cold cache makes the biggest difference on machines with less RAM or with spinning hard drives.*
 
 At 1M files: no crashes, no memory issues, correct results. The index was slower (240s vs 90s) because processing a million FTS5 result rows is more expensive than reading a million tiny cached text files. File discovery (listing all filenames) took over 200 seconds alone — an OS limitation, not peekdocs.
 
