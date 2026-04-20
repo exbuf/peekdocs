@@ -384,7 +384,33 @@ These are estimates for mixed binary formats (PDF, DOCX, XLSX), not benchmarks. 
 
 **Why Python?** peekdocs is written in Python, but the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries (PyMuPDF, openpyxl, Python's `re` module). Python orchestrates the search; C does the heavy lifting. File processing uses multiprocessing (separate OS processes, not threads), so Python's GIL (Global Interpreter Lock — a concurrency limitation that prevents threads from running in true parallel) is not a factor. The result: 1 million files searched without crashing, without running out of memory, and with reasonable times (90 seconds warm cache) — on an interpreted language that skeptics might dismiss as "too slow."
 
-**Limitations of these tests:** The benchmark used small, single-line text files on a fast SSD. Real-world performance depends on file sizes, formats (PDFs are slower to parse than .txt), disk speed, available RAM, and how many files actually match. A folder of 1,000 large PDFs will take longer than 50,000 tiny text files, because PDF parsing dominates the time. The tests confirm that peekdocs handles high file counts — up to 1 million — without architectural limits, but your actual search times will vary based on your documents and hardware.
+**Limitations of the plain-text benchmark:** All files were small, single-line text files on a fast SSD — the cheapest format to read. Real-world folders contain binary formats that take longer to parse. To address this, we ran a second benchmark with realistic mixed-format files.
+
+**Mixed-format benchmark.** Same machine. Files: 35% PDF (multi-page), 25% Word (.docx), 10% Excel (.xlsx), 15% plain text (.txt/.csv/.log), 8% email (.eml), 5% PowerPoint (.pptx), 2% HTML/RTF. Each file contains realistic multi-paragraph content. Average ~13 KB per file.
+
+Broad search ("invoice" — matches in most files, warm cache):
+
+| Files | Total size | Direct Search | Indexed Search | Index Build | Index Size |
+|------:|-----------:|--------------:|---------------:|------------:|-----------:|
+| 1,000 | 13 MB | 1.1 seconds | 3.8 seconds | 2.4 seconds | 4 MB |
+| 10,000 | 133 MB | 4.6 seconds | 129 seconds | 24.6 seconds | 41 MB |
+| 50,000 | 663 MB | 22 seconds | timed out | 152 seconds | 208 MB |
+
+Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, warm cache):
+
+| Files | Direct Search | Indexed Search |
+|------:|--------------:|---------------:|
+| 1,000 | 0.75 seconds | 3.5 seconds |
+| 50,000 | 21.2 seconds | 21.2 seconds |
+
+**What the mixed-format test revealed:**
+
+- **Direct search on real documents is faster than we estimated.** 1,000 mixed PDFs, Word docs, and spreadsheets searched in 1.1 seconds. 50,000 files in 22 seconds. Our earlier estimate of "15–30 seconds for 1,000 files" was too conservative — the C-backed parsers (PyMuPDF, python-docx, openpyxl) are faster than expected.
+- **The index struggles with high match counts.** When "invoice" appeared in most of the 10,000 files (65,370 matches), the indexed search took 129 seconds vs 4.6 seconds for direct. At 50,000 files (326,850 matches), the indexed search timed out. The FTS5 engine has to process every matching row, which becomes the bottleneck when most files match.
+- **The index ties direct search when matches are few.** With a selective search term at 50,000 files, both direct and indexed search completed in 21.2 seconds — identical. The index doesn't hurt, but it doesn't help either on warm cache with few result rows.
+- **The index's real value is cold cache and repeat use.** The warm-cache test is biased toward direct search because the OS is serving files from memory. In real life — after rebooting, switching folders, or searching a folder you haven't touched in days — the index eliminates the cold-cache penalty entirely.
+
+**Bottom line for users:** For most home and small business folders (under 10,000 files), direct search completes in seconds and you don't need an index. If you search the same large folder repeatedly, or if your first search feels slow (cold cache), build an index — it pre-pays the parsing cost once and makes every future search fast.
 
 ## Platform Notes
 
