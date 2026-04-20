@@ -2,7 +2,7 @@
 
 import os
 
-SUPPORTED_TYPES = {".docx", ".doc", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".xls", ".md", ".json", ".rtf", ".pptx", ".ppt", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql", ".eml", ".msg", ".pst", ".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar", ".mbox", ".ics", ".vcf", ".pages", ".py", ".c", ".cpp", ".h", ".hpp", ".java", ".js", ".ts", ".go", ".rs", ".rb", ".sh", ".bat", ".ps1", ".r", ".m", ".v", ".vhd", ".vhdl", ".sv", ".cir", ".sp", ".spice", ".dxf", ".vsdx", ".tcl", ".pl", ".swift", ".kt", ".cs", ".vb", ".f90", ".f", ".asm", ".s", ".makefile"}
+SUPPORTED_TYPES = {".docx", ".doc", ".pdf", ".csv", ".odt", ".txt", ".html", ".xlsx", ".xls", ".md", ".json", ".rtf", ".pptx", ".ppt", ".xml", ".log", ".yaml", ".yml", ".tsv", ".epub", ".ods", ".odp", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql", ".eml", ".msg", ".pst", ".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar", ".mbox", ".ics", ".vcf", ".pages", ".py", ".c", ".cpp", ".h", ".hpp", ".java", ".js", ".ts", ".go", ".rs", ".rb", ".sh", ".bat", ".ps1", ".r", ".m", ".v", ".vhd", ".vhdl", ".sv", ".cir", ".sp", ".spice", ".dxf", ".vsdx", ".numbers", ".key", ".tcl", ".pl", ".swift", ".kt", ".cs", ".vb", ".f90", ".f", ".asm", ".s", ".makefile"}
 
 OCR_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
 

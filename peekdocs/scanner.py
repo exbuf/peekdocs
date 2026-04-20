@@ -482,6 +482,34 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                     except Exception:
                         continue  # Skip files that fail inside the archive
 
+    elif ext in (".numbers", ".key"):
+        # Apple iWork files — ZIP archives. Older versions contain index.xml
+        # with readable text. Newer versions use protobuf (.iwa) which we
+        # can't parse, but XML metadata files may still contain some text.
+        import xml.etree.ElementTree as _iwork_ET
+        line_num = 0
+        with zipfile.ZipFile(filepath, "r") as zf:
+            for name in sorted(zf.namelist()):
+                if not name.endswith(".xml"):
+                    continue
+                try:
+                    tree = _iwork_ET.parse(zf.open(name))
+                    for elem in tree.iter():
+                        if elem.text and elem.text.strip():
+                            for line in elem.text.strip().split("\n"):
+                                line = line.strip()
+                                if line:
+                                    line_num += 1
+                                    all_lines.append((line_num, line))
+                        if elem.tail and elem.tail.strip():
+                            for line in elem.tail.strip().split("\n"):
+                                line = line.strip()
+                                if line:
+                                    line_num += 1
+                                    all_lines.append((line_num, line))
+                except Exception:
+                    continue
+
     elif ext == ".vsdx":
         # Visio diagram — ZIP archive containing XML pages with text in shapes
         import xml.etree.ElementTree as _vsdx_ET
