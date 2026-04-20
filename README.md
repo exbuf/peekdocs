@@ -313,6 +313,22 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 
 ## Performance
 
+**How fast is peekdocs?** We tested with a realistic mix of PDFs, Word docs, Excel spreadsheets, emails, PowerPoint, and text files — the kind of documents a home user or small business actually has. Here's what to expect:
+
+| Your folder has... | Search time |
+|---------------------|------------|
+| **1,000 files** | **~1 second** |
+| **10,000 files** | **~5 seconds** |
+| **50,000 files** | **~22 seconds** |
+
+These are direct search times on a modern machine with SSD. No index needed. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
+
+For most users, searches are fast enough that you just click Run Search and results appear. Full test details, index comparisons, and cold-cache analysis below.
+
+---
+
+**Detailed test results:**
+
 peekdocs was tested on 1,000,000 files to verify it handles large document collections without crashing, slowing to a crawl, or running out of memory.
 
 **Test setup:**
