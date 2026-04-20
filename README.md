@@ -348,14 +348,14 @@ At 1M files: no crashes, no memory issues, correct results. The index was slower
 
 **Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 21× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. In the plain-text test, an index eliminated this penalty — 9.1 seconds cold or warm. The same principle applies to mixed-format files, though we did not measure mixed-format cold cache directly.
 
-**Should you build an index?** For most folders under 10,000 files, direct search is fast enough — you probably don't need one. An index helps most when your first search feels slow (cold cache) or you search the same large folder repeatedly. To try it: click Build Index in Manage Indexes or run `peekdocs --index`. If your files change, set Auto-Refresh to keep the index current automatically. Use the **Use Index** checkbox to switch between indexed and direct search anytime.
+**Should you build an index?** It depends on your files, not just how many you have. A folder of 1,000 small files (13 MB total) searches in about 1 second without an index — no need. But a folder of 105 large Word docs (1.9 GB total) dropped from 4.4 seconds to 0.24 seconds with an index — an 18× speedup. The key factor is **total data size and file format**, not file count. To try it: click Build Index in Manage Indexes or run `peekdocs --index`. If your files change, set Auto-Refresh to keep the index current automatically. Use the **Use Index** checkbox to switch between indexed and direct search anytime.
 
 | Situation | Index helps? | Why |
 |-----------|:-----------:|-----|
+| Large files (PDFs, Word, Excel) | **Yes** | Skips expensive binary parsing — 18× faster in real-world test |
 | First search after reboot (cold cache) | **Yes** | Loads one database file instead of thousands |
 | Same folder searched repeatedly | **Yes** | Pre-pays parsing cost once |
-| Folder with PDFs, Word, Excel (cold cache) | **Yes** | Skips expensive binary parsing on cold-cache or repeat searches |
-| Small folder (under 100 files) | **No** | Direct search is already fast |
+| Small files, small folder | **No** | Direct search is already fast enough |
 | One-time search you won't repeat | **No** | Build time won't be recouped |
 | Files change frequently | **Maybe** | Auto-Refresh helps, but frequent rebuilds have a cost |
 
