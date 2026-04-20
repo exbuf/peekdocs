@@ -321,19 +321,44 @@ peekdocs was tested on 50,000 files to verify it handles large document collecti
 - **Search term:** a single keyword present in every file (worst case — maximum matches)
 - **Python:** 3.13, peekdocs running via `pip install -e .` in a virtual environment
 
-**Results:**
+**Benchmark results (plain-text files on MacBook Pro, Apple M-series, 14 cores, SSD):**
 
-| Method | Cold cache | Warm cache |
-|--------|-----------|------------|
-| Direct search (no index) | 87.5 seconds | 9.1 seconds |
-| Indexed search | 9.2 seconds | 9.1 seconds |
-| Index build (one-time) | 5.3 seconds | — |
+| Files | Direct search | With index | Index build | Index size |
+|------:|--------------:|-----------:|------------:|-----------:|
+| 10,000 | 1.4 seconds | — | — | — |
+| 50,000 | 4.1 seconds* | 9.1 seconds | 5.3 seconds | 17 MB |
+| 1,000,000 | 90 seconds* | 240 seconds | 110 seconds | 311 MB |
 
-**What "cold cache" and "warm cache" mean:** Your operating system keeps recently accessed files in RAM so they don't have to be read from disk again. A "warm cache" search runs after the files have already been read once — the OS serves them from memory, which is fast. A "cold cache" search happens when the files haven't been accessed recently and must be read from disk — this is slower, especially on spinning hard drives. The search index eliminates this penalty because all extracted text is stored in a single SQLite database file that loads quickly regardless of how many source files exist.
+*\* Warm cache — files already in OS memory from recent access. Cold-cache times are significantly longer (see below).*
 
-**Realistic estimate — 1,000 mixed files (typical home or small business folder):**
+**Cold cache vs warm cache — why the same search can take 4 seconds or 4 minutes:**
 
-A real document folder isn't 1,000 identical text files. It's a mix of PDFs, Word docs, spreadsheets, emails, and a few other formats. Each type takes a different amount of time to parse:
+Your operating system keeps recently accessed files in RAM so they don't have to be read from disk again. A "warm cache" search runs after the files have already been read once — the OS serves them from memory, which is fast. A "cold cache" search happens when the files haven't been accessed recently and must be read from disk. In our 50,000-file test, cold cache took 87.5 seconds vs 9.1 seconds warm — a 10× difference. This is why the first search after rebooting or switching folders feels slower than the second one. The search index helps here because all extracted text is stored in a single database file that loads quickly regardless of how many source files exist.
+
+**Surprise findings at 1,000,000 files:**
+
+- **peekdocs handled it without crashing, running out of memory, or producing errors.** One million files, one million matches, correct results.
+- **The index was actually slower** (240 seconds) than direct search (90 seconds warm cache). At this scale, the SQLite FTS5 engine has to process a million result rows, which is more expensive than just reading a million small text files from cache. The index wins when files are large, binary (PDF/DOCX), or not in cache — not when everything is small and already in memory.
+- **File discovery became the bottleneck.** At 1 million files, enumerating the directory (listing all filenames) takes over 200 seconds before any searching even starts. This is an operating system limitation, not peekdocs.
+- **Bottom line:** peekdocs has no built-in file count limit, but the practical sweet spot is under 100,000 files. Beyond that, searches still work but take minutes. Most home users and small businesses have well under 10,000 documents.
+
+**When to use an index — and when not to:**
+
+| Situation | Index helps? | Why |
+|-----------|:-----------:|-----|
+| Folder with 100+ files you search repeatedly | **Yes** | Build once, fast searches forever |
+| Folder with PDFs, Word, Excel (binary formats) | **Yes** | Skips expensive file parsing on every search |
+| First search after reboot or folder switch (cold cache) | **Yes** | Single database file loads faster than thousands of individual files |
+| Small folder (under 100 files) | **No** | Direct search is already fast enough |
+| Folder with only plain text files already in memory | **No** | Index adds overhead without benefit |
+| One-time search of a folder you won't revisit | **No** | Index build takes time you won't recoup |
+| Folder where files change frequently | **Maybe** | Use Auto-Refresh to keep the index current, but frequent rebuilds have a cost |
+
+The index is optional. peekdocs works without one. Build it from Manage Indexes in the GUI or `peekdocs --index` from the terminal.
+
+**Realistic estimate — typical home or small business folder:**
+
+A real document folder is a mix of PDFs, Word docs, spreadsheets, emails, and other formats. Each type takes a different amount of time to parse:
 
 | File type | Typical parse time per file | Why |
 |-----------|---------------------------|-----|
@@ -345,7 +370,7 @@ A real document folder isn't 1,000 identical text files. It's a mix of PDFs, Wor
 | PDF | 50–200 ms | Decode page streams, font tables, layout |
 | Scanned image (OCR) | 1–3 seconds | Full optical character recognition |
 
-**Estimated search times for mixed-format document collections:**
+**Estimated search times for mixed-format collections:**
 
 | Files | Without index | With index | Who has this many |
 |------:|--------------:|-----------:|-------------------|
@@ -353,20 +378,9 @@ A real document folder isn't 1,000 identical text files. It's a mix of PDFs, Wor
 | 10,000 | 2–5 minutes | 10–20 seconds | Active business, shared drive |
 | 50,000 | 10–25 minutes | 30–60 seconds | Department archive, legacy file server |
 
-Assumes a realistic mix of PDFs, Word docs, spreadsheets, emails, and other formats on a modern multi-core machine with SSD. If OCR is enabled for scanned images, add 1–3 seconds per image on the first search (the index stores OCR results so subsequent searches don't repeat it). These are estimates, not benchmarks. Your hardware matters — more CPU cores means more files processed in parallel, more RAM keeps file data cached between searches, and an SSD is significantly faster than a spinning hard drive for cold-cache searches. An older machine with 2 cores and a hard drive will be noticeably slower than a modern machine with 8+ cores and an SSD. You can adjust how many CPU cores peekdocs uses in Advanced Search Options — increase for faster searches, or decrease to leave more CPU available for other programs. The search itself (matching text against your terms) is nearly instantaneous; the time is spent opening and parsing files.
+These are estimates for mixed binary formats (PDF, DOCX, XLSX), not benchmarks. Your hardware matters — more CPU cores means more files processed in parallel, more RAM keeps file data cached between searches, and an SSD is significantly faster than a spinning hard drive for cold-cache searches. An older machine with 2 cores and a hard drive will be noticeably slower than a modern machine with 8+ cores and an SSD. You can adjust how many CPU cores peekdocs uses in Advanced Search Options — increase for faster searches, or decrease to leave more CPU available for other programs. If OCR is enabled for scanned images, add 1–3 seconds per image on the first search (the index stores OCR results so subsequent searches don't repeat it). The search itself (matching text against your terms) is nearly instantaneous; the time is spent opening and parsing files.
 
-**Why the index makes such a big difference:**
-
-Without an index, every search opens and parses every file from scratch — unzipping Word docs, decoding PDF pages, parsing Excel sheets. With an index, peekdocs extracts all that text once and stores it in a single SQLite database. Subsequent searches query the database instead of re-opening thousands of files. The index is especially valuable for:
-
-- **Large collections** — the more files you have, the more time the index saves
-- **Binary formats** — PDFs and Office documents are expensive to parse; the index skips that cost entirely after the first build
-- **Cold starts** — when files haven't been accessed recently, the OS must read them from disk; the index loads from a single compact database file regardless
-- **Repeated searches** — if you search the same folder regularly, build the index once and every search after that is fast
-
-The index is optional. peekdocs works without one. But for folders with more than a few hundred files, it's strongly recommended — build it once from Manage Indexes in the GUI or `peekdocs --index` from the terminal, and searches go from minutes to seconds.
-
-**Limitations of this test:** All 50,000 files were small, single-line text files on a fast SSD. Real-world performance depends on file sizes, formats (PDFs are slower to parse than .txt), disk speed, available RAM, and how many files actually match. A folder of 1,000 large PDFs will take longer than 50,000 tiny text files, because PDF parsing dominates the time. The test confirms that peekdocs handles high file counts without architectural limits — but your actual search times will vary based on your documents and hardware.
+**Limitations of these tests:** The benchmark used small, single-line text files on a fast SSD. Real-world performance depends on file sizes, formats (PDFs are slower to parse than .txt), disk speed, available RAM, and how many files actually match. A folder of 1,000 large PDFs will take longer than 50,000 tiny text files, because PDF parsing dominates the time. The tests confirm that peekdocs handles high file counts — up to 1 million — without architectural limits, but your actual search times will vary based on your documents and hardware.
 
 ## Platform Notes
 
