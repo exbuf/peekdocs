@@ -22,7 +22,7 @@
 - **One-click PII Scan** (Personally Identifiable Information) — worried about sensitive data inadvertently left in your files? One click finds Social Security numbers, credit cards, passwords, and more — before someone else does. One button, no setup.
 - **Search Wizard** — configures more complex searches for you. No regex (regular expressions — a pattern language for matching text) or technical knowledge needed.
 - **Scanned documents** — OCR reads text from scanned PDFs and images that other tools can't search.
-- **86 file types at once** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously.
+- **[86 file types at once](#supported-file-types)** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously.
 - **Hover tips everywhere** — not sure what a button or field does? Hover your mouse over it and a helpful tooltip explains what it does and how to use it. No need to open the manual. Toggle on/off from the Tools menu. Saved automatically.
 - **Adjustable text size** — five sizes from Small to Huge, accessible from the Tools menu. All text, labels, and buttons scale together. Helpful for users with low vision or high-DPI displays. Saved automatically.
 - **Dark mode** — switch between Dark, Light, or System (follows your OS setting) from the Tools menu. Saved automatically.
