@@ -307,7 +307,7 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 grep is a powerful command-line text search tool — if you know how to use it. But grep only reads plain text files. It can't open Word docs, PDFs, Excel spreadsheets, PowerPoint, email archives, or compressed files. It can't OCR a scanned document. It outputs matching lines to a terminal — no highlighted reports, no file-by-file organization, no GUI.
 
-peekdocs reads 22 binary file types that grep can't open at all — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. For the 55 plain-text types that grep can read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
+peekdocs reads 22 important binary file types that grep can't open at all — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. For the 55 plain-text types that grep can read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
 
 If you're comfortable in a terminal and only search plain text files, grep is fine. If you have Word docs, PDFs, emails, spreadsheets, or archives — or if you want results you can hand to someone who doesn't use a terminal — peekdocs is what grep would be if grep could read your actual documents.
 
