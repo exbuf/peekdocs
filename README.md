@@ -345,7 +345,7 @@ All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its defa
 
 At 1M files: no crashes, no memory issues, correct results. The index was slower (240s vs 90s) because processing a million FTS5 result rows is more expensive than reading a million tiny cached text files. File discovery (listing all filenames) took over 200 seconds alone — an OS limitation, not peekdocs.
 
-**Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 21× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. An index eliminates this penalty — 9.1 seconds cold or warm.
+**Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 21× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. In the plain-text test, an index eliminated this penalty — 9.1 seconds cold or warm. The same principle applies to mixed-format files, though we did not measure mixed-format cold cache directly.
 
 **Should you build an index?** For most folders under 10,000 files, direct search is fast enough — you probably don't need one. An index helps most when your first search feels slow (cold cache) or you search the same large folder repeatedly. To try it: click Build Index in Manage Indexes or run `peekdocs --index`. If your files change, set Auto-Refresh to keep the index current automatically. Use the **Use Index** checkbox to switch between indexed and direct search anytime.
 
@@ -353,7 +353,7 @@ At 1M files: no crashes, no memory issues, correct results. The index was slower
 |-----------|:-----------:|-----|
 | First search after reboot (cold cache) | **Yes** | Loads one database file instead of thousands |
 | Same folder searched repeatedly | **Yes** | Pre-pays parsing cost once |
-| Folder with PDFs, Word, Excel | **Yes** | Skips expensive binary parsing |
+| Folder with PDFs, Word, Excel (cold cache) | **Yes** | Skips expensive binary parsing on cold-cache or repeat searches |
 | Small folder (under 100 files) | **No** | Direct search is already fast |
 | One-time search you won't repeat | **No** | Build time won't be recouped |
 | Files change frequently | **Maybe** | Auto-Refresh helps, but frequent rebuilds have a cost |
@@ -380,7 +380,7 @@ Broad search ("invoice" — matches in most files, warm cache):
 |------:|-----------:|--------------:|---------------:|------------:|-----------:|
 | 1,000 | 13 MB | 1.1 seconds | 3.8 seconds | 2.4 seconds | 4 MB |
 | 10,000 | 133 MB | 4.6 seconds | 129 seconds | 24.6 seconds | 41 MB |
-| 50,000 | 663 MB | 22 seconds | timed out | 152 seconds | 208 MB |
+| 50,000 | 663 MB | 22 seconds | timed out (>10 min) | 152 seconds | 208 MB |
 
 Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, warm cache):
 
