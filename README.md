@@ -313,7 +313,7 @@ If you're comfortable in a terminal and only search plain text files, grep is fi
 
 ## Performance
 
-**How fast is peekdocs?** Executive summary using Benchmark 2 mixed-format results (PDFs, Word docs, Excel spreadsheets, emails, PowerPoint, and text files — the kind of documents a home user or small business actually has):
+**How fast is peekdocs?** Executive summary using Benchmark 2 (below) mixed-format results (PDFs, Word docs, Excel spreadsheets, emails, PowerPoint, and text files — the kind of documents a home user or small business actually has):
 
 | Your folder has... | Search time* |
 |---------------------|------------|
