@@ -14,7 +14,7 @@
 >
 > **For home users, small businesses, professionals, and developers.**
 
-**Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
+**Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
 
 **What makes peekdocs different:**
 
@@ -310,6 +310,34 @@ grep is a powerful command-line text search tool — if you know how to use it. 
 peekdocs reads 22 binary file types that grep can't open at all — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. For the 55 plain-text types that grep can read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
 
 If you're comfortable in a terminal and only search plain text files, grep is fine. If you have Word docs, PDFs, emails, spreadsheets, or archives — or if you want results you can hand to someone who doesn't use a terminal — peekdocs is what grep would be if grep could read your actual documents.
+
+## Performance
+
+peekdocs was tested on 50,000 files to verify it handles large document collections without crashing, slowing to a crawl, or running out of memory.
+
+**Test setup:**
+- **Machine:** MacBook Pro, Apple M-series, 14 cores, macOS 24.6
+- **Files:** 50,000 plain-text files (.txt), each containing one line of realistic text (~113 bytes per file, 5.6 MB total)
+- **Search term:** a single keyword present in every file (worst case — maximum matches)
+- **Python:** 3.13, peekdocs running via `pip install -e .` in a virtual environment
+
+**Results:**
+
+| Method | Cold cache | Warm cache |
+|--------|-----------|------------|
+| Direct search (no index) | 87.5 seconds | 9.1 seconds |
+| Indexed search | 9.2 seconds | 9.1 seconds |
+| Index build (one-time) | 5.3 seconds | — |
+
+**What "cold cache" and "warm cache" mean:** Your operating system keeps recently accessed files in RAM so they don't have to be read from disk again. A "warm cache" search runs after the files have already been read once — the OS serves them from memory, which is fast. A "cold cache" search happens when the files haven't been accessed recently and must be read from disk — this is slower, especially on spinning hard drives. The search index eliminates this penalty because all extracted text is stored in a single SQLite database file that loads quickly regardless of how many source files exist.
+
+**What this means in practice:**
+- For typical personal document collections (hundreds to a few thousand files), searches complete in 1–5 seconds
+- For very large collections (tens of thousands of files), the search index is recommended — it makes cold-start searches 10× faster
+- Binary formats (PDF, Word, Excel) are slower per file than plain text because the parser must decompress and decode them. The index eliminates this overhead on subsequent searches by storing the extracted text
+- The bottleneck is always file I/O and parsing, not the search itself. Once text is in memory, regex matching runs at millions of characters per second
+
+**Limitations of this test:** All 50,000 files were small, single-line text files on a fast SSD. Real-world performance depends on file sizes, formats (PDFs are slower to parse than .txt), disk speed, available RAM, and how many files actually match. A folder of 1,000 large PDFs will take longer than 50,000 tiny text files, because PDF parsing dominates the time. The test confirms that peekdocs handles high file counts without architectural limits — but your actual search times will vary based on your documents and hardware.
 
 ## Platform Notes
 
