@@ -398,6 +398,21 @@ Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, w
 
 **Bottom line for users:** For most home and small business folders (under 10,000 files), direct search completes in seconds and you don't need an index. If you search the same large folder repeatedly, or if your first search feels slow (cold cache), build an index — it pre-pays the parsing cost once and makes every future search fast.
 
+**How the two benchmarks compare:**
+
+The plain-text and mixed-format tests used different file types and sizes but produced consistent, explainable results:
+
+| Comparison | Plain-text | Mixed-format | Why |
+|------------|-----------|-------------|-----|
+| 10,000 files (warm) | 1.4 seconds | 4.6 seconds | Mixed is 3.3× slower — PDFs take 50–200ms each to parse vs 1–5ms for plain text |
+| 50,000 files (warm) | 4.1 seconds | 22 seconds | Mixed is 5.4× slower — 663 MB of binary files vs 5.6 MB of text, plus more cache pressure |
+| 1K mixed → 10K mixed | — | 1.1s → 4.6s | 10× more files, only 4.2× longer — parallelism across 7 cores |
+| 10K mixed → 50K mixed | — | 4.6s → 22s | 5× more files, 4.8× longer — nearly linear at this scale |
+
+One result that might look odd: 10,000 plain-text files (1.4s) is faster than 1,000 mixed files (1.1s), even though it has 10× more files. The reason is data volume — 10K text files total just 1.12 MB, while 1K mixed files total 13 MB with expensive binary formats (PDF, DOCX, XLSX) that require decompression and parsing. File count matters less than format complexity and total data size.
+
+The executive summary at the top of this section uses the mixed-format numbers because that's what real document folders look like.
+
 ## Platform Notes
 
 **Tested on:** macOS (development machine), Windows 10/11, and Linux Mint 22.3 (Cinnamon) in a VirtualBox VM on Windows. The CLI and GUI work on all three platforms.
