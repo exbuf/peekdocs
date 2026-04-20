@@ -323,7 +323,7 @@ peekdocs was tested on 1,000,000 files to verify it handles large document colle
 
 **Benchmark results — warm cache.\*** Plain-text files on MacBook Pro, Apple M-series, 14 cores (7 used), SSD.
 
-| Files | Direct (warm cache) | Direct (cold cache) | With index | Index build | Index size |
+| Files | Direct Search (warm cache) | Direct Search (cold cache) | With index | Index build | Index size |
 |------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
 | 10,000 | 1.4 seconds | — | — | — | — |
 | 50,000 | 4.1 seconds | 87.5 seconds | 9.1 seconds | 5.3 seconds | 17 MB |
