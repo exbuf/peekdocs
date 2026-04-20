@@ -345,15 +345,26 @@ A real document folder isn't 1,000 identical text files. It's a mix of PDFs, Wor
 | PDF | 50–200 ms | Decode page streams, font tables, layout |
 | Scanned image (OCR) | 1–3 seconds | Full optical character recognition |
 
-For a folder with roughly 300 PDFs, 200 Word docs, 150 spreadsheets, 100 emails, 100 text files, and 50 PowerPoint files (~1,000 files, ~100–200 MB total), expect **15–30 seconds without an index** on a modern multi-core machine. With an index already built, the same search completes in **2–5 seconds** because the text is pre-extracted. If OCR is enabled and 50 of those files are scanned images, add another 30–60 seconds to the first search (the index stores OCR results too, so subsequent searches don't repeat it).
+**Estimated search times for mixed-format document collections:**
 
-These are estimates, not benchmarks — actual times depend on file sizes, page counts, disk speed, and available CPU cores. The search itself (matching text against your terms) is nearly instantaneous; the time is spent opening and parsing files.
+| Files | Without index | With index | Who has this many |
+|------:|--------------:|-----------:|-------------------|
+| 1,000 | 15–30 seconds | 2–5 seconds | Home user, small business |
+| 10,000 | 2–5 minutes | 10–20 seconds | Active business, shared drive |
+| 50,000 | 10–25 minutes | 30–60 seconds | Department archive, legacy file server |
 
-**What this means in practice:**
-- For typical personal document collections (hundreds to a few thousand files), most searches complete in under 30 seconds without an index, and under 5 seconds with one
-- For very large collections (tens of thousands of files), the search index is strongly recommended — it makes cold-start searches 10× faster
-- Binary formats (PDF, Word, Excel) are slower per file than plain text because the parser must decompress and decode them. The index eliminates this overhead on subsequent searches by storing the extracted text
-- The bottleneck is always file I/O and parsing, not the search itself. Once text is in memory, regex matching runs at millions of characters per second
+Assumes a realistic mix of PDFs, Word docs, spreadsheets, emails, and other formats on a modern multi-core machine with SSD. If OCR is enabled for scanned images, add 1–3 seconds per image on the first search (the index stores OCR results so subsequent searches don't repeat it). These are estimates, not benchmarks — actual times depend on file sizes, page counts, disk speed, and CPU cores. The search itself (matching text against your terms) is nearly instantaneous; the time is spent opening and parsing files.
+
+**Why the index makes such a big difference:**
+
+Without an index, every search opens and parses every file from scratch — unzipping Word docs, decoding PDF pages, parsing Excel sheets. With an index, peekdocs extracts all that text once and stores it in a single SQLite database. Subsequent searches query the database instead of re-opening thousands of files. The index is especially valuable for:
+
+- **Large collections** — the more files you have, the more time the index saves
+- **Binary formats** — PDFs and Office documents are expensive to parse; the index skips that cost entirely after the first build
+- **Cold starts** — when files haven't been accessed recently, the OS must read them from disk; the index loads from a single compact database file regardless
+- **Repeated searches** — if you search the same folder regularly, build the index once and every search after that is fast
+
+The index is optional. peekdocs works without one. But for folders with more than a few hundred files, it's strongly recommended — build it once from Manage Indexes in the GUI or `peekdocs --index` from the terminal, and searches go from minutes to seconds.
 
 **Limitations of this test:** All 50,000 files were small, single-line text files on a fast SSD. Real-world performance depends on file sizes, formats (PDFs are slower to parse than .txt), disk speed, available RAM, and how many files actually match. A folder of 1,000 large PDFs will take longer than 50,000 tiny text files, because PDF parsing dominates the time. The test confirms that peekdocs handles high file counts without architectural limits — but your actual search times will vary based on your documents and hardware.
 
