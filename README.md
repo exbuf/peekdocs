@@ -240,9 +240,10 @@ See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-
 
 ### Terminal
 
-If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first:
+If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), navigate to the folder where `pyproject.toml` is located (the peekdocs project folder) and activate the virtual environment first:
 
 ```bash
+cd /path/to/peekdocs                 # the folder containing pyproject.toml
 source venv/bin/activate             # macOS/Linux (you'll see (venv) in your prompt)
 venv\Scripts\activate                # Windows
 ```
