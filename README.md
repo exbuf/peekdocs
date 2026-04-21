@@ -6,7 +6,7 @@
 
 <p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
 
-> peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, scanned docs, spreadsheets, emails — 86 file types, all searched at once, all offline. Yellow-highlighted results with surrounding context, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, and search modes from simple keywords to advanced patterns (regex).
+> peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, spreadsheets, emails and archives — 86 file types, all searched at once, all offline. Yellow-highlighted results with surrounding context, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, and search modes from simple keywords to advanced patterns (regex).
 >
 > Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own local report and index files, which you can delete at any time.) Free. No fees, no subscriptions.
 
