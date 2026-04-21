@@ -908,9 +908,7 @@ def _main_inner(argv=None):
     search_elapsed = search_result.elapsed
     use_index = search_result.used_index
 
-    for skipped_name, error_msg in skipped_files:
-        print(f"Warning: Could not read {skipped_name} ({error_msg})")
-
+    # Write errors to log immediately; print warnings after results (below)
     if skipped_files:
         error_log_path = os.path.join(output_dir, "peekdocs_errors.log")
         with open(error_log_path, "a", encoding="utf-8") as log_f:
@@ -1061,7 +1059,10 @@ def _main_inner(argv=None):
     if append_name is not None:
         print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
     if skipped_files:
-        print(f"Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
+        print()
+        for skipped_name, error_msg in skipped_files:
+            print(f"  Warning: Could not read {skipped_name} ({error_msg})")
+        print(f"\n  Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
     print()
     if inverse:
         return 0 if inverse_files else 1
