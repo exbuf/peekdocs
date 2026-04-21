@@ -1569,9 +1569,13 @@ Use the `--config` flag to manage your saved settings:
 ```bash
 peekdocs --config recursive=true       # always search subdirectories
 peekdocs --config quiet=true cores=4   # save multiple settings at once
+peekdocs --config max_file_size_mb=0   # no file size limit (default is 100 MB)
+peekdocs --config max_file_size_mb=500 # skip files larger than 500 MB
 peekdocs --config                      # view your saved settings
 peekdocs --config recursive=           # remove a saved setting
 ```
+
+Note: `--config` saves settings permanently. To override for a single search without saving, use the flag directly: `peekdocs --max-file-size 0 budget`.
 
 Once saved, your settings apply automatically every time you run peekdocs. For example, after running `peekdocs --config recursive=true quiet=true cores=4`, typing `peekdocs budget` behaves like `peekdocs -r -q -c 4 budget`. You can always override a saved setting for a single search by typing the flag explicitly — this does not change your saved settings.
 
