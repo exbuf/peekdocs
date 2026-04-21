@@ -24,14 +24,14 @@ def test_no_args(capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert BANNER_TOP in captured.out
-    assert "Full documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
+    assert "Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
 
 
 def test_help(capsys):
     result = main(["-h"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "Full documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
+    assert "Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
     assert BANNER_TOP in captured.out
 
 

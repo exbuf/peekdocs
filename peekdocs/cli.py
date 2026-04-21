@@ -31,7 +31,7 @@ from peekdocs.constants import (  # noqa: E402
 )
 
 BANNER_TOP = (
-    '\npeekdocs — search Word docs, PDFs, spreadsheets, emails, and 38 other file types, all at once, all offline.\n'
+    '\npeekdocs — search Word docs, PDFs, spreadsheets, emails, source code, and 80+ other file types, all at once, all offline.\n'
     'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
     'Usage: peekdocs [OPTIONS] TERM [TERM ...]\n'
@@ -112,7 +112,9 @@ BANNER_BOTTOM = (
     '-a (AND), -n (exclude), or -p (proximity) — those are built into expression syntax.\n'
     '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
-    'Full documentation: https://github.com/exbuf/peekdocs/blob/main/README.md'
+    '\n'
+    'Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md\n'
+    '-' * 50
 )
 
 REGEX_PATTERNS = (
