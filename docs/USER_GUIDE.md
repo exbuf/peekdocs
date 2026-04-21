@@ -470,7 +470,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
-| `-p N` (proximity) | Proximity search — find terms within N words of each other |
+| `-p N` (proximity) | Word proximity — find terms within N words of each other (same line) |
+| `-P N` (line-proximity) | Line proximity — find terms within N lines of each other. Useful for source code, plain text, and any format where related terms may be on adjacent lines rather than the same line |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
 | `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
@@ -646,7 +647,9 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 57 | Fuzzy with AND logic | `peekdocs -z -a budget revenue` |
 | 58 | Fuzzy with file type filter | `peekdocs -z -t pdf,docx budget` |
 | 59 | Fuzzy with recursive search | `peekdocs -z -r budget` |
-| 60 | Fuzzy with proximity | `peekdocs -z -p 5 budget revenue` |
+| 60 | Fuzzy with word proximity | `peekdocs -z -p 5 budget revenue` |
+| 60a | Line proximity (within 3 lines) | `peekdocs -P 3 budget acme` |
+| 60b | Line proximity (within 10 lines) | `peekdocs -P 10 password login` |
 | 61 | Fuzzy with OCR | `peekdocs -z -O budget` |
 | 62 | Fuzzy with context lines | `peekdocs -z -B 3 -A 3 budget` |
 | 63 | Fuzzy, AND, recursive, file type | `peekdocs -z -a -r -t pdf budget revenue` |
