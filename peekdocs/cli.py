@@ -791,6 +791,7 @@ def _main_inner(argv=None):
     report_mode = parsed["report_mode"]
 
     command_str = "peekdocs " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
+    print('-------------------------------------------------------------------------')
     print(command_str)
     start_time = time.time()
     cwd = os.getcwd()
