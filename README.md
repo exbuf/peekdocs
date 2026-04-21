@@ -11,8 +11,6 @@
 > Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own local report and index files, which you can delete at any time.) Free. No fees, no subscriptions.
 >
 > Point-and-click GUI • Terminal CLI • Python API
->
-> **For home users, small businesses, professionals, and developers.**
 
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
 
