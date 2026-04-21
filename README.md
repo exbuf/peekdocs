@@ -317,7 +317,7 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 **Where peekdocs goes beyond what grep can practically do:**
 
-- **Highlighted Word report** — grep outputs plain text to a terminal. peekdocs produces a `.docx` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this.
+- **Highlighted Word report** — grep outputs plain text to a terminal. peekdocs produces a `.docx` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this. (Microsoft Word is not required — the report opens in any word processor: [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, Apple Pages, or others.)
 - **PII scanning with categorized severity** — not just regex matching, but categorized findings (high/moderate/info), false-positive filtering (URLs, DOIs, environment variables), custom patterns, and a formatted report. You could run 10 separate `grep -P` calls for SSN/credit card/phone patterns, but the categorization, filtering, and reporting are not practically replicable.
 - **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
 - **86 file types in one command** — the bash script to handle all 86 types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
