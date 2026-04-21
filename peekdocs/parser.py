@@ -182,6 +182,19 @@ def parse_flags(args, config):
     if use_proximity:
         match_all = True
 
+    line_proximity = 0
+    if "-P" in args:
+        idx = args.index("-P")
+        if idx + 1 >= len(args):
+            return (2, "No count provided. Usage: peekdocs -P 3 budget acme\n")
+        try:
+            line_proximity = int(args[idx + 1])
+            if line_proximity < 1:
+                raise ValueError
+        except ValueError:
+            return (2, f"Invalid count for -P: {args[idx + 1]}. Must be a positive integer.\n")
+        args[:] = args[:idx] + args[idx + 2:]
+
     append_name = None
     if "-sa" in args:
         idx = args.index("-sa")
@@ -366,6 +379,7 @@ def parse_flags(args, config):
         "use_context": use_context,
         "proximity": proximity,
         "use_proximity": use_proximity,
+        "line_proximity": line_proximity,
         "append_name": append_name,
         "cores": cores,
         "max_matches": max_matches,

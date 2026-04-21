@@ -56,7 +56,8 @@ BANNER_TOP = (
     '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
     '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
     '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
-    '  peekdocs -p 5 budget revenue   Proximity (terms within 5 words of each other)'
+    '  peekdocs -p 5 budget revenue   Proximity (terms within 5 words of each other)\n'
+    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)'
 )
 
 BANNER_BOTTOM = (
@@ -785,6 +786,7 @@ def _main_inner(argv=None):
     use_context = parsed["use_context"]
     proximity = parsed["proximity"]
     use_proximity = parsed["use_proximity"]
+    line_proximity = parsed.get("line_proximity", 0)
     append_name = parsed["append_name"]
     cores = parsed["cores"]
     output_formats = parsed["output_formats"]
@@ -886,6 +888,7 @@ def _main_inner(argv=None):
             context_before=context_before,
             context_after=context_after,
             proximity=proximity,
+            line_proximity=line_proximity,
             cores=cores,
             use_index=None if not no_index else False,
             progress=_cli_progress,

@@ -730,6 +730,8 @@ def _search_file_lines(all_lines, file_dir, filename, config):
             return False
         return True
 
+    line_proximity = config.get("line_proximity", 0)
+
     if use_context:
         match_indices = {i for i, (_, text) in enumerate(all_lines) if _line_passes(text)}
         if match_indices:
@@ -740,6 +742,43 @@ def _search_file_lines(all_lines, file_dir, filename, config):
         for line_num, text in all_lines:
             if _line_passes(text):
                 matches.append((file_dir, filename, line_num, text))
+
+    # Line proximity filter: keep only matches where all search terms
+    # appear within N lines of each other in the same file
+    if line_proximity > 0 and len(search_terms) > 1 and matches:
+        # Build a map: for each term, which line numbers matched it?
+        term_lines = {}
+        for term in search_terms:
+            term_lower = term.lower()
+            term_lines[term] = set()
+            for fd, fn, ln, text in matches:
+                text_lower = text.lower()
+                if use_regex:
+                    if re.search(term, text, re.IGNORECASE):
+                        term_lines[term].add(ln)
+                elif use_whole_word:
+                    if re.search(_whole_word_pattern(term), text, re.IGNORECASE):
+                        term_lines[term].add(ln)
+                elif use_fuzzy:
+                    if _fuzzy_word_match(text, term) is not None:
+                        term_lines[term].add(ln)
+                else:
+                    if term_lower in text_lower:
+                        term_lines[term].add(ln)
+
+        # Find line numbers where all terms are within line_proximity lines
+        if all(term_lines.values()):
+            from itertools import product as _lp_product
+            valid_lines = set()
+            for combo in _lp_product(*[sorted(tl) for tl in term_lines.values()]):
+                if max(combo) - min(combo) <= line_proximity:
+                    valid_lines.update(range(min(combo), max(combo) + 1))
+            if valid_lines:
+                matches = [m for m in matches if m[2] in valid_lines]
+            else:
+                matches = []
+        else:
+            matches = []
 
     return (matches, [])
 
