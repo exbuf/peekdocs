@@ -252,7 +252,7 @@ peekdocs -R amount:1000..5000 budget # range query
 
 Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted). The .docx report opens with whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
-Run `peekdocs -h` for the full flag reference with examples.
+Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary).
 
 ### GUI
 
