@@ -103,6 +103,7 @@ BANNER_BOTTOM = (
     '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
     '  -c 4               Number of CPU cores to use\n'
     '  -q                 Suppress the output banner\n'
+    '  -qq                Minimal output — show only Found/Elapsed lines (no file list, warnings, or report paths)\n'
     '  -v                 Show version\n'
     '  -h                 Show this help\n'
     '\n'
@@ -424,7 +425,10 @@ def _main_inner(argv=None):
 
     config = {}  # CLI uses only explicit flags; config is for GUI only
 
-    quiet = "-q" in args
+    minimal = "-qq" in args
+    if "-qq" in args:
+        args.remove("-qq")
+    quiet = minimal or "-q" in args
     if "-q" in args:
         args.remove("-q")
 
@@ -1033,11 +1037,12 @@ def _main_inner(argv=None):
     else:
         print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
-    if inverse:
-        for f in inverse_files:
-            print(f"  {os.path.basename(f)}")
-    else:
-        # Per-file match counts
+    if not minimal:
+        if inverse:
+            for f in inverse_files:
+                print(f"  {os.path.basename(f)}")
+        else:
+            # Per-file match counts
             file_counts = {}
             for fd, fn, _ln, _tx in matches:
                 key = (fd, fn)
@@ -1046,21 +1051,21 @@ def _main_inner(argv=None):
                 file_counts[key] += 1
             for (_fd, fn), count in sorted(file_counts.items(), key=lambda x: x[0][1].lower()):
                 print(f"  {fn}: {count}")
-    print(f"Results ==> {output_dir}")
-    print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
-    if csv_output_path:
-        print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")
-    if json_output_path:
-        print(f"  {os.path.basename(json_output_path)} ({fmt_size(os.path.getsize(json_output_path))})")
-    if pdf_output_path:
-        print(f"  {os.path.basename(pdf_output_path)} ({fmt_size(os.path.getsize(pdf_output_path))})")
-    if append_name is not None:
-        print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
-    if skipped_files:
-        print()
-        for skipped_name, error_msg in skipped_files:
-            print(f"  Warning: Could not read {skipped_name} ({error_msg})")
-        print(f"\n  Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
+        print(f"Results ==> {output_dir}")
+        print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
+        if csv_output_path:
+            print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")
+        if json_output_path:
+            print(f"  {os.path.basename(json_output_path)} ({fmt_size(os.path.getsize(json_output_path))})")
+        if pdf_output_path:
+            print(f"  {os.path.basename(pdf_output_path)} ({fmt_size(os.path.getsize(pdf_output_path))})")
+        if append_name is not None:
+            print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
+        if skipped_files:
+            print()
+            for skipped_name, error_msg in skipped_files:
+                print(f"  Warning: Could not read {skipped_name} ({error_msg})")
+            print(f"\n  Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
     print()
     if inverse:
         return 0 if inverse_files else 1
