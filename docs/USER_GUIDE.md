@@ -1603,9 +1603,16 @@ Once saved, your settings apply automatically every time you run peekdocs. For e
 | `timestamp` | true/false | `--timestamp` | false (overwrite previous results) |
 | `output_dir` | path | `--output-dir` | empty (write to search folder) |
 | `range` | spec list | `-R` | empty (no range filtering) |
-| `index_search` | true/false | — | false (direct file search) |
+| `max_file_size_mb` | number | `--max-file-size N` | 100 (skip files larger than 100 MB, 0 = no limit) |
+| `output_pdf` | true/false | `-o pdf` | false (no PDF output) |
+| `output_html` | true/false | `-o html` | false (no HTML output) |
+| `index_search` | true/false | `-I` | false (direct file search) |
 | `search_terms` | text | — | empty (none) |
 | `folder` | path | — | empty (current directory) |
+| `text_size` | text | — | Normal (GUI only) |
+| `preview_size` | text | — | 11 (GUI only) |
+| `appearance_mode` | text | — | System (GUI only) |
+| `pii_scan_folder` | path | — | empty, uses main search folder (GUI only) |
 | `pii_scan_categories` | list | — | all 8 categories enabled (SSNs, credit cards, tax IDs, emails, phones, passwords, DOB, dollar amounts) |
 
 If no settings are saved or if a value is invalid, peekdocs uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
