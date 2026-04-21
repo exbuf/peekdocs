@@ -111,10 +111,7 @@ BANNER_BOTTOM = (
     'are mutually exclusive (pick one); and -e (expression) cannot be combined with\n'
     '-a (AND), -n (exclude), or -p (proximity) — those are built into expression syntax.\n'
     '\n'
-    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
-    '\n'
-    'Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md\n'
-    '-' * 50
+    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.'
 )
 
 REGEX_PATTERNS = (
@@ -440,6 +437,8 @@ def _main_inner(argv=None):
         print(BANNER_TOP)
         print(BANNER_BOTTOM)
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+        print('-------------------------------------------------------------------------')
         print()
 
     if args and args[0] in ("-v", "-version"):
@@ -451,6 +450,8 @@ def _main_inner(argv=None):
             print(BANNER_TOP)
             print(BANNER_BOTTOM)
             print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+            print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+            print('-------------------------------------------------------------------------')
             print()
         print(REGEX_PATTERNS)
         return 0
