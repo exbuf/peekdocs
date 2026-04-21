@@ -95,6 +95,10 @@ BANNER_BOTTOM = (
     '  -v                 Show version\n'
     '  -h                 Show this help\n'
     '\n'
+    'All flags can be combined freely except: -x (regex), -z (fuzzy), and -w (wildcard)\n'
+    'are mutually exclusive (pick one); and -e (expression) cannot be combined with\n'
+    '-a (AND), -n (exclude), or -p (proximity) — those are built into expression syntax.\n'
+    '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
     'Full documentation: https://github.com/exbuf/peekdocs/blob/main/README.md'
 )
