@@ -333,7 +333,7 @@ class BuildMixin:
             command=_on_and_click,
         )
         self._and_btn.pack(side="left", padx=(4, 0), pady=3)
-        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same paragraph")
+        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
 
         self._or_btn = ctk.CTkButton(
             options_group, text="OR", width=35,
@@ -815,7 +815,7 @@ class BuildMixin:
         self.advanced_frame.grid_columnconfigure(1, weight=1)
 
         # Tooltips
-        Tooltip(cb_and, "All search terms must appear in the same paragraph")
+        Tooltip(cb_and, "All search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
         Tooltip(cb_rec, "Search subfolders inside the Search Folder")
         Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
         Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")

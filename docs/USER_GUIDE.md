@@ -462,7 +462,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 
 | Flag&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Purpose |
 |------------|---------|
-| `-a` (all) | AND logic — all terms must appear in the same paragraph |
+| `-a` (all) | AND logic — all terms must appear in the same line. (For PDF and Word documents, a "line" is typically a paragraph since each paragraph is extracted as one line. For plain text files, a line is a literal line.) |
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). For small numbers of files (fewer than 10), single-threaded mode is used automatically |
 | `-e` (expression) | Boolean expression search — use AND, OR, NOT, parentheses, and range specs for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
