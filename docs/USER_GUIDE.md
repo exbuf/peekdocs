@@ -471,7 +471,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Proximity search — find terms within N words of each other |
-| `-q` (quiet) | Quiet mode — suppress the banner |
+| `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
+| `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
 | `-r` (recursive) | Search subdirectories recursively |
 | `-s` (save) | Archive results — copies peekdocs_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
@@ -631,6 +632,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 47 | Append with file type filter | `peekdocs -sa my_report -t pdf budget` |
 | | **Quiet Mode** | |
 | 48 | Suppress banner | `peekdocs -q budget` |
+| 48a | Minimal output (Found/Elapsed only) | `peekdocs -qq budget` |
 | 49 | Quiet with recursive search | `peekdocs -q -r budget` |
 | | **OCR Searches** | |
 | 50 | Search scanned PDFs and images | `peekdocs -O budget` |
