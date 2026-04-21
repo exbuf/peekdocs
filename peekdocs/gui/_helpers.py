@@ -179,21 +179,21 @@ def _parse_summary_text(stdout):
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
 
     parts = []
-    # Lead with files searched count
-    if files_match:
-        file_part = f"{files_match.group(1)} file(s) searched"
-        if size_match:
-            file_part += f" ({size_match.group(1)})"
-        parts.append(file_part)
+    # Lead with Found count, then files searched
     if inverse_match:
-        parts.append(f"— Found {inverse_match.group(1)} file(s) WITHOUT matches")
+        parts.append(f"Found {inverse_match.group(1)} file(s) WITHOUT matches")
     elif found_match:
         count = found_match.group(1)
         in_files = f" in {matched_files_match.group(1)} file(s)" if matched_files_match else ""
         if capped_match:
-            parts.append(f"— Found {count} match(es){in_files} — reports capped at {capped_match.group(1)}")
+            parts.append(f"Found {count} match(es){in_files} — reports capped at {capped_match.group(1)}")
         else:
-            parts.append(f"— Found {count} match(es){in_files}")
+            parts.append(f"Found {count} match(es){in_files}")
+    if files_match:
+        file_part = f"— {files_match.group(1)} file(s) searched"
+        if size_match:
+            file_part += f" ({size_match.group(1)})"
+        parts.append(file_part)
     if elapsed_match:
         parts.append(f"in {elapsed_match.group(1)}s")
 

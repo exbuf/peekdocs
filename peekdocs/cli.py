@@ -1027,11 +1027,11 @@ def _main_inner(argv=None):
     matched_file_count = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
     print()
     if inverse:
-        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches.")
+        print(f"Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches. Files searched: {len(all_files)} ({size_str}).")
     elif capped:
-        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {matched_file_count} file(s). Reports capped at {max_matches:,}.")
+        print(f"Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}). Reports capped at {max_matches:,}.")
     else:
-        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s).")
+        print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     if inverse:
         if not quiet:
