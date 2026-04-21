@@ -266,7 +266,7 @@ If you used the manual install, you'll see `(venv)` before each command in your 
 
 Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. Subsequent searches overwrite these files. To keep previous results, use `-s my_report` to save a named copy (saved as `DO_NOT_SEARCH_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
-Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary).
+Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
 
 ### GUI
 
