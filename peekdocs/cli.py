@@ -1025,13 +1025,15 @@ def _main_inner(argv=None):
         append_results(append_name, output_dir, output_path, docx_output_path)
 
     elapsed = time.time() - start_time
+    # Count unique files with matches
+    matched_file_count = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
     print()
     if inverse:
         print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches.")
     elif capped:
-        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{total_match_count}{RESET} match(es). Reports capped at {max_matches:,}.")
+        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {matched_file_count} file(s). Reports capped at {max_matches:,}.")
     else:
-        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(matches)}{RESET} match(es).")
+        print(f"Files searched: {len(all_files)} ({size_str}) — Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     if inverse:
         if not quiet:

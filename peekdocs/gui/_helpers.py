@@ -173,6 +173,7 @@ def _parse_summary_text(stdout):
     files_match = re.search(r"Files searched:\s*(\d+)", clean)
     size_match = re.search(r"Files searched:\s*\d+\s*\(([\d.]+ [KMGT]?B)\)", clean)
     found_match = re.search(r"Found\s+(\d+)\s+match", clean)
+    matched_files_match = re.search(r"match\(es\)\s+in\s+(\d+)\s+file\(s\)", clean)
     capped_match = re.search(r"Reports capped at ([\d,]+)", clean)
     inverse_match = re.search(r"Found\s+(\d+)\s+file\(s\)\s+WITHOUT\s+matches", clean)
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
@@ -188,10 +189,11 @@ def _parse_summary_text(stdout):
         parts.append(f"— Found {inverse_match.group(1)} file(s) WITHOUT matches")
     elif found_match:
         count = found_match.group(1)
+        in_files = f" in {matched_files_match.group(1)} file(s)" if matched_files_match else ""
         if capped_match:
-            parts.append(f"— Found {count} match(es) — reports capped at {capped_match.group(1)}")
+            parts.append(f"— Found {count} match(es){in_files} — reports capped at {capped_match.group(1)}")
         else:
-            parts.append(f"— Found {count} match(es)")
+            parts.append(f"— Found {count} match(es){in_files}")
     if elapsed_match:
         parts.append(f"in {elapsed_match.group(1)}s")
 
