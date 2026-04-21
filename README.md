@@ -43,7 +43,7 @@
 - **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). Every search mode works from all three. Use the GUI for daily work, the CLI for scripting, the API for integration.
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that other tools can't search. Requires Tesseract.
 - **Search inside archives** — searches inside .zip, .7z, and .rar files without extracting them first. Find a document buried in a compressed backup without unzipping anything.
-- **Multi-folder search** — search across multiple top-level folders at once using the +Folder button. Results are combined from all folders.
+- **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders.
 - **Search Wizard** — configures complex searches for you with pre-built patterns for 7 professions (Business, Legal, Medical, Engineering, HR, Real Estate, Compliance). No regex or technical knowledge needed.
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in milliseconds. Auto-refresh keeps the index current when files change.
@@ -107,7 +107,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
 - **Works in any language** — peekdocs searches documents written in English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Hindi, Russian, Greek, and every other language. All text handling is Unicode-based. Type your search terms in any language and peekdocs finds them. **Note:** peekdocs performs exact text matching — it finds the character sequence you type, which works well for all languages including CJK (Chinese, Japanese, Korean). It does not perform language-specific processing such as word segmentation, stemming, or stop-word removal. Documentation and the GUI are in English only
-- **Multi-folder search** — search across multiple folders at once. Click **+Folder** to add folders, or type semicolon-separated paths. Results are combined from all folders
+- **Multi-folder search** — search across multiple folders at once, with optional recursive searching into subfolders. Click **+Folder** to add folders, or type semicolon-separated paths. Results are combined from all folders
 - **HTML export** — in addition to TXT, DOCX, CSV, JSON, and PDF, results can be exported as a styled HTML page with highlighted matches — easy to share via email or open in any browser
 - **Three interfaces** — terminal CLI, point-and-click GUI (`peekdocs-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux
