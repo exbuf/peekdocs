@@ -99,6 +99,8 @@ BANNER_BOTTOM = (
     '    file_types, search_terms, folder, exclude, specific_files, save_name,\n'
     '    append_name, output_dir, range, text_size, preview_size, appearance_mode\n'
     '  --check            Verify Python, dependencies, Tesseract, and disk space\n'
+    '  --clear            Delete peekdocs_results* files in the current directory\n'
+    '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
     '  -c 4               Number of CPU cores to use\n'
     '  -q                 Suppress the output banner\n'
     '  -v                 Show version\n'
@@ -508,6 +510,39 @@ def _main_inner(argv=None):
             print()
 
         return 0 if all_ok else 2
+
+    if args and args[0] in ("--clear", "--clear-all"):
+        cwd = os.getcwd()
+        clear_all = args[0] == "--clear-all"
+        deleted = []
+
+        # Always delete results files
+        for f in os.listdir(cwd):
+            if f.startswith("peekdocs_results"):
+                os.remove(os.path.join(cwd, f))
+                deleted.append(f)
+
+        if clear_all:
+            # Also delete saved reports, error log, and index
+            for f in os.listdir(cwd):
+                if f.startswith("DO_NOT_SEARCH"):
+                    os.remove(os.path.join(cwd, f))
+                    deleted.append(f)
+            for f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                path = os.path.join(cwd, f)
+                if os.path.exists(path):
+                    os.remove(path)
+                    deleted.append(f)
+
+        if deleted:
+            print(f"Deleted {len(deleted)} file(s) from {cwd}:")
+            for f in sorted(deleted):
+                print(f"  {f}")
+        else:
+            print("No peekdocs output files found in the current directory.")
+        if not clear_all:
+            print("\nTo also delete saved reports, error log, and index: peekdocs --clear-all")
+        return 0
 
     if args and args[0] == "--index":
         cwd = os.getcwd()
