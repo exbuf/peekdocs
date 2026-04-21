@@ -1046,7 +1046,7 @@ def _main_inner(argv=None):
                 if key not in file_counts:
                     file_counts[key] = 0
                 file_counts[key] += 1
-            for (_fd, fn), count in file_counts.items():
+            for (_fd, fn), count in sorted(file_counts.items(), key=lambda x: x[0][1].lower()):
                 print(f"  {fn}: {count}")
     print(f"Results ==> {output_dir}")
     print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
