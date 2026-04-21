@@ -313,9 +313,9 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 ## Why Not Just Use Grep?
 
-grep is a powerful command-line text search tool — if you know how to use it. But grep only reads plain text files. It can't open Word docs, PDFs, Excel spreadsheets, PowerPoint, email archives, or compressed files. It can't OCR a scanned document. It outputs matching lines to a terminal — no highlighted reports, no file-by-file organization, no GUI.
+grep is a powerful command-line text search tool — if you know how to use it. But grep only reads plain text files natively. You *can* pipe external tools into grep (`pdftotext file.pdf - | grep term`, `unzip -p file.docx word/document.xml | grep term`), but that's one file at a time, requires installing each converter separately, and doesn't scale to searching hundreds of mixed-format files at once. grep also can't OCR scanned documents, and it outputs matching lines to a terminal — no highlighted reports, no file-by-file organization, no GUI.
 
-peekdocs reads 22 important binary file types that grep can't open at all — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. For the 55 plain-text types that grep can read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
+peekdocs reads 22 important binary file types natively — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. No piping, no external converters, all 86 types in a single pass. For the 55 plain-text types that grep can also read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
 
 If you're comfortable in a terminal and only search plain text files, grep is fine. If you have Word docs, PDFs, emails, spreadsheets, or archives — or if you want results you can hand to someone who doesn't use a terminal — peekdocs is what grep would be if grep could read your actual documents.
 
