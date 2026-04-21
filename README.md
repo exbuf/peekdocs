@@ -14,7 +14,7 @@
 
 ## Who Is It For?
 
-Computer users — anyone with large collections of files they need to search through. In particular:
+**Computer users** — anyone with large collections of files they need to search through. In particular:
 
 - **Home users** — almost everyone has tax returns, medical records, insurance policies, journals or diaries they need to retrieve information from. Or a laptop they may sell that might still contain personal information. Once installed, type your keyword(s), click Run Search, done. No configuration, no manual. Or click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data that shouldn't be there — one click, no setup
 - **Programmers** — search the files VS Code doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes, and API keys accidentally saved in documents (PII Scan). A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. Tip: use Lines Before/After in Advanced Search Options to capture surrounding code context — not just the matching line, but the function or block it belongs to. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
