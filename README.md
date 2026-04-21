@@ -4,11 +4,11 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) &nbsp;&nbsp; [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) &nbsp;&nbsp; [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
+<p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
+
 > peekdocs **document search app** searches your Word docs, PDFs, spreadsheets, emails — 86 file types, all searched at once, all offline. Yellow-highlighted results with surrounding context, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, and search modes from simple keywords to advanced patterns (regex).
 >
 > Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own local report and index files, which you can delete at any time.) Free. No fees, no subscriptions.
->
-> <p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
 
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Author](#author) · [License](#license)
 
