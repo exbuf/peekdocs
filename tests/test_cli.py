@@ -2640,11 +2640,11 @@ def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
     report = (tmp_path / "peekdocs_results.txt").read_text()
     assert "Hits ==> 4" in report
 
-    # -q suppresses per-file listing
+    # -q suppresses the banner but still shows per-file listing
     result = main(["-q", "budget"])
     captured = capsys.readouterr().out
     assert "match(es)" in captured
-    assert "file_a.txt: 3" not in captured
+    assert "file_a.txt: 3" in captured
 
 
 def test_search_inverse(tmp_path, monkeypatch, capsys):

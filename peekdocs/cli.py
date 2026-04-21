@@ -1034,12 +1034,10 @@ def _main_inner(argv=None):
         print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     if inverse:
-        if not quiet:
-            for f in inverse_files:
-                print(f"  {os.path.basename(f)}")
+        for f in inverse_files:
+            print(f"  {os.path.basename(f)}")
     else:
-        if not quiet:
-            # Per-file match counts
+        # Per-file match counts
             file_counts = {}
             for fd, fn, _ln, _tx in matches:
                 key = (fd, fn)
