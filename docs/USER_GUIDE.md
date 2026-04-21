@@ -485,6 +485,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
+| `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
+| `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`DO_NOT_SEARCH_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
@@ -687,6 +689,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 93 | Delete the index | `peekdocs --index-clear` |
 | 93a | Incrementally refresh the index | `peekdocs --index-refresh` |
 | 93b | Skip the index (direct scan) | `peekdocs --no-index budget` |
+| 94 | Delete results files | `peekdocs --clear` |
+| 95 | Delete all peekdocs output files | `peekdocs --clear-all` |
 | | **Inverse Search** | |
 | 94 | Find files missing a term | `peekdocs --inverse "indemnification"` |
 | 95 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
