@@ -250,16 +250,18 @@ venv\Scripts\activate                # Windows
 Then navigate to your documents and search:
 
 ```bash
-(venv) cd /path/to/your/documents
-(venv) peekdocs budget                      # search for "budget"
-(venv) peekdocs budget revenue              # OR search (any term)
-(venv) peekdocs -a budget revenue           # AND search (both terms)
-(venv) peekdocs -r budget                   # include subfolders
-(venv) peekdocs -t pdf,docx budget          # only PDFs and Word docs
-(venv) peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
-(venv) peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
-(venv) peekdocs -R amount:1000..5000 budget # range query
+cd /path/to/your/documents
+peekdocs budget                      # search for "budget"
+peekdocs budget revenue              # OR search (any term)
+peekdocs -a budget revenue           # AND search (both terms)
+peekdocs -r budget                   # include subfolders
+peekdocs -t pdf,docx budget          # only PDFs and Word docs
+peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
+peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
+peekdocs -R amount:1000..5000 budget # range query
 ```
+
+If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
 Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted). When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
