@@ -43,7 +43,7 @@
 - **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). Every search mode works from all three. Use the GUI for daily work, the CLI for scripting, the API for integration.
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that other tools can't search. Requires Tesseract.
 - **Search inside archives** — searches inside .zip, .7z, and .rar files without extracting them first. Find a document buried in a compressed backup without unzipping anything.
-- **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders.
+- **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders. With recursive mode, you can even search your entire computer from a single search — point it at your root folder and peekdocs will search every supported file on the drive (system files that can't be read are logged and skipped).
 - **Search Wizard** — configures complex searches for you with pre-built patterns for 7 professions (Business, Legal, Medical, Engineering, HR, Real Estate, Compliance). No regex or technical knowledge needed.
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in milliseconds. Auto-refresh keeps the index current when files change.
