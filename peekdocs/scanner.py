@@ -760,7 +760,8 @@ def _process_file(args_tuple):
             if size_mb > max_mb:
                 return ([], [(filename,
                     f"Skipped — file is {size_mb:.0f} MB, exceeds the {max_mb} MB limit. "
-                    f"Increase Max File Size in Advanced Search Options or set to 0 for no limit.")])
+                    f"GUI: increase Max File Size in Advanced Search Options. "
+                    f"CLI: use --max-file-size 0 (no limit) or --config max_file_size_mb=0 to save permanently.")])
         except OSError:
             pass
 
