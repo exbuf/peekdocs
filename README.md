@@ -313,11 +313,20 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 ## Why Not Just Use Grep?
 
-grep is a powerful command-line text search tool — if you know how to use it. But grep only reads plain text files natively. You *can* pipe external tools into grep (`pdftotext file.pdf - | grep term`, `unzip -p file.docx word/document.xml | grep term`), but that's one file at a time, requires installing each converter separately, and doesn't scale to searching hundreds of mixed-format files at once. grep also can't OCR scanned documents, and it outputs matching lines to a terminal — no highlighted reports, no file-by-file organization, no GUI.
+**Credit where it's due:** grep is an excellent tool. For plain text files, it's fast, reliable, and battle-tested for decades. With piping, a skilled developer can extend it to binary formats: `pdftotext file.pdf - | grep term` works for PDFs, `unzip -p file.docx word/document.xml | grep term` works (roughly) for Word, `xlsx2csv file.xlsx | grep term` for Excel, and `tesseract image.png stdout | grep term` for OCR. grep also has built-in regex (`-E`/`-P`), recursive search (`-r`), inverse matching (`-rL`), context lines (`-B`/`-A`), and whole-word matching (`-w`). A determined developer could write a bash script that loops over files, detects types, pipes each through the right converter, and greps the output.
 
-peekdocs reads 22 important binary file types natively — Word, PDF, Excel, PowerPoint, email archives, e-books, compressed files, and more — plus 6 image types via OCR. No piping, no external converters, all 86 types in a single pass. For the 55 plain-text types that grep can also read, peekdocs adds highlighted Word reports, a point-and-click GUI, PII scanning, proximity search, range queries, fuzzy matching, multi-folder search, and a search index — none of which grep offers.
+**Where peekdocs goes beyond what grep can practically do:**
 
-If you're comfortable in a terminal and only search plain text files, grep is fine. If you have Word docs, PDFs, emails, spreadsheets, or archives — or if you want results you can hand to someone who doesn't use a terminal — peekdocs is what grep would be if grep could read your actual documents.
+- **Highlighted Word report** — grep outputs plain text to a terminal. peekdocs produces a `.docx` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this.
+- **PII scanning with categorized severity** — not just regex matching, but categorized findings (high/moderate/info), false-positive filtering (URLs, DOIs, environment variables), custom patterns, and a formatted report. You could run 10 separate `grep -P` calls for SSN/credit card/phone patterns, but the categorization, filtering, and reporting are not practically replicable.
+- **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
+- **86 file types in one command** — the bash script to handle all 86 types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
+- **GUI** — for anyone who doesn't live in a terminal.
+- **Search index with auto-refresh** — grep has no index. You'd need a separate tool (recoll, xapian) — at which point you're not using grep anymore.
+- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters, different tool flags). peekdocs works identically on all three platforms.
+- **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
+
+**The honest summary:** For plain-text search in a terminal, grep is faster and simpler — use it. For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, scanning for sensitive data, or giving a non-terminal user a search tool they can actually use, peekdocs does what would take hundreds of lines of custom scripting to approximate — and does it in one command.
 
 ## Performance
 
