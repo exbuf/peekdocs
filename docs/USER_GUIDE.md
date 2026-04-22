@@ -91,6 +91,7 @@ But because peekdocs works with sensitive documents (financial records, legal fi
 - **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `DO_NOT_SEARCH_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
+- **Think before you print.** The highlighted `.docx` and PII scan reports contain the actual sensitive data that was found — SSNs, credit card numbers, passwords, and other PII. Printing these reports creates a physical copy of the very data you may be trying to protect. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient.
 
 ---
 
