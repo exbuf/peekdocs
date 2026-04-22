@@ -1579,6 +1579,12 @@ class BuildMixin:
         ctk.set_appearance_mode(mode)
         self._appearance_mode = mode
         self._save_ui_preference("appearance_mode", mode)
+        # Close any open tool popups — they were themed at creation time
+        # and cannot be reliably re-themed in place.
+        import tkinter as tk
+        for child in self.winfo_children():
+            if isinstance(child, tk.Toplevel) and child.winfo_exists():
+                child.destroy()
         # Update the Results Preview pane colors
         if hasattr(self, "preview_text"):
             _dark = ctk.get_appearance_mode() == "Dark"
@@ -1605,7 +1611,9 @@ class BuildMixin:
         win = tk.Toplevel(parent or self)
         if ctk.get_appearance_mode() == "Dark":
             # Place offscreen while building widgets — the popup's own
-            # geometry() call moves it onscreen after setup is complete
+            # geometry() call moves it onscreen after setup is complete.
+            # If the caller doesn't reposition, _ensure_onscreen brings
+            # it back automatically once the event loop is idle.
             win.geometry("+99999+99999")
             _bg = "#2b2b2b"
             _fg = "#e0e0e0"
@@ -1635,6 +1643,23 @@ class BuildMixin:
             win.option_add("*Scrollbar.Background", _btn_bg)
             win.option_add("*Scrollbar.troughColor", _bg)
             win.option_add("*Canvas.Background", _bg)
+
+            def _ensure_onscreen(_w=win, _self=self):
+                """If the popup is still offscreen, center it over the main window."""
+                try:
+                    if not _w.winfo_exists():
+                        return
+                    if _w.winfo_x() >= 99000:
+                        _w.update_idletasks()
+                        w = _w.winfo_reqwidth()
+                        h = _w.winfo_reqheight()
+                        x = _self.winfo_rootx() + (_self.winfo_width() - w) // 2
+                        y = _self.winfo_rooty() + (_self.winfo_height() - h) // 2
+                        _w.geometry(f"+{max(0, x)}+{max(0, y)}")
+                except Exception:
+                    pass
+
+            win.after_idle(_ensure_onscreen)
             return win, True
         return win, False
 
