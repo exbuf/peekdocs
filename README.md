@@ -262,7 +262,8 @@ peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
 peekdocs -R amount:1000..5000 budget # range query
 peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
 peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
-peekdocs --open budget               # search and auto-open the .docx report
+peekdocs --open docx budget          # search and auto-open the .docx report
+peekdocs --open txt budget           # auto-open the .txt report instead
 ```
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.

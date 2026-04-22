@@ -265,9 +265,18 @@ def parse_flags(args, config):
     if "--inverse" in args:
         args.remove("--inverse")
 
-    open_report = "--open" in args
+    open_report = None
     if "--open" in args:
-        args.remove("--open")
+        idx = args.index("--open")
+        if idx + 1 >= len(args):
+            return (2, "No format provided. Usage: peekdocs --open docx budget\n"
+                       "Supported formats: docx, txt, csv, json, pdf, html\n")
+        fmt = args[idx + 1].lower().lstrip(".")
+        if fmt not in ("docx", "txt", "csv", "json", "pdf", "html"):
+            return (2, f"Unknown format for --open: {args[idx + 1]}. "
+                       f"Supported: docx, txt, csv, json, pdf, html\n")
+        open_report = fmt
+        args[:] = args[:idx] + args[idx + 2:]
 
     if expression is not None:
         if match_all:

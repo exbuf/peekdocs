@@ -82,7 +82,7 @@ BANNER_BOTTOM = (
     '  --output-dir PATH  Write all output files to a specific folder\n'
     '  --timestamp        Add timestamp to report filenames\n'
     '  --max-file-size N  Skip files larger than N MB (default 100, 0 = no limit)\n'
-    '  --open             Automatically open the .docx report when the search finishes\n'
+    '  --open FMT         Automatically open the report when search finishes (docx, txt, csv, json, pdf, html)\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
     '  --index            Build/rebuild the search index (includes all subfolders)\n'
@@ -1079,25 +1079,38 @@ def _main_inner(argv=None):
                 print(f"  Warning: Could not read {skipped_name} ({error_msg})")
             print(f"\n  Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
     print()
-    if open_report and os.path.exists(docx_output_path):
-        import subprocess as _sub_open
-        system = platform.system()
-        try:
-            if system == "Darwin":
-                result = _sub_open.run(["open", docx_output_path], capture_output=True)
-                if result.returncode != 0:
-                    _sub_open.Popen(["open", "-a", "TextEdit", docx_output_path])
-            elif system == "Windows":
-                os.startfile(docx_output_path)
-            else:
-                result = _sub_open.run(["xdg-open", docx_output_path], capture_output=True)
-                if result.returncode != 0:
-                    for editor in ("xed", "gedit", "mousepad", "kate", "nano"):
-                        if _sub_open.run(["which", editor], capture_output=True).returncode == 0:
-                            _sub_open.Popen([editor, docx_output_path])
-                            break
-        except Exception:
-            pass
+    if open_report:
+        # Map format to the corresponding output path
+        _open_paths = {
+            "docx": docx_output_path,
+            "txt": output_path,
+            "csv": csv_output_path,
+            "json": json_output_path,
+            "pdf": pdf_output_path,
+            "html": html_output_path,
+        }
+        open_path = _open_paths.get(open_report)
+        if open_path and os.path.exists(open_path):
+            import subprocess as _sub_open
+            system = platform.system()
+            try:
+                if system == "Darwin":
+                    result = _sub_open.run(["open", open_path], capture_output=True)
+                    if result.returncode != 0:
+                        _sub_open.Popen(["open", "-a", "TextEdit", open_path])
+                elif system == "Windows":
+                    os.startfile(open_path)
+                else:
+                    result = _sub_open.run(["xdg-open", open_path], capture_output=True)
+                    if result.returncode != 0:
+                        for editor in ("xed", "gedit", "mousepad", "kate", "nano"):
+                            if _sub_open.run(["which", editor], capture_output=True).returncode == 0:
+                                _sub_open.Popen([editor, open_path])
+                                break
+            except Exception:
+                pass
+        elif open_path is None:
+            print(f"Note: {open_report} report was not generated. Enable it with -o {open_report}")
     if inverse:
         return 0 if inverse_files else 1
     return 0 if matches else 1
