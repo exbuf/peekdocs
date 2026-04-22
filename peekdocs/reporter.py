@@ -150,7 +150,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             if use_context and prev_file == current_file:
                 f.write("---\n\n")
             prev_file = current_file
-            if use_context:
+            if use_context or "\n" in text:
                 lines = text.split("\n")
                 wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
                 wrapped = "\n".join(wrapped_lines)
