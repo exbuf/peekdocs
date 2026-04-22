@@ -1610,11 +1610,13 @@ class BuildMixin:
         import tkinter as tk
         win = tk.Toplevel(parent or self)
         if ctk.get_appearance_mode() == "Dark":
-            # Place offscreen while building widgets — the popup's own
-            # geometry() call moves it onscreen after setup is complete.
-            # If the caller doesn't reposition, _ensure_onscreen brings
-            # it back automatically once the event loop is idle.
-            win.geometry("+99999+99999")
+            # On macOS, place offscreen while building widgets to reduce
+            # white flash.  On Windows the flash happens regardless (a
+            # tkinter limitation), so skip the offscreen trick — it only
+            # risks the window getting stuck offscreen.
+            import sys as _sys_tt
+            if _sys_tt.platform != "win32":
+                win.geometry("+99999+99999")
             _bg = "#2b2b2b"
             _fg = "#e0e0e0"
             _entry_bg = "#3a3a3a"
@@ -1649,8 +1651,8 @@ class BuildMixin:
                 try:
                     if not _w.winfo_exists():
                         return
-                    if _w.winfo_x() >= 99000:
-                        _w.update_idletasks()
+                    _w.update_idletasks()
+                    if _w.winfo_x() >= 99000 or _w.winfo_y() >= 99000:
                         w = _w.winfo_reqwidth()
                         h = _w.winfo_reqheight()
                         x = _self.winfo_rootx() + (_self.winfo_width() - w) // 2
@@ -1659,7 +1661,9 @@ class BuildMixin:
                 except Exception:
                     pass
 
-            win.after_idle(_ensure_onscreen)
+            # Use a short delay so the caller has time to build widgets
+            # and optionally set its own geometry before the safety net fires.
+            win.after(200, _ensure_onscreen)
             return win, True
         return win, False
 
