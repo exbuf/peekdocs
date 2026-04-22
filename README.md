@@ -155,7 +155,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
     sudo apt install python3-venv python3-pip python3-tk
     ```
     Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`peekdocs-gui`) will not launch. This is a one-time setup.
-- **Tkinter** (required for GUI) — included on Windows and macOS. On Linux you must install it: `sudo apt install python3-tk` (already included in the Linux command above)
+- **pip** (Python's package installer) — included automatically when you install Python 3.10+. No separate installation needed. **pipx** is a separate tool that must be installed via pip (see Option A below).
+- **Tkinter** (required for GUI) — no action needed on Windows and macOS (the Python installer includes it). On Linux you must install it separately: `sudo apt install python3-tk` (already included in the Linux command above)
 - **Tesseract** (optional, for OCR) — macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
 ### Option A: Quick Install with pipx (recommended)
