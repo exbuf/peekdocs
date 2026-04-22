@@ -16,105 +16,117 @@ Use peekdocs programmatically from Python code. For CLI and GUI usage, see the [
 ```python
 from peekdocs import search
 
-result = search(["budget", "revenue"], directory="/path/to/docs")
+def main():
+    result = search(["budget", "revenue"], directory="/path/to/docs")
 
-print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
-for match in result.matches:
-    print(f"  {match.filename}:{match.line_num}: {match.text}")
+    print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
+    for match in result.matches:
+        print(f"  {match.filename}:{match.line_num}: {match.text}")
+
+# Required for multiprocessing on macOS and Windows
+if __name__ == "__main__":
+    main()
 ```
+
+> **Note:** The `if __name__ == "__main__":` guard is required because peekdocs uses multiprocessing to search files in parallel. Without it, macOS and Windows will crash with a `RuntimeError`. See [`samples/api_example.py`](../samples/api_example.py) for a complete working example.
 
 ## With Options
 
 ```python
 from peekdocs import search
 
-# Wildcard search in specific file types, with subdirectories
-result = search(
-    ["budg*"],
-    directory="/path/to/docs",
-    use_wildcard=True,
-    recursive=True,
-    file_types=[".pdf", ".docx"],
-)
+def main():
+    # Wildcard search in specific file types, with subdirectories
+    result = search(
+        ["budg*"],
+        directory="/path/to/docs",
+        use_wildcard=True,
+        recursive=True,
+        file_types=[".pdf", ".docx"],
+    )
 
-# Regex search with AND mode
-result = search(
-    [r"\d{3}-\d{3}-\d{4}", "invoice"],
-    directory="/path/to/docs",
-    use_regex=True,
-    match_all=True,
-)
+    # Regex search with AND mode
+    result = search(
+        [r"\d{3}-\d{3}-\d{4}", "invoice"],
+        directory="/path/to/docs",
+        use_regex=True,
+        match_all=True,
+    )
 
-# Boolean expression search
-result = search(
-    [],
-    directory="/path/to/docs",
-    expression="(budget OR revenue) AND (cost OR profit)",
-)
+    # Boolean expression search
+    result = search(
+        [],
+        directory="/path/to/docs",
+        expression="(budget OR revenue) AND (cost OR profit)",
+    )
 
-# Expression with wildcard mode
-result = search(
-    [],
-    directory="/path/to/docs",
-    expression="budg* AND rev*",
-    use_wildcard=True,
-)
+    # Expression with wildcard mode
+    result = search(
+        [],
+        directory="/path/to/docs",
+        expression="budg* AND rev*",
+        use_wildcard=True,
+    )
 
-# Range query — filter by value ranges
-result = search(
-    ["invoice"],
-    directory="/path/to/docs",
-    range_filters=["amount:1000..5000", "date:2024-01-01..2024-12-31"],
-)
+    # Range query — filter by value ranges
+    result = search(
+        ["invoice"],
+        directory="/path/to/docs",
+        range_filters=["amount:1000..5000", "date:2024-01-01..2024-12-31"],
+    )
 
-# Range-only search (no text terms)
-result = search(
-    [],
-    directory="/path/to/docs",
-    range_filters=["amount:1000..5000"],
-)
+    # Range-only search (no text terms)
+    result = search(
+        [],
+        directory="/path/to/docs",
+        range_filters=["amount:1000..5000"],
+    )
 
-# Range specs inside boolean expressions
-result = search(
-    [],
-    directory="/path/to/docs",
-    expression="budget AND amount:1000..5000",
-)
+    # Range specs inside boolean expressions
+    result = search(
+        [],
+        directory="/path/to/docs",
+        expression="budget AND amount:1000..5000",
+    )
 
-# Filename range — filter files by date in filename
-result = search(
-    ["budget"],
-    directory="/path/to/docs",
-    range_filters=["fn:date:2024-01-01..2024-12-31"],
-)
+    # Filename range — filter files by date in filename
+    result = search(
+        ["budget"],
+        directory="/path/to/docs",
+        range_filters=["fn:date:2024-01-01..2024-12-31"],
+    )
 
-# Search emails for SSNs
-result = search(
-    [r"\d{3}-\d{2}-\d{4}"],
-    directory="/path/to/exported-emails",
-    use_regex=True,
-    file_types=[".eml", ".msg", ".pst"],
-)
+    # Search emails for SSNs
+    result = search(
+        [r"\d{3}-\d{2}-\d{4}"],
+        directory="/path/to/exported-emails",
+        use_regex=True,
+        file_types=[".eml", ".msg", ".pst"],
+    )
 
-# Search inside ZIP archives
-result = search(
-    ["confidential"],
-    directory="/path/to/docs",
-    file_types=[".zip", ".7z"],
-)
+    # Search inside ZIP archives
+    result = search(
+        ["confidential"],
+        directory="/path/to/docs",
+        file_types=[".zip", ".7z"],
+    )
 
-# Search legacy and modern Office files together
-result = search(
-    ["budget"],
-    directory="/path/to/docs",
-    file_types=[".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"],
-)
+    # Search legacy and modern Office files together
+    result = search(
+        ["budget"],
+        directory="/path/to/docs",
+        file_types=[".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"],
+    )
 
-# Progress tracking
-def on_progress(done, total, filename):
-    print(f"  [{done}/{total}] {filename}")
+    # Progress tracking
+    def on_progress(done, total, filename):
+        print(f"  [{done}/{total}] {filename}")
 
-result = search(["error"], directory="/var/log", progress=on_progress)
+    result = search(["error"], directory="/var/log", progress=on_progress)
+
+# Required for multiprocessing on macOS and Windows
+if __name__ == "__main__":
+    main()
 ```
 
 ## Parameters
@@ -169,8 +181,12 @@ Each `SearchMatch` has fields: `file_dir`, `filename`, `line_num`, `text`.
 ```python
 from peekdocs import search
 
-try:
-    result = search([r"[invalid"], use_regex=True)
-except ValueError as e:
-    print(f"Invalid search: {e}")
+def main():
+    try:
+        result = search([r"[invalid"], use_regex=True)
+    except ValueError as e:
+        print(f"Invalid search: {e}")
+
+if __name__ == "__main__":
+    main()
 ```

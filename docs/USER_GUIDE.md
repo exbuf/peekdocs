@@ -28,6 +28,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Limits and Constraints](#limits-and-constraints)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
+- [Python API Reference](#python-api-reference)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 
@@ -2021,6 +2022,14 @@ Now that you're comfortable with individual advanced searches, you can:
 - **Save searches for reuse** — click **Save Search** to name and store any search you've configured
 
 ---
+
+## Python API Reference
+
+peekdocs includes a Python API that lets you call the search engine directly from your own scripts. For full documentation, parameters, return types, and examples, see the [peekdocs Library API Reference](API.md).
+
+A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
+
+**Important:** All scripts that use the peekdocs API must include the `if __name__ == "__main__":` guard because peekdocs uses multiprocessing. Without it, macOS and Windows will crash with a `RuntimeError`. See the API Reference for details.
 
 ## Running Tests
 
