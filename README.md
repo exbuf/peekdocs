@@ -260,6 +260,7 @@ peekdocs -t pdf,docx budget          # only PDFs and Word docs
 peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
 peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
 peekdocs -R amount:1000..5000 budget # range query
+peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
 peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
 ```
 
