@@ -1601,21 +1601,21 @@ class BuildMixin:
                 pass
 
     def _themed_toplevel(self, parent=None):
-        """Create a tk.Toplevel pre-themed for dark mode.
+        """Create a themed Toplevel window.
 
         Returns (window, is_dark).
 
-        On macOS in dark mode, sets the tk option database so all child
-        widgets are created with dark colors from the start and places
-        the window offscreen until the caller repositions it.
+        Uses CTkToplevel for compatibility with customtkinter's event
+        system (plain tk.Toplevel crashes on Windows because CTk
+        expects the block_update_dimensions_event attribute).
 
-        On Windows, skips option_add pre-theming entirely — it causes
-        popups to not appear.  The caller's _apply_dark_theme() at the
-        end of widget setup handles dark mode on Windows instead.
+        On macOS in dark mode, also sets the tk option database so
+        plain tk child widgets are created with dark colors from the
+        start and places the window offscreen until the caller
+        repositions it.
         """
-        import tkinter as tk
         import sys as _sys_tt
-        win = tk.Toplevel(parent or self)
+        win = ctk.CTkToplevel(parent or self)
         _is_dark = ctk.get_appearance_mode() == "Dark"
         if _is_dark and _sys_tt.platform != "win32":
             # macOS/Linux: place offscreen while building widgets to
