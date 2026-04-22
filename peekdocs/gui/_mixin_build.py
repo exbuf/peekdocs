@@ -1604,6 +1604,9 @@ class BuildMixin:
         import tkinter as tk
         win = tk.Toplevel(parent or self)
         if ctk.get_appearance_mode() == "Dark":
+            # Place offscreen while building widgets — the popup's own
+            # geometry() call moves it onscreen after setup is complete
+            win.geometry("+99999+99999")
             _bg = "#2b2b2b"
             _fg = "#e0e0e0"
             _entry_bg = "#3a3a3a"
