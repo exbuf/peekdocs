@@ -560,7 +560,11 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     content_ranges = config.get("content_ranges", [])
     range_only = not search_terms and not config.get("expression_ast") and content_ranges
     use_regex = config["use_regex"]
-    match_all = config["match_all"]
+    line_prox = config.get("line_proximity", 0)
+    # Line proximity is inherently AND across lines — force OR mode for
+    # per-line matching so each term is found individually, then the
+    # line proximity filter enforces the cross-line AND constraint.
+    match_all = config["match_all"] if line_prox == 0 else False
     use_proximity = config["use_proximity"]
     proximity = config["proximity"]
     use_context = config["use_context"]
