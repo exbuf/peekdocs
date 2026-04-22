@@ -949,7 +949,7 @@ class SearchMixin:
     def _show_simple_popup(self, title, heading, message):
         """Show a simple informational popup with a consistent look and Close button."""
         import tkinter as tk
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title(title)
         popup.resizable(False, False)
         popup.geometry("520x280")

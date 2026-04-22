@@ -93,7 +93,7 @@ class BuildMixin:
     def _show_welcome(self):
         """Show a getting-started guide for first-time users."""
         import tkinter as tk
-        win = tk.Toplevel(self)
+        win, _dark = self._themed_toplevel()
         win.title("Welcome to peekdocs")
         win.geometry("620x480")
         win.resizable(True, True)
@@ -1523,7 +1523,7 @@ class BuildMixin:
                 font=ctk.CTkFont(size=13),
             )
             return
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Recent Searches")
         popup.resizable(False, False)
         popup.transient(self)
@@ -1773,7 +1773,7 @@ class BuildMixin:
             data = load_collection(folder)
             names = sorted(data.get("saved_searches", {}).keys())
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Load Settings")
         popup.resizable(False, False)
         popup.transient(self)

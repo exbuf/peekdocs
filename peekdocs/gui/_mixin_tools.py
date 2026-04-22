@@ -142,7 +142,7 @@ class ToolsMixin:
         import tkinter as tk
         fmt = self._format_file_size
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("File Inventory")
         popup.resizable(True, True)
         popup.geometry("780x580")
@@ -498,7 +498,7 @@ class ToolsMixin:
         import tkinter as tk
         count = len(results["protected"])
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Password-Protected Files")
         popup.resizable(True, True)
         popup.geometry("800x500")
@@ -784,7 +784,7 @@ class ToolsMixin:
         groups = results["groups"]
         total_dupes = sum(len(g[0]) - 1 for g in groups)
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Duplicate Files")
         popup.resizable(True, True)
         popup.geometry("820x550")
@@ -992,7 +992,7 @@ class ToolsMixin:
         import tkinter as tk
         fmt = self._format_file_size
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Largest Files")
         popup.resizable(True, True)
         popup.geometry("800x500")
@@ -1121,7 +1121,7 @@ class ToolsMixin:
         import tkinter as tk
         count = len(results["empty"])
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Empty Files")
         popup.resizable(True, True)
         popup.geometry("750x450")
@@ -1285,7 +1285,7 @@ class ToolsMixin:
         fmt = self._format_file_size
         b = results["buckets"]
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Recent Changes")
         popup.resizable(True, True)
         popup.geometry("820x550")
@@ -1374,7 +1374,7 @@ class ToolsMixin:
             self._show_error("A search is already running.")
             return
 
-        win = tk.Toplevel(self)
+        win, _dark = self._themed_toplevel()
         win.title("PII Scan — Select Categories")
         win.resizable(False, False)
         win.transient(self)
@@ -1697,7 +1697,7 @@ class ToolsMixin:
         # group.  macOS doesn't auto-reorder transient siblings on
         # click, so we add a <Button-1> → lift() binding on both
         # windows — whichever you click comes to front.
-        help_win = tk.Toplevel(self)
+        help_win, _dark = self._themed_toplevel()
         help_win.title("PII Scan — Help")
         help_win.geometry("750x700")
         help_win.resizable(True, True)
@@ -2421,7 +2421,7 @@ class ToolsMixin:
         import tkinter as tk
         from peekdocs.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Sensitive Data Scan Results")
         popup.resizable(True, True)
         popup.geometry("800x520")
@@ -2590,7 +2590,7 @@ class ToolsMixin:
     def _show_pii_scan_results_help(self, parent):
         """Show help for interpreting the PII Scan Results window."""
         import tkinter as tk
-        help_win = tk.Toplevel(parent)
+        help_win, _dark = self._themed_toplevel(parent)
         help_win.title("PII Scan Results — Help")
         help_win.geometry("700x580")
         help_win.resizable(True, True)
@@ -2783,7 +2783,7 @@ class ToolsMixin:
         import tkinter as tk
         import subprocess, sys
 
-        popup = tk.Toplevel(parent)
+        popup, _dark = self._themed_toplevel(parent)
         popup.title(f"Files containing: {category}")
         popup.resizable(True, True)
         popup.geometry("750x400")
@@ -3242,7 +3242,7 @@ class ToolsMixin:
     def _show_search_wizard_help(self, parent):
         """Show help for the Search Wizard."""
         import tkinter as tk
-        help_win = tk.Toplevel(parent)
+        help_win, _dark = self._themed_toplevel(parent)
         help_win.title("Search Wizard — Help")
         help_win.geometry("700x580")
         help_win.resizable(True, True)
@@ -3446,7 +3446,7 @@ class ToolsMixin:
                 "checked": {},  # category -> set of checked labels
             }
 
-        wiz = tk.Toplevel(self)
+        wiz, _dark = self._themed_toplevel()
         wiz.title("Search Wizard")
         wiz.resizable(True, True)
         wiz.geometry("560x640")
@@ -3698,7 +3698,7 @@ class ToolsMixin:
     def _show_search_options_help(self):
         """Show help for the search options group: AND/OR, Recursive, Whole Word."""
         import tkinter as tk
-        win = tk.Toplevel(self)
+        win, _dark = self._themed_toplevel()
         win.title("Search Options \u2014 Help")
         win.geometry("740x680")
         win.resizable(True, True)
@@ -3833,7 +3833,7 @@ class ToolsMixin:
     def _show_search_help(self):
         """Show a quick-start guide with search examples by category."""
         import tkinter as tk
-        help_win = tk.Toplevel(self)
+        help_win, _dark = self._themed_toplevel()
         help_win.title("Search Examples & Quick-Start Guide")
         help_win.geometry("750x700")
         help_win.resizable(True, True)
@@ -4190,7 +4190,7 @@ class ToolsMixin:
     def _show_advanced_help(self):
         """Show help for all Advanced Search Options with examples."""
         import tkinter as tk
-        help_win = tk.Toplevel(self.advanced_window or self)
+        help_win, _dark = self._themed_toplevel(self.advanced_window or self)
         help_win.title("Advanced Search Options — Help")
         help_win.geometry("750x620")
         help_win.resizable(True, True)
@@ -4520,7 +4520,7 @@ class ToolsMixin:
     def _show_save_load_help(self):
         """Show help for the Save Search and Load Search buttons."""
         import tkinter as tk
-        help_win = tk.Toplevel(self)
+        help_win, _dark = self._themed_toplevel()
         help_win.title("Save Search & Load Search \u2014 Help")
         help_win.geometry("740x680")
         help_win.resizable(True, True)
@@ -4675,7 +4675,7 @@ class ToolsMixin:
     def _show_matched_files_help(self, parent):
         """Show help for the Matched Files popup."""
         import tkinter as tk
-        help_win = tk.Toplevel(parent)
+        help_win, _dark = self._themed_toplevel(parent)
         help_win.title("Matched Files \u2014 Help")
         help_win.geometry("720x640")
         help_win.resizable(True, True)
@@ -4804,7 +4804,7 @@ class ToolsMixin:
     def _show_excluded_files_help(self, parent):
         """Show help for the Excluded Files popup."""
         import tkinter as tk
-        help_win = tk.Toplevel(parent)
+        help_win, _dark = self._themed_toplevel(parent)
         help_win.title("Excluded Files \u2014 Help")
         help_win.geometry("720x680")
         help_win.resizable(True, True)
@@ -4952,7 +4952,7 @@ class ToolsMixin:
     def _show_index_help(self):
         """Show help explaining what indexes are and when to use them."""
         import tkinter as tk
-        help_win = tk.Toplevel(self.index_window or self)
+        help_win, _dark = self._themed_toplevel(self.index_window or self)
         help_win.title("Manage Indexes — Help")
         help_win.geometry("650x560")
         help_win.resizable(True, True)

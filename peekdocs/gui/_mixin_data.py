@@ -276,7 +276,7 @@ class DataMixin:
         else:
             content = "(No settings file found)"
 
-        win = tk.Toplevel(self)
+        win, _dark = self._themed_toplevel()
         win.title("Saved Settings")
         win.resizable(True, True)
         line_count = content.count("\n") + 1
@@ -390,7 +390,7 @@ class DataMixin:
             except Exception:
                 pass
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Search History")
         popup.resizable(True, True)
         popup.geometry("850x500")
@@ -552,7 +552,7 @@ class DataMixin:
 
         bookmarks = self._load_bookmarks()
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title("Bookmarks")
         popup.resizable(True, True)
         popup.geometry("800x480")
@@ -690,7 +690,7 @@ class DataMixin:
             return
 
         # Prompt for a name
-        dialog = tk.Toplevel(self)
+        dialog, _dark = self._themed_toplevel()
         dialog.title("Save to Collection")
         dialog.resizable(False, False)
         w, h = 350, 150
@@ -847,7 +847,7 @@ class DataMixin:
             return
         import tkinter as tk
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         count = len(self.matched_files)
         if self._inverse_results:
             heading = f"Files Without Matches ({count})"
@@ -1008,7 +1008,7 @@ class DataMixin:
         import tkinter as tk
         if not self._excluded_files:
             return
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title(f"Excluded Files ({len(self._excluded_files)})")
         popup.resizable(True, True)
         popup.geometry("800x500")
@@ -1117,7 +1117,7 @@ class DataMixin:
             )
             return
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title(f"peekdocs App Files ({len(app_files)})")
         popup.resizable(True, True)
         popup.geometry("1000x500")
@@ -1252,7 +1252,7 @@ class DataMixin:
             text_color=("blue", "#66BBFF"),
         )
 
-        popup = tk.Toplevel(self)
+        popup, _dark = self._themed_toplevel()
         popup.title(f"All Saved Collections ({len(collections)} folder(s))")
         popup.resizable(True, True)
         popup.geometry("1050x550")
@@ -1358,7 +1358,7 @@ class DataMixin:
             self._show_error(f"Could not extract text from {filename}: {e}")
             return
 
-        win = tk.Toplevel(self)
+        win, _dark = self._themed_toplevel()
         win.title(f"Text View — {filename}")
         win.geometry("900x600")
         win.resizable(True, True)
@@ -1559,7 +1559,7 @@ class DataMixin:
     def show_about(self):
         """Show the About dialog with version and author information."""
         import tkinter as tk
-        about_win = tk.Toplevel(self)
+        about_win, _dark = self._themed_toplevel()
         about_win.title("About peekdocs")
         about_win.resizable(False, False)
         about_win.geometry("300x210")
@@ -1894,7 +1894,7 @@ class DataMixin:
         )
 
         import tkinter as tk
-        status_win = tk.Toplevel(self)
+        status_win, _dark = self._themed_toplevel()
         status_win.title("Index Status")
         status_win.resizable(True, True)
         line_count = stdout.count("\n") + 1
