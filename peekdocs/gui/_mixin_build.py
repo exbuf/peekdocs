@@ -1603,20 +1603,25 @@ class BuildMixin:
     def _themed_toplevel(self, parent=None):
         """Create a tk.Toplevel pre-themed for dark mode.
 
-        Returns (window, is_dark). In dark mode, sets the tk option database
-        so all child widgets are created with dark colors from the start —
-        no white flash on slower machines.
+        Returns (window, is_dark).
+
+        On macOS in dark mode, sets the tk option database so all child
+        widgets are created with dark colors from the start and places
+        the window offscreen until the caller repositions it.
+
+        On Windows, skips option_add pre-theming entirely — it causes
+        popups to not appear.  The caller's _apply_dark_theme() at the
+        end of widget setup handles dark mode on Windows instead.
         """
         import tkinter as tk
+        import sys as _sys_tt
         win = tk.Toplevel(parent or self)
-        if ctk.get_appearance_mode() == "Dark":
-            # On macOS, place offscreen while building widgets to reduce
-            # white flash.  On Windows the flash happens regardless (a
-            # tkinter limitation), so skip the offscreen trick — it only
-            # risks the window getting stuck offscreen.
-            import sys as _sys_tt
-            if _sys_tt.platform != "win32":
-                win.geometry("+99999+99999")
+        _is_dark = ctk.get_appearance_mode() == "Dark"
+        if _is_dark and _sys_tt.platform != "win32":
+            # macOS/Linux: place offscreen while building widgets to
+            # reduce white flash.  The popup's own geometry() call
+            # moves it onscreen after setup is complete.
+            win.geometry("+99999+99999")
             _bg = "#2b2b2b"
             _fg = "#e0e0e0"
             _entry_bg = "#3a3a3a"
@@ -1664,6 +1669,7 @@ class BuildMixin:
             # Use a short delay so the caller has time to build widgets
             # and optionally set its own geometry before the safety net fires.
             win.after(200, _ensure_onscreen)
+        if _is_dark:
             return win, True
         return win, False
 
