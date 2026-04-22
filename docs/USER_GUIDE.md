@@ -598,129 +598,129 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 17 | Proximity with file type filter | `peekdocs -p 5 -t pdf,docx budget revenue` |
 | 18 | Proximity with recursive search | `peekdocs -p 5 -r budget revenue` |
 | 19 | Proximity with specific file | `peekdocs -p 5 -f report.pdf budget revenue` |
+| 20 | Line proximity (within 3 lines, implies AND) | `peekdocs -P 3 budget acme` |
 | | **Recursive (Subdirectory) Searches** | |
-| 20 | Search all subdirectories | `peekdocs -r budget` |
-| 21 | Recursive with AND logic | `peekdocs -r -a budget revenue expenses` |
-| 22 | Recursive with file type filter | `peekdocs -r -t pdf,docx budget` |
-| 23 | Recursive, AND, and file type filter | `peekdocs -r -a -t txt budget revenue expenses` |
+| 21 | Search all subdirectories | `peekdocs -r budget` |
+| 22 | Recursive with AND logic | `peekdocs -r -a budget revenue expenses` |
+| 23 | Recursive with file type filter | `peekdocs -r -t pdf,docx budget` |
+| 24 | Recursive, AND, and file type filter | `peekdocs -r -a -t txt budget revenue expenses` |
 | | **Regex Pattern Searches** | |
-| 24 | Search for phone numbers | `peekdocs -x "\d{3}-\d{3}-\d{4}"` |
-| 25 | Search for email addresses | `peekdocs -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
-| 26 | Regex with AND logic | `peekdocs -x -a "\d{3}" "\$\d+\.\d{2}"` |
-| 27 | Regex with file type filter | `peekdocs -x -t pdf,docx "\$\d+(\.\d{2})?"` |
-| 28 | Regex recursive | `peekdocs -x -r "\d{3}-\d{3}-\d{4}"` |
-| 29 | Regex, recursive, file type filter | `peekdocs -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
-| 30 | Regex, AND, recursive, file type filter | `peekdocs -x -a -r -t pdf "\d{3}" "\$\d+"` |
+| 25 | Search for phone numbers | `peekdocs -x "\d{3}-\d{3}-\d{4}"` |
+| 26 | Search for email addresses | `peekdocs -x "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}"` |
+| 27 | Regex with AND logic | `peekdocs -x -a "\d{3}" "\$\d+\.\d{2}"` |
+| 28 | Regex with file type filter | `peekdocs -x -t pdf,docx "\$\d+(\.\d{2})?"` |
+| 29 | Regex recursive | `peekdocs -x -r "\d{3}-\d{3}-\d{4}"` |
+| 30 | Regex, recursive, file type filter | `peekdocs -x -r -t txt,csv "\b2026-\d{2}-\d{2}\b"` |
+| 31 | Regex, AND, recursive, file type filter | `peekdocs -x -a -r -t pdf "\d{3}" "\$\d+"` |
 | | **Context Lines (Before/After)** | |
-| 31 | Show 5 lines after each match | `peekdocs -A 5 "John Smith"` |
-| 32 | Show 3 lines before each match | `peekdocs -B 3 budget` |
-| 33 | Show lines before and after | `peekdocs -B 2 -A 2 budget` |
-| 34 | Context lines with AND logic | `peekdocs -B 3 -A 3 -a budget revenue` |
-| 35 | Context with file type filter | `peekdocs -A 5 -t docx,pdf budget` |
-| 36 | Context with recursive search | `peekdocs -B 3 -A 3 -r budget` |
-| 37 | Context with regex | `peekdocs -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
-| 38 | Context, recursive, file type filter | `peekdocs -B 5 -A 5 -r -t docx "John Smith"` |
-| 39 | Context, AND, recursive, file type filter | `peekdocs -B 3 -A 3 -a -r -t txt budget revenue` |
+| 32 | Show 5 lines after each match | `peekdocs -A 5 "John Smith"` |
+| 33 | Show 3 lines before each match | `peekdocs -B 3 budget` |
+| 34 | Show lines before and after | `peekdocs -B 2 -A 2 budget` |
+| 35 | Context lines with AND logic | `peekdocs -B 3 -A 3 -a budget revenue` |
+| 36 | Context with file type filter | `peekdocs -A 5 -t docx,pdf budget` |
+| 37 | Context with recursive search | `peekdocs -B 3 -A 3 -r budget` |
+| 38 | Context with regex | `peekdocs -B 2 -A 2 -x "\d{3}-\d{3}-\d{4}"` |
+| 39 | Context, recursive, file type filter | `peekdocs -B 5 -A 5 -r -t docx "John Smith"` |
+| 40 | Context, AND, recursive, file type filter | `peekdocs -B 3 -A 3 -a -r -t txt budget revenue` |
 | | **Parallel Processing** | |
-| 40 | Use 4 cores for search | `peekdocs -c 4 budget` |
-| 41 | Parallel with recursive search | `peekdocs -c 4 -r budget` |
-| 42 | Parallel with file type filter | `peekdocs -c 4 -t pdf,docx budget` |
+| 41 | Use 4 cores for search | `peekdocs -c 4 budget` |
+| 42 | Parallel with recursive search | `peekdocs -c 4 -r budget` |
+| 43 | Parallel with file type filter | `peekdocs -c 4 -t pdf,docx budget` |
 | | **Save, Version, and Help** | |
-| 43 | Save results to a named file | `peekdocs -s name_of_your_file` |
+| 44 | Save results to a named file | `peekdocs -s name_of_your_file` |
 | | **Save and Append Searches** | |
-| 44 | Search and append results to a file | `peekdocs -sa my_report budget` |
-| 45 | Append with AND search | `peekdocs -sa my_report -a budget revenue` |
-| 46 | Append with recursive search | `peekdocs -sa my_report -r budget` |
-| 47 | Append with file type filter | `peekdocs -sa my_report -t pdf budget` |
+| 45 | Search and append results to a file | `peekdocs -sa my_report budget` |
+| 46 | Append with AND search | `peekdocs -sa my_report -a budget revenue` |
+| 47 | Append with recursive search | `peekdocs -sa my_report -r budget` |
+| 48 | Append with file type filter | `peekdocs -sa my_report -t pdf budget` |
 | | **Quiet Mode** | |
-| 48 | Suppress banner | `peekdocs -q budget` |
+| 49 | Suppress banner | `peekdocs -q budget` |
 | 48a | Minimal output (Found/Elapsed only) | `peekdocs -qq budget` |
-| 49 | Quiet with recursive search | `peekdocs -q -r budget` |
+| 50 | Quiet with recursive search | `peekdocs -q -r budget` |
 | | **OCR Searches** | |
-| 50 | Search scanned PDFs and images | `peekdocs -O budget` |
-| 51 | OCR with file type filter | `peekdocs -O -t pdf budget` |
-| 52 | Search only image files | `peekdocs -O -t jpg,png budget` |
-| 53 | OCR with recursive search | `peekdocs -O -r budget` |
-| 54 | OCR with AND logic | `peekdocs -O -a budget revenue` |
-| 55 | OCR with context lines | `peekdocs -O -B 3 -A 3 budget` |
+| 51 | Search scanned PDFs and images | `peekdocs -O budget` |
+| 52 | OCR with file type filter | `peekdocs -O -t pdf budget` |
+| 53 | Search only image files | `peekdocs -O -t jpg,png budget` |
+| 54 | OCR with recursive search | `peekdocs -O -r budget` |
+| 55 | OCR with AND logic | `peekdocs -O -a budget revenue` |
+| 56 | OCR with context lines | `peekdocs -O -B 3 -A 3 budget` |
 | | **Fuzzy Searches** | |
-| 56 | Fuzzy single term | `peekdocs -z budget` |
-| 57 | Fuzzy with AND logic | `peekdocs -z -a budget revenue` |
-| 58 | Fuzzy with file type filter | `peekdocs -z -t pdf,docx budget` |
-| 59 | Fuzzy with recursive search | `peekdocs -z -r budget` |
-| 60 | Fuzzy with word proximity | `peekdocs -z -p 5 budget revenue` |
-| 60a | Line proximity (within 3 lines, implies AND) | `peekdocs -P 3 budget acme` |
-| 61 | Fuzzy with OCR | `peekdocs -z -O budget` |
-| 62 | Fuzzy with context lines | `peekdocs -z -B 3 -A 3 budget` |
-| 63 | Fuzzy, AND, recursive, file type | `peekdocs -z -a -r -t pdf budget revenue` |
+| 57 | Fuzzy single term | `peekdocs -z budget` |
+| 58 | Fuzzy with AND logic | `peekdocs -z -a budget revenue` |
+| 59 | Fuzzy with file type filter | `peekdocs -z -t pdf,docx budget` |
+| 60 | Fuzzy with recursive search | `peekdocs -z -r budget` |
+| 61 | Fuzzy with word proximity | `peekdocs -z -p 5 budget revenue` |
+| 62 | Fuzzy with OCR | `peekdocs -z -O budget` |
+| 63 | Fuzzy with context lines | `peekdocs -z -B 3 -A 3 budget` |
+| 64 | Fuzzy, AND, recursive, file type | `peekdocs -z -a -r -t pdf budget revenue` |
 | | **Wildcard Searches** | |
-| 64 | Wildcard single pattern | `peekdocs -w "budg*"` |
-| 65 | Wildcard question mark | `peekdocs -w "te?t"` |
-| 66 | Wildcard with AND logic | `peekdocs -w -a "budg*" "rev*"` |
-| 67 | Wildcard with file type filter | `peekdocs -w -t pdf,docx "budg*"` |
-| 68 | Wildcard with recursive search | `peekdocs -w -r "budg*"` |
-| 69 | Wildcard with context lines | `peekdocs -w -B 3 -A 3 "budg*"` |
+| 65 | Wildcard single pattern | `peekdocs -w "budg*"` |
+| 66 | Wildcard question mark | `peekdocs -w "te?t"` |
+| 67 | Wildcard with AND logic | `peekdocs -w -a "budg*" "rev*"` |
+| 68 | Wildcard with file type filter | `peekdocs -w -t pdf,docx "budg*"` |
+| 69 | Wildcard with recursive search | `peekdocs -w -r "budg*"` |
+| 70 | Wildcard with context lines | `peekdocs -w -B 3 -A 3 "budg*"` |
 | | **Whole-Word Searches** | |
-| 70 | Whole-word single term | `peekdocs -W bob` |
-| 71 | Whole-word with AND logic | `peekdocs -W -a bob amy` |
-| 72 | Whole-word with expression | `peekdocs -W -e "bob AND amy"` |
+| 71 | Whole-word single term | `peekdocs -W bob` |
+| 72 | Whole-word with AND logic | `peekdocs -W -a bob amy` |
+| 73 | Whole-word with expression | `peekdocs -W -e "bob AND amy"` |
 | | **Exclude Searches** | |
-| 73 | Exclude lines containing a term | `peekdocs -n draft budget` |
-| 74 | Exclude multiple terms | `peekdocs -n draft,obsolete budget` |
-| 75 | Exclude with AND logic | `peekdocs -n draft -a budget revenue` |
-| 76 | Exclude with recursive search | `peekdocs -n draft -r budget` |
-| 77 | Exclude with file type filter | `peekdocs -n draft -t pdf,docx budget` |
-| 78 | Exclude with wildcard search | `peekdocs -w -n "dra*" "budg*"` |
+| 74 | Exclude lines containing a term | `peekdocs -n draft budget` |
+| 75 | Exclude multiple terms | `peekdocs -n draft,obsolete budget` |
+| 76 | Exclude with AND logic | `peekdocs -n draft -a budget revenue` |
+| 77 | Exclude with recursive search | `peekdocs -n draft -r budget` |
+| 78 | Exclude with file type filter | `peekdocs -n draft -t pdf,docx budget` |
+| 79 | Exclude with wildcard search | `peekdocs -w -n "dra*" "budg*"` |
 | | **Additional Output Formats** | |
-| 79 | Output results as CSV | `peekdocs -o csv budget` |
-| 80 | Output results as JSON | `peekdocs -o json budget` |
-| 81 | Output both CSV and JSON | `peekdocs -o csv,json budget` |
-| 82 | CSV with recursive search | `peekdocs -o csv -r budget` |
+| 80 | Output results as CSV | `peekdocs -o csv budget` |
+| 81 | Output results as JSON | `peekdocs -o json budget` |
+| 82 | Output both CSV and JSON | `peekdocs -o csv,json budget` |
+| 83 | CSV with recursive search | `peekdocs -o csv -r budget` |
 | 82a | Output as PDF (highlighted) | `peekdocs -o pdf budget` |
 | 82b | All extra formats at once | `peekdocs -o csv,json,pdf,html budget` |
 | | **Match Cap** | |
-| 83 | Set max matches to 5000 | `peekdocs -m 5000 budget` |
-| 84 | Disable match cap (no limit) | `peekdocs -m 0 budget` |
-| 85 | Match cap with AND and recursive | `peekdocs -m 500 -a -r budget revenue` |
+| 84 | Set max matches to 5000 | `peekdocs -m 5000 budget` |
+| 85 | Disable match cap (no limit) | `peekdocs -m 0 budget` |
+| 86 | Match cap with AND and recursive | `peekdocs -m 500 -a -r budget revenue` |
 | | **Saved Settings** | |
-| 86 | View saved settings | `peekdocs --config` |
-| 87 | Save a setting | `peekdocs --config recursive=true` |
-| 88 | Save multiple settings | `peekdocs --config recursive=true cores=4` |
-| 89 | Remove a saved setting | `peekdocs --config recursive=` |
+| 87 | View saved settings | `peekdocs --config` |
+| 88 | Save a setting | `peekdocs --config recursive=true` |
+| 89 | Save multiple settings | `peekdocs --config recursive=true cores=4` |
+| 90 | Remove a saved setting | `peekdocs --config recursive=` |
 | | **Search Index** | |
-| 90 | Build index (includes all subfolders) | `peekdocs --index` |
-| 91 | Build index with OCR | `peekdocs --index -O` |
-| 92 | Show index info | `peekdocs --index-status` |
-| 93 | Delete the index | `peekdocs --index-clear` |
+| 91 | Build index (includes all subfolders) | `peekdocs --index` |
+| 92 | Build index with OCR | `peekdocs --index -O` |
+| 93 | Show index info | `peekdocs --index-status` |
+| 94 | Delete the index | `peekdocs --index-clear` |
 | 93a | Incrementally refresh the index | `peekdocs --index-refresh` |
 | 93b | Skip the index (direct scan) | `peekdocs --no-index budget` |
-| 94 | Delete results files | `peekdocs --clear` |
-| 95 | Delete all peekdocs output files | `peekdocs --clear-all` |
+| 95 | Delete results files | `peekdocs --clear` |
+| 96 | Delete all peekdocs output files | `peekdocs --clear-all` |
 | | **Inverse Search** | |
-| 94 | Find files missing a term | `peekdocs --inverse "indemnification"` |
-| 95 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
-| 96 | Files missing ALL required terms | `peekdocs --inverse -a confidential signature date` |
-| 97 | Inverse with regex pattern | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
-| 98 | Inverse with file type filter | `peekdocs --inverse -t pdf,docx "effective date"` |
-| 99 | Inverse recursive search | `peekdocs --inverse -r "retention policy"` |
-| 100 | Inverse with CSV output | `peekdocs --inverse -o csv "indemnification"` |
-| 101 | Inverse with JSON output | `peekdocs --inverse -o json "authorization"` |
+| 97 | Find files missing a term | `peekdocs --inverse "indemnification"` |
+| 98 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
+| 99 | Files missing ALL required terms | `peekdocs --inverse -a confidential signature date` |
+| 100 | Inverse with regex pattern | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| 101 | Inverse with file type filter | `peekdocs --inverse -t pdf,docx "effective date"` |
+| 102 | Inverse recursive search | `peekdocs --inverse -r "retention policy"` |
+| 103 | Inverse with CSV output | `peekdocs --inverse -o csv "indemnification"` |
+| 104 | Inverse with JSON output | `peekdocs --inverse -o json "authorization"` |
 | | **Boolean Expression Search** | |
-| 102 | AND expression | `peekdocs -e "budget AND revenue"` |
-| 103 | OR expression | `peekdocs -e "budget OR revenue"` |
-| 104 | AND NOT expression | `peekdocs -e "budget AND NOT draft"` |
-| 105 | Grouped OR within AND | `peekdocs -e "(budget OR revenue) AND (cost OR profit)"` |
-| 106 | Grouped AND with OR | `peekdocs -e "(bob AND amy) OR (fred AND wilma)"` |
-| 107 | Complex with NOT | `peekdocs -e "(merger OR acquisition) AND NOT draft"` |
-| 108 | Multi-word terms in expression | `peekdocs -e '"annual report" AND (2023 OR 2024)'` |
-| 109 | Expression with wildcard | `peekdocs -e -w "budg* AND rev*"` |
-| 110 | Expression with regex | `peekdocs -e -x "\\d{3}-\\d{4} AND budget"` |
-| 111 | Expression with fuzzy | `peekdocs -e -z "budgt AND revnue"` |
-| 112 | Expression with context | `peekdocs -e -B 2 -A 2 "merger AND NOT confidential"` |
-| 113 | Expression recursive | `peekdocs -e -r "(budget OR revenue) AND (cost OR profit)"` |
+| 105 | AND expression | `peekdocs -e "budget AND revenue"` |
+| 106 | OR expression | `peekdocs -e "budget OR revenue"` |
+| 107 | AND NOT expression | `peekdocs -e "budget AND NOT draft"` |
+| 108 | Grouped OR within AND | `peekdocs -e "(budget OR revenue) AND (cost OR profit)"` |
+| 109 | Grouped AND with OR | `peekdocs -e "(bob AND amy) OR (fred AND wilma)"` |
+| 110 | Complex with NOT | `peekdocs -e "(merger OR acquisition) AND NOT draft"` |
+| 111 | Multi-word terms in expression | `peekdocs -e '"annual report" AND (2023 OR 2024)'` |
+| 112 | Expression with wildcard | `peekdocs -e -w "budg* AND rev*"` |
+| 113 | Expression with regex | `peekdocs -e -x "\\d{3}-\\d{4} AND budget"` |
+| 114 | Expression with fuzzy | `peekdocs -e -z "budgt AND revnue"` |
+| 115 | Expression with context | `peekdocs -e -B 2 -A 2 "merger AND NOT confidential"` |
+| 116 | Expression recursive | `peekdocs -e -r "(budget OR revenue) AND (cost OR profit)"` |
 | | **Output Directory** | |
-| 114 | Write results to a specific folder | `peekdocs --output-dir ~/reports budget` |
-| 115 | Output dir with recursive search | `peekdocs --output-dir /tmp/results -r budget` |
+| 117 | Write results to a specific folder | `peekdocs --output-dir ~/reports budget` |
+| 118 | Output dir with recursive search | `peekdocs --output-dir /tmp/results -r budget` |
 | 115a | Timestamped filenames | `peekdocs --timestamp budget` |
 | 115b | Timestamp with output directory | `peekdocs --timestamp --output-dir ~/reports -r budget` |
 | 115c | Max file size limit (skip large files) | `peekdocs --max-file-size 50 budget` |
@@ -733,51 +733,51 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 115i | AND + exclude + file types + timestamp | `peekdocs -a -n draft -t pdf,docx --timestamp budget revenue` |
 | 115j | Regex + context + recursive + JSON | `peekdocs -x "\d{3}-\d{2}-\d{4}" -B 3 -A 3 -r -o json` |
 | | **Range Queries** | |
-| 116 | Filter by dollar amount range | `peekdocs -R amount:1000..5000 budget` |
-| 117 | Filter by date range | `peekdocs -R date:2024-01-01..2024-12-31 report` |
-| 118 | Range-only search (no text terms) | `peekdocs -R amount:1000..5000` |
-| 119 | Filter by file size | `peekdocs -R filesize:1M..10M report` |
-| 120 | Multiple ranges (AND) | `peekdocs -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
-| 121 | Open-ended range (minimum only) | `peekdocs -R amount:10000.. contract` |
-| 122 | Percent range | `peekdocs -R percent:10..50 growth` |
-| 123 | Age range | `peekdocs -R age:18..65 patient` |
-| 124 | Time range | `peekdocs -R time:09:00..17:00 meeting` |
-| 125 | Range with recursive search | `peekdocs -R amount:1000..5000 -r budget` |
-| 126 | Open-ended range (maximum only) | `peekdocs -R amount:..5000 invoice` |
-| 127 | Filter by file modification date | `peekdocs -R filedate:2024-01-01..2024-06-30 report` |
-| 128 | Number range (any standalone number) | `peekdocs -R number:100..999 report` |
-| 129 | Range with file type filter | `peekdocs -R amount:1000.. -t .pdf,.docx invoice` |
-| 130 | Range with context lines | `peekdocs -R amount:5000..10000 -B 2 -A 2 payment` |
-| 131 | Range with AND mode text search | `peekdocs -R date:2024-01-01..2024-12-31 -a budget revenue` |
-| 132 | Range with exclude terms | `peekdocs -R amount:1000..5000 -n draft invoice` |
-| 133 | Large file search | `peekdocs -R filesize:10M.. -r report` |
-| 134 | Small recent files | `peekdocs -R filesize:..100K -R filedate:2025-01-01.. memo` |
+| 119 | Filter by dollar amount range | `peekdocs -R amount:1000..5000 budget` |
+| 120 | Filter by date range | `peekdocs -R date:2024-01-01..2024-12-31 report` |
+| 121 | Range-only search (no text terms) | `peekdocs -R amount:1000..5000` |
+| 122 | Filter by file size | `peekdocs -R filesize:1M..10M report` |
+| 123 | Multiple ranges (AND) | `peekdocs -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
+| 124 | Open-ended range (minimum only) | `peekdocs -R amount:10000.. contract` |
+| 125 | Percent range | `peekdocs -R percent:10..50 growth` |
+| 126 | Age range | `peekdocs -R age:18..65 patient` |
+| 127 | Time range | `peekdocs -R time:09:00..17:00 meeting` |
+| 128 | Range with recursive search | `peekdocs -R amount:1000..5000 -r budget` |
+| 129 | Open-ended range (maximum only) | `peekdocs -R amount:..5000 invoice` |
+| 130 | Filter by file modification date | `peekdocs -R filedate:2024-01-01..2024-06-30 report` |
+| 131 | Number range (any standalone number) | `peekdocs -R number:100..999 report` |
+| 132 | Range with file type filter | `peekdocs -R amount:1000.. -t .pdf,.docx invoice` |
+| 133 | Range with context lines | `peekdocs -R amount:5000..10000 -B 2 -A 2 payment` |
+| 134 | Range with AND mode text search | `peekdocs -R date:2024-01-01..2024-12-31 -a budget revenue` |
+| 135 | Range with exclude terms | `peekdocs -R amount:1000..5000 -n draft invoice` |
+| 136 | Large file search | `peekdocs -R filesize:10M.. -r report` |
+| 137 | Small recent files | `peekdocs -R filesize:..100K -R filedate:2025-01-01.. memo` |
 | | **Filename Ranges** | |
 | 134a | Filter by date in filename | `peekdocs -R fn:date:2024-01-01..2024-12-31 budget` |
 | 134b | Filename + content range | `peekdocs -R fn:date:2024-01-01..2024-12-31 -R amount:1000..5000 invoice` |
 | 134c | Filename range in expression | `peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"` |
 | | **Range Queries in Expressions** | |
-| 135 | Text AND amount range | `peekdocs -e "budget AND amount:1000..5000"` |
-| 136 | Text AND date range | `peekdocs -e "report AND date:2024-01-01..2024-12-31"` |
-| 137 | OR with range on one branch | `peekdocs -e "(budget AND amount:1000..5000) OR revenue"` |
-| 138 | NOT with range (exclude high amounts) | `peekdocs -e "invoice AND NOT amount:10000.."` |
-| 139 | Multiple ranges in expression | `peekdocs -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"` |
-| 140 | Range-only expression | `peekdocs -e "amount:1000..5000"` |
-| 141 | OR between two ranges | `peekdocs -e "amount:1000..5000 OR percent:10..50"` |
-| 142 | Text with percent range | `peekdocs -e "growth AND percent:20..100"` |
-| 143 | Text with age range | `peekdocs -e "patient AND age:18..65"` |
-| 144 | Text with time range | `peekdocs -e "meeting AND time:09:00..17:00"` |
-| 145 | Complex: text + range + NOT | `peekdocs -e "(contract AND amount:5000..50000) AND NOT draft"` |
-| 146 | Complex: two branches with ranges | `peekdocs -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
-| 147 | Expression + -R metadata filter | `peekdocs -e "budget AND amount:1000..5000" -R filesize:..1M` |
-| 148 | Expression with wildcard + range | `peekdocs -e -w "budg* AND amount:1000..5000"` |
-| 149 | Expression with regex + range | `peekdocs -e -x "INV-\\d+ AND amount:1000..5000"` |
+| 138 | Text AND amount range | `peekdocs -e "budget AND amount:1000..5000"` |
+| 139 | Text AND date range | `peekdocs -e "report AND date:2024-01-01..2024-12-31"` |
+| 140 | OR with range on one branch | `peekdocs -e "(budget AND amount:1000..5000) OR revenue"` |
+| 141 | NOT with range (exclude high amounts) | `peekdocs -e "invoice AND NOT amount:10000.."` |
+| 142 | Multiple ranges in expression | `peekdocs -e "invoice AND amount:500..5000 AND date:2024-01-01..2024-12-31"` |
+| 143 | Range-only expression | `peekdocs -e "amount:1000..5000"` |
+| 144 | OR between two ranges | `peekdocs -e "amount:1000..5000 OR percent:10..50"` |
+| 145 | Text with percent range | `peekdocs -e "growth AND percent:20..100"` |
+| 146 | Text with age range | `peekdocs -e "patient AND age:18..65"` |
+| 147 | Text with time range | `peekdocs -e "meeting AND time:09:00..17:00"` |
+| 148 | Complex: text + range + NOT | `peekdocs -e "(contract AND amount:5000..50000) AND NOT draft"` |
+| 149 | Complex: two branches with ranges | `peekdocs -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
+| 150 | Expression + -R metadata filter | `peekdocs -e "budget AND amount:1000..5000" -R filesize:..1M` |
+| 151 | Expression with wildcard + range | `peekdocs -e -w "budg* AND amount:1000..5000"` |
+| 152 | Expression with regex + range | `peekdocs -e -x "INV-\\d+ AND amount:1000..5000"` |
 | | **Installation Check** | |
-| 150 | Check installation health | `peekdocs --check` |
+| 153 | Check installation health | `peekdocs --check` |
 | | **Version and Help** | |
-| 151 | Show version | `peekdocs -v` |
-| 152 | Show help | `peekdocs -h` |
-| 153 | Show help (no arguments) | `peekdocs` |
+| 154 | Show version | `peekdocs -v` |
+| 155 | Show help | `peekdocs -h` |
+| 156 | Show help (no arguments) | `peekdocs` |
 
 ## Output
 
