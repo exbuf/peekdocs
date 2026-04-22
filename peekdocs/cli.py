@@ -56,7 +56,7 @@ BANNER_TOP = (
     '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
     '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
     '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
-    '  peekdocs -p 5 budget revenue   Proximity (terms within 5 words of each other)\n'
+    '  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)\n'
     '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)'
 )
 
@@ -113,7 +113,7 @@ BANNER_BOTTOM = (
     '\n'
     'All flags can be combined freely except: -x (regex), -z (fuzzy), and -w (wildcard)\n'
     'are mutually exclusive (pick one); and -e (expression) cannot be combined with\n'
-    '-a (AND), -n (exclude), or -p (proximity) — those are built into expression syntax.\n'
+    '-a (AND), -n (exclude), or -p (word proximity) — those are built into expression syntax.\n'
     '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.'
 )
