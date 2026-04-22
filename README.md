@@ -148,7 +148,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 ### Prerequisites
 
 - **Python 3.10+** — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/). **Note:** Python version numbers are not decimals — 3.13 is newer than 3.9 (it's the 13th release, not "three point one three").
-  - **macOS users:** Your Mac may come with an older Python (3.9.x) pre-installed. If `python3 --version` shows 3.9.x, you need a newer version. Install from [python.org/downloads](https://www.python.org/downloads/) or via Homebrew (`brew install python`). After installing, use `python3.13` (or whichever version you installed) instead of `python3` when creating the virtual environment — the plain `python3` command may still point to the old 3.9.
+  - **macOS users:** Your Mac may come with an older Python (3.9.x) pre-installed. If `python3 --version` shows 3.9.x, you need a newer version. Install from [python.org/downloads](https://www.python.org/downloads/) or via Homebrew (`brew install python`). After installing, the plain `python3` command may still point to the old 3.9 — use `python3.13` (or whichever version you installed) instead. You also need tkinter for the GUI: `brew install python-tk@3.13` (replace 3.13 with your version if different).
   - **Windows users:** Windows does not come with Python pre-installed, but you may have installed it previously. Open a Command Prompt and type `python --version`. If you see a version number (e.g., `Python 3.12.4`), Python is already installed and in your PATH — you're good to go. If you see "not recognized" or the Microsoft Store opens, Python is either not installed or not in your PATH. Download it from [python.org/downloads](https://www.python.org/downloads/) and make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `peekdocs` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
   - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** The base `python3` package does not include `venv`, `pip`, or `tkinter`. You must install them before creating a virtual environment. Run this single command to get everything peekdocs needs:
     ```bash
@@ -156,7 +156,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
     ```
     Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`peekdocs-gui`) will not launch. This is a one-time setup.
 - **pip** (Python's package installer) — included automatically when you install Python 3.10+. No separate installation needed. **pipx** is a separate tool that must be installed via pip (see Option A below).
-- **Tkinter** (required for GUI) — no action needed on Windows and macOS (the Python installer includes it). On Linux you must install it separately: `sudo apt install python3-tk` (already included in the Linux command above)
+- **Tkinter** (required for GUI) — no action needed on Windows (the Python installer includes it). On macOS with Homebrew Python, install it: `brew install python-tk@3.13` (replace 3.13 with your version). On Linux: `sudo apt install python3-tk` (already included in the Linux command above). If you installed Python from [python.org](https://www.python.org/downloads/) on macOS, tkinter is already included.
 - **Tesseract** (optional, for OCR) — OCR (Optical Character Recognition) reads text from scanned PDFs and images (PNG, JPG, TIFF, BMP, GIF). Most users don't need this — it's only for documents that are pictures of text rather than actual text. If you do need it: macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
 ### Option A: Quick Install with pipx (recommended)
@@ -164,8 +164,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 First, check if pipx is installed by typing `pipx --version`. If it says "not recognized" or "command not found," install it:
 
 ```bash
-pip install pipx          # Windows: if pip isn't recognized, use: python -m pip install pipx
-brew install pipx         # macOS: use this instead if pip gives an "externally-managed-environment" error
+pip install pipx          # Windows
+brew install pipx         # macOS (pip won't work — gives "externally-managed-environment" error)
 pipx ensurepath           # adds pipx to your PATH (all platforms)
 ```
 
@@ -176,13 +176,14 @@ pipx ensurepath           # adds pipx to your PATH (all platforms)
 3. Open any terminal or Command Prompt window — it doesn't matter what folder you're in. Run:
 
    ```
-   pipx install C:\Users\YourName\Downloads\peekdocs-main.zip   # Windows (replace YourName)
-   pipx install ~/Downloads/peekdocs-main                        # macOS/Linux
+   pipx install C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows (replace YourName)
+   pipx install --python python3.13 ~/Downloads/peekdocs-main              # macOS
+   pipx install ~/Downloads/peekdocs-main                                  # Linux
    ```
 
-   **macOS note:** Safari auto-extracts ZIP files, so you'll have a `peekdocs-main` folder (not a `.zip` file) in Downloads. The command above accounts for this.
+   **macOS notes:** (1) The `--python python3.13` flag tells pipx to use your newer Python instead of the old system Python 3.9. Replace `3.13` with whichever version you installed. (2) Safari auto-extracts ZIP files, so you'll have a `peekdocs-main` folder (not a `.zip` file) in Downloads.
 
-**Have git?** You can skip the download and install directly: `pipx install git+https://github.com/exbuf/peekdocs.git`
+**Have git?** You can skip the download and install directly: `pipx install git+https://github.com/exbuf/peekdocs.git` (on macOS, add `--python python3.13`)
 
 After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — even after restarting your computer. It's a one-time install, not something you run daily. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
 
