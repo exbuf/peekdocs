@@ -1220,6 +1220,12 @@ peekdocs -R date:2024-01-01..2024-12-31 report
 peekdocs -R date:2026-06-01..2026-06-30 invoice
 peekdocs -R date:06/01/2026..06/30/2026 invoice   # same search, US format
 
+# Find "invoice" OR "refund" in lines dated in June 2026
+peekdocs -R date:06/01/2026..06/30/2026 invoice refund
+
+# Find "invoice" AND "refund" on the same line, dated in June 2026
+peekdocs -a -R date:06/01/2026..06/30/2026 invoice refund
+
 # Find "meeting" in lines with times between 9 AM and 5 PM
 peekdocs -R time:09:00..17:00 meeting
 
