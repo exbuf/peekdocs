@@ -1594,10 +1594,22 @@ class BuildMixin:
             except Exception:
                 pass
 
+    def _themed_toplevel(self, parent=None):
+        """Create a tk.Toplevel that starts dark if Dark mode is active.
+
+        Returns (window, is_dark). The window is hidden (withdrawn) so widgets
+        can be added without a white flash. Call window.deiconify() after
+        _apply_dark_theme() to show it.
+        """
+        import tkinter as tk
+        win = tk.Toplevel(parent or self)
+        if ctk.get_appearance_mode() == "Dark":
+            win.configure(bg="#2b2b2b")
+            win.withdraw()  # hide until theming is complete
+            return win, True
+        return win, False
+
     @staticmethod
-
-
-
     def _is_dark_mode():
         """Return True if the current appearance is Dark."""
         return ctk.get_appearance_mode() == "Dark"
@@ -1682,6 +1694,12 @@ class BuildMixin:
                 _apply(child)
 
         _apply(widget)
+        # If the window was hidden by _themed_toplevel, show it now
+        try:
+            if widget.winfo_class() == "Toplevel" and not widget.winfo_viewable():
+                widget.deiconify()
+        except Exception:
+            pass
 
 
 
