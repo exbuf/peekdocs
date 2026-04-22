@@ -1216,6 +1216,10 @@ peekdocs -R amount:1000..5000 budget
 # Find "report" in lines dated within 2024
 peekdocs -R date:2024-01-01..2024-12-31 report
 
+# Find "invoice" in lines dated in June 2026 (US date format also accepted)
+peekdocs -R date:2026-06-01..2026-06-30 invoice
+peekdocs -R date:06/01/2026..06/30/2026 invoice   # same search, US format
+
 # Find "meeting" in lines with times between 9 AM and 5 PM
 peekdocs -R time:09:00..17:00 meeting
 
