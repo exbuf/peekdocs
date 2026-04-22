@@ -6,8 +6,9 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 
 - [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
 - [Security Best Practices](#security-best-practices)
-- [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
+- [Getting Started with the Terminal](#getting-started-with-the-terminal)
+- [Python API Reference](#python-api-reference)
 - [Usage](#usage)
   - [Regex search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
@@ -28,7 +29,6 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Limits and Constraints](#limits-and-constraints)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
-- [Python API Reference](#python-api-reference)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 
