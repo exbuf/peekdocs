@@ -766,15 +766,37 @@ def _search_file_lines(all_lines, file_dir, filename, config):
                     if term_lower in text_lower:
                         term_lines[term].add(ln)
 
-        # Find line numbers where all terms are within line_proximity lines
+        # Find line numbers where all terms are within line_proximity lines,
+        # then group them into a single combined match with all lines together
         if all(term_lines.values()):
             from itertools import product as _lp_product
-            valid_lines = set()
+            # Collect all valid proximity windows
+            windows = []
             for combo in _lp_product(*[sorted(tl) for tl in term_lines.values()]):
                 if max(combo) - min(combo) <= line_proximity:
-                    valid_lines.update(range(min(combo), max(combo) + 1))
-            if valid_lines:
-                matches = [m for m in matches if m[2] in valid_lines]
+                    windows.append((min(combo), max(combo)))
+            if windows:
+                # Merge overlapping windows
+                windows.sort()
+                merged = [windows[0]]
+                for start, end in windows[1:]:
+                    if start <= merged[-1][1] + 1:
+                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+                    else:
+                        merged.append((start, end))
+                # Build a lookup of all lines by line number
+                all_lines_dict = {ln: text for ln, text in all_lines}
+                # Create one grouped match per window
+                grouped = []
+                for win_start, win_end in merged:
+                    lines_in_window = []
+                    for ln in range(win_start, win_end + 1):
+                        if ln in all_lines_dict:
+                            lines_in_window.append(all_lines_dict[ln])
+                    if lines_in_window:
+                        combined_text = "\n".join(lines_in_window)
+                        grouped.append((file_dir, filename, win_start, combined_text))
+                matches = grouped
             else:
                 matches = []
         else:
