@@ -1207,9 +1207,12 @@ The `fn:` prefix works with all 6 content fields (date, amount, number, percent,
 
 ### Using the `-R` flag
 
-**Basic range filtering** — combine `-R` with text search terms:
+**Basic range filtering** — use `-R` alone to find values in a range, or combine with search terms:
 
 ```bash
+# Find all lines containing dates in June 2026 (no search term needed)
+peekdocs -R date:06/01/2026..06/30/2026
+
 # Find "budget" in lines that mention amounts between $1,000 and $5,000
 peekdocs -R amount:1000..5000 budget
 
