@@ -494,6 +494,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
+| `--open` (open) | Automatically open the highlighted `.docx` report when the search finishes. Opens in your default word processor |
 | `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON, PDF) to the specified directory instead of the search folder |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
@@ -696,6 +697,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 93b | Skip the index (direct scan) | `peekdocs --no-index budget` |
 | 95 | Delete results files | `peekdocs --clear` |
 | 96 | Delete all peekdocs output files | `peekdocs --clear-all` |
+| 97 | Search and auto-open the report | `peekdocs --open budget` |
 | | **Inverse Search** | |
 | 97 | Find files missing a term | `peekdocs --inverse "indemnification"` |
 | 98 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
