@@ -170,15 +170,16 @@ pipx ensurepath           # adds pipx to your PATH
 
 **Close and reopen your terminal** after running `ensurepath` (it only takes effect in a new window). Then install peekdocs:
 
-```bash
-pipx install git+https://github.com/exbuf/peekdocs.git
-```
+1. Go to [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs)
+2. Click the green **Code** button → **Download ZIP**
+3. Run:
 
-**Getting a git error?** If you see "do you have git installed," use this instead (downloads as a ZIP — no git required):
+   ```bash
+   pipx install ~/Downloads/peekdocs-main.zip        # macOS/Linux
+   pipx install C:\Users\YourName\Downloads\peekdocs-main.zip   # Windows (replace YourName)
+   ```
 
-```bash
-pipx install https://github.com/exbuf/peekdocs/archive/refs/heads/main.zip
-```
+**Have git?** You can skip the download and install directly: `pipx install git+https://github.com/exbuf/peekdocs.git`
 
 After installation, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
 
