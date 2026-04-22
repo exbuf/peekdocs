@@ -168,20 +168,20 @@ pip install pipx          # Windows: if pip isn't recognized, use: python -m pip
 pipx ensurepath           # adds pipx to your PATH
 ```
 
-**Close and reopen your terminal** after running `ensurepath` (it only takes effect in a new window). Then install peekdocs:
+**Close and reopen your terminal** (Command Prompt on Windows) after running `ensurepath` (it only takes effect in a new window). Then install peekdocs:
 
 1. Go to [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs)
 2. Click the green **Code** button → **Download ZIP**
-3. Run:
+3. Open any terminal or Command Prompt window — it doesn't matter what folder you're in. Run:
 
-   ```bash
-   pipx install ~/Downloads/peekdocs-main.zip        # macOS/Linux
+   ```
    pipx install C:\Users\YourName\Downloads\peekdocs-main.zip   # Windows (replace YourName)
+   pipx install ~/Downloads/peekdocs-main.zip                    # macOS/Linux
    ```
 
 **Have git?** You can skip the download and install directly: `pipx install git+https://github.com/exbuf/peekdocs.git`
 
-After installation, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — no activation step needed. This is the easiest way to install.
+After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — no activation step needed. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
 
 **Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options B and C below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
 
@@ -233,9 +233,10 @@ No git? No problem. Download peekdocs as a ZIP file directly from your browser:
 
 Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
 
-- **pipx:** `pipx upgrade peekdocs`
-- **git:** `cd peekdocs && git pull && pip install -e .`
-- **ZIP:** download the new ZIP, replace the folder, run `pip install -e .`
+- **pipx (installed from ZIP):** `pipx uninstall peekdocs`, download the new ZIP, then `pipx install` it again (same steps as the original install)
+- **pipx (installed with git):** `pipx upgrade peekdocs`
+- **git (Option B):** `cd peekdocs && git pull && pip install -e .`
+- **ZIP (Option C):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`
 
 See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
