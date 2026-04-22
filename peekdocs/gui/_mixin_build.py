@@ -1579,12 +1579,20 @@ class BuildMixin:
         ctk.set_appearance_mode(mode)
         self._appearance_mode = mode
         self._save_ui_preference("appearance_mode", mode)
-        # Close any open tool popups — they were themed at creation time
-        # and cannot be reliably re-themed in place.
+        # Close ephemeral tool popups — they were themed at creation
+        # time and cannot be reliably re-themed in place.  Skip
+        # persistent windows (advanced_window, index_window) that
+        # are part of the main UI.
         import tkinter as tk
+        _keep = set()
+        for attr in ("advanced_window", "index_window"):
+            w = getattr(self, attr, None)
+            if w is not None:
+                _keep.add(str(w))
         for child in self.winfo_children():
             if isinstance(child, tk.Toplevel) and child.winfo_exists():
-                child.destroy()
+                if str(child) not in _keep:
+                    child.destroy()
         # Update the Results Preview pane colors
         if hasattr(self, "preview_text"):
             _dark = ctk.get_appearance_mode() == "Dark"
