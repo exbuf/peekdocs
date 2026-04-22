@@ -1595,17 +1595,43 @@ class BuildMixin:
                 pass
 
     def _themed_toplevel(self, parent=None):
-        """Create a tk.Toplevel that starts dark if Dark mode is active.
+        """Create a tk.Toplevel pre-themed for dark mode.
 
-        Returns (window, is_dark). The window is hidden (withdrawn) so widgets
-        can be added without a white flash. Call window.deiconify() after
-        _apply_dark_theme() to show it.
+        Returns (window, is_dark). In dark mode, sets the tk option database
+        so all child widgets are created with dark colors from the start —
+        no white flash on slower machines.
         """
         import tkinter as tk
         win = tk.Toplevel(parent or self)
         if ctk.get_appearance_mode() == "Dark":
-            win.configure(bg="#2b2b2b")
-            win.withdraw()  # hide until theming is complete
+            _bg = "#2b2b2b"
+            _fg = "#e0e0e0"
+            _entry_bg = "#3a3a3a"
+            _btn_bg = "#555555"
+            win.configure(bg=_bg)
+            win.option_add("*Background", _bg)
+            win.option_add("*Foreground", _fg)
+            win.option_add("*Entry.Background", _entry_bg)
+            win.option_add("*Entry.Foreground", _fg)
+            win.option_add("*Entry.insertBackground", _fg)
+            win.option_add("*Listbox.Background", "#2b2b2b")
+            win.option_add("*Listbox.Foreground", "white")
+            win.option_add("*Text.Background", _entry_bg)
+            win.option_add("*Text.Foreground", _fg)
+            win.option_add("*Text.insertBackground", _fg)
+            win.option_add("*Button.Background", _btn_bg)
+            win.option_add("*Button.Foreground", "white")
+            win.option_add("*Checkbutton.Background", _bg)
+            win.option_add("*Checkbutton.Foreground", _fg)
+            win.option_add("*Checkbutton.selectColor", _entry_bg)
+            win.option_add("*Radiobutton.Background", _bg)
+            win.option_add("*Radiobutton.Foreground", _fg)
+            win.option_add("*Radiobutton.selectColor", _entry_bg)
+            win.option_add("*Label.Background", _bg)
+            win.option_add("*Label.Foreground", _fg)
+            win.option_add("*Scrollbar.Background", _btn_bg)
+            win.option_add("*Scrollbar.troughColor", _bg)
+            win.option_add("*Canvas.Background", _bg)
             return win, True
         return win, False
 
@@ -1694,12 +1720,6 @@ class BuildMixin:
                 _apply(child)
 
         _apply(widget)
-        # If the window was hidden by _themed_toplevel, show it now
-        try:
-            if widget.winfo_class() == "Toplevel" and not widget.winfo_viewable():
-                widget.deiconify()
-        except Exception:
-            pass
 
 
 
