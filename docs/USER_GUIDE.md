@@ -471,7 +471,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
 | `-p N` (proximity) | Word proximity — find terms within N words of each other (same line) |
-| `-P N` (line-proximity) | Line proximity — find terms within N lines of each other. Useful for source code, plain text, and any format where related terms may be on adjacent lines rather than the same line |
+| `-P N` (line-proximity) | Line proximity — find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx), a line is a paragraph; for Excel, a line is a row; for PDF, a line is a text block (variable). Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
 | `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
