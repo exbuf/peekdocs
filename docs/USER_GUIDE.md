@@ -648,8 +648,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 58 | Fuzzy with file type filter | `peekdocs -z -t pdf,docx budget` |
 | 59 | Fuzzy with recursive search | `peekdocs -z -r budget` |
 | 60 | Fuzzy with word proximity | `peekdocs -z -p 5 budget revenue` |
-| 60a | Line proximity (within 3 lines) | `peekdocs -P 3 budget acme` |
-| 60b | Line proximity (within 10 lines) | `peekdocs -P 10 password login` |
+| 60a | Line proximity (within 3 lines, implies AND) | `peekdocs -P 3 budget acme` |
 | 61 | Fuzzy with OCR | `peekdocs -z -O budget` |
 | 62 | Fuzzy with context lines | `peekdocs -z -B 3 -A 3 budget` |
 | 63 | Fuzzy, AND, recursive, file type | `peekdocs -z -a -r -t pdf budget revenue` |
