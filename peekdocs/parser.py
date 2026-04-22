@@ -265,6 +265,10 @@ def parse_flags(args, config):
     if "--inverse" in args:
         args.remove("--inverse")
 
+    open_report = "--open" in args
+    if "--open" in args:
+        args.remove("--open")
+
     if expression is not None:
         if match_all:
             return (2, "Cannot combine -e (expression) with -a (AND mode). Use AND/OR in the expression.\n")
@@ -387,6 +391,7 @@ def parse_flags(args, config):
         "output_formats": output_formats,
         "search_terms": search_terms,
         "inverse": inverse,
+        "open_report": open_report,
         "expression": expression,
         "expression_ast": expression_ast,
         "mode": mode,
