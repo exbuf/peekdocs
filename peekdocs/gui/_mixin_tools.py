@@ -1352,6 +1352,7 @@ class ToolsMixin:
 
 
 
+    @staticmethod
     def _format_file_size(size_bytes):
         """Format bytes as a human-readable string."""
         if size_bytes < 1024:
