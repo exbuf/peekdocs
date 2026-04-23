@@ -5163,7 +5163,7 @@ class ToolsMixin:
         body.pack(fill="both", expand=True, padx=12, pady=5)
 
         # Left panel — suite list
-        left = tk.Frame(body, width=270)
+        left = tk.Frame(body, width=250)
         left.pack(side="left", fill="y", padx=(0, 8))
         left.pack_propagate(False)
 
