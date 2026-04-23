@@ -398,7 +398,7 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 *\* Your results will vary depending on your machine's CPU speed, number of cores, RAM, and disk type (SSD vs hard drive).* These are direct search times (peekdocs opens and reads each file on the fly, no pre-built index needed) on a modern machine with SSD. Notice that 10× more files doesn't mean 10× longer — peekdocs processes files in parallel across multiple CPU cores, so search time scales much less than linearly. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
 
-For most users, searches are fast enough that you just click Run Search and results appear. Full test details, index comparisons, and cold-cache analysis below.
+For most users, searches are fast enough that you just click Run Search and results appear. **Network folders:** If your files are stored on a network drive, searches will be slower because every file must be read over the network. Building a search index is strongly recommended for network folders — the first index build is slow, but all subsequent searches are fast because they query the local index instead of re-reading files across the network. Full test details, index comparisons, and cold-cache analysis below.
 
 ---
 
