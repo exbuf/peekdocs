@@ -5626,6 +5626,8 @@ class ToolsMixin:
             ).pack(side="left", padx=2)
 
         # Show results in preview
+        if hasattr(self, "preview_frame"):
+            self.preview_frame.grid()
         if hasattr(self, "preview_text"):
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
