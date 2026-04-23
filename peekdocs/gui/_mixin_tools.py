@@ -5177,6 +5177,12 @@ class ToolsMixin:
             font=_sf(10), fg="gray",
         ).pack(side="left", padx=(12, 0))
 
+        tk.Label(
+            win,
+            text=f"Search Folder: {folder}",
+            font=_sf(10), fg="#66BBFF" if ctk.get_appearance_mode() == "Dark" else "blue",
+        ).pack(anchor="w", padx=12, pady=(0, 3))
+
         # ── Main area: left (suite list) + right (suite contents) ──
         body = tk.Frame(win)
         body.pack(fill="both", expand=True, padx=12, pady=5)
