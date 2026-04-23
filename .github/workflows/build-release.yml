@@ -1,0 +1,98 @@
+name: Build and Release
+
+# Runs when you push a version tag like v1.0.0
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # needed to create releases and upload assets
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: peekdocs-gui-windows.exe
+            cli_artifact: peekdocs-cli-windows.exe
+          - os: macos-latest
+            artifact: peekdocs-gui-macos.zip
+            cli_artifact: peekdocs-cli-macos.zip
+          - os: ubuntu-latest
+            artifact: peekdocs-gui-linux
+            cli_artifact: peekdocs-cli-linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build GUI and CLI
+        run: python build_app.py
+
+      # --- Windows: rename outputs ---
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          move dist\peekdocs-gui.exe dist\peekdocs-gui-windows.exe
+          move dist\peekdocs.exe dist\peekdocs-cli-windows.exe
+
+      # --- macOS: zip the .app bundle ---
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          zip -r peekdocs-gui-macos.zip peekdocs-gui.app
+          zip peekdocs-cli-macos.zip peekdocs
+          cd ..
+
+      # --- Linux: rename outputs ---
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mv dist/peekdocs-gui dist/peekdocs-gui-linux
+          mv dist/peekdocs dist/peekdocs-cli-linux
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.cli_artifact }}
+          path: dist/${{ matrix.cli_artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

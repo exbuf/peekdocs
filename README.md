@@ -147,7 +147,9 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 ### Prerequisites
 
-- **Python 3.10+** — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/). **Note:** Python version numbers are not decimals — 3.13 is newer than 3.9 (it's the 13th release, not "three point one three").
+*Using Option A (standalone download)? Skip this section — no prerequisites needed.*
+
+- **Python 3.10+** (required for Options B, C, D) — check if it's already installed: `python3 --version` (macOS/Linux) or `python --version` (Windows). If not installed, download from [python.org/downloads](https://www.python.org/downloads/). **Note:** Python version numbers are not decimals — 3.13 is newer than 3.9 (it's the 13th release, not "three point one three").
   - **macOS users:** Your Mac may come with an older Python (3.9.x) pre-installed. If `python3 --version` shows 3.9.x, you need a newer version. Install from [python.org/downloads](https://www.python.org/downloads/) or via Homebrew (`brew install python`). Don't worry — installing a newer Python does **not** replace or affect the old version. Each version installs to its own folder (e.g., system Python lives at `/usr/bin/python3`, Homebrew Python at `/opt/homebrew/bin/python3.13`). They live side by side, and any programs that use the older version will continue to work. After installing, the plain `python3` command may still point to the old 3.9 — use `python3.13` (or whichever version you installed) instead. You also need tkinter for the GUI: `brew install python-tk@3.13` (replace 3.13 with your version if different).
   - **Windows users:** Windows does not come with Python pre-installed, but you may have installed it previously. Open a Command Prompt and type `python --version`. If you see a version number (e.g., `Python 3.12.4`), Python is already installed and in your PATH — you're good to go. If the version is older than 3.10, install a newer one — it won't replace the old version (each installs to its own folder, e.g., `C:\Users\YourName\AppData\Local\Programs\Python\Python313\`). If you see "not recognized" or the Microsoft Store opens, Python is either not installed or not in your PATH. Download it from [python.org/downloads](https://www.python.org/downloads/) and make sure to check **"Add Python to PATH"** at the bottom of the first installer screen. This ensures that `pip`, `python`, and `peekdocs` commands work from any Command Prompt window. If you've already installed Python without this option, the easiest fix is to re-run the Python installer and check the box.
   - **Linux users (Ubuntu, Debian, Linux Mint, Pop!_OS):** Most distros include Python 3.10+ already. If yours is older, you can install a newer version alongside it (e.g., via the `deadsnakes` PPA: `sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt install python3.13`) — this won't replace your system Python (it installs to `/usr/bin/python3.13` alongside the existing `/usr/bin/python3`). The base `python3` package does not include `venv`, `pip`, or `tkinter`. You must install them before creating a virtual environment. Run this single command to get everything peekdocs needs:
@@ -155,11 +157,32 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
     sudo apt install python3-venv python3-pip python3-tk
     ```
     Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with an `ensurepip` error. Without `python3-tk`, the CLI works but the GUI (`peekdocs-gui`) will not launch. This is a one-time setup.
-- **pip** (Python's package installer) — included automatically when you install Python 3.10+. No separate installation needed. **pipx** is a separate tool that must be installed via pip (see Option A below).
+- **pip** (Python's package installer) — included automatically when you install Python 3.10+. No separate installation needed. **pipx** is a separate tool that must be installed via pip (see Option B below).
 - **Tkinter** (required for GUI) — no action needed on Windows (the Python installer includes it). On macOS with Homebrew Python, install it: `brew install python-tk@3.13` (replace 3.13 with your version). On Linux: `sudo apt install python3-tk` (already included in the Linux command above). If you installed Python from [python.org](https://www.python.org/downloads/) on macOS, tkinter is already included.
 - **Tesseract** (optional, for OCR) — OCR (Optical Character Recognition) reads text from scanned PDFs and images (PNG, JPG, TIFF, BMP, GIF). Most users don't need this — it's only for documents that are pictures of text rather than actual text. If you do need it: macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 
-### Option A: Quick Install with pipx (recommended)
+### Option A: Standalone Download (no Python needed)
+
+The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
+
+1. Go to the [Releases page](https://github.com/exbuf/peekdocs/releases/latest)
+2. Download the file for your platform:
+   - **Windows:** `peekdocs-gui-windows.exe`
+   - **macOS:** `peekdocs-gui-macos.zip` (unzip it, then open `peekdocs-gui.app`)
+   - **Linux:** `peekdocs-gui-linux`
+3. Run it — that's it. No installation needed.
+
+**Windows SmartScreen warning:** When you first run the `.exe`, Windows may show a blue warning: "Windows protected your PC." This is normal for free, open-source software that hasn't purchased a code-signing certificate ($200+/year). It does not mean the software is unsafe. To proceed: click **"More info"**, then click **"Run anyway"**. You'll only see this once.
+
+**CLI users:** The Releases page also has command-line versions (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`).
+
+**Upgrading:** Download the new version from the Releases page and replace the old file. Your settings and saved searches are stored in your home directory, not in the executable — nothing is lost.
+
+---
+
+*Options B through D below are alternative installation methods for users who prefer pipx, git, or pip. If you used Option A, you're done — skip ahead to [Quick Start](#quick-start).*
+
+### Option B: Quick Install with pipx
 
 First, check if pipx is installed by typing `pipx --version`. If it says "not recognized" or "command not found," install it:
 
@@ -187,9 +210,9 @@ pipx ensurepath           # adds pipx to your PATH (all platforms)
 
 After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — even after restarting your computer. It's a one-time install, not something you run daily. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
 
-**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options B and C below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, uninstall the old one first (`pipx uninstall peekdocs`), then install the new ZIP — your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
+**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, uninstall the old one first (`pipx uninstall peekdocs`), then install the new ZIP — your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
 
-### Option B: Manual Install (with git)
+### Option C: Manual Install (with git)
 
 ```bash
 git clone https://github.com/exbuf/peekdocs.git
@@ -204,7 +227,7 @@ pip install -e .
 
 **"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which peekdocs uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
 
-### Option C: Manual Install (no git, no sign-up)
+### Option D: Manual Install (no git, no sign-up)
 
 No git? No problem. Download peekdocs as a ZIP file directly from your browser:
 
@@ -231,7 +254,7 @@ No git? No problem. Download peekdocs as a ZIP file directly from your browser:
    pip install -e .
    ```
 
-**Important:** Same as Option B — you must activate the virtual environment each time you open a new terminal. Look for `(venv)` at the start of your prompt to confirm it's active. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
+**Important:** Same as Option C — you must activate the virtual environment each time you open a new terminal. Look for `(venv)` at the start of your prompt to confirm it's active. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
 
 ### Upgrading
 
@@ -239,8 +262,9 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 
 - **pipx (installed from ZIP):** `pipx uninstall peekdocs`, download the new ZIP, then `pipx install` it again (same steps as the original install)
 - **pipx (installed with git):** `pipx upgrade peekdocs`
-- **git (Option B):** `cd peekdocs && git pull && pip install -e .`
-- **ZIP (Option C):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`
+- **Standalone (Option A):** download the new version from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old file
+- **git (Option C):** `cd peekdocs && git pull && pip install -e .`
+- **ZIP (Option D):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`
 
 See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
@@ -248,7 +272,7 @@ See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-
 
 ### Terminal
 
-If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), navigate to the folder where `pyproject.toml` is located (the peekdocs project folder) and activate the virtual environment first:
+If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the manual install (Option C or D), navigate to the folder where `pyproject.toml` is located (the peekdocs project folder) and activate the virtual environment first:
 
 ```bash
 cd /path/to/peekdocs                 # the folder containing pyproject.toml
