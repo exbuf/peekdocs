@@ -4657,6 +4657,12 @@ class ToolsMixin:
         b("use All Collections in the Tools menu \u2014 it shows every saved")
         b("search across all your folders in one view.")
         blank()
+        b("Tip: If your files aren't organized into separate folders \u2014")
+        b("everything is in one big Documents folder \u2014 that's fine too.")
+        b("All your saved searches and suites will be in one collection.")
+        b("Or point peekdocs at a parent folder with Recursive checked")
+        b("to search everything underneath it at once.")
+        blank()
 
         h("EDITING A SAVED SEARCH")
         b("1. Click Load Search \u25bc and pick the one you want to edit")
