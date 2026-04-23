@@ -393,7 +393,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
-        Tooltip(self.save_to_collection_btn, "Save the current search by name so you can reload it later. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
+        Tooltip(self.save_to_collection_btn, "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
 
         self.load_search_btn = ctk.CTkButton(
             save_group, text="\u25b6 Reload", width=0,
