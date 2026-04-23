@@ -17,7 +17,7 @@ SEARCH_PARAM_KEYS = [
 
 
 def _empty_collection():
-    return {"version": COLLECTION_VERSION, "saved_searches": {}}
+    return {"version": COLLECTION_VERSION, "saved_searches": {}, "suites": {}}
 
 
 def collection_path(folder):
@@ -42,6 +42,7 @@ def load_collection(folder):
         # Ensure required keys exist
         data.setdefault("version", COLLECTION_VERSION)
         data.setdefault("saved_searches", {})
+        data.setdefault("suites", {})
         # Drop legacy test_suites key from old compliance feature
         data.pop("test_suites", None)
         # Migrate: rename "query" key to "search_text" in saved searches
@@ -78,3 +79,49 @@ def get_search_params(folder, name):
     """Return the parameter dict for a named saved search, or None."""
     data = load_collection(folder)
     return data["saved_searches"].get(name)
+
+
+# ── Suite CRUD ──────────────────────────────────────────────────────
+
+def add_suite(folder, name, search_names=None):
+    """Create a new suite with an optional list of saved search names."""
+    data = load_collection(folder)
+    data["suites"][name] = search_names or []
+    save_collection(folder, data)
+
+
+def remove_suite(folder, name):
+    """Remove a suite from the collection."""
+    data = load_collection(folder)
+    data["suites"].pop(name, None)
+    save_collection(folder, data)
+
+
+def get_suite(folder, name):
+    """Return the list of search names for a suite, or None."""
+    data = load_collection(folder)
+    return data["suites"].get(name)
+
+
+def list_suites(folder):
+    """Return a dict of all suites {name: [search_names, ...]}."""
+    data = load_collection(folder)
+    return dict(data["suites"])
+
+
+def rename_suite(folder, old_name, new_name):
+    """Rename a suite.  Returns False if old_name not found or new_name exists."""
+    data = load_collection(folder)
+    if old_name not in data["suites"] or new_name in data["suites"]:
+        return False
+    data["suites"][new_name] = data["suites"].pop(old_name)
+    save_collection(folder, data)
+    return True
+
+
+def update_suite_searches(folder, name, search_names):
+    """Replace the search list for a suite (reorder, add, remove)."""
+    data = load_collection(folder)
+    if name in data["suites"]:
+        data["suites"][name] = search_names
+        save_collection(folder, data)

@@ -98,6 +98,7 @@ BANNER_BOTTOM = (
     '  --no-index         Skip the index for this search (direct scan)\n'
     '\n'
     '── Settings & Info ──────────────────────────────────────────────\n'
+    '  --suite NAME       Run a search suite (group of saved searches) by name\n'
     '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
     '  --config           Show all saved settings\n'
     '\n'
@@ -733,6 +734,105 @@ def _main_inner(argv=None):
             if os.path.exists(path):
                 os.remove(path)
         print()
+        return 0
+
+    # ── --suite NAME: run a search suite ──
+    if args and args[0] == "--suite":
+        if len(args) < 2:
+            print("Error: --suite requires a suite name. Usage: peekdocs --suite \"My Suite\"\n")
+            return 2
+        suite_name = args[1]
+        cwd = os.getcwd()
+        from peekdocs.collection import get_suite, get_search_params, load_collection
+        suite_searches = get_suite(cwd, suite_name)
+        if suite_searches is None:
+            available = list(load_collection(cwd).get("suites", {}).keys())
+            print(f"Suite '{suite_name}' not found in {cwd}")
+            if available:
+                print(f"Available suites: {', '.join(available)}")
+            else:
+                print("No suites defined. Create one in the GUI (Tools → Search Suites).")
+            return 2
+
+        if not suite_searches:
+            print(f"Suite '{suite_name}' has no searches.")
+            return 2
+
+        from peekdocs.api import search as api_search
+        from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
+
+        sections = []
+        for i, search_name in enumerate(suite_searches, 1):
+            params = get_search_params(cwd, search_name)
+            if params is None:
+                print(f"  Warning: saved search '{search_name}' not found — skipping.")
+                continue
+
+            print(f"  [{i}/{len(suite_searches)}] Running: {search_name}")
+
+            # Convert saved-search params to api.search() kwargs
+            terms_str = params.get("search_text", "")
+            import shlex as _shlex
+            try:
+                search_terms = _shlex.split(terms_str) if terms_str else []
+            except ValueError:
+                search_terms = terms_str.split() if terms_str else []
+
+            expr = params.get("expression") if params.get("expression") else None
+            kwargs = {
+                "directory": cwd,
+                "match_all": params.get("and_mode", False),
+                "recursive": params.get("recursive", False),
+                "use_fuzzy": params.get("fuzzy", False),
+                "use_wildcard": params.get("wildcard", False),
+                "use_regex": params.get("regex", False),
+                "use_ocr": params.get("ocr", False),
+                "use_whole_word": params.get("whole_word", False),
+                "use_index": params.get("index_search", False),
+                "expression": expr,
+            }
+            if params.get("exclude"):
+                kwargs["exclude_terms"] = [t.strip() for t in params["exclude"].split(",") if t.strip()]
+            if params.get("file_types"):
+                kwargs["file_types"] = [t.strip() for t in params["file_types"].split(",") if t.strip()]
+            if params.get("proximity"):
+                kwargs["proximity"] = int(params["proximity"])
+            if params.get("context_before"):
+                kwargs["context_before"] = int(params["context_before"])
+            if params.get("context_after"):
+                kwargs["context_after"] = int(params["context_after"])
+            if params.get("range_filters"):
+                rf = params["range_filters"]
+                kwargs["range_filters"] = rf if isinstance(rf, list) else [r.strip() for r in rf.split(",") if r.strip()]
+
+            result = api_search(search_terms if not expr else [], **kwargs)
+
+            mode = "ALL" if params.get("and_mode") else "ANY"
+            display_terms = search_terms if not expr else [expr]
+            sections.append({
+                "search_name": search_name,
+                "search_terms": display_terms,
+                "matches": [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches],
+                "all_files": result.files_searched,
+                "elapsed": result.elapsed,
+                "report_mode": mode,
+                "params": params,
+            })
+            print(f"           {len(result.matches)} match(es) in {len(result.files_searched)} file(s)")
+
+        if not sections:
+            print("No searches were run.")
+            return 2
+
+        txt_path = os.path.join(cwd, "peekdocs_suite_results.txt")
+        docx_path = os.path.join(cwd, "peekdocs_suite_results.docx")
+        write_suite_txt_report(txt_path, suite_name, sections)
+        write_suite_docx_report(docx_path, txt_path, sections)
+
+        total_matches = sum(len(s["matches"]) for s in sections)
+        print(f"\nSuite '{suite_name}': {len(sections)} search(es), {total_matches} total match(es)")
+        print(f"Reports: {txt_path}")
+        print(f"         {docx_path}")
         return 0
 
     no_index = "--no-index" in args

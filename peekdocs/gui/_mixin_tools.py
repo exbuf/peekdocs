@@ -5077,4 +5077,394 @@ class ToolsMixin:
         txt.configure(state="disabled")
         self._apply_dark_theme(help_win)
 
+    # ── Search Suites ──────────────────────────────────────────────
 
+    def _show_search_suites(self):
+        """Show a popup for creating, editing, and running search suites."""
+        import tkinter as tk
+        from peekdocs.collection import (
+            load_collection, add_suite, remove_suite, rename_suite,
+            update_suite_searches, get_search_params,
+        )
+
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a Search Folder first.")
+            return
+
+        win, _dark = self._themed_toplevel()
+        win.title("Search Suites")
+        win.resizable(True, True)
+        win.geometry("780x520")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 780) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
+        win.geometry(f"+{x}+{y}")
+
+        _sf = self._scaled_font
+
+        # ── Header ──
+        header = tk.Frame(win)
+        header.pack(fill="x", padx=12, pady=(10, 5))
+        tk.Label(header, text="Search Suites", font=_sf(14, "bold")).pack(side="left")
+        tk.Label(
+            header,
+            text="Group saved searches and run them together. Results go into a single combined report.",
+            font=_sf(10), fg="gray",
+        ).pack(side="left", padx=(12, 0))
+
+        # ── Main area: left (suite list) + right (suite contents) ──
+        body = tk.Frame(win)
+        body.pack(fill="both", expand=True, padx=12, pady=5)
+
+        # Left panel — suite list
+        left = tk.Frame(body, width=220)
+        left.pack(side="left", fill="y", padx=(0, 8))
+        left.pack_propagate(False)
+
+        tk.Label(left, text="Suites:", font=_sf(11, "bold")).pack(anchor="w")
+        suite_listbox = tk.Listbox(left, font=_sf(11), exportselection=False)
+        suite_listbox.pack(fill="both", expand=True, pady=(4, 4))
+
+        left_btns = tk.Frame(left)
+        left_btns.pack(fill="x")
+
+        # Right panel — suite contents
+        right = tk.Frame(body)
+        right.pack(side="left", fill="both", expand=True)
+
+        right_header = tk.Frame(right)
+        right_header.pack(fill="x")
+        suite_name_label = tk.Label(right_header, text="(select a suite)", font=_sf(12, "bold"))
+        suite_name_label.pack(side="left")
+
+        tk.Label(right, text="Searches in this suite (run in order, top to bottom):", font=_sf(10)).pack(anchor="w", pady=(4, 2))
+        search_listbox = tk.Listbox(right, font=_sf(11), exportselection=False)
+        search_listbox.pack(fill="both", expand=True, pady=(0, 4))
+
+        right_btns = tk.Frame(right)
+        right_btns.pack(fill="x")
+
+        # ── State ──
+        current_suite = [None]  # mutable reference
+
+        def _refresh_suite_list():
+            suite_listbox.delete(0, "end")
+            data = load_collection(folder)
+            for name in sorted(data["suites"].keys()):
+                suite_listbox.insert("end", name)
+
+        def _refresh_search_list():
+            search_listbox.delete(0, "end")
+            if current_suite[0] is None:
+                return
+            data = load_collection(folder)
+            searches = data["suites"].get(current_suite[0], [])
+            for s in searches:
+                search_listbox.insert("end", s)
+
+        def _on_suite_select(event=None):
+            sel = suite_listbox.curselection()
+            if not sel:
+                return
+            name = suite_listbox.get(sel[0])
+            current_suite[0] = name
+            suite_name_label.configure(text=name)
+            _refresh_search_list()
+
+        suite_listbox.bind("<<ListboxSelect>>", _on_suite_select)
+
+        # ── Left panel buttons ──
+        def _new_suite():
+            from tkinter import simpledialog
+            name = simpledialog.askstring("New Suite", "Suite name:", parent=win)
+            if not name or not name.strip():
+                return
+            name = name.strip()
+            data = load_collection(folder)
+            if name in data["suites"]:
+                self._show_error(f"Suite '{name}' already exists.")
+                return
+            add_suite(folder, name)
+            _refresh_suite_list()
+            # Select the new suite
+            items = suite_listbox.get(0, "end")
+            for i, item in enumerate(items):
+                if item == name:
+                    suite_listbox.selection_set(i)
+                    _on_suite_select()
+                    break
+
+        def _rename_suite_btn():
+            if current_suite[0] is None:
+                return
+            from tkinter import simpledialog
+            new_name = simpledialog.askstring(
+                "Rename Suite", f"New name for '{current_suite[0]}':",
+                parent=win, initialvalue=current_suite[0],
+            )
+            if not new_name or not new_name.strip() or new_name.strip() == current_suite[0]:
+                return
+            new_name = new_name.strip()
+            if not rename_suite(folder, current_suite[0], new_name):
+                self._show_error(f"Suite '{new_name}' already exists.")
+                return
+            current_suite[0] = new_name
+            suite_name_label.configure(text=new_name)
+            _refresh_suite_list()
+            items = suite_listbox.get(0, "end")
+            for i, item in enumerate(items):
+                if item == new_name:
+                    suite_listbox.selection_set(i)
+                    break
+
+        def _delete_suite():
+            if current_suite[0] is None:
+                return
+            from tkinter import messagebox
+            if not messagebox.askyesno("Delete Suite", f"Delete suite '{current_suite[0]}'?", parent=win):
+                return
+            remove_suite(folder, current_suite[0])
+            current_suite[0] = None
+            suite_name_label.configure(text="(select a suite)")
+            search_listbox.delete(0, "end")
+            _refresh_suite_list()
+
+        ctk.CTkButton(left_btns, text="New", width=60, font=ctk.CTkFont(size=12), command=_new_suite).pack(side="left", padx=2)
+        ctk.CTkButton(left_btns, text="Rename", width=70, font=ctk.CTkFont(size=12), command=_rename_suite_btn).pack(side="left", padx=2)
+        ctk.CTkButton(left_btns, text="Delete", width=60, font=ctk.CTkFont(size=12),
+                       fg_color="#CC3333", hover_color="#AA2222", command=_delete_suite).pack(side="left", padx=2)
+
+        # ── Right panel buttons ──
+        def _add_search():
+            if current_suite[0] is None:
+                self._show_error("Select or create a suite first.")
+                return
+            data = load_collection(folder)
+            available = sorted(data["saved_searches"].keys())
+            already_in = list(data["suites"].get(current_suite[0], []))
+            remaining = [s for s in available if s not in already_in]
+            if not remaining:
+                self._show_error("No saved searches available to add.\n\nSave a search first (main screen → Save button).")
+                return
+
+            # Popup to pick a search
+            pick_win, _ = self._themed_toplevel(win)
+            pick_win.title("Add Search to Suite")
+            pick_win.geometry("350x300")
+            pick_win.transient(win)
+            pick_win.grab_set()
+            self.update_idletasks()
+            px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
+            py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
+            pick_win.geometry(f"+{px}+{py}")
+
+            tk.Label(pick_win, text="Select a saved search:", font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
+            pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
+            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            for s in remaining:
+                pick_lb.insert("end", s)
+
+            def _do_add():
+                sel = pick_lb.curselection()
+                if not sel:
+                    return
+                chosen = pick_lb.get(sel[0])
+                data2 = load_collection(folder)
+                searches = data2["suites"].get(current_suite[0], [])
+                searches.append(chosen)
+                update_suite_searches(folder, current_suite[0], searches)
+                pick_win.destroy()
+                _refresh_search_list()
+
+            ctk.CTkButton(pick_win, text="Add", width=80, font=ctk.CTkFont(size=12), command=_do_add).pack(pady=(0, 10))
+            self._apply_dark_theme(pick_win)
+
+        def _remove_search():
+            if current_suite[0] is None:
+                return
+            sel = search_listbox.curselection()
+            if not sel:
+                return
+            idx = sel[0]
+            data = load_collection(folder)
+            searches = data["suites"].get(current_suite[0], [])
+            if idx < len(searches):
+                searches.pop(idx)
+                update_suite_searches(folder, current_suite[0], searches)
+                _refresh_search_list()
+
+        def _move_up():
+            if current_suite[0] is None:
+                return
+            sel = search_listbox.curselection()
+            if not sel or sel[0] == 0:
+                return
+            idx = sel[0]
+            data = load_collection(folder)
+            searches = data["suites"].get(current_suite[0], [])
+            searches[idx - 1], searches[idx] = searches[idx], searches[idx - 1]
+            update_suite_searches(folder, current_suite[0], searches)
+            _refresh_search_list()
+            search_listbox.selection_set(idx - 1)
+
+        def _move_down():
+            if current_suite[0] is None:
+                return
+            sel = search_listbox.curselection()
+            if not sel:
+                return
+            idx = sel[0]
+            data = load_collection(folder)
+            searches = data["suites"].get(current_suite[0], [])
+            if idx >= len(searches) - 1:
+                return
+            searches[idx], searches[idx + 1] = searches[idx + 1], searches[idx]
+            update_suite_searches(folder, current_suite[0], searches)
+            _refresh_search_list()
+            search_listbox.selection_set(idx + 1)
+
+        ctk.CTkButton(right_btns, text="Add Search", width=90, font=ctk.CTkFont(size=12), command=_add_search).pack(side="left", padx=2)
+        ctk.CTkButton(right_btns, text="Remove", width=70, font=ctk.CTkFont(size=12), command=_remove_search).pack(side="left", padx=2)
+        ctk.CTkButton(right_btns, text="\u25b2 Up", width=60, font=ctk.CTkFont(size=12), command=_move_up).pack(side="left", padx=2)
+        ctk.CTkButton(right_btns, text="\u25bc Down", width=70, font=ctk.CTkFont(size=12), command=_move_down).pack(side="left", padx=2)
+
+        # ── Bottom: Run Suite + Close ──
+        bottom = tk.Frame(win)
+        bottom.pack(fill="x", padx=12, pady=(5, 10))
+
+        def _run_suite():
+            if current_suite[0] is None:
+                self._show_error("Select a suite first.")
+                return
+            data = load_collection(folder)
+            searches = data["suites"].get(current_suite[0], [])
+            if not searches:
+                self._show_error("This suite has no searches. Add some first.")
+                return
+            # Validate all searches exist
+            missing = [s for s in searches if s not in data["saved_searches"]]
+            if missing:
+                self._show_error(f"Missing saved search(es): {', '.join(missing)}\n\nRemove them from the suite or re-create them.")
+                return
+            suite_name = current_suite[0]
+            win.destroy()
+            self._run_suite_searches(suite_name, searches, folder)
+
+        ctk.CTkButton(
+            bottom, text="Run Suite", width=120,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=_run_suite,
+        ).pack(side="left", padx=(0, 10))
+        ctk.CTkButton(
+            bottom, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=win.destroy,
+        ).pack(side="left")
+
+        _refresh_suite_list()
+        self._apply_dark_theme(win)
+
+    def _run_suite_searches(self, suite_name, search_names, folder):
+        """Execute all searches in a suite sequentially and produce a combined report."""
+        import threading
+        from peekdocs.collection import get_search_params
+        from peekdocs.api import search as api_search
+        from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
+
+        self._update_status(f"Running suite '{suite_name}' ({len(search_names)} searches)...")
+
+        def _run():
+            sections = []
+            for i, search_name in enumerate(search_names, 1):
+                self.after(0, lambda i=i, n=search_name: self._update_status(
+                    f"Suite '{suite_name}': [{i}/{len(search_names)}] {n}..."
+                ))
+                params = get_search_params(folder, search_name)
+                if params is None:
+                    continue
+
+                terms_str = params.get("search_text", "")
+                import shlex as _shlex
+                try:
+                    search_terms = _shlex.split(terms_str) if terms_str else []
+                except ValueError:
+                    search_terms = terms_str.split() if terms_str else []
+
+                expr = params.get("expression") if params.get("expression") else None
+                kwargs = {
+                    "directory": folder,
+                    "match_all": params.get("and_mode", False),
+                    "recursive": params.get("recursive", False),
+                    "use_fuzzy": params.get("fuzzy", False),
+                    "use_wildcard": params.get("wildcard", False),
+                    "use_regex": params.get("regex", False),
+                    "use_ocr": params.get("ocr", False),
+                    "use_whole_word": params.get("whole_word", False),
+                    "use_index": params.get("index_search", False),
+                    "expression": expr,
+                }
+                if params.get("exclude"):
+                    kwargs["exclude_terms"] = [t.strip() for t in params["exclude"].split(",") if t.strip()]
+                if params.get("file_types"):
+                    kwargs["file_types"] = [t.strip() for t in params["file_types"].split(",") if t.strip()]
+                if params.get("proximity"):
+                    kwargs["proximity"] = int(params["proximity"])
+                if params.get("context_before"):
+                    kwargs["context_before"] = int(params["context_before"])
+                if params.get("context_after"):
+                    kwargs["context_after"] = int(params["context_after"])
+                if params.get("range_filters"):
+                    rf = params["range_filters"]
+                    kwargs["range_filters"] = rf if isinstance(rf, list) else [r.strip() for r in rf.split(",") if r.strip()]
+
+                result = api_search(search_terms if not expr else [], **kwargs)
+
+                mode = "ALL" if params.get("and_mode") else "ANY"
+                display_terms = search_terms if not expr else [expr]
+                sections.append({
+                    "search_name": search_name,
+                    "search_terms": display_terms,
+                    "matches": [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches],
+                    "all_files": result.files_searched,
+                    "elapsed": result.elapsed,
+                    "report_mode": mode,
+                    "params": params,
+                })
+
+            # Generate reports
+            txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
+            docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
+            write_suite_txt_report(txt_path, suite_name, sections)
+            write_suite_docx_report(docx_path, txt_path, sections)
+
+            total_matches = sum(len(s["matches"]) for s in sections)
+            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path))
+
+        threading.Thread(target=_run, daemon=True).start()
+
+    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
+        """Handle suite completion — show results summary."""
+        self._update_status(
+            f"Suite '{suite_name}' complete: {len(sections)} search(es), {total_matches} total match(es)"
+        )
+        # Show results in preview
+        if hasattr(self, "preview_text"):
+            self.preview_text.configure(state="normal")
+            self.preview_text.delete("1.0", "end")
+            self.preview_text.insert("end", f"Suite Report: {suite_name}\n", "filename")
+            self.preview_text.insert("end", f"Searches: {len(sections)}, Total matches: {total_matches}\n\n")
+            for section in sections:
+                name = section["search_name"]
+                matches = section["matches"]
+                self.preview_text.insert("end", f"{'='*60}\n")
+                self.preview_text.insert("end", f"{name}", "filename")
+                self.preview_text.insert("end", f" — {len(matches)} match(es)\n")
+                for fd, fn, ln, text in matches[:20]:  # first 20 per section
+                    self.preview_text.insert("end", f"  {fn}:{ln}: {text[:120]}\n")
+                if len(matches) > 20:
+                    self.preview_text.insert("end", f"  ... and {len(matches) - 20} more\n")
+                self.preview_text.insert("end", "\n")
+            self.preview_text.insert("end", f"\nReports saved:\n  {txt_path}\n  {docx_path}\n")
+            self.preview_text.configure(state="disabled")

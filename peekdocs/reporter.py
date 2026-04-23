@@ -1040,3 +1040,142 @@ def append_results(append_name, output_dir, txt_path, docx_path):
 
 
 # ── Suite Reports ──────────────────────────────────────────────
+
+
+def write_suite_txt_report(output_path, suite_name, sections):
+    """Write a combined TXT report for a search suite.
+
+    *sections* is a list of dicts, each with:
+        search_name, search_terms, matches, all_files, elapsed,
+        report_mode, params (the saved-search params dict)
+    """
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
+    total_matches = sum(len(s["matches"]) for s in sections)
+    total_files = set()
+    for s in sections:
+        total_files.update(s["all_files"])
+    total_elapsed = sum(s["elapsed"] for s in sections)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(f"Suite Report: {suite_name}\n")
+        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Searches in suite: {len(sections)}\n")
+        f.write(f"Total matches: {total_matches}\n")
+        f.write(f"Total unique files searched: {len(total_files)}\n")
+        f.write(f"Total time: {total_elapsed:.2f}s\n")
+        f.write("\n")
+
+        for i, section in enumerate(sections, 1):
+            name = section["search_name"]
+            matches = section["matches"]
+            all_files = section["all_files"]
+            elapsed = section["elapsed"]
+            terms = section["search_terms"]
+            mode = section["report_mode"]
+
+            f.write("=" * 72 + "\n")
+            f.write(f"Search {i}/{len(sections)}: {name}\n")
+            f.write(f"Terms: {' '.join(terms)} (mode: {mode})\n")
+            f.write(f"Matches: {len(matches)} in {len(all_files)} file(s), {elapsed:.2f}s\n")
+            f.write("=" * 72 + "\n\n")
+
+            if not matches:
+                f.write("  (no matches)\n\n")
+                continue
+
+            prev_file = None
+            for file_dir, filename, line_num, text in matches:
+                current_file = os.path.join(file_dir, filename)
+                wrapped = textwrap.fill(text, width=80) if "\n" not in text else text
+                f.write(f'Document: {filename}, Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
+
+    total_bytes = sum(os.path.getsize(fp) for fp in total_files if os.path.exists(fp))
+    size_str = fmt_size(total_bytes)
+    return (total_bytes, size_str)
+
+
+def write_suite_docx_report(docx_path, txt_path, sections):
+    """Create a combined DOCX suite report with per-section highlighting.
+
+    Reads the suite TXT report and applies yellow highlighting for each
+    section's search terms.
+    """
+    if os.path.exists(docx_path):
+        os.remove(docx_path)
+
+    # Collect all highlight terms across all sections
+    all_patterns = []
+    for section in sections:
+        terms = section.get("search_terms", [])
+        params = section.get("params", {})
+        use_regex = params.get("regex", False)
+        use_wildcard = params.get("wildcard", False)
+        use_whole_word = params.get("whole_word", False)
+        expression = params.get("expression")
+
+        if expression:
+            try:
+                from peekdocs.expr_parser import parse_expression, extract_positive_terms
+                terms = extract_positive_terms(parse_expression(expression))
+            except Exception:
+                pass
+
+        for term in terms:
+            if use_wildcard:
+                all_patterns.append(_wildcard_to_regex(term))
+            elif use_regex:
+                all_patterns.append(term)
+            elif use_whole_word:
+                prefix = r'\b' if re.match(r'\w', term) else ''
+                suffix = r'\b' if re.search(r'\w$', term) else ''
+                all_patterns.append(prefix + re.escape(term) + suffix)
+            else:
+                all_patterns.append(re.escape(term))
+
+    combined_pattern = None
+    if all_patterns:
+        try:
+            combined_pattern = re.compile("|".join(all_patterns), re.IGNORECASE)
+        except re.error:
+            combined_pattern = None
+
+    # Read the TXT report and build the DOCX
+    doc = Document()
+    style = doc.styles["Normal"]
+    style.font.name = "Consolas"
+    style.font.size = Pt(10)
+    style.paragraph_format.space_after = Pt(2)
+
+    with open(txt_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            para = doc.add_paragraph()
+
+            # Section headers get bold formatting
+            if line.startswith("Suite Report:") or line.startswith("Search "):
+                run = para.add_run(line)
+                run.bold = True
+                run.font.size = Pt(12)
+                continue
+            if line.startswith("=" * 10):
+                run = para.add_run(line)
+                run.font.color.rgb = RGBColor(0x99, 0x99, 0x99)
+                continue
+
+            # Apply yellow highlighting to matched terms
+            if combined_pattern and combined_pattern.search(line):
+                pos = 0
+                for m in combined_pattern.finditer(line):
+                    if m.start() > pos:
+                        para.add_run(line[pos:m.start()])
+                    run = para.add_run(m.group())
+                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                    pos = m.end()
+                if pos < len(line):
+                    para.add_run(line[pos:])
+            else:
+                para.add_run(line)
+
+    doc.save(docx_path)

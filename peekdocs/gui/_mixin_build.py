@@ -1315,6 +1315,7 @@ class BuildMixin:
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
+            menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
             _dark_sep()
             # App management (alphabetical)
             menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
