@@ -2264,7 +2264,8 @@ class ToolsMixin:
         self._sensitive_scan_saved_index = self.index_search_var.get()
         self.index_search_var.set("off")
 
-        self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
+        if hasattr(self, "sensitive_scan_btn"):
+            self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
         self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
@@ -2369,7 +2370,8 @@ class ToolsMixin:
         """Restore UI and show results popup after sensitive data scan."""
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
+        if hasattr(self, "sensitive_scan_btn"):
+            self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
 
         # Restore Use Index checkbox
         if hasattr(self, "_sensitive_scan_saved_index"):

@@ -520,18 +520,7 @@ class BuildMixin:
         self._search_wiz_btn.pack(side="left", padx=(20, 20))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
-        self.sensitive_scan_btn = ctk.CTkButton(
-            self._toggle_row,
-            text="\u25b6 PII Scan", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
-            command=self._start_sensitive_scan,
-            font=ctk.CTkFont(size=13),
-        )
-        self.sensitive_scan_btn.pack(side="left", padx=(20, 20))
-        Tooltip(self.sensitive_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, tax IDs, emails, phone numbers, passwords, dates of birth, and user-configurable dollar-amount ranges. Advanced users can also add their own custom regex pattern")
+        # PII Scan moved to Tools menu
 
 
 
@@ -1109,19 +1098,7 @@ class BuildMixin:
 
     def _build_index_panel(self):
         """Build the Manage Indexes popup window with build, delete, status, and auto-refresh controls."""
-        # Index toggle button — in the shared toggle row
-        self.index_toggle_btn = ctk.CTkButton(
-            self._toggle_row,
-            text="\u25b6 Manage Indexes", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
-            command=self._toggle_index_options,
-            font=ctk.CTkFont(size=13),
-        )
-        self.index_toggle_btn.pack(side="left", padx=(20, 20))
-        Tooltip(self.index_toggle_btn, "Open the Manage Indexes panel — build, delete, and refresh search indexes for faster repeated searches")
+        # Manage Indexes button moved to Tools menu
 
         # Create popup window for Manage Indexes
         self.index_window = ctk.CTkToplevel(self)
@@ -1314,7 +1291,7 @@ class BuildMixin:
             _dark_sep()
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
-            menu.add_command(label="Manage Indexes — build, delete, and refresh search indexes", command=self._toggle_index_window)
+            menu.add_command(label="Manage Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
             menu.add_command(label="PII Scan — find SSNs, credit cards, passwords, and sensitive data", command=self._start_sensitive_scan)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
             menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
@@ -1407,7 +1384,8 @@ class BuildMixin:
         else:
             self.index_window.deiconify()
             self.index_window.lift()
-            self.index_toggle_btn.configure(text="\u25bc Manage Indexes")
+            if hasattr(self, "index_toggle_btn"):
+                self.index_toggle_btn.configure(text="\u25bc Manage Indexes")
             self.index_visible = True
             self._update_index_button_color()
 
@@ -1416,7 +1394,8 @@ class BuildMixin:
     def _close_index_window(self):
         """Hide the Manage Indexes window and update the toggle button."""
         self.index_window.withdraw()
-        self.index_toggle_btn.configure(text="\u25b6 Manage Indexes")
+        if hasattr(self, "index_toggle_btn"):
+            self.index_toggle_btn.configure(text="\u25b6 Manage Indexes")
         self.index_visible = False
 
 
