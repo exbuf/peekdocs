@@ -5490,7 +5490,7 @@ class ToolsMixin:
                     inverse=params.get("inverse", False),
                     expression=params.get("expression", False),
                     whole_word=params.get("whole_word", False),
-                    max_matches=str(params.get("max_matches", "")) if params.get("max_matches") else "",
+                    max_matches=str(params.get("max_matches", "0")) if params.get("max_matches") else "0",
                     max_file_size_mb=str(params.get("max_file_size_mb", "")) if params.get("max_file_size_mb") else "",
                     range_filters=params.get("range_filters", ""),
                 )
