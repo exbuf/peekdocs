@@ -870,7 +870,7 @@ class DataMixin:
             heading = f"Matched Files ({count})"
         popup.title(heading)
         popup.resizable(True, True)
-        win_h = max(350, min(680, count * 28 + 210))
+        win_h = max(400, min(720, count * 28 + 250))
         popup.geometry(f"500x{win_h}")
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
