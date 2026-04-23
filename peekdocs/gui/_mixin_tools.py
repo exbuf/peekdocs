@@ -5173,8 +5173,9 @@ class ToolsMixin:
         ).pack(side="right")
         tk.Label(
             header,
-            text="Group saved searches and run them together. Results go into a single combined report.",
-            font=_sf(10), fg="gray",
+            text="Group saved searches and run them together. Results go into a single combined report. "
+                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main screen.",
+            font=_sf(10), fg="gray", wraplength=600,
         ).pack(side="left", padx=(12, 0))
 
         tk.Label(
