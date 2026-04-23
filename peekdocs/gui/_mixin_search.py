@@ -1085,6 +1085,47 @@ class SearchMixin:
 
 
 
+    def _clear_saved_reports(self):
+        """Delete all DO_NOT_SEARCH_* saved reports after confirmation."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a folder first.")
+            return
+
+        saved_reports = []
+        for root, dirs, files in os.walk(folder):
+            for fname in files:
+                if fname.startswith("DO_NOT_SEARCH"):
+                    saved_reports.append(os.path.join(root, fname))
+
+        if not saved_reports:
+            self.status_label.configure(text="No saved reports found.")
+            return
+
+        from tkinter import messagebox
+        msg = (
+            f"Delete {len(saved_reports)} saved report(s)?\n\n"
+            "This will permanently delete all DO_NOT_SEARCH_ files,\n"
+            "including named reports from 'Save report as:' and\n"
+            "PII scan reports.\n\n"
+        )
+        if len(saved_reports) <= 15:
+            msg += "\n".join(os.path.basename(f) for f in saved_reports)
+        else:
+            msg += "\n".join(os.path.basename(f) for f in saved_reports[:15])
+            msg += f"\n... and {len(saved_reports) - 15} more"
+        msg += "\n\nThis cannot be undone."
+
+        if messagebox.askyesno("Clear Saved Reports", msg):
+            deleted = 0
+            for path in saved_reports:
+                try:
+                    os.remove(path)
+                    deleted += 1
+                except OSError:
+                    pass
+            self.status_label.configure(text=f"Deleted {deleted} saved report(s).")
+
     def _clean_up_practice_files(self):
         """Delete all peekdocs-generated artifacts from the search folder
         (and all subfolders), preserving saved searches and settings.
@@ -1108,9 +1149,7 @@ class SearchMixin:
                 # Search result files
                 if fname.startswith("peekdocs_results"):
                     to_delete.append((filepath, "search results"))
-                # peekdocs-generated reports (e.g., PII scan report)
-                elif fname.startswith("DO_NOT_SEARCH"):
-                    to_delete.append((filepath, "peekdocs report"))
+                # DO_NOT_SEARCH reports are preserved — use Clear Saved Reports
                 # Error log
                 elif fname == "peekdocs_errors.log":
                     to_delete.append((filepath, "error log"))
@@ -1136,11 +1175,9 @@ class SearchMixin:
             f"{reason_lines}\n\n"
             f"PRESERVED:\n"
             f"  \u2022 Your saved searches (.peekdocs_collection.json)\n"
+            f"  \u2022 Your saved reports (DO_NOT_SEARCH_* files)\n"
             f"  \u2022 Your settings (~/.peekdocsrc)\n"
             f"  \u2022 Your original documents\n\n"
-            f"\u26a0 WARNING: This includes your DO_NOT_SEARCH_ saved reports\n"
-            f"and PII scan reports. Move any reports you want to keep\n"
-            f"to another folder first.\n\n"
             f"This cannot be undone."
         )
         if not messagebox.askyesno("Clean Up Practice Files", msg):
