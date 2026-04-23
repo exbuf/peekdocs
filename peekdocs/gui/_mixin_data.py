@@ -840,7 +840,7 @@ class DataMixin:
         dialog, _dark = self._themed_toplevel()
         dialog.title("Save to Collection")
         dialog.resizable(False, False)
-        w, h = 350, 150
+        w, h = 350, 180
         x = self.winfo_rootx() + (self.winfo_width() - w) // 2
         y = self.winfo_rooty() + (self.winfo_height() - h) // 2
         dialog.geometry(f"{w}x{h}+{x}+{y}")
