@@ -1146,7 +1146,12 @@ class DataMixin:
         ).pack(pady=(10, 2))
         tk.Label(
             popup, text="Every peekdocs-created file has 'peekdocs' in the filename. "
-                        "If you see 'peekdocs' in a filename, it's ours. If you don't, it's your document.\n\n"
+                        "If you see 'peekdocs' in a filename, it's ours. If you don't, it's your document. "
+                        "Note: this list only shows files in the current Search Folder. If you've used peekdocs "
+                        "in other folders, those folders will have their own peekdocs files. Some peekdocs files "
+                        "are hidden (names starting with a dot, like .peekdocs_collection.json) \u2014 you may "
+                        "need to enable 'Show hidden files' in File Explorer (Windows), Finder (macOS), or "
+                        "your file manager (Linux) to see them.\n\n"
                         "To clean up: Tools \u2192 Clear Files lets you choose exactly which "
                         "peekdocs files to delete. Your original documents, saved searches "
                         "(.peekdocs_collection.json), and settings (~/.peekdocsrc) are never "
