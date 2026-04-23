@@ -262,7 +262,14 @@ No git? No problem. Download peekdocs as a ZIP file directly from your browser:
 
 ### Upgrading
 
-Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched.
+Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. Nothing else is touched. Specifically, these files are **never overwritten** by an upgrade:
+
+- `~/.peekdocsrc` — your saved settings and preferences
+- `~/.peekdocs_history.json` — your search history
+- `~/.peekdocs_bookmarks.json` — your bookmarks
+- `.peekdocs_collection.json` (in each search folder) — your saved searches and search suites
+- `.peekdocs.db` (in each search folder) — your search index
+- `DO_NOT_SEARCH_*` files — your saved reports and PII scan reports
 
 - **pipx (installed from ZIP):** `pipx uninstall peekdocs`, download the new ZIP, then `pipx install` it again (same steps as the original install)
 - **pipx (installed with git):** `pipx upgrade peekdocs`
