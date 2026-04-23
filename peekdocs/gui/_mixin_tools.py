@@ -5581,6 +5581,29 @@ class ToolsMixin:
             f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
         )
 
+        # Build matched files list from suite sections (same format as regular search)
+        from collections import defaultdict
+        file_matches = defaultdict(lambda: {"count": 0, "lines": []})
+        for section in sections:
+            for fd, fn, ln, _tx in section["matches"]:
+                key = os.path.join(fd, fn)
+                file_matches[key]["count"] += 1
+                file_matches[key]["lines"].append(ln)
+                file_matches[key]["dir"] = fd
+                file_matches[key]["name"] = fn
+
+        self.matched_files = [
+            (os.path.join(info["dir"], info["name"]), info["name"], info["count"], sorted(set(info["lines"])))
+            for info in file_matches.values()
+        ]
+        self._inverse_results = False
+
+        # Show matched files button
+        if self.matched_files:
+            link_text = f"{len(self.matched_files)} Matched File(s)"
+            self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
+            self._matched_files_link.pack(side="left", padx=(5, 0))
+
         # Show View Suite Report buttons on the status bar
         import tkinter as tk
 
