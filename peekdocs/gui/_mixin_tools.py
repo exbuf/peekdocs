@@ -5562,10 +5562,52 @@ class ToolsMixin:
         threading.Thread(target=_run, daemon=True).start()
 
     def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
-        """Handle suite completion — show results summary."""
+        """Handle suite completion — show results summary and report buttons."""
         self.status_label.configure(text_color=("blue", "#66BBFF"), text=
             f"Suite '{suite_name}' complete: {len(sections)} search(es), {total_matches} total match(es)"
         )
+
+        # Show View Suite Report buttons on the status bar
+        import tkinter as tk
+
+        # Remove any previous suite report buttons
+        if hasattr(self, "_suite_report_frame"):
+            self._suite_report_frame.destroy()
+
+        self._suite_report_frame = tk.Frame(self._search_parent)
+        self._suite_report_frame.grid(row=10, column=0, padx=(15, 5), pady=(2, 5), sticky="w")
+
+        tk.Label(self._suite_report_frame, text="View Suite Report:",
+                 font=("TkDefaultFont", 11, "bold")).pack(side="left", padx=(0, 5))
+
+        def _open_file(path):
+            import subprocess as _sp
+            import platform
+            system = platform.system()
+            try:
+                if system == "Darwin":
+                    _sp.run(["open", path])
+                elif system == "Windows":
+                    os.startfile(path)
+                else:
+                    _sp.run(["xdg-open", path])
+            except Exception:
+                pass
+
+        if os.path.exists(docx_path):
+            ctk.CTkButton(
+                self._suite_report_frame, text="DOCX", width=60,
+                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
+                command=lambda: _open_file(docx_path),
+            ).pack(side="left", padx=2)
+
+        if os.path.exists(txt_path):
+            ctk.CTkButton(
+                self._suite_report_frame, text="TXT", width=50,
+                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
+                command=lambda: _open_file(txt_path),
+            ).pack(side="left", padx=2)
+
         # Show results in preview
         if hasattr(self, "preview_text"):
             self.preview_text.configure(state="normal")
@@ -5583,7 +5625,7 @@ class ToolsMixin:
                 if len(matches) > 20:
                     self.preview_text.insert("end", f"  ... and {len(matches) - 20} more\n")
                 self.preview_text.insert("end", "\n")
-            self.preview_text.insert("end", f"\nReports saved:\n  {txt_path}\n  {docx_path}\n")
+            self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
 
     def _show_search_suites_help(self, parent):
