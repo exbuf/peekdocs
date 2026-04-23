@@ -1314,6 +1314,8 @@ class BuildMixin:
             _dark_sep()
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
+            menu.add_command(label="Manage Indexes — build, delete, and refresh search indexes", command=self._toggle_index_window)
+            menu.add_command(label="PII Scan — find SSNs, credit cards, passwords, and sensitive data", command=self._start_sensitive_scan)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
             menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
             _dark_sep()
