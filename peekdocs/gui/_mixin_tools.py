@@ -5579,8 +5579,11 @@ class ToolsMixin:
 
         b("Storage")
         n("Suites are saved in .peekdocs_collection.json alongside your")
-        n("saved searches. They persist across sessions and are never")
-        n("affected by upgrades or Clear Files.")
+        n("saved searches. Each folder has its own collection \u2014 if you")
+        n("switch to a different Search Folder, you'll see a different set")
+        n("of suites and saved searches. Copy a folder to another computer")
+        n("and the suites come with it. They persist across sessions and")
+        n("are never affected by upgrades or Clear Files.")
 
         txt.configure(state="disabled")
 
