@@ -31,6 +31,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
+- [Glossary](#glossary)
 
 ## Will peekdocs affect my existing Python installation?
 
@@ -2084,3 +2085,45 @@ peekdocs/
 ├── requirements.txt     # Pip requirements
 └── README.md
 ```
+
+## Glossary
+
+| Term | What it means |
+|------|--------------|
+| **AND mode** | A search setting where all terms must appear on the same line to count as a match. Without AND mode, any single term matching counts |
+| **API** | Application Programming Interface — a way for programs to use peekdocs from Python code. Example: `from peekdocs import search` |
+| **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
+| **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
+| **Collection** | The file (`.peekdocs_collection.json`) in each folder that stores your saved searches and search suites for that folder |
+| **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
+| **Context lines** | Extra lines shown before and/or after each match to give you surrounding context — helpful for understanding what the match is part of |
+| **Direct search** | Searching by reading each file on the fly, without using a pre-built index. Slower for repeated searches but always up-to-date |
+| **Expression mode** | A search mode that lets you type Boolean expressions like `(budget OR revenue) AND NOT draft` directly in the search bar |
+| **Flag** | A command-line option that modifies how a search works. Example: `-r` for recursive, `-a` for AND mode. In the GUI, each flag has a corresponding checkbox |
+| **FTS5** | Full-Text Search 5 — a fast search technology built into SQLite that peekdocs uses for its search index |
+| **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
+| **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
+| **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
+| **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
+| **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
+| **Inverse search** | Finding files that do *not* contain a term — the opposite of a normal search |
+| **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
+| **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
+| **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
+| **PII** | Personally Identifiable Information — data that can identify a person: Social Security numbers, credit card numbers, passwords, phone numbers, etc. |
+| **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
+| **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer |
+| **Proximity search** | Finding terms that appear near each other — within N words on the same line (word proximity) or within N lines of each other (line proximity) |
+| **PyPI** | Python Package Index (pronounced "pie-pee-eye") — the official repository where Python packages are published. Like an app store for Python programs |
+| **Python** | The programming language peekdocs is written in. Users need Python 3.10 or newer installed (unless using the standalone download) |
+| **Range query** | Filtering matches by numeric or date ranges. Example: `amount:1000..5000` finds lines where an amount falls between 1,000 and 5,000 |
+| **Recursive** | Searching not just the selected folder but all subfolders inside it, and their subfolders, and so on |
+| **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches Social Security numbers like 123-45-6789 |
+| **Search suite** | A named group of saved searches that run together with one click. Create them in the GUI (Tools → Search Suites) or run from the CLI with `--suite` |
+| **SQLite** | A lightweight database engine built into Python. peekdocs uses it for the search index — no separate database software needed |
+| **SSD** | Solid State Drive — a fast storage drive with no moving parts. Searches are faster on SSDs than on older spinning hard drives |
+| **Tesseract** | Free OCR software that reads text from images. Optional — only needed if you want to search scanned documents or photos of text |
+| **Unicode** | The standard that lets computers handle text in every language — English, Chinese, Arabic, emoji, and everything else. peekdocs uses Unicode throughout |
+| **venv** | Virtual environment — an isolated copy of Python where peekdocs and its libraries are installed without affecting the rest of your system. You'll see `(venv)` in your terminal prompt when one is active |
+| **Whole-word matching** | Only matching complete words — searching for "cat" won't match "catalog" or "concatenate" |
+| **Wildcard** | A search pattern where `*` matches any characters and `?` matches one character. Example: `budg*` matches "budget," "budgeting," "budgetary" |
