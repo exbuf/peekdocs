@@ -133,10 +133,6 @@ class ToolsMixin:
             text_color=("blue", "#66BBFF"))
         self._show_file_inventory_popup(results)
 
-    @staticmethod
-
-
-
     def _show_file_inventory_popup(self, results):
         """Display the file inventory results in a popup window."""
         import tkinter as tk
