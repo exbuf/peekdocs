@@ -1100,7 +1100,9 @@ class DataMixin:
             for fname in files:
                 filepath = os.path.join(root, fname)
 
-                if fname.startswith("peekdocs_results"):
+                if fname.startswith("peekdocs_suite_results"):
+                    app_files.append((filepath, "Suite results"))
+                elif fname.startswith("peekdocs_results"):
                     app_files.append((filepath, "Search results"))
                 elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
                     app_files.append((filepath, "PII scan reports"))
@@ -1146,7 +1148,11 @@ class DataMixin:
             popup, text="Files created by peekdocs in this folder and subfolders. "
                         "Items marked DO NOT DELETE contain your saved work. "
                         ".peekdocs_collection.json holds all saved searches for that "
-                        "folder \u2014 back it up before major changes.",
+                        "folder \u2014 back it up before major changes.\n\n"
+                        "To clean up: Tools \u2192 Clear Search Results (deletes peekdocs_results* files)  |  "
+                        "Tools \u2192 Clear Error Log (deletes peekdocs_errors.log)  |  "
+                        "Tools \u2192 Clean Up Practice Files (deletes results, reports, error log, and index "
+                        "\u2014 keeps saved searches and settings)",
             font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
         ).pack(pady=(0, 8), padx=15)
 
