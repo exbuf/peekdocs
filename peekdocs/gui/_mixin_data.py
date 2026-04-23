@@ -341,6 +341,18 @@ class DataMixin:
         """Scale all GUI widgets and auto-save the setting."""
         scale = self._TEXT_SIZE_SCALES.get(value, 1.0)
         ctk.set_widget_scaling(scale)
+        # Close ephemeral tool popups — they use fonts set at creation
+        # time and won't update in place.  Skip persistent windows.
+        import tkinter as tk
+        _keep = set()
+        for attr in ("advanced_window", "index_window"):
+            w = getattr(self, attr, None)
+            if w is not None:
+                _keep.add(str(w))
+        for child in self.winfo_children():
+            if isinstance(child, tk.Toplevel) and child.winfo_exists():
+                if str(child) not in _keep:
+                    child.destroy()
         # Shorten row 3 button labels at Extra Large and Huge to save width
         try:
             if value in ("Extra Large", "Huge"):
