@@ -853,7 +853,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_save_btn.pack(side="left", padx=(5, 0))
-        Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc")
+        Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc", anchor="above")
 
         adv_close_btn = ctk.CTkButton(
             adv_bottom_frame, text="Close", width=80,
@@ -863,7 +863,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_close_btn.place(relx=0.5, rely=0.5, anchor="center")
-        Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next Run Search. To make them permanent across sessions, click Save Defaults first")
+        Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next Run Search. To make them permanent across sessions, click Save Defaults first", anchor="above")
 
         adv_restore_btn = ctk.CTkButton(
             adv_bottom_frame, text="Restore Saved Defaults", width=130,
@@ -871,7 +871,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_restore_btn.pack(side="right", padx=(0, 5))
-        Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI")
+        Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI", anchor="above")
 
         adv_inspect_link = ctk.CTkLabel(
             adv_bottom_frame, text="Inspect .peekdocsrc",
@@ -880,7 +880,7 @@ class BuildMixin:
         )
         adv_inspect_link.pack(side="left", padx=(5, 0))
         adv_inspect_link.bind("<Button-1>", lambda e: self._inspect_settings())
-        Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only)")
+        Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only)", anchor="above")
 
 
 
