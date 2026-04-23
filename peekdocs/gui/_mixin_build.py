@@ -855,13 +855,15 @@ class BuildMixin:
         adv_save_btn.pack(side="left", padx=(5, 0))
         Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc")
 
-        ctk.CTkButton(
+        adv_close_btn = ctk.CTkButton(
             adv_bottom_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=self._close_advanced_window,
             font=ctk.CTkFont(size=13),
-        ).place(relx=0.5, rely=0.5, anchor="center")
+        )
+        adv_close_btn.place(relx=0.5, rely=0.5, anchor="center")
+        Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next Run Search. To make them permanent across sessions, click Save Defaults first")
 
         adv_restore_btn = ctk.CTkButton(
             adv_bottom_frame, text="Restore Saved Defaults", width=130,
