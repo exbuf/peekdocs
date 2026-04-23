@@ -156,7 +156,15 @@ class ToolsMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left", expand=True)
 
-        # Folder path
+        # Explanation and folder path
+        tk.Label(
+            popup,
+            text=f"Summary of all files in your Search Folder"
+                 + (" and subfolders" if results.get("recursive") else "")
+                 + " — includes your documents and any peekdocs-created files. "
+                 "Shows total count, size, breakdown by file type, and oldest/newest files.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=740, justify="left",
+        ).pack(padx=12, pady=(0, 2))
         tk.Label(
             popup, text=results["folder"],
             font=("TkDefaultFont", 10), fg="gray",
