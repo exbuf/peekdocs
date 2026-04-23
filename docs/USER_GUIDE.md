@@ -85,7 +85,7 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 ## Security Best Practices
 
-peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files. All processing happens locally on your machine. No internet connection is required or used.
+peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_results.txt`, `peekdocs_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
 
 But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
 
@@ -194,7 +194,7 @@ That's it — you just searched 47 files in 1.2 seconds. Your results are saved 
 
 ### Step 4: Open your results
 
-The results are saved in the same folder where you ran the search. Open the Word report to see your matches highlighted in yellow:
+The results are saved in the same folder where you ran the search (`peekdocs_results.txt` and `peekdocs_results.docx`). Open the Word report to see your matches highlighted in yellow:
 
 **Windows:**
 ```cmd
@@ -409,7 +409,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Protected Files** | Detects password-protected and encrypted files: PDFs, Word/Excel/PowerPoint (both modern and legacy formats), ODF documents, ZIP/7z/RAR archives. These files cannot be searched or scanned for PII by peekdocs. The report tells you exactly which files are locked so you can decide whether to unprotect them. Click **Save Report** to export. |
 | **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
-| **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
+| **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report (`peekdocs_suite_results.txt` and `peekdocs_suite_results.docx`). Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
 | **PII Scan** | One-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Add your own custom regex patterns. Results categorized by severity. See [PII Scan](#pii-scan) for details. |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
 
