@@ -5452,14 +5452,15 @@ class ToolsMixin:
             row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
         )
         self.status_label.configure(text_color=("blue", "#66BBFF"),
-            text=f"Running suite '{suite_name}' ({len(search_names)} searches)...")
+            text=f"Suite: {suite_name} ({len(search_names)} searches)...")
 
         def _run():
             sections = []
             for i, search_name in enumerate(search_names, 1):
-                self.after(0, lambda i=i, n=search_name: self.status_label.configure(
+                _total = len(search_names)
+                self.after(0, lambda i=i, n=search_name, t=_total: self.status_label.configure(
                     text_color=("blue", "#66BBFF"),
-                    text=f"Suite '{suite_name}': [{i}/{len(search_names)}] Searching: {n}..."
+                    text=f"Suite [{i}/{t}] {n}"
                 ))
                 params = get_search_params(folder, search_name)
                 if params is None:
