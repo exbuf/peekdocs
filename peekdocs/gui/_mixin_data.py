@@ -854,7 +854,11 @@ class DataMixin:
         frame.pack(fill="both", expand=True)
 
         ctk.CTkLabel(frame, text="Search name:", font=ctk.CTkFont(size=13)).pack(
-            padx=15, pady=(15, 5), anchor="w"
+            padx=15, pady=(15, 2), anchor="w"
+        )
+        ctk.CTkLabel(frame, text=f"Saving to: {folder}",
+                     font=ctk.CTkFont(size=10), text_color="gray").pack(
+            padx=15, pady=(0, 5), anchor="w"
         )
         name_entry = ctk.CTkEntry(frame, font=ctk.CTkFont(size=13))
         name_entry.pack(padx=15, fill="x")

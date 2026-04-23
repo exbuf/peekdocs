@@ -1836,6 +1836,11 @@ class BuildMixin:
         frame = ctk.CTkFrame(popup)
         frame.pack(fill="both", expand=True)
 
+        ctk.CTkLabel(frame, text=f"Saved searches in: {os.path.basename(folder) or folder}",
+                     font=ctk.CTkFont(size=10), text_color="gray").pack(
+            padx=4, pady=(4, 0), anchor="w"
+        )
+
         listbox = tk.Listbox(frame, width=30, height=min(len(names), 10) or 1,
                              font=("TkDefaultFont", 13), selectmode="browse",
                              exportselection=False, activestyle="none")
