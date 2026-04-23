@@ -812,6 +812,18 @@ class ToolsMixin:
 
         tk.Label(
             popup,
+            text="Duplicates are files with identical content but different names or locations. "
+                 "Your OS prevents two files with the same name in the same folder, but it can't "
+                 "detect when a file has been copied to another folder, renamed, or saved twice "
+                 "under a different name. Over time, this leads to wasted disk space and confusion "
+                 "about which copy is the current version. peekdocs compares file contents (not names) "
+                 "using a digital fingerprint (MD5 hash) — if two files are byte-for-byte identical, "
+                 "they appear in the same group below regardless of their names.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=780, justify="left",
+        ).pack(padx=12, pady=(0, 5))
+
+        tk.Label(
+            popup,
             text=f"Checked {results['total_files']} file(s) in {results['folder']}"
                  + (f"  —  {fmt(results['wasted'])} wasted by duplicates" if results['wasted'] else ""),
             font=("TkDefaultFont", 10), fg="gray",
