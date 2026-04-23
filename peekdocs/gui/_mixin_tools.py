@@ -696,8 +696,17 @@ class ToolsMixin:
                     entries = []
                 walker = [(folder, [], entries)]
 
+            _SKIP_PREFIXES = ("peekdocs_results", "peekdocs_report_",
+                              "peekdocs_accumulated_", "peekdocs_pii_scan_report",
+                              "peekdocs_suite_results")
+            _SKIP_NAMES = {".peekdocs_collection.json", ".peekdocs.db",
+                           ".peekdocs.db-wal", ".peekdocs.db-shm",
+                           ".peekdocsrc", "peekdocs_errors.log"}
+
             for root, dirs, files in walker:
                 for fname in files:
+                    if fname in _SKIP_NAMES or any(fname.startswith(p) for p in _SKIP_PREFIXES):
+                        continue
                     filepath = os.path.join(root, fname)
                     try:
                         fsize = os.path.getsize(filepath)
