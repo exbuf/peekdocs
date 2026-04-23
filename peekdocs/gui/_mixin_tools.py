@@ -4742,6 +4742,7 @@ class ToolsMixin:
         for section in [
             "What This Popup Shows",
             "How to Use It",
+            "Bookmarks",
             "View Text vs Open File",
             "Line Numbers",
             "Why Some Files May Be Missing",
@@ -4774,7 +4775,17 @@ class ToolsMixin:
         b("  highlighted in yellow \u2014 useful when the original")
         b("  file is a PDF, archive, or format that is awkward")
         b("  to search visually")
+        b("\u2022 Right-click a row to add it to your Bookmarks")
         b("\u2022 Click Close when you're done")
+        blank()
+
+        h("BOOKMARKS")
+        b("Right-click any file in this list and choose 'Add Bookmark'")
+        b("to pin it for quick access later. Bookmarked files can be")
+        b("opened any time from Tools \u2192 Bookmarks without re-running")
+        b("a search. This is useful for files you refer to often \u2014")
+        b("contracts, reference documents, or important results you")
+        b("don't want to lose track of.")
         blank()
 
         h("VIEW TEXT vs OPEN FILE")

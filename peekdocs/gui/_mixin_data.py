@@ -573,11 +573,18 @@ class DataMixin:
         y = self.winfo_rooty() + (self.winfo_height() - 480) // 2
         popup.geometry(f"+{x}+{y}")
 
+        bm_header = tk.Frame(popup)
+        bm_header.pack(fill="x", padx=10, pady=(10, 2))
         tk.Label(
-            popup,
+            bm_header,
             text=f"Bookmarks — {len(bookmarks)} file(s)",
             font=("TkDefaultFont", 13, "bold"),
-        ).pack(pady=(10, 2))
+        ).pack(side="left")
+        ctk.CTkButton(
+            bm_header, text="?", width=30, height=26,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=lambda: self._show_bookmarks_help(popup),
+        ).pack(side="right")
 
         tk.Label(
             popup,
@@ -688,7 +695,53 @@ class DataMixin:
         ).pack(side="left", padx=5)
         self._apply_dark_theme(popup)
 
+    def _show_bookmarks_help(self, parent):
+        """Show help for the Bookmarks popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Bookmarks — Help")
+        help_win.geometry("600x420")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+        try:
+            help_win.grab_set()
+        except Exception:
+            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, spacing3=4)
+        txt.pack(fill="both", expand=True)
+
+        def b(text):
+            txt.insert("end", text + "\n", "bold")
+        def n(text):
+            txt.insert("end", text + "\n")
+
+        txt.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
+
+        b("What are Bookmarks?")
+        n("Bookmarks let you pin important files for quick access. Instead of")
+        n("re-running a search to find a file you use often, bookmark it once")
+        n("and open it any time from the Tools menu.\n")
+
+        b("How to Add a Bookmark")
+        n("1. Run a search")
+        n("2. Click the Matched Files button on the status bar")
+        n("3. Right-click a file in the list")
+        n("4. Choose 'Add Bookmark'\n")
+
+        b("Using Bookmarks")
+        n("\u2022 Double-click a bookmarked file to open it in its default application")
+        n("\u2022 Right-click a bookmark to remove it")
+        n("\u2022 Click 'Remove Selected' to delete the highlighted bookmark\n")
+
+        b("Storage")
+        n("Bookmarks are saved in ~/.peekdocs_bookmarks.json and persist")
+        n("across sessions. They are global \u2014 not tied to a specific folder.")
+        n("Bookmarks are never affected by upgrades or Clear Files.")
+
+        txt.configure(state="disabled")
+        self._apply_dark_theme(help_win)
 
     def _save_to_collection(self):
         """Save current search config to the folder's collection file."""
