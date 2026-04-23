@@ -5445,14 +5445,17 @@ class ToolsMixin:
         from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
-        # Show progress bar — don't touch matched/excluded buttons or action buttons
+        # Show progress bar and start elapsed timer — same as regular search
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(
             row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
         )
+        self.search_start_time = time.time()
+        self._suite_elapsed_active = True
         self.status_label.configure(text_color=("blue", "#66BBFF"),
             text=f"Suite: {suite_name} ({len(search_names)} searches)...")
+        self._update_suite_elapsed(suite_name)
 
         def _run():
             sections = []
@@ -5460,7 +5463,7 @@ class ToolsMixin:
                 _total = len(search_names)
                 self.after(0, lambda i=i, n=search_name, t=_total: self.status_label.configure(
                     text_color=("blue", "#66BBFF"),
-                    text=f"Suite [{i}/{t}] {n}"
+                    text=f"Suite [{i}/{t}] {n}...  ({time.time() - self.search_start_time:.0f}s)"
                 ))
                 params = get_search_params(folder, search_name)
                 if params is None:
@@ -5553,6 +5556,7 @@ class ToolsMixin:
                     "elapsed": elapsed,
                     "report_mode": mode,
                     "params": params,
+                    "stdout": stdout,
                 })
 
             # Generate combined suite reports
@@ -5562,24 +5566,63 @@ class ToolsMixin:
             write_suite_docx_report(docx_path, txt_path, sections)
 
             total_matches = sum(len(s["matches"]) for s in sections)
-            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path))
+            total_elapsed = time.time() - self.search_start_time
+            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder))
 
         threading.Thread(target=_run, daemon=True).start()
 
-    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
+    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder=""):
         """Handle suite completion — show results summary and report buttons."""
+        self._suite_elapsed_active = False
+        self.search_start_time = None
         try:
             self.progress_bar.stop()
         except Exception:
             pass
         self.progress_bar.grid_remove()
 
+        import re as _re_fin
+
         total_matched_files_status = len({os.path.join(fd, fn)
             for s in sections for fd, fn, _ln, _tx in s["matches"]})
-        self.status_label.configure(text_color=("blue", "#66BBFF"), text=
-            f"Suite '{suite_name}' complete: {len(sections)} search(es), "
-            f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
-        )
+        total_files_searched = sum(len(s["all_files"]) for s in sections)
+
+        # Parse error/skip counts from subprocess stdout
+        total_errors = 0
+        total_size = ""
+        for s in sections:
+            stdout = s.get("stdout", "")
+            err_m = _re_fin.search(r"(\d+)\s+error\(s\)", stdout)
+            if err_m:
+                total_errors += int(err_m.group(1))
+            skip_m = _re_fin.search(r"(\d+)\s+file\(s\)\s+skipped", stdout)
+            if skip_m:
+                total_errors += int(skip_m.group(1))
+            size_m = _re_fin.search(r"Files searched:\s*\d+\s*\(([\d.]+ [KMGT]?B)\)", stdout)
+            if size_m and not total_size:
+                total_size = size_m.group(1)
+
+        # Build status text matching regular search format
+        status = f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
+        status += f" — {total_files_searched} file(s) searched"
+        if total_size:
+            status += f" ({total_size})"
+        status += f" in {total_elapsed:.1f}s"
+        if total_errors:
+            status += f"  ({total_errors} file(s) skipped — see Error Log)"
+        self.status_label.configure(text_color=("blue", "#66BBFF"), text=status)
+
+        # Suggest indexing for large folders
+        if total_files_searched >= 100 and folder:
+            try:
+                from peekdocs.indexer import index_exists
+                if not index_exists(folder):
+                    current = self.status_label.cget("text")
+                    self.status_label.configure(
+                        text=current + "  |  Tip: Build an index for faster searches"
+                    )
+            except Exception:
+                pass
 
         # Build matched files list from suite sections (same format as regular search)
         from collections import defaultdict
@@ -5670,6 +5713,22 @@ class ToolsMixin:
                 self.preview_text.insert("end", "\n")
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
+
+    def _update_suite_elapsed(self, suite_name):
+        """Update the status label with elapsed time during suite execution."""
+        if not getattr(self, "_suite_elapsed_active", False):
+            return
+        if self.search_start_time is not None:
+            elapsed = time.time() - self.search_start_time
+            current = self.status_label.cget("text") or ""
+            # Strip old elapsed time and append new one
+            import re as _re_el
+            current = _re_el.sub(r"\s*\(\d+s\)\s*$", "", current)
+            self.status_label.configure(
+                text=f"{current}  ({elapsed:.0f}s)",
+                text_color=("blue", "#66BBFF"),
+            )
+        self.after(1000, lambda: self._update_suite_elapsed(suite_name))
 
     def _show_search_suites_help(self, parent):
         """Show help for the Search Suites popup."""
