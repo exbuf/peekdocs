@@ -318,7 +318,7 @@ peekdocs-gui
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Open **Advanced Search Options** for regex, fuzzy, Boolean, range queries, and all other settings. Use the **Search Wizard** for guided search configuration with 20+ pre-built patterns. Click **PII Scan** to find sensitive data with one click.
+For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 20+ pre-built patterns, fill in your values, and click Apply. The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **PII Scan** (one-click sensitive data detection) and **Search Suites** (run a group of saved searches together).
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 
