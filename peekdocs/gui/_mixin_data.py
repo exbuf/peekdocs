@@ -1104,11 +1104,11 @@ class DataMixin:
                     app_files.append((filepath, "Suite results"))
                 elif fname.startswith("peekdocs_results"):
                     app_files.append((filepath, "Search results"))
-                elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
+                elif fname.startswith("peekdocs_pii_scan_report"):
                     app_files.append((filepath, "PII scan reports"))
-                elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
+                elif fname.startswith("peekdocs_accumulated_"):
                     app_files.append((filepath, "Accumulated results"))
-                elif fname.startswith("DO_NOT_SEARCH"):
+                elif fname.startswith("peekdocs_report_"):
                     app_files.append((filepath, "peekdocs reports"))
                 elif fname == "peekdocs_errors.log":
                     app_files.append((filepath, "Error log"))

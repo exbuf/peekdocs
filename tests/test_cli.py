@@ -1120,7 +1120,7 @@ def test_search_proximity_invalid(tmp_path, monkeypatch, capsys):
 
 
 def test_search_save_append(tmp_path, monkeypatch, capsys):
-    """With -sa flag, search runs normally and results are appended to DO_NOT_SEARCH file."""
+    """With -sa flag, search runs normally and results are appended to peekdocs_accumulated file."""
     txt_file = tmp_path / "notes.txt"
     txt_file.write_text("Budget overview for Q1\n")
 
@@ -1130,19 +1130,19 @@ def test_search_save_append(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    assert "Results appended to DO_NOT_SEARCH_ACCUMULATED_my_report.txt and DO_NOT_SEARCH_ACCUMULATED_my_report.docx" in captured.out
+    assert "Results appended to peekdocs_accumulated_my_report.txt and peekdocs_accumulated_my_report.docx" in captured.out
 
     assert (tmp_path / "peekdocs_results.txt").exists()
     assert (tmp_path / "peekdocs_results.docx").exists()
-    assert (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.txt").exists()
-    assert (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.docx").exists()
+    assert (tmp_path / "peekdocs_accumulated_my_report.txt").exists()
+    assert (tmp_path / "peekdocs_accumulated_my_report.docx").exists()
 
-    content = (tmp_path / "DO_NOT_SEARCH_ACCUMULATED_my_report.txt").read_text()
+    content = (tmp_path / "peekdocs_accumulated_my_report.txt").read_text()
     assert "budget" in content.lower()
 
 
 def test_search_save_append_accumulates(tmp_path, monkeypatch, capsys):
-    """With -sa flag used twice, results accumulate in the DO_NOT_SEARCH file."""
+    """With -sa flag used twice, results accumulate in the peekdocs_accumulated file."""
     txt_file = tmp_path / "notes.txt"
     txt_file.write_text("Budget overview for Q1\nRevenue report for Q2\n")
 
@@ -1150,7 +1150,7 @@ def test_search_save_append_accumulates(tmp_path, monkeypatch, capsys):
     main(["-sa", "combined", "budget"])
     main(["-sa", "combined", "revenue"])
 
-    append_txt = tmp_path / "DO_NOT_SEARCH_ACCUMULATED_combined.txt"
+    append_txt = tmp_path / "peekdocs_accumulated_combined.txt"
     content = append_txt.read_text()
     assert "budget" in content.lower()
     assert "revenue" in content.lower()

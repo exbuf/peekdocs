@@ -1019,9 +1019,9 @@ def write_html_report(output_path, matches, search_terms=None,
 
 
 def append_results(append_name, output_dir, txt_path, docx_path):
-    """Append current results to accumulated DO_NOT_SEARCH files."""
-    append_txt_path = os.path.join(output_dir, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt")
-    append_docx_path = os.path.join(output_dir, f"DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
+    """Append current results to accumulated peekdocs files."""
+    append_txt_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.txt")
+    append_docx_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.docx")
     with open(txt_path, "r", encoding="utf-8") as src:
         results_content = src.read()
     with open(append_txt_path, "a", encoding="utf-8") as dst:

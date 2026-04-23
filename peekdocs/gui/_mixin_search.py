@@ -1127,11 +1127,11 @@ class SearchMixin:
                     categories[1][2].append(filepath)
                 elif fname.startswith("peekdocs_results"):
                     categories[0][2].append(filepath)
-                elif fname.startswith("DO_NOT_SEARCH_pii_scan_report"):
+                elif fname.startswith("peekdocs_pii_scan_report"):
                     categories[3][2].append(filepath)
-                elif fname.startswith("DO_NOT_SEARCH_ACCUMULATED"):
+                elif fname.startswith("peekdocs_accumulated_"):
                     categories[4][2].append(filepath)
-                elif fname.startswith("DO_NOT_SEARCH"):
+                elif fname.startswith("peekdocs_report_"):
                     categories[2][2].append(filepath)
                 elif fname == "peekdocs_errors.log":
                     categories[5][2].append(filepath)
@@ -1278,7 +1278,7 @@ class SearchMixin:
                 # Search result files
                 if fname.startswith("peekdocs_results"):
                     to_delete.append((filepath, "search results"))
-                # DO_NOT_SEARCH reports are preserved — use Clear Saved Reports
+                # Saved reports (peekdocs_report_*, peekdocs_accumulated_*, peekdocs_pii_scan_report*) are preserved — use Clear Saved Reports
                 # Error log
                 elif fname == "peekdocs_errors.log":
                     to_delete.append((filepath, "error log"))
@@ -1304,7 +1304,7 @@ class SearchMixin:
             f"{reason_lines}\n\n"
             f"PRESERVED:\n"
             f"  \u2022 Your saved searches (.peekdocs_collection.json)\n"
-            f"  \u2022 Your saved reports (DO_NOT_SEARCH_* files)\n"
+            f"  \u2022 Your saved reports (peekdocs_report_*, peekdocs_accumulated_*, peekdocs_pii_scan_report*)\n"
             f"  \u2022 Your settings (~/.peekdocsrc)\n"
             f"  \u2022 Your original documents\n\n"
             f"This cannot be undone."
@@ -1403,7 +1403,7 @@ class SearchMixin:
                     continue
 
                 # peekdocs output files
-                if fname.startswith("peekdocs_results") or fname.startswith("DO_NOT_SEARCH"):
+                if fname.startswith("peekdocs_results") or fname.startswith(("peekdocs_report_", "peekdocs_accumulated_", "peekdocs_pii_scan_report")):
                     excluded.append((filepath, "peekdocs output file (prior search results)"))
                     continue
                 if fname in _PEEKDOCS_INTERNAL:

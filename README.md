@@ -269,7 +269,7 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 - `~/.peekdocs_bookmarks.json` — your bookmarks
 - `.peekdocs_collection.json` (in each search folder) — your saved searches and search suites
 - `.peekdocs.db` (in each search folder) — your search index
-- `DO_NOT_SEARCH_*` files — your saved reports and PII scan reports
+- `peekdocs_report_*`, `peekdocs_accumulated_*`, `peekdocs_pii_scan_report*` files — your saved reports and PII scan reports
 
 - **pipx (installed from ZIP):** `pipx uninstall peekdocs`, download the new ZIP, then `pipx install` it again (same steps as the original install)
 - **pipx (installed with git):** `pipx upgrade peekdocs`
@@ -311,7 +311,7 @@ peekdocs --open txt budget           # auto-open the .txt report instead
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
-Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. Subsequent searches overwrite these files. To keep previous results, use `-s my_report` to save a named copy (saved as `DO_NOT_SEARCH_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
+Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. Subsequent searches overwrite these files. To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Google Docs, or Apple Pages. The .txt report works on any computer with no extra software.
 
 To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
 

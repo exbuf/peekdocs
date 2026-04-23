@@ -2058,7 +2058,7 @@ class ToolsMixin:
         b("When the scan detects findings, a Word report is automatically")
         b("generated and saved:")
         blank()
-        e("  File:     DO_NOT_SEARCH_pii_scan_report.docx")
+        e("  File:     peekdocs_pii_scan_report.docx")
         e("  Location: Your search folder (or Output Dir if set)")
         blank()
         b("The report includes:")
@@ -2070,7 +2070,7 @@ class ToolsMixin:
         b("\u2022 A disclaimer about false positives")
         blank()
         b("Click Open Report in the results popup to view it directly.")
-        b("The DO_NOT_SEARCH prefix ensures the report is never included")
+        b("The peekdocs_ prefix ensures the report is never included")
         b("in future search results. The report is overwritten each time")
         b("you run a new PII scan.")
         blank()
@@ -2396,7 +2396,7 @@ class ToolsMixin:
         if total > 0:
             try:
                 from peekdocs.reporter import write_pii_scan_report
-                report_name = "DO_NOT_SEARCH_pii_scan_report.docx"
+                report_name = "peekdocs_pii_scan_report.docx"
                 output_dir = folder
                 # Use output dir if set in Advanced Search Options
                 if hasattr(self, "output_dir_entry"):
@@ -2694,7 +2694,7 @@ class ToolsMixin:
 
         h("OPEN REPORT BUTTON")
         b("Click Open Report (at the bottom) to open the full highlighted")
-        b("Word report: DO_NOT_SEARCH_pii_scan_report.docx")
+        b("Word report: peekdocs_pii_scan_report.docx")
         blank()
         b("The report is saved in your search folder (or in the Output Dir")
         b("if set in Advanced Search Options). It is overwritten each")
@@ -2703,7 +2703,7 @@ class ToolsMixin:
 
         h("THE HIGHLIGHTED REPORT")
         b("File name and location:")
-        e("  File:     DO_NOT_SEARCH_pii_scan_report.docx")
+        e("  File:     peekdocs_pii_scan_report.docx")
         e("  Saved in: Your search folder (or in the Output Dir if set")
         e("            in Advanced Search Options)")
         blank()
@@ -4113,11 +4113,11 @@ class ToolsMixin:
         e("peekdocs_results.json      \u2014 optional (-o json)")
         blank()
         s("Saved/archived reports")
-        e("DO_NOT_SEARCH_{name}.txt/docx          \u2014 saved with -s")
-        e("DO_NOT_SEARCH_ACCUMULATED_{name}.*     \u2014 appended with -sa")
+        e("peekdocs_report_{name}.txt/docx         \u2014 saved with -s")
+        e("peekdocs_accumulated_{name}.*          \u2014 appended with -sa")
         blank()
         s("PII scan reports")
-        e("DO_NOT_SEARCH_pii_scan_report.docx     \u2014 PII Scan report")
+        e("peekdocs_pii_scan_report.docx          \u2014 PII Scan report")
         blank()
         s("Error log")
         e("peekdocs_errors.log        \u2014 files that couldn't be read + crash reports")
@@ -4133,7 +4133,7 @@ class ToolsMixin:
         b("convention meaning 'config file' (same as .bashrc, .vimrc, etc.).")
         blank()
         s("Key points")
-        b("\u2022 All DO_NOT_SEARCH_ files are automatically excluded from searches")
+        b("\u2022 All peekdocs_ report files are automatically excluded from searches")
         b("\u2022 All peekdocs internal files (.db, .log, .json config) are excluded")
         b("\u2022 Most files are safe to delete \u2014 peekdocs recreates them as needed")
         blank()
@@ -4412,7 +4412,7 @@ class ToolsMixin:
         s("Save As / Append To")
         b("Save As archives the current results with a name you choose.")
         b("Append To accumulates results from multiple searches into one file.")
-        b("Both use a DO_NOT_SEARCH prefix so they are never re-searched.")
+        b("Both use a peekdocs_ prefix so they are never re-searched.")
         blank()
 
         s("Output Directory")
@@ -4872,7 +4872,7 @@ class ToolsMixin:
         b("  .iso, .mp3, .mp4, .psd). peekdocs is a document search")
         b("  tool, not a binary/media scanner")
         b("\u2022 Prior peekdocs output \u2014 files peekdocs created itself,")
-        b("  such as DO_NOT_SEARCH_*.docx reports, index databases,")
+        b("  such as peekdocs_report_*.docx reports, index databases,")
         b("  and collection files. Searching these would produce")
         b("  circular matches and pollute your results")
         b("\u2022 Oversized \u2014 files larger than your Max File Size setting")
@@ -4903,7 +4903,7 @@ class ToolsMixin:
         e("      ...")
         e("")
         e("  \u2500\u2500 Prior peekdocs output (3 file(s)) \u2500\u2500")
-        e("      DO_NOT_SEARCH_results.docx")
+        e("      peekdocs_report_results.docx")
         e("      ...")
         blank()
         b("Groups are sorted alphabetically by reason, and files")

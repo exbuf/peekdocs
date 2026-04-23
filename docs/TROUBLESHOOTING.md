@@ -10,7 +10,7 @@ Common questions and solutions for peekdocs issues. For general usage, see the [
 ## FAQ (Frequently Asked Questions)
 
 **Where are my search results saved and what information is printed on the search report?**
-Results are saved to two files in the current directory: `peekdocs_results.txt` and `peekdocs_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived and accumulated files include your chosen name and are automatically prefixed with `DO_NOT_SEARCH` (e.g., `DO_NOT_SEARCH_my_report.txt`) so they are never re-searched in future searches.
+Results are saved to two files in the current directory: `peekdocs_results.txt` and `peekdocs_results.docx`. Each report includes the date and time, the command used, search terms, number of hits, search time, number of files searched, total file size, and a file type tally. Each match shows the document name, directory path, line number, and the matched text with search terms highlighted — `**bold**` markers in the `.txt` file and yellow highlighting in the `.docx` file. Note that these two result files are overwritten each time you run a new search. Use the `-s` flag to archive them or the `-sa` flag to accumulate results across searches. Archived files are saved as `peekdocs_report_my_report.txt` and accumulated files as `peekdocs_accumulated_my_report.txt` — the prefix is added automatically so they are never re-searched in future searches.
 
 **What happens when a file can't be read?**
 Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `peekdocs_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `peekdocs_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If peekdocs itself crashes unexpectedly, a crash report with a diagnosis is also written to this file.
@@ -48,12 +48,12 @@ The number 5 means the terms must appear within 5 words of each other.
 **Can I save these results?**
 Yes — use the `-s` flag.<br>
 Example: `peekdocs -s my_report`<br>
-The saved/archived file is never re-searched because of its `DO_NOT_SEARCH` prefix.
+The saved/archived file is never re-searched because of its `peekdocs_report_` prefix.
 
 **Can I accumulate results from multiple searches?**
 Yes — use the `-sa` flag.<br>
 Example: `peekdocs -sa my_report budget revenue`<br>
-Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time. The accumulated file is never re-searched because of its `DO_NOT_SEARCH` prefix.
+Each new search you run with the same name is appended to the bottom of the file, so your results accumulate over time. The accumulated file is never re-searched because of its `peekdocs_accumulated_` prefix.
 
 **Can I find approximate matches or handle typos?**
 Yes — use the `-z` flag. This enables fuzzy matching, which finds words that are similar to your search terms even if they're not spelled exactly the same. For example, searching for "budget" with `-z` will also match "budgt", "buget", or "budjet". This is especially useful when searching OCR text (combine with `-O`), which often contains recognition errors.<br>

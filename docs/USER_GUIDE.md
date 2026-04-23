@@ -59,7 +59,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 | Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
 | Search index | `.peekdocs.db` (each search folder) | Yes |
 | Search reports | `peekdocs_results.*` (each search folder) | Yes |
-| Saved reports and PII scan reports | `DO_NOT_SEARCH_*` (each search folder) | Yes |
+| Saved reports and PII scan reports | `peekdocs_report_*`, `peekdocs_accumulated_*`, `peekdocs_pii_scan_report*` (each search folder) | Yes |
 | Error log | `peekdocs_errors.log` (each search folder) | Yes |
 
 **How to upgrade:**
@@ -90,7 +90,7 @@ peekdocs runs entirely on your computer. Your documents are never uploaded, tran
 But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
-- **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `DO_NOT_SEARCH_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
+- **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `peekdocs_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
 - **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
@@ -331,7 +331,7 @@ Click the red **PII Scan** button to scan your documents for PII and sensitive d
 
 Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
 
-When findings are detected, a highlighted `.docx` report is automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`. The report is saved in the search folder by default, or in the **Output Dir** if set in Advanced Search Options. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
+When findings are detected, a highlighted `.docx` report is automatically generated: `peekdocs_pii_scan_report.docx`. The report is saved in the search folder by default, or in the **Output Dir** if set in Advanced Search Options. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
 
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
@@ -412,7 +412,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report (`peekdocs_suite_results.txt` and `peekdocs_suite_results.docx`). Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
 | **PII Scan** | One-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Add your own custom regex patterns. Results categorized by severity. See [PII Scan](#pii-scan) for details. |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
-| **App Files** | Wondering what files peekdocs created in your folder? App Files lists every peekdocs-created file in the Search Folder: results files (`peekdocs_results.txt`, `.docx`), saved reports (`DO_NOT_SEARCH_*.docx`, `.txt`), suite reports (`peekdocs_suite_results.*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), and the error log (`peekdocs_errors.log`). Each file is shown with its size and last-modified date. This helps you understand what's safe to delete (results files can always be regenerated by re-running the search) and what to keep (saved searches and saved reports). Use **Clear Results** or **Clear Error Log** from the Tools menu to clean up, or **Clean Up Practice Files** to remove everything except saved searches. |
+| **App Files** | Wondering what files peekdocs created in your folder? App Files lists every peekdocs-created file in the Search Folder: results files (`peekdocs_results.txt`, `.docx`), saved reports (`peekdocs_report_*.docx`, `.txt`), suite reports (`peekdocs_suite_results.*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), and the error log (`peekdocs_errors.log`). Each file is shown with its size and last-modified date. This helps you understand what's safe to delete (results files can always be regenerated by re-running the search) and what to keep (saved searches and saved reports). Use **Clear Results** or **Clear Error Log** from the Tools menu to clean up, or **Clean Up Practice Files** to remove everything except saved searches. |
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, **Hover Text** toggle, and cleanup options (Clear Results, Clear Error Log, Clean Up Practice Files). Your **Appearance**, **Text Size**, and **Hover Text** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
@@ -484,8 +484,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
 | `-r` (recursive) | Search subdirectories recursively |
-| `-s` (save) | Archive results — copies peekdocs_results files to DO_NOT_SEARCH_your_file_name.docx (and .txt). The DO_NOT_SEARCH prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
-| `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to DO_NOT_SEARCH_ACCUMULATED_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The DO_NOT_SEARCH_ACCUMULATED prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file DO_NOT_SEARCH_ACCUMULATED_my_report.docx (and .txt). |
+| `-s` (save) | Archive results — copies peekdocs_results files to peekdocs_report_your_file_name.docx (and .txt). The peekdocs_report_ prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
+| `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to peekdocs_accumulated_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The peekdocs_accumulated_ prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file peekdocs_accumulated_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
@@ -497,7 +497,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
-| `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`DO_NOT_SEARCH_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
+| `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`, `peekdocs_pii_scan_report*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
@@ -520,7 +520,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-x` treats search terms as regex patterns instead of literal strings
 - `-s` is used separately after a search to save results: `peekdocs -s my_report`
 - `-sa` always needs its filename immediately after it (e.g., `-sa my_report`)
-- `-sa` appends to existing DO_NOT_SEARCH_ACCUMULATED files, allowing you to accumulate results from multiple searches
+- `-sa` appends to existing peekdocs_accumulated files, allowing you to accumulate results from multiple searches
 - `-e` always needs its expression immediately after it, enclosed in quotes (e.g., `-e "(bob AND amy) OR fred"`)
 - `-e` and `-a` cannot be used together — use AND/OR inside the expression instead
 - `-e` and `-n` cannot be used together — use NOT inside the expression instead
@@ -977,7 +977,7 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 6. Click **Run Scan**. The status bar shows progress through each category.
 7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
 8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Double-click a row to open the original file in its default application, or select a row and click **View Text (with line numbers)** to see the extracted file content with line numbers and every match highlighted in orange.
-9. Click **Open Report** in the main results popup to open the `.docx` report that was automatically generated: `DO_NOT_SEARCH_pii_scan_report.docx`, saved in your search folder (or the Output Dir if set in Advanced Search Options). Each category heading in the report is color-coded by severity (red for HIGH, amber for MODERATE, blue for INFO) so you can find what matters quickly.
+9. Click **Open Report** in the main results popup to open the `.docx` report that was automatically generated: `peekdocs_pii_scan_report.docx`, saved in your search folder (or the Output Dir if set in Advanced Search Options). Each category heading in the report is color-coded by severity (red for HIGH, amber for MODERATE, blue for INFO) so you can find what matters quickly.
 
 ### Categories
 
@@ -1682,12 +1682,12 @@ Created when you use `-s` (save) or `-sa` (append) to archive results with a nam
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `DO_NOT_SEARCH_{name}.txt` | Named archive of search results (text) | Search folder (or `--output-dir`) |
-| `DO_NOT_SEARCH_{name}.docx` | Named archive of search results (Word) | Search folder (or `--output-dir`) |
-| `DO_NOT_SEARCH_ACCUMULATED_{name}.txt` | Accumulated results from multiple searches (text) | Search folder (or `--output-dir`) |
-| `DO_NOT_SEARCH_ACCUMULATED_{name}.docx` | Accumulated results from multiple searches (Word) | Search folder (or `--output-dir`) |
+| `peekdocs_report_{name}.txt` | Named archive of search results (text) | Search folder (or `--output-dir`) |
+| `peekdocs_report_{name}.docx` | Named archive of search results (Word) | Search folder (or `--output-dir`) |
+| `peekdocs_accumulated_{name}.txt` | Accumulated results from multiple searches (text) | Search folder (or `--output-dir`) |
+| `peekdocs_accumulated_{name}.docx` | Accumulated results from multiple searches (Word) | Search folder (or `--output-dir`) |
 
-**Protected from searching:** Yes — the `DO_NOT_SEARCH_` prefix ensures these are never included in future searches.
+**Protected from searching:** Yes — the `peekdocs_report_` and `peekdocs_accumulated_` prefixes ensure these are never included in future searches.
 **How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove peekdocs_results files.
 
 ### PII scan report
@@ -1696,9 +1696,9 @@ Created automatically when a Sensitive Data Scan detects findings.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `DO_NOT_SEARCH_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output Dir if set in Advanced Search Options, otherwise search folder |
+| `peekdocs_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output Dir if set in Advanced Search Options, otherwise search folder |
 
-**Protected from searching:** Yes — `DO_NOT_SEARCH_` prefix.
+**Protected from searching:** Yes — `peekdocs_pii_scan_report` prefix.
 **How to delete:** Delete manually, or use **Clean Up Practice Files** in the Maintenance menu. Overwritten on each new PII scan.
 
 ### Error log

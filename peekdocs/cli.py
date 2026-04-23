@@ -544,7 +544,7 @@ def _main_inner(argv=None):
         if clear_all:
             # Also delete saved reports, error log, and index
             for f in os.listdir(cwd):
-                if f.startswith("DO_NOT_SEARCH"):
+                if f.startswith(("peekdocs_report_", "peekdocs_accumulated_", "peekdocs_pii_scan_report")):
                     os.remove(os.path.join(cwd, f))
                     deleted.append(f)
             for f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
@@ -666,8 +666,8 @@ def _main_inner(argv=None):
         save_dir = _load_config().get("output_dir", cwd)
         src_docx = os.path.join(save_dir, "peekdocs_results.docx")
         src_txt = os.path.join(save_dir, "peekdocs_results.txt")
-        dest_docx = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.docx")
-        dest_txt = os.path.join(save_dir, f"DO_NOT_SEARCH_{name}.txt")
+        dest_docx = os.path.join(save_dir, f"peekdocs_report_{name}.docx")
+        dest_txt = os.path.join(save_dir, f"peekdocs_report_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
             print("Error: No search results found. Run a search first.\n")
             return 2
@@ -1178,7 +1178,7 @@ def _main_inner(argv=None):
         if pdf_output_path:
             print(f"  {os.path.basename(pdf_output_path)} ({fmt_size(os.path.getsize(pdf_output_path))})")
         if append_name is not None:
-            print(f"Results appended to DO_NOT_SEARCH_ACCUMULATED_{append_name}.txt and DO_NOT_SEARCH_ACCUMULATED_{append_name}.docx")
+            print(f"Results appended to peekdocs_accumulated_{append_name}.txt and peekdocs_accumulated_{append_name}.docx")
         if skipped_files:
             print()
             for skipped_name, error_msg in skipped_files:
