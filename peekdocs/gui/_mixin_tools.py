@@ -5445,8 +5445,7 @@ class ToolsMixin:
         from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
-        # Show progress bar like regular search
-        self._hide_preview()
+        # Show progress bar — don't touch matched/excluded buttons or action buttons
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(
@@ -5580,15 +5579,6 @@ class ToolsMixin:
             f"Suite '{suite_name}' complete: {len(sections)} search(es), "
             f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
         )
-
-        # Re-show matched/excluded files buttons if they have data from last search
-        if hasattr(self, "matched_files") and self.matched_files:
-            self._matched_files_link.pack(side="left", padx=(5, 0))
-        if hasattr(self, "_excluded_files_btn") and self._excluded_files_btn.cget("text"):
-            try:
-                self._excluded_files_btn.pack(side="left", padx=(5, 0))
-            except Exception:
-                pass
 
         # Show View Suite Report buttons on the status bar
         import tkinter as tk
