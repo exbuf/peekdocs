@@ -834,7 +834,7 @@ class BuildMixin:
         Tooltip(self.max_matches_entry, "Maximum matches included in reports. Default 1000. Set to 0 for no limit.")
         Tooltip(self.max_file_size_entry, "Skip files larger than this (in MB). Default 100. Set to 0 for no limit. Large files can cause slow searches or memory issues.")
         Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
-        Tooltip(self.save_name_entry, "Save the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name. Important: without this, your reports (peekdocs_results.txt and .docx) are overwritten every time you run a new search. Fill in this field to keep a permanent copy")
+        Tooltip(self.save_name_entry, "Save an extra copy of the report with a custom name after search completes. DO_NOT_SEARCH_ will be added to the front of your file name. This is in addition to the regular results files (peekdocs_results.txt and .docx) shown in View Report. Important: without this, your regular reports are overwritten every time you run a new search. Fill in this field to keep a permanent copy. To open it later, navigate to your Search Folder and double-click the DO_NOT_SEARCH_ file")
         Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). DO_NOT_SEARCH_ will be added to the front of your file name")
         Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
