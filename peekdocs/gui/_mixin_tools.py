@@ -5581,6 +5581,15 @@ class ToolsMixin:
             f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
         )
 
+        # Re-show matched/excluded files buttons if they have data from last search
+        if hasattr(self, "matched_files") and self.matched_files:
+            self._matched_files_link.pack(side="left", padx=(5, 0))
+        if hasattr(self, "_excluded_files_btn") and self._excluded_files_btn.cget("text"):
+            try:
+                self._excluded_files_btn.pack(side="left", padx=(5, 0))
+            except Exception:
+                pass
+
         # Show View Suite Report buttons on the status bar
         import tkinter as tk
 
