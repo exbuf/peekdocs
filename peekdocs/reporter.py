@@ -64,6 +64,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as ==> {os.path.abspath(output_path)}\n")
+        f.write("NOTE: This report is overwritten after each new search. To keep a permanent copy, use 'Save report as:' in Advanced Search Options (GUI) or the -s flag (CLI).\n")
         f.write(f"Command ==> {command_str}\n")
         translation = translate_search(
             search_terms, report_mode=report_mode,
