@@ -1145,14 +1145,12 @@ class DataMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(pady=(10, 2))
         tk.Label(
-            popup, text="Files created by peekdocs in this folder and subfolders. "
-                        "Items marked DO NOT DELETE contain your saved work. "
-                        ".peekdocs_collection.json holds all saved searches for that "
-                        "folder \u2014 back it up before major changes.\n\n"
+            popup, text="Every peekdocs-created file has 'peekdocs' in the filename. "
+                        "If you see 'peekdocs' in a filename, it's ours. If you don't, it's your document.\n\n"
                         "To clean up: Tools \u2192 Clear Files lets you choose exactly which "
-                        "peekdocs files to delete. Each file is listed with its category and "
-                        "a description of what it is. Your original documents, saved searches, "
-                        "and settings are never affected.",
+                        "peekdocs files to delete. Your original documents, saved searches "
+                        "(.peekdocs_collection.json), and settings (~/.peekdocsrc) are never "
+                        "shown in Clear Files and cannot be accidentally deleted.",
             font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
         ).pack(pady=(0, 8), padx=15)
 
