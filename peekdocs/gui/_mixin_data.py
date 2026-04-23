@@ -411,11 +411,18 @@ class DataMixin:
         y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
         popup.geometry(f"+{x}+{y}")
 
+        hist_header = tk.Frame(popup)
+        hist_header.pack(fill="x", padx=10, pady=(10, 2))
         tk.Label(
-            popup,
+            hist_header,
             text=f"Search History — {len(history)} search(es)",
             font=("TkDefaultFont", 13, "bold"),
-        ).pack(pady=(10, 2))
+        ).pack(side="left")
+        ctk.CTkButton(
+            hist_header, text="?", width=30, height=26,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=lambda: self._show_search_history_help(popup),
+        ).pack(side="right")
 
         tk.Label(
             popup,
@@ -497,6 +504,68 @@ class DataMixin:
             popup.destroy()
             self.status_label.configure(
                 text="Search history cleared.", text_color=("blue", "#66BBFF"))
+
+    def _show_search_history_help(self, parent):
+        """Show help for the Search History popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Search History — Help")
+        help_win.geometry("600x420")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+        try:
+            help_win.grab_set()
+        except Exception:
+            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
+
+        txt_frame = tk.Frame(help_win)
+        txt_frame.pack(fill="both", expand=True)
+        txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, spacing3=4)
+        txt.pack(fill="both", expand=True)
+
+        def b(text):
+            txt.insert("end", text + "\n", "bold")
+        def n(text):
+            txt.insert("end", text + "\n")
+
+        txt.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
+
+        b("What is Search History?")
+        n("Every search you run is automatically logged here with the date,")
+        n("search terms, number of matches, number of files searched, and")
+        n("elapsed time. Most recent searches appear first.\n")
+
+        b("What it shows")
+        n("Each row displays:")
+        n("\u2022 Date and time of the search")
+        n("\u2022 Number of matches found")
+        n("\u2022 Number of files searched")
+        n("\u2022 How long the search took")
+        n("\u2022 The search terms used\n")
+
+        b("How to use it")
+        n("\u2022 Review past searches to remember what you looked for")
+        n("\u2022 Compare results across searches (did a folder grow?)")
+        n("\u2022 Click Clear History to delete the log and start fresh\n")
+
+        b("Storage")
+        n("History is saved in ~/.peekdocs_history.json and persists across")
+        n("sessions. It is never affected by upgrades or Clear Files.")
+        n("History is view-only \u2014 you cannot re-run a search from here.")
+        n("To re-run a past search, use Save Search on the main screen")
+        n("to save searches you want to repeat.")
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
+        self._apply_dark_theme(help_win)
 
     # ── Bookmarks ────────────────────────────────────────────
 
