@@ -353,7 +353,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 Every search tool — from Google to Spotlight to $2,500 enterprise software — does the same thing at its core: match a pattern against text. Any modern tool can search in any spoken language, because they all use Unicode. The difference is never the matching. It's what happens around it: what files can it read, how does it present the results, how easy is it to use, and what can you do with the output.
 
-peekdocs reads 86 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click. And it does all of this in a GUI that a non-technical person can use without reading a manual.
+peekdocs reads 86 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click. Save your searches by name and reload them later. Group them into search suites and run an entire set of searches with one click — the same 10 searches you ran last quarter, rerun in seconds. And it does all of this in a GUI that a non-technical person can use without reading a manual.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
@@ -378,9 +378,10 @@ What AI adds beyond search — summarization, question answering, semantic under
 - **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
 - **86 file types in one command** — the bash script to handle all 86 types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
 - **GUI** — for anyone who doesn't live in a terminal.
+- **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
+- **Search suites** — save multiple searches by name and run them all together with one click. grep has no concept of saved searches or grouped batch execution.
 - **Search index with auto-refresh** — grep has no index. You'd need a separate tool (recoll, xapian) — at which point you're not using grep anymore.
 - **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters, different tool flags). peekdocs works identically on all three platforms.
-- **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
 
 **The honest summary:** For plain-text search in a terminal, grep is faster and simpler — use it. For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, scanning for sensitive data, or giving a non-terminal user a search tool they can actually use, peekdocs does what would take hundreds of lines of custom scripting to approximate — and does it in one command.
 
