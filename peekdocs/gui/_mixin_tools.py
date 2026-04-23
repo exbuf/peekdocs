@@ -2900,7 +2900,7 @@ class ToolsMixin:
 
         win = ctk.CTkToplevel(self)
         win.title("Search Wizard")
-        win.geometry("920x680")
+        win.geometry("920x720")
         win.resizable(True, True)
         win.after(50, win.lift)
         win.after(100, win.focus_force)
