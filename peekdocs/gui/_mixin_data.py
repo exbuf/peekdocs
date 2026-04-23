@@ -741,6 +741,14 @@ class DataMixin:
         n("Bookmarks are never affected by upgrades or Clear Files.")
 
         txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
         self._apply_dark_theme(help_win)
 
     def _save_to_collection(self):
