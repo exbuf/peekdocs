@@ -1086,45 +1086,145 @@ class SearchMixin:
 
 
     def _clear_saved_reports(self):
-        """Delete all DO_NOT_SEARCH_* saved reports after confirmation."""
+        """Show a popup with checkboxes for each DO_NOT_SEARCH_* file so the user can choose which to delete."""
+        import tkinter as tk
+
         folder = self.folder_entry.get().strip()
         if not folder or not os.path.isdir(folder):
             self._show_error("Please select a folder first.")
             return
 
-        saved_reports = []
+        # Categorize DO_NOT_SEARCH files
+        categories = {
+            "Saved reports": [],       # DO_NOT_SEARCH_{name}.docx/.txt
+            "PII scan reports": [],    # DO_NOT_SEARCH_pii_scan_report.*
+            "Accumulated reports": [], # DO_NOT_SEARCH_ACCUMULATED_*
+        }
         for root, dirs, files in os.walk(folder):
             for fname in files:
-                if fname.startswith("DO_NOT_SEARCH"):
-                    saved_reports.append(os.path.join(root, fname))
+                if not fname.startswith("DO_NOT_SEARCH"):
+                    continue
+                filepath = os.path.join(root, fname)
+                if "pii_scan_report" in fname:
+                    categories["PII scan reports"].append(filepath)
+                elif "ACCUMULATED" in fname:
+                    categories["Accumulated reports"].append(filepath)
+                else:
+                    categories["Saved reports"].append(filepath)
 
-        if not saved_reports:
+        all_files = []
+        for cat_files in categories.values():
+            all_files.extend(cat_files)
+
+        if not all_files:
             self.status_label.configure(text="No saved reports found.")
             return
 
-        from tkinter import messagebox
-        msg = (
-            f"Delete {len(saved_reports)} saved report(s)?\n\n"
-            "This will permanently delete all DO_NOT_SEARCH_ files,\n"
-            "including named reports from 'Save report as:' and\n"
-            "PII scan reports.\n\n"
-        )
-        if len(saved_reports) <= 15:
-            msg += "\n".join(os.path.basename(f) for f in saved_reports)
-        else:
-            msg += "\n".join(os.path.basename(f) for f in saved_reports[:15])
-            msg += f"\n... and {len(saved_reports) - 15} more"
-        msg += "\n\nThis cannot be undone."
+        win, _dark = self._themed_toplevel()
+        win.title("Clear Saved Reports")
+        win.resizable(True, True)
+        win.geometry("650x450")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 650) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 450) // 2
+        win.geometry(f"+{x}+{y}")
 
-        if messagebox.askyesno("Clear Saved Reports", msg):
+        _sf = self._scaled_font
+
+        tk.Label(
+            win, text="Select files to delete:", font=_sf(13, "bold"),
+        ).pack(anchor="w", padx=12, pady=(10, 2))
+        tk.Label(
+            win, text="Check the files you want to remove. This cannot be undone.",
+            font=_sf(10), fg="gray",
+        ).pack(anchor="w", padx=12, pady=(0, 8))
+
+        # Scrollable frame for checkboxes
+        list_frame = tk.Frame(win)
+        list_frame.pack(fill="both", expand=True, padx=12, pady=(0, 5))
+
+        canvas = tk.Canvas(list_frame, highlightthickness=0)
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
+        inner = tk.Frame(canvas)
+        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        check_vars = []  # list of (BooleanVar, filepath)
+
+        for cat_name, cat_files in categories.items():
+            if not cat_files:
+                continue
+            tk.Label(inner, text=cat_name, font=_sf(11, "bold")).pack(anchor="w", pady=(8, 2))
+            for filepath in sorted(cat_files):
+                var = tk.BooleanVar(value=False)
+                fname = os.path.basename(filepath)
+                rel = os.path.relpath(filepath, folder)
+                try:
+                    size = os.path.getsize(filepath)
+                    size_str = f" ({size:,} bytes)" if size < 1_000_000 else f" ({size / 1_000_000:.1f} MB)"
+                except OSError:
+                    size_str = ""
+                cb = tk.Checkbutton(
+                    inner, variable=var,
+                    text=f"{rel}{size_str}",
+                    font=_sf(10), anchor="w",
+                )
+                cb.pack(anchor="w", padx=(16, 0))
+                check_vars.append((var, filepath))
+
+        # Select All / Deselect All / Delete / Close
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(fill="x", padx=12, pady=(5, 10))
+
+        def _select_all():
+            for var, _ in check_vars:
+                var.set(True)
+
+        def _deselect_all():
+            for var, _ in check_vars:
+                var.set(False)
+
+        def _delete_selected():
+            selected = [(var, path) for var, path in check_vars if var.get()]
+            if not selected:
+                self._show_error("No files selected.")
+                return
+            from tkinter import messagebox
+            if not messagebox.askyesno(
+                "Confirm Delete",
+                f"Permanently delete {len(selected)} file(s)?\n\nThis cannot be undone.",
+                parent=win,
+            ):
+                return
             deleted = 0
-            for path in saved_reports:
+            for var, path in selected:
                 try:
                     os.remove(path)
                     deleted += 1
                 except OSError:
                     pass
+            win.destroy()
             self.status_label.configure(text=f"Deleted {deleted} saved report(s).")
+
+        ctk.CTkButton(btn_frame, text="Select All", width=80, font=ctk.CTkFont(size=12), command=_select_all).pack(side="left", padx=2)
+        ctk.CTkButton(btn_frame, text="Deselect All", width=90, font=ctk.CTkFont(size=12), command=_deselect_all).pack(side="left", padx=2)
+        ctk.CTkButton(
+            btn_frame, text="Delete Selected", width=120,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#CC3333", hover_color="#AA2222",
+            command=_delete_selected,
+        ).pack(side="left", padx=(20, 2))
+        ctk.CTkButton(
+            btn_frame, text="Close", width=70,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=win.destroy,
+        ).pack(side="right")
+
+        self._apply_dark_theme(win)
 
     def _clean_up_practice_files(self):
         """Delete all peekdocs-generated artifacts from the search folder
