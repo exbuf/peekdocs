@@ -1149,10 +1149,13 @@ class DataMixin:
                         "Items marked DO NOT DELETE contain your saved work. "
                         ".peekdocs_collection.json holds all saved searches for that "
                         "folder \u2014 back it up before major changes.\n\n"
-                        "To clean up: Tools \u2192 Clear Search Results (deletes peekdocs_results* files)  |  "
+                        "To clean up: Tools \u2192 Clear Search Results (deletes peekdocs_results* files only \u2014 "
+                        "safe, does not touch your saved reports)  |  "
                         "Tools \u2192 Clear Error Log (deletes peekdocs_errors.log)  |  "
-                        "Tools \u2192 Clean Up Practice Files (deletes results, reports, error log, and index "
-                        "\u2014 keeps saved searches and settings)",
+                        "Tools \u2192 Clean Up Practice Files (deletes results, error log, and index "
+                        "\u2014 keeps saved searches and settings. \u26a0 WARNING: also deletes your "
+                        "DO_NOT_SEARCH_ saved reports and PII scan reports. Move any reports you want to keep "
+                        "to another folder first.)",
             font=("TkDefaultFont", 11), fg="gray", wraplength=960, justify="left",
         ).pack(pady=(0, 8), padx=15)
 

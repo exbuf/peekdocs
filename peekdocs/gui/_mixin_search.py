@@ -1138,6 +1138,9 @@ class SearchMixin:
             f"  \u2022 Your saved searches (.peekdocs_collection.json)\n"
             f"  \u2022 Your settings (~/.peekdocsrc)\n"
             f"  \u2022 Your original documents\n\n"
+            f"\u26a0 WARNING: This includes your DO_NOT_SEARCH_ saved reports\n"
+            f"and PII scan reports. Move any reports you want to keep\n"
+            f"to another folder first.\n\n"
             f"This cannot be undone."
         )
         if not messagebox.askyesno("Clean Up Practice Files", msg):
