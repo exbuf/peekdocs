@@ -1660,7 +1660,9 @@ If no settings are saved or if a value is invalid, peekdocs uses its built-in de
 
 peekdocs creates several types of files during normal operation. Understanding what each file is, where it lives, and how to manage it helps you keep your folders clean and troubleshoot issues.
 
-**Important:** peekdocs never modifies, moves, or deletes your original documents. All files listed below are created by peekdocs itself. peekdocs can delete its own files when you ask — for example, Clear Results removes report files and Delete Index removes the search index. These operations only affect files that peekdocs created, never your documents.
+**How to identify peekdocs files:** Every file peekdocs creates has "peekdocs" in the filename — either starting with `peekdocs_` (reports, results, error log) or `.peekdocs` (index, saved searches, settings). If you see "peekdocs" in a filename, it's ours. If you don't, it's your document.
+
+**Important:** peekdocs never modifies, moves, or deletes your original documents. All files listed below are created by peekdocs itself. peekdocs can delete its own files when you ask — use **Clear Files** in the Tools menu to choose which peekdocs files to remove. These operations only affect files that peekdocs created, never your documents.
 
 ### Search reports
 

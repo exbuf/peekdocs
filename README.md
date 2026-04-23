@@ -8,7 +8,7 @@
 
 > peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, spreadsheets, emails and archives — 86 file types, all searched at once, all offline. Easy-to-read yellow-highlighted results with surrounding context, saved named searches you can repeat later, search suites that run a group of saved searches together in one click, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, a Search Wizard for building searches without memorizing syntax, and search modes from simple keywords to advanced patterns (regex). Whether you're a casual user looking for a lost document or a professional managing thousands of files, peekdocs scales to fit.
 >
-> Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own local report and index files, which you can delete at any time.) Free. No fees, no subscriptions.
+> Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. (peekdocs creates its own local report and index files, which you can delete at any time. Every peekdocs-created file has "peekdocs" in the filename, so they're easy to identify.) Free. No fees, no subscriptions.
 
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [Author](#author) · [License](#license)
 
