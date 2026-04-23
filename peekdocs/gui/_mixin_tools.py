@@ -5444,12 +5444,12 @@ class ToolsMixin:
         from peekdocs.api import search as api_search
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
-        self._update_status(f"Running suite '{suite_name}' ({len(search_names)} searches)...")
+        self.status_label.configure(text_color=("blue", "#66BBFF"), text=f"Running suite '{suite_name}' ({len(search_names)} searches)...")
 
         def _run():
             sections = []
             for i, search_name in enumerate(search_names, 1):
-                self.after(0, lambda i=i, n=search_name: self._update_status(
+                self.after(0, lambda i=i, n=search_name: self.status_label.configure(text_color=("blue", "#66BBFF"), text=
                     f"Suite '{suite_name}': [{i}/{len(search_names)}] {n}..."
                 ))
                 params = get_search_params(folder, search_name)
@@ -5517,7 +5517,7 @@ class ToolsMixin:
 
     def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
         """Handle suite completion — show results summary."""
-        self._update_status(
+        self.status_label.configure(text_color=("blue", "#66BBFF"), text=
             f"Suite '{suite_name}' complete: {len(sections)} search(es), {total_matches} total match(es)"
         )
         # Show results in preview
