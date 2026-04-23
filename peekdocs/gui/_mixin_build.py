@@ -1300,7 +1300,7 @@ class BuildMixin:
             _dark_sep()
             # App management (alphabetical)
             menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
-            menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
+            menu.add_command(label="View All peekdocs Files — list every peekdocs-created file in the Search Folder", command=self._show_app_files)
             menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
             _dark_sep()
             # Cleanup
