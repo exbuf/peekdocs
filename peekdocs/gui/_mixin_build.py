@@ -1301,11 +1301,8 @@ class BuildMixin:
             menu.add_command(label="App Files — list peekdocs-created files in the Search Folder", command=self._show_app_files)
             menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
             _dark_sep()
-            # Cleanup (alphabetical)
-            menu.add_command(label="Clean Up Practice Files — remove results, error log, and index (keeps saved searches and reports)", command=self._clean_up_practice_files)
-            menu.add_command(label="Clear Error Log — delete peekdocs_errors.log", command=self._clear_error_log)
-            menu.add_command(label="Clear Saved Reports — delete DO_NOT_SEARCH_ report files", command=self._clear_saved_reports)
-            menu.add_command(label="Clear Search Results — delete peekdocs_results files", command=self._clear_results_files)
+            # Cleanup
+            menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)
             _dark_sep()
             # Text Size — direct items instead of a cascade submenu
             # (cascades open to the right and go off-screen on small displays)
