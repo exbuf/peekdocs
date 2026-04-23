@@ -63,6 +63,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         if use_ocr:
             f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
         f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Saved as ==> {os.path.abspath(output_path)}\n")
         f.write(f"Command ==> {command_str}\n")
         translation = translate_search(
             search_terms, report_mode=report_mode,
@@ -333,6 +334,7 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
 
     doc.add_paragraph(f"Folder: {folder}")
     doc.add_paragraph(f"Date: {now}")
+    doc.add_paragraph(f"Saved as: {os.path.abspath(docx_path)}")
     doc.add_paragraph(f"Files scanned: {files_searched}")
     doc.add_paragraph(f"Scan time: {elapsed:.1f}s")
     doc.add_paragraph(f"Total findings: {total}  ({high} high severity)")
@@ -1061,6 +1063,7 @@ def write_suite_txt_report(output_path, suite_name, sections):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"Suite Report: {suite_name}\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Saved as: {os.path.abspath(output_path)}\n")
         f.write(f"Searches in suite: {len(sections)}\n")
         f.write(f"Total matches: {total_matches}\n")
         f.write(f"Total unique files searched: {len(total_files)}\n")
