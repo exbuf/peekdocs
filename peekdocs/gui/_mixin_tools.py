@@ -5438,23 +5438,97 @@ class ToolsMixin:
         self._apply_dark_theme(win)
 
     def _run_suite_searches(self, suite_name, search_names, folder):
-        """Execute all searches in a suite sequentially and produce a combined report."""
+        """Execute all searches in a suite sequentially using subprocess."""
         import threading
+        import subprocess as _sp
         from peekdocs.collection import get_search_params
-        from peekdocs.api import search as api_search
+        from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
-        self.status_label.configure(text_color=("blue", "#66BBFF"), text=f"Running suite '{suite_name}' ({len(search_names)} searches)...")
+        self.status_label.configure(text_color=("blue", "#66BBFF"),
+            text=f"Running suite '{suite_name}' ({len(search_names)} searches)...")
 
         def _run():
             sections = []
             for i, search_name in enumerate(search_names, 1):
-                self.after(0, lambda i=i, n=search_name: self.status_label.configure(text_color=("blue", "#66BBFF"), text=
-                    f"Suite '{suite_name}': [{i}/{len(search_names)}] {n}..."
+                self.after(0, lambda i=i, n=search_name: self.status_label.configure(
+                    text_color=("blue", "#66BBFF"),
+                    text=f"Suite '{suite_name}': [{i}/{len(search_names)}] {n}..."
                 ))
                 params = get_search_params(folder, search_name)
                 if params is None:
                     continue
+
+                # Build CLI command from saved params
+                cmd = _build_command_from_values(
+                    search_text=params.get("search_text", ""),
+                    folder=folder,
+                    and_mode=params.get("and_mode", False),
+                    recursive=params.get("recursive", False),
+                    fuzzy=params.get("fuzzy", False),
+                    wildcard=params.get("wildcard", False),
+                    ocr=params.get("ocr", False),
+                    regex=params.get("regex", False),
+                    exclude=params.get("exclude", ""),
+                    file_types=params.get("file_types", ""),
+                    proximity=str(params.get("proximity", "")) if params.get("proximity") else "",
+                    context_before=str(params.get("context_before", "")) if params.get("context_before") else "",
+                    context_after=str(params.get("context_after", "")) if params.get("context_after") else "",
+                    cores=str(params.get("cores", "")) if params.get("cores") else "",
+                    specific_files=params.get("specific_files", ""),
+                    index_search=params.get("index_search", False),
+                    inverse=params.get("inverse", False),
+                    expression=params.get("expression", False),
+                    whole_word=params.get("whole_word", False),
+                    max_matches=str(params.get("max_matches", "")) if params.get("max_matches") else "",
+                    max_file_size_mb=str(params.get("max_file_size_mb", "")) if params.get("max_file_size_mb") else "",
+                    range_filters=params.get("range_filters", ""),
+                )
+                if cmd is None or cmd == "FLAGS_IN_SEARCH":
+                    continue
+
+                # Run via subprocess (same as regular search)
+                import time
+                start = time.time()
+                env = os.environ.copy()
+                env["PYTHONIOENCODING"] = "utf-8"
+                env["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+                try:
+                    proc = _sp.Popen(
+                        cmd, cwd=folder,
+                        stdout=_sp.PIPE, stderr=_sp.PIPE,
+                        text=True, encoding="utf-8", errors="replace",
+                        env=env,
+                    )
+                    stdout, stderr = proc.communicate()
+                except Exception:
+                    continue
+                elapsed = time.time() - start
+
+                # Parse results from the generated txt report
+                import re as _re
+                matches = []
+                all_files = []
+                txt_result = os.path.join(folder, "peekdocs_results.txt")
+                if os.path.exists(txt_result):
+                    try:
+                        with open(txt_result, "r", encoding="utf-8") as f:
+                            content = f.read()
+                        # Extract match count and file count from stdout
+                        m_found = _re.search(r"Found (\d+) match", stdout)
+                        m_files = _re.search(r"(\d+) file\(s\)", stdout)
+                        match_count = int(m_found.group(1)) if m_found else 0
+                        file_count = int(m_files.group(1)) if m_files else 0
+
+                        # Parse matches from txt report
+                        for m in _re.finditer(
+                            r'Document: (.+?) \(\d+ match(?:es)?\), Line: (\d+), Match:\n\((.+?)\)\n"(.+?)"',
+                            content, _re.DOTALL
+                        ):
+                            filename, line_num, file_dir, text = m.groups()
+                            matches.append((file_dir, filename, int(line_num), text.strip()))
+                    except Exception:
+                        pass
 
                 terms_str = params.get("search_text", "")
                 import shlex as _shlex
@@ -5462,49 +5536,21 @@ class ToolsMixin:
                     search_terms = _shlex.split(terms_str) if terms_str else []
                 except ValueError:
                     search_terms = terms_str.split() if terms_str else []
-
                 expr = params.get("expression") if params.get("expression") else None
-                kwargs = {
-                    "directory": folder,
-                    "match_all": params.get("and_mode", False),
-                    "recursive": params.get("recursive", False),
-                    "use_fuzzy": params.get("fuzzy", False),
-                    "use_wildcard": params.get("wildcard", False),
-                    "use_regex": params.get("regex", False),
-                    "use_ocr": params.get("ocr", False),
-                    "use_whole_word": params.get("whole_word", False),
-                    "use_index": params.get("index_search", False),
-                    "expression": expr,
-                }
-                if params.get("exclude"):
-                    kwargs["exclude_terms"] = [t.strip() for t in params["exclude"].split(",") if t.strip()]
-                if params.get("file_types"):
-                    kwargs["file_types"] = [t.strip() for t in params["file_types"].split(",") if t.strip()]
-                if params.get("proximity"):
-                    kwargs["proximity"] = int(params["proximity"])
-                if params.get("context_before"):
-                    kwargs["context_before"] = int(params["context_before"])
-                if params.get("context_after"):
-                    kwargs["context_after"] = int(params["context_after"])
-                if params.get("range_filters"):
-                    rf = params["range_filters"]
-                    kwargs["range_filters"] = rf if isinstance(rf, list) else [r.strip() for r in rf.split(",") if r.strip()]
-
-                result = api_search(search_terms if not expr else [], **kwargs)
-
                 mode = "ALL" if params.get("and_mode") else "ANY"
                 display_terms = search_terms if not expr else [expr]
+
                 sections.append({
                     "search_name": search_name,
                     "search_terms": display_terms,
-                    "matches": [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches],
-                    "all_files": result.files_searched,
-                    "elapsed": result.elapsed,
+                    "matches": matches,
+                    "all_files": [],
+                    "elapsed": elapsed,
                     "report_mode": mode,
                     "params": params,
                 })
 
-            # Generate reports
+            # Generate combined suite reports
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
             docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
             write_suite_txt_report(txt_path, suite_name, sections)
