@@ -708,7 +708,9 @@ class DataMixin:
         except Exception:
             help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
-        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+        txt_frame = tk.Frame(help_win)
+        txt_frame.pack(fill="both", expand=True)
+        txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
                       padx=15, pady=10, spacing3=4)
         txt.pack(fill="both", expand=True)
 
