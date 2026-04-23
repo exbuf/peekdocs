@@ -5147,6 +5147,11 @@ class ToolsMixin:
         header = tk.Frame(win)
         header.pack(fill="x", padx=12, pady=(10, 5))
         tk.Label(header, text="Search Suites", font=_sf(14, "bold")).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, height=26,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=lambda: self._show_search_suites_help(win),
+        ).pack(side="right")
         tk.Label(
             header,
             text="Group saved searches and run them together. Results go into a single combined report.",
@@ -5508,3 +5513,82 @@ class ToolsMixin:
                 self.preview_text.insert("end", "\n")
             self.preview_text.insert("end", f"\nReports saved:\n  {txt_path}\n  {docx_path}\n")
             self.preview_text.configure(state="disabled")
+
+    def _show_search_suites_help(self, parent):
+        """Show help for the Search Suites popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Search Suites — Help")
+        help_win.geometry("640x520")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+        try:
+            help_win.grab_set()
+        except Exception:
+            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
+
+        txt_frame = tk.Frame(help_win)
+        txt_frame.pack(fill="both", expand=True)
+        txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, spacing3=4)
+        txt.pack(fill="both", expand=True)
+
+        def b(text):
+            txt.insert("end", text + "\n", "bold")
+        def n(text):
+            txt.insert("end", text + "\n")
+
+        txt.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
+
+        b("What are Search Suites?")
+        n("A search suite is a named group of saved searches that run")
+        n("together with one click. Instead of running the same 5 or 10")
+        n("searches one at a time, create a suite and run them all at once.")
+        n("Results are combined into a single highlighted report.\n")
+
+        b("How to Create a Suite")
+        n("1. First, save some searches using the Save button on the main screen")
+        n("2. Open Search Suites from the Tools menu")
+        n("3. Click New to create a named suite")
+        n("4. Click Add Search to add saved searches to the suite")
+        n("5. Use \u25b2 Up and \u25bc Down to set the run order")
+        n("6. Click Run Suite to execute all searches\n")
+
+        b("Managing Suites")
+        n("\u2022 Rename \u2014 change a suite's name")
+        n("\u2022 Delete \u2014 remove a suite (does not delete the saved searches)")
+        n("\u2022 Add Search \u2014 add a saved search to the suite")
+        n("\u2022 Remove \u2014 remove a search from the suite (does not delete the saved search)")
+        n("\u2022 \u25b2 Up / \u25bc Down \u2014 change the order searches run in\n")
+
+        b("What Happens When You Run a Suite")
+        n("Each search runs independently with its own settings (AND/OR,")
+        n("regex, recursive, etc.). Results are organized by search in a")
+        n("combined report: peekdocs_suite_results.txt and .docx.\n")
+
+        b("Use Cases")
+        n("\u2022 Pre-publication checklist \u2014 search for outdated terms, placeholder")
+        n("  text, and sensitive data before publishing")
+        n("\u2022 Quarterly audit \u2014 run the same compliance searches every quarter")
+        n("\u2022 Onboarding review \u2014 search policy documents for required terms")
+        n("\u2022 Any recurring workflow with multiple searches\n")
+
+        b("CLI")
+        n("Run a suite from the command line:")
+        n("  peekdocs --suite \"My Suite\"\n")
+
+        b("Storage")
+        n("Suites are saved in .peekdocs_collection.json alongside your")
+        n("saved searches. They persist across sessions and are never")
+        n("affected by upgrades or Clear Files.")
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
+        self._apply_dark_theme(help_win)
