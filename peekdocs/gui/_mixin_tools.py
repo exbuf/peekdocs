@@ -5514,11 +5514,9 @@ class ToolsMixin:
                     try:
                         with open(txt_result, "r", encoding="utf-8") as f:
                             content = f.read()
-                        # Extract match count and file count from stdout
-                        m_found = _re.search(r"Found (\d+) match", stdout)
-                        m_files = _re.search(r"(\d+) file\(s\)", stdout)
-                        match_count = int(m_found.group(1)) if m_found else 0
-                        file_count = int(m_files.group(1)) if m_files else 0
+                        # Extract file list from "Files searched" section of txt report
+                        files_searched_match = _re.search(r"Files searched ==> (\d+)", content)
+                        file_count = int(files_searched_match.group(1)) if files_searched_match else 0
 
                         # Parse matches from txt report
                         for m in _re.finditer(
@@ -5544,7 +5542,7 @@ class ToolsMixin:
                     "search_name": search_name,
                     "search_terms": display_terms,
                     "matches": matches,
-                    "all_files": [],
+                    "all_files": [f"{search_name}_{j}" for j in range(file_count)],
                     "elapsed": elapsed,
                     "report_mode": mode,
                     "params": params,
