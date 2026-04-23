@@ -5445,6 +5445,16 @@ class ToolsMixin:
         from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
+        # Show progress bar like regular search
+        self._clear_action_buttons()
+        self._hide_preview()
+        self._matched_files_link.pack_forget()
+        self._excluded_files_btn.pack_forget()
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_bar.start()
+        self.progress_bar.grid(
+            row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+        )
         self.status_label.configure(text_color=("blue", "#66BBFF"),
             text=f"Running suite '{suite_name}' ({len(search_names)} searches)...")
 
@@ -5453,7 +5463,7 @@ class ToolsMixin:
             for i, search_name in enumerate(search_names, 1):
                 self.after(0, lambda i=i, n=search_name: self.status_label.configure(
                     text_color=("blue", "#66BBFF"),
-                    text=f"Suite '{suite_name}': [{i}/{len(search_names)}] {n}..."
+                    text=f"Suite '{suite_name}': [{i}/{len(search_names)}] Searching: {n}..."
                 ))
                 params = get_search_params(folder, search_name)
                 if params is None:
@@ -5561,6 +5571,12 @@ class ToolsMixin:
 
     def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
         """Handle suite completion — show results summary and report buttons."""
+        try:
+            self.progress_bar.stop()
+        except Exception:
+            pass
+        self.progress_bar.grid_remove()
+
         total_matched_files_status = len({os.path.join(fd, fn)
             for s in sections for fd, fn, _ln, _tx in s["matches"]})
         self.status_label.configure(text_color=("blue", "#66BBFF"), text=
