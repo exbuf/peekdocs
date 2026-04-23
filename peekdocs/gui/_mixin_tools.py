@@ -5446,10 +5446,7 @@ class ToolsMixin:
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
 
         # Show progress bar like regular search
-        self._clear_action_buttons()
         self._hide_preview()
-        self._matched_files_link.pack_forget()
-        self._excluded_files_btn.pack_forget()
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(
