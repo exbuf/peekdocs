@@ -5561,8 +5561,11 @@ class ToolsMixin:
 
     def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path):
         """Handle suite completion — show results summary and report buttons."""
+        total_matched_files_status = len({os.path.join(fd, fn)
+            for s in sections for fd, fn, _ln, _tx in s["matches"]})
         self.status_label.configure(text_color=("blue", "#66BBFF"), text=
-            f"Suite '{suite_name}' complete: {len(sections)} search(es), {total_matches} total match(es)"
+            f"Suite '{suite_name}' complete: {len(sections)} search(es), "
+            f"Found {total_matches} match(es) in {total_matched_files_status} file(s)"
         )
 
         # Show View Suite Report buttons on the status bar
@@ -5610,14 +5613,18 @@ class ToolsMixin:
         if hasattr(self, "preview_text"):
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
+            total_matched_files = len({os.path.join(fd, fn)
+                for s in sections for fd, fn, _ln, _tx in s["matches"]})
             self.preview_text.insert("end", f"Suite Report: {suite_name}\n", "filename")
-            self.preview_text.insert("end", f"Searches: {len(sections)}, Total matches: {total_matches}\n\n")
+            self.preview_text.insert("end", f"Searches: {len(sections)}, Found {total_matches} match(es) in {total_matched_files} file(s)\n\n")
             for section in sections:
                 name = section["search_name"]
                 matches = section["matches"]
+                matched_files = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
+                files_searched = len(section["all_files"])
                 self.preview_text.insert("end", f"{'='*60}\n")
                 self.preview_text.insert("end", f"{name}", "filename")
-                self.preview_text.insert("end", f" — {len(matches)} match(es)\n")
+                self.preview_text.insert("end", f" — {len(matches)} match(es) in {matched_files} file(s). Files searched: {files_searched}\n")
                 for fd, fn, ln, text in matches[:20]:  # first 20 per section
                     self.preview_text.insert("end", f"  {fn}:{ln}: {text[:120]}\n")
                 if len(matches) > 20:

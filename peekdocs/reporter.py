@@ -1065,9 +1065,14 @@ def write_suite_txt_report(output_path, suite_name, sections):
         f.write(f"Suite Report: {suite_name}\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as: {os.path.abspath(output_path)}\n")
+        total_matched_files = set()
+        for s in sections:
+            total_matched_files.update(
+                os.path.join(fd, fn) for fd, fn, _ln, _tx in s["matches"]
+            )
         f.write(f"Searches in suite: {len(sections)}\n")
-        f.write(f"Total matches: {total_matches}\n")
-        f.write(f"Total unique files searched: {len(total_files)}\n")
+        f.write(f"Total matches: {total_matches} in {len(total_matched_files)} file(s)\n")
+        f.write(f"Files searched: {len(total_files)}\n")
         f.write(f"Total time: {total_elapsed:.2f}s\n")
         f.write("\n")
 
@@ -1082,7 +1087,8 @@ def write_suite_txt_report(output_path, suite_name, sections):
             f.write("=" * 72 + "\n")
             f.write(f"Search {i}/{len(sections)}: {name}\n")
             f.write(f"Terms: {' '.join(terms)} (mode: {mode})\n")
-            f.write(f"Matches: {len(matches)} in {len(all_files)} file(s), {elapsed:.2f}s\n")
+            matched_files = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
+            f.write(f"Found {len(matches)} match(es) in {matched_files} file(s). Files searched: {len(all_files)}. Time: {elapsed:.2f}s\n")
             f.write("=" * 72 + "\n\n")
 
             if not matches:
