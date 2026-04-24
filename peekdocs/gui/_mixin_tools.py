@@ -5818,7 +5818,16 @@ class ToolsMixin:
         n("Copy a folder to another computer and the suites come with it")
         n("automatically. They persist across sessions and are never")
         n("affected by upgrades or Clear Files. Use All Collections in the")
-        n("Tools menu to see saved searches across all your folders.")
+        n("Tools menu to see saved searches across all your folders.\n")
+
+        b("Folder Changes")
+        n("The Search Suites popup always uses the Search Folder from the")
+        n("main screen. If you change the Search Folder while the popup")
+        n("is open, the popup closes automatically to prevent a mismatch")
+        n("\u2014 suites and saved searches belong to a specific folder, so")
+        n("showing a stale folder could lead to confusion. Just reopen")
+        n("Search Suites from the Tools menu to see the new folder's")
+        n("suites and saved searches.")
 
         txt.configure(state="disabled")
 
