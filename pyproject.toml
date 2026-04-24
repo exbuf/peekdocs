@@ -7,6 +7,7 @@ name = "peekdocs"
 version = "0.3.0"
 description = "A CLI tool for searching and retrieving content from documents"
 license = {text = "MIT"}
+authors = [{name = "Robert D. Schoening", email = "bobschoening@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
     "python-docx>=1.0,<2.0",
