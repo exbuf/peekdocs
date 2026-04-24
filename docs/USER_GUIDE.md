@@ -335,7 +335,7 @@ When findings are detected, a highlighted `.docx` report is automatically genera
 
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
-Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The PII Scan remembers its own folder between sessions (saved to `~/.peekdocsrc`), so you can point it at a different folder than your main search and it will stay there even after restarting the app. The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
+Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The PII Scan is fully independent from the main search: it has its own folder, its own **Include subfolders (Recursive)** checkbox, and always scans all supported file types — it ignores any File Types filter or Recursive setting in Advanced Search Options. Both the folder and Recursive setting are remembered between sessions (saved to `~/.peekdocsrc`). The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
 
 **Advanced Search Options:**
 
@@ -961,7 +961,7 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 
 ### What it does
 
-- Runs the eight built-in PII regex patterns against every file in your selected search folder (respecting Recursive and File Type settings).
+- Runs the eight built-in PII regex patterns against every supported file in your selected search folder. Always scans all file types — uses its own Recursive checkbox (not the one in Advanced Search Options).
 - Groups findings by category (SSN, credit card, tax ID, email, phone, password, DOB, dollar amounts).
 - Categorizes each category by severity (HIGH for SSNs, credit cards, and tax IDs; MODERATE for emails, phones, passwords, and dates of birth; INFO for dollar amounts).
 - Produces a consolidated `.docx` report with a summary table, a detail section per category, every affected file listed with match counts and line numbers, and the matched text highlighted in yellow.
