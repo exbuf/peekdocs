@@ -5186,11 +5186,11 @@ class ToolsMixin:
             command=lambda: self._show_search_suites_help(win),
         ).pack(side="right")
         tk.Label(
-            header,
+            win,
             text="Group saved searches and run them together. Results go into a single combined report. "
                  "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main screen.",
-            font=_sf(10), fg="gray", wraplength=600,
-        ).pack(side="left", padx=(12, 0))
+            font=_sf(10), fg="gray", wraplength=850, justify="left", anchor="w",
+        ).pack(fill="x", padx=12, pady=(0, 2))
 
         tk.Label(
             win,
