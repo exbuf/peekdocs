@@ -340,6 +340,22 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     doc.add_paragraph(f"Scan time: {elapsed:.1f}s")
     doc.add_paragraph(f"Total findings: {total}  ({high} high severity)")
 
+    # Think before printing — at the top where it's seen first
+    if total > 0:
+        doc.add_paragraph()
+        top_warning = doc.add_paragraph()
+        tw_run = top_warning.add_run(
+            "\u26a0 IMPORTANT: Think before you print. This report contains the actual sensitive data "
+            "that was found \u2014 real SSNs, real credit card numbers, real passwords, highlighted in "
+            "yellow. Printing creates a physical copy of the very data you may be trying to protect. "
+            "If you need to share findings, consider describing the results "
+            "(e.g., '3 SSNs found in tax_return.docx') rather than sending the report with "
+            "the actual data visible."
+        )
+        tw_run.bold = True
+        tw_run.font.size = Pt(10)
+        tw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
+
     if total == 0:
         para = doc.add_paragraph()
         run = para.add_run("No sensitive data found.")
@@ -603,21 +619,6 @@ def _write_pii_disclaimer_and_license(doc):
     )
     intro_run.font.size = Pt(9)
     intro_run.font.color.rgb = _GRAY
-
-    # Think before printing warning
-    print_warning = doc.add_paragraph()
-    pw_run = print_warning.add_run(
-        "\u26a0 IMPORTANT: Think before you print. This report contains the actual sensitive data "
-        "that was found \u2014 real SSNs, real credit card numbers, real passwords, highlighted in "
-        "yellow. Printing this report creates a physical copy of the very data you may be trying "
-        "to protect. A printed report left on a desk or in a recycling bin is itself a data "
-        "exposure. If you need to share findings, consider describing the results "
-        "(e.g., '3 SSNs found in tax_return.docx') rather than sending the report with "
-        "the actual data visible."
-    )
-    pw_run.bold = True
-    pw_run.font.size = Pt(9)
-    pw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
 
     def _add_disclaimer_point(title, body):
         """Add one bullet with a bold lead-in and body text."""
