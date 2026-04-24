@@ -1434,6 +1434,17 @@ class ToolsMixin:
             win, "Scan will check files in this folder.",
             initial_folder=_saved_pii_folder)
 
+        # Recursive checkbox — independent from main search
+        from peekdocs.cli import _load_config as _lc_pii
+        _pii_recursive_saved = _lc_pii().get("pii_scan_recursive", True)
+        _pii_recursive_var = tk.BooleanVar(value=_pii_recursive_saved)
+        _pii_rec_frame = tk.Frame(win)
+        _pii_rec_frame.pack(fill="x", padx=20, pady=(2, 0))
+        tk.Checkbutton(
+            _pii_rec_frame, variable=_pii_recursive_var,
+            text="Include subfolders (Recursive)", font=("TkDefaultFont", 11),
+        ).pack(side="left")
+
         # Load saved selections (default: all enabled)
         if not hasattr(self, "_pii_scan_enabled"):
             from peekdocs.cli import _load_config
@@ -1689,13 +1700,15 @@ class ToolsMixin:
                 pii_folder = _pii_folder_label.cget("text")
                 if pii_folder and pii_folder != "(none)":
                     config["pii_scan_folder"] = pii_folder
+                config["pii_scan_recursive"] = _pii_recursive_var.get()
                 _save_config(config)
             except Exception:
                 pass
             pii_folder = _pii_folder_label.cget("text")
+            pii_recursive = _pii_recursive_var.get()
             self._last_pii_folder = pii_folder  # Remember for next invocation
             win.destroy()
-            self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None)
+            self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None, recursive=pii_recursive)
 
         ctk.CTkButton(btn_frame, text="Run Scan", width=100, font=ctk.CTkFont(size=12, weight="bold"), command=_run).pack()
         ctk.CTkButton(
@@ -2273,18 +2286,15 @@ class ToolsMixin:
 
 
 
-    def _run_sensitive_scan(self, selected_patterns, folder=None, dollar_range=None):
+    def _run_sensitive_scan(self, selected_patterns, folder=None, dollar_range=None, recursive=True):
         """Launch the sensitive data scan with the selected patterns."""
         if not folder:
             folder = self.folder_entry.get().strip()
         if not folder or folder == "(none)" or not os.path.isdir(folder):
             self._show_error("Please select a valid folder first.")
             return
-        recursive = self.recursive_var.get() == "on"
-        file_types_str = self.file_types_entry.get().strip() if hasattr(self, "file_types_entry") else ""
+        # PII scan searches all supported file types — independent of main search
         file_types = None
-        if file_types_str:
-            file_types = ["." + t.strip().lstrip(".") for t in file_types_str.split(",") if t.strip()]
 
         # Save and uncheck Use Index — regex scans don't benefit from the index
         self._sensitive_scan_saved_index = self.index_search_var.get()
