@@ -410,9 +410,9 @@ The file mix represents a typical home or small business folder:
 | PowerPoint (.pptx) | 5% | Presentations |
 | Other (.html, .rtf) | 2% | Saved web pages, legacy docs |
 
-**Results (files stored locally on SSD):**
+**Results (files stored locally on SSD).** Each test folder contained the mix of file types shown above. Individual file sizes varied (PDFs 50–500 KB, Word docs 20–200 KB, text files 1–50 KB, etc.). "Total size" is the entire folder.
 
-| Files | Total size | Search time |
+| Files | Total folder size | Search time |
 |------:|-----------:|------------:|
 | **1,000** | 13 MB | **~1 second** |
 | **10,000** | 133 MB | **~5 seconds** |
