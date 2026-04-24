@@ -245,7 +245,8 @@ class BuildMixin:
         self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
         self.search_entry.bind("<Return>", lambda e: self.start_search())
 
-        self._search_btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._search_btn_frame = ctk.CTkFrame(self._input_frame, corner_radius=6,
+                                               border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
         clear_button = ctk.CTkButton(
@@ -255,7 +256,7 @@ class BuildMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        clear_button.pack(side="left", padx=(0, 3))
+        clear_button.pack(side="left", padx=(6, 3), pady=4)
         Tooltip(clear_button, "Clear the search bar", anchor="left")
 
         recent_btn = ctk.CTkButton(
@@ -265,7 +266,7 @@ class BuildMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        recent_btn.pack(side="left")
+        recent_btn.pack(side="left", padx=(0, 6), pady=4)
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: "3." label + action buttons
@@ -469,6 +470,7 @@ class BuildMixin:
         self.browse_file_button.pack(side="left", padx=(3, 6), pady=4)
         Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
+        # Clear button — inside the browse frame, shown when a file is selected
         self._clear_file_btn = ctk.CTkButton(
             self._browse_frame, text="\u2715", width=24, height=24,
             font=ctk.CTkFont(size=12),
@@ -1490,7 +1492,7 @@ class BuildMixin:
                 text=f"File selected: {filename} in {folder}",
                 text_color=("blue", "#66BBFF"),
             )
-            self._clear_file_btn.pack(side="left", padx=(2, 0))
+            self._clear_file_btn.pack(side="left", padx=(2, 6), pady=4)
 
 
 
