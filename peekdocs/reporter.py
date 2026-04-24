@@ -52,17 +52,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("Header:\n\n")
-        f.write("Program name: peekdocs\n")
-        f.write("Program Source: https://github.com/exbuf\n")
-        f.write("Overview: Searches all supported file types in current directory for search terms.\n")
-        f.write("Supported file types:\n")
-        from peekdocs.constants import SUPPORTED_TYPES
-        _sorted_types = ", ".join(sorted(SUPPORTED_TYPES))
-        f.write(f"{_sorted_types}\n")
-        if use_ocr:
-            f.write("OCR image types: .bmp, .jpg, .jpeg, .png, .tif, .tiff\n")
-        f.write(f"\nReport Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write("peekdocs_results\n\n\n")
+        f.write(f"Report Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as ==> {os.path.abspath(output_path)}\n")
         f.write("NOTE: This report is overwritten after each new search. To keep a permanent copy, use 'Save report as:' in Advanced Search Options (GUI) or the -s flag (CLI).\n")
         f.write(f"Command ==> {command_str}\n")
