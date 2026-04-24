@@ -389,6 +389,15 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     # Full multi-point disclaimer
     _write_pii_disclaimer_and_license(doc)
 
+    # Page break before Summary
+    from docx.oxml.ns import qn as _qn_pb
+    from docx.oxml import OxmlElement as _OE_pb
+    page_break_para = doc.add_paragraph()
+    run_pb = page_break_para.add_run()
+    br = _OE_pb("w:br")
+    br.set(_qn_pb("w:type"), "page")
+    run_pb._element.append(br)
+
     # Summary table
     doc.add_heading("Summary", level=2)
     hint = doc.add_paragraph()
