@@ -5154,10 +5154,10 @@ class ToolsMixin:
         win, _dark = self._themed_toplevel()
         win.title("Search Suites")
         win.resizable(True, True)
-        win.geometry("880x490")
+        win.geometry("880x520")
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 490) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
         win.geometry(f"+{x}+{y}")
 
         _sf = self._scaled_font
