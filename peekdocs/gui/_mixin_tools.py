@@ -5154,10 +5154,10 @@ class ToolsMixin:
         win, _dark = self._themed_toplevel()
         win.title("Search Suites")
         win.resizable(True, True)
-        win.geometry("880x520")
+        win.geometry("880x490")
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 490) // 2
         win.geometry(f"+{x}+{y}")
 
         _sf = self._scaled_font
@@ -5206,7 +5206,7 @@ class ToolsMixin:
 
         right_header = tk.Frame(right)
         right_header.pack(fill="x")
-        suite_name_label = tk.Label(right_header, text="(select a suite)", font=_sf(12, "bold"))
+        suite_name_label = tk.Label(right_header, text="", font=_sf(12, "bold"))
         suite_name_label.pack(side="left")
 
         tk.Label(right, text="Searches in this suite (run in order, top to bottom):", font=_sf(10)).pack(anchor="w", pady=(4, 2))
@@ -5297,7 +5297,7 @@ class ToolsMixin:
                 return
             remove_suite(folder, current_suite[0])
             current_suite[0] = None
-            suite_name_label.configure(text="(select a suite)")
+            suite_name_label.configure(text="")
             search_listbox.delete(0, "end")
             _refresh_suite_list()
 
