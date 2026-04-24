@@ -303,7 +303,7 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
     return result_doc
 
 
-def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_searched):
+def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_searched, recursive=True):
     """Generate a .docx report from PII scan results with yellow-highlighted matches.
 
     Each category gets a section with a severity header and per-file match details.
@@ -316,6 +316,13 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
 
     doc = Document()
 
+    # peekdocs title
+    title_para = doc.add_paragraph()
+    title_run = title_para.add_run("peekdocs")
+    title_run.bold = True
+    title_run.font.size = Pt(14)
+    doc.add_paragraph()  # blank line
+
     # Title
     title = doc.add_heading("Sensitive Data Scan Report", level=1)
 
@@ -324,7 +331,9 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     high = sum(r["match_count"] for r in scan_results if r["severity"] == "high")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    recursive_str = "Yes (including subfolders)" if recursive else "No (this folder only)"
     doc.add_paragraph(f"Folder: {folder}")
+    doc.add_paragraph(f"Recursive: {recursive_str}")
     doc.add_paragraph(f"Date: {now}")
     doc.add_paragraph(f"Saved as: {os.path.abspath(docx_path)}")
     doc.add_paragraph(f"Files scanned: {files_searched}")
@@ -594,6 +603,21 @@ def _write_pii_disclaimer_and_license(doc):
     )
     intro_run.font.size = Pt(9)
     intro_run.font.color.rgb = _GRAY
+
+    # Think before printing warning
+    print_warning = doc.add_paragraph()
+    pw_run = print_warning.add_run(
+        "\u26a0 IMPORTANT: Think before you print. This report contains the actual sensitive data "
+        "that was found \u2014 real SSNs, real credit card numbers, real passwords, highlighted in "
+        "yellow. Printing this report creates a physical copy of the very data you may be trying "
+        "to protect. A printed report left on a desk or in a recycling bin is itself a data "
+        "exposure. If you need to share findings, consider describing the results "
+        "(e.g., '3 SSNs found in tax_return.docx') rather than sending the report with "
+        "the actual data visible."
+    )
+    pw_run.bold = True
+    pw_run.font.size = Pt(9)
+    pw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
 
     def _add_disclaimer_point(title, body):
         """Add one bullet with a bold lead-in and body text."""

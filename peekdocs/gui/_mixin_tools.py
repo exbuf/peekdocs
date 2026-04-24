@@ -2300,6 +2300,9 @@ class ToolsMixin:
         # PII scan searches all supported file types — independent of main search
         file_types = None
 
+        # Save recursive setting so the report can include it
+        self._pii_scan_recursive = recursive
+
         # Save and uncheck Use Index — regex scans don't benefit from the index
         self._sensitive_scan_saved_index = self.index_search_var.get()
         self.index_search_var.set("off")
@@ -2444,7 +2447,8 @@ class ToolsMixin:
                     if od and os.path.isdir(od):
                         output_dir = od
                 report_path = os.path.join(output_dir, report_name)
-                write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched)
+                write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched,
+                                     recursive=getattr(self, "_pii_scan_recursive", True))
                 self._pii_report_path = report_path
             except Exception as _pii_err:
                 import traceback
