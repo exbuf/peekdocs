@@ -4471,7 +4471,12 @@ class ToolsMixin:
 
         s("Search Using Index(es)")
         b("Use the search index for faster repeated searches.")
-        b("Build the index first using Manage Indexes on the main screen.")
+        b("Build the index first using Indexes in the Tools menu.")
+        b("Note: The index always includes ALL subfolders. If you")
+        b("check Use Index, your results will include files from")
+        b("subfolders even if Recursive is unchecked. To search only")
+        b("the top folder without subfolder results, uncheck both")
+        b("Use Index and Recursive.")
         blank()
 
         h("COMBINING MODES")
