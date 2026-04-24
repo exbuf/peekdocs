@@ -1055,7 +1055,7 @@ def write_suite_txt_report(output_path, suite_name, sections):
     if os.path.exists(output_path):
         os.remove(output_path)
 
-    total_matches = sum(len(s["matches"]) for s in sections)
+    total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
     total_files = set()
     for s in sections:
         total_files.update(s["all_files"])
@@ -1084,7 +1084,8 @@ def write_suite_txt_report(output_path, suite_name, sections):
             f.write(f"Search {i}/{len(sections)}: {name}\n")
             f.write(f"Terms: {' '.join(terms)} (mode: {mode})\n")
             mfc = section.get("matched_file_count", 0)
-            f.write(f"Found {len(matches)} match(es) in {mfc} file(s). Files searched: {len(all_files)}. Time: {elapsed:.2f}s\n")
+            section_total = section.get("total_match_count", len(matches))
+            f.write(f"Found {section_total} match(es) in {mfc} file(s). Files searched: {len(all_files)}. Time: {elapsed:.2f}s\n")
             f.write("=" * 72 + "\n\n")
 
             if not matches:

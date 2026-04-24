@@ -5548,8 +5548,11 @@ class ToolsMixin:
                 mode = "ALL" if params.get("and_mode") else "ANY"
                 display_terms = search_terms if not expr else [expr]
 
-                # Parse matched file count from stdout
-                matched_file_count_m = _re.search(r"match\(es\)\s+in\s+(\d+)\s+file\(s\)", stdout)
+                # Parse match count and matched file count from stdout (same numbers regular search displays)
+                clean_stdout = _re.sub(r"\033\[[0-9;]*m", "", stdout)  # strip ANSI codes
+                found_match_m = _re.search(r"Found\s+(\d+)\s+match", clean_stdout)
+                total_match_count = int(found_match_m.group(1)) if found_match_m else len(matches)
+                matched_file_count_m = _re.search(r"match\(es\)\s+in\s+(\d+)\s+file\(s\)", clean_stdout)
                 matched_file_count = int(matched_file_count_m.group(1)) if matched_file_count_m else 0
 
                 # Parse matched files using the same parser as regular search
@@ -5560,6 +5563,7 @@ class ToolsMixin:
                     "search_name": search_name,
                     "search_terms": display_terms,
                     "matches": matches,
+                    "total_match_count": total_match_count,
                     "all_files": [f"{search_name}_{j}" for j in range(file_count)],
                     "matched_file_count": matched_file_count,
                     "parsed_files": parsed_files,
@@ -5575,7 +5579,7 @@ class ToolsMixin:
             write_suite_txt_report(txt_path, suite_name, sections)
             write_suite_docx_report(docx_path, txt_path, sections)
 
-            total_matches = sum(len(s["matches"]) for s in sections)
+            total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
             self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder))
 
@@ -5703,7 +5707,8 @@ class ToolsMixin:
                 files_searched = len(section["all_files"])
                 self.preview_text.insert("end", f"{'='*60}\n")
                 self.preview_text.insert("end", f"{name}", "filename")
-                self.preview_text.insert("end", f" — {len(section['matches'])} match(es) in {mfc} file(s). Files searched: {files_searched}\n")
+                s_total = section.get("total_match_count", len(section["matches"]))
+                self.preview_text.insert("end", f" — {s_total} match(es) in {mfc} file(s). Files searched: {files_searched}\n")
                 s_matches = section["matches"]
                 for fd, fn, ln, text in s_matches[:20]:  # first 20 per section
                     self.preview_text.insert("end", f"  {fn}:{ln}: {text[:120]}\n")
