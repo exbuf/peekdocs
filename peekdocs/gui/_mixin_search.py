@@ -908,8 +908,8 @@ class SearchMixin:
 
         # Pack report format buttons
         for fmt, btn in [
-            ("txt", self.report_btn_txt),
             ("docx", self.report_btn_docx),
+            ("txt", self.report_btn_txt),
             ("csv", self.report_btn_csv),
             ("json", self.report_btn_json),
             ("pdf", self.report_btn_pdf),
