@@ -163,6 +163,15 @@ Every feature in peekdocs serves the core mission of finding content in document
 
 ## Troubleshooting
 
+**The DOCX report won't open when I click the DOCX button**
+
+The `.docx` report opens in whatever application your computer has associated with `.docx` files. If nothing happens when you click the button:
+
+- **No word processor installed:** You need a program that can open `.docx` files. Microsoft Word works, but it's not required. Free alternatives: [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (recommended — free, cross-platform), Google Docs (upload to Google Drive), or Apple Pages (macOS only). After installing one, try clicking the DOCX button again.
+- **No default app set for .docx files:** Your computer may not know which program to use. On Windows: right-click any `.docx` file → Open with → Choose another app → select your word processor → check "Always use this app." On macOS: right-click any `.docx` file → Get Info → Open with → select your word processor → click "Change All."
+- **File is missing:** If you ran another search after the first one, the previous `peekdocs_results.docx` was overwritten. Use "Save report as:" in Advanced Search Options to keep a permanent copy.
+- **Still not working:** Navigate to your Search Folder using File Explorer (Windows), Finder (macOS), or your file manager (Linux) and double-click `peekdocs_results.docx` directly. If that also fails, try opening the `.txt` report instead — it works on every computer with no extra software.
+
 **Why doesn't the File picker show a preview on Windows?**
 
 On macOS, clicking the **File** button opens a file picker with a preview panel on the right side — you can inspect a file's contents before selecting it. On Windows, the file picker does not include a preview panel. This is a difference between the operating systems, not a peekdocs issue. Both platforms use the native OS file dialog, and peekdocs has no control over its appearance or features.
