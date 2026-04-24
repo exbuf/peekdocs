@@ -431,7 +431,7 @@ We also tested with small .txt files (~113 bytes each) to see how peekdocs handl
 | 50,000 | 4.1 seconds |
 | **1,000,000** | **90 seconds** |
 
-**What does testing 1,000,000 files prove?** These were tiny text files, not real documents — nobody has a million small .txt files. The test confirms that peekdocs doesn't crash, doesn't run out of memory, and produces correct results at extreme scale. It's a stress test of the software's stability, not a realistic performance benchmark. The mixed-format results above are what real-world performance looks like.
+**What does testing 1,000,000 files prove?** These were tiny text files (~113 bytes each), not real documents — nobody has a million small .txt files. The test confirms that peekdocs doesn't crash, doesn't run out of memory, and produces correct results at extreme scale. It's a stress test of the software's stability, not a realistic performance benchmark. The mixed-format results above are what real-world performance looks like.
 
 ### Should you build an index?
 
