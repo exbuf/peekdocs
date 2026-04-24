@@ -1070,16 +1070,16 @@ class BuildMixin:
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
         _report_color_note = "Green = report file exists and is ready to open. Red = not generated (enable in Advanced Search Options under Output Formats)."
-        self.report_btn_txt = ctk.CTkButton(
-            self.report_frame, text="TXT", width=btn_w, font=btn_font,
-            command=lambda: self._open_report_format("txt"),
-        )
-        Tooltip(self.report_btn_txt, f"Open the plain-text report (.txt). {_report_color_note}", anchor="above")
         self.report_btn_docx = ctk.CTkButton(
             self.report_frame, text="DOCX", width=btn_w, font=btn_font,
             command=lambda: self._open_report_format("docx"),
         )
         Tooltip(self.report_btn_docx, f"Open the highlighted Word report (.docx) — every match in yellow with context. {_report_color_note}", anchor="above")
+        self.report_btn_txt = ctk.CTkButton(
+            self.report_frame, text="TXT", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("txt"),
+        )
+        Tooltip(self.report_btn_txt, f"Open the plain-text report (.txt). {_report_color_note}", anchor="above")
         self.report_btn_csv = ctk.CTkButton(
             self.report_frame, text="CSV", width=btn_w, font=btn_font,
             command=lambda: self._open_report_format("csv"),
