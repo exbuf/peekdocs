@@ -440,7 +440,7 @@ class BuildMixin:
         self.folder_entry.grid(row=0, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
         self.folder_entry.insert(0, os.path.expanduser("~"))
 
-        self._browse_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._browse_frame = ctk.CTkFrame(self._input_frame, corner_radius=6)
         self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
         self.browse_button = ctk.CTkButton(
