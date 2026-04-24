@@ -424,7 +424,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(20, 20))
-        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Manage Indexes", anchor="left")
+        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
 
 
         Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
@@ -1104,9 +1104,9 @@ class BuildMixin:
 
         # Create popup window for Manage Indexes
         self.index_window = ctk.CTkToplevel(self)
-        self.index_window.title("Manage Indexes")
-        self.index_window.after(100, lambda: self.index_window.title("Manage Indexes"))
-        self.index_window.geometry("650x240")
+        self.index_window.title("Indexes")
+        self.index_window.after(100, lambda: self.index_window.title("Indexes"))
+        self.index_window.geometry("650x270")
         self.index_window.resizable(True, True)
         self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
         self.index_window.withdraw()
@@ -1118,13 +1118,22 @@ class BuildMixin:
 
         # Header with description and ? help
         idx_header = ctk.CTkFrame(idx_frame, fg_color="transparent")
-        idx_header.pack(fill="x", padx=5, pady=(0, 10))
+        idx_header.pack(fill="x", padx=5, pady=(0, 5))
         ctk.CTkLabel(
             idx_header,
             text="Build a search index for faster repeated searches. The index includes all subfolders.",
             font=ctk.CTkFont(size=11),
             text_color=("gray50", "gray50"),
         ).pack(side="left")
+
+        # Show which folder the index applies to
+        self._index_folder_label = ctk.CTkLabel(
+            idx_frame,
+            text="",
+            font=ctk.CTkFont(size=10),
+            text_color=("gray50", "gray50"),
+        )
+        self._index_folder_label.pack(anchor="w", padx=5, pady=(0, 5))
         idx_help_btn = ctk.CTkButton(
             idx_header, text="?", width=28, height=28,
             font=ctk.CTkFont(size=14, weight="bold"),
@@ -1293,7 +1302,7 @@ class BuildMixin:
             _dark_sep()
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
-            menu.add_command(label="Manage Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
+            menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
             menu.add_command(label="PII Scan — find SSNs, credit cards, passwords, and sensitive data", command=self._start_sensitive_scan)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
             menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
@@ -1385,17 +1394,21 @@ class BuildMixin:
             self.index_window.deiconify()
             self.index_window.lift()
             if hasattr(self, "index_toggle_btn"):
-                self.index_toggle_btn.configure(text="\u25bc Manage Indexes")
+                self.index_toggle_btn.configure(text="\u25bc Indexes")
+            # Show current search folder
+            if hasattr(self, "_index_folder_label"):
+                folder = self.folder_entry.get().strip() or "(none)"
+                self._index_folder_label.configure(text=f"Index for Search Folder: {folder}")
             self.index_visible = True
             self._update_index_button_color()
 
 
 
     def _close_index_window(self):
-        """Hide the Manage Indexes window and update the toggle button."""
+        """Hide the Indexes window and update the toggle button."""
         self.index_window.withdraw()
         if hasattr(self, "index_toggle_btn"):
-            self.index_toggle_btn.configure(text="\u25b6 Manage Indexes")
+            self.index_toggle_btn.configure(text="\u25b6 Indexes")
         self.index_visible = False
 
 
