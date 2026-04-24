@@ -349,8 +349,27 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
         doc.save(docx_path)
         return doc
 
-    # Disclaimer — before the print warning and Summary
-    _write_pii_disclaimer_and_license(doc)
+    # Prominent disclaimer so readers see it before acting on any findings
+    doc.add_paragraph("")
+    notice_heading = doc.add_paragraph()
+    notice_run = notice_heading.add_run("IMPORTANT \u2014 READ BEFORE ACTING ON THIS REPORT")
+    notice_run.bold = True
+    notice_run.font.size = Pt(12)
+    notice_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
+
+    notice_body = doc.add_paragraph()
+    notice_body_run = notice_body.add_run(
+        "This report is a pattern-matching discovery aid, not a security product "
+        "or a compliance certification. It can produce false positives (things "
+        "that look like sensitive data but aren't) and false negatives (real "
+        "sensitive data that doesn't match the built-in patterns). A clean or "
+        "near-clean report does NOT prove that a file is free of sensitive data. "
+        "Always review findings in context before taking action, and do not rely "
+        "on this report alone for any security, privacy, or compliance decision. "
+        "See the full disclaimer at the end of this report."
+    )
+    notice_body_run.font.size = Pt(10)
+    notice_body_run.italic = True
 
     # Think before printing
     doc.add_paragraph()
@@ -366,6 +385,9 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     tw_run.bold = True
     tw_run.font.size = Pt(10)
     tw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
+
+    # Full multi-point disclaimer
+    _write_pii_disclaimer_and_license(doc)
 
     # Summary table
     doc.add_heading("Summary", level=2)
@@ -468,30 +490,6 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
                 for run in paragraph.runs:
                     run.font.color.rgb = RGBColor(204, 0, 0)
                     run.bold = True
-
-    # Prominent top-of-report disclaimer so readers see it before acting on
-    # any findings. The full multi-point disclaimer is repeated at the end.
-    doc.add_paragraph("")
-    notice_heading = doc.add_paragraph()
-    notice_run = notice_heading.add_run("IMPORTANT \u2014 READ BEFORE ACTING ON THIS REPORT")
-    notice_run.bold = True
-    notice_run.font.size = Pt(12)
-    notice_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
-
-    notice_body = doc.add_paragraph()
-    notice_body_run = notice_body.add_run(
-        "This report is a pattern-matching discovery aid, not a security product "
-        "or a compliance certification. It can produce false positives (things "
-        "that look like sensitive data but aren't) and false negatives (real "
-        "sensitive data that doesn't match the built-in patterns). A clean or "
-        "near-clean report does NOT prove that a file is free of sensitive data. "
-        "Always review findings in context before taking action, and do not rely "
-        "on this report alone for any security, privacy, or compliance decision. "
-        "See the full disclaimer at the end of this report."
-    )
-    notice_body_run.font.size = Pt(10)
-    notice_body_run.italic = True
-    doc.add_paragraph("")
 
     # Detail sections per category with matches
     doc.add_heading("Details", level=2)
