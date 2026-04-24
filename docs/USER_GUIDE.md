@@ -354,7 +354,7 @@ Your selections in Advanced Search Options take effect immediately on the next R
 
 **Manage Indexes:**
 
-Click "Manage Indexes" below Advanced Search Options to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly.
+Click "Manage Indexes" below Advanced Search Options to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly. Note: because the index always includes all subfolders, checking Use Index will return subfolder results even if Recursive is unchecked. To search only the top folder, uncheck both Use Index and Recursive.
 
 Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Search Options** handles the corresponding flag behind the scenes.
 
