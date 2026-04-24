@@ -394,103 +394,60 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 ## Performance
 
-**How fast is peekdocs?** Executive summary using Benchmark 2 (below) mixed-format results (PDFs, Word docs, Excel spreadsheets, emails, PowerPoint, and text files — the kind of documents a home user or small business actually has):
+**Test machine:** MacBook Pro, Apple M-series, 24 GB RAM, SSD, Python 3.13. peekdocs used 7 of 14 cores (its default is half; adjustable in Advanced Search Options). Your results will vary depending on CPU, RAM, disk type (SSD vs hard drive), and whether files are local or on a network drive.
 
-| Your folder has... | Total size | Search time* |
-|---------------------|-----------|------------|
-| **1,000 files** | 13 MB | **~1 second** |
-| **10,000 files** | 133 MB | **~5 seconds** |
-| **50,000 files** | 663 MB | **~22 seconds** |
+### Mixed-format test (realistic documents)
+
+The file mix represents a typical home or small business folder:
+
+| File type | % of files | Examples |
+|-----------|--:|-----|
+| PDF | 35% | Bank statements, receipts, tax forms, manuals |
+| Word (.docx) | 25% | Letters, resumes, reports, contracts |
+| Plain text (.txt, .csv, .log) | 15% | Notes, data exports, logs |
+| Excel (.xlsx) | 10% | Budgets, lists, financial records |
+| Email (.eml) | 8% | Exported correspondence |
+| PowerPoint (.pptx) | 5% | Presentations |
+| Other (.html, .rtf) | 2% | Saved web pages, legacy docs |
+
+**Results (files stored locally on SSD):**
+
+| Files | Total size | Search time |
+|------:|-----------:|------------:|
+| **1,000** | 13 MB | **~1 second** |
+| **10,000** | 133 MB | **~5 seconds** |
+| **50,000** | 663 MB | **~22 seconds** |
 | **105 real Word docs** | 1,878 MB | **~4 seconds** (0.24 seconds with index) |
 
-*\* All times measured with files stored locally on a MacBook Pro with SSD. Your results will vary depending on your machine's CPU speed, number of cores, RAM, and disk type (SSD vs hard drive). Files on a network drive will be significantly slower — see note below.* These are direct search times (peekdocs opens and reads each file on the fly, no pre-built index needed). Notice that 10× more files doesn't mean 10× longer — peekdocs processes files in parallel across multiple CPU cores, so search time scales much less than linearly. peekdocs was also stress-tested on 1,000,000 plain-text files — it completed without crashing, without running out of memory, and with correct results.
+10× more files doesn't mean 10× longer — peekdocs processes files in parallel across multiple CPU cores.
 
-For most users, searches are fast enough that you just click Run Search and results appear. **Network folders:** If your files are stored on a network drive, searches will be slower because every file must be read over the network. Building a search index is strongly recommended for network folders — the first index build is slow, but all subsequent searches are fast because they query the local index instead of re-reading files across the network. Full test details, index comparisons, and cold-cache analysis below.
+### Plain-text stress test
 
----
+We also tested with small .txt files (~113 bytes each) to see how peekdocs handles extreme file counts:
 
-**Detailed test results:**
+| Files | Search time |
+|------:|------------:|
+| 10,000 | 1.4 seconds |
+| 50,000 | 4.1 seconds |
+| **1,000,000** | **90 seconds** |
 
-We conducted two benchmarks: Benchmark 1 used plain-text file types (.txt) to stress-test peekdocs at extreme scale (up to 1,000,000 files). Benchmark 2 used a realistic mix of file types (.pdf, .docx, .xlsx, .pptx, .eml, .txt, .html, .rtf) to measure real-world performance.
+**What does testing 1,000,000 files prove?** These were tiny text files, not real documents — nobody has a million small .txt files. The test confirms that peekdocs doesn't crash, doesn't run out of memory, and produces correct results at extreme scale. It's a stress test of the software's stability, not a realistic performance benchmark. The mixed-format results above are what real-world performance looks like.
 
-All tests on MacBook Pro, Apple M-series, 14 cores (peekdocs used 7 — its default is half; adjustable in Advanced Search Options), 24 GB RAM, SSD, Python 3.13.
+### Should you build an index?
 
-**Benchmark 1: Plain-text files** — 10K / 50K / 1M single-line .txt files (~113 bytes each), keyword present in every file (worst case):
-
-| Files | Direct Search (warm cache) | Direct Search (cold cache) | With index | Index build | Index size |
-|------:|--------------------:|--------------------:|-----------:|------------:|-----------:|
-| 10,000 | 1.4 seconds | ~1.4 seconds† | 4.0 seconds | 1.0 seconds | 3 MB |
-| 50,000 | 4.1 seconds | 87.5 seconds | 9.1 seconds | 5.3 seconds | 17 MB |
-| 1,000,000 | 90 seconds | ~90 seconds† | 240 seconds | 110 seconds | 311 MB |
-
-*† Cold-cache times for 10K and 1M were nearly identical to warm cache. On a machine with 24 GB RAM, the OS has enough memory to keep these files cached even after attempting to flush. The 87.5-second cold-cache result at 50K was captured from a genuinely cold session earlier in testing. Cold cache makes the biggest difference on machines with less RAM or with spinning hard drives.*
-
-At 1M files: no crashes, no memory issues, correct results. The index was slower (240s vs 90s) because processing a million FTS5 result rows is more expensive than reading a million tiny cached text files. File discovery (listing all filenames) took over 200 seconds alone — an OS limitation, not peekdocs.
-
-**Cold cache vs warm cache:** Your OS keeps recently accessed files in RAM. A "warm cache" search is fast because the OS serves files from memory. A "cold cache" search — after rebooting or switching folders — must read from disk: 87.5 seconds vs 4.1 seconds for the same 50,000 files, a 21× difference. This affects every search tool (grep, Spotlight, Windows Search), not just peekdocs. In the plain-text test, an index eliminated this penalty — 9.1 seconds cold or warm. The same principle applies to mixed-format files, though we did not measure mixed-format cold cache directly.
-
-**Should you build an index?** It depends on your files, not just how many you have. A folder of 1,000 small files (13 MB total) searches in about 1 second without an index — no need. But a folder of 105 large Word docs (1.9 GB total) dropped from 4.4 seconds to 0.24 seconds with an index — an 18× speedup. The key factor is **total data size and file format**, not file count. To try it: click Build Index in Manage Indexes or run `peekdocs --index`. If your files change, set Auto-Refresh to keep the index current automatically. Use the **Use Index** checkbox to switch between indexed and direct search anytime.
+For most users, direct search is fast enough — just click Run Search. An index helps when you have large files or search the same folder repeatedly:
 
 | Situation | Index helps? | Why |
 |-----------|:-----------:|-----|
-| Large files (PDFs, Word, Excel) | **Yes** | Skips expensive binary parsing — 18× faster in real-world test |
-| First search after reboot (cold cache) | **Yes** | Loads one database file instead of thousands |
+| Large files (PDFs, Word, Excel) | **Yes** | Skips expensive parsing — 18× faster in real-world test |
 | Same folder searched repeatedly | **Yes** | Pre-pays parsing cost once |
+| Files on a network drive | **Yes** | Reads local index instead of files over the network |
 | Small files, small folder | **No** | Direct search is already fast enough |
 | One-time search you won't repeat | **No** | Build time won't be recouped |
-| Files change frequently | **Maybe** | Auto-Refresh helps, but frequent rebuilds have a cost |
 
-**Note on OCR:** If OCR is enabled for scanned images, add 1–3 seconds per image on the first search. The index stores OCR results so subsequent searches don't repeat it.
+To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --index`.
 
-**Benchmark 2: Mixed-format files.** Same machine. File mix designed to represent a typical home or small business folder:
-
-| File type | % | Count per 1,000 | Why | Typical size |
-|-----------|--:|----------------:|-----|-------------|
-| PDF | 35% | 350 | Bank statements, receipts, tax forms, manuals, scanned docs | 50–500 KB |
-| Word (.docx) | 25% | 250 | Letters, resumes, reports, notes, contracts | 20–200 KB |
-| Plain text (.txt, .csv, .log) | 15% | 150 | Notes, data exports, logs | 1–50 KB |
-| Excel (.xlsx) | 10% | 100 | Budgets, lists, inventory, financial records | 15–100 KB |
-| Email (.eml) | 8% | 80 | Exported correspondence | 5–30 KB |
-| PowerPoint (.pptx) | 5% | 50 | Presentations, pitches | 50–300 KB |
-| Other (.html, .rtf) | 2% | 20 | Saved web pages, legacy docs | 10–50 KB |
-
-Each file contains realistic multi-paragraph content. Average ~13 KB per file. (The mixed-format benchmark stops at 50,000 files because generating 1 million binary files — 350,000 PDFs, 250,000 Word docs, etc. — would take hours. The 1,000,000-file test in the plain-text benchmark above confirms peekdocs handles that scale. To estimate 1M mixed-format files, multiply the 50K results by roughly 20–25×: direct search would take approximately 7–9 minutes. The multiplier is slightly higher than 20× because OS cache pressure and file discovery overhead increase at extreme scale.)
-
-Broad search ("invoice" — matches in most files, warm cache):
-
-| Files | Total size | Direct Search | Indexed Search | Index Build | Index Size |
-|------:|-----------:|--------------:|---------------:|------------:|-----------:|
-| 1,000 | 13 MB | 1.1 seconds | 3.8 seconds | 2.4 seconds | 4 MB |
-| 10,000 | 133 MB | 4.6 seconds | 129 seconds | 24.6 seconds | 41 MB |
-| 50,000 | 663 MB | 22 seconds | timed out (>10 min) | 152 seconds | 208 MB |
-
-Selective search ("BENCHMARK_SEARCH_TARGET" — matches in ~5 files per 1,000, warm cache):
-
-| Files | Direct Search | Indexed Search |
-|------:|--------------:|---------------:|
-| 1,000 | 0.75 seconds | 3.5 seconds |
-| 50,000 | 21.2 seconds | 21.2 seconds |
-
-**What the mixed-format test revealed:**
-
-- **Direct search on real documents is fast.** 1,000 mixed PDFs, Word docs, and spreadsheets searched in 1.1 seconds. 50,000 files in 22 seconds. The C-backed parsers (PyMuPDF, python-docx, openpyxl) handle binary formats efficiently.
-- **The index struggles with high match counts.** When "invoice" appeared in most of the 10,000 files (65,370 matches), the indexed search took 129 seconds vs 4.6 seconds for direct. At 50,000 files (326,850 matches), the indexed search timed out. The FTS5 engine has to process every matching row, which becomes the bottleneck when most files match.
-- **The index ties direct search when matches are few.** With a selective search term at 50,000 files, both direct and indexed search completed in 21.2 seconds — identical. The index doesn't hurt, but it doesn't help either on warm cache with few result rows.
-- **The index's real value is cold cache and repeat use.** The warm-cache test is biased toward direct search because the OS is serving files from memory. In real life — after rebooting, switching folders, or searching a folder you haven't touched in days — the index eliminates the cold-cache penalty entirely.
-- **Real-world confirmation:** A search of 105 actual Word documents (1,878 MB total — averaging ~18 MB per file, much larger than our test files) completed in 4.4 seconds with direct search. With an index (21-second one-time build), the same search completed in 0.24 seconds — an 18× speedup. This is the clearest demonstration of the index's value: for large binary files, it skips the expensive parsing step entirely and searches pre-extracted text in a fraction of a second. You only build the index once — after that, every different search on the same folder benefits from the same speed.
-
-**How the two benchmarks compare:**
-
-The plain-text and mixed-format tests used different file types and sizes but produced consistent, explainable results:
-
-| Comparison | Plain-text | Mixed-format | Why |
-|------------|-----------|-------------|-----|
-| 10,000 files (warm) | 1.4 seconds | 4.6 seconds | Mixed is 3.3× slower — PDFs take 50–200ms each to parse vs 1–5ms for plain text |
-| 50,000 files (warm) | 4.1 seconds | 22 seconds | Mixed is 5.4× slower — 663 MB of binary files vs 5.6 MB of text, plus more cache pressure |
-| 1K mixed → 10K mixed | — | 1.1s → 4.6s | 10× more files, only 4.2× longer — parallelism across 7 cores |
-| 10K mixed → 50K mixed | — | 4.6s → 22s | 5× more files, 4.8× longer — nearly linear at this scale |
-
-One result that might look odd: 10,000 plain-text files (1.4s) is faster than 1,000 mixed files (1.1s), even though it has 10× more files. The reason is data volume — 10K text files total just 1.12 MB, while 1K mixed files total 13 MB with expensive binary formats (PDF, DOCX, XLSX) that require decompression and parsing. File count matters less than format complexity and total data size.
+**Network folders:** If your files are on a network drive, searches will be slower because every file must be read over the network. Building an index is strongly recommended — the first build is slow, but all subsequent searches query the local index instead.
 
 **Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
