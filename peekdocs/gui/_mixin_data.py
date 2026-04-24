@@ -1656,11 +1656,12 @@ class DataMixin:
 
 
 
-    def _add_folder_bar(self, parent, message="Your search will run against this folder.", initial_folder=None):
+    def _add_folder_bar(self, parent, message="Your search will run against this folder.", initial_folder=None, recursive_var=None):
         """Add a folder display bar with Change Folder button to a wizard window.
 
         Returns the folder label widget so callers can read the current value.
         If initial_folder is provided, it overrides the main screen's folder.
+        If recursive_var is provided, a Recursive checkbox is added inside the bar.
         """
         import tkinter as tk
         from tkinter import filedialog
@@ -1700,10 +1701,16 @@ class DataMixin:
         )
         change_btn.pack(side="right")
 
-        tk.Label(
-            bar, text=message,
-            font=("TkDefaultFont", 10), fg="gray", anchor="w",
-        ).pack(fill="x", pady=(2, 0))
+        if recursive_var is not None:
+            tk.Checkbutton(
+                bar, variable=recursive_var,
+                text="Include subfolders (Recursive)", font=("TkDefaultFont", 11),
+            ).pack(anchor="w", pady=(2, 0))
+        elif message:
+            tk.Label(
+                bar, text=message,
+                font=("TkDefaultFont", 10), fg="gray", anchor="w",
+            ).pack(fill="x", pady=(2, 0))
 
         return folder_label
 
