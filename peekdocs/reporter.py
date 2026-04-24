@@ -367,6 +367,9 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
         doc.save(docx_path)
         return doc
 
+    # Disclaimer — before the Summary so it's read before acting on findings
+    _write_pii_disclaimer_and_license(doc)
+
     # Summary table
     doc.add_heading("Summary", level=2)
     hint = doc.add_paragraph()
@@ -588,8 +591,6 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
                             run.font.highlight_color = WD_COLOR_INDEX.YELLOW
                 else:
                     para.add_run(match_text)
-
-    _write_pii_disclaimer_and_license(doc)
 
     doc.save(docx_path)
     return doc
