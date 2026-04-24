@@ -1414,6 +1414,7 @@ class BuildMixin:
             self._update_index_button_color()
             self._on_refresh_interval_changed(self.refresh_interval_var.get())
             self._refresh_load_search_menu()
+            self._close_suite_popup_if_open()
 
 
 
@@ -1431,8 +1432,13 @@ class BuildMixin:
                 self.folder_entry.delete(0, "end")
                 self.folder_entry.insert(0, "; ".join(parts))
                 self._clear_specific_file()
+                self._close_suite_popup_if_open()
 
-
+    def _close_suite_popup_if_open(self):
+        """Close the Search Suites popup if it's open — folder changed."""
+        if hasattr(self, "_suite_popup") and self._suite_popup and self._suite_popup.winfo_exists():
+            self._suite_popup.destroy()
+            self._suite_popup = None
 
     def _browse_file(self):
         """Open a file picker, set the folder to the file's directory and specific file to search."""

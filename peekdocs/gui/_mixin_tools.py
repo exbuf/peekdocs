@@ -5166,6 +5166,8 @@ class ToolsMixin:
             return
 
         win, _dark = self._themed_toplevel()
+        self._suite_popup = win
+        win.protocol("WM_DELETE_WINDOW", lambda: (setattr(self, "_suite_popup", None), win.destroy()))
         win.title("Search Suites")
         win.resizable(True, True)
         win.geometry("880x520")
