@@ -5402,7 +5402,7 @@ class ToolsMixin:
 
         # ── Bottom: Run Suite + Close ──
         bottom = tk.Frame(win)
-        bottom.pack(fill="x", padx=12, pady=(5, 10))
+        bottom.pack(pady=(8, 2))
 
         def _run_suite():
             if current_suite[0] is None:
@@ -5426,13 +5426,16 @@ class ToolsMixin:
             bottom, text="Run Suite", width=120,
             font=ctk.CTkFont(size=14, weight="bold"),
             command=_run_suite,
-        ).pack(side="left", padx=(0, 10))
+        ).pack()
+
+        close_frame = tk.Frame(win)
+        close_frame.pack(pady=(0, 10))
         ctk.CTkButton(
-            bottom, text="Close", width=80,
+            close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             font=ctk.CTkFont(size=12), command=win.destroy,
-        ).pack(side="left")
+        ).pack()
 
         _refresh_suite_list()
         self._apply_dark_theme(win)
