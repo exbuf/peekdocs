@@ -103,7 +103,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._build_bottom_row()
 
         # Show the View Report row on startup (buttons grayed out until a search runs)
-        for btn in (self.report_btn_txt, self.report_btn_docx, self.report_btn_csv,
+        for btn in (self.report_btn_docx, self.report_btn_txt, self.report_btn_csv,
                     self.report_btn_json, self.report_btn_pdf):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
