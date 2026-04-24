@@ -414,10 +414,10 @@ The file mix represents a typical home or small business folder:
 
 | Files | Total folder size | Search time |
 |------:|-----------:|------------:|
-| **1,000** | 13 MB | **~1 second** |
-| **10,000** | 133 MB | **~5 seconds** |
-| **50,000** | 663 MB | **~22 seconds** |
-| **105 real Word docs** | 1,878 MB | **~4 seconds** (0.24 seconds with index) |
+| **1,000** | 13 MB | **~1 second** (no index) |
+| **10,000** | 133 MB | **~5 seconds** (no index) |
+| **50,000** | 663 MB | **~22 seconds** (no index) |
+| **105 real Word docs** | 1,878 MB | **~4 seconds** without index, **0.24 seconds** with index |
 
 10× more files doesn't mean 10× longer — peekdocs processes files in parallel across multiple CPU cores.
 
