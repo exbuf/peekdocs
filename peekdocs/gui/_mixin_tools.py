@@ -5030,7 +5030,7 @@ class ToolsMixin:
         """Show help explaining what indexes are and when to use them."""
         import tkinter as tk
         help_win, _dark = self._themed_toplevel(self.index_window or self)
-        help_win.title("Manage Indexes — Help")
+        help_win.title("Indexes — Help")
         help_win.geometry("650x560")
         help_win.resizable(True, True)
         if self.index_window:
@@ -5144,7 +5144,12 @@ class ToolsMixin:
         h("GOOD TO KNOW")
         b("\u2022 Results are identical with or without an index")
         b("\u2022 The index is one file (.peekdocs.db) in your search folder")
-        b("\u2022 One index covers the folder and all subfolders")
+        b("\u2022 One index covers the folder and ALL subfolders \u2014 there")
+        b("  is no way to build an index for just the top folder.")
+        b("  This means if you check Use Index, your search results")
+        b("  will include files from subfolders even if Recursive is")
+        b("  unchecked. To search only the top folder without subfolder")
+        b("  results, uncheck Use Index and uncheck Recursive.")
         b("\u2022 Safe to delete \u2014 rebuild with Build Index(es) anytime")
         b("\u2022 If Use Index is checked but no index exists, peekdocs")
         b("  falls back to direct scanning automatically")
