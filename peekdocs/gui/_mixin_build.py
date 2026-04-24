@@ -448,7 +448,7 @@ class BuildMixin:
             self._browse_frame, text="Browse", width=60, command=self.browse_folder,
             font=ctk.CTkFont(size=14),
         )
-        self.browse_button.pack(side="left", padx=(0, 3))
+        self.browse_button.pack(side="left", padx=(6, 3), pady=4)
         Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
 
         self._multi_folder_btn = ctk.CTkButton(
@@ -466,7 +466,7 @@ class BuildMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        self.browse_file_button.pack(side="left", padx=(3, 0))
+        self.browse_file_button.pack(side="left", padx=(3, 6), pady=4)
         Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
 
         self._clear_file_btn = ctk.CTkButton(
