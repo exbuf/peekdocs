@@ -5528,9 +5528,9 @@ class ToolsMixin:
                         files_searched_match = _re.search(r"Files searched ==> (\d+)", content)
                         file_count = int(files_searched_match.group(1)) if files_searched_match else 0
 
-                        # Parse matches from txt report
+                        # Parse matches from txt report — split on Document: boundaries
                         for m in _re.finditer(
-                            r'Document: (.+?) \(\d+ match(?:es)?\), Line: (\d+), Match:\n\((.+?)\)\n"(.+?)"',
+                            r'Document: (.+?) \(\d+ match(?:es)?\), Line: (\d+), Match:\n\((.+?)\)\n"(.*?)"(?=\n\nDocument:|\n\n\Z|\Z)',
                             content, _re.DOTALL
                         ):
                             filename, line_num, file_dir, text = m.groups()
@@ -5548,11 +5548,21 @@ class ToolsMixin:
                 mode = "ALL" if params.get("and_mode") else "ANY"
                 display_terms = search_terms if not expr else [expr]
 
+                # Parse matched file count from stdout
+                matched_file_count_m = _re.search(r"match\(es\)\s+in\s+(\d+)\s+file\(s\)", stdout)
+                matched_file_count = int(matched_file_count_m.group(1)) if matched_file_count_m else 0
+
+                # Parse matched files using the same parser as regular search
+                from peekdocs.gui._helpers import _parse_matched_files
+                parsed_files = _parse_matched_files(folder, "peekdocs_results.txt")
+
                 sections.append({
                     "search_name": search_name,
                     "search_terms": display_terms,
                     "matches": matches,
                     "all_files": [f"{search_name}_{j}" for j in range(file_count)],
+                    "matched_file_count": matched_file_count,
+                    "parsed_files": parsed_files,
                     "elapsed": elapsed,
                     "report_mode": mode,
                     "params": params,
@@ -5583,8 +5593,7 @@ class ToolsMixin:
 
         import re as _re_fin
 
-        total_matched_files_status = len({os.path.join(fd, fn)
-            for s in sections for fd, fn, _ln, _tx in s["matches"]})
+        total_matched_files_status = sum(s.get("matched_file_count", 0) for s in sections)
         total_files_searched = sum(len(s["all_files"]) for s in sections)
 
         # Parse error/skip counts from subprocess stdout
@@ -5624,21 +5633,15 @@ class ToolsMixin:
             except Exception:
                 pass
 
-        # Build matched files list from suite sections (same format as regular search)
-        from collections import defaultdict
-        file_matches = defaultdict(lambda: {"count": 0, "lines": []})
+        # Build matched files list from accumulated per-search parsed files
+        self.matched_files = []
+        seen = set()
         for section in sections:
-            for fd, fn, ln, _tx in section["matches"]:
-                key = os.path.join(fd, fn)
-                file_matches[key]["count"] += 1
-                file_matches[key]["lines"].append(ln)
-                file_matches[key]["dir"] = fd
-                file_matches[key]["name"] = fn
-
-        self.matched_files = [
-            (os.path.join(info["dir"], info["name"]), info["name"], info["count"], sorted(set(info["lines"])))
-            for info in file_matches.values()
-        ]
+            for item in section.get("parsed_files", []):
+                fp = item[0]
+                if fp not in seen:
+                    seen.add(fp)
+                    self.matched_files.append(item)
         self._inverse_results = False
 
         # Show matched files button
