@@ -340,35 +340,32 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     doc.add_paragraph(f"Scan time: {elapsed:.1f}s")
     doc.add_paragraph(f"Total findings: {total}  ({high} high severity)")
 
-    # Think before printing — at the top where it's seen first
-    if total > 0:
-        doc.add_paragraph()
-        top_warning = doc.add_paragraph()
-        tw_run = top_warning.add_run(
-            "\u26a0 IMPORTANT: Think before you print. This report contains the actual sensitive data "
-            "that was found \u2014 real SSNs, real credit card numbers, real passwords, highlighted in "
-            "yellow. Printing creates a physical copy of the very data you may be trying to protect. "
-            "If you need to share findings, consider describing the results "
-            "(e.g., '3 SSNs found in tax_return.docx') rather than sending the report with "
-            "the actual data visible."
-        )
-        tw_run.bold = True
-        tw_run.font.size = Pt(10)
-        tw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
-
     if total == 0:
         para = doc.add_paragraph()
         run = para.add_run("No sensitive data found.")
         run.font.color.rgb = RGBColor(0, 128, 0)
         run.bold = True
-        # Fall through to the disclaimer + MIT License section so the
-        # scope of the scan is documented even on a clean report.
         _write_pii_disclaimer_and_license(doc)
         doc.save(docx_path)
         return doc
 
-    # Disclaimer — before the Summary so it's read before acting on findings
+    # Disclaimer — before the print warning and Summary
     _write_pii_disclaimer_and_license(doc)
+
+    # Think before printing
+    doc.add_paragraph()
+    top_warning = doc.add_paragraph()
+    tw_run = top_warning.add_run(
+        "\u26a0 IMPORTANT: Think before you print. This report contains the actual sensitive data "
+        "that was found \u2014 real SSNs, real credit card numbers, real passwords, highlighted in "
+        "yellow. Printing creates a physical copy of the very data you may be trying to protect. "
+        "If you need to share findings, consider describing the results "
+        "(e.g., '3 SSNs found in tax_return.docx') rather than sending the report with "
+        "the actual data visible."
+    )
+    tw_run.bold = True
+    tw_run.font.size = Pt(10)
+    tw_run.font.color.rgb = RGBColor(0xCC, 0x00, 0x00)
 
     # Summary table
     doc.add_heading("Summary", level=2)
