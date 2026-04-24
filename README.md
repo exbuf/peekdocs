@@ -1,6 +1,6 @@
 # peekdocs
 
-**Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private**
+<p align="center"><b>Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private</b></p>
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) &nbsp;&nbsp; [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) &nbsp;&nbsp; [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
