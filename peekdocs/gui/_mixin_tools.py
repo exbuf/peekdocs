@@ -5204,9 +5204,6 @@ class ToolsMixin:
         right = tk.Frame(body)
         right.pack(side="left", fill="both", expand=True)
 
-        suite_name_label = tk.Label(right, text="", font=_sf(12, "bold"))
-        suite_name_label.pack(anchor="w")
-
         tk.Label(right, text="Searches in this suite (run in order, top to bottom):", font=_sf(10)).pack(anchor="w", pady=(0, 2))
         search_listbox = tk.Listbox(right, font=_sf(11), exportselection=False)
         search_listbox.pack(fill="both", expand=True, pady=(0, 4))
@@ -5238,7 +5235,6 @@ class ToolsMixin:
                 return
             name = suite_listbox.get(sel[0])
             current_suite[0] = name
-            suite_name_label.configure(text=name)
             _refresh_search_list()
 
         suite_listbox.bind("<<ListboxSelect>>", _on_suite_select)
@@ -5279,7 +5275,6 @@ class ToolsMixin:
                 self._show_error(f"Suite '{new_name}' already exists.")
                 return
             current_suite[0] = new_name
-            suite_name_label.configure(text=new_name)
             _refresh_suite_list()
             items = suite_listbox.get(0, "end")
             for i, item in enumerate(items):
@@ -5295,7 +5290,6 @@ class ToolsMixin:
                 return
             remove_suite(folder, current_suite[0])
             current_suite[0] = None
-            suite_name_label.configure(text="")
             search_listbox.delete(0, "end")
             _refresh_suite_list()
 
