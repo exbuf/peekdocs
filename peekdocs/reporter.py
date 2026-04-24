@@ -1053,6 +1053,7 @@ def write_suite_txt_report(output_path, suite_name, sections):
     total_elapsed = sum(s["elapsed"] for s in sections)
 
     with open(output_path, "w", encoding="utf-8") as f:
+        f.write("peekdocs_suite_results\n\n\n")
         f.write(f"Suite Report: {suite_name}\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as: {os.path.abspath(output_path)}\n")
