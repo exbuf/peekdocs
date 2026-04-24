@@ -497,8 +497,12 @@ class BuildMixin:
 
     def _build_advanced_toggle(self):
         """Build the toggle button for Advanced Search Options."""
+        self._adv_wiz_frame = ctk.CTkFrame(self._toggle_row, corner_radius=6,
+                                            border_width=2, border_color=("gray50", "gray50"))
+        self._adv_wiz_frame.pack(side="left")
+
         self.advanced_toggle = ctk.CTkButton(
-            self._toggle_row,
+            self._adv_wiz_frame,
             text="\u25b6 Advanced Search Options", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -507,11 +511,11 @@ class BuildMixin:
             command=self.toggle_advanced,
             font=ctk.CTkFont(size=13),
         )
-        self.advanced_toggle.pack(side="left", padx=(0, 20))
+        self.advanced_toggle.pack(side="left", padx=(6, 3), pady=4)
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
         self._search_wiz_btn = ctk.CTkButton(
-            self._toggle_row,
+            self._adv_wiz_frame,
             text="\u25b6 Search Wizard", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -520,7 +524,7 @@ class BuildMixin:
             command=self._open_search_wizard_guide,
             font=ctk.CTkFont(size=13),
         )
-        self._search_wiz_btn.pack(side="left", padx=(20, 20))
+        self._search_wiz_btn.pack(side="left", padx=(3, 6), pady=4)
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
         # PII Scan moved to Tools menu
