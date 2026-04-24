@@ -5190,7 +5190,7 @@ class ToolsMixin:
         tk.Label(
             win,
             text="Group saved searches and run them together. Results go into a single combined report. "
-                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main screen.",
+                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main screen, then reopen Search Suites.",
             font=_sf(10), fg="gray", wraplength=850, justify="left", anchor="w",
         ).pack(fill="x", padx=12, pady=(0, 2))
 
