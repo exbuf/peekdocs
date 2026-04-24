@@ -5204,12 +5204,10 @@ class ToolsMixin:
         right = tk.Frame(body)
         right.pack(side="left", fill="both", expand=True)
 
-        right_header = tk.Frame(right)
-        right_header.pack(fill="x")
-        suite_name_label = tk.Label(right_header, text="", font=_sf(12, "bold"))
-        suite_name_label.pack(side="left")
+        suite_name_label = tk.Label(right, text="", font=_sf(12, "bold"))
+        suite_name_label.pack(anchor="w")
 
-        tk.Label(right, text="Searches in this suite (run in order, top to bottom):", font=_sf(10)).pack(anchor="w", pady=(4, 2))
+        tk.Label(right, text="Searches in this suite (run in order, top to bottom):", font=_sf(10)).pack(anchor="w", pady=(0, 2))
         search_listbox = tk.Listbox(right, font=_sf(11), exportselection=False)
         search_listbox.pack(fill="both", expand=True, pady=(0, 4))
 
