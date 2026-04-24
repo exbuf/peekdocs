@@ -5633,19 +5633,17 @@ class ToolsMixin:
             except Exception:
                 pass
 
-        # Build matched files list from accumulated per-search parsed files
-        self.matched_files = []
-        seen = set()
-        for section in sections:
-            for item in section.get("parsed_files", []):
-                fp = item[0]
-                if fp not in seen:
-                    seen.add(fp)
-                    self.matched_files.append(item)
+        # Build matched files list from the last search's peekdocs_results.txt
+        # (each subprocess overwrites it, so the last one is current)
+        from peekdocs.gui._helpers import _parse_matched_files
+        if folder:
+            self.matched_files = _parse_matched_files(folder, "peekdocs_results.txt")
+        else:
+            self.matched_files = []
         self._inverse_results = False
 
-        # Show matched files button — use stdout-parsed count for accuracy
-        if self.matched_files:
+        # Show matched files button — use stdout-parsed count for display
+        if total_matched_files_status > 0:
             link_text = f"{total_matched_files_status} Matched File(s)"
             self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
             self._matched_files_link.pack(side="left", padx=(5, 0))
@@ -5706,10 +5704,11 @@ class ToolsMixin:
                 self.preview_text.insert("end", f"{'='*60}\n")
                 self.preview_text.insert("end", f"{name}", "filename")
                 self.preview_text.insert("end", f" — {len(section['matches'])} match(es) in {mfc} file(s). Files searched: {files_searched}\n")
-                for fd, fn, ln, text in matches[:20]:  # first 20 per section
+                s_matches = section["matches"]
+                for fd, fn, ln, text in s_matches[:20]:  # first 20 per section
                     self.preview_text.insert("end", f"  {fn}:{ln}: {text[:120]}\n")
-                if len(matches) > 20:
-                    self.preview_text.insert("end", f"  ... and {len(matches) - 20} more\n")
+                if len(s_matches) > 20:
+                    self.preview_text.insert("end", f"  ... and {len(s_matches) - 20} more\n")
                 self.preview_text.insert("end", "\n")
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
