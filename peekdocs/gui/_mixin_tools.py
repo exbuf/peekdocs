@@ -1431,15 +1431,15 @@ class ToolsMixin:
             except Exception:
                 pass
         _pii_folder_label = self._add_folder_bar(
-            win, "Scan will check files in this folder.",
+            win, "",
             initial_folder=_saved_pii_folder)
 
-        # Recursive checkbox — independent from main search
+        # Recursive checkbox — on the line below the folder bar, independent from main search
         from peekdocs.cli import _load_config as _lc_pii
         _pii_recursive_saved = _lc_pii().get("pii_scan_recursive", True)
         _pii_recursive_var = tk.BooleanVar(value=_pii_recursive_saved)
         _pii_rec_frame = tk.Frame(win)
-        _pii_rec_frame.pack(fill="x", padx=20, pady=(2, 0))
+        _pii_rec_frame.pack(fill="x", padx=20, pady=(0, 0))
         tk.Checkbutton(
             _pii_rec_frame, variable=_pii_recursive_var,
             text="Include subfolders (Recursive)", font=("TkDefaultFont", 11),
