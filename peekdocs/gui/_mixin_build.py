@@ -334,7 +334,7 @@ class BuildMixin:
             options_group, text="AND", width=40,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color=_and_off_fg, text_color=_and_off_text,
-            hover_color=("gray60", "gray50"),
+            hover_color=("#144870", "#144870"),
             command=_on_and_click,
         )
         self._and_btn.pack(side="left", padx=(4, 0), pady=3)
@@ -344,7 +344,7 @@ class BuildMixin:
             options_group, text="OR", width=35,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color=_and_on_fg, text_color=_and_on_text,
-            hover_color=("gray60", "gray50"),
+            hover_color=("#144870", "#144870"),
             command=_on_or_click,
         )
         self._or_btn.pack(side="left", padx=(2, 4), pady=3)
