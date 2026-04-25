@@ -1586,8 +1586,27 @@ class BuildMixin:
             popup.destroy()
 
         listbox.bind("<Double-1>", _select)
-        ctk.CTkButton(popup, text="Use", width=70, font=ctk.CTkFont(size=12), command=_select).pack(side="left", padx=(10, 5), pady=(0, 8))
-        ctk.CTkButton(popup, text="Cancel", width=70, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=popup.destroy).pack(side="left", padx=5, pady=(0, 8))
+
+        import tkinter as _tk_recent
+        top_btn_row = _tk_recent.Frame(popup)
+        top_btn_row.pack(fill="x", padx=10, pady=(0, 4))
+        ctk.CTkButton(top_btn_row, text="Use", width=70, font=ctk.CTkFont(size=12), command=_select).pack(side="left")
+
+        def _clear_recent():
+            self._recent_searches.clear()
+            popup.destroy()
+            self.status_label.configure(text="Recent searches cleared.", text_color=("blue", "#66BBFF"))
+
+        ctk.CTkButton(top_btn_row, text="Clear", width=70, font=ctk.CTkFont(size=12),
+                       fg_color="#CC3333", hover_color="#AA2222",
+                       command=_clear_recent).pack(side="right")
+
+        cancel_row = _tk_recent.Frame(popup)
+        cancel_row.pack(pady=(0, 8))
+        ctk.CTkButton(cancel_row, text="Cancel", width=70, font=ctk.CTkFont(size=12),
+                       fg_color="transparent", text_color=("gray30", "gray70"),
+                       hover_color=("gray90", "gray25"), command=popup.destroy).pack()
+
         self._apply_dark_theme(popup)
 
 
