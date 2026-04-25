@@ -298,9 +298,9 @@ class BuildMixin:
         )
         options_group.pack(side="left", padx=(0, 10))
 
-        # AND/OR toggle buttons — the active mode is highlighted green
+        # AND/OR toggle buttons — the active mode is highlighted blue (matches checkboxes)
         self.and_mode_var = ctk.StringVar(value="off")
-        _and_on_fg = ("#4CAF50", "#43A047")
+        _and_on_fg = ("#1f6aa5", "#1f6aa5")
         _and_off_fg = ("gray78", "gray45")
         _and_on_text = ("white", "white")
         _and_off_text = ("gray30", "gray70")
