@@ -538,7 +538,7 @@ class BuildMixin:
         self._pii_scan_btn = ctk.CTkButton(
             self._toggle_row,
             text="\U0001f50d PII Scan", width=100,
-            fg_color="#0D9488", hover_color="#0B7C72",
+            fg_color="green", hover_color="darkgreen",
             text_color="white",
             command=self._start_sensitive_scan,
             font=ctk.CTkFont(size=13, weight="bold"),
