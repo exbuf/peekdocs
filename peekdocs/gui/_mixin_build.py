@@ -529,7 +529,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=15),
         )
         self._search_wiz_btn.pack(side="left", padx=(3, 6), pady=4)
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
