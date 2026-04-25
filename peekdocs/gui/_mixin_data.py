@@ -261,6 +261,10 @@ class DataMixin:
         # Restore hover text preference
         hover = config.get("hover_text", True)
         Tooltip.enabled = bool(hover)
+        if hasattr(self, "_hover_toggle_btn"):
+            self._hover_toggle_btn.configure(
+                text="Hover: ON" if Tooltip.enabled else "Hover: OFF"
+            )
 
 
 
