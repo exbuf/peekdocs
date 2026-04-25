@@ -263,7 +263,7 @@ class BuildMixin:
         Tooltip(clear_button, "Clear the search bar", anchor="left")
 
         recent_btn = ctk.CTkButton(
-            self._search_btn_frame, text="\u25bc", width=30,
+            self._search_btn_frame, text="\u25bc Recent Searches", width=130,
             command=self._show_recent_searches,
             font=ctk.CTkFont(size=14),
             fg_color="transparent", text_color=("gray30", "gray70"),
