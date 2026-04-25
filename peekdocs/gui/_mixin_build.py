@@ -1377,6 +1377,20 @@ class BuildMixin:
         self._tools_btn.pack(side="right", padx=5)
         Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more", anchor="above-left")
 
+        hover_label = "Hover: ON" if Tooltip.enabled else "Hover: OFF"
+        self._hover_toggle_btn = ctk.CTkButton(
+            right_frame,
+            text=hover_label,
+            width=80,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._toggle_tooltips,
+            font=ctk.CTkFont(size=13),
+        )
+        self._hover_toggle_btn.pack(side="right", padx=5)
+        Tooltip(self._hover_toggle_btn, "Enable or disable hover text (tooltips) on all buttons and controls", anchor="above-left")
+
         # Keep references for tooltip toggle (used by _toggle_tooltips)
         self.tooltip_toggle_btn = None
         self.view_error_log_bottom = None
@@ -1794,6 +1808,10 @@ class BuildMixin:
         """Toggle hover tooltip visibility on or off."""
         Tooltip.enabled = not Tooltip.enabled
         self._save_ui_preference("hover_text", Tooltip.enabled)
+        if hasattr(self, "_hover_toggle_btn"):
+            self._hover_toggle_btn.configure(
+                text="Hover: ON" if Tooltip.enabled else "Hover: OFF"
+            )
 
 
 
