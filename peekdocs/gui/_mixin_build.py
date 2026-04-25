@@ -1564,8 +1564,17 @@ class BuildMixin:
         y = self.winfo_rooty() + 80
         popup.geometry(f"+{x}+{y}")
 
-        tk.Label(popup, text="Click a search to re-use it:",
-                 font=("TkDefaultFont", 11), fg="gray").pack(padx=10, pady=(8, 4))
+        _recent_header = tk.Frame(popup)
+        _recent_header.pack(fill="x", padx=10, pady=(8, 4))
+        tk.Label(_recent_header, text="Click a search to re-use it:",
+                 font=("TkDefaultFont", 11), fg="gray").pack(side="left")
+        ctk.CTkButton(
+            _recent_header, text="?", width=28, height=24,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=lambda: self._show_recent_searches_help(popup),
+        ).pack(side="right")
 
         listbox = tk.Listbox(popup, font=("TkDefaultFont", 12),
                              selectmode=tk.SINGLE, activestyle="none",
@@ -1609,7 +1618,70 @@ class BuildMixin:
 
         self._apply_dark_theme(popup)
 
+    def _show_recent_searches_help(self, parent):
+        """Show help for the Recent Searches popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Recent Searches — Help")
+        help_win.geometry("580x400")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+        try:
+            help_win.grab_set()
+        except Exception:
+            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
+        txt_frame = tk.Frame(help_win)
+        txt_frame.pack(fill="both", expand=True)
+        txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, spacing3=4)
+        txt.pack(fill="both", expand=True)
+
+        def b(text):
+            txt.insert("end", text + "\n", "bold")
+        def n(text):
+            txt.insert("end", text + "\n")
+
+        txt.tag_configure("bold", font=("TkDefaultFont", 12, "bold"))
+
+        b("What are Recent Searches?")
+        n("The last 10 search terms you typed are remembered here so")
+        n("you can quickly re-use them without retyping. Select one")
+        n("and click Use (or double-click) to fill the search bar.\n")
+
+        b("How they're stored")
+        n("Recent searches are stored in memory only \u2014 they are NOT")
+        n("saved to disk. When you close the app, they're gone. This")
+        n("is by design: recent searches are for quick re-use during")
+        n("a session, not permanent storage.\n")
+
+        b("Recent Searches vs Search History")
+        n("\u2022 Recent Searches (this popup) \u2014 in-memory, last 10 terms,")
+        n("  lost when you close the app. For quick re-use.")
+        n("\u2022 Search History (Tools menu) \u2014 saved to disk in")
+        n("  ~/.peekdocs_history.json, persists across sessions,")
+        n("  includes date, match count, file count, and elapsed time.")
+        n("  For reviewing past searches.\n")
+
+        b("Clear button")
+        n("Clears the in-memory recent searches list only. Does NOT")
+        n("affect Search History.")
+
+        b("\nSaved Searches")
+        n("To save a search permanently so you can reload it later,")
+        n("use the Save button on the main screen. Saved searches")
+        n("persist across sessions and can be grouped into suites.")
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
+        self._apply_dark_theme(help_win)
 
     def _save_ui_preference(self, key, value):
         """Auto-save a single UI preference to ~/.peekdocsrc."""

@@ -296,7 +296,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field with **▼** recent-searches dropdown (shows your last 10 searches), **Run Search** and **PII Scan** buttons, **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
+| **Search Bar** | Search entry field with **▼ Recent Searches** dropdown (shows your last 10 search terms — stored in memory only, not saved to disk, lost when you close the app; different from Search History in the Tools menu which persists across sessions), **Run Search** and **PII Scan** buttons, **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), **Single File** button (select a single file to search — click the ✕ to clear), and **+Folder** button (add another folder for multi-folder search — folders are separated by semicolons) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
