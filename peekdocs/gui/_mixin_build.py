@@ -801,7 +801,7 @@ class BuildMixin:
             output_frame, text="Timestamp Filename", variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        cb_ts.grid(row=0, column=4, padx=(0, 0))
+        cb_ts.grid(row=0, column=5, padx=(0, 0))
         Tooltip(cb_ts, "Add timestamp to report filenames (e.g., peekdocs_results_20260327_143022.txt)")
 
         # Row 10: Save Defaults + Restore Settings buttons
