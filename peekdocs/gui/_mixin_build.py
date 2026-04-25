@@ -1352,13 +1352,6 @@ class BuildMixin:
                     label=f"Appearance: {mode}{marker}",
                     command=lambda m=mode: self._set_appearance_mode(m),
                 )
-            # Hover text toggle
-            hover_label = (
-                "Disable Hover Text — hide tooltip popups when hovering over buttons and fields"
-                if Tooltip.enabled else
-                "Enable Hover Text — show tooltip popups when hovering over buttons and fields"
-            )
-            menu.add_command(label=hover_label, command=self._toggle_tooltips)
             btn = self._tools_btn
             x = btn.winfo_rootx() - 400
             y = btn.winfo_rooty() - 350
