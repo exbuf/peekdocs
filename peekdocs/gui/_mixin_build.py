@@ -544,7 +544,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=15, weight="bold"),
         )
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._pii_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
+        Tooltip(self._pii_scan_btn, "PII (Personally Identifiable Information) Scan — one-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
 
 
 
