@@ -524,13 +524,9 @@ class BuildMixin:
         self.advanced_toggle.pack(side="left", padx=(10, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
-        # Search Wizard — stays in the toggle row
-        self._search_wiz_frame = ctk.CTkFrame(self._toggle_row, corner_radius=6,
-                                               border_width=2, border_color=("gray50", "gray50"))
-        self._search_wiz_frame.pack(side="left")
-
+        # Search Wizard — next to Advanced
         self._search_wiz_btn = ctk.CTkButton(
-            self._search_wiz_frame,
+            self._options_row,
             text="\U0001F9D9 Search Wizard", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -539,7 +535,7 @@ class BuildMixin:
             command=self._open_search_wizard_guide,
             font=ctk.CTkFont(size=17),
         )
-        self._search_wiz_btn.pack(side="left", padx=(3, 6), pady=4)
+        self._search_wiz_btn.pack(side="left", padx=(5, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
         # PII Scan — green button outside the enclosure
