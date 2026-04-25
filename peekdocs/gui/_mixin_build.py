@@ -272,15 +272,19 @@ class BuildMixin:
         recent_btn.pack(side="left", padx=(0, 6), pady=4)
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
-        # Row 2: "3." label + action buttons
+        # Row 2: options row (AND/OR, Save/Reload, Use Index)
+        options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        options_row.grid(row=2, column=0, columnspan=3, padx=(10, 5), pady=(0, 8), sticky="w")
+
+        # Row 3: "Step 3" label + Run Search button
         import tkinter as _tk_step3
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
-        _step_lbl_3.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+        _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
         Tooltip(_step_lbl_3, "Run Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
-        btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
+        btn_frame.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
         # Run Search button — standalone
         self.search_button = ctk.CTkButton(
@@ -293,7 +297,7 @@ class BuildMixin:
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
         options_group = ctk.CTkFrame(
-            btn_frame, border_width=2, border_color=("gray40", "gray60"),
+            options_row, border_width=2, border_color=("gray40", "gray60"),
             corner_radius=8, fg_color=("gray85", "gray20"),
         )
         options_group.pack(side="left", padx=(0, 10))
@@ -384,7 +388,7 @@ class BuildMixin:
 
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
-            btn_frame, border_width=2, border_color=("gray40", "gray60"),
+            options_row, border_width=2, border_color=("gray40", "gray60"),
             corner_radius=8, fg_color=("gray85", "gray20"),
         )
         save_group.pack(side="left", padx=(15, 0))
@@ -425,7 +429,7 @@ class BuildMixin:
 
         self.index_search_var = ctk.StringVar(value="off")
         self.cb_index_search = ctk.CTkCheckBox(
-            btn_frame, text="Use Index", variable=self.index_search_var,
+            options_row, text="Use Index", variable=self.index_search_var,
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(20, 20))
@@ -923,7 +927,7 @@ class BuildMixin:
 
         import tkinter as _tk_status
         status_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
-        status_row.grid(row=3, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
+        status_row.grid(row=4, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
 
         _status_label_size = 16 if sys.platform == "win32" else 14
         status_label_left = ctk.CTkLabel(
