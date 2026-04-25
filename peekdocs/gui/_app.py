@@ -92,11 +92,8 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._search_parent.grid_columnconfigure(1, weight=1)
         self._search_parent.grid_rowconfigure(0, weight=1)  # _input_frame expands with preview
 
-        # Shared toggle row for Advanced Search Options and Manage Indexes
+        # Empty toggle_row kept for compatibility (no longer displayed)
         self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")
-        self._toggle_row.grid(
-            row=1, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
-        )
 
         self._build_search_row()
         self._build_folder_row()
