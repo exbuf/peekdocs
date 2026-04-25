@@ -249,16 +249,6 @@ class BuildMixin:
                                                border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
-        clear_button = ctk.CTkButton(
-            self._search_btn_frame, text="Clear", width=70,
-            command=lambda: self.search_entry.delete(0, "end"),
-            font=ctk.CTkFont(size=14),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-        )
-        clear_button.pack(side="left", padx=(6, 3), pady=4)
-        Tooltip(clear_button, "Clear the search bar", anchor="left")
-
         recent_btn = ctk.CTkButton(
             self._search_btn_frame, text="\u25bc", width=30,
             command=self._show_recent_searches,
@@ -266,8 +256,18 @@ class BuildMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        recent_btn.pack(side="left", padx=(0, 6), pady=4)
+        recent_btn.pack(side="left", padx=(6, 3), pady=4)
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
+
+        clear_button = ctk.CTkButton(
+            self._search_btn_frame, text="Clear", width=70,
+            command=lambda: self.search_entry.delete(0, "end"),
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        clear_button.pack(side="left", padx=(0, 6), pady=4)
+        Tooltip(clear_button, "Clear the search bar", anchor="left")
 
         # Row 2: "3." label + action buttons
         ctk.CTkLabel(
