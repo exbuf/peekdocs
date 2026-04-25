@@ -44,11 +44,7 @@ class Tooltip:
             self.tip_window = tw = tk.Toplevel(self.widget)
             tw.wm_overrideredirect(True)
             tw.wm_geometry(f"+{x}+{y}")
-            display_text = (
-                f"{self.text}\n\n"
-                "Turn hover text on/off from Tools \u25b2 \u2192 "
-                "Disable/Enable Hover Text."
-            )
+            display_text = self.text
             label = tk.Label(
                 tw, text=display_text, background="#333333", foreground="white",
                 relief="solid", borderwidth=1, font=("TkDefaultFont", 12),
