@@ -1120,7 +1120,7 @@ class BuildMixin:
             self.report_frame, text="HTML", width=btn_w, font=btn_font,
             command=lambda: self._open_report_format("html"),
         )
-        Tooltip(self.report_btn_html, f"Open the HTML report — view in any web browser. {_report_color_note}", anchor="above")
+        Tooltip(self.report_btn_html, f"Open the HTML report — view in any web browser. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public. {_report_color_note}", anchor="above")
 
 
 
