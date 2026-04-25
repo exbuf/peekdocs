@@ -85,7 +85,7 @@ class BuildMixin:
 
         tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
-        tk.Label(inner, text="You've got this! Click the Return tab above and discover what's hiding in your documents.",
+        tk.Label(inner, text="You've got this! Click the Done tab above and discover what's hiding in your documents.",
                  font=("TkDefaultFont", 14, "bold"), fg="#2196F3").pack(pady=(15, 30), **pad)
 
 

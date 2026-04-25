@@ -137,8 +137,8 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
 
     def _on_tab_changed(self):
         """Hide the Search tab button when on Search (redundant), and
-        rename it to 'Return' when on Getting Started so clicking it
-        returns the user to where they started."""
+        rename it to 'Done' when on Getting Started so clicking it
+        returns the user to the Search tab."""
         try:
             current = self._tabview.get()
             seg = self._tabview._segmented_button
@@ -149,9 +149,9 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                 # User is already on Search — hide the redundant tab button
                 search_btn.grid_remove()
             else:
-                # On Getting Started — show the button labeled "Return"
+                # On Getting Started — show the button labeled "Done"
                 search_btn.grid()
-                search_btn.configure(text="Return")
+                search_btn.configure(text="Done")
         except Exception:
             pass
 
