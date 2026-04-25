@@ -917,7 +917,7 @@ class BuildMixin:
     def _build_progress_area(self):
         """Build the progress bar, status label, and results preview pane."""
         self.progress_bar = ctk.CTkProgressBar(
-            self._search_parent, mode="indeterminate", height=18,
+            self._input_frame, mode="indeterminate", height=18,
             progress_color=("#2196F3", "#1976D2"),
             fg_color=("#E0E0E0", "#3A3A3A"),
             corner_radius=5,

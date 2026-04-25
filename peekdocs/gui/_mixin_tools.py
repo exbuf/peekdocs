@@ -34,7 +34,7 @@ class ToolsMixin:
         self.status_label.configure(
             text="Scanning folder for file inventory...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
         import threading
         t = threading.Thread(
@@ -334,7 +334,7 @@ class ToolsMixin:
         self.status_label.configure(
             text="Scanning for password-protected files...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
         import threading
         t = threading.Thread(
@@ -672,7 +672,7 @@ class ToolsMixin:
         self.status_label.configure(
             text="Scanning for duplicate files...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
         import threading
         t = threading.Thread(
@@ -2313,7 +2313,7 @@ class ToolsMixin:
         self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
-        self.progress_bar.grid(row=3, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
+        self.progress_bar.grid(row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
 
         thread = threading.Thread(
             target=self._sensitive_scan_thread,
@@ -5475,7 +5475,7 @@ class ToolsMixin:
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew"
         )
         self.search_start_time = time.time()
         self._suite_elapsed_active = True

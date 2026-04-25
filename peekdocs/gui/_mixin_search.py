@@ -180,7 +180,7 @@ class SearchMixin:
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew"
         )
         # Count search terms for status display
         import shlex as _shlex
@@ -263,7 +263,7 @@ class SearchMixin:
         self.status_label.configure(
             text=f"Searching {len(folders)} folder(s)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.grid(
-            row=3, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
+            row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
         self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
         self.search_entry.configure(state="disabled")
