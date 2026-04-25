@@ -1704,7 +1704,8 @@ class ToolsMixin:
             win.destroy()
             self._run_sensitive_scan(selected, pii_folder, dollar_range=(dollar_min, dollar_max) if dollar_selected else None, recursive=pii_recursive)
 
-        ctk.CTkButton(btn_frame, text="Run Scan", width=100, font=ctk.CTkFont(size=12, weight="bold"), command=_run).pack()
+        ctk.CTkButton(btn_frame, text="Run Scan", width=100, font=ctk.CTkFont(size=12, weight="bold"),
+                      fg_color="green", hover_color="darkgreen", command=_run).pack()
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
