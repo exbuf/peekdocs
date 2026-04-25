@@ -1545,11 +1545,8 @@ class BuildMixin:
         """Show a popup with recent searches to re-use."""
         import tkinter as tk
         if not self._recent_searches:
-            self.status_label.configure(
-                text="No recent searches yet.",
-                text_color=("blue", "#66BBFF"),
-                font=ctk.CTkFont(size=13),
-            )
+            self.bell()
+            self._show_error("No recent searches yet. Run a search first — your last 10 searches will appear here.")
             return
         popup, _dark = self._themed_toplevel()
         popup.title("Recent Searches")
