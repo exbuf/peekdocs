@@ -233,7 +233,7 @@ class BuildMixin:
         _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
-        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for and select AND/OR, Recursive, Whole Word, or more in Advanced Search Options")
+        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for and select AND/OR, Recursive (include subfolders), Whole Word, or more in Advanced Search Options")
 
         self._assistant_label = ctk.CTkLabel(
             self._input_frame, text="", font=ctk.CTkFont(size=12),
@@ -1086,7 +1086,7 @@ class BuildMixin:
         _step_lbl_4 = _tk_step4.Label(self.report_frame, text=" Step 4 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_4.pack(side="left", padx=(0, 8))
-        Tooltip(_step_lbl_4, "View Report — open the highlighted results report", anchor="above")
+        Tooltip(_step_lbl_4, "View Report — open the highlighted results report. Additional formats (CSV, JSON, PDF, HTML) can be enabled in Advanced Search Options", anchor="above")
 
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
