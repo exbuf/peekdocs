@@ -274,7 +274,7 @@ class BuildMixin:
 
         # Row 2: options row (AND/OR, Save/Reload, Use Index)
         self._options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
-        self._options_row.grid(row=2, column=0, columnspan=3, padx=(10, 5), pady=(0, 8), sticky="w")
+        self._options_row.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="w")
         options_row = self._options_row  # local alias for convenience
 
         # Row 3: "Step 3" label + Run Search button
