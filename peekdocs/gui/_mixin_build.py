@@ -338,7 +338,7 @@ class BuildMixin:
             command=_on_and_click,
         )
         self._and_btn.pack(side="left", padx=(4, 0), pady=3)
-        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
+        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph. Synced with AND mode in Advanced Search Options")
 
         self._or_btn = ctk.CTkButton(
             options_group, text="OR", width=35,
@@ -348,7 +348,7 @@ class BuildMixin:
             command=_on_or_click,
         )
         self._or_btn.pack(side="left", padx=(2, 4), pady=3)
-        Tooltip(self._or_btn, "OR mode (default) — find lines containing any of the search terms")
+        Tooltip(self._or_btn, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode in Advanced Search Options")
         self._sync_and_or_colors = _sync_and_or_colors
 
         # Separator
@@ -361,7 +361,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
         )
         self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
-        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching")
+        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options")
 
         self.whole_word_var = ctk.StringVar(value="on")
         self._search_whole_word_cb = ctk.CTkCheckBox(
@@ -369,7 +369,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
         )
         self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
-        Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'")
+        Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options")
 
         # ? help for this options group
         options_help_btn = ctk.CTkButton(
