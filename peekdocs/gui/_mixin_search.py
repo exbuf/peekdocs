@@ -713,7 +713,7 @@ class SearchMixin:
             self.preview_text.configure(state="disabled")
             self.preview_text.see("1.0")
             self.preview_frame.grid(
-                row=6, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
+                row=7, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
             )
             return
 
@@ -863,7 +863,7 @@ class SearchMixin:
 
         # Show the preview frame
         self.preview_frame.grid(
-            row=8, column=0, columnspan=3, padx=15, pady=(5, 0), sticky="nsew"
+            row=7, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
         )
 
 
@@ -931,7 +931,7 @@ class SearchMixin:
                     text_color="white",
                 )
         self.report_frame.grid(
-            row=7, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
+            row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
 
 

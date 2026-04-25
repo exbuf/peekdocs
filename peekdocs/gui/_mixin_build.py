@@ -224,7 +224,7 @@ class BuildMixin:
         self._input_frame.grid_columnconfigure(0)
         self._input_frame.grid_columnconfigure(1, weight=1)
         self._input_frame.grid_columnconfigure(2, minsize=185)
-        self._input_frame.grid_rowconfigure(6, weight=1)  # preview row expands
+        self._input_frame.grid_rowconfigure(7, weight=1)  # preview row expands
 
         # Create recursive_var early so both the folder row checkbox
         # and Advanced Search Options can share it.
@@ -971,7 +971,7 @@ class BuildMixin:
         # Results preview pane — shown on launch with empty content
         self.preview_frame = ctk.CTkFrame(self._input_frame)
         self.preview_frame.grid(
-            row=6, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
+            row=7, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
         )
 
         import tkinter as tk
@@ -1262,7 +1262,7 @@ class BuildMixin:
         """Build the bottom toolbar with help, about, tools, and close."""
         self.bottom_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self.bottom_frame.grid(
-            row=8, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
+            row=9, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
         )
 
         self.bottom_frame.grid_columnconfigure(0, weight=1)
