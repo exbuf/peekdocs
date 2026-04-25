@@ -229,8 +229,9 @@ class BuildMixin:
         # and Advanced Search Options can share it.
         self.recursive_var = ctk.StringVar(value="on")
 
-        _step_lbl_2 = _tk_step.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
-                                      fg="white", bg="#2196F3")
+        import tkinter as _tk_step2
+        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
+                                       fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
         Tooltip(_step_lbl_2, "Search Terms — type what you're looking for")
 
@@ -272,8 +273,9 @@ class BuildMixin:
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: "3." label + action buttons
-        _step_lbl_3 = _tk_step.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
-                                      fg="white", bg="#2196F3")
+        import tkinter as _tk_step3
+        _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
+                                       fg="white", bg="#2196F3")
         _step_lbl_3.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
         Tooltip(_step_lbl_3, "Run Search — click to search all files in the folder")
 
