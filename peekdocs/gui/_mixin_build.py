@@ -433,7 +433,7 @@ class BuildMixin:
             options_row, text="Index", variable=self.index_search_var,
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
-        self.cb_index_search.pack(side="left", padx=(20, 20))
+        self.cb_index_search.pack(side="left", padx=(20, 5))
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
 
 
@@ -521,7 +521,7 @@ class BuildMixin:
             command=self.toggle_advanced,
             font=ctk.CTkFont(size=13),
         )
-        self.advanced_toggle.pack(side="left", padx=(10, 0))
+        self.advanced_toggle.pack(side="left", padx=(0, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
         # Search Wizard — next to Advanced
