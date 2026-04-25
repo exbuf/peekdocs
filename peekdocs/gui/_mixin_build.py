@@ -1243,22 +1243,9 @@ class BuildMixin:
         self.bottom_frame.grid_columnconfigure(1, weight=1)
         self.bottom_frame.grid_columnconfigure(2, weight=1)
 
-        # Left group
+        # Left group (empty for now)
         left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="w")
-
-        self.help_button = ctk.CTkButton(
-            left_frame,
-            text="User Guide",
-            width=90,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=self.open_help,
-            font=ctk.CTkFont(size=13),
-        )
-        self.help_button.pack(side="left")
-        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
 
         # Center: Close button
         close_main_btn = ctk.CTkButton(
@@ -1277,6 +1264,19 @@ class BuildMixin:
         # Right group
         right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         right_frame.grid(row=0, column=2, sticky="e")
+
+        self.help_button = ctk.CTkButton(
+            right_frame,
+            text="User Guide",
+            width=90,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.open_help,
+            font=ctk.CTkFont(size=13),
+        )
+        self.help_button.pack(side="right", padx=5)
+        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above-left")
 
         hover_label = "Hover Text: ON" if Tooltip.enabled else "Hover Text: OFF"
         self._hover_toggle_btn = ctk.CTkButton(
