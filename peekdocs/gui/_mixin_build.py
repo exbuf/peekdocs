@@ -284,7 +284,7 @@ class BuildMixin:
 
         # Run Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="Run Search", width=100, height=32, command=self.start_search,
+            btn_frame, text="\U0001F52D Run Search", width=120, height=32, command=self.start_search,
             font=ctk.CTkFont(size=14, weight="bold"),
             fg_color="green", hover_color="darkgreen",
         )
@@ -510,7 +510,7 @@ class BuildMixin:
 
         self.advanced_toggle = ctk.CTkButton(
             self._adv_wiz_frame,
-            text="\U0001F52D Advanced Search Options", width=0,
+            text="\u25b6 Advanced Search Options", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1393,7 +1393,7 @@ class BuildMixin:
         else:
             self.advanced_window.deiconify()
             self.advanced_window.lift()
-            self.advanced_toggle.configure(text="\U0001F52D Advanced Search Options")
+            self.advanced_toggle.configure(text="\u25bc Advanced Search Options")
             self.advanced_visible = True
 
 
@@ -1401,7 +1401,7 @@ class BuildMixin:
     def _close_advanced_window(self):
         """Hide the Advanced Search Options window and update the toggle button."""
         self.advanced_window.withdraw()
-        self.advanced_toggle.configure(text="\U0001F52D Advanced Search Options")
+        self.advanced_toggle.configure(text="\u25b6 Advanced Search Options")
         self.advanced_visible = False
 
 
