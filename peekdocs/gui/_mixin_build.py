@@ -1628,6 +1628,15 @@ class BuildMixin:
         except Exception:
             help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
+        # Pack Close first so it anchors to the bottom
+        _close_btn_recent = ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        )
+        _close_btn_recent.pack(side="bottom", pady=(5, 10))
+
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True)
         txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
@@ -1670,14 +1679,6 @@ class BuildMixin:
         n("persist across sessions and can be grouped into suites.")
 
         txt.configure(state="disabled")
-
-        ctk.CTkButton(
-            help_win, text="Close", width=80,
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=help_win.destroy, font=ctk.CTkFont(size=12),
-        ).pack(pady=(5, 10))
-
         self._apply_dark_theme(help_win)
 
     def _save_ui_preference(self, key, value):
