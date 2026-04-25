@@ -520,7 +520,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self.toggle_advanced,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=26),
         )
         self.advanced_toggle.pack(side="left", padx=(0, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
@@ -534,7 +534,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=17),
+            font=ctk.CTkFont(size=34),
         )
         self._search_wiz_btn.pack(side="left", padx=(5, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
