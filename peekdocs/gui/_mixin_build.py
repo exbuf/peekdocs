@@ -970,7 +970,7 @@ class BuildMixin:
         # Results preview pane — shown on launch with empty content
         self.preview_frame = ctk.CTkFrame(self._search_parent)
         self.preview_frame.grid(
-            row=5, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
+            row=4, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
         )
 
         import tkinter as tk
