@@ -229,8 +229,10 @@ class BuildMixin:
         # and Advanced Search Options can share it.
         self.recursive_var = ctk.StringVar(value="on")
 
-        label = ctk.CTkLabel(self._input_frame, text="2. Search Terms:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
-        label.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        _step_lbl_2 = _tk_step.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
+                                      fg="white", bg="#2196F3")
+        _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for")
 
         self._assistant_label = ctk.CTkLabel(
             self._input_frame, text="", font=ctk.CTkFont(size=12),
@@ -270,10 +272,10 @@ class BuildMixin:
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: "3." label + action buttons
-        ctk.CTkLabel(
-            self._input_frame, text="3. Run Search:",
-            font=ctk.CTkFont(size=18, weight="bold"),
-        ).grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+        _step_lbl_3 = _tk_step.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
+                                      fg="white", bg="#2196F3")
+        _step_lbl_3.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+        Tooltip(_step_lbl_3, "Run Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         btn_frame.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
@@ -434,8 +436,11 @@ class BuildMixin:
 
     def _build_folder_row(self):
         """Build the folder selection row in the shared _input_frame at row 0."""
-        label = ctk.CTkLabel(self._input_frame, text="1. Search Folder:", font=ctk.CTkFont(size=18, weight="bold"), width=200, anchor="w")
-        label.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        import tkinter as _tk_step
+        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 ", font=("TkDefaultFont", 14, "bold"),
+                                      fg="white", bg="#2196F3")
+        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        Tooltip(_step_lbl_1, "Search Folder — point peekdocs at the folder containing your documents")
 
         self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
         self.folder_entry.grid(row=0, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
@@ -1065,14 +1070,11 @@ class BuildMixin:
         Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
 
         self.report_frame = ctk.CTkFrame(self._search_parent, fg_color=self._search_parent.cget("fg_color"))
-        ctk.CTkLabel(
-            self.report_frame, text="4.",
-            font=ctk.CTkFont(size=18, weight="bold"),
-        ).pack(side="left", padx=(0, 4))
-        report_lbl = ctk.CTkLabel(
-            self.report_frame, text="View Report:", font=ctk.CTkFont(size=18, weight="bold"),
-        )
-        report_lbl.pack(side="left", padx=(0, 4))
+        import tkinter as _tk_step4
+        _step_lbl_4 = _tk_step4.Label(self.report_frame, text=" Step 4 ", font=("TkDefaultFont", 14, "bold"),
+                                       fg="white", bg="#2196F3")
+        _step_lbl_4.pack(side="left", padx=(0, 8))
+        Tooltip(_step_lbl_4, "View Report — open the highlighted results report")
 
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
