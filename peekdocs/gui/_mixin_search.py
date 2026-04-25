@@ -898,7 +898,7 @@ class SearchMixin:
         report_formats = {}
         if self.results_dir:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-            for fmt in ("txt", "docx", "csv", "json", "pdf"):
+            for fmt in ("txt", "docx", "csv", "json", "pdf", "html"):
                 path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
                 report_formats[fmt] = os.path.exists(path)
 
@@ -914,6 +914,7 @@ class SearchMixin:
             ("csv", self.report_btn_csv),
             ("json", self.report_btn_json),
             ("pdf", self.report_btn_pdf),
+            ("html", self.report_btn_html),
         ]:
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="normal")
@@ -944,6 +945,7 @@ class SearchMixin:
         self.report_btn_csv.pack_forget()
         self.report_btn_json.pack_forget()
         self.report_btn_pdf.pack_forget()
+        self.report_btn_html.pack_forget()
 
 
 

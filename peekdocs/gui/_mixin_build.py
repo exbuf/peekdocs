@@ -1116,6 +1116,11 @@ class BuildMixin:
             command=lambda: self._open_report_format("pdf"),
         )
         Tooltip(self.report_btn_pdf, f"Open the PDF report — highlighted matches, portable format. {_report_color_note}", anchor="above")
+        self.report_btn_html = ctk.CTkButton(
+            self.report_frame, text="HTML", width=btn_w, font=btn_font,
+            command=lambda: self._open_report_format("html"),
+        )
+        Tooltip(self.report_btn_html, f"Open the HTML report — view in any web browser. {_report_color_note}", anchor="above")
 
 
 
