@@ -527,7 +527,7 @@ class BuildMixin:
         # Search Wizard — next to Advanced
         self._search_wiz_btn = ctk.CTkButton(
             self._options_row,
-            text="\U0001F9D9 Search Wizard", width=0,
+            text="\U0001F9D9 Wizard", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
