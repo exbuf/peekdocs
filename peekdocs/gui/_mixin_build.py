@@ -233,7 +233,7 @@ class BuildMixin:
         _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
-        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for")
+        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for and select AND/OR, Recursive, Whole Word, or more in Advanced Search Options")
 
         self._assistant_label = ctk.CTkLabel(
             self._input_frame, text="", font=ctk.CTkFont(size=12),
