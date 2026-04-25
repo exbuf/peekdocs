@@ -244,7 +244,7 @@ class BuildMixin:
         self.search_entry = ctk.CTkEntry(
             self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
         )
-        self.search_entry.grid(row=1, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
+        self.search_entry.grid(row=1, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
         self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
         self.search_entry.bind("<Return>", lambda e: self.start_search())
 
