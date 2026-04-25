@@ -433,7 +433,7 @@ class BuildMixin:
             options_row, text="Index", variable=self.index_search_var,
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
-        self.cb_index_search.pack(side="left", padx=(20, 5))
+        self.cb_index_search.pack(side="left", padx=(20, 0))
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
 
 
