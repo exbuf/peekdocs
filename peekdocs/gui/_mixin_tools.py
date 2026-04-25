@@ -3214,7 +3214,7 @@ class ToolsMixin:
             fg_color="green", hover_color="darkgreen",
         )
         apply_btn.pack(side="left", padx=6, pady=6)
-        Tooltip(apply_btn, "Apply the selected row's settings to the main screen — fills the Search Bar and enables matching options (regex, AND, OCR, etc.)")
+        Tooltip(apply_btn, "Apply the selected row's settings to the main screen — fills the Search Bar and enables matching options (regex, AND, OCR, etc.)", anchor="above")
 
         clear_sel_btn = ctk.CTkButton(
             apply_group, text="Clear Selection", width=120, height=36,
@@ -3224,7 +3224,7 @@ class ToolsMixin:
             hover_color=("gray90", "gray25"),
         )
         clear_sel_btn.pack(side="left", padx=6, pady=6)
-        Tooltip(clear_sel_btn, "Unpick the currently selected row so nothing is chosen — click a different radio button to pick a new one")
+        Tooltip(clear_sel_btn, "Unpick the currently selected row so nothing is chosen — click a different radio button to pick a new one", anchor="above")
 
         ctk.CTkButton(
             win, text="Close", width=80,
