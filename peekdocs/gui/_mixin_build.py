@@ -1080,7 +1080,7 @@ class BuildMixin:
         """Build the Matched Files and View Report buttons."""
         # Buttons are children of the search tab, gridded directly at row 6
         self.matched_files_button = ctk.CTkButton(
-            self._search_parent,
+            self._input_frame,
             text="Matched Files",
             width=140,
             command=self._show_matched_files_popup,
@@ -1088,7 +1088,7 @@ class BuildMixin:
         )
         Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
 
-        self.report_frame = ctk.CTkFrame(self._search_parent, fg_color=self._search_parent.cget("fg_color"))
+        self.report_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         import tkinter as _tk_step4
         _step_lbl_4 = _tk_step4.Label(self.report_frame, text=" Step 4 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
@@ -1260,9 +1260,9 @@ class BuildMixin:
 
     def _build_bottom_row(self):
         """Build the bottom toolbar with help, about, tools, and close."""
-        self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
+        self.bottom_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self.bottom_frame.grid(
-            row=3, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
+            row=8, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
         )
 
         self.bottom_frame.grid_columnconfigure(0, weight=1)

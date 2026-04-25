@@ -113,7 +113,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
         self.report_frame.grid(
-            row=2, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
+            row=7, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
 
         # Check for first run before loading settings (which creates the config file)
