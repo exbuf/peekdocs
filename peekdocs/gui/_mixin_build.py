@@ -285,6 +285,7 @@ class BuildMixin:
         Tooltip(_step_lbl_3, "Run Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._run_search_frame = btn_frame
         btn_frame.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
         # Run Search button — standalone
@@ -540,7 +541,7 @@ class BuildMixin:
 
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
-            self._toggle_row,
+            self._run_search_frame,
             text="\U0001f50d PII Scan", width=120, height=32,
             fg_color="green", hover_color="darkgreen",
             text_color="white",
