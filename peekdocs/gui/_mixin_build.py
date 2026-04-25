@@ -1260,6 +1260,20 @@ class BuildMixin:
         self.help_button.pack(side="left")
         Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
 
+        hover_label = "Hover Text: ON" if Tooltip.enabled else "Hover Text: OFF"
+        self._hover_toggle_btn = ctk.CTkButton(
+            left_frame,
+            text=hover_label,
+            width=110,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._toggle_tooltips_btn,
+            font=ctk.CTkFont(size=13),
+        )
+        self._hover_toggle_btn.pack(side="left", padx=(5, 0))
+        Tooltip(self._hover_toggle_btn, "Enable or disable hover text (tooltips) on all buttons and controls", anchor="above")
+
         # Center: Close button
         close_main_btn = ctk.CTkButton(
             self.bottom_frame,
@@ -1778,9 +1792,17 @@ class BuildMixin:
 
 
     def _toggle_tooltips(self):
-        """Toggle hover tooltip visibility on or off."""
+        """Toggle hover tooltip visibility on or off (from Tools menu)."""
         Tooltip.enabled = not Tooltip.enabled
         self._save_ui_preference("hover_text", Tooltip.enabled)
+        if hasattr(self, "_hover_toggle_btn"):
+            self._hover_toggle_btn.configure(
+                text="Hover Text: ON" if Tooltip.enabled else "Hover Text: OFF"
+            )
+
+    def _toggle_tooltips_btn(self):
+        """Toggle hover tooltips from the bottom row button."""
+        self._toggle_tooltips()
 
 
 
