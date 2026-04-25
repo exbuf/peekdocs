@@ -249,16 +249,6 @@ class BuildMixin:
                                                border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
-        recent_btn = ctk.CTkButton(
-            self._search_btn_frame, text="\u25bc", width=30,
-            command=self._show_recent_searches,
-            font=ctk.CTkFont(size=14),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-        )
-        recent_btn.pack(side="left", padx=(6, 3), pady=4)
-        Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
-
         clear_button = ctk.CTkButton(
             self._search_btn_frame, text="Clear", width=70,
             command=lambda: self.search_entry.delete(0, "end"),
@@ -266,8 +256,18 @@ class BuildMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        clear_button.pack(side="left", padx=(0, 6), pady=4)
+        clear_button.pack(side="left", padx=(6, 3), pady=4)
         Tooltip(clear_button, "Clear the search bar", anchor="left")
+
+        recent_btn = ctk.CTkButton(
+            self._search_btn_frame, text="\u25bc", width=30,
+            command=self._show_recent_searches,
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+        )
+        recent_btn.pack(side="left", padx=(0, 6), pady=4)
+        Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: "3." label + action buttons
         ctk.CTkLabel(
@@ -1243,9 +1243,22 @@ class BuildMixin:
         self.bottom_frame.grid_columnconfigure(1, weight=1)
         self.bottom_frame.grid_columnconfigure(2, weight=1)
 
-        # Left group (empty for now)
+        # Left group
         left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="w")
+
+        self.help_button = ctk.CTkButton(
+            left_frame,
+            text="User Guide",
+            width=90,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self.open_help,
+            font=ctk.CTkFont(size=13),
+        )
+        self.help_button.pack(side="left")
+        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
 
         # Center: Close button
         close_main_btn = ctk.CTkButton(
@@ -1264,33 +1277,6 @@ class BuildMixin:
         # Right group
         right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         right_frame.grid(row=0, column=2, sticky="e")
-
-        self.help_button = ctk.CTkButton(
-            right_frame,
-            text="User Guide",
-            width=90,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=self.open_help,
-            font=ctk.CTkFont(size=13),
-        )
-        self.help_button.pack(side="right", padx=5)
-        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above-left")
-
-        hover_label = "Hover Text: ON" if Tooltip.enabled else "Hover Text: OFF"
-        self._hover_toggle_btn = ctk.CTkButton(
-            right_frame,
-            text=hover_label,
-            width=110,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=self._toggle_tooltips_btn,
-            font=ctk.CTkFont(size=13),
-        )
-        self._hover_toggle_btn.pack(side="right", padx=5)
-        Tooltip(self._hover_toggle_btn, "Enable or disable hover text (tooltips) on all buttons and controls", anchor="above-left")
 
         self.about_button = ctk.CTkButton(
             right_frame,
@@ -1792,17 +1778,9 @@ class BuildMixin:
 
 
     def _toggle_tooltips(self):
-        """Toggle hover tooltip visibility on or off (from Tools menu)."""
+        """Toggle hover tooltip visibility on or off."""
         Tooltip.enabled = not Tooltip.enabled
         self._save_ui_preference("hover_text", Tooltip.enabled)
-        if hasattr(self, "_hover_toggle_btn"):
-            self._hover_toggle_btn.configure(
-                text="Hover Text: ON" if Tooltip.enabled else "Hover Text: OFF"
-            )
-
-    def _toggle_tooltips_btn(self):
-        """Toggle hover tooltips from the bottom row button."""
-        self._toggle_tooltips()
 
 
 
