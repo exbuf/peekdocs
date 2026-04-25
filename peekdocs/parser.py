@@ -251,7 +251,7 @@ def parse_flags(args, config):
         idx = args.index("-o")
         if idx + 1 >= len(args):
             return (2, "No format provided. Usage: peekdocs -o csv search_term\n")
-        valid_formats = {"csv", "json", "pdf"}
+        valid_formats = {"csv", "json", "pdf", "html"}
         requested = [fmt.strip().lower() for fmt in args[idx + 1].split(",")]
         for fmt in requested:
             if fmt not in valid_formats:
