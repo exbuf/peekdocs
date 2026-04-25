@@ -273,8 +273,9 @@ class BuildMixin:
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: options row (AND/OR, Save/Reload, Use Index)
-        options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
-        options_row.grid(row=2, column=0, columnspan=3, padx=(10, 5), pady=(0, 8), sticky="w")
+        self._options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._options_row.grid(row=2, column=0, columnspan=3, padx=(10, 5), pady=(0, 8), sticky="w")
+        options_row = self._options_row  # local alias for convenience
 
         # Row 3: "Step 3" label + Run Search button
         import tkinter as _tk_step3
@@ -508,12 +509,10 @@ class BuildMixin:
 
     def _build_advanced_toggle(self):
         """Build the toggle button for Advanced Search Options."""
-        self._adv_wiz_frame = ctk.CTkFrame(self._toggle_row, corner_radius=6,
-                                            border_width=2, border_color=("gray50", "gray50"))
-        self._adv_wiz_frame.pack(side="left")
-
+        # Advanced Search Options — placed in options_row (row 2) next to Use Index
+        # (options_row is created in _build_search_row)
         self.advanced_toggle = ctk.CTkButton(
-            self._adv_wiz_frame,
+            self._options_row,
             text="\U0001F9E0 Advanced Search Options", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -522,11 +521,16 @@ class BuildMixin:
             command=self.toggle_advanced,
             font=ctk.CTkFont(size=13),
         )
-        self.advanced_toggle.pack(side="left", padx=(6, 3), pady=4)
+        self.advanced_toggle.pack(side="left", padx=(10, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
+        # Search Wizard — stays in the toggle row
+        self._search_wiz_frame = ctk.CTkFrame(self._toggle_row, corner_radius=6,
+                                               border_width=2, border_color=("gray50", "gray50"))
+        self._search_wiz_frame.pack(side="left")
+
         self._search_wiz_btn = ctk.CTkButton(
-            self._adv_wiz_frame,
+            self._search_wiz_frame,
             text="\U0001F9D9 Search Wizard", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
