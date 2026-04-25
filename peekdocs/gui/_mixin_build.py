@@ -291,8 +291,8 @@ class BuildMixin:
 
         # Run Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="\U0001F52D Run Search", width=120, height=32, command=self.start_search,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            btn_frame, text="\U0001F52D Run Search", width=140, height=36, command=self.start_search,
+            font=ctk.CTkFont(size=18, weight="bold"),
             fg_color="green", hover_color="darkgreen",
         )
         self.search_button.pack(side="left", padx=(0, 10))
@@ -543,11 +543,11 @@ class BuildMixin:
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="\U0001f50d PII Scan", width=120, height=32,
+            text="\U0001f50d PII Scan", width=140, height=36,
             fg_color="green", hover_color="darkgreen",
             text_color="white",
             command=self._start_sensitive_scan,
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
         )
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._pii_scan_btn, "PII (Personally Identifiable Information) Scan — one-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
