@@ -230,7 +230,7 @@ class BuildMixin:
         self.recursive_var = ctk.StringVar(value="on")
 
         import tkinter as _tk_step2
-        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 \n     ↓", font=("TkDefaultFont", 14, "bold"),
+        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
         Tooltip(_step_lbl_2, "Search Terms — type what you're looking for and select AND/OR, Recursive (include subfolders), Whole Word, or more in Advanced Search Options")
@@ -252,6 +252,9 @@ class BuildMixin:
                                                border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
+        import tkinter as _tk_arrow2
+        _tk_arrow2.Label(self._search_btn_frame, text="→", font=("TkDefaultFont", 16, "bold"),
+                         fg="gray").pack(side="left", padx=(4, 0))
         clear_button = ctk.CTkButton(
             self._search_btn_frame, text="Clear", width=70,
             command=lambda: self.search_entry.delete(0, "end"),
@@ -445,19 +448,22 @@ class BuildMixin:
     def _build_folder_row(self):
         """Build the folder selection row in the shared _input_frame at row 0."""
         import tkinter as _tk_step
-        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 \n     ↓", font=("TkDefaultFont", 14, "bold"),
+        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 ", font=("TkDefaultFont", 14, "bold"),
                                       fg="white", bg="#2196F3")
-        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 0), sticky="w")
+        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
         Tooltip(_step_lbl_1, "Search Folder — point peekdocs at the folder containing your documents")
 
         self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
-        self.folder_entry.grid(row=0, column=1, padx=(5, 25), pady=(4, 8), sticky="ew")
+        self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
         self.folder_entry.insert(0, os.path.expanduser("~"))
 
         self._browse_frame = ctk.CTkFrame(self._input_frame, corner_radius=6,
                                           border_width=2, border_color=("gray50", "gray50"))
         self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
+        import tkinter as _tk_arrow
+        _tk_arrow.Label(self._browse_frame, text="→", font=("TkDefaultFont", 16, "bold"),
+                        fg="gray").pack(side="left", padx=(4, 0))
         self.browse_button = ctk.CTkButton(
             self._browse_frame, text="Browse", width=60, command=self.browse_folder,
             font=ctk.CTkFont(size=14),
