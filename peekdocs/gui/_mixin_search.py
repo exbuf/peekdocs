@@ -86,13 +86,14 @@ class SearchMixin:
         except Exception:
             pass
 
-        # Record in recent searches (max 10, no duplicates)
+        # Record in recent searches (max 10, no duplicates, persisted)
         if search_text and search_text not in self._recent_searches:
             self._recent_searches.insert(0, search_text)
             self._recent_searches = self._recent_searches[:10]
         elif search_text in self._recent_searches:
             self._recent_searches.remove(search_text)
             self._recent_searches.insert(0, search_text)
+        self._save_ui_preference("recent_searches", self._recent_searches)
 
         if self.index_search_var.get() == "on":
             index_path = os.path.join(folder, ".peekdocs.db")

@@ -1605,6 +1605,7 @@ class BuildMixin:
                                        parent=popup):
                 return
             self._recent_searches.clear()
+            self._save_ui_preference("recent_searches", [])
             popup.destroy()
             self.status_label.configure(text="Recent searches cleared.", text_color=("blue", "#66BBFF"))
 
@@ -1661,22 +1662,21 @@ class BuildMixin:
         n("and click Use (or double-click) to fill the search bar.\n")
 
         b("How they're stored")
-        n("Recent searches are stored in memory only \u2014 they are NOT")
-        n("saved to disk. When you close the app, they're gone. This")
-        n("is by design: recent searches are for quick re-use during")
-        n("a session, not permanent storage.\n")
+        n("Recent searches are saved to ~/.peekdocsrc and persist")
+        n("across sessions. They're available every time you open")
+        n("the app.\n")
 
         b("Recent Searches vs Search History")
-        n("\u2022 Recent Searches (this popup) \u2014 in-memory, last 10 terms,")
-        n("  lost when you close the app. For quick re-use.")
+        n("\u2022 Recent Searches (this popup) \u2014 last 10 search terms,")
+        n("  persists across sessions. For quick re-use.")
         n("\u2022 Search History (Tools menu) \u2014 saved to disk in")
         n("  ~/.peekdocs_history.json, persists across sessions,")
         n("  includes date, match count, file count, and elapsed time.")
         n("  For reviewing past searches.\n")
 
         b("Clear button")
-        n("Clears the in-memory recent searches list only. Does NOT")
-        n("affect Search History.")
+        n("Clears the recent searches list from memory and disk.")
+        n("Does NOT affect Search History.")
 
         b("\nSaved Searches")
         n("To save a search permanently so you can reload it later,")

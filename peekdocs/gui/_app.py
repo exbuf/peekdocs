@@ -50,7 +50,12 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.process = None
         self.search_thread = None
         self.results_dir = None
-        self._recent_searches = []
+        # Load persisted recent searches
+        try:
+            from peekdocs.cli import _load_config
+            self._recent_searches = _load_config().get("recent_searches", [])[:10]
+        except Exception:
+            self._recent_searches = []
         self._excluded_files = []
         self.advanced_visible = False
         self.elapsed_timer_id = None
