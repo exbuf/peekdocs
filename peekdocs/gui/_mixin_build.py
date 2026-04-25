@@ -534,7 +534,17 @@ class BuildMixin:
         self._search_wiz_btn.pack(side="left", padx=(3, 6), pady=4)
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
-        # PII Scan moved to Tools menu
+        # PII Scan — green button outside the enclosure
+        self._pii_scan_btn = ctk.CTkButton(
+            self._toggle_row,
+            text="\U0001f50d PII Scan", width=100,
+            fg_color="#0D9488", hover_color="#0B7C72",
+            text_color="white",
+            command=self._start_sensitive_scan,
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
+        self._pii_scan_btn.pack(side="left", padx=(12, 0))
+        Tooltip(self._pii_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
 
 
 
@@ -1314,7 +1324,6 @@ class BuildMixin:
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
             menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
-            menu.add_command(label="PII Scan — find SSNs, credit cards, passwords, and sensitive data", command=self._start_sensitive_scan)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
             menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
             _dark_sep()
