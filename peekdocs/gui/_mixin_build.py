@@ -430,7 +430,7 @@ class BuildMixin:
 
         self.index_search_var = ctk.StringVar(value="off")
         self.cb_index_search = ctk.CTkCheckBox(
-            options_row, text="Use Index", variable=self.index_search_var,
+            options_row, text="Index", variable=self.index_search_var,
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(20, 20))
