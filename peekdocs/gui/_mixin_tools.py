@@ -2313,7 +2313,7 @@ class ToolsMixin:
         self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
-        self.progress_bar.grid(row=7, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
+        self.progress_bar.grid(row=3, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew")
 
         thread = threading.Thread(
             target=self._sensitive_scan_thread,
@@ -5686,7 +5686,7 @@ class ToolsMixin:
             self._suite_report_frame.destroy()
 
         self._suite_report_frame = tk.Frame(self._search_parent)
-        self._suite_report_frame.grid(row=10, column=0, padx=(15, 5), pady=(2, 5), sticky="w")
+        self._suite_report_frame.grid(row=4, column=0, padx=(15, 5), pady=(2, 5), sticky="w")
 
         tk.Label(self._suite_report_frame, text="View Suite Report:",
                  font=("TkDefaultFont", 11, "bold")).pack(side="left", padx=(0, 5))

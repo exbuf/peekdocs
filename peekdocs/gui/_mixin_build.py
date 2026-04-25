@@ -970,7 +970,7 @@ class BuildMixin:
         # Results preview pane — shown on launch with empty content
         self.preview_frame = ctk.CTkFrame(self._search_parent)
         self.preview_frame.grid(
-            row=8, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
+            row=5, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
         )
 
         import tkinter as tk
@@ -1261,7 +1261,7 @@ class BuildMixin:
         """Build the bottom toolbar with help, about, tools, and close."""
         self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
         self.bottom_frame.grid(
-            row=10, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
+            row=6, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
         )
 
         self.bottom_frame.grid_columnconfigure(0, weight=1)
