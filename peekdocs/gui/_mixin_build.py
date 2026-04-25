@@ -218,7 +218,7 @@ class BuildMixin:
         # guarantee the labels, entries, and button frames align.
         self._input_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
         self._input_frame.grid(
-            row=0, column=0, columnspan=3, rowspan=2,
+            row=0, column=0, columnspan=3,
             padx=10, pady=(5, 2), sticky="nsew"
         )
         self._input_frame.grid_columnconfigure(0)
@@ -1262,7 +1262,7 @@ class BuildMixin:
         """Build the bottom toolbar with help, about, tools, and close."""
         self.bottom_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
         self.bottom_frame.grid(
-            row=6, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
+            row=3, column=0, columnspan=3, padx=15, pady=(0, 8), sticky="sew"
         )
 
         self.bottom_frame.grid_columnconfigure(0, weight=1)

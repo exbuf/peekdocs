@@ -931,7 +931,7 @@ class SearchMixin:
                     text_color="white",
                 )
         self.report_frame.grid(
-            row=5, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
+            row=2, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
         )
 
 

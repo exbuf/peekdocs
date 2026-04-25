@@ -90,12 +90,12 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._search_parent.pack(fill="both", expand=True)
         self._search_parent.grid_columnconfigure(0, weight=0)
         self._search_parent.grid_columnconfigure(1, weight=1)
-        self._search_parent.grid_rowconfigure(0, weight=1)  # _input_frame expands
+        self._search_parent.grid_rowconfigure(0, weight=1)  # _input_frame expands with preview
 
         # Shared toggle row for Advanced Search Options and Manage Indexes
         self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")
         self._toggle_row.grid(
-            row=2, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
+            row=1, column=0, columnspan=3, padx=15, pady=(10, 0), sticky="ew"
         )
 
         self._build_search_row()
@@ -113,7 +113,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
         self.report_frame.grid(
-            row=5, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
+            row=2, column=0, padx=(15, 5), pady=(5, 5), sticky="w"
         )
 
         # Check for first run before loading settings (which creates the config file)
