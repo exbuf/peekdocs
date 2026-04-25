@@ -252,9 +252,6 @@ class BuildMixin:
                                                border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
-        import tkinter as _tk_arrow2
-        _tk_arrow2.Label(self._search_btn_frame, text="→", font=("TkDefaultFont", 16, "bold"),
-                         fg="gray").pack(side="left", padx=(4, 0))
         clear_button = ctk.CTkButton(
             self._search_btn_frame, text="Clear", width=70,
             command=lambda: self.search_entry.delete(0, "end"),
@@ -461,9 +458,6 @@ class BuildMixin:
                                           border_width=2, border_color=("gray50", "gray50"))
         self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
-        import tkinter as _tk_arrow
-        _tk_arrow.Label(self._browse_frame, text="→", font=("TkDefaultFont", 16, "bold"),
-                        fg="gray").pack(side="left", padx=(4, 0))
         self.browse_button = ctk.CTkButton(
             self._browse_frame, text="Browse", width=60, command=self.browse_folder,
             font=ctk.CTkFont(size=14),
