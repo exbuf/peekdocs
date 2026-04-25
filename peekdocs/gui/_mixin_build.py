@@ -1017,7 +1017,7 @@ class BuildMixin:
         self.preview_text = tk.Text(
             preview_text_frame, wrap="word", font=("Courier", 11),
             state="disabled", yscrollcommand=preview_scroll.set,
-            padx=8, pady=5, height=15,
+            padx=8, pady=5, height=8,
         )
         self.preview_text.pack(side="left", fill="both", expand=True)
         preview_scroll.config(command=self.preview_text.yview)
