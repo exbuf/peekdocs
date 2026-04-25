@@ -1086,7 +1086,7 @@ class BuildMixin:
         _step_lbl_4 = _tk_step4.Label(self.report_frame, text=" Step 4 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_4.pack(side="left", padx=(0, 8))
-        Tooltip(_step_lbl_4, "View Report — open the highlighted results report")
+        Tooltip(_step_lbl_4, "View Report — open the highlighted results report", anchor="above")
 
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
