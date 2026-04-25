@@ -537,11 +537,11 @@ class BuildMixin:
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
             self._toggle_row,
-            text="\U0001f50d PII Scan", width=100,
+            text="\U0001f50d PII Scan", width=120, height=32,
             fg_color="green", hover_color="darkgreen",
             text_color="white",
             command=self._start_sensitive_scan,
-            font=ctk.CTkFont(size=13, weight="bold"),
+            font=ctk.CTkFont(size=15, weight="bold"),
         )
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._pii_scan_btn, "PII Scan — one-click scan for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
