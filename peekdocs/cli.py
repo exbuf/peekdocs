@@ -181,6 +181,12 @@ def _load_config():
             elif key in CONFIG_STR_KEYS:
                 if value:
                     config[key] = value
+            elif key == "recent_searches":
+                try:
+                    import json as _json_rc
+                    config[key] = _json_rc.loads(value)
+                except Exception:
+                    pass
     return config
 
 
@@ -194,6 +200,9 @@ def _save_config(settings):
             value = settings[key]
             if isinstance(value, bool):
                 f.write(f"{key} = {'true' if value else 'false'}\n")
+            elif isinstance(value, list):
+                import json as _json_sv
+                f.write(f"{key} = {_json_sv.dumps(value)}\n")
             else:
                 f.write(f"{key} = {value}\n")
     # Restrict to owner read-write only (config may contain custom PII patterns)
