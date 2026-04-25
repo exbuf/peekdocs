@@ -224,6 +224,7 @@ class BuildMixin:
         self._input_frame.grid_columnconfigure(0)
         self._input_frame.grid_columnconfigure(1, weight=1)
         self._input_frame.grid_columnconfigure(2, minsize=185)
+        self._input_frame.grid_rowconfigure(6, weight=1)  # preview row expands
 
         # Create recursive_var early so both the folder row checkbox
         # and Advanced Search Options can share it.
@@ -968,9 +969,9 @@ class BuildMixin:
         self._inverse_results = False
 
         # Results preview pane — shown on launch with empty content
-        self.preview_frame = ctk.CTkFrame(self._search_parent)
+        self.preview_frame = ctk.CTkFrame(self._input_frame)
         self.preview_frame.grid(
-            row=4, column=0, columnspan=3, padx=10, pady=(5, 0), sticky="nsew"
+            row=6, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
         )
 
         import tkinter as tk
