@@ -170,7 +170,8 @@ The `.docx` report opens in whatever application your computer has associated wi
 - **No word processor installed:** You need a program that can open `.docx` files. Microsoft Word works, but it's not required. Free alternatives: [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (recommended — free, cross-platform), Google Docs (upload to Google Drive), or Apple Pages (macOS only). After installing one, try clicking the DOCX button again.
 - **No default app set for .docx files:** Your computer may not know which program to use. On Windows: right-click any `.docx` file → Open with → Choose another app → select your word processor → check "Always use this app." On macOS: right-click any `.docx` file → Get Info → Open with → select your word processor → click "Change All."
 - **File is missing:** If you ran another search after the first one, the previous `peekdocs_results.docx` was overwritten. Use "Save report as:" in Advanced Search Options to keep a permanent copy.
-- **Still not working:** Navigate to your Search Folder using File Explorer (Windows), Finder (macOS), or your file manager (Linux) and double-click `peekdocs_results.docx` directly. If that also fails, try opening the `.txt` report instead — it works on every computer with no extra software.
+- **Don't want to install anything?** Enable HTML output in Advanced Search Options and click the **HTML** button instead. Your report opens instantly in your web browser — every computer has a browser, so no extra software is needed. The HTML report has the same highlighted matches as the DOCX report.
+- **Still not working:** Navigate to your Search Folder using File Explorer (Windows), Finder (macOS), or your file manager (Linux) and double-click `peekdocs_results.docx` directly. If that also fails, try the HTML or `.txt` report instead.
 
 **Why doesn't the File picker show a preview on Windows?**
 
