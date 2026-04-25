@@ -863,6 +863,7 @@ class BuildMixin:
         Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
+        Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
 
         # Note about saving
         # Note above bottom buttons
