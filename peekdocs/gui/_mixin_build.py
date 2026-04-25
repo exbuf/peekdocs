@@ -230,7 +230,7 @@ class BuildMixin:
         self.recursive_var = ctk.StringVar(value="on")
 
         import tkinter as _tk_step2
-        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
+        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 \n     ↓", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
         Tooltip(_step_lbl_2, "Search Terms — type what you're looking for and select AND/OR, Recursive (include subfolders), Whole Word, or more in Advanced Search Options")
@@ -445,9 +445,9 @@ class BuildMixin:
     def _build_folder_row(self):
         """Build the folder selection row in the shared _input_frame at row 0."""
         import tkinter as _tk_step
-        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 ", font=("TkDefaultFont", 14, "bold"),
+        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 \n     ↓", font=("TkDefaultFont", 14, "bold"),
                                       fg="white", bg="#2196F3")
-        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 0), sticky="w")
         Tooltip(_step_lbl_1, "Search Folder — point peekdocs at the folder containing your documents")
 
         self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
