@@ -514,7 +514,7 @@ class BuildMixin:
         # (options_row is created in _build_search_row)
         self.advanced_toggle = ctk.CTkButton(
             self._options_row,
-            text="\U0001F9E0 Advanced", width=0,
+            text="\U0001F9E0", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1411,7 +1411,7 @@ class BuildMixin:
         else:
             self.advanced_window.deiconify()
             self.advanced_window.lift()
-            self.advanced_toggle.configure(text="\U0001F9E0 Advanced")
+            self.advanced_toggle.configure(text="\U0001F9E0")
             self.advanced_visible = True
 
 
@@ -1419,7 +1419,7 @@ class BuildMixin:
     def _close_advanced_window(self):
         """Hide the Advanced Search Options window and update the toggle button."""
         self.advanced_window.withdraw()
-        self.advanced_toggle.configure(text="\U0001F9E0 Advanced")
+        self.advanced_toggle.configure(text="\U0001F9E0")
         self.advanced_visible = False
 
 
