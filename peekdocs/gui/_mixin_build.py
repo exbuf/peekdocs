@@ -1599,6 +1599,11 @@ class BuildMixin:
         ctk.CTkButton(top_btn_row, text="Use", width=70, font=ctk.CTkFont(size=12), command=_select).pack(side="left")
 
         def _clear_recent():
+            from tkinter import messagebox
+            if not messagebox.askyesno("Clear Recent Searches",
+                                       "Clear all recent searches?\n\nThis cannot be undone.",
+                                       parent=popup):
+                return
             self._recent_searches.clear()
             popup.destroy()
             self.status_label.configure(text="Recent searches cleared.", text_color=("blue", "#66BBFF"))
