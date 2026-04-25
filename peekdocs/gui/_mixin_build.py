@@ -63,7 +63,7 @@ class BuildMixin:
         _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
         _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
         _step(3, "Click Run Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
-        _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. DOCX requires a word processor on your computer (Microsoft Word, LibreOffice, Google Docs, or Apple Pages). TXT opens in any text editor.")
+        _step(4, "View your results", "You can view results two ways: inline in the Results Preview pane below the search bar, or in a full report. Click DOCX or TXT next to View Report to open the highlighted Word or plain text report. Don't have Microsoft Word? No problem — the DOCX report opens in any word processor: LibreOffice (free), Google Docs, or Apple Pages. Don't want to install anything? Enable HTML in Advanced Search Options and click the HTML button — your highlighted report opens instantly in your web browser with matches in yellow. The HTML file is completely private — it's stored on your computer, not on the internet. Nothing is uploaded or made public.")
 
         tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
