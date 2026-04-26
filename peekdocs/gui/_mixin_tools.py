@@ -2764,10 +2764,17 @@ class ToolsMixin:
         y = parent.winfo_rooty() + 25
         popup.geometry(f"+{x}+{y}")
 
+        header_frame = tk.Frame(popup)
+        header_frame.pack(fill="x", padx=15, pady=(10, 5))
         tk.Label(
-            popup, text=f"{category} — {len(files_data)} file(s)",
+            header_frame, text=f"{category} — {len(files_data)} file(s)",
             font=("TkDefaultFont", 13, "bold"),
-        ).pack(pady=(10, 5))
+        ).pack(side="left", expand=True)
+        ctk.CTkButton(
+            header_frame, text="?", width=30,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=lambda: self._show_category_files_help(popup),
+        ).pack(side="right")
 
         list_frame = tk.Frame(popup)
         list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
@@ -2857,6 +2864,89 @@ class ToolsMixin:
 
         self._apply_dark_theme(popup)
 
+
+    def _show_category_files_help(self, parent):
+        """Show help for the PII Scan category files popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("View Files — Help")
+        help_win.geometry("650x520")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+        try:
+            help_win.grab_set()
+        except Exception:
+            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
+
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=5)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("heading_red", font=("TkDefaultFont", 13, "bold"),
+                          spacing1=8, spacing3=4, foreground="red")
+
+        def h(text):
+            txt.insert("end", text + "\n", "heading")
+        def h_red(text):
+            txt.insert("end", text + "\n", "heading_red")
+        def b(text):
+            txt.insert("end", text + "\n", "body")
+        def blank():
+            txt.insert("end", "\n")
+
+        h("VIEW FILES")
+        b("This popup lists every file where the PII Scan found")
+        b("matches for this category. Each row shows:")
+        blank()
+        b("\u2022 The filename")
+        b("\u2022 How many matches were found in that file")
+        b("\u2022 The line numbers where matches appear (up to 20)")
+        blank()
+
+        h("WHAT YOU CAN DO")
+        b("\u2022 Double-click a file to open it in its default")
+        b("  application so you can review or edit it directly.")
+        blank()
+        b("\u2022 Select a file and click View Text to see the")
+        b("  extracted text with line numbers and matches")
+        b("  highlighted in yellow. This lets you see exactly")
+        b("  what the PII Scan detected, in context, without")
+        b("  opening the original file.")
+        blank()
+
+        h_red("NO FILES ARE WRITTEN")
+        b("The PII Scan shows results on screen only \u2014 it does")
+        b("not write any report file to disk. This is a deliberate")
+        b("safety measure to prevent concentrating sensitive data")
+        b("(SSNs, credit card numbers, passwords) into a single")
+        b("file that could be exposed.")
+        blank()
+        b("When you close this popup, the scan data is gone. You")
+        b("can always re-run the PII Scan to see the results again.")
+        blank()
+
+        h("FALSE POSITIVES")
+        b("Pattern-based detection produces false positives. A")
+        b("9-digit account number can look like an SSN, a tracking")
+        b("number can match the credit card pattern, or the word")
+        b("'password' can appear in a help document. Use View Text")
+        b("to review each finding in context before taking action.")
+        blank()
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80, font=ctk.CTkFont(size=12),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"), command=help_win.destroy,
+        ).pack(pady=(5, 10))
+        self._apply_dark_theme(help_win)
 
 
     def _open_search_wizard_guide(self):
