@@ -1514,7 +1514,7 @@ class DataMixin:
         ).pack(pady=(10, 2))
         tk.Label(
             win, text="Line numbers match those shown in the Results Preview. "
-                      "Matches are highlighted in orange.",
+                      "Matches are highlighted in yellow.",
             font=("TkDefaultFont", 10), fg="gray",
         ).pack(pady=(0, 2))
         matching_lines_label = tk.Label(
@@ -1537,7 +1537,7 @@ class DataMixin:
         scrollbar.config(command=txt.yview)
 
         txt.tag_configure("line_num", foreground="#888888")
-        txt.tag_configure("match", background="#FF6B35", foreground="white")
+        txt.tag_configure("match", background="yellow", foreground="black")
 
         # Build highlight pattern — either from the caller-supplied regex
         # (PII Scan path) or from the main search bar (normal path).
@@ -1578,8 +1578,12 @@ class DataMixin:
 
         combined_re = None
         if patterns:
+            # Strip inline global flags like (?i) — we already pass re.IGNORECASE.
+            # Inline flags must be at the start of the expression, but wrapping
+            # in a group for alternation moves them away from position 0.
+            cleaned = [_re_view.sub(r'^\(\?[aiLmsux]+\)', '', p) for p in patterns]
             try:
-                combined_re = _re_view.compile("|".join(f"({p})" for p in patterns), _re_view.IGNORECASE)
+                combined_re = _re_view.compile("|".join(f"({p})" for p in cleaned), _re_view.IGNORECASE)
             except _re_view.error:
                 combined_re = None
 
@@ -1628,7 +1632,7 @@ class DataMixin:
         if first_match_range:
             txt.see(first_match_range[0])
             # Also highlight the first match more prominently
-            txt.tag_configure("first_match", background="#FF6B35", foreground="white")
+            txt.tag_configure("first_match", background="yellow", foreground="black")
             txt.tag_add("first_match", first_match_range[0], first_match_range[1])
 
         ctk.CTkButton(
