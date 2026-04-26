@@ -2720,6 +2720,10 @@ class ToolsMixin:
         b("never concentrated into a file that could leak. You can")
         b("always re-run the scan to see the results again.")
         blank()
+        b("As soon as you close this window, the scan data is")
+        b("permanently gone \u2014 nothing is saved, cached, or")
+        b("recoverable. This is intentional.")
+        blank()
 
         h("FALSE POSITIVES")
         b("Pattern-based detection produces false positives. For example:")
@@ -2728,8 +2732,8 @@ class ToolsMixin:
         b("\u2022 The word 'password' in a help document")
         blank()
         b("Always review findings in context before taking action.")
-        b("The report shows the matched text with surrounding context")
-        b("so you can quickly judge whether a finding is real.")
+        b("Click View Files to see the matched text with surrounding")
+        b("context so you can quickly judge whether a finding is real.")
         blank()
 
         txt.configure(state="disabled")
