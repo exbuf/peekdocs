@@ -5638,7 +5638,10 @@ class ToolsMixin:
             write_suite_txt_report(txt_path, suite_name, sections)
             write_suite_docx_report(docx_path, txt_path, sections)
             html_path = os.path.join(folder, "peekdocs_suite_results.html")
-            write_suite_html_report(html_path, suite_name, sections)
+            try:
+                write_suite_html_report(html_path, suite_name, sections)
+            except Exception:
+                html_path = ""
 
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
