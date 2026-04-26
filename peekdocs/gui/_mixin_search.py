@@ -414,7 +414,7 @@ class SearchMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="Search", fg_color="green", hover_color="darkgreen")
+        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
         self.process = None
         self._multi_folder_cancelled = None  # Reset for next search
@@ -529,7 +529,7 @@ class SearchMixin:
             self.after_cancel(self.elapsed_timer_id)
             self.elapsed_timer_id = None
 
-        self.search_button.configure(text="Search", fg_color="green", hover_color="darkgreen")
+        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
 
         if returncode == -1:

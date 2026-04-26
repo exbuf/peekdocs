@@ -1977,7 +1977,7 @@ class DataMixin:
         def _finished(result, returncode):
             self.build_index_button.configure(state="normal", text="Build Index(es)")
             self.cancel_index_button.pack_forget()
-            self.search_button.configure(state="normal", fg_color="green", hover_color="darkgreen")
+            self.search_button.configure(state="normal", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             self._update_index_button_color()
             if returncode == 0 and result:
                 fc = result.get("file_count", 0)
