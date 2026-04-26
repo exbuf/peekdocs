@@ -1184,7 +1184,7 @@ class BuildMixin:
         self._delete_everything_btn = ctk.CTkButton(
             self.report_frame, text="\U0001f6e1 Delete Everything Now", width=170,
             font=ctk.CTkFont(size=12),
-            fg_color="#CC3333", hover_color="#AA2222", text_color="white",
+            fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,
         )
         Tooltip(self._delete_everything_btn, "Immediately delete all result files, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Saved reports, accumulated reports, saved searches, settings, and indexes are not affected", anchor="above")
