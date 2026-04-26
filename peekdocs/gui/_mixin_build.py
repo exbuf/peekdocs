@@ -822,21 +822,21 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_html", self.output_html_var),
         )
-        cb_html.grid(row=0, column=4, padx=(0, 15))
+        cb_html.grid(row=0, column=4, padx=(0, 0))
         self.timestamp_var = ctk.StringVar(value="off")
         cb_ts = ctk.CTkCheckBox(
             output_frame, text="Timestamp Filename", variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        cb_ts.grid(row=0, column=5, padx=(0, 15))
+        cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_ts, "Add timestamp to report filenames (e.g., peekdocs_results_20260327_143022.txt)")
         self.delete_reports_var = ctk.StringVar(value="off")
-        cb_delete = ctk.CTkCheckBox(
+        cb_delete_adv = ctk.CTkCheckBox(
             output_frame, text="Delete on Close", variable=self.delete_reports_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        cb_delete.grid(row=0, column=6, padx=(0, 0))
+        cb_delete_adv.grid(row=1, column=2, columnspan=2, padx=(0, 0), pady=(4, 0), sticky="w")
 
         # Row 10: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -898,7 +898,7 @@ class BuildMixin:
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
-        Tooltip(cb_delete, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
+        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
 
         # Note about saving
         # Note above bottom buttons
@@ -1154,6 +1154,15 @@ class BuildMixin:
             command=lambda: self._open_report_format("html"),
         )
         Tooltip(self.report_btn_html, f"Open the HTML report — view in any web browser. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public. {_report_color_note}", anchor="above")
+
+        self.report_delete_cb = ctk.CTkCheckBox(
+            self.report_frame, text="Delete on Close",
+            variable=self.delete_reports_var,
+            onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
+            font=ctk.CTkFont(size=12),
+        )
+        Tooltip(self.report_delete_cb, "Automatically delete all search result files when you close peekdocs. Saved reports and accumulated reports are never deleted", anchor="above")
 
 
 
