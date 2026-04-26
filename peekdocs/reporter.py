@@ -1216,3 +1216,97 @@ def write_suite_docx_report(docx_path, txt_path, sections):
                 para.add_run(line)
 
     doc.save(docx_path)
+
+
+def write_suite_html_report(output_path, suite_name, sections):
+    """Write a combined HTML report for a search suite with highlighted matches."""
+    import html as html_mod
+    import re as _re_sh
+
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
+    from peekdocs.cli import VERSION as _ver_sh
+
+    # Collect highlight patterns from all sections
+    all_patterns = []
+    for section in sections:
+        terms = section.get("search_terms", [])
+        params = section.get("params", {})
+        use_regex = params.get("regex", False)
+        use_wildcard = params.get("wildcard", False)
+        use_whole_word = params.get("whole_word", False)
+        for term in terms:
+            if use_wildcard:
+                from peekdocs.scanner import _wildcard_to_regex
+                all_patterns.append(_wildcard_to_regex(term))
+            elif use_regex:
+                all_patterns.append(term)
+            elif use_whole_word:
+                prefix = r'\b' if _re_sh.match(r'\w', term) else ''
+                suffix = r'\b' if _re_sh.search(r'\w$', term) else ''
+                all_patterns.append(prefix + _re_sh.escape(term) + suffix)
+            else:
+                all_patterns.append(_re_sh.escape(term))
+
+    combined_re = None
+    if all_patterns:
+        try:
+            combined_re = _re_sh.compile("|".join(all_patterns), _re_sh.IGNORECASE)
+        except _re_sh.error:
+            combined_re = None
+
+    total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
+    total_matched_files = sum(s.get("matched_file_count", 0) for s in sections)
+    total_elapsed = sum(s["elapsed"] for s in sections)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("<!DOCTYPE html>\n<html lang='en'>\n<head>\n")
+        f.write("<meta charset='UTF-8'>\n")
+        f.write(f"<title>peekdocs v{html_mod.escape(_ver_sh)} — Suite: {html_mod.escape(suite_name)}</title>\n")
+        f.write("<style>\n")
+        f.write("body { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; "
+                "margin: 20px; background: #fff; color: #333; }\n")
+        f.write("h1 { font-size: 1.5em; }\n")
+        f.write("h2 { font-size: 1.2em; margin-top: 1.5em; border-bottom: 2px solid #ccc; padding-bottom: 4px; }\n")
+        f.write(".meta { color: #666; font-size: 0.9em; margin-bottom: 1em; }\n")
+        f.write(".match { margin: 6px 0; padding: 6px 12px; background: #f8f8f8; "
+                "border-left: 3px solid #2196F3; font-family: monospace; font-size: 0.9em; "
+                "white-space: pre-wrap; }\n")
+        f.write("mark { background: #ffff00; padding: 1px 2px; }\n")
+        f.write(".section-meta { color: #888; font-size: 0.85em; }\n")
+        f.write("</style>\n</head>\n<body>\n")
+
+        f.write(f"<h1>peekdocs v{html_mod.escape(_ver_sh)} — Suite: {html_mod.escape(suite_name)}</h1>\n")
+        f.write(f"<div class='meta'>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br>\n")
+        f.write(f"Searches: {len(sections)} | Total matches: {total_matches} in {total_matched_files} file(s)<br>\n")
+        f.write(f"Total time: {total_elapsed:.2f}s</div>\n")
+
+        for i, section in enumerate(sections, 1):
+            name = section["search_name"]
+            matches = section["matches"]
+            mfc = section.get("matched_file_count", 0)
+            files_searched = len(section["all_files"])
+            elapsed = section["elapsed"]
+            s_total = section.get("total_match_count", len(matches))
+
+            f.write(f"<h2>Search {i}/{len(sections)}: {html_mod.escape(name)}</h2>\n")
+            f.write(f"<div class='section-meta'>Terms: {html_mod.escape(' '.join(section['search_terms']))} "
+                    f"| Mode: {section['report_mode']} | "
+                    f"Found {s_total} match(es) in {mfc} file(s) | "
+                    f"Files searched: {files_searched} | Time: {elapsed:.2f}s</div>\n")
+
+            if not matches:
+                f.write("<p><em>(no matches)</em></p>\n")
+                continue
+
+            for fd, fn, ln, text in matches:
+                safe_text = html_mod.escape(text)
+                if combined_re:
+                    safe_text = combined_re.sub(
+                        lambda m: f"<mark>{html_mod.escape(m.group())}</mark>",
+                        safe_text
+                    )
+                f.write(f"<div class='match'><b>{html_mod.escape(fn)}</b> line {ln}:<br>{safe_text}</div>\n")
+
+        f.write("</body>\n</html>\n")

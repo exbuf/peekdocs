@@ -5502,7 +5502,7 @@ class ToolsMixin:
         import subprocess as _sp
         from peekdocs.collection import get_search_params
         from peekdocs.gui._helpers import _build_command_from_values
-        from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report
+        from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report, write_suite_html_report
 
         # Show progress bar and start elapsed timer — same as regular search
         self.progress_bar.configure(mode="indeterminate")
@@ -5637,14 +5637,16 @@ class ToolsMixin:
             docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
             write_suite_txt_report(txt_path, suite_name, sections)
             write_suite_docx_report(docx_path, txt_path, sections)
+            html_path = os.path.join(folder, "peekdocs_suite_results.html")
+            write_suite_html_report(html_path, suite_name, sections)
 
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
-            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder))
+            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path))
 
         threading.Thread(target=_run, daemon=True).start()
 
-    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder=""):
+    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder="", html_path=""):
         """Handle suite completion — show results summary and report buttons."""
         self._suite_elapsed_active = False
         self.search_start_time = None
@@ -5750,6 +5752,13 @@ class ToolsMixin:
                 self._suite_report_frame, text="TXT", width=50,
                 font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
                 command=lambda: _open_file(txt_path),
+            ).pack(side="left", padx=2)
+
+        if html_path and os.path.exists(html_path):
+            ctk.CTkButton(
+                self._suite_report_frame, text="HTML", width=60,
+                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
+                command=lambda: _open_file(html_path),
             ).pack(side="left", padx=2)
 
         # Show results in preview
