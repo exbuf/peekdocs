@@ -8,14 +8,18 @@ import subprocess
 import sys
 
 
-# Extensions that may contain sensitive data (PII scan reports, search reports)
-# and must not be opened in apps that upload to the cloud.
-_DOCX_EXTENSIONS = {".docx"}
+# Report extensions that must only open in known-safe local apps.
+# The system default handler is never used for these — it could route
+# to Google Docs, Apple Pages, or a cloud-syncing browser.
+_PROTECTED_EXTENSIONS = {".docx", ".pdf"}
 
 
 def safe_open_file(filepath):
-    """Open *filepath* in the default app, but prevent .docx files from
-    opening in Google Docs or Apple Pages (both may upload to the cloud).
+    """Open *filepath* in a safe local application.
+
+    For .docx and .pdf files, only known-safe local applications are
+    used — the system default handler is never called, preventing any
+    possibility of data being uploaded to the cloud.
 
     Returns ``None`` on success or a warning string if the file could not
     be opened safely.  The caller should display the warning to the user.
@@ -23,10 +27,12 @@ def safe_open_file(filepath):
     system = platform.system()
     ext = os.path.splitext(filepath)[1].lower()
 
-    if ext in _DOCX_EXTENSIONS:
+    if ext == ".docx":
         return _safe_open_docx(filepath, system)
+    if ext == ".pdf":
+        return _safe_open_pdf(filepath, system)
 
-    # --- Non-docx files: open normally ----------------------------------
+    # --- Non-protected files: open normally -----------------------------
     if system == "Windows":
         os.startfile(filepath)  # type: ignore[attr-defined]
     elif system == "Darwin":
@@ -36,7 +42,7 @@ def safe_open_file(filepath):
     return None
 
 
-_CLOUD_UPLOAD_WARNING = (
+_DOCX_WARNING = (
     "Could not open the report safely.\n\n"
     "Your default .docx application may upload your data to the "
     "cloud (Google Docs uploads to Google servers; Apple Pages may "
@@ -46,6 +52,17 @@ _CLOUD_UPLOAD_WARNING = (
     "Please install Microsoft Word or LibreOffice (free) to view "
     ".docx reports, or use the HTML report button to view results "
     "in your web browser."
+)
+
+_PDF_WARNING = (
+    "Could not open the PDF report safely.\n\n"
+    "Your default PDF application may be a web browser that syncs "
+    "data to the cloud, or a cloud-based PDF viewer. This is "
+    "especially dangerous for PII scan reports that contain "
+    "sensitive information like SSNs and credit card numbers.\n\n"
+    "Please install Adobe Acrobat Reader (free) or another local "
+    "PDF viewer to view PDF reports, or use the HTML report button "
+    "to view results in your web browser."
 )
 
 
@@ -62,7 +79,7 @@ def _safe_open_docx(filepath, system):
             )
             if result.returncode == 0:
                 return None
-        return _CLOUD_UPLOAD_WARNING
+        return _DOCX_WARNING
 
     # --- Windows ---------------------------------------------------------
     if system == "Windows":
@@ -96,7 +113,7 @@ def _safe_open_docx(filepath, system):
             if hits:
                 subprocess.Popen([hits[0], "--writer", filepath])
                 return None
-        return _CLOUD_UPLOAD_WARNING
+        return _DOCX_WARNING
 
     # --- Linux -----------------------------------------------------------
     import shutil
@@ -104,7 +121,97 @@ def _safe_open_docx(filepath, system):
     if soffice:
         subprocess.Popen([soffice, "--writer", filepath])
         return None
-    return _CLOUD_UPLOAD_WARNING
+    return _DOCX_WARNING
+
+
+def _safe_open_pdf(filepath, system):
+    """Open a PDF in a known-safe local viewer only — never through the
+    system default handler, which could be a cloud-syncing browser."""
+
+    # --- macOS -----------------------------------------------------------
+    if system == "Darwin":
+        # Preview is Apple's built-in local PDF viewer — no cloud upload.
+        # Also try Adobe Acrobat Reader and Skim (popular local viewer).
+        for app in ("Preview", "Adobe Acrobat Reader", "Skim"):
+            result = subprocess.run(
+                ["open", "-a", app, filepath],
+                capture_output=True,
+            )
+            if result.returncode == 0:
+                return None
+        return _PDF_WARNING
+
+    # --- Windows ---------------------------------------------------------
+    if system == "Windows":
+        import glob as _glob
+        import shutil
+        # Adobe Acrobat Reader
+        for exe_name in ("AcroRd32.exe", "Acrobat.exe"):
+            acrobat = shutil.which(exe_name)
+            if acrobat:
+                subprocess.Popen([acrobat, filepath])
+                return None
+        for pattern in (
+            r"C:\Program Files\Adobe\Acrobat*\Acrobat\Acrobat.exe",
+            r"C:\Program Files (x86)\Adobe\Acrobat*\Acrobat\Acrobat.exe",
+            r"C:\Program Files\Adobe\Acrobat*\Reader\AcroRd32.exe",
+            r"C:\Program Files (x86)\Adobe\Acrobat*\Reader\AcroRd32.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], filepath])
+                return None
+        # SumatraPDF (popular free local viewer)
+        sumatra = shutil.which("SumatraPDF")
+        if sumatra:
+            subprocess.Popen([sumatra, filepath])
+            return None
+        for pattern in (
+            r"C:\Program Files\SumatraPDF\SumatraPDF.exe",
+            r"C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], filepath])
+                return None
+        # Foxit Reader
+        for pattern in (
+            r"C:\Program Files\Foxit Software\Foxit*Reader\Foxit*Reader.exe",
+            r"C:\Program Files (x86)\Foxit Software\Foxit*Reader\Foxit*Reader.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], filepath])
+                return None
+        # LibreOffice Draw can open PDFs
+        soffice = shutil.which("soffice")
+        if soffice:
+            subprocess.Popen([soffice, "--draw", filepath])
+            return None
+        for pattern in (
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], "--draw", filepath])
+                return None
+        return _PDF_WARNING
+
+    # --- Linux -----------------------------------------------------------
+    import shutil
+    # Common local-only PDF viewers
+    for viewer in ("evince", "okular", "xreader", "atril", "mupdf", "zathura"):
+        exe = shutil.which(viewer)
+        if exe:
+            subprocess.Popen([exe, filepath])
+            return None
+    # LibreOffice Draw as fallback
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice:
+        subprocess.Popen([soffice, "--draw", filepath])
+        return None
+    return _PDF_WARNING
 
 
 def _build_command_from_values(
