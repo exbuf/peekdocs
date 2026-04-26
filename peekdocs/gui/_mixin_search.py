@@ -938,6 +938,7 @@ class SearchMixin:
                     hover_color="#AA2222",
                     text_color="white",
                 )
+        self.report_delete_cb.pack(side="left", padx=(10, 0))
         self.report_frame.grid(
             row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
@@ -954,6 +955,7 @@ class SearchMixin:
         self.report_btn_json.pack_forget()
         self.report_btn_pdf.pack_forget()
         self.report_btn_html.pack_forget()
+        self.report_delete_cb.pack_forget()
 
 
 
