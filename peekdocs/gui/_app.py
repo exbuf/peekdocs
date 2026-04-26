@@ -38,7 +38,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             version = pkg_version("peekdocs")
         except Exception:
             version = ""
-        self.title(f"peekdocs {version}".strip())
+        self.title(f"\U0001F440 peekdocs {version}".strip())
         self.withdraw()  # Hide until setup is complete to prevent flicker
         self.geometry("1280x800")
         self.minsize(1280, 700)
