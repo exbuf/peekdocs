@@ -1248,11 +1248,11 @@ class SearchMixin:
             command=_delete_selected,
         ).pack(side="left", padx=(20, 2))
         ctk.CTkButton(
-            btn_frame, text="Close", width=70,
+            win, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             font=ctk.CTkFont(size=12), command=win.destroy,
-        ).pack(side="right")
+        ).pack(pady=(0, 10))
 
         self._apply_dark_theme(win)
 
