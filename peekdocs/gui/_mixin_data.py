@@ -55,6 +55,7 @@ class DataMixin:
         settings["output_json"] = (self.output_json_var.get() == "on")
         settings["output_pdf"] = (self.output_pdf_var.get() == "on")
         settings["output_html"] = (self.output_html_var.get() == "on")
+        settings["delete_reports_on_close"] = (self.delete_reports_var.get() == "on")
         settings["inverse"] = (self.inverse_var.get() == "on")
         settings["expression"] = (self.expression_var.get() == "on")
         settings["whole_word"] = (self.whole_word_var.get() == "on")
@@ -184,6 +185,7 @@ class DataMixin:
         self.expression_var.set("on" if config.get("expression") else "off")
         self.whole_word_var.set("on" if config.get("whole_word", _whole_word_default) else "off")
         self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
+        self.delete_reports_var.set("on" if config.get("delete_reports_on_close", False) else "off")
         # Clear and set entry fields
         self.cores_entry.delete(0, "end")
         if "cores" in config:

@@ -137,6 +137,22 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
 
 
 
+    def destroy(self):
+        """Override destroy to optionally delete report files on close."""
+        if getattr(self, "delete_reports_var", None) and self.delete_reports_var.get() == "on":
+            folder = getattr(self, "results_dir", None) or (
+                self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
+            )
+            if folder and os.path.isdir(folder):
+                for fname in os.listdir(folder):
+                    if (fname.startswith("peekdocs_results") or
+                            fname.startswith("peekdocs_suite_results")):
+                        try:
+                            os.remove(os.path.join(folder, fname))
+                        except OSError:
+                            pass
+        super().destroy()
+
     def _on_tab_changed(self):
         """Hide the Search tab button when on Search (redundant), and
         rename it to 'Done' when on Getting Started so clicking it
