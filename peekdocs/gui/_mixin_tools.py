@@ -1823,13 +1823,13 @@ class ToolsMixin:
         txt.insert("end", "\n")
 
         b("The PII Scan helps locate personally identifiable information")
-        b("you may have inadvertantly left in your files \u2014 SSNs, credit")
+        b("you may have inadvertently left in your files \u2014 SSNs, credit")
         b("cards, tax IDs, passwords, and more \u2014 with one click.")
         blank()
 
         h("WHAT IS THE PII SCAN?")
         b("The PII Scan helps locate personally identifiable information")
-        b("you may have inadvertantly left in your files. It")
+        b("you may have inadvertently left in your files. It")
         b("runs a battery of regex pattern searches \u2014 SSNs, credit cards,")
         b("tax IDs, emails, phone numbers, passwords, dates of birth, and")
         b("large dollar amounts \u2014 and shows you exactly where they are.")

@@ -70,7 +70,7 @@ class BuildMixin:
         tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
 
         features = [
-            ("\U0001f50d  PII Scan", "Helps locate personally identifiable information you may have inadvertantly left in your files \u2014 SSNs, credit cards, passwords, and more. Advanced users can add their own custom regex.", "#0D9488"),
+            ("\U0001f50d  PII Scan", "Helps locate personally identifiable information you may have inadvertently left in your files \u2014 SSNs, credit cards, passwords, and more. Advanced users can add their own custom regex.", "#0D9488"),
             ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
             ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
             ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
@@ -564,7 +564,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._pii_scan_btn, "PII (Personally Identifiable Information) Scan — helps locate personally identifiable information you may have inadvertantly left in your files. Scans for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
+        Tooltip(self._pii_scan_btn, "PII (Personally Identifiable Information) Scan — helps locate personally identifiable information you may have inadvertently left in your files. Scans for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Fully independent from the main search — has its own folder and Recursive setting")
 
 
 
