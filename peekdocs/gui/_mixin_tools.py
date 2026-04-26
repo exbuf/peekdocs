@@ -2310,8 +2310,12 @@ class ToolsMixin:
 
         if hasattr(self, "sensitive_scan_btn"):
             self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
+        self._pii_scan_cancelled = False
         if hasattr(self, "_pii_scan_btn"):
-            self._pii_scan_btn.configure(state="disabled", fg_color="red", hover_color="darkred", text="Scanning...")
+            self._pii_scan_btn.configure(
+                fg_color="red", hover_color="darkred", text="Cancel",
+                command=self._cancel_pii_scan,
+            )
         self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
@@ -2338,6 +2342,8 @@ class ToolsMixin:
         files_searched = 0
 
         for pat_idx, pattern_tuple in enumerate(patterns, 1):
+            if getattr(self, "_pii_scan_cancelled", False):
+                return
             # 5-tuple: (category, regex, severity, description, is_custom)
             # Fall back to 4-tuple with is_custom=False for safety.
             if len(pattern_tuple) >= 5:
@@ -2412,6 +2418,24 @@ class ToolsMixin:
 
 
 
+    def _cancel_pii_scan(self):
+        """Cancel a running PII scan."""
+        self._pii_scan_cancelled = True
+        self.status_label.configure(text="PII Scan cancelled.", text_color=("blue", "#66BBFF"))
+        self.progress_bar.stop()
+        self.progress_bar.grid_remove()
+        if hasattr(self, "sensitive_scan_btn"):
+            self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
+        if hasattr(self, "_pii_scan_btn"):
+            self._pii_scan_btn.configure(
+                state="normal", fg_color="#76BA1B", hover_color="#5E9516",
+                text_color="white", text="\U0001f50d PII Scan",
+                command=self._start_sensitive_scan,
+            )
+        # Restore Use Index checkbox
+        if hasattr(self, "_sensitive_scan_saved_index"):
+            self.index_search_var.set(self._sensitive_scan_saved_index)
+
     def _sensitive_scan_finished(self, scan_results, elapsed, files_searched):
         """Restore UI and show results popup after sensitive data scan."""
         self.progress_bar.stop()
@@ -2419,8 +2443,11 @@ class ToolsMixin:
         if hasattr(self, "sensitive_scan_btn"):
             self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
         if hasattr(self, "_pii_scan_btn"):
-            self._pii_scan_btn.configure(state="normal", fg_color="#76BA1B", hover_color="#5E9516",
-                                          text_color="white", text="\U0001f50d PII Scan")
+            self._pii_scan_btn.configure(
+                state="normal", fg_color="#76BA1B", hover_color="#5E9516",
+                text_color="white", text="\U0001f50d PII Scan",
+                command=self._start_sensitive_scan,
+            )
 
         # Restore Use Index checkbox
         if hasattr(self, "_sensitive_scan_saved_index"):
