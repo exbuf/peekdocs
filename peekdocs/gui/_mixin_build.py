@@ -234,7 +234,7 @@ class BuildMixin:
         _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
-        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for, then select AND/OR, Recursive (include subfolders), or Whole Word. For advanced options click the brain \U0001F9E0")
+        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for, then select AND/OR, Recursive (include subfolders), or Whole Word. For advanced options click the graduate \U0001F468\u200D\U0001F393")
 
         self._assistant_label = ctk.CTkLabel(
             self._input_frame, text="", font=ctk.CTkFont(size=12),
@@ -515,7 +515,7 @@ class BuildMixin:
         # (options_row is created in _build_search_row)
         self.advanced_toggle = ctk.CTkButton(
             self._options_row,
-            text="\U0001F9E0", width=0,
+            text="\U0001F468\u200D\U0001F393", width=0,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1412,7 +1412,7 @@ class BuildMixin:
         else:
             self.advanced_window.deiconify()
             self.advanced_window.lift()
-            self.advanced_toggle.configure(text="\U0001F9E0")
+            self.advanced_toggle.configure(text="\U0001F468\u200D\U0001F393")
             self.advanced_visible = True
 
 
@@ -1420,7 +1420,7 @@ class BuildMixin:
     def _close_advanced_window(self):
         """Hide the Advanced Search Options window and update the toggle button."""
         self.advanced_window.withdraw()
-        self.advanced_toggle.configure(text="\U0001F9E0")
+        self.advanced_toggle.configure(text="\U0001F468\u200D\U0001F393")
         self.advanced_visible = False
 
 
