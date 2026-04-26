@@ -5536,6 +5536,9 @@ class ToolsMixin:
         )
         self.search_start_time = time.time()
         self._suite_elapsed_active = True
+        self._suite_cancelled = False
+        self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred",
+                                     command=self._cancel_suite)
         self.status_label.configure(text_color=("blue", "#66BBFF"),
             text=f"Suite: {suite_name} ({len(search_names)} searches)...")
         self._update_suite_elapsed(suite_name)
@@ -5543,6 +5546,8 @@ class ToolsMixin:
         def _run():
             sections = []
             for i, search_name in enumerate(search_names, 1):
+                if getattr(self, "_suite_cancelled", False):
+                    return
                 _total = len(search_names)
                 self.after(0, lambda i=i, n=search_name, t=_total: self.status_label.configure(
                     text_color=("blue", "#66BBFF"),
@@ -5734,6 +5739,8 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
+        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516",
+                                     text_color="white", command=self.start_search)
 
         import re as _re_fin
 
@@ -5867,6 +5874,17 @@ class ToolsMixin:
                 self.preview_text.insert("end", "\n")
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
+
+    def _cancel_suite(self):
+        """Cancel a running suite search."""
+        self._suite_cancelled = True
+        self._suite_elapsed_active = False
+        self.search_start_time = None
+        self.progress_bar.stop()
+        self.progress_bar.grid_remove()
+        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516",
+                                     text_color="white", command=self.start_search)
+        self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
     def _update_suite_elapsed(self, suite_name):
         """Update the status label with elapsed time during suite execution."""
