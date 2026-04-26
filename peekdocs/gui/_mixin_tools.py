@@ -3160,10 +3160,11 @@ class ToolsMixin:
              lambda v: (self._apply_wizard(search_text=v["keyword"]), self.ocr_var.set("on"))),
 
             ("Find keywords with surrounding context", "Show lines before and after each match so you can read the\n"
-             "full paragraph without opening the file. Default is OR mode — after clicking\n"
-             "Apply, you can check AND mode or Expression in Advanced Search Options to\n"
-             "change how the terms are combined. You can also use a boolean expression\n"
-             "directly in the Keywords field (e.g., \"(breach OR violation) AND contract\").",
+             "full paragraph without opening the file. Especially useful for programmers —\n"
+             "capture not just the matching line, but the function or block it belongs to.\n"
+             "Default is OR mode — after clicking Apply, you can check AND mode or Expression\n"
+             "in Advanced Search Options to change how the terms are combined. You can also\n"
+             "use a boolean expression directly in the Keywords field (e.g., \"(breach OR violation) AND contract\").",
              [("Keywords:", "keyword", "breach liability"), ("Lines before:", "before", "3"), ("Lines after:", "after", "3")],
              lambda v: self._apply_wizard(search_text=v["keyword"], context_before=v["before"], context_after=v["after"])),
         ]
