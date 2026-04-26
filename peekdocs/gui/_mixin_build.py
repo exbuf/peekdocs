@@ -782,24 +782,31 @@ class BuildMixin:
         self.output_json_var = ctk.StringVar(value="off")
         self.output_pdf_var = ctk.StringVar(value="off")
         self.output_html_var = ctk.StringVar(value="off")
+        def _save_output_format(key, var):
+            self._save_ui_preference(key, var.get() == "on")
+
         cb_csv = ctk.CTkCheckBox(
             output_frame, text="CSV", variable=self.output_csv_var,
             onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("output_csv", self.output_csv_var),
         )
         cb_csv.grid(row=0, column=1, padx=(0, 15))
         cb_json = ctk.CTkCheckBox(
             output_frame, text="JSON", variable=self.output_json_var,
             onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("output_json", self.output_json_var),
         )
         cb_json.grid(row=0, column=2, padx=(0, 15))
         cb_pdf = ctk.CTkCheckBox(
             output_frame, text="PDF", variable=self.output_pdf_var,
             onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("output_pdf", self.output_pdf_var),
         )
         cb_pdf.grid(row=0, column=3, padx=(0, 15))
         cb_html = ctk.CTkCheckBox(
             output_frame, text="HTML", variable=self.output_html_var,
             onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("output_html", self.output_html_var),
         )
         cb_html.grid(row=0, column=4, padx=(0, 15))
         self.timestamp_var = ctk.StringVar(value="off")
