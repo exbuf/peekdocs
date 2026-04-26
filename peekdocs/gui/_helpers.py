@@ -23,40 +23,88 @@ def safe_open_file(filepath):
     system = platform.system()
     ext = os.path.splitext(filepath)[1].lower()
 
-    # --- macOS: .docx must not land in Pages ----------------------------
-    if system == "Darwin" and ext in _DOCX_EXTENSIONS:
-        # Try Microsoft Word first, then LibreOffice.
+    if ext in _DOCX_EXTENSIONS:
+        return _safe_open_docx(filepath, system)
+
+    # --- Non-docx files: open normally ----------------------------------
+    if system == "Windows":
+        os.startfile(filepath)  # type: ignore[attr-defined]
+    elif system == "Darwin":
+        subprocess.Popen(["open", filepath])
+    else:
+        subprocess.Popen(["xdg-open", filepath])
+    return None
+
+
+_CLOUD_UPLOAD_WARNING = (
+    "Could not open the report safely.\n\n"
+    "Your default .docx application may upload your data to the "
+    "cloud (Google Docs uploads to Google servers; Apple Pages may "
+    "sync to iCloud). This is especially dangerous for PII scan "
+    "reports that contain sensitive information like SSNs and "
+    "credit card numbers.\n\n"
+    "Please install Microsoft Word or LibreOffice (free) to view "
+    ".docx reports, or use the HTML report button to view results "
+    "in your web browser."
+)
+
+
+def _safe_open_docx(filepath, system):
+    """Open a .docx in Word or LibreOffice only — never in an app that
+    may upload to the cloud (Google Docs, Apple Pages)."""
+
+    # --- macOS -----------------------------------------------------------
+    if system == "Darwin":
         for app in ("Microsoft Word", "LibreOffice"):
             result = subprocess.run(
                 ["open", "-a", app, filepath],
                 capture_output=True,
             )
             if result.returncode == 0:
-                return None  # opened successfully
-        # Neither found — do NOT fall through to `open` (would use Pages).
-        return (
-            "Could not open the report safely.\n\n"
-            "Your Mac would open this .docx file in Apple Pages, "
-            "which may upload your data to iCloud. "
-            "This is especially dangerous for PII scan reports "
-            "that contain sensitive information like SSNs and "
-            "credit card numbers.\n\n"
-            "Please install Microsoft Word or LibreOffice (free) "
-            "to view .docx reports, or use the HTML report button "
-            "to view results in your web browser."
-        )
+                return None
+        return _CLOUD_UPLOAD_WARNING
 
-    # --- Windows: safe (no Pages/Google Docs as native handlers) --------
+    # --- Windows ---------------------------------------------------------
     if system == "Windows":
-        os.startfile(filepath)  # type: ignore[attr-defined]
-        return None
+        import glob as _glob
+        import shutil
+        # Try winword on PATH (rare but possible).
+        winword = shutil.which("winword")
+        if winword:
+            subprocess.Popen([winword, filepath])
+            return None
+        # Check common Office install locations.
+        for pattern in (
+            r"C:\Program Files\Microsoft Office\root\Office*\WINWORD.EXE",
+            r"C:\Program Files (x86)\Microsoft Office\root\Office*\WINWORD.EXE",
+            r"C:\Program Files\Microsoft Office*\root\Office*\WINWORD.EXE",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], filepath])
+                return None
+        # Try LibreOffice.
+        soffice = shutil.which("soffice")
+        if soffice:
+            subprocess.Popen([soffice, "--writer", filepath])
+            return None
+        for pattern in (
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], "--writer", filepath])
+                return None
+        return _CLOUD_UPLOAD_WARNING
 
-    # --- macOS non-docx, or Linux ---------------------------------------
-    if system == "Darwin":
-        subprocess.Popen(["open", filepath])
-    else:
-        subprocess.Popen(["xdg-open", filepath])
-    return None
+    # --- Linux -----------------------------------------------------------
+    import shutil
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice:
+        subprocess.Popen([soffice, "--writer", filepath])
+        return None
+    return _CLOUD_UPLOAD_WARNING
 
 
 def _build_command_from_values(
