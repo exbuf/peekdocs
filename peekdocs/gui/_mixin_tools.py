@@ -2927,8 +2927,10 @@ class ToolsMixin:
         b("(SSNs, credit card numbers, passwords) into a single")
         b("file that could be exposed.")
         blank()
-        b("When you close this popup, the scan data is gone. You")
-        b("can always re-run the PII Scan to see the results again.")
+        b("As soon as you close this popup, the scan data is")
+        b("permanently gone \u2014 nothing is saved, cached, or")
+        b("recoverable. This is intentional. You can always re-run")
+        b("the PII Scan to see the results again.")
         blank()
 
         h("FALSE POSITIVES")
