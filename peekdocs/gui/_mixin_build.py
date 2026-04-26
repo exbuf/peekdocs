@@ -537,7 +537,7 @@ class BuildMixin:
             command=self._open_search_wizard_guide,
             font=ctk.CTkFont(size=34),
         )
-        self._search_wiz_btn.pack(side="left", padx=(5, 0))
+        self._search_wiz_btn.pack(side="left", padx=(20, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
         # PII Scan — green button outside the enclosure
