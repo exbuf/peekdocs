@@ -688,6 +688,17 @@ def _write_pii_disclaimer_and_license(doc):
         "documents \u2014 but the interpretation of the results is yours."
     )
     _add_disclaimer_point(
+        "Protect this report.",
+        "This report contains the actual sensitive data that was found \u2014 "
+        "real SSNs, credit card numbers, passwords, etc. peekdocs opens "
+        "reports only in safe local applications (never Google Docs, Apple "
+        "Pages, or cloud-based viewers) and warns if your output folder is "
+        "cloud-synced. However, no software can guarantee complete security. "
+        "Your data could still be exposed by backup software, antivirus "
+        "scanners, screen-sharing, or other tools outside peekdocs's "
+        "control. Delete this report when you no longer need it."
+    )
+    _add_disclaimer_point(
         "Provided as-is under the MIT License.",
         "peekdocs comes with no warranty of any kind, express or implied. "
         "Users are solely responsible for how they interpret and act on "

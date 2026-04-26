@@ -1069,13 +1069,28 @@ The PII Scan is a **pattern-matching discovery aid**, not a security product. Pl
 
 In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.
 
+### Protecting your reports
+
+peekdocs takes steps to keep your data private:
+
+- **Safe local apps only.** Reports are opened only in known-safe local applications (Microsoft Word, LibreOffice, Adobe Reader, local text editors, etc.). peekdocs will never open a report in Google Docs, Apple Pages, or any application that may upload your data to the cloud.
+- **Cloud folder detection.** If your search folder or output directory is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs warns you before writing any reports there — because files in cloud-synced folders are uploaded automatically.
+
+**However, no software can guarantee complete security.** Your data could still be exposed by:
+
+- Backup software that syncs to the cloud (Time Machine to iCloud, Windows Backup to OneDrive)
+- IT management or antivirus tools that upload files for analysis
+- Screen-sharing or remote desktop sessions
+- Manually copying, emailing, or printing the report
+- Word's Office 365 integration prompting to save to OneDrive
+
+**After reviewing your PII Scan results, delete the report file when you no longer need it.** The report contains the actual sensitive data that was found — it is itself a data exposure if left accessible.
+
 ### Privacy and the local-only model
 
 The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of peekdocs, reads your files directly from local disk, and writes the resulting `.docx` report back to local disk. Nothing is sent to a server, an API, a cloud service, or any third party.
 
 This matters for two reasons. First, you can scan files containing real PII (your own tax returns, your own credit card statements, your own medical records) without worrying that the tool is creating a new exposure. Second, there is no network traffic for a firewall or ISP to observe, no API key to leak, no cloud bill to pay, and no vendor relationship to audit.
-
-The one thing to be aware of is the output file itself. The generated report contains snippets of matched text, including the actual sensitive data that was detected, highlighted in yellow. That file lives on your local disk like any other document — if your disk is backed up to the cloud, or shared over a network, or readable by other users on a shared machine, the report is subject to whatever access policies apply to that location. See the [Security Best Practices](#security-best-practices) section for handling tips.
 
 ## Boolean Expression Search
 

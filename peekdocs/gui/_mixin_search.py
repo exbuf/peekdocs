@@ -154,6 +154,12 @@ class SearchMixin:
 
         od = self.output_dir_entry.get().strip()
         self.results_dir = od if od else folder
+        # Warn if the output folder is inside a cloud-synced directory.
+        from peekdocs.gui._helpers import check_cloud_folder
+        cloud_warning = check_cloud_folder(self.results_dir)
+        if cloud_warning:
+            self._show_error(cloud_warning)
+            return
         # Remove stale output files for formats not requested (skip when timestamps are on)
         if not self._last_ts_suffix:
             if self.output_csv_var.get() != "on":

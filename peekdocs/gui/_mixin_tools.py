@@ -1815,6 +1815,7 @@ class ToolsMixin:
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
         txt.insert("end", "\u2022 Think Before You Print\n", "toc_item_red")
+        txt.insert("end", "\u2022 Protect Your Report\n", "toc_item_red")
         for section in [
             "Disclaimer",
             "MIT License",
@@ -2169,6 +2170,30 @@ class ToolsMixin:
         b("sending the report with the actual data visible.")
         blank()
 
+        h_red("PROTECT YOUR REPORT")
+        b("The PII Scan report contains the actual sensitive data it")
+        b("found. peekdocs takes steps to keep your data private:")
+        blank()
+        b("\u2022 Reports are opened only in safe local applications")
+        b("  (Microsoft Word, LibreOffice, Adobe Reader, etc.).")
+        b("  peekdocs will never open a report in Google Docs,")
+        b("  Apple Pages, or any application that may upload your")
+        b("  data to the cloud.")
+        blank()
+        b("\u2022 If your search folder is inside OneDrive, Google")
+        b("  Drive, iCloud Drive, or Dropbox, peekdocs warns you")
+        b("  before writing any reports there \u2014 because files in")
+        b("  cloud-synced folders are uploaded automatically.")
+        blank()
+        b("However, no software can guarantee complete security.")
+        b("Your data could still be exposed by backup software that")
+        b("syncs to the cloud, IT management tools, antivirus")
+        b("scanners that upload files for analysis, screen-sharing,")
+        b("or simply by copying or emailing the report. After")
+        b("reviewing your PII Scan results, consider deleting the")
+        b("report file when you no longer need it.")
+        blank()
+
         h("DISCLAIMER")
         b("The PII Scan is a pattern-matching discovery aid, not a")
         b("security product or a compliance certification. Please read")
@@ -2480,6 +2505,10 @@ class ToolsMixin:
                     od = self.output_dir_entry.get().strip()
                     if od and os.path.isdir(od):
                         output_dir = od
+                from peekdocs.gui._helpers import check_cloud_folder
+                cloud_warning = check_cloud_folder(output_dir)
+                if cloud_warning:
+                    self._show_error(cloud_warning)
                 report_path = os.path.join(output_dir, report_name)
                 write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched,
                                      recursive=getattr(self, "_pii_scan_recursive", True))
@@ -5657,6 +5686,12 @@ class ToolsMixin:
                     "params": params,
                     "stdout": stdout,
                 })
+
+            # Warn if the output folder is inside a cloud-synced directory.
+            from peekdocs.gui._helpers import check_cloud_folder
+            cloud_warning = check_cloud_folder(folder)
+            if cloud_warning:
+                self._show_error(cloud_warning)
 
             # Generate combined suite reports
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")

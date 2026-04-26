@@ -11,7 +11,7 @@ import sys
 # Report extensions that must only open in known-safe local apps.
 # The system default handler is never used for these — it could route
 # to Google Docs, Apple Pages, or a cloud-syncing browser.
-_PROTECTED_EXTENSIONS = {".docx", ".pdf"}
+_PROTECTED_EXTENSIONS = {".docx", ".pdf", ".csv", ".json"}
 
 
 def safe_open_file(filepath):
@@ -31,6 +31,10 @@ def safe_open_file(filepath):
         return _safe_open_docx(filepath, system)
     if ext == ".pdf":
         return _safe_open_pdf(filepath, system)
+    if ext == ".csv":
+        return _safe_open_csv(filepath, system)
+    if ext == ".json":
+        return _safe_open_json(filepath, system)
 
     # --- Non-protected files: open normally -----------------------------
     if system == "Windows":
@@ -63,6 +67,27 @@ _PDF_WARNING = (
     "Please install Adobe Acrobat Reader (free) or another local "
     "PDF viewer to view PDF reports, or use the HTML report button "
     "to view results in your web browser."
+)
+
+_CSV_WARNING = (
+    "Could not open the CSV report safely.\n\n"
+    "Your default CSV application may be Google Sheets or another "
+    "cloud spreadsheet that uploads your data. This is especially "
+    "dangerous for reports that contain sensitive information like "
+    "SSNs and credit card numbers.\n\n"
+    "Please install Microsoft Excel or LibreOffice Calc (free) to "
+    "view CSV reports, or use the HTML report button to view "
+    "results in your web browser."
+)
+
+_JSON_WARNING = (
+    "Could not open the JSON report safely.\n\n"
+    "Your default JSON application may be a cloud-based editor "
+    "that uploads your data. This is especially dangerous for "
+    "reports that contain sensitive information like SSNs and "
+    "credit card numbers.\n\n"
+    "Please install a local text editor to view JSON reports, or "
+    "use the HTML report button to view results in your web browser."
 )
 
 
@@ -212,6 +237,195 @@ def _safe_open_pdf(filepath, system):
         subprocess.Popen([soffice, "--draw", filepath])
         return None
     return _PDF_WARNING
+
+
+def _safe_open_csv(filepath, system):
+    """Open a CSV in Excel or LibreOffice Calc only — never through the
+    system default handler, which could be Google Sheets or a cloud app."""
+
+    # --- macOS -----------------------------------------------------------
+    if system == "Darwin":
+        for app in ("Microsoft Excel", "LibreOffice", "Numbers"):
+            # Numbers is local-only for CSV (unlike .docx in Pages).
+            result = subprocess.run(
+                ["open", "-a", app, filepath],
+                capture_output=True,
+            )
+            if result.returncode == 0:
+                return None
+        # TextEdit as last resort — CSV is plain text.
+        result = subprocess.run(
+            ["open", "-a", "TextEdit", filepath],
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            return None
+        return _CSV_WARNING
+
+    # --- Windows ---------------------------------------------------------
+    if system == "Windows":
+        import glob as _glob
+        import shutil
+        # Microsoft Excel
+        excel = shutil.which("EXCEL")
+        if excel:
+            subprocess.Popen([excel, filepath])
+            return None
+        for pattern in (
+            r"C:\Program Files\Microsoft Office\root\Office*\EXCEL.EXE",
+            r"C:\Program Files (x86)\Microsoft Office\root\Office*\EXCEL.EXE",
+            r"C:\Program Files\Microsoft Office*\root\Office*\EXCEL.EXE",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], filepath])
+                return None
+        # LibreOffice Calc
+        soffice = shutil.which("soffice")
+        if soffice:
+            subprocess.Popen([soffice, "--calc", filepath])
+            return None
+        for pattern in (
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ):
+            hits = _glob.glob(pattern)
+            if hits:
+                subprocess.Popen([hits[0], "--calc", filepath])
+                return None
+        # Notepad as last resort — CSV is plain text.
+        notepad = shutil.which("notepad")
+        if notepad:
+            subprocess.Popen([notepad, filepath])
+            return None
+        return _CSV_WARNING
+
+    # --- Linux -----------------------------------------------------------
+    import shutil
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice:
+        subprocess.Popen([soffice, "--calc", filepath])
+        return None
+    # CSV is plain text — any local text editor works.
+    for editor in ("xed", "gedit", "mousepad", "kate", "xdg-open"):
+        exe = shutil.which(editor)
+        if exe:
+            subprocess.Popen([exe, filepath])
+            return None
+    return _CSV_WARNING
+
+
+def _safe_open_json(filepath, system):
+    """Open a JSON file in a local text editor only — never through the
+    system default handler, which could be a cloud-based editor."""
+
+    # --- macOS -----------------------------------------------------------
+    if system == "Darwin":
+        # TextEdit is built-in and local-only.
+        result = subprocess.run(
+            ["open", "-a", "TextEdit", filepath],
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            return None
+        return _JSON_WARNING
+
+    # --- Windows ---------------------------------------------------------
+    if system == "Windows":
+        import shutil
+        # Notepad is always available on Windows and is local-only.
+        notepad = shutil.which("notepad")
+        if notepad:
+            subprocess.Popen([notepad, filepath])
+            return None
+        return _JSON_WARNING
+
+    # --- Linux -----------------------------------------------------------
+    import shutil
+    for editor in ("xed", "gedit", "mousepad", "kate", "nano", "xdg-open"):
+        exe = shutil.which(editor)
+        if exe:
+            subprocess.Popen([exe, filepath])
+            return None
+    return _JSON_WARNING
+
+
+# ── Cloud-synced folder detection ──────────────────────────────────────
+
+def check_cloud_folder(path):
+    """Return a warning string if *path* is inside a known cloud-sync
+    folder (OneDrive, Google Drive, iCloud Drive, Dropbox).  Returns
+    ``None`` if the path appears safe.
+
+    Call this before writing report files so the user can choose a
+    different output directory.
+    """
+    if not path:
+        return None
+
+    resolved = os.path.realpath(os.path.expanduser(path))
+    norm = resolved.replace("\\", "/").lower()
+    system = platform.system()
+
+    # Patterns that indicate cloud-synced folders.
+    # Checked against the lowercase, forward-slash-normalised path.
+    cloud_indicators = [
+        # OneDrive
+        "/onedrive",
+        "/onedrive - ",
+        # Google Drive
+        "/google drive/",
+        "/googledrive/",
+        "/my drive/",
+        # iCloud Drive (macOS)
+        "/library/mobile documents/",
+        "/icloud drive/",
+        # Dropbox
+        "/dropbox/",
+        "/dropbox (", # Dropbox Business uses "Dropbox (Company Name)"
+    ]
+
+    # Windows-specific: OneDrive env var may point anywhere.
+    if system == "Windows":
+        for env_var in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial"):
+            od = os.environ.get(env_var, "")
+            if od:
+                od_norm = os.path.realpath(od).replace("\\", "/").lower()
+                if norm.startswith(od_norm):
+                    return _cloud_folder_warning("OneDrive", path)
+
+    for indicator in cloud_indicators:
+        if indicator in norm:
+            # Determine which service for the message.
+            ind_lower = indicator.strip("/").split("/")[0].split(" (")[0]
+            if "onedrive" in ind_lower:
+                service = "OneDrive"
+            elif "google" in ind_lower or "my drive" in indicator:
+                service = "Google Drive"
+            elif "mobile documents" in indicator or "icloud" in ind_lower:
+                service = "iCloud Drive"
+            elif "dropbox" in ind_lower:
+                service = "Dropbox"
+            else:
+                service = ind_lower.title()
+            return _cloud_folder_warning(service, path)
+
+    return None
+
+
+def _cloud_folder_warning(service, path):
+    """Build the user-facing warning for a cloud-synced output folder."""
+    return (
+        f"Your output folder appears to be inside {service}:\n"
+        f"{path}\n\n"
+        f"Files written here are automatically uploaded to the cloud. "
+        f"This means your search results — including any sensitive data "
+        f"found by the PII Scan (SSNs, credit card numbers, passwords) "
+        f"— could be exposed.\n\n"
+        f"To keep your data private, choose a different output folder "
+        f"that is not synced to any cloud service. You can set a custom "
+        f"output directory in Advanced Search Options."
+    )
 
 
 def _build_command_from_values(
