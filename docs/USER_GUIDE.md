@@ -1806,6 +1806,16 @@ If you change your mind, uncheck the box before closing and the files are kept.
 
 The setting is saved to `~/.peekdocsrc` and persists between sessions — if you always want results cleaned up, check it once and it stays checked.
 
+### Three ways to delete report files
+
+| Method | Where | What it deletes | When |
+|--------|-------|----------------|------|
+| **Delete on Close** | Checkbox on main screen or Advanced Search Options | `peekdocs_results.*`, `peekdocs_suite_results.*` | Automatically when you close peekdocs |
+| **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
+| **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
+
+All three methods leave your saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, and indexes untouched. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+
 ## Limits and Constraints
 
 **peekdocs itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. The only constraints are your computer's available memory, disk space, and processing power.
