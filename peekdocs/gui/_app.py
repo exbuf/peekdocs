@@ -139,7 +139,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
 
 
     def destroy(self):
-        """Override destroy to optionally delete report files on close."""
+        """Override destroy to optionally delete report files and clear history on close."""
         if getattr(self, "delete_reports_var", None) and self.delete_reports_var.get() == "on":
             folder = getattr(self, "results_dir", None) or (
                 self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
@@ -152,6 +152,23 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                             os.remove(os.path.join(folder, fname))
                         except OSError:
                             pass
+        if getattr(self, "clear_history_var", None) and self.clear_history_var.get() == "on":
+            # Delete search history file
+            history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+            try:
+                if os.path.exists(history_path):
+                    os.remove(history_path)
+            except OSError:
+                pass
+            # Clear recent searches from config
+            try:
+                from peekdocs.cli import _load_config, _save_config
+                cfg = _load_config()
+                cfg["recent_searches"] = []
+                cfg["search_terms"] = ""
+                _save_config(cfg)
+            except Exception:
+                pass
         super().destroy()
 
     def _on_tab_changed(self):

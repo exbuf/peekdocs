@@ -1806,15 +1806,24 @@ If you change your mind, uncheck the box before closing and the files are kept.
 
 The setting is saved to `~/.peekdocsrc` and persists between sessions — if you always want results cleaned up, check it once and it stays checked.
 
-### Three ways to delete report files
+### Privacy cleanup options
 
-| Method | Where | What it deletes | When |
-|--------|-------|----------------|------|
-| **Delete on Close** | Checkbox on main screen or Advanced Search Options | `peekdocs_results.*`, `peekdocs_suite_results.*` | Automatically when you close peekdocs |
+peekdocs provides several ways to clean up after a search session:
+
+| Feature | Where | What it does | When |
+|---------|-------|-------------|------|
+| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*` and `peekdocs_suite_results.*` | Automatically when you close peekdocs |
+| **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
+| **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
+| **Delete Everything Now** | Tools menu | Deletes result files, clears preview, and wipes search history — all at once | Immediately, after confirmation |
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All three methods leave your saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, and indexes untouched. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+All methods leave your saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, and indexes untouched. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+
+### Sensitive search term warning
+
+If you type a search term that looks like a Social Security number, credit card number, or Tax ID / EIN, peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk, and suggests using the PII Scan instead (which shows results on screen only and never writes a file). You can choose to continue or cancel.
 
 ## Limits and Constraints
 

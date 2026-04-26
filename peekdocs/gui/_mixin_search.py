@@ -72,6 +72,29 @@ class SearchMixin:
             self._show_error("Please enter search terms or a range filter.")
             return
 
+        # Warn if search terms look like PII — they'll appear in report files
+        import re as _re_pii
+        _pii_patterns = [
+            (r'\b\d{3}-\d{2}-\d{4}\b', "a Social Security number"),
+            (r'\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{1,4}\b', "a credit card number"),
+            (r'\b\d{2}-\d{7}\b', "a Tax ID / EIN"),
+        ]
+        for pattern, desc in _pii_patterns:
+            if _re_pii.search(pattern, search_text):
+                from tkinter import messagebox
+                proceed = messagebox.askyesno(
+                    "Sensitive Search Term",
+                    f"Your search term looks like it may contain {desc}.\n\n"
+                    f"This term will appear in the report files "
+                    f"(peekdocs_results.txt, .docx, etc.) written to disk. "
+                    f"Consider using the PII Scan instead, which shows "
+                    f"results on screen only and never writes a file.\n\n"
+                    f"Continue with the search?",
+                )
+                if not proceed:
+                    return
+                break  # Only warn once
+
         # Auto-save search terms, folder, and max file size for next launch
         # (max_file_size_mb must be saved here so the CLI subprocess picks it up)
         try:
@@ -879,6 +902,77 @@ class SearchMixin:
     def _hide_preview(self):
         """Hide the results preview pane."""
         self.preview_frame.grid_remove()
+
+    def _clear_preview(self):
+        """Clear all text from the Results Preview pane."""
+        self.preview_text.configure(state="normal")
+        self.preview_text.delete("1.0", "end")
+        self.preview_text.configure(state="disabled")
+        self._preview_count_label.configure(text="")
+        self.status_label.configure(
+            text="Results Preview cleared.",
+            text_color=("blue", "#66BBFF"),
+        )
+
+    def _delete_everything_now(self):
+        """Immediately delete all result files, clear preview, and clear search history."""
+        from tkinter import messagebox
+        if not messagebox.askyesno(
+            "Delete Everything Now",
+            "This will immediately:\n\n"
+            "\u2022 Delete all search result files (peekdocs_results.*, peekdocs_suite_results.*)\n"
+            "\u2022 Clear the Results Preview\n"
+            "\u2022 Clear your search history and recent searches\n\n"
+            "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
+            "settings, and indexes are not affected.\n\n"
+            "Continue?",
+        ):
+            return
+
+        deleted = 0
+        # Delete result files
+        folder = getattr(self, "results_dir", None) or (
+            self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
+        )
+        if folder and os.path.isdir(folder):
+            for fname in os.listdir(folder):
+                if (fname.startswith("peekdocs_results") or
+                        fname.startswith("peekdocs_suite_results")):
+                    try:
+                        os.remove(os.path.join(folder, fname))
+                        deleted += 1
+                    except OSError:
+                        pass
+
+        # Clear preview
+        self._clear_preview()
+
+        # Clear search history file
+        history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
+        try:
+            if os.path.exists(history_path):
+                os.remove(history_path)
+        except OSError:
+            pass
+
+        # Clear recent searches and search terms from config
+        try:
+            from peekdocs.cli import _load_config, _save_config
+            cfg = _load_config()
+            cfg["recent_searches"] = []
+            cfg["search_terms"] = ""
+            _save_config(cfg)
+            self._recent_searches = []
+        except Exception:
+            pass
+
+        # Clear action buttons
+        self._clear_action_buttons()
+
+        self.status_label.configure(
+            text=f"Deleted {deleted} file(s), cleared preview and search history.",
+            text_color="green",
+        )
 
 
 

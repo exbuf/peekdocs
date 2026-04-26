@@ -836,7 +836,14 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        cb_delete_adv.grid(row=1, column=2, columnspan=2, padx=(0, 0), pady=(4, 0), sticky="w")
+        cb_delete_adv.grid(row=1, column=2, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        self.clear_history_var = ctk.StringVar(value="off")
+        cb_clear_hist = ctk.CTkCheckBox(
+            output_frame, text="Clear History on Close", variable=self.clear_history_var,
+            onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
+        )
+        cb_clear_hist.grid(row=1, column=4, columnspan=2, padx=(0, 0), pady=(4, 0), sticky="w")
 
         # Row 10: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -899,6 +906,7 @@ class BuildMixin:
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
         Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. You can check or uncheck this at any time — it only matters at the moment you close the app. Check it after reviewing your results to clean up, or leave it unchecked to keep the files. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep. You can also delete reports manually at any time: use Clear Files in the Tools menu to choose exactly which peekdocs files to remove. Three ways to clean up: (1) Delete on Close — automatic when you close the app, (2) Clear Files in the Tools menu — pick and choose interactively, (3) delete the files yourself in Finder or File Explorer")
+        Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. This removes the log of what you searched for — important if your search terms included sensitive data like names, SSNs, or account numbers. History file: ~/.peekdocs_history.json. Recent searches: stored in ~/.peekdocsrc")
 
         # Note about saving
         # Note above bottom buttons
@@ -1012,6 +1020,15 @@ class BuildMixin:
             preview_header, text="", font=ctk.CTkFont(size=12),
             text_color=("gray50", "gray50"))
         self._preview_count_label.pack(side="left", padx=(8, 0))
+        self._clear_preview_btn = ctk.CTkButton(
+            preview_header, text="Clear Preview", width=100,
+            font=ctk.CTkFont(size=11),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._clear_preview,
+        )
+        self._clear_preview_btn.pack(side="left", padx=(8, 0))
+        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible to anyone who walks by. Does not delete report files on disk")
 
         # App-wide text size dropdown
         self._app_size_menu = ctk.CTkOptionMenu(
@@ -1381,6 +1398,7 @@ class BuildMixin:
             _dark_sep()
             # Cleanup
             menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)
+            menu.add_command(label="\U0001f6e1 Delete Everything Now — clear results, preview, and search history", command=self._delete_everything_now)
             _dark_sep()
             # Text Size — direct items instead of a cascade submenu
             # (cascades open to the right and go off-screen on small displays)
