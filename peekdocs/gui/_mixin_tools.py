@@ -5480,6 +5480,7 @@ class ToolsMixin:
         ctk.CTkButton(
             bottom, text="Run Suite", width=120,
             font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
             command=_run_suite,
         ).pack()
 
