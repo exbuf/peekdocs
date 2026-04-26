@@ -557,7 +557,7 @@ class BuildMixin:
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="\U0001f50d PII Scan", width=180, height=44,
+            text="\U0001f50d PII Scan", width=140, height=44,
             fg_color="#76BA1B", hover_color="#5E9516",
             text_color="white",
             command=self._start_sensitive_scan,
