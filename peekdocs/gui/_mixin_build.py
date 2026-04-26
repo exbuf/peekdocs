@@ -291,7 +291,7 @@ class BuildMixin:
 
         # Run Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="\U0001F52D Search", width=160, height=44, command=self.start_search,
+            btn_frame, text="Search", width=140, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
             fg_color="green", hover_color="darkgreen",
         )
