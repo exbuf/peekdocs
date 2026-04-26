@@ -2636,14 +2636,11 @@ class ToolsMixin:
 
         if self._pii_report_path and os.path.exists(self._pii_report_path):
             def _open_report():
-                import subprocess, sys
+                from peekdocs.gui._helpers import safe_open_file
                 try:
-                    if sys.platform == "darwin":
-                        subprocess.Popen(["open", self._pii_report_path])
-                    elif sys.platform == "win32":
-                        os.startfile(self._pii_report_path)
-                    else:
-                        subprocess.Popen(["xdg-open", self._pii_report_path])
+                    warning = safe_open_file(self._pii_report_path)
+                    if warning:
+                        self._show_error(warning)
                 except Exception:
                     pass
             open_btn = ctk.CTkButton(
@@ -2910,12 +2907,10 @@ class ToolsMixin:
                 return
             path = file_paths[sel[0]]
             try:
-                if sys.platform == "darwin":
-                    subprocess.Popen(["open", path])
-                elif sys.platform == "win32":
-                    os.startfile(path)
-                else:
-                    subprocess.Popen(["xdg-open", path])
+                from peekdocs.gui._helpers import safe_open_file
+                warning = safe_open_file(path)
+                if warning:
+                    self._show_error(warning)
             except Exception:
                 pass
 
@@ -5815,16 +5810,11 @@ class ToolsMixin:
                  font=("TkDefaultFont", 11, "bold")).pack(side="left", padx=(0, 5))
 
         def _open_file(path):
-            import subprocess as _sp
-            import platform
-            system = platform.system()
+            from peekdocs.gui._helpers import safe_open_file
             try:
-                if system == "Darwin":
-                    _sp.run(["open", path])
-                elif system == "Windows":
-                    os.startfile(path)
-                else:
-                    _sp.run(["xdg-open", path])
+                warning = safe_open_file(path)
+                if warning:
+                    self._show_error(warning)
             except Exception:
                 pass
 

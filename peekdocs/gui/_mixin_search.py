@@ -1024,13 +1024,8 @@ class SearchMixin:
                 text_color="green",
             )
             return
-        system = platform.system()
-        if system == "Darwin":
-            subprocess.Popen(["open", error_log_path])
-        elif system == "Windows":
-            os.startfile(error_log_path)  # type: ignore[attr-defined]
-        else:
-            subprocess.Popen(["xdg-open", error_log_path])
+        from peekdocs.gui._helpers import safe_open_file
+        safe_open_file(error_log_path)
 
 
 
@@ -1346,18 +1341,15 @@ class SearchMixin:
 
     def _open_report_format(self, fmt):
         """Open the report file for the given format (txt, docx, csv, json)."""
+        from peekdocs.gui._helpers import safe_open_file
         suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
         path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
         if not os.path.exists(path):
             self._show_error(f"Report file not found: {os.path.basename(path)}")
             return
-        system = platform.system()
-        if system == "Darwin":
-            subprocess.Popen(["open", path])
-        elif system == "Windows":
-            os.startfile(path)  # type: ignore[attr-defined]
-        else:
-            subprocess.Popen(["xdg-open", path])
+        warning = safe_open_file(path)
+        if warning:
+            self._show_error(warning)
 
 
 
@@ -1521,6 +1513,7 @@ class SearchMixin:
 
     def _open_selected_file(self):
         """Open the selected file from the matched files list in the default app."""
+        from peekdocs.gui._helpers import safe_open_file
         selection = self.files_listbox.curselection()
         if not selection:
             return
@@ -1528,13 +1521,9 @@ class SearchMixin:
         if not os.path.exists(filepath):
             self._show_error(f"File not found: {filepath}")
             return
-        system = platform.system()
-        if system == "Darwin":
-            subprocess.Popen(["open", filepath])
-        elif system == "Windows":
-            os.startfile(filepath)  # type: ignore[attr-defined]
-        else:
-            subprocess.Popen(["xdg-open", filepath])
+        warning = safe_open_file(filepath)
+        if warning:
+            self._show_error(warning)
 
 
 

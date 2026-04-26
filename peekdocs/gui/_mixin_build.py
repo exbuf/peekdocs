@@ -1085,13 +1085,10 @@ class BuildMixin:
                 filepath, fname = _item[0], _item[1]
                 if fname in line:
                     if os.path.exists(filepath):
-                        system = platform.system()
-                        if system == "Darwin":
-                            subprocess.Popen(["open", filepath])
-                        elif system == "Windows":
-                            os.startfile(filepath)
-                        else:
-                            subprocess.Popen(["xdg-open", filepath])
+                        from peekdocs.gui._helpers import safe_open_file
+                        warning = safe_open_file(filepath)
+                        if warning:
+                            self._show_error(warning)
                     return
         self.preview_text.bind("<Double-1>", _preview_open_file)
 

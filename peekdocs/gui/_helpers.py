@@ -1,9 +1,62 @@
 """Graphical interface for PeekDocs."""
 
 import os
+import platform
 import re
 import shlex
+import subprocess
 import sys
+
+
+# Extensions that may contain sensitive data (PII scan reports, search reports)
+# and must not be opened in apps that upload to the cloud.
+_DOCX_EXTENSIONS = {".docx"}
+
+
+def safe_open_file(filepath):
+    """Open *filepath* in the default app, but prevent .docx files from
+    opening in Google Docs or Apple Pages (both may upload to the cloud).
+
+    Returns ``None`` on success or a warning string if the file could not
+    be opened safely.  The caller should display the warning to the user.
+    """
+    system = platform.system()
+    ext = os.path.splitext(filepath)[1].lower()
+
+    # --- macOS: .docx must not land in Pages ----------------------------
+    if system == "Darwin" and ext in _DOCX_EXTENSIONS:
+        # Try Microsoft Word first, then LibreOffice.
+        for app in ("Microsoft Word", "LibreOffice"):
+            result = subprocess.run(
+                ["open", "-a", app, filepath],
+                capture_output=True,
+            )
+            if result.returncode == 0:
+                return None  # opened successfully
+        # Neither found — do NOT fall through to `open` (would use Pages).
+        return (
+            "Could not open the report safely.\n\n"
+            "Your Mac would open this .docx file in Apple Pages, "
+            "which may upload your data to iCloud. "
+            "This is especially dangerous for PII scan reports "
+            "that contain sensitive information like SSNs and "
+            "credit card numbers.\n\n"
+            "Please install Microsoft Word or LibreOffice (free) "
+            "to view .docx reports, or use the HTML report button "
+            "to view results in your web browser."
+        )
+
+    # --- Windows: safe (no Pages/Google Docs as native handlers) --------
+    if system == "Windows":
+        os.startfile(filepath)  # type: ignore[attr-defined]
+        return None
+
+    # --- macOS non-docx, or Linux ---------------------------------------
+    if system == "Darwin":
+        subprocess.Popen(["open", filepath])
+    else:
+        subprocess.Popen(["xdg-open", filepath])
+    return None
 
 
 def _build_command_from_values(

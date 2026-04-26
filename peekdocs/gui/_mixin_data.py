@@ -713,13 +713,10 @@ class DataMixin:
                     return
                 fp = _bm_paths[sel[0]]
                 if os.path.exists(fp):
-                    import subprocess, sys
-                    if sys.platform == "darwin":
-                        subprocess.Popen(["open", fp])
-                    elif sys.platform == "win32":
-                        os.startfile(fp)
-                    else:
-                        subprocess.Popen(["xdg-open", fp])
+                    from peekdocs.gui._helpers import safe_open_file
+                    warning = safe_open_file(fp)
+                    if warning:
+                        self._show_error(warning)
 
             listbox.bind("<Double-1>", _on_double_click)
 
@@ -1073,26 +1070,13 @@ class DataMixin:
             if not os.path.exists(filepath):
                 self._show_error(f"File not found: {filepath}")
                 return
-            system = platform.system()
+            from peekdocs.gui._helpers import safe_open_file
             try:
-                if system == "Darwin":
-                    result = subprocess.run(["open", filepath], capture_output=True)
-                    if result.returncode != 0:
-                        # No default app — open in TextEdit
-                        subprocess.Popen(["open", "-a", "TextEdit", filepath])
-                elif system == "Windows":
-                    os.startfile(filepath)  # type: ignore[attr-defined]
-                else:
-                    result = subprocess.run(["xdg-open", filepath], capture_output=True)
-                    if result.returncode != 0:
-                        # No default app — try common text editors
-                        for editor in ("xed", "gedit", "mousepad", "kate", "nano"):
-                            if subprocess.run(["which", editor], capture_output=True).returncode == 0:
-                                subprocess.Popen([editor, filepath])
-                                break
+                warning = safe_open_file(filepath)
+                if warning:
+                    self._show_error(warning)
             except Exception:
-                if system == "Darwin":
-                    subprocess.Popen(["open", "-a", "TextEdit", filepath])
+                pass
 
         listbox.bind("<Double-1>", _on_click)
 
