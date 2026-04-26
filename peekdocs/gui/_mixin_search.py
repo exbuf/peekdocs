@@ -26,11 +26,13 @@ class SearchMixin:
         """Validate inputs, build the CLI command, and launch a search thread."""
         if self.process is not None:
             self.process.terminate()
+            self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
             self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
+            self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
 
         # Wait for any in-progress index build or auto-refresh to finish
