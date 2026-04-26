@@ -553,7 +553,7 @@ def _main_inner(argv=None):
         if clear_all:
             # Also delete saved reports, error log, and index
             for f in os.listdir(cwd):
-                if f.startswith(("peekdocs_report_", "peekdocs_accumulated_", "peekdocs_pii_scan_report")):
+                if f.startswith(("peekdocs_report_", "peekdocs_accumulated_")):
                     os.remove(os.path.join(cwd, f))
                     deleted.append(f)
             for f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):

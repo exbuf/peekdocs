@@ -893,8 +893,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     _EXCLUDE_NAMES = {".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc",
                       "peekdocs_errors.log"}
     _EXCLUDE_PREFIXES = ("peekdocs_results", "peekdocs_suite_results",
-                         "peekdocs_report_", "peekdocs_accumulated_",
-                         "peekdocs_pii_scan_report")
+                         "peekdocs_report_", "peekdocs_accumulated_")
 
     # Discover all supported file types dynamically
     discovered = []

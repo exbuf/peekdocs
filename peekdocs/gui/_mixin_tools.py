@@ -701,7 +701,7 @@ class ToolsMixin:
                 walker = [(folder, [], entries)]
 
             _SKIP_PREFIXES = ("peekdocs_results", "peekdocs_report_",
-                              "peekdocs_accumulated_", "peekdocs_pii_scan_report",
+                              "peekdocs_accumulated_",
                               "peekdocs_suite_results")
             _SKIP_NAMES = {".peekdocs_collection.json", ".peekdocs.db",
                            ".peekdocs.db-wal", ".peekdocs.db-shm",
@@ -1808,14 +1808,12 @@ class ToolsMixin:
             "Severity Levels",
             "Custom Pattern (Advanced)",
             "Understanding Results",
-            "The Highlighted Report",
+            "Why No Report File?",
             "Saving Your Selections",
             "Search Folder",
             "How It Differs from Regular Search",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
-        txt.insert("end", "\u2022 Think Before You Print\n", "toc_item_red")
-        txt.insert("end", "\u2022 Protect Your Report\n", "toc_item_red")
         for section in [
             "Disclaimer",
             "MIT License",
@@ -2090,30 +2088,18 @@ class ToolsMixin:
         b("open it in its default application.")
         blank()
 
-        h("THE HIGHLIGHTED REPORT")
-        b("When the scan detects findings, a Word report is automatically")
-        b("generated and saved:")
+        h("WHY NO REPORT FILE?")
+        b("The PII Scan shows results on screen only \u2014 it does not")
+        b("write a report file to disk. This is a deliberate safety")
+        b("measure. A report file that collects all your SSNs, credit")
+        b("card numbers, and passwords into a single document would")
+        b("itself be a data exposure risk \u2014 it could be uploaded to")
+        b("the cloud by backup software, synced by OneDrive or")
+        b("Dropbox, or left behind when you sell or donate a computer.")
         blank()
-        e("  File:     peekdocs_pii_scan_report.docx")
-        e("  Location: Your search folder (or Output Dir if set)")
-        blank()
-        b("The report includes:")
-        b("\u2022 Summary table of all categories with match counts")
-        b("\u2022 Detail sections for each category with findings")
-        b("\u2022 Every affected file with match count and line numbers")
-        b("\u2022 The actual matched text with sensitive data highlighted")
-        b("  in yellow")
-        b("\u2022 A disclaimer about false positives")
-        blank()
-        b("Click Open Report in the results popup to view it directly.")
-        b("The peekdocs_ prefix ensures the report is never included")
-        b("in future search results. The report is overwritten each time")
-        b("you run a new PII scan.")
-        blank()
-        b("To save the report to a different folder, set Output Dir in")
-        b("Advanced Search Options on the main screen before running the")
-        b("scan. This is useful if you want to keep reports separate from")
-        b("your documents \u2014 for example, a dedicated 'reports' folder.")
+        b("By keeping results on screen only, the sensitive data is")
+        b("never concentrated into a file that could leak. You can")
+        b("always re-run the scan to see the results again.")
         blank()
 
         h("SAVING YOUR SELECTIONS")
@@ -2151,47 +2137,11 @@ class ToolsMixin:
         b("types of sensitive data. You don't need to know regex \u2014")
         b("the patterns are built in.")
         blank()
-        b("The PII Scan is a standalone one-click scan with its own")
-        b("report. It does not save anything to your collection. If")
+        b("The PII Scan is a standalone one-click scan. It does not")
+        b("save anything to your collection or write any files. If")
         b("you want to reuse the same regex patterns as normal searches,")
         b("use the Search Wizard to build an equivalent search and then")
         b("click Save Search to store it by name.")
-        blank()
-
-        h_red("THINK BEFORE YOU PRINT")
-        b("The PII Scan report contains the actual sensitive data it")
-        b("found \u2014 real SSNs, real credit card numbers, real passwords,")
-        b("highlighted in yellow. Before printing or sharing the report,")
-        b("consider whether you want that information on paper or in")
-        b("someone else's hands. A printed report left on a desk or in")
-        b("a recycling bin is itself a data exposure. If you need to")
-        b("share findings with someone, consider describing the results")
-        b("(e.g., '3 SSNs found in tax_return.docx') rather than")
-        b("sending the report with the actual data visible.")
-        blank()
-
-        h_red("PROTECT YOUR REPORT")
-        b("The PII Scan report contains the actual sensitive data it")
-        b("found. peekdocs takes steps to keep your data private:")
-        blank()
-        b("\u2022 Reports are opened only in safe local applications")
-        b("  (Microsoft Word, LibreOffice, Adobe Reader, etc.).")
-        b("  peekdocs will never open a report in Google Docs,")
-        b("  Apple Pages, or any application that may upload your")
-        b("  data to the cloud.")
-        blank()
-        b("\u2022 If your search folder is inside OneDrive, Google")
-        b("  Drive, iCloud Drive, or Dropbox, peekdocs warns you")
-        b("  before writing any reports there \u2014 because files in")
-        b("  cloud-synced folders are uploaded automatically.")
-        blank()
-        b("However, no software can guarantee complete security.")
-        b("Your data could still be exposed by backup software that")
-        b("syncs to the cloud, IT management tools, antivirus")
-        b("scanners that upload files for analysis, screen-sharing,")
-        b("or simply by copying or emailing the report. After")
-        b("reviewing your PII Scan results, consider deleting the")
-        b("report file when you no longer need it.")
         blank()
 
         h("DISCLAIMER")
@@ -2203,8 +2153,8 @@ class ToolsMixin:
         b("  look like an SSN. A tracking number can match the credit")
         b("  card pattern. The word 'password' can appear in a help")
         b("  document that contains no actual passwords. Always review")
-        b("  findings in context before taking action \u2014 the report")
-        b("  shows the matched text with surrounding context precisely")
+        b("  findings in context before taking action \u2014 click View")
+        b("  Files to see the matched text with surrounding context")
         b("  so you can judge whether each finding is real.")
         blank()
         b("\u2022 False negatives happen. The PII Scan cannot find PII")
@@ -2212,13 +2162,13 @@ class ToolsMixin:
         b("  written as '123 45 6789' (spaces instead of dashes) may")
         b("  not be detected. A credit card number without separators")
         b("  may be missed. A foreign tax ID in a format peekdocs")
-        b("  does not know will not be flagged. A clean report does")
+        b("  does not know will not be flagged. A clean scan does")
         b("  NOT prove that a file is free of sensitive data \u2014 it")
         b("  proves only that peekdocs's specific regex patterns did")
         b("  not match anything in the file's extracted text.")
         blank()
         b("\u2022 Some file formats may not be fully extracted. peekdocs")
-        b("  searches 46 file types, but extraction quality varies. A")
+        b("  searches 86 file types, but extraction quality varies. A")
         b("  scanned PDF without OCR enabled will not surface any")
         b("  text. An image file is ignored unless OCR is on. Complex")
         b("  binary formats may yield partial text. Files that")
@@ -2227,7 +2177,7 @@ class ToolsMixin:
         b("  each scan to see which files were skipped.")
         blank()
         b("\u2022 Not a breach prevention tool. The PII Scan finds and")
-        b("  reports only. It does not block, encrypt, move, delete,")
+        b("  displays results only. It does not block, encrypt, move, delete,")
         b("  or otherwise secure any data. Any action taken based on")
         b("  this report is the reader's decision and responsibility.")
         blank()
@@ -2492,35 +2442,6 @@ class ToolsMixin:
                 text=f"Sensitive data scan complete ({elapsed:.1f}s, {files_searched} files) — {total} finding(s) ({high} high severity).",
                 text_color="red" if high > 0 else ("black", "#e0e0e0"),
             )
-        # Generate .docx report
-        folder = self.folder_entry.get().strip()
-        self._pii_report_path = None
-        if total > 0:
-            try:
-                from peekdocs.reporter import write_pii_scan_report
-                report_name = "peekdocs_pii_scan_report.docx"
-                output_dir = folder
-                # Use output dir if set in Advanced Search Options
-                if hasattr(self, "output_dir_entry"):
-                    od = self.output_dir_entry.get().strip()
-                    if od and os.path.isdir(od):
-                        output_dir = od
-                from peekdocs.gui._helpers import check_cloud_folder
-                cloud_warning = check_cloud_folder(output_dir)
-                if cloud_warning:
-                    self._show_error(cloud_warning)
-                report_path = os.path.join(output_dir, report_name)
-                write_pii_scan_report(report_path, scan_results, folder, elapsed, files_searched,
-                                     recursive=getattr(self, "_pii_scan_recursive", True))
-                self._pii_report_path = report_path
-            except Exception as _pii_err:
-                import traceback
-                traceback.print_exc()
-                self.status_label.configure(
-                    text=f"PII report generation failed: {_pii_err}",
-                    text_color="red",
-                )
-
         self._show_sensitive_scan_results(scan_results, elapsed, files_searched)
 
 
@@ -2663,25 +2584,6 @@ class ToolsMixin:
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
         popup.protocol("WM_DELETE_WINDOW", lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()))
 
-        if self._pii_report_path and os.path.exists(self._pii_report_path):
-            def _open_report():
-                from peekdocs.gui._helpers import safe_open_file
-                try:
-                    warning = safe_open_file(self._pii_report_path)
-                    if warning:
-                        self._show_error(warning)
-                except Exception:
-                    pass
-            open_btn = ctk.CTkButton(
-                popup, text="\u2b50 Open Highlighted Report \u2b50",
-                font=ctk.CTkFont(size=14, weight="bold"),
-                fg_color="#2196F3", hover_color="#1976D2",
-                text_color="white",
-                width=260, height=36,
-                command=_open_report,
-            )
-            open_btn.pack(pady=(8, 4))
-
         ctk.CTkButton(
             popup, text="Close", width=80, font=ctk.CTkFont(size=12),
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -2744,13 +2646,11 @@ class ToolsMixin:
             "Severity Badges",
             "Reading the Match Counts",
             "View Files Button",
-            "Open Report Button",
-            "The Highlighted Report",
             "What to Do Next",
+            "Why No Report File?",
+            "False Positives",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
-        txt.insert("end", "\u2022 Think Before You Print\n", "toc_item_red")
-        txt.insert("end", "\u2022 False Positives\n", "toc_item")
         txt.insert("end", "\n")
 
         b("This window shows the results of the PII Scan \u2014 each")
@@ -2796,40 +2696,6 @@ class ToolsMixin:
         b("the category, find the file, open it, and look at the line.")
         blank()
 
-        h("OPEN REPORT BUTTON")
-        b("Click Open Report (at the bottom) to open the full highlighted")
-        b("Word report: peekdocs_pii_scan_report.docx")
-        blank()
-        b("The report is saved in your search folder (or in the Output Dir")
-        b("if set in Advanced Search Options). It is overwritten each")
-        b("time you run a new PII scan.")
-        blank()
-
-        h("THE HIGHLIGHTED REPORT")
-        b("File name and location:")
-        e("  File:     peekdocs_pii_scan_report.docx")
-        e("  Saved in: Your search folder (or in the Output Dir if set")
-        e("            in Advanced Search Options)")
-        blank()
-        b("The report is overwritten each time you run a new PII scan.")
-        b("To keep a copy, rename it or move it before running the next")
-        b("scan.")
-        blank()
-        b("The .docx report contains:")
-        b("\u2022 Summary table of all 8 categories with match counts")
-        b("\u2022 Detail sections for each category with findings")
-        b("\u2022 Every affected file listed with match count and line numbers")
-        b("\u2022 The actual matched text with the sensitive data")
-        b("  highlighted in yellow \u2014 so you can see exactly what")
-        b("  was detected and in what context")
-        b("\u2022 A disclaimer about false positives")
-        blank()
-        b("Example entry in the report:")
-        e("  contract.docx  (2 match(es) \u2014 lines 47, 89)")
-        e("  Line 47: Employee SSN: [123-45-6789]  \u2190 highlighted yellow")
-        e("  Line 89: Contact SSN: [987-65-4321]  \u2190 highlighted yellow")
-        blank()
-
         h("WHAT TO DO NEXT")
         b("For HIGH severity findings:")
         b("1. Click View Files to see which files are affected")
@@ -2843,16 +2709,18 @@ class ToolsMixin:
         b("legitimate (e.g., your own email address in a template).")
         blank()
 
-        h_red("THINK BEFORE YOU PRINT")
-        b("The PII Scan report contains the actual sensitive data it")
-        b("found \u2014 real SSNs, real credit card numbers, real passwords,")
-        b("highlighted in yellow. Before printing or sharing the report,")
-        b("consider whether you want that information on paper or in")
-        b("someone else's hands. A printed report left on a desk or in")
-        b("a recycling bin is itself a data exposure. If you need to")
-        b("share findings with someone, consider describing the results")
-        b("(e.g., '3 SSNs found in tax_return.docx') rather than")
-        b("sending the report with the actual data visible.")
+        h("WHY NO REPORT FILE?")
+        b("The PII Scan shows results on screen only \u2014 it does not")
+        b("write a report file to disk. This is a deliberate safety")
+        b("measure. A report file that collects all your SSNs, credit")
+        b("card numbers, and passwords into a single document would")
+        b("itself be a data exposure risk \u2014 it could be uploaded to")
+        b("the cloud by backup software, synced by OneDrive or")
+        b("Dropbox, or left behind when you sell or donate a computer.")
+        blank()
+        b("By keeping results on screen only, the sensitive data is")
+        b("never concentrated into a file that could leak. You can")
+        b("always re-run the scan to see the results again.")
         blank()
 
         h("FALSE POSITIVES")
@@ -4218,9 +4086,6 @@ class ToolsMixin:
         s("Saved/archived reports")
         e("peekdocs_report_{name}.txt/docx         \u2014 saved with -s")
         e("peekdocs_accumulated_{name}.*          \u2014 appended with -sa")
-        blank()
-        s("PII scan reports")
-        e("peekdocs_pii_scan_report.docx          \u2014 PII Scan report")
         blank()
         s("Error log")
         e("peekdocs_errors.log        \u2014 files that couldn't be read + crash reports")

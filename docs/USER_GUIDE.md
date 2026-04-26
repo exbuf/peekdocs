@@ -59,7 +59,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 | Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
 | Search index | `.peekdocs.db` (each search folder) | Yes |
 | Search reports | `peekdocs_results.*` (each search folder) | Yes |
-| Saved reports and PII scan reports | `peekdocs_report_*`, `peekdocs_accumulated_*`, `peekdocs_pii_scan_report*` (each search folder) | Yes |
+| Saved reports | `peekdocs_report_*`, `peekdocs_accumulated_*` (each search folder) | Yes |
 | Error log | `peekdocs_errors.log` (each search folder) | Yes |
 
 **How to upgrade:**
@@ -90,11 +90,11 @@ peekdocs runs entirely on your computer. Your documents are never uploaded, tran
 But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
-- **Be careful with report files.** The `peekdocs_results.docx`, `.txt`, and `peekdocs_pii_scan_report.docx` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
+- **Be careful with report files.** The `peekdocs_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done. (The PII Scan does not write any files — results are shown on screen only.)
 - **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
-- **Think before you print.** The highlighted `.docx` and PII scan reports contain the actual sensitive data that was found — SSNs, credit card numbers, passwords, and other PII. Printing these reports creates a physical copy of the very data you may be trying to protect. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient.
+- **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient. (The PII Scan does not generate a printable report — results are on screen only, by design.)
 
 ---
 
@@ -331,7 +331,7 @@ Click the red **PII Scan** button to scan your documents for PII and sensitive d
 
 Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
 
-When findings are detected, a highlighted `.docx` report is automatically generated: `peekdocs_pii_scan_report.docx`. The report is saved in the search folder by default, or in the **Output Dir** if set in Advanced Search Options. The report includes a summary table of all categories, then a detail section for each category with findings — every file is listed with its match count and line numbers, followed by the matched text with the sensitive data **highlighted in yellow**. Click **Open Report** in the results popup to view it. The report includes a disclaimer noting that pattern-based detection may produce false positives — review each finding to confirm it represents actual sensitive data.
+The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure to prevent concentrating sensitive data into a single file that could be exposed. You can always re-run the scan to see results again. Pattern-based detection may produce false positives — click **View Files** and review each finding to confirm it represents actual sensitive data.
 
 The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
 
@@ -412,7 +412,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
 | **PII Scan** | Helps locate personally identifiable information you may have inadvertently left in your files — SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Add your own custom regex patterns. Results categorized by severity. See [PII Scan](#pii-scan) for details. |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
-| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), PII scan reports (`peekdocs_pii_scan_report.*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
+| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. (Note: The PII Scan does not create any files — results are shown on screen only.) |
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, and cleanup options (Clear Files, Clean Up Practice Files). **Hover Text** is toggled from the **Hover: ON/OFF** button on the bottom row of the main screen (not in the Tools menu). Your **Appearance**, **Text Size**, and **Hover Text** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
@@ -497,7 +497,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
-| `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`, `peekdocs_pii_scan_report*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
+| `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
@@ -977,7 +977,7 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 6. Click **Run Scan**. The status bar shows progress through each category.
 7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
 8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Double-click a row to open the original file in its default application, or select a row and click **View Text (with line numbers)** to see the extracted file content with line numbers and every match highlighted in orange.
-9. Click **Open Report** in the main results popup to open the `.docx` report that was automatically generated: `peekdocs_pii_scan_report.docx`, saved in your search folder (or the Output Dir if set in Advanced Search Options). Each category heading in the report is color-coded by severity (red for HIGH, amber for MODERATE, blue for INFO) so you can find what matters quickly.
+9. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
 
 ### Categories
 
@@ -1051,44 +1051,27 @@ The eight built-in categories cover common US PII. If you need something the bui
 
 **Persistence.** Your custom pattern is saved to `~/.peekdocsrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
 
-### Think before you print
+### Why no report file?
 
-The PII Scan report contains the actual sensitive data it found — real SSNs, real credit card numbers, real passwords, highlighted in yellow. Before printing or sharing the report, consider whether you want that information on paper or in someone else's hands. A printed report left on a desk or in a recycling bin is itself a data exposure. If you need to share findings with someone, consider describing the results (e.g., "3 SSNs found in tax_return.docx") rather than sending the report with the actual data visible.
+The PII Scan shows results on screen only — it does not write a report file to disk. This is a deliberate safety measure. A report file that concentrates all your SSNs, credit card numbers, and passwords into a single highlighted document would itself be a data exposure risk — it could be uploaded to the cloud by backup software, synced by OneDrive or Dropbox, or left behind when you sell or donate a computer. By keeping results on screen only, the sensitive data is never concentrated into a file that could leak. You can always re-run the scan to see the results again.
 
 ### Important disclaimers
 
 The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.
 
-- **Pattern-based detection produces false positives.** A 9-digit account number can look like an SSN. A tracking number can match the credit card pattern. The word "password" can appear in a help document that contains no actual passwords. Always review findings in context before taking action — the report shows the matched text with surrounding context precisely so you can judge whether each finding is real.
-- **Pattern-based detection also produces false negatives.** peekdocs cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format peekdocs doesn't know about will not be flagged. **A clean PII Scan report does not prove that a file is free of sensitive data.** It proves only that peekdocs's specific regex patterns did not match anything in the file's extracted text.
+- **Pattern-based detection produces false positives.** A 9-digit account number can look like an SSN. A tracking number can match the credit card pattern. The word "password" can appear in a help document that contains no actual passwords. Always review findings in context before taking action — click View Files to see the matched text with surrounding context so you can judge whether each finding is real.
+- **Pattern-based detection also produces false negatives.** peekdocs cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format peekdocs doesn't know about will not be flagged. **A clean PII Scan does not prove that a file is free of sensitive data.** It proves only that peekdocs's specific regex patterns did not match anything in the file's extracted text.
 - **Some file formats may not be fully extracted.** peekdocs searches 86 file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format; peekdocs extracts whatever readable XML exists inside these files, which may be partial. Older iWork files (XML-based) extract fully. Files that peekdocs could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
-- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and reports. If you decide based on the report that a file needs to be removed or redacted, that's your decision to make and your action to take — peekdocs does not modify your files.
+- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and displays results. If you decide that a file needs to be removed or redacted, that's your decision to make and your action to take — peekdocs does not modify your files.
 - **The PII Scan is not compliance software.** A clean scan does not certify HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory compliance. If your organization has compliance obligations, the PII Scan can be one input to your review process, but it is not a substitute for professional compliance expertise or a formal audit.
 - **Custom user-supplied patterns are your responsibility.** When you enter your own regex in the Custom Pattern section, peekdocs does not validate that your pattern correctly identifies the data you intend to find. A pattern that is too broad will produce many false positives; a pattern that is too narrow will miss the data you are looking for. If you type your own regex, you own the outcome. peekdocs will catch regex syntax errors and warn you about obviously too-broad patterns, but it cannot judge whether your regex is *semantically* right for your data.
 - **peekdocs is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
 
 In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.
 
-### Protecting your reports
-
-peekdocs takes steps to keep your data private:
-
-- **Safe local apps only.** Reports are opened only in known-safe local applications (Microsoft Word, LibreOffice, Adobe Reader, local text editors, etc.). peekdocs will never open a report in Google Docs, Apple Pages, or any application that may upload your data to the cloud.
-- **Cloud folder detection.** If your search folder or output directory is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs warns you before writing any reports there — because files in cloud-synced folders are uploaded automatically.
-
-**However, no software can guarantee complete security.** Your data could still be exposed by:
-
-- Backup software that syncs to the cloud (Time Machine to iCloud, Windows Backup to OneDrive)
-- IT management or antivirus tools that upload files for analysis
-- Screen-sharing or remote desktop sessions
-- Manually copying, emailing, or printing the report
-- Word's Office 365 integration prompting to save to OneDrive
-
-**After reviewing your PII Scan results, delete the report file when you no longer need it.** The report contains the actual sensitive data that was found — it is itself a data exposure if left accessible.
-
 ### Privacy and the local-only model
 
-The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of peekdocs, reads your files directly from local disk, and writes the resulting `.docx` report back to local disk. Nothing is sent to a server, an API, a cloud service, or any third party.
+The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of peekdocs, reads your files directly from local disk, and shows results on screen. Nothing is written to a report file. Nothing is sent to a server, an API, a cloud service, or any third party.
 
 This matters for two reasons. First, you can scan files containing real PII (your own tax returns, your own credit card statements, your own medical records) without worrying that the tool is creating a new exposure. Second, there is no network traffic for a firewall or ISP to observe, no API key to leak, no cloud bill to pay, and no vendor relationship to audit.
 
@@ -1706,17 +1689,6 @@ Created when you use `-s` (save) or `-sa` (append) to archive results with a nam
 
 **Protected from searching:** Yes — the `peekdocs_report_` and `peekdocs_accumulated_` prefixes ensure these are never included in future searches.
 **How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove peekdocs_results files.
-
-### PII scan report
-
-Created automatically when a Sensitive Data Scan detects findings.
-
-| File | Purpose | Location |
-|------|---------|----------|
-| `peekdocs_pii_scan_report.docx` | Highlighted Word report with summary table, per-category details, and yellow-highlighted matches | Output Dir if set in Advanced Search Options, otherwise search folder |
-
-**Protected from searching:** Yes — `peekdocs_pii_scan_report` prefix.
-**How to delete:** Delete manually, or use **Clean Up Practice Files** in the Maintenance menu. Overwritten on each new PII scan.
 
 ### Error log
 
