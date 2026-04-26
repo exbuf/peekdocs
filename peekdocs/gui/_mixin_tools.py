@@ -2842,6 +2842,7 @@ class ToolsMixin:
             self._show_file_text_view(
                 path, os.path.basename(path),
                 highlight_regex_pattern=regex,
+                highlight_label=category,
             )
 
         btn_frame = tk.Frame(popup)

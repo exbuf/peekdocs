@@ -1488,7 +1488,7 @@ class DataMixin:
 
 
 
-    def _show_file_text_view(self, filepath, filename, highlight_regex_pattern=None):
+    def _show_file_text_view(self, filepath, filename, highlight_regex_pattern=None, highlight_label=None):
         """Display extracted text of a file with line numbers and match highlighting.
 
         If highlight_regex_pattern is provided, matches for that regex are
@@ -1516,6 +1516,11 @@ class DataMixin:
             win, text=f"{filename}  —  {len(lines)} line(s) extracted",
             font=("TkDefaultFont", 12, "bold"),
         ).pack(pady=(10, 2))
+        if highlight_label:
+            tk.Label(
+                win, text=f"PII Scan category: {highlight_label}",
+                font=("TkDefaultFont", 11, "bold"), fg="#CC0000",
+            ).pack(pady=(0, 2))
         tk.Label(
             win, text="Line numbers match those shown in the Results Preview. "
                       "Matches are highlighted in yellow.",
