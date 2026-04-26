@@ -2821,6 +2821,8 @@ class ToolsMixin:
         def _view_text():
             sel = listbox.curselection()
             if not sel or sel[0] not in file_paths:
+                popup.bell()
+                self._show_error("Please select a file from the list first.")
                 return
             path = file_paths[sel[0]]
             if not os.path.exists(path):
