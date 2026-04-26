@@ -5934,7 +5934,10 @@ class ToolsMixin:
         b("What Happens When You Run a Suite")
         n("Each search runs independently with its own settings (AND/OR,")
         n("regex, recursive, etc.). Results are organized by search in a")
-        n("combined report: peekdocs_suite_results.txt and .docx.\n")
+        n("combined report. TXT and DOCX are always generated. You can")
+        n("also check HTML, CSV, JSON, or PDF in the suite popup to get")
+        n("additional output formats. These checkboxes are independent")
+        n("from the ones in Advanced Search Options.\n")
 
         b("Use Cases")
         n("\u2022 Pre-publication checklist \u2014 search for outdated terms, placeholder")
