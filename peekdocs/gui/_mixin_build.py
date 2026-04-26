@@ -540,6 +540,20 @@ class BuildMixin:
         self._search_wiz_btn.pack(side="left", padx=(20, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
 
+        # Suites button — next to Wizard
+        self._suites_btn = ctk.CTkButton(
+            self._options_row,
+            text="Suites", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._show_search_suites,
+            font=ctk.CTkFont(size=13),
+        )
+        self._suites_btn.pack(side="left", padx=(10, 0))
+        Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click")
+
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
             self._run_search_frame,
@@ -1344,7 +1358,7 @@ class BuildMixin:
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
             menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
-            menu.add_command(label="Search Suites — run a group of saved searches together", command=self._show_search_suites)
+            # Search Suites moved to main screen next to Wizard
             _dark_sep()
             # App management (alphabetical)
             menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
