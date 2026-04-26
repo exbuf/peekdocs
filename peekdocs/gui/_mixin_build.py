@@ -293,7 +293,7 @@ class BuildMixin:
         self.search_button = ctk.CTkButton(
             btn_frame, text="Search", width=140, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
-            fg_color="#A4DE02", hover_color="#83B202",
+            fg_color="#76BA1B", hover_color="#5E9516",
         )
         self.search_button.pack(side="left", padx=(0, 10))
         Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
@@ -544,7 +544,7 @@ class BuildMixin:
         self._pii_scan_btn = ctk.CTkButton(
             self._run_search_frame,
             text="\U0001f50d PII Scan", width=180, height=44,
-            fg_color="#A4DE02", hover_color="#83B202",
+            fg_color="#76BA1B", hover_color="#5E9516",
             text_color="white",
             command=self._start_sensitive_scan,
             font=ctk.CTkFont(size=24, weight="bold"),
