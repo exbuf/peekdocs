@@ -2310,6 +2310,8 @@ class ToolsMixin:
 
         if hasattr(self, "sensitive_scan_btn"):
             self.sensitive_scan_btn.configure(state="disabled", text="\u25b6 Scanning...")
+        if hasattr(self, "_pii_scan_btn"):
+            self._pii_scan_btn.configure(state="disabled", fg_color="red", hover_color="darkred", text="Scanning...")
         self.status_label.configure(text="Scanning for sensitive data (index not used — regex scans files directly)...", text_color=("blue", "#66BBFF"))
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
@@ -2416,6 +2418,9 @@ class ToolsMixin:
         self.progress_bar.grid_remove()
         if hasattr(self, "sensitive_scan_btn"):
             self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
+        if hasattr(self, "_pii_scan_btn"):
+            self._pii_scan_btn.configure(state="normal", fg_color="#76BA1B", hover_color="#5E9516",
+                                          text_color="white", text="\U0001f50d PII Scan")
 
         # Restore Use Index checkbox
         if hasattr(self, "_sensitive_scan_saved_index"):
