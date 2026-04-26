@@ -2583,12 +2583,14 @@ class ToolsMixin:
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
         popup.protocol("WM_DELETE_WINDOW", lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()))
 
-        ctk.CTkButton(
+        _close_btn = ctk.CTkButton(
             popup, text="Close", width=80, font=ctk.CTkFont(size=12),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()),
-        ).pack(pady=(0, 10))
+        )
+        _close_btn.pack(pady=(0, 10))
+        Tooltip(_close_btn, "Closing this window permanently deletes all PII scan data — by design, nothing is saved to disk. You can always re-run the PII Scan to see the results again")
 
         self._apply_dark_theme(popup)
 
