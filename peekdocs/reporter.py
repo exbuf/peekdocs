@@ -52,7 +52,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("peekdocs_results\n\n\n")
+        from peekdocs.cli import VERSION as _ver
+        f.write(f"peekdocs v{_ver}\n\n\n")
         f.write(f"Report Generated On ==> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as ==> {os.path.abspath(output_path)}\n")
         f.write("NOTE: This report is overwritten after each new search. To keep a permanent copy, use 'Save report as:' in Advanced Search Options (GUI) or the -s flag (CLI).\n")
@@ -317,8 +318,9 @@ def write_pii_scan_report(docx_path, scan_results, folder, elapsed, files_search
     doc = Document()
 
     # peekdocs title
+    from peekdocs.cli import VERSION as _ver_p
     title_para = doc.add_paragraph()
-    title_run = title_para.add_run("peekdocs")
+    title_run = title_para.add_run(f"peekdocs v{_ver_p}")
     title_run.bold = True
     title_run.font.size = Pt(14)
     doc.add_paragraph()  # blank line
@@ -797,8 +799,10 @@ def write_json_report(output_path, matches, search_terms, report_mode,
     if os.path.exists(output_path):
         os.remove(output_path)
 
+    from peekdocs.cli import VERSION as _ver_j
     if inverse_files is not None:
         json_data = {
+            "generator": f"peekdocs v{_ver_j}",
             "search_terms": search_terms,
             "mode": report_mode,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -827,6 +831,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
         ]
 
         json_data = {
+            "generator": f"peekdocs v{_ver_j}",
             "search_terms": search_terms,
             "mode": report_mode,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -910,8 +915,9 @@ def write_pdf_report(output_path, matches, search_terms=None,
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
+    from peekdocs.cli import VERSION as _ver_pdf
     pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 10, "peekdocs Search Results", ln=True)
+    pdf.cell(0, 10, f"peekdocs v{_ver_pdf}", ln=True)
     pdf.ln(3)
 
     pdf.set_font("Helvetica", "", 10)
@@ -977,11 +983,12 @@ def write_html_report(output_path, matches, search_terms=None,
     if os.path.exists(output_path):
         os.remove(output_path)
 
+    from peekdocs.cli import VERSION as _ver_h
     terms = search_terms or []
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("<!DOCTYPE html>\n<html lang='en'>\n<head>\n")
         f.write("<meta charset='UTF-8'>\n")
-        f.write("<title>peekdocs Search Results</title>\n")
+        f.write(f"<title>peekdocs v{html_mod.escape(_ver_h)} Search Results</title>\n")
         f.write("<style>\n")
         f.write("body { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; "
                 "margin: 20px; background: #fff; color: #333; }\n")
@@ -997,7 +1004,7 @@ def write_html_report(output_path, matches, search_terms=None,
         f.write(".inverse-file { padding: 4px 16px; }\n")
         f.write("</style>\n</head>\n<body>\n")
 
-        f.write("<h1>peekdocs Search Results</h1>\n")
+        f.write(f"<h1>peekdocs v{html_mod.escape(_ver_h)}</h1>\n")
         f.write(f"<div class='meta'>Search terms: {html_mod.escape(' '.join(terms))}<br>\n")
         f.write(f"Mode: {html_mod.escape(report_mode)}<br>\n")
         f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>\n")
@@ -1083,7 +1090,8 @@ def write_suite_txt_report(output_path, suite_name, sections):
     total_elapsed = sum(s["elapsed"] for s in sections)
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("peekdocs_suite_results\n\n\n")
+        from peekdocs.cli import VERSION as _ver_s
+        f.write(f"peekdocs v{_ver_s}\n\n\n")
         f.write(f"Suite Report: {suite_name}\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Saved as: {os.path.abspath(output_path)}\n")
