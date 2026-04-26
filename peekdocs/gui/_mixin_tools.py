@@ -2450,7 +2450,6 @@ class ToolsMixin:
         """Show a popup with categorized sensitive data scan results."""
         import tkinter as tk
         from peekdocs.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
-
         popup, _dark = self._themed_toplevel()
         popup.title("Sensitive Data Scan Results")
         popup.resizable(True, True)
@@ -2592,7 +2591,6 @@ class ToolsMixin:
         ).pack(pady=(0, 10))
 
         self._apply_dark_theme(popup)
-
 
 
     def _show_pii_scan_results_help(self, parent):
