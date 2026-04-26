@@ -5455,6 +5455,24 @@ class ToolsMixin:
         ctk.CTkButton(right_btns, text="\u25b2 Up", width=60, font=ctk.CTkFont(size=12), command=_move_up).pack(side="left", padx=2)
         ctk.CTkButton(right_btns, text="\u25bc Down", width=70, font=ctk.CTkFont(size=12), command=_move_down).pack(side="left", padx=2)
 
+        # ── Output formats ──
+        output_frame = tk.Frame(win)
+        output_frame.pack(fill="x", padx=12, pady=(8, 2))
+        tk.Label(output_frame, text="Suite report formats:", font=_sf(11, "bold")).pack(side="left", padx=(0, 8))
+
+        # TXT and DOCX are always generated
+        tk.Label(output_frame, text="TXT \u2713  DOCX \u2713", font=_sf(10), fg="gray").pack(side="left", padx=(0, 10))
+
+        _suite_html_var = tk.BooleanVar(value=True)
+        _suite_csv_var = tk.BooleanVar(value=False)
+        _suite_json_var = tk.BooleanVar(value=False)
+        _suite_pdf_var = tk.BooleanVar(value=False)
+
+        tk.Checkbutton(output_frame, text="HTML", variable=_suite_html_var, font=_sf(10)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="CSV", variable=_suite_csv_var, font=_sf(10)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="JSON", variable=_suite_json_var, font=_sf(10)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="PDF", variable=_suite_pdf_var, font=_sf(10)).pack(side="left", padx=(0, 5))
+
         # ── Bottom: Run Suite + Close ──
         bottom = tk.Frame(win)
         bottom.pack(pady=(8, 2))
@@ -5474,8 +5492,14 @@ class ToolsMixin:
                 self._show_error(f"Missing saved search(es): {', '.join(missing)}\n\nRemove them from the suite or re-create them.")
                 return
             suite_name = current_suite[0]
+            suite_formats = {
+                "html": _suite_html_var.get(),
+                "csv": _suite_csv_var.get(),
+                "json": _suite_json_var.get(),
+                "pdf": _suite_pdf_var.get(),
+            }
             win.destroy()
-            self._run_suite_searches(suite_name, searches, folder)
+            self._run_suite_searches(suite_name, searches, folder, suite_formats=suite_formats)
 
         ctk.CTkButton(
             bottom, text="Run Suite", width=120,
@@ -5496,7 +5520,7 @@ class ToolsMixin:
         _refresh_suite_list()
         self._apply_dark_theme(win)
 
-    def _run_suite_searches(self, suite_name, search_names, folder):
+    def _run_suite_searches(self, suite_name, search_names, folder, suite_formats=None):
         """Execute all searches in a suite sequentially using subprocess."""
         import threading
         import subprocess as _sp
@@ -5635,21 +5659,73 @@ class ToolsMixin:
             # Generate combined suite reports
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
             docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
+            _fmts = suite_formats or {}
             write_suite_txt_report(txt_path, suite_name, sections)
             write_suite_docx_report(docx_path, txt_path, sections)
-            html_path = os.path.join(folder, "peekdocs_suite_results.html")
-            try:
-                write_suite_html_report(html_path, suite_name, sections)
-            except Exception:
-                html_path = ""
+            html_path = ""
+            csv_path = ""
+            json_path = ""
+            if _fmts.get("html", False):
+                html_path = os.path.join(folder, "peekdocs_suite_results.html")
+                try:
+                    write_suite_html_report(html_path, suite_name, sections)
+                except Exception:
+                    html_path = ""
+            if _fmts.get("csv", False):
+                csv_path = os.path.join(folder, "peekdocs_suite_results.csv")
+                try:
+                    import csv as _csv_s
+                    all_matches = []
+                    for s in sections:
+                        for fd, fn, ln, text in s["matches"]:
+                            all_matches.append((fn, fd, ln, text, s["search_name"]))
+                    with open(csv_path, "w", newline="", encoding="utf-8") as cf:
+                        writer = _csv_s.writer(cf)
+                        writer.writerow(["search_name", "filename", "folder", "line_number", "matched_text"])
+                        for fn, fd, ln, text, sn in all_matches:
+                            writer.writerow([sn, fn, fd, ln, text])
+                except Exception:
+                    csv_path = ""
+            if _fmts.get("json", False):
+                json_path = os.path.join(folder, "peekdocs_suite_results.json")
+                try:
+                    import json as _json_s
+                    from peekdocs.cli import VERSION as _ver_sj
+                    json_data = {
+                        "generator": f"peekdocs v{_ver_sj}",
+                        "suite_name": suite_name,
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "searches": len(sections),
+                        "total_matches": sum(s.get("total_match_count", len(s["matches"])) for s in sections),
+                        "sections": [
+                            {
+                                "search_name": s["search_name"],
+                                "terms": s["search_terms"],
+                                "mode": s["report_mode"],
+                                "match_count": s.get("total_match_count", len(s["matches"])),
+                                "matched_file_count": s.get("matched_file_count", 0),
+                                "elapsed": round(s["elapsed"], 2),
+                                "matches": [
+                                    {"filename": fn, "folder": fd, "line": ln, "text": text}
+                                    for fd, fn, ln, text in s["matches"]
+                                ],
+                            }
+                            for s in sections
+                        ],
+                    }
+                    with open(json_path, "w", encoding="utf-8") as jf:
+                        _json_s.dump(json_data, jf, indent=2, ensure_ascii=False)
+                except Exception:
+                    json_path = ""
 
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
-            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path))
+            extra_paths = {"html": html_path, "csv": csv_path, "json": json_path}
+            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path, extra_paths))
 
         threading.Thread(target=_run, daemon=True).start()
 
-    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder="", html_path=""):
+    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder="", html_path="", extra_paths=None):
         """Handle suite completion — show results summary and report buttons."""
         self._suite_elapsed_active = False
         self.search_start_time = None
@@ -5757,12 +5833,15 @@ class ToolsMixin:
                 command=lambda: _open_file(txt_path),
             ).pack(side="left", padx=2)
 
-        if html_path and os.path.exists(html_path):
-            ctk.CTkButton(
-                self._suite_report_frame, text="HTML", width=60,
-                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
-                command=lambda: _open_file(html_path),
-            ).pack(side="left", padx=2)
+        _ep = extra_paths or {}
+        for fmt, label in [("html", "HTML"), ("csv", "CSV"), ("json", "JSON")]:
+            path = _ep.get(fmt, "")
+            if path and os.path.exists(path):
+                ctk.CTkButton(
+                    self._suite_report_frame, text=label, width=60,
+                    font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
+                    command=lambda p=path: _open_file(p),
+                ).pack(side="left", padx=2)
 
         # Show results in preview
         if hasattr(self, "preview_frame"):
