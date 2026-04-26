@@ -293,7 +293,7 @@ class BuildMixin:
         self.search_button = ctk.CTkButton(
             btn_frame, text="Search", width=140, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
-            fg_color="#76BA1B", hover_color="#5E9516",
+            fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
         Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
