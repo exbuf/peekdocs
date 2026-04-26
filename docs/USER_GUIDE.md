@@ -26,6 +26,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Files Created by peekdocs](#files-created-by-peekdocs)
+  - [Delete on Close](#delete-on-close)
 - [Limits and Constraints](#limits-and-constraints)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
@@ -339,7 +340,7 @@ Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and
 
 **Advanced Search Options:**
 
-Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), and timestamp filenames. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
+Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), timestamp filenames, and Delete on Close. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
 
 **Save Search vs Save Defaults — what's the difference?**
 
@@ -1674,7 +1675,7 @@ These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF,
 | `peekdocs_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — all filenames starting with `peekdocs_results` are excluded so peekdocs never searches its own reports (including timestamped versions).
-**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `peekdocs_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search.
+**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `peekdocs_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search. You can also check **Delete on Close** (on the main screen next to the report buttons, or in Advanced Search Options) to automatically delete all result files when you close peekdocs — see [Delete on Close](#delete-on-close) below.
 
 ### Saved and accumulated reports
 
@@ -1785,6 +1786,25 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 | Bookmarks | 1 (home dir) | N/A | Yes — only loses pinned files list |
 
 **Most of these files are safe to delete** — peekdocs recreates reports, logs, and indexes automatically. The two exceptions are the **collection file** (`.peekdocs_collection.json`), which contains your saved searches, and the **config file** (`~/.peekdocsrc`), which contains your settings and email configuration. Deleting either of these means recreating that work from scratch. Everything else can be deleted freely.
+
+### Delete on Close
+
+Check the **Delete on Close** checkbox to automatically delete all search result files (`peekdocs_results.*`, `peekdocs_suite_results.*`) when you close peekdocs. The checkbox appears in two places — on the main screen next to the report buttons, and in Advanced Search Options — both stay in sync.
+
+You can check or uncheck this at any time. It only matters at the moment you close the app. A typical workflow:
+
+1. Run a search
+2. Review your results in the Results Preview or by opening the reports
+3. When you're done, check **Delete on Close**
+4. Close peekdocs — result files are automatically deleted
+
+If you change your mind, uncheck the box before closing and the files are kept.
+
+**What gets deleted:** `peekdocs_results.*` and `peekdocs_suite_results.*` in the search folder.
+
+**What is never deleted:** Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, indexes, and error logs. These are files you explicitly chose to keep or that peekdocs needs to function.
+
+The setting is saved to `~/.peekdocsrc` and persists between sessions — if you always want results cleaned up, check it once and it stays checked.
 
 ## Limits and Constraints
 

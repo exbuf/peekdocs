@@ -898,7 +898,7 @@ class BuildMixin:
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
-        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
+        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. You can check or uncheck this at any time — it only matters at the moment you close the app. Check it after reviewing your results to clean up, or leave it unchecked to keep the files. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
 
         # Note about saving
         # Note above bottom buttons
@@ -1162,7 +1162,7 @@ class BuildMixin:
             command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
             font=ctk.CTkFont(size=12),
         )
-        Tooltip(self.report_delete_cb, "Automatically delete all search result files when you close peekdocs. Saved reports and accumulated reports are never deleted", anchor="above")
+        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. You can check or uncheck this at any time — it only matters at the moment you close the app. Check it after reviewing your results to clean up, or leave it unchecked to keep the files. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
 
 
 
