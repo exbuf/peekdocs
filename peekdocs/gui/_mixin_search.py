@@ -922,7 +922,8 @@ class SearchMixin:
             "This will immediately:\n\n"
             "\u2022 Delete all search result files (peekdocs_results.*, peekdocs_suite_results.*)\n"
             "\u2022 Clear the Results Preview\n"
-            "\u2022 Clear your search history and recent searches\n\n"
+            "\u2022 Clear your search history and recent searches\n"
+            "\u2022 Clear the search terms and folder fields\n\n"
             "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
             "settings, and indexes are not affected.\n\n"
             "Continue?",
@@ -963,6 +964,18 @@ class SearchMixin:
             cfg["search_terms"] = ""
             _save_config(cfg)
             self._recent_searches = []
+        except Exception:
+            pass
+
+        # Clear search terms and folder fields
+        self.search_entry.delete(0, "end")
+        self.folder_entry.delete(0, "end")
+
+        # Also clear folder from saved config
+        try:
+            cfg = _load_config()
+            cfg["folder"] = ""
+            _save_config(cfg)
         except Exception:
             pass
 
