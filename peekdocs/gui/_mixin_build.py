@@ -1181,6 +1181,14 @@ class BuildMixin:
         )
         Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) when you close peekdocs. You can check or uncheck this at any time — it only matters at the moment you close the app. Check it after reviewing your results to clean up, or leave it unchecked to keep the files. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted. You can also delete reports manually at any time: use Clear Files in the Tools menu to choose exactly which peekdocs files to remove", anchor="above")
 
+        self._delete_everything_btn = ctk.CTkButton(
+            self.report_frame, text="\U0001f6e1 Delete Everything Now", width=170,
+            font=ctk.CTkFont(size=12),
+            fg_color="#CC3333", hover_color="#AA2222", text_color="white",
+            command=self._delete_everything_now,
+        )
+        Tooltip(self._delete_everything_btn, "Immediately delete all result files, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Saved reports, accumulated reports, saved searches, settings, and indexes are not affected", anchor="above")
+
 
 
     def _build_index_panel(self):
@@ -1398,7 +1406,6 @@ class BuildMixin:
             _dark_sep()
             # Cleanup
             menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)
-            menu.add_command(label="\U0001f6e1 Delete Everything Now — clear results, preview, and search history", command=self._delete_everything_now)
             _dark_sep()
             # Text Size — direct items instead of a cascade submenu
             # (cascades open to the right and go off-screen on small displays)
