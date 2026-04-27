@@ -2825,9 +2825,10 @@ class ToolsMixin:
         listbox.bind("<Double-1>", _on_double_click)
 
         tk.Label(
-            popup, text="Double-click a file to open it in its default application, "
-                        "or select a file and click View Text below to see the "
-                        "extracted text with line numbers and matches highlighted.",
+            popup, text="Double-click a file to open it in its default application — "
+                        "from there you can edit the file to remove or redact the sensitive data. "
+                        "Or select a file and click View Text below to review the "
+                        "matches with line numbers highlighted.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=700, justify="center",
         ).pack(padx=10)
 
