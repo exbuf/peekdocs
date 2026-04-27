@@ -424,15 +424,15 @@ def check_cloud_folder(path):
 def _cloud_folder_warning(service, path):
     """Build the user-facing warning for a cloud-synced output folder."""
     return (
-        f"Your output folder appears to be inside {service}:\n"
+        f"Search blocked — your output folder is inside {service}:\n"
         f"{path}\n\n"
-        f"Files written here are automatically uploaded to the cloud. "
-        f"This means your search results — including any sensitive data "
-        f"found by the PII Scan (SSNs, credit card numbers, passwords) "
-        f"— could be exposed.\n\n"
-        f"To keep your data private, choose a different output folder "
-        f"that is not synced to any cloud service. You can set a custom "
-        f"output directory in Advanced Search Options."
+        f"peekdocs will not write report files to cloud-synced folders "
+        f"because they are automatically uploaded, which could expose "
+        f"your search results — including any sensitive data such as "
+        f"SSNs, credit card numbers, and passwords.\n\n"
+        f"To continue, choose a different output folder that is not "
+        f"synced to any cloud service. You can set a custom output "
+        f"directory in Advanced Search Options."
     )
 
 

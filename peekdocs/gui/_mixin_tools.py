@@ -5646,11 +5646,12 @@ class ToolsMixin:
                     "stdout": stdout,
                 })
 
-            # Warn if the output folder is inside a cloud-synced directory.
+            # Block if the output folder is inside a cloud-synced directory.
             from peekdocs.gui._helpers import check_cloud_folder
             cloud_warning = check_cloud_folder(folder)
             if cloud_warning:
                 self._show_error(cloud_warning)
+                return
 
             # Generate combined suite reports
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
