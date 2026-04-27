@@ -424,16 +424,33 @@ def check_cloud_folder(path):
 def _cloud_folder_warning(service, path):
     """Build the user-facing warning for a cloud-synced output folder."""
     return (
-        f"Search blocked — your output folder is inside {service}:\n"
+        f"Your output folder is inside {service}:\n"
         f"{path}\n\n"
         f"peekdocs will not write report files to cloud-synced folders "
         f"because they are automatically uploaded, which could expose "
         f"your search results — including any sensitive data such as "
         f"SSNs, credit card numbers, and passwords.\n\n"
-        f"To continue, choose a different output folder that is not "
-        f"synced to any cloud service. You can set a custom output "
-        f"directory in Advanced Search Options."
+        f"Would you like peekdocs to save reports to a safe local "
+        f"folder instead? Your documents will still be searched — "
+        f"only the report output location changes."
     )
+
+
+def get_safe_output_dir():
+    """Return a safe local directory for report output.
+
+    Creates ~/peekdocs_reports if it doesn't exist. This folder is
+    outside any cloud-synced directory on standard configurations.
+    """
+    safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
+    os.makedirs(safe_dir, exist_ok=True)
+    # Verify the safe dir itself isn't cloud-synced
+    if check_cloud_folder(safe_dir) is not None:
+        # Home dir is synced — fall back to system temp
+        import tempfile
+        safe_dir = os.path.join(tempfile.gettempdir(), "peekdocs_reports")
+        os.makedirs(safe_dir, exist_ok=True)
+    return safe_dir
 
 
 def _build_command_from_values(

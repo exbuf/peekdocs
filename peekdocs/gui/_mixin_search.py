@@ -177,12 +177,23 @@ class SearchMixin:
 
         od = self.output_dir_entry.get().strip()
         self.results_dir = od if od else folder
-        # Warn if the output folder is inside a cloud-synced directory.
-        from peekdocs.gui._helpers import check_cloud_folder
+        # Block if the output folder is inside a cloud-synced directory.
+        from peekdocs.gui._helpers import check_cloud_folder, get_safe_output_dir
         cloud_warning = check_cloud_folder(self.results_dir)
         if cloud_warning:
-            self._show_error(cloud_warning)
-            return
+            from tkinter import messagebox
+            if messagebox.askyesno("Cloud Folder Detected", cloud_warning):
+                safe_dir = get_safe_output_dir()
+                self.results_dir = safe_dir
+                self.output_dir_entry.delete(0, "end")
+                self.output_dir_entry.insert(0, safe_dir)
+                self._save_ui_preference("output_dir", safe_dir)
+                self.status_label.configure(
+                    text=f"Reports will be saved to {safe_dir}",
+                    text_color=("blue", "#66BBFF"),
+                )
+            else:
+                return
         # Remove stale output files for formats not requested (skip when timestamps are on)
         if not self._last_ts_suffix:
             if self.output_csv_var.get() != "on":
