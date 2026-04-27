@@ -943,8 +943,8 @@ class SearchMixin:
 
         deleted = 0
         # Collect all folders that may contain peekdocs files:
-        # the search folder, the output dir, and the safe reports folder.
-        folders_to_clean = set()
+        # every folder searched this session, plus current state and safe dir.
+        folders_to_clean = set(getattr(self, "_searched_folders", set()))
         search_folder = self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
         if search_folder and os.path.isdir(search_folder):
             folders_to_clean.add(search_folder)
@@ -955,8 +955,10 @@ class SearchMixin:
         if os.path.isdir(safe_dir):
             folders_to_clean.add(safe_dir)
 
-        # Delete result files from all folders
+        # Delete result files and search indexes from all folders
         for folder in folders_to_clean:
+            if not os.path.isdir(folder):
+                continue
             for fname in os.listdir(folder):
                 if (fname.startswith("peekdocs_results") or
                         fname.startswith("peekdocs_suite_results")):
@@ -965,11 +967,8 @@ class SearchMixin:
                         deleted += 1
                     except OSError:
                         pass
-
-        # Delete search index — in the search folder (not the output dir)
-        if search_folder and os.path.isdir(search_folder):
             for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
-                idx_path = os.path.join(search_folder, idx_file)
+                idx_path = os.path.join(folder, idx_file)
                 try:
                     if os.path.exists(idx_path):
                         os.remove(idx_path)
