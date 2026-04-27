@@ -977,8 +977,9 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 5. For **Dollar Amounts**, set the **Min $** and **Max $** range. Defaults are $10,000 and $999,999,999. The scan uses a loose regex to match any dollar amount and then filters results to those within your range.
 6. Click **Run Scan**. The status bar shows progress through each category.
 7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
-8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Double-click a row to open the original file in its default application, or select a row and click **View Text (with line numbers)** to see the extracted file content with line numbers and every match highlighted in orange.
-9. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
+8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Select a row and click **View Text (with line numbers)** to review the matches with line numbers highlighted in yellow. Or **double-click** a row to open the original file in its default application — from there you can edit the file to remove or redact the sensitive data.
+9. After editing, re-run the PII Scan to verify the sensitive data has been removed.
+10. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
 
 ### Categories
 
@@ -1002,6 +1003,8 @@ The PII Scan answers the question *"what sensitive data is hiding in my own file
 - **Helping a relative with a device** — check an elderly parent's laptop or an estate's records before handing it off.
 - **Periodic personal audit** — once or twice a year, see what's accumulated in your Documents folder over the years.
 - **Small-business file hygiene** — scan a shared folder for data that shouldn't be there anymore.
+
+The workflow is: scan → review → fix. View Text shows you what was found and where. Double-click opens the file so you can remove or redact the sensitive data. Re-run the scan to confirm it's gone.
 
 The PII Scan runs entirely on the user's own files, on the user's own machine, so there's no custody relationship with anyone else's data — it's just you looking at what's already on your disk.
 
