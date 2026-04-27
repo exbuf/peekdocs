@@ -1819,7 +1819,17 @@ peekdocs provides several ways to clean up after a search session:
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All methods except **Delete Everything Now** leave the search index untouched. **Delete Everything Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+All methods except **Delete Everything Now** leave the search index untouched. **Delete Everything Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Everything Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+
+### Cloud-synced folders
+
+If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs detects this and offers to redirect report output to a safe local folder (`~/peekdocs_reports`). Your documents are still searched in the original cloud-synced location — only the report output changes. This ensures no report files are written to a location that automatically uploads to the cloud.
+
+If you click **Yes**, peekdocs creates `~/peekdocs_reports`, sets it as the output directory, saves the setting to `~/.peekdocsrc`, and continues the search. The setting persists — you won't be prompted again unless you change the output directory.
+
+If you click **No**, the search is cancelled and no files are written.
+
+**Delete on Close** and **Delete Everything Now** both clean `~/peekdocs_reports` along with the search folder and any custom output directory — so reports saved there are not forgotten.
 
 ### Sensitive search term warning
 
