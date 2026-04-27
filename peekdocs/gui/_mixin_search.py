@@ -308,6 +308,9 @@ class SearchMixin:
         self.search_entry.configure(state="disabled")
 
         self._multi_folder_cancelled = False
+        # Track all folders for Delete on Close cleanup
+        for f in folders:
+            self._searched_folders.add(f)
         import threading
         t = threading.Thread(
             target=self._multi_folder_thread,

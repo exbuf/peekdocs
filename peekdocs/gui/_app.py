@@ -187,6 +187,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                 cfg = _load_config()
                 cfg["recent_searches"] = []
                 cfg["search_terms"] = ""
+                cfg["folder"] = ""
                 _save_config(cfg)
             except Exception:
                 pass
