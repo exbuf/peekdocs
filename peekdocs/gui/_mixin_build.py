@@ -389,6 +389,20 @@ class BuildMixin:
         options_help_btn.pack(side="left", padx=(0, 4), pady=3)
         Tooltip(options_help_btn, "Help — explains AND/OR, Recursive, and Whole Word")
 
+        # Advanced Search Options toggle — between options group and save group
+        self.advanced_toggle = ctk.CTkButton(
+            options_row,
+            text="Advanced", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self.toggle_advanced,
+            font=ctk.CTkFont(size=13),
+        )
+        self.advanced_toggle.pack(side="left", padx=(10, 10))
+        Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
             options_row, border_width=2, border_color=("gray40", "gray60"),
@@ -510,23 +524,12 @@ class BuildMixin:
 
 
     def _build_advanced_toggle(self):
-        """Build the toggle button for Advanced Search Options."""
-        # Advanced Search Options — placed in options_row (row 2) next to Use Index
-        # (options_row is created in _build_search_row)
-        self.advanced_toggle = ctk.CTkButton(
-            self._options_row,
-            text="Advanced", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
-            command=self.toggle_advanced,
-            font=ctk.CTkFont(size=13),
-        )
-        self.advanced_toggle.pack(side="left", padx=(0, 0))
-        Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+        """Build the Advanced Search Options panel and remaining options_row buttons.
 
-        # Search Wizard — next to Advanced
+        Note: the Advanced toggle button itself is created in _build_search_row
+        so it appears between the options group and the save group.
+        """
+        # Search Wizard — next to Save/Reload group
         self._search_wiz_btn = ctk.CTkButton(
             self._options_row,
             text="\U0001F9D9", width=0,
