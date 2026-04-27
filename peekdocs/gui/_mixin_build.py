@@ -1193,7 +1193,7 @@ class BuildMixin:
         Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
 
         self._delete_everything_btn = ctk.CTkButton(
-            self.report_frame, text="\U0001f6e1 Delete Everything Now", width=170,
+            self.report_frame, text="Delete Everything Now", width=170,
             font=ctk.CTkFont(size=12),
             fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,
