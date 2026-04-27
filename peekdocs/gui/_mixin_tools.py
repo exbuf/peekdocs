@@ -5680,6 +5680,8 @@ class ToolsMixin:
                         writer.writerow(["search_name", "filename", "folder", "line_number", "matched_text"])
                         for fn, fd, ln, text, sn in all_matches:
                             writer.writerow([sn, fn, fd, ln, text])
+                    from peekdocs.reporter import _restrict_file_permissions
+                    _restrict_file_permissions(csv_path)
                 except Exception:
                     csv_path = ""
             if _fmts.get("json", False):
@@ -5711,6 +5713,8 @@ class ToolsMixin:
                     }
                     with open(json_path, "w", encoding="utf-8") as jf:
                         _json_s.dump(json_data, jf, indent=2, ensure_ascii=False)
+                    from peekdocs.reporter import _restrict_file_permissions
+                    _restrict_file_permissions(json_path)
                 except Exception:
                     json_path = ""
 
