@@ -978,7 +978,14 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
 6. Click **Run Scan**. The status bar shows progress through each category.
 7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
 8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Select a row and click **View Text (with line numbers)** to review the matches with line numbers highlighted in yellow. Or **double-click** a row to open the original file in its default application — from there you can edit the file to remove or redact the sensitive data.
-9. **Tip: finding matches in Word or LibreOffice.** peekdocs line numbers refer to extracted text paragraphs, not visual lines in a word processor. A long paragraph that wraps across multiple lines on screen counts as one line in peekdocs. Instead of scrolling to a line number, use **Edit → Find & Replace** (Ctrl+H on Windows, Cmd+H on macOS) in your word processor to search for the specific text shown in View Text — this is the most reliable way to locate and redact the match. (LibreOffice can show line numbers via **Tools → Line Numbering → Show numbering**, but these may not match peekdocs's paragraph-based numbering for Word docs and PDFs.)
+9. **Tip: finding and redacting matches in Word or LibreOffice.** peekdocs line numbers refer to extracted text paragraphs, not visual lines in a word processor. A long paragraph that wraps across multiple lines on screen counts as one line in peekdocs. Instead of scrolling to a line number, use **Edit → Find & Replace** (Ctrl+H on Windows, Cmd+H on macOS) to locate and redact:
+   - **Find:** paste the sensitive text from View Text (e.g., `123-45-6789`)
+   - **Replace with:** `[REDACTED]`, `XXX-XX-XXXX`, or whatever placeholder you prefer. For partial redaction, keep the last few characters (e.g., replace `123-45-6789` with `XXX-XX-6789`)
+   - Click **Replace All** to catch every instance in the document
+   - Search for the original text one more time — "Search key not found" confirms it's gone
+   - Save the file
+
+   (LibreOffice can show line numbers via **Tools → Line Numbering → Show numbering**, but these may not match peekdocs's paragraph-based numbering for Word docs and PDFs.)
 10. After editing, re-run the PII Scan to verify the sensitive data has been removed.
 10. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
 
