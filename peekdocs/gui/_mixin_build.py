@@ -400,8 +400,16 @@ class BuildMixin:
             command=self.toggle_advanced,
             font=ctk.CTkFont(size=13),
         )
-        self.advanced_toggle.pack(side="left", padx=(10, 10))
+        self.advanced_toggle.pack(side="left", padx=(10, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+
+        self.index_search_var = ctk.StringVar(value="off")
+        self.cb_index_search = ctk.CTkCheckBox(
+            options_row, text="Index", variable=self.index_search_var,
+            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        self.cb_index_search.pack(side="left", padx=(10, 0))
+        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
 
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
@@ -443,14 +451,6 @@ class BuildMixin:
         )
         self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
         Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
-
-        self.index_search_var = ctk.StringVar(value="off")
-        self.cb_index_search = ctk.CTkCheckBox(
-            options_row, text="Index", variable=self.index_search_var,
-            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
-        )
-        self.cb_index_search.pack(side="left", padx=(15, 0))
-        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
 
 
         Tooltip(self.search_entry, "Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
