@@ -1812,7 +1812,7 @@ peekdocs provides several ways to clean up after a search session:
 
 | Feature | Where | What it does | When |
 |---------|-------|-------------|------|
-| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*` and `peekdocs_suite_results.*` | Automatically when you close peekdocs |
+| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
 | **Delete Everything Now** | Main screen (report row) | Deletes result files and the search index, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |

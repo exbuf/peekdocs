@@ -160,6 +160,15 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                             os.remove(os.path.join(folder, fname))
                         except OSError:
                             pass
+            # Delete search index — contains extracted text of all indexed files
+            if search_folder and os.path.isdir(search_folder):
+                for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                    try:
+                        idx_path = os.path.join(search_folder, idx_file)
+                        if os.path.exists(idx_path):
+                            os.remove(idx_path)
+                    except OSError:
+                        pass
         if getattr(self, "clear_history_var", None) and self.clear_history_var.get() == "on":
             # Delete search history file
             history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
