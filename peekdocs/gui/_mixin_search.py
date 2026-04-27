@@ -177,23 +177,17 @@ class SearchMixin:
 
         od = self.output_dir_entry.get().strip()
         self.results_dir = od if od else folder
-        # Block if the output folder is inside a cloud-synced directory.
+        # Auto-redirect to a safe local folder if output dir is cloud-synced.
         from peekdocs.gui._helpers import check_cloud_folder, get_safe_output_dir
+        self._cloud_redirected = False
         cloud_warning = check_cloud_folder(self.results_dir)
         if cloud_warning:
-            from tkinter import messagebox
-            if messagebox.askyesno("Cloud Folder Detected", cloud_warning):
-                safe_dir = get_safe_output_dir()
-                self.results_dir = safe_dir
-                self.output_dir_entry.delete(0, "end")
-                self.output_dir_entry.insert(0, safe_dir)
-                self._save_ui_preference("output_dir", safe_dir)
-                self.status_label.configure(
-                    text=f"Reports will be saved to {safe_dir}",
-                    text_color=("blue", "#66BBFF"),
-                )
-            else:
-                return
+            safe_dir = get_safe_output_dir()
+            self.results_dir = safe_dir
+            self.output_dir_entry.delete(0, "end")
+            self.output_dir_entry.insert(0, safe_dir)
+            self._save_ui_preference("output_dir", safe_dir)
+            self._cloud_redirected = True
         # Remove stale output files for formats not requested (skip when timestamps are on)
         if not self._last_ts_suffix:
             if self.output_csv_var.get() != "on":
@@ -635,6 +629,8 @@ class SearchMixin:
                 status_text += f"  [{specific}]"
             if _skip_count:
                 status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
+            if getattr(self, "_cloud_redirected", False):
+                status_text += f"  Reports saved to {self.results_dir} (cloud folder detected)"
             self.status_label.configure(
                 text=status_text,
                 text_color=("blue", "#66BBFF"),

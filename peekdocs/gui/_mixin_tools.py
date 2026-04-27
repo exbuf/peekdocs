@@ -5646,15 +5646,11 @@ class ToolsMixin:
                     "stdout": stdout,
                 })
 
-            # Block if the output folder is inside a cloud-synced directory.
+            # Auto-redirect to a safe local folder if output dir is cloud-synced.
             from peekdocs.gui._helpers import check_cloud_folder, get_safe_output_dir
             cloud_warning = check_cloud_folder(folder)
             if cloud_warning:
-                from tkinter import messagebox
-                if messagebox.askyesno("Cloud Folder Detected", cloud_warning):
-                    folder = get_safe_output_dir()
-                else:
-                    return
+                folder = get_safe_output_dir()
 
             # Generate combined suite reports
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
