@@ -5653,6 +5653,13 @@ class ToolsMixin:
                 folder = get_safe_output_dir()
 
             # Generate combined suite reports
+            # Set restrictive file permissions if enabled
+            import peekdocs.reporter as _reporter_mod
+            _reporter_mod.restrict_permissions = (
+                getattr(self, "restrict_permissions_var", None)
+                and self.restrict_permissions_var.get() == "on"
+            )
+
             txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
             docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
             _fmts = suite_formats or {}

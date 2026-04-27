@@ -57,6 +57,7 @@ class DataMixin:
         settings["output_html"] = (self.output_html_var.get() == "on")
         settings["delete_reports_on_close"] = (self.delete_reports_var.get() == "on")
         settings["clear_history_on_close"] = (self.clear_history_var.get() == "on")
+        settings["restrict_permissions"] = (self.restrict_permissions_var.get() == "on")
         settings["inverse"] = (self.inverse_var.get() == "on")
         settings["expression"] = (self.expression_var.get() == "on")
         settings["whole_word"] = (self.whole_word_var.get() == "on")
@@ -188,6 +189,7 @@ class DataMixin:
         self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
         self.delete_reports_var.set("on" if config.get("delete_reports_on_close", False) else "off")
         self.clear_history_var.set("on" if config.get("clear_history_on_close", False) else "off")
+        self.restrict_permissions_var.set("on" if config.get("restrict_permissions", False) else "off")
         # Clear and set entry fields
         self.cores_entry.delete(0, "end")
         if "cores" in config:

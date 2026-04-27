@@ -144,7 +144,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "pii_scan_custom_enabled", "pii_scan_custom2_enabled", "delete_reports_on_close", "clear_history_on_close"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "pii_scan_custom_enabled", "pii_scan_custom2_enabled", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "pii_scan_folder", "assistant_history", "pii_scan_custom_name", "pii_scan_custom_regex", "pii_scan_custom_severity", "pii_scan_custom2_name", "pii_scan_custom2_regex", "pii_scan_custom2_severity"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -1075,6 +1075,10 @@ def _main_inner(argv=None):
     docx_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.docx")
 
     idx_meta = index_status(cwd) if use_index else None
+
+    # Set restrictive file permissions if enabled in config
+    import peekdocs.reporter as _reporter_mod
+    _reporter_mod.restrict_permissions = _load_config().get("restrict_permissions", False)
 
     total_bytes, size_str = write_txt_report(
         output_path, matches, all_files, search_terms, command_str,

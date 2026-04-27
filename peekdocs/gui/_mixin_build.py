@@ -846,7 +846,14 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
-        cb_clear_hist.grid(row=1, column=4, columnspan=2, padx=(0, 0), pady=(4, 0), sticky="w")
+        cb_clear_hist.grid(row=1, column=4, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        self.restrict_permissions_var = ctk.StringVar(value="off")
+        cb_restrict = ctk.CTkCheckBox(
+            output_frame, text="Restrict File Permissions", variable=self.restrict_permissions_var,
+            onvalue="on", offvalue="off",
+            command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
+        )
+        cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
 
         # Row 10: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -910,6 +917,7 @@ class BuildMixin:
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
         Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
         Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If you searched for a specific name, SSN, account number, or any sensitive term, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings")
+        Tooltip(cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML")
 
         # Note about saving
         # Note above bottom buttons

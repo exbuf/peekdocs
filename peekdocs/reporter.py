@@ -12,12 +12,20 @@ from copy import deepcopy
 from datetime import datetime
 
 
+# Module-level flag — when True, report files are set to owner-only
+# read/write (chmod 600) after creation.  The GUI sets this based on
+# the "Restrict file permissions" checkbox.
+restrict_permissions = False
+
+
 def _restrict_file_permissions(filepath):
     """Set owner-only read/write permissions on a file (Unix/macOS).
 
-    On Windows this is a no-op — NTFS permissions are managed differently
-    and default to the user's own profile, which is already restrictive.
+    Only applies when ``restrict_permissions`` is True.  On Windows
+    this is always a no-op — NTFS permissions are managed differently.
     """
+    if not restrict_permissions:
+        return
     if sys.platform != "win32":
         try:
             os.chmod(filepath, stat.S_IRUSR | stat.S_IWUSR)
