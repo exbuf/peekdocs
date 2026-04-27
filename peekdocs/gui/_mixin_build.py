@@ -541,7 +541,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=34),
         )
         self._search_wiz_btn.pack(side="left", padx=(20, 0))
-        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed")
+        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
 
         # Suites button — next to Wizard
         self._suites_btn = ctk.CTkButton(
@@ -555,7 +555,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._suites_btn.pack(side="left", padx=(10, 0))
-        Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click")
+        Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
 
         # PII Scan — green button outside the enclosure
         self._pii_scan_btn = ctk.CTkButton(
