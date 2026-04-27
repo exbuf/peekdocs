@@ -188,6 +188,9 @@ class SearchMixin:
             self.output_dir_entry.insert(0, safe_dir)
             self._save_ui_preference("output_dir", safe_dir)
             self._cloud_redirected = True
+        # Track all folders used this session for Delete on Close
+        self._searched_folders.add(self.results_dir)
+        self._searched_folders.add(folder)
         # Remove stale output files for formats not requested (skip when timestamps are on)
         if not self._last_ts_suffix:
             if self.output_csv_var.get() != "on":

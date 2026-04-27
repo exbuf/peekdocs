@@ -57,6 +57,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         except Exception:
             self._recent_searches = []
         self._excluded_files = []
+        self._searched_folders = set()  # track all folders searched this session
         self.advanced_visible = False
         self.elapsed_timer_id = None
         self.search_start_time = None
@@ -142,7 +143,9 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
     def destroy(self):
         """Override destroy to optionally delete report files and clear history on close."""
         if getattr(self, "delete_reports_var", None) and self.delete_reports_var.get() == "on":
-            folders_to_clean = set()
+            # Collect all folders that may contain peekdocs files:
+            # every folder searched this session, plus current state and safe dir.
+            folders_to_clean = set(getattr(self, "_searched_folders", set()))
             results_dir = getattr(self, "results_dir", None)
             if results_dir and os.path.isdir(results_dir):
                 folders_to_clean.add(results_dir)
@@ -153,6 +156,8 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             if os.path.isdir(safe_dir):
                 folders_to_clean.add(safe_dir)
             for folder in folders_to_clean:
+                if not os.path.isdir(folder):
+                    continue
                 for fname in os.listdir(folder):
                     if (fname.startswith("peekdocs_results") or
                             fname.startswith("peekdocs_suite_results")):
@@ -160,11 +165,10 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                             os.remove(os.path.join(folder, fname))
                         except OSError:
                             pass
-            # Delete search index — contains extracted text of all indexed files
-            if search_folder and os.path.isdir(search_folder):
+                # Delete search index in each searched folder
                 for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
                     try:
-                        idx_path = os.path.join(search_folder, idx_file)
+                        idx_path = os.path.join(folder, idx_file)
                         if os.path.exists(idx_path):
                             os.remove(idx_path)
                     except OSError:
