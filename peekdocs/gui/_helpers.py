@@ -49,53 +49,36 @@ def safe_open_file(filepath):
 _DOCX_WARNING = (
     "Your default .docx application was blocked as it may upload "
     "your data to the cloud (Google Docs uploads to Google servers; "
-    "Apple Pages may sync to iCloud). peekdocs blocks all reports "
-    "— PII scan results and regular search results alike — from "
-    "opening in any application that may upload your data.\n\n"
+    "Apple Pages may sync to iCloud). peekdocs blocks .docx files "
+    "from opening in any application that may upload your data.\n\n"
     "Please install Microsoft Word or LibreOffice (free) to view "
-    ".docx reports. You can also enable HTML output in Advanced Search "
-    "Options and use the HTML report button — HTML files open in your "
-    "web browser directly from your local disk, with no uploading or "
-    "cloud access involved."
+    ".docx files."
 )
 
 _PDF_WARNING = (
     "Your default PDF application was blocked as it may be a web "
     "browser that syncs data to the cloud, or a cloud-based PDF "
-    "viewer. peekdocs blocks "
-    "all reports — PII scan results and regular search results alike "
-    "— from opening in any application that may upload your data.\n\n"
+    "viewer. peekdocs blocks PDF files from opening in any "
+    "application that may upload your data.\n\n"
     "Please install Adobe Acrobat Reader (free) or another local "
-    "PDF viewer. You can also enable HTML output in Advanced Search "
-    "Options and use the HTML report button — HTML files open in your "
-    "web browser directly from your local disk, with no uploading or "
-    "cloud access involved."
+    "PDF viewer."
 )
 
 _CSV_WARNING = (
     "Your default CSV application was blocked as it may be Google "
     "Sheets or another cloud spreadsheet that uploads your data. "
-    "peekdocs blocks all "
-    "reports — PII scan results and regular search results alike — "
-    "from opening in any application that may upload your data.\n\n"
+    "peekdocs blocks CSV files from opening in any application "
+    "that may upload your data.\n\n"
     "Please install Microsoft Excel or LibreOffice Calc (free) to "
-    "view CSV reports. You can also enable HTML output in Advanced "
-    "Search Options and use the HTML report button — HTML files open "
-    "in your web browser directly from your local disk, with no "
-    "uploading or cloud access involved."
+    "view CSV files."
 )
 
 _JSON_WARNING = (
     "Your default JSON application was blocked as it may be a "
-    "cloud-based editor that uploads your data. peekdocs blocks all "
-    "reports — PII scan "
-    "results and regular search results alike — from opening in any "
-    "application that may upload your data.\n\n"
-    "Please install a local text editor to view JSON reports. You "
-    "can also enable HTML output in Advanced Search Options and use "
-    "the HTML report button — HTML files open in your web browser "
-    "directly from your local disk, with no uploading or cloud "
-    "access involved."
+    "cloud-based editor that uploads your data. peekdocs blocks "
+    "JSON files from opening in any application that may upload "
+    "your data.\n\n"
+    "Please install a local text editor to view JSON files."
 )
 
 
