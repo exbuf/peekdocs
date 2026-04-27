@@ -2590,7 +2590,7 @@ class ToolsMixin:
             command=lambda: (canvas.unbind_all("<MouseWheel>"), popup.destroy()),
         )
         _close_btn.pack(pady=(0, 10))
-        Tooltip(_close_btn, "Closing this window permanently deletes all PII scan data — by design, nothing is saved to disk. You can always re-run the PII Scan to see the results again")
+        Tooltip(_close_btn, "Closing this window permanently deletes all PII scan data — by design, nothing is saved to disk. You can always re-run the PII Scan to see the results again", anchor="above")
 
         self._apply_dark_theme(popup)
 
