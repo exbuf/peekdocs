@@ -1815,11 +1815,11 @@ peekdocs provides several ways to clean up after a search session:
 | **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*` and `peekdocs_suite_results.*` | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
-| **Delete Everything Now** | Tools menu | Deletes result files, clears preview, and wipes search history — all at once | Immediately, after confirmation |
+| **Delete Everything Now** | Main screen (report row) | Deletes result files and the search index, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All methods leave your saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, and indexes untouched. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+All methods except **Delete Everything Now** leave the search index untouched. **Delete Everything Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
 
 ### Sensitive search term warning
 

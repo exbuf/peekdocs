@@ -921,11 +921,12 @@ class SearchMixin:
             "Delete Everything Now",
             "This will immediately:\n\n"
             "\u2022 Delete all search result files (peekdocs_results.*, peekdocs_suite_results.*)\n"
+            "\u2022 Delete the search index (.peekdocs.db) — contains extracted text of indexed files\n"
             "\u2022 Clear the Results Preview\n"
             "\u2022 Clear your search history and recent searches\n"
             "\u2022 Clear the search terms and folder fields\n\n"
             "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
-            "settings, and indexes are not affected.\n\n"
+            "and settings are not affected.\n\n"
             "Continue?",
         ):
             return
@@ -944,6 +945,17 @@ class SearchMixin:
                         deleted += 1
                     except OSError:
                         pass
+
+        # Delete search index — contains extracted text of all indexed files
+        if folder and os.path.isdir(folder):
+            for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                idx_path = os.path.join(folder, idx_file)
+                try:
+                    if os.path.exists(idx_path):
+                        os.remove(idx_path)
+                        deleted += 1
+                except OSError:
+                    pass
 
         # Clear preview
         self._clear_preview()
