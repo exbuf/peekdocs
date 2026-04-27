@@ -514,6 +514,16 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
 | **How is it installed?** | Via PyPI (`pipx install peekdocs`) — the standard Python package registry. No unsigned executables required. |
 
+### Known limitations (what peekdocs cannot control)
+
+peekdocs takes extensive steps to protect user data, but the following are outside the application's control. We document them here so IT teams can make informed decisions:
+
+- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
+- **Report file permissions.** Report files are created with default OS permissions. On a multi-user machine, other users may be able to read them depending on the folder's permission settings. peekdocs does not set restrictive permissions on report files (the config file `~/.peekdocsrc` is set to owner-only read/write).
+- **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
+- **Process memory.** Sensitive data found during a PII Scan or search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
+- **Error log file paths.** The error log (`peekdocs_errors.log`) contains file paths of documents that could not be read. This reveals which folders and files were being searched, though not the content of those files.
+
 ## Author
 
 Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer. peekdocs exists to make powerful document search accessible to everyone, for free — no paywalls, no feature limits, no catch. Developed with extensive use of [Claude Code](https://claude.ai/code) by Anthropic.

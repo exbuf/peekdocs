@@ -1825,6 +1825,16 @@ All methods except **Delete Everything Now** leave the search index untouched. *
 
 If you type a search term that looks like a Social Security number, credit card number, or Tax ID / EIN, peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk, and suggests using the PII Scan instead (which shows results on screen only and never writes a file). You can choose to continue or cancel.
 
+### Known limitations (what peekdocs cannot control)
+
+peekdocs takes extensive steps to protect user data (safe app opening, cloud folder detection, PII Scan on-screen only, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, sensitive search term warnings). The following are outside the application's control:
+
+- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
+- **Report file permissions.** Report files are created with default OS permissions. On a multi-user machine, other users may be able to read them depending on the folder's permission settings. peekdocs does not set restrictive permissions on report files (the config file `~/.peekdocsrc` is set to owner-only read/write).
+- **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
+- **Process memory.** Sensitive data found during a PII Scan or search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
+- **Error log file paths.** The error log (`peekdocs_errors.log`) contains file paths of documents that could not be read. This reveals which folders and files were being searched, though not the content of those files.
+
 ## Limits and Constraints
 
 **peekdocs itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. The only constraints are your computer's available memory, disk space, and processing power.
