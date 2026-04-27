@@ -908,7 +908,7 @@ class BuildMixin:
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
-        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Check it after reviewing your results to clean up, or leave it unchecked to keep the files. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep. You can also delete reports manually at any time: use Clear Files in the Tools menu to choose exactly which peekdocs files to remove")
+        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
         Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. This removes the log of what you searched for — important if your search terms included sensitive data like names, SSNs, or account numbers. History file: ~/.peekdocs_history.json. Recent searches: stored in ~/.peekdocsrc")
 
         # Note about saving
@@ -1182,7 +1182,7 @@ class BuildMixin:
             command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
             font=ctk.CTkFont(size=12),
         )
-        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
+        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
 
         self._delete_everything_btn = ctk.CTkButton(
             self.report_frame, text="\U0001f6e1 Delete Everything Now", width=170,
@@ -1190,7 +1190,7 @@ class BuildMixin:
             fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,
         )
-        Tooltip(self._delete_everything_btn, "Immediately delete all result files and the search index, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Protects sensitive data from shoulder surfing and leaves nothing on screen or on disk for anyone else to find. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected", anchor="above")
+        Tooltip(self._delete_everything_btn, "Immediately delete all result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Protects sensitive data from shoulder surfing and leaves nothing on screen or on disk for anyone else to find. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected", anchor="above")
 
 
 
