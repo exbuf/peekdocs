@@ -142,10 +142,17 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
     def destroy(self):
         """Override destroy to optionally delete report files and clear history on close."""
         if getattr(self, "delete_reports_var", None) and self.delete_reports_var.get() == "on":
-            folder = getattr(self, "results_dir", None) or (
-                self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
-            )
-            if folder and os.path.isdir(folder):
+            folders_to_clean = set()
+            results_dir = getattr(self, "results_dir", None)
+            if results_dir and os.path.isdir(results_dir):
+                folders_to_clean.add(results_dir)
+            search_folder = self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
+            if search_folder and os.path.isdir(search_folder):
+                folders_to_clean.add(search_folder)
+            safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
+            if os.path.isdir(safe_dir):
+                folders_to_clean.add(safe_dir)
+            for folder in folders_to_clean:
                 for fname in os.listdir(folder):
                     if (fname.startswith("peekdocs_results") or
                             fname.startswith("peekdocs_suite_results")):
