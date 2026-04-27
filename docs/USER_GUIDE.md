@@ -986,6 +986,8 @@ The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual 
    - Save the file
 
    (LibreOffice can show line numbers via **Tools → Line Numbering → Show numbering**, but these may not match peekdocs's paragraph-based numbering for Word docs and PDFs.)
+
+   **Note: LibreOffice and Google Docs compatibility.** Files created in Google Docs and downloaded as `.docx` may display corrupted or garbled text in LibreOffice. This is a known compatibility issue between Google Docs and LibreOffice — not a peekdocs problem. peekdocs extracts text using python-docx, not LibreOffice, so **View Text in peekdocs may show the text correctly even when LibreOffice cannot display it.** If you need to edit a Google Docs file in LibreOffice, try re-exporting from Google Docs as OpenDocument format (.odt) instead of .docx — this is LibreOffice's native format and renders correctly. Alternatively, re-export as PDF if you only need to read, not edit.
 10. After editing, re-run the PII Scan to verify the sensitive data has been removed.
 10. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
 
