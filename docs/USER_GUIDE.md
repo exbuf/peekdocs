@@ -1800,7 +1800,7 @@ You can check or uncheck this at any time. It only matters at the moment you clo
 
 If you change your mind, uncheck the box before closing and the files are kept.
 
-**What gets deleted:** `peekdocs_results.*` and `peekdocs_suite_results.*` in the search folder.
+**What gets deleted:** `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session — not just the last one. If you searched three different folders, all three are cleaned.
 
 **What is never deleted:** Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, indexes, and error logs. These are files you explicitly chose to keep or that peekdocs needs to function.
 
@@ -1812,10 +1812,10 @@ peekdocs provides several ways to clean up after a search session:
 
 | Feature | Where | What it does | When |
 |---------|-------|-------------|------|
-| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) | Automatically when you close peekdocs |
+| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
-| **Delete Everything Now** | Main screen (report row) | Deletes result files and the search index, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
+| **Delete Everything Now** | Main screen (report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
