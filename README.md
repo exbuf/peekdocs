@@ -514,6 +514,39 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
 | **How is it installed?** | Via PyPI (`pipx install peekdocs`) — the standard Python package registry. No unsigned executables required. |
 
+### Data architecture
+
+peekdocs stores data in three locations. No data is stored anywhere else — no registry, no hidden folders, no cloud.
+
+**Per-folder files** (in each search folder, or redirected to `~/peekdocs_reports` for cloud-synced folders):
+
+| File | Contains | Sensitive? | Cleanup |
+|------|----------|-----------|---------|
+| `peekdocs_results.*` (.txt, .docx, .csv, .json, .pdf, .html) | Search results with matched text | Yes — contains text from your documents | Delete on Close, Delete Everything Now, Clear Files |
+| `peekdocs_suite_results.*` | Combined suite search results | Yes | Same as above |
+| `peekdocs_report_*` | Named saved reports | Yes | Clear Files only (user must explicitly choose) |
+| `peekdocs_accumulated_*` | Appended multi-search reports | Yes | Clear Files only |
+| `.peekdocs.db` (.db, .db-wal, .db-shm) | Search index — extracted text of every indexed file | **Yes — full document text** | Delete on Close, Delete Everything Now, Clear Files |
+| `.peekdocs_collection.json` | Saved search names and settings | No — contains settings, not document content | Clear Files only |
+| `peekdocs_errors.log` | File paths that couldn't be read | Low — paths only, no content | Clear Files |
+
+**Home directory** (`~`):
+
+| File | Contains | Sensitive? | Cleanup |
+|------|----------|-----------|---------|
+| `~/.peekdocsrc` | Settings, recent searches, last search terms and folder | Moderate — reveals what was searched and where | Clear History on Close clears search terms, folder, and recent searches |
+| `~/.peekdocs_history.json` | Timestamped log of past searches | Moderate — reveals search activity | Clear History on Close, Delete Everything Now |
+| `~/.peekdocs_bookmarks.json` | Pinned file paths | Low — paths only | Clear Files |
+
+**In memory only** (never written to disk):
+
+| Data | Contains | Cleanup |
+|------|----------|---------|
+| PII Scan results | SSNs, credit cards, passwords found in files | Gone when the Sensitive Data Scan Results window is closed |
+| Results Preview | Matched text displayed on screen | Clear Preview button, or close the app |
+
+All peekdocs-created files use the `peekdocs` prefix or `.peekdocs` prefix, making them easy to identify and audit. peekdocs never writes to system directories, the registry, or any location outside the search folder and home directory.
+
 ### Known limitations (what peekdocs cannot control)
 
 peekdocs takes extensive steps to protect user data, but the following are outside the application's control. We document them here so IT teams can make informed decisions:
