@@ -1227,7 +1227,7 @@ class BuildMixin:
         idx_header.pack(fill="x", padx=5, pady=(0, 5))
         ctk.CTkLabel(
             idx_header,
-            text="Build a search index for faster repeated searches. All indexes are recursive — every subfolder is included automatically, regardless of the Recursive checkbox setting.",
+            text="Build a search index for faster repeated searches.\nAll indexes are recursive — every subfolder is included automatically,\nregardless of the Recursive checkbox setting.",
             font=ctk.CTkFont(size=11),
             text_color=("gray50", "gray50"),
         ).pack(side="left")
