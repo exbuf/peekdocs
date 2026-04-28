@@ -369,7 +369,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
         )
         self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
-        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options")
+        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting")
 
         self.whole_word_var = ctk.StringVar(value="on")
         self._search_whole_word_cb = ctk.CTkCheckBox(
@@ -410,7 +410,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
-        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
+        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
 
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
