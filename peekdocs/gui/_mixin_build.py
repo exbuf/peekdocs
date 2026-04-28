@@ -1346,6 +1346,19 @@ class BuildMixin:
         left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="w")
 
+        self._readme_button = ctk.CTkButton(
+            left_frame,
+            text="README",
+            width=70,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=lambda: webbrowser.open("https://github.com/exbuf/peekdocs/tree/main"),
+            font=ctk.CTkFont(size=13),
+        )
+        self._readme_button.pack(side="left")
+        Tooltip(self._readme_button, "Open the peekdocs README on GitHub — features, installation, security, and more", anchor="above")
+
         self.help_button = ctk.CTkButton(
             left_frame,
             text="User Guide",
