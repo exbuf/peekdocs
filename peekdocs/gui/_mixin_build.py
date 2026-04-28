@@ -298,29 +298,6 @@ class BuildMixin:
         self.search_button.pack(side="left", padx=(0, 10))
         Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
-        # Container for matched/excluded buttons — sits between Search and PII Scan
-        self._search_info_frame = ctk.CTkFrame(btn_frame, fg_color="transparent")
-        self._search_info_frame.pack(side="left", padx=(0, 0))
-
-        self._matched_files_link = ctk.CTkButton(
-            self._search_info_frame, text="", font=ctk.CTkFont(size=10),
-            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
-            cursor="hand2", height=22, width=120,
-            command=self._show_matched_files_popup,
-        )
-        self._matched_files_link.pack(side="left", padx=(0, 5))
-        self._matched_files_link.pack_forget()  # Hidden until matches found
-        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
-
-        self._excluded_files_btn = ctk.CTkButton(
-            self._search_info_frame, text="", font=ctk.CTkFont(size=10),
-            fg_color="#666666", hover_color="#555555", text_color="white",
-            cursor="hand2", height=22, width=120,
-            command=self._show_excluded_files_popup,
-        )
-        self._excluded_files_btn.pack(side="left", padx=(0, 5))
-        self._excluded_files_btn.pack_forget()  # Hidden until search completes
-        Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior peekdocs output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number peekdocs searched")
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
         options_group = ctk.CTkFrame(
@@ -1017,8 +994,25 @@ class BuildMixin:
         )
         self.status_label.pack(side="left")
 
-        # _matched_files_link and _excluded_files_btn are created in btn_frame
-        # (row 3, between Search and PII Scan) — see _build_search_row().
+        self._matched_files_link = ctk.CTkButton(
+            status_row, text="", font=ctk.CTkFont(size=10),
+            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
+            cursor="hand2", height=22, width=120,
+            command=self._show_matched_files_popup,
+        )
+        self._matched_files_link.pack(side="left", padx=(5, 0))
+        self._matched_files_link.pack_forget()  # Hidden until matches found
+        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
+
+        self._excluded_files_btn = ctk.CTkButton(
+            status_row, text="", font=ctk.CTkFont(size=10),
+            fg_color="#666666", hover_color="#555555", text_color="white",
+            cursor="hand2", height=22, width=120,
+            command=self._show_excluded_files_popup,
+        )
+        self._excluded_files_btn.pack(side="left", padx=(5, 0))
+        self._excluded_files_btn.pack_forget()  # Hidden until search completes
+        Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior peekdocs output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number peekdocs searched")
 
 
         self.matched_files = []
