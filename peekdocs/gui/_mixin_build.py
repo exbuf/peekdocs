@@ -298,6 +298,16 @@ class BuildMixin:
         self.search_button.pack(side="left", padx=(0, 10))
         Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
+        self._matched_files_link = ctk.CTkButton(
+            btn_frame, text="", font=ctk.CTkFont(size=10),
+            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
+            cursor="hand2", height=22, width=120,
+            command=self._show_matched_files_popup,
+        )
+        self._matched_files_link.pack(side="left", padx=(0, 5))
+        self._matched_files_link.pack_forget()  # Hidden until matches found
+        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
+
         self._excluded_files_btn = ctk.CTkButton(
             btn_frame, text="", font=ctk.CTkFont(size=10),
             fg_color="#666666", hover_color="#555555", text_color="white",
@@ -1003,18 +1013,8 @@ class BuildMixin:
         )
         self.status_label.pack(side="left")
 
-        self._matched_files_link = ctk.CTkButton(
-            status_row, text="", font=ctk.CTkFont(size=10),
-            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
-            cursor="hand2", height=22, width=120,
-            command=self._show_matched_files_popup,
-        )
-        self._matched_files_link.pack(side="left", padx=(5, 0))
-        self._matched_files_link.pack_forget()  # Hidden until matches found
-        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
-
-        # _excluded_files_btn is created in btn_frame (row 3) between Search and PII Scan
-        # — see _build_search_row(). Placeholder reference set here for code that shows/hides it.
+        # _matched_files_link and _excluded_files_btn are created in btn_frame
+        # (row 3, between Search and PII Scan) — see _build_search_row().
 
 
         self.matched_files = []
