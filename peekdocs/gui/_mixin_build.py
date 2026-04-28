@@ -410,7 +410,7 @@ class BuildMixin:
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
-        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu", anchor="left")
+        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
 
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
