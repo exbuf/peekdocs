@@ -2404,7 +2404,7 @@ class ToolsMixin:
             self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
         if hasattr(self, "_pii_scan_btn"):
             self._pii_scan_btn.configure(
-                state="normal", fg_color="#76BA1B", hover_color="#5E9516",
+                state="normal", fg_color="#0D9488", hover_color="#0B7A70",
                 text_color="white", text="\U0001f50d PII Scan",
                 command=self._start_sensitive_scan,
             )
@@ -2420,7 +2420,7 @@ class ToolsMixin:
             self.sensitive_scan_btn.configure(state="normal", text="\u25b6 PII Scan")
         if hasattr(self, "_pii_scan_btn"):
             self._pii_scan_btn.configure(
-                state="normal", fg_color="#76BA1B", hover_color="#5E9516",
+                state="normal", fg_color="#0D9488", hover_color="#0B7A70",
                 text_color="white", text="\U0001f50d PII Scan",
                 command=self._start_sensitive_scan,
             )

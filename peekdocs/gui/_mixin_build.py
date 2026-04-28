@@ -558,11 +558,11 @@ class BuildMixin:
         self._suites_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
 
-        # PII Scan — green button outside the enclosure
+        # PII Scan — teal button (distinct from green Search, signals privacy)
         self._pii_scan_btn = ctk.CTkButton(
             self._run_search_frame,
             text="\U0001f50d PII Scan", width=140, height=44,
-            fg_color="#76BA1B", hover_color="#5E9516",
+            fg_color="#0D9488", hover_color="#0B7A70",
             text_color="white",
             command=self._start_sensitive_scan,
             font=ctk.CTkFont(size=24, weight="bold"),
