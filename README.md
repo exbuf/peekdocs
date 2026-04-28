@@ -10,6 +10,23 @@
 >
 > Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. Nothing leaves your machine. Free. No fees, no subscriptions. (See [Report Security](#features) and [For IT and Security Teams](#for-it-and-security-teams) for details on how peekdocs actively protects your data.)
 
+```bash
+# Install
+pip install peekdocs
+
+# Search from the terminal
+peekdocs "budget" ~/Documents
+
+# Search with the GUI
+peekdocs-gui
+
+# Search from Python
+from peekdocs import search
+results = search(["budget"], directory="~/Documents")
+for match in results.matches:
+    print(f"{match.filename}:{match.line_number} {match.text}")
+```
+
 **Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Author](#author) · [License](#license)
 
 ## Who Is It For?
