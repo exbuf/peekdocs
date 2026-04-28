@@ -2,7 +2,7 @@
 
 <p align="center"><b>Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private</b></p>
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) &nbsp;&nbsp; [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) &nbsp;&nbsp; [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
+[![Tests](https://github.com/exbuf/peekdocs/actions/workflows/test.yml/badge.svg)](https://github.com/exbuf/peekdocs/actions/workflows/test.yml) &nbsp;&nbsp; [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) &nbsp;&nbsp; [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) &nbsp;&nbsp; [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](docs/USER_GUIDE.md)
 
 <p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
 
@@ -299,6 +299,29 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 
 See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
+## CLI at a Glance
+
+```
+$ peekdocs -h
+Usage: peekdocs [OPTIONS] TERM [TERM ...]
+
+Search modes:
+  peekdocs term1 term2           OR search (any term matches)
+  peekdocs -a term1 term2        AND search (all terms in same line)
+  peekdocs -e "(A AND B) OR C"   Boolean expression
+  peekdocs -x "\d{3}-\d{4}"      Regex
+  peekdocs -w "budg*"            Wildcard
+  peekdocs -z budgt              Fuzzy (typo-tolerant)
+  peekdocs -W bob                Whole-word only
+  peekdocs -p 5 budget revenue   Proximity (within 5 words)
+
+Filters:  -t pdf,docx  -r (recursive)  -n draft (exclude)  -O (OCR)
+Output:   -o csv,json,pdf,html  -s name (save)  --timestamp
+Index:    --index (build)  --index-refresh  --index-clear
+```
+
+Run `peekdocs -h` for the full list of flags and options.
+
 ## Quick Start
 
 ### Terminal
@@ -583,7 +606,9 @@ peekdocs takes extensive steps to protect user data, but the following are outsi
 
 ## Author
 
-Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer. peekdocs exists to make powerful document search accessible to everyone, for free — no paywalls, no feature limits, no catch. Developed with extensive use of [Claude Code](https://claude.ai/code) by Anthropic.
+Built by [Robert D. Schoening](https://robertdschoening.com) — retired electrical engineer, former IBM engineer, US software patent holder, and solo developer. Developed with extensive use of [Claude Code](https://claude.ai/code) by Anthropic.
+
+**Why I built this.** After retiring, I had decades of personal files — tax returns, medical records, insurance policies, old project documents — scattered across folders with no easy way to search them all at once. The tools that exist are either cloud-based (upload my files to someone's server? No thanks), expensive, or limited to one file type. I wanted something that searches everything, stays offline, and doesn't cost anything. So I built it. Then I realized if I needed this, other people do too. peekdocs is the tool I wanted to exist — so I made it exist, and gave it away.
 
 ## Disclaimer
 

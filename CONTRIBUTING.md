@@ -1,77 +1,68 @@
 # Contributing to peekdocs
 
-Thank you for your interest in contributing to peekdocs!
+Thanks for your interest in peekdocs!
 
-## Project Model
+## Bug Reports and Feature Requests
 
-peekdocs is MIT-licensed and free. Every feature described in the documentation works without paying anything — there's no artificial limit on file count, search count, suite count, or template count. The free version is not crippled, and the existing features will remain free.
+The best way to contribute is to open an issue on GitHub:
 
-If your organization needs help designing custom compliance templates for a specific regulatory environment, feel free to contact the author ([Robert D. Schoening](https://robertdschoening.com)).
+- **Bug reports:** Include your OS, Python version, what you did, what you expected, and what happened. Run `peekdocs --check` and include the output. If `peekdocs_errors.log` exists, include that too.
+- **Feature requests:** Describe the use case — what problem would the feature solve?
 
-## Reporting Bugs
+Check the [FAQ and Troubleshooting](docs/TROUBLESHOOTING.md) first — your issue may already be covered. Search [existing issues](https://github.com/exbuf/peekdocs/issues) to avoid duplicates.
 
-1. Check the [FAQ and Troubleshooting](docs/TROUBLESHOOTING.md) first — your issue may already be covered
-2. Search [existing issues](https://github.com/exbuf/peekdocs/issues) to avoid duplicates
-3. Open a new issue with:
-   - What you expected to happen
-   - What actually happened
-   - Steps to reproduce
-   - Your OS (Windows/macOS/Linux) and Python version (`python3 --version`)
-   - The contents of `peekdocs_errors.log` if it exists
-   - The output of `peekdocs --check`
+## Pull Requests
 
-## Suggesting Features
+PRs are welcome, but please open an issue first to discuss the change. This avoids duplicate work and ensures the change fits the project's direction.
 
-Open an issue with the "enhancement" label. Describe:
-- What you want to do
-- Why the current tool doesn't support it
-- How you'd expect it to work
+Before submitting a PR:
 
-## Submitting Code
+1. Run the test suite: `pytest tests/ -v` (all 669+ tests should pass)
+2. Keep changes focused — one fix or feature per PR
+3. Follow the existing code style (no linters enforced, just be consistent)
+4. Add tests for new features in `tests/`
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b my-feature`
-3. Make your changes
-4. Run the tests: `pytest tests/ -v`
-5. Ensure all tests pass (currently 550 tests)
-6. Commit with a clear message describing what and why
-7. Push and open a pull request
-
-### Code Style
-
-- Python 3.10+ with type hints where practical
-- Functions and methods have docstrings
-- Tests for new features go in `tests/`
-- Keep dependencies minimal — prefer stdlib when possible
-
-### Project Structure
-
-```
-peekdocs/
-  cli.py          — CLI entry point and argument parsing
-  gui.py          — GUI (customtkinter)
-  api.py          — Public Python API (search function)
-  scanner.py      — File discovery and text extraction
-  reporter.py     — Report generation (TXT, DOCX, CSV, JSON, PDF, suite reports)
-  indexer.py      — SQLite FTS5 search index
-  collection.py   — Saved searches and suite persistence
-  parser.py       — CLI argument parsing and config file handling
-  range_query.py  — Range query parsing and evaluation
-  expr_parser.py  — Boolean expression parser (AND, OR, NOT, parentheses)
-  compliance_templates.py — Industry starter templates for Compliance Wizard
-  email_alert.py  — Email notifications for suite auto-runs
-  constants.py    — Shared constants
-tests/            — Pytest test suite
-docs/             — Documentation (user guide, compliance guide, API, troubleshooting)
-```
-
-### Running Tests
+## Development Setup
 
 ```bash
-source venv/bin/activate
+git clone https://github.com/exbuf/peekdocs.git
+cd peekdocs
+python -m venv venv
+source venv/bin/activate    # macOS/Linux
 pip install -e .
 pytest tests/ -v
 ```
+
+## Project Structure
+
+```
+peekdocs/
+  cli.py              — CLI entry point and argument parsing
+  api.py              — Public Python API (search function)
+  scanner.py          — File discovery and text extraction (86 file types)
+  reporter.py         — Report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
+  indexer.py          — SQLite FTS5 search index
+  sensitive_patterns.py — PII scan regex patterns
+  expr_parser.py      — Boolean expression parser (AND, OR, NOT, parentheses)
+  constants.py        — Shared constants
+  gui/                — GUI package (customtkinter), split into mixins:
+    _app.py           — Main application class
+    _helpers.py       — Free functions (safe file opening, cloud detection)
+    _mixin_build.py   — UI construction
+    _mixin_search.py  — Search execution and results
+    _mixin_tools.py   — PII scan, wizard, help windows
+    _mixin_data.py    — Settings, history, bookmarks
+tests/                — Pytest test suite (669+ tests)
+docs/                 — Documentation (user guide, API, troubleshooting)
+```
+
+## Project Model
+
+peekdocs is MIT-licensed and free. Every feature works without paying anything — no artificial limits, no feature gating. The free version is not crippled.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
 ## Questions?
 
