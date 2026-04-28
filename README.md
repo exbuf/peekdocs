@@ -19,7 +19,9 @@
 
 ```bash
 # Install
-pip install peekdocs
+pipx install peekdocs    # recommended (isolated)
+# — or —
+pip install peekdocs     # if you prefer pip
 
 # Search from the terminal
 peekdocs "budget" ~/Documents
