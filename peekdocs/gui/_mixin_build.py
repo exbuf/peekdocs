@@ -1212,7 +1212,7 @@ class BuildMixin:
         self.index_window = ctk.CTkToplevel(self)
         self.index_window.title("Indexes")
         self.index_window.after(100, lambda: self.index_window.title("Indexes"))
-        self.index_window.geometry("650x270")
+        self.index_window.geometry("580x310")
         self.index_window.resizable(True, True)
         self.index_window.protocol("WM_DELETE_WINDOW", self._close_index_window)
         self.index_window.withdraw()
