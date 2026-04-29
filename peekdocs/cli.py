@@ -37,9 +37,6 @@ BANNER_TOP = (
     '\npeekdocs — search Word docs, PDFs, spreadsheets, emails, source code, and 80+ other file types, all at once, all offline.\n'
     'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
-    'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
-    '       Navigate to the folder you want to search, then run peekdocs.\n'
-    '\n'
     'Supported file types (100+):\n'
     '  Documents:    .doc .docx .epub .html .key .md .odp .odt .pages .pdf .ppt .pptx .rst .rtf .tex\n'
     '  Spreadsheets: .csv .numbers .ods .tsv .xls .xlsx\n'
@@ -116,6 +113,9 @@ BANNER_BOTTOM = (
     '-a (AND), -n (exclude), or -p (word proximity) — those are built into expression syntax.\n'
     '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
+    '\n'
+    'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
+    '       Navigate to the folder you want to search, then run peekdocs.\n'
     '\n'
     '── Search Modes (examples) ──────────────────────────────────────\n'
     '  peekdocs term1 term2           OR search (any term matches)\n'
@@ -466,11 +466,10 @@ def _main_inner(argv=None):
     is_help = args and args[0] in ("-h", "-help", "--help")
     if not quiet:
         print(f'\npeekdocs v{VERSION}')
-        print(BANNER_TOP)
-        print(BANNER_BOTTOM)
-        print()
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+        print(BANNER_TOP)
+        print(BANNER_BOTTOM)
         print('-------------------------------------------------------------------------')
         print()
 
@@ -481,11 +480,10 @@ def _main_inner(argv=None):
     if is_help:
         if quiet:
             print(f'\npeekdocs v{VERSION}')
-            print(BANNER_TOP)
-            print(BANNER_BOTTOM)
-            print()
             print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
             print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+            print(BANNER_TOP)
+            print(BANNER_BOTTOM)
             print('-------------------------------------------------------------------------')
             print()
         print(REGEX_PATTERNS)
