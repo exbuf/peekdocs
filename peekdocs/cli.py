@@ -104,6 +104,7 @@ BANNER_BOTTOM = (
     '                       Searches all supported file types.\n'
     '                       Shows filenames and line numbers only — never the actual sensitive data.\n'
     '  --check            Verify Python, dependencies, Tesseract, and disk space\n'
+    '  --list-files       List all peekdocs-created files in the current directory\n'
     '  --clear            Delete peekdocs_results* files in the current directory\n'
     '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
     '  -c 4               Number of CPU cores to use\n'
@@ -157,6 +158,7 @@ BANNER_BOTTOM = (
     '  Cannot combine: -e (expression) with -a (AND), -n (exclude), or -p (proximity).\n'
     '\n'
     '── Cleanup ──────────────────────────────────────────────────────\n'
+    '  peekdocs --list-files          List all peekdocs-created files in the current directory\n'
     '  peekdocs --clear               Delete peekdocs_results* files in the current directory\n'
     '  peekdocs --clear-all           Delete all peekdocs output files (results, saved reports,\n'
     '                                   accumulated reports, error log, and search index)\n'
@@ -211,6 +213,7 @@ BANNER_QUICK = (
     '  Safe to pipe to a file (e.g., peekdocs --pii-scan -r > report.txt).\n'
     '\n'
     '── Cleanup ──────────────────────────────────────────────────────\n'
+    '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files\n'
     '\n'
@@ -719,6 +722,34 @@ def _main_inner(argv=None):
             print()
 
         return 0 if all_ok else 2
+
+    if args and args[0] == "--list-files":
+        cwd = os.getcwd()
+        found = []
+        for f in sorted(os.listdir(cwd)):
+            if (f.startswith("peekdocs_results") or
+                f.startswith("peekdocs_suite_results") or
+                f.startswith("peekdocs_report_") or
+                f.startswith("peekdocs_accumulated_") or
+                f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal",
+                       ".peekdocs.db-shm", ".peekdocs_collection.json")):
+                size = os.path.getsize(os.path.join(cwd, f))
+                if size >= 1_000_000:
+                    size_str = f"{size / 1_000_000:.2f} MB"
+                elif size >= 1_000:
+                    size_str = f"{size / 1_000:.2f} KB"
+                else:
+                    size_str = f"{size} bytes"
+                found.append((f, size_str))
+        if found:
+            print(f"\npeekdocs files in {cwd}:\n")
+            for f, size_str in found:
+                print(f"  {f}  ({size_str})")
+            print(f"\n{len(found)} file(s). Use --clear to delete results, --clear-all to delete everything.")
+        else:
+            print(f"\nNo peekdocs files found in {cwd}.")
+        print()
+        return 0
 
     if args and args[0] in ("--clear", "--clear-all"):
         cwd = os.getcwd()
