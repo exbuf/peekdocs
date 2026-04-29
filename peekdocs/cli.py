@@ -125,7 +125,14 @@ BANNER_BOTTOM = (
     '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
     '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
     '  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)\n'
-    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)'
+    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)\n'
+    '  peekdocs --inverse budget      Find files that do NOT contain "budget"\n'
+    '  peekdocs -n draft budget       Find "budget" but exclude lines containing "draft"\n'
+    '  peekdocs -f report.pdf budget  Search only report.pdf for "budget"\n'
+    '  peekdocs -s quarterly budget   Save a named copy of the report as peekdocs_report_quarterly\n'
+    '  peekdocs -sa archive budget    Append results to peekdocs_accumulated_archive\n'
+    '\n'
+    '  See Advanced Search Options in the GUI for the full list of search settings.'
 )
 
 REGEX_PATTERNS = (
