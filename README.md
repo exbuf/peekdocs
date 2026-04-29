@@ -110,7 +110,7 @@ for match in results.matches:
 3. Click Run Search
 4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
 
-That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster.
+That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster. For more sophisticated searches, open **Advanced Search Options** — target specific file types, add regex or Boolean expressions, filter by date or dollar ranges, set context lines, exclude terms, limit to specific files, and more. Every CLI flag is available in the GUI.
 
 ### See it in action
 
