@@ -570,6 +570,25 @@ To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --i
 
 peekdocs handles a wide range of real-world file issues automatically on all platforms:
 
+| Issue | Windows | macOS | Linux | What happens |
+|-------|:-------:|:-----:|:-----:|-------------|
+| Word/Excel lock files (`~$`) | Yes | Yes | Rare | Silently skipped |
+| System files (Thumbs.db, .DS_Store) | Yes | Yes | — | Silently skipped |
+| Temp files (`~`) | Yes | Yes | Yes | Silently skipped |
+| Symlinks | Rare | Yes | Yes | Silently skipped |
+| Password-protected archives | Yes | Yes | Yes | Reported with clear message |
+| Cloud-only placeholders (OneDrive, iCloud) | Yes | Yes | Rare | Reported: "download the file first" |
+| Path length limit (260 chars) | Yes | — | — | Files in archives silently skipped |
+| Raw .gz files (not tar) | Yes | Yes | Yes | Decompressed and searched |
+| SSL .key files | Yes | Yes | Yes | Detected as non-Keynote, skipped |
+| BOM in text files | Common | Rare | Rare | Stripped automatically |
+| macOS resource forks (`._`) | — | Yes | — | Silently skipped |
+| Named pipes / sockets | — | Possible | Yes | Detected via stat(), skipped |
+| Virtual filesystems (/proc, /sys) | — | — | Yes | Excluded from recursive search |
+| Corrupted files | Yes | Yes | Yes | Logged to error log, search continues |
+
+**Details by platform:**
+
 **All platforms:**
 
 - **Word/Excel lock files** (`~$filename.docx`) — silently skipped. Temporary files created when a document is open, not real documents.
