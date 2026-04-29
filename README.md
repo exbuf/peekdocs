@@ -52,7 +52,7 @@ for match in results.matches:
 | **Developers** | Code notes, technical docs, markdown, exported logs, config files, API references, archived project folders, `.env` files, Dockerfiles |
 | **Data Scientists / Analysts** | Experiment notes, CSV/Excel documentation, research papers, Jupyter notebooks, methodology docs, report archives, JSONL training data |
 | **Engineers** | Specifications, manuals, design notes, vendor PDFs, test reports, maintenance records, datasheets, SPICE netlists, Verilog/VHDL |
-| **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs, server configs (.conf, .properties) |
+| **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs, server configs (.conf, .properties). PII scan via SSH — no GUI needed |
 | **Researchers** | Journal articles (PDF), interview transcripts, survey responses, field notes, grant proposals, historical documents (OCR) |
 | **Anyone with document chaos** | If your desktop is a maze, peekdocs helps. |
 
