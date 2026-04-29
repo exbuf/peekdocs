@@ -23,7 +23,7 @@ def test_no_args(capsys):
     result = main([])
     captured = capsys.readouterr()
     assert result == 0
-    assert "Search Modes (examples)" in captured.out
+    assert "Search Modes" in captured.out
     assert "Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
 
 

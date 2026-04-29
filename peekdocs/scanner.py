@@ -457,8 +457,26 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                             f"exceeds 500 MB safety limit. Skipping to prevent memory issues.")
                     zf.extractall(tmpdir)
             elif ext in (".tar", ".gz", ".bz2", ".tgz"):
-                with tarfile.open(filepath, "r:*") as tf:
-                    tf.extractall(tmpdir, filter="data")
+                try:
+                    with tarfile.open(filepath, "r:*") as tf:
+                        try:
+                            tf.extractall(tmpdir, filter="data")
+                        except TypeError:
+                            # Python < 3.11.4 doesn't support the filter parameter
+                            tf.extractall(tmpdir)
+                except (tarfile.ReadError, tarfile.CompressionError):
+                    # Not a tar archive — try as raw compressed file (e.g., plain .gz)
+                    import gzip as _gzip_mod
+                    if ext == ".gz":
+                        basename = os.path.basename(filepath)
+                        inner_name = basename[:-3] if basename.endswith(".gz") else basename + ".txt"
+                        inner_path = os.path.join(tmpdir, inner_name)
+                        try:
+                            with _gzip_mod.open(filepath, "rb") as gz_in:
+                                with open(inner_path, "wb") as gz_out:
+                                    gz_out.write(gz_in.read())
+                        except Exception:
+                            raise  # Re-raise so the outer handler reports it
             elif ext == ".7z":
                 with py7zr.SevenZipFile(filepath, "r") as sz:
                     sz.extractall(tmpdir)
@@ -490,6 +508,10 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
         # Apple iWork files — ZIP archives. Older versions contain index.xml
         # with readable text. Newer versions use protobuf (.iwa) which we
         # can't parse, but XML metadata files may still contain some text.
+        # Skip non-iWork .key files (e.g., SSL certificate keys) — they're
+        # not zip archives and will fail.
+        if not zipfile.is_zipfile(filepath):
+            return all_lines
         import xml.etree.ElementTree as _iwork_ET
         line_num = 0
         with zipfile.ZipFile(filepath, "r") as zf:
@@ -932,6 +954,8 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
                 continue
             if any(basename.startswith(p) for p in _EXCLUDE_PREFIXES):
                 continue
+            if basename.startswith("~$"):
+                continue  # Word/Excel lock files — not real documents
             discovered.append(f)
     # Also discover files with special names (no standard extension).
     # Glob("*") skips dotfiles, so also glob(".*") to catch .env etc.
