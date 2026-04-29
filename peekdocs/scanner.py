@@ -117,6 +117,10 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
         ocr_func = _ocr_image
 
     ext = os.path.splitext(filepath)[1].lower()
+    # Handle special filenames with no standard extension
+    basename_lower = os.path.basename(filepath).lower()
+    if not ext and basename_lower in (".env", "dockerfile"):
+        ext = f".{basename_lower}" if not basename_lower.startswith(".") else basename_lower
     all_lines = []
 
     if ext == ".docx":
@@ -914,6 +918,9 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     _EXCLUDE_PREFIXES = ("peekdocs_results", "peekdocs_suite_results",
                          "peekdocs_report_", "peekdocs_accumulated_")
 
+    # Filenames that are searchable despite having no standard extension
+    _SPECIAL_FILENAMES = {".env", "dockerfile", ".dockerfile"}
+
     # Discover all supported file types dynamically
     discovered = []
     search_types = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if use_ocr else set())
@@ -926,6 +933,18 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
             if any(basename.startswith(p) for p in _EXCLUDE_PREFIXES):
                 continue
             discovered.append(f)
+    # Also discover files with special names (no standard extension).
+    # Glob("*") skips dotfiles, so also glob(".*") to catch .env etc.
+    _special_seen = set(discovered)
+    for pattern_suffix in ("*", ".*"):
+        _sp_glob = os.path.join(cwd, "**", pattern_suffix) if recursive else os.path.join(cwd, pattern_suffix)
+        for f in glob.glob(_sp_glob, recursive=recursive):
+            if f in _special_seen:
+                continue
+            basename = os.path.basename(f).lower()
+            if basename in _SPECIAL_FILENAMES:
+                discovered.append(f)
+                _special_seen.add(f)
     all_files = sorted(discovered)
 
     if file_types is not None:
