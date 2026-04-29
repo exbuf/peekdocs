@@ -459,11 +459,16 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
             elif ext in (".tar", ".gz", ".bz2", ".tgz"):
                 try:
                     with tarfile.open(filepath, "r:*") as tf:
-                        try:
-                            tf.extractall(tmpdir, filter="data")
-                        except TypeError:
-                            # Python < 3.11.4 doesn't support the filter parameter
-                            tf.extractall(tmpdir)
+                        # Extract files individually to handle path-too-long errors
+                        for member in tf.getmembers():
+                            try:
+                                try:
+                                    tf.extract(member, tmpdir, filter="data")
+                                except TypeError:
+                                    # Python < 3.11.4 doesn't support the filter parameter
+                                    tf.extract(member, tmpdir)
+                            except (OSError, IOError):
+                                continue  # Skip files with paths too long for Windows
                 except (tarfile.ReadError, tarfile.CompressionError):
                     # Not a tar archive — try as raw compressed file (e.g., plain .gz)
                     import gzip as _gzip_mod
