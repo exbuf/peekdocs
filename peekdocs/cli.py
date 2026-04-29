@@ -159,6 +159,51 @@ BANNER_BOTTOM = (
     '  See Advanced Search Options in the GUI for the full list of search settings.'
 )
 
+# Short quick-reference shown when user types just `peekdocs` with no arguments.
+BANNER_QUICK = (
+    '\npeekdocs — search 100+ file types at once, all offline. GUI: run peekdocs-gui\n'
+    '\n'
+    'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
+    '       Navigate to the folder you want to search, then run peekdocs.\n'
+    '\n'
+    '── Search Modes (examples) ──────────────────────────────────────\n'
+    '  peekdocs term1 term2           OR search (any term matches)\n'
+    '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
+    '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
+    '  peekdocs -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
+    '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
+    '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
+    '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
+    '  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)\n'
+    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)\n'
+    '  peekdocs --inverse budget      Find files that do NOT contain "budget"\n'
+    '  peekdocs -n draft budget       Find "budget" but exclude lines containing "draft"\n'
+    '  peekdocs -f report.pdf budget  Search only report.pdf for "budget"\n'
+    '  peekdocs -s quarterly budget   Save a named copy of the report\n'
+    '  peekdocs -sa archive budget    Append results to accumulated report\n'
+    '  peekdocs --open docx budget    Search and auto-open the highlighted Word report\n'
+    '  peekdocs --open html budget    Search, generate HTML, and open in browser\n'
+    '  peekdocs -sa archive --open docx budget  Append and open accumulated report\n'
+    '\n'
+    '── Common Options ───────────────────────────────────────────────\n'
+    '  peekdocs -r budget               Search all subfolders recursively\n'
+    '  peekdocs -t pdf,docx budget      Search only PDF and Word files\n'
+    '  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match\n'
+    '  peekdocs -R amount:1000..5000 "" Filter by dollar range\n'
+    '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
+    '  peekdocs --index                 Build search index for faster repeated searches\n'
+    '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'
+    '\n'
+    '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
+    '  Cannot combine: -e (expression) with -a (AND), -n (exclude), or -p (proximity).\n'
+    '\n'
+    '── Cleanup ──────────────────────────────────────────────────────\n'
+    '  peekdocs --clear               Delete peekdocs_results* files\n'
+    '  peekdocs --clear-all           Delete all peekdocs output files\n'
+    '\n'
+    'Type peekdocs -h for full help (all flags, file types, regex patterns).'
+)
+
 REGEX_PATTERNS = (
     '\nCommon Regex Search Patterns (enclose in quotes):\n'
     '  \\d{3}-\\d{3}-\\d{4}                              US phone numbers (555-123-4567)\n'
@@ -487,32 +532,29 @@ def _main_inner(argv=None):
 
     cpu_count = os.cpu_count() or 1
     is_help = args and args[0] in ("-h", "-help", "--help")
-    if not quiet:
-        print(f'\npeekdocs v{VERSION}')
-        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
-        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
-        print(BANNER_TOP)
-        print(BANNER_BOTTOM)
-        print('-------------------------------------------------------------------------')
-        print()
 
     if args and args[0] in ("-v", "-version"):
         print(f"peekdocs {VERSION}\n")
         return 0
 
     if is_help:
-        if quiet:
-            print(f'\npeekdocs v{VERSION}')
-            print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
-            print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
-            print(BANNER_TOP)
-            print(BANNER_BOTTOM)
-            print('-------------------------------------------------------------------------')
-            print()
+        # Full reference: all flags, file types, regex patterns
+        print(f'\npeekdocs v{VERSION}')
+        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+        print(BANNER_TOP)
+        print(BANNER_BOTTOM)
+        print('-------------------------------------------------------------------------')
         print(REGEX_PATTERNS)
         print()
-        print('Type peekdocs to see examples directly over the command line.')
+        print('Type peekdocs for a quick command reference.')
         return 0
+
+    if not quiet:
+        # Normal search: show short banner before search runs
+        print(f'\npeekdocs v{VERSION}')
+        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print('-------------------------------------------------------------------------')
 
     if args and args[0] == "--check":
         import sqlite3
@@ -701,6 +743,10 @@ def _main_inner(argv=None):
         return 0
 
     if not args:
+        print(f'\npeekdocs v{VERSION}')
+        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+        print(BANNER_QUICK)
         return 0
 
     if args and args[0] in ("-s", "-save"):

@@ -23,7 +23,7 @@ def test_no_args(capsys):
     result = main([])
     captured = capsys.readouterr()
     assert result == 0
-    assert BANNER_TOP in captured.out
+    assert "Search Modes (examples)" in captured.out
     assert "Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md" in captured.out
 
 
@@ -392,7 +392,7 @@ def test_version_flag_long(capsys):
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()
-    assert BANNER_TOP in captured.out
+    assert "peekdocs v" in captured.out
 
 
 def test_search_recursive(tmp_path, monkeypatch, capsys):
@@ -1415,7 +1415,7 @@ def test_search_without_quiet_shows_banner(tmp_path, monkeypatch, capsys):
     result = main(["budget"])
     captured = capsys.readouterr()
     assert result == 0
-    assert "OR search" in captured.out
+    assert "peekdocs v" in captured.out
 
 
 def test_config_file_ignored_by_cli(tmp_path, monkeypatch, capsys):
