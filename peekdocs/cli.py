@@ -98,6 +98,9 @@ BANNER_BOTTOM = (
     '  Config keys (string):\n'
     '    file_types, search_terms, folder, exclude, specific_files, save_name,\n'
     '    append_name, output_dir, range, text_size, preview_size, appearance_mode\n'
+    '  --pii-scan         Scan for sensitive data (SSNs, credit cards, passwords, etc.)\n'
+    '                       Results shown on screen only — no file written to disk.\n'
+    '                       Add -r for recursive. Searches all supported file types.\n'
     '  --check            Verify Python, dependencies, Tesseract, and disk space\n'
     '  --clear            Delete peekdocs_results* files in the current directory\n'
     '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
@@ -196,6 +199,11 @@ BANNER_QUICK = (
     '\n'
     '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
     '  Cannot combine: -e (expression) with -a (AND), -n (exclude), or -p (proximity).\n'
+    '\n'
+    '── PII Scan ─────────────────────────────────────────────────────\n'
+    '  peekdocs --pii-scan            Scan current folder for SSNs, credit cards, passwords, etc.\n'
+    '  peekdocs --pii-scan -r         Scan all subfolders recursively\n'
+    '  Results shown on screen only — no file written to disk.\n'
     '\n'
     '── Cleanup ──────────────────────────────────────────────────────\n'
     '  peekdocs --clear               Delete peekdocs_results* files\n'
@@ -562,6 +570,90 @@ def _main_inner(argv=None):
         print(f'\npeekdocs v{VERSION}')
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print('-------------------------------------------------------------------------')
+
+    if args and args[0] == "--pii-scan":
+        import time as _pii_time
+        from peekdocs.api import search as _pii_search
+        from peekdocs.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_ORDER
+
+        cwd = os.getcwd()
+        recursive = "-r" in args
+        print(f"\nPII Scan — scanning {cwd}" + (" (recursive)" if recursive else "") + "...\n")
+
+        scan_results = []
+        files_searched = 0
+        start = _pii_time.time()
+
+        for i, (category, regex, severity, description) in enumerate(SENSITIVE_PATTERNS, 1):
+            print(f"  ({i}/{len(SENSITIVE_PATTERNS)}) {category}...", end="", flush=True)
+            try:
+                result = _pii_search(
+                    [regex], directory=cwd, recursive=recursive,
+                    use_regex=True, use_index=False,
+                )
+                files_searched = max(files_searched, len(result.files_searched))
+                file_matches = {}
+                for match in result.matches:
+                    key = match.filename
+                    if key not in file_matches:
+                        file_matches[key] = {"path": os.path.join(match.file_dir, match.filename), "count": 0, "lines": []}
+                    file_matches[key]["count"] += 1
+                    file_matches[key]["lines"].append(match.line_num)
+                scan_results.append({
+                    "category": category, "severity": severity,
+                    "description": description,
+                    "match_count": len(result.matches),
+                    "file_count": len(file_matches),
+                    "files": file_matches,
+                })
+                if result.matches:
+                    print(f" {len(result.matches)} match(es) in {len(file_matches)} file(s)")
+                else:
+                    print(" Clean")
+            except Exception as e:
+                print(f" Error: {e}")
+                scan_results.append({
+                    "category": category, "severity": severity,
+                    "description": description,
+                    "match_count": 0, "file_count": 0, "files": {},
+                })
+
+        elapsed = _pii_time.time() - start
+        total = sum(r["match_count"] for r in scan_results)
+        high = sum(r["match_count"] for r in scan_results if r["severity"] == "high")
+
+        print(f"\n{'=' * 60}")
+        if total == 0:
+            print(f"No sensitive data found — {files_searched} files scanned in {elapsed:.1f}s")
+        else:
+            print(f"{total} finding(s) across {files_searched} files ({elapsed:.1f}s)")
+            if high > 0:
+                print(f"  *** {high} HIGH severity finding(s) — investigate immediately ***")
+
+        # Show details grouped by severity
+        severity_rank = {s: i for i, s in enumerate(SEVERITY_ORDER)}
+        for r in sorted(scan_results, key=lambda x: (severity_rank.get(x["severity"], 99), -x["match_count"])):
+            if r["match_count"] == 0:
+                continue
+            sev_label = r["severity"].upper()
+            print(f"\n{sev_label} — {r['category']}: {r['match_count']} match(es) in {r['file_count']} file(s)")
+            print(f"  {r['description']}")
+            for fname, info in sorted(r["files"].items()):
+                lines = sorted(set(info["lines"]))[:20]
+                lines_str = ", ".join(str(ln) for ln in lines)
+                if len(info["lines"]) > 20:
+                    lines_str += "..."
+                print(f"  {fname} ({info['count']} matches — lines {lines_str})")
+
+        print(f"\n{'=' * 60}")
+        print("Results shown on screen only — no file written to disk.")
+        print("This is a deliberate safety measure. Re-run the scan to see results again.")
+        if sys.stdout.isatty():
+            pass  # Normal terminal — output will scroll away
+        else:
+            print("\nWARNING: Output appears to be piped to a file or another program.")
+            print("The PII data above may be saved to disk. Delete the output file when done.")
+        return 0
 
     if args and args[0] == "--check":
         import sqlite3
