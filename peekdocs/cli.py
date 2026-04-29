@@ -208,6 +208,7 @@ BANNER_QUICK = (
     '  peekdocs -r --pii-scan         Flags can be in any order\n'
     '  Results shown on screen only — no file written to disk.\n'
     '  Shows filenames and line numbers only — never the actual sensitive data.\n'
+    '  Safe to pipe to a file (e.g., peekdocs --pii-scan -r > report.txt).\n'
     '\n'
     '── Cleanup ──────────────────────────────────────────────────────\n'
     '  peekdocs --clear               Delete peekdocs_results* files\n'
