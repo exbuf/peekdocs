@@ -75,9 +75,8 @@ BANNER_BOTTOM = (
     '  --timestamp        Add timestamp to report filenames\n'
     '  --max-file-size N  Skip files larger than N MB (default 100, 0 = no limit)\n'
     '  --open FMT         Automatically open the report when search finishes:\n'
-    '                       docx (always generated), txt (always generated),\n'
-    '                       csv (needs -o csv), json (needs -o json),\n'
-    '                       pdf (needs -o pdf), html (needs -o html)\n'
+    '                       docx, txt, csv, json, pdf, html\n'
+    '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
     '  --index            Build/rebuild the search index (includes all subfolders)\n'
@@ -132,6 +131,9 @@ BANNER_BOTTOM = (
     '  peekdocs -f report.pdf budget  Search only report.pdf for "budget"\n'
     '  peekdocs -s quarterly budget   Save a named copy of the report as peekdocs_report_quarterly\n'
     '  peekdocs -sa archive budget    Append results to peekdocs_accumulated_archive\n'
+    '  peekdocs --open docx budget    Search and auto-open the highlighted Word report\n'
+    '  peekdocs --open html budget    Search, generate HTML, and open it in your browser\n'
+    '  peekdocs --open csv budget     Search, generate CSV, and open it in Excel/LibreOffice\n'
     '\n'
     '  See Advanced Search Options in the GUI for the full list of search settings.'
 )
@@ -922,6 +924,10 @@ def _main_inner(argv=None):
     output_formats = parsed["output_formats"]
     inverse = parsed["inverse"]
     open_report = parsed.get("open_report", False)
+    # --open csv automatically enables -o csv (same for json, pdf, html)
+    if open_report and open_report not in ("docx", "txt"):
+        if open_report not in output_formats:
+            output_formats.append(open_report)
     expression = parsed.get("expression")
     mode = parsed["mode"]
     report_mode = parsed["report_mode"]
@@ -1224,26 +1230,14 @@ def _main_inner(argv=None):
         }
         open_path = _open_paths.get(open_report)
         if open_path and os.path.exists(open_path):
-            import subprocess as _sub_open
-            system = platform.system()
-            try:
-                if system == "Darwin":
-                    result = _sub_open.run(["open", open_path], capture_output=True)
-                    if result.returncode != 0:
-                        _sub_open.Popen(["open", "-a", "TextEdit", open_path])
-                elif system == "Windows":
-                    os.startfile(open_path)
-                else:
-                    result = _sub_open.run(["xdg-open", open_path], capture_output=True)
-                    if result.returncode != 0:
-                        for editor in ("xed", "gedit", "mousepad", "kate", "nano"):
-                            if _sub_open.run(["which", editor], capture_output=True).returncode == 0:
-                                _sub_open.Popen([editor, open_path])
-                                break
-            except Exception:
-                pass
+            from peekdocs.gui._helpers import safe_open_file
+            warning = safe_open_file(open_path)
+            if warning:
+                print(f"\n{warning}")
         elif open_path is None:
-            print(f"Note: {open_report} report was not generated. Enable it with -o {open_report}")
+            print(f"Note: Unknown format '{open_report}'.")
+        else:
+            print(f"Note: {open_report} report file not found.")
     if inverse:
         return 0 if inverse_files else 1
     return 0 if matches else 1
