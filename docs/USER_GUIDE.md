@@ -498,6 +498,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
+| `--pii-scan` (pii-scan) | Scan for sensitive data (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, DOBs, dollar amounts). Results shown on screen only — no file written to disk. Add `-r` for recursive. Output shows filenames, match counts, and line numbers — never the actual sensitive data |
 | `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
@@ -966,7 +967,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 
 The **PII Scan** helps locate personally identifiable information you may have inadvertently left in your files. PII stands for **Personally Identifiable Information** — any data that could identify a specific person or compromise their accounts. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
 
-The PII Scan is a **GUI feature only** — the CLI (`peekdocs`) runs individual searches but does not currently expose the PII Scan as a flag.
+The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data.
 
 ### What it does
 
