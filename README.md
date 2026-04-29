@@ -568,23 +568,35 @@ To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --i
 
 ### File Handling
 
-peekdocs handles a wide range of real-world file issues automatically:
+peekdocs handles a wide range of real-world file issues automatically on all platforms:
 
-- **Word/Excel lock files** (`~$filename.docx`) — silently skipped. These are temporary files created when a document is open in Word or Excel, not real documents.
-- **System files** (`Thumbs.db`, `desktop.ini`, `.DS_Store`) — silently skipped. These are OS metadata files, not user documents.
+**All platforms:**
+
+- **Word/Excel lock files** (`~$filename.docx`) — silently skipped. Temporary files created when a document is open, not real documents.
 - **Temp files** (files starting with `~`) — silently skipped to avoid processing backup and recovery files from other applications.
-- **Symlinks and shortcuts** — silently skipped to prevent infinite loops when a symlink points back to a parent folder during recursive search.
+- **Symlinks** — silently skipped to prevent infinite loops when a symlink points back to a parent folder during recursive search.
 - **Password-protected archives** (`.zip`, `.7z`, `.rar`) — reported with a clear message: "appears to be password-protected." peekdocs cannot read encrypted archives.
-- **OneDrive cloud-only placeholders** — files that exist as placeholders but haven't been downloaded yet are detected and reported: "may be a cloud-only placeholder. Download the file first."
-- **Windows path length limit** — when extracting archives, files with paths exceeding Windows' 260-character limit are silently skipped instead of failing the entire archive.
-- **Python version compatibility** — tar archive extraction works on both Python 3.10 (without filter safety) and Python 3.11.4+ (with filter safety). Falls back gracefully on older versions.
+- **Cloud-only placeholders** (OneDrive, iCloud) — files that haven't been downloaded yet are detected and reported: "may be a cloud-only placeholder. Download the file first."
 - **Raw .gz files** — gzip-compressed files that aren't tar archives (e.g., compressed log files) are decompressed and searched instead of failing.
 - **SSL .key files** — certificate key files that share the `.key` extension with Apple Keynote are detected as non-zip and silently skipped.
 - **Byte Order Mark (BOM)** — text files with a UTF-8 BOM are handled automatically. The BOM is stripped so it doesn't interfere with search matches at the start of a file.
-- **macOS resource fork files** (`._filename`) — silently skipped. These are macOS metadata shadow files that duplicate every real file and would create noise in search results.
-- **Named pipes and sockets** — silently skipped. Opening a named pipe (FIFO) or Unix socket without a writer would hang the process indefinitely. peekdocs detects these via `stat()` and skips them.
-- **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These Linux virtual filesystems contain infinite or pseudo-files that would hang the process or return meaningless data.
+- **Python version compatibility** — tar archive extraction works on both Python 3.10 (without filter safety) and Python 3.11.4+ (with filter safety). Falls back gracefully on older versions.
 - **Corrupted or misnamed files** — files that can't be read (wrong format, corrupted, truncated) are logged to `peekdocs_errors.log` with a description of the error, and the search continues with the remaining files.
+
+**Windows:**
+
+- **System files** (`Thumbs.db`, `desktop.ini`) — silently skipped.
+- **Path length limit** — when extracting archives, files with paths exceeding Windows' 260-character limit are silently skipped instead of failing the entire archive.
+
+**macOS:**
+
+- **System files** (`.DS_Store`, `.Spotlight-V100`, `.Trashes`) — silently skipped.
+- **Resource fork files** (`._filename`) — silently skipped. macOS metadata shadow files that duplicate every real file.
+
+**Linux:**
+
+- **Named pipes and sockets** — silently skipped. Opening a named pipe (FIFO) or Unix socket without a writer would hang the process indefinitely. peekdocs detects these via `stat()` and skips them.
+- **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These contain infinite or pseudo-files that would hang the process.
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
