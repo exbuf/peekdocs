@@ -17,7 +17,7 @@ PRs are welcome, but please open an issue first to discuss the change. This avoi
 
 Before submitting a PR:
 
-1. Run the test suite: `pytest tests/ -v` (all 669+ tests should pass)
+1. Run the test suite: `pytest tests/ -v` (all 681+ tests should pass)
 2. Keep changes focused — one fix or feature per PR
 3. Follow the existing code style (no linters enforced, just be consistent)
 4. Add tests for new features in `tests/`
@@ -52,7 +52,7 @@ peekdocs/
     _mixin_search.py  — Search execution and results
     _mixin_tools.py   — PII scan, wizard, help windows
     _mixin_data.py    — Settings, history, bookmarks
-tests/                — Pytest test suite (669+ tests)
+tests/                — Pytest test suite (681+ tests)
 docs/                 — Documentation (user guide, API, troubleshooting)
 ```
 

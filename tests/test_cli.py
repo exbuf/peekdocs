@@ -867,6 +867,158 @@ def test_search_yml(tmp_path, monkeypatch, capsys):
     assert "budget" in content
 
 
+def test_search_ipynb(tmp_path, monkeypatch, capsys):
+    nb_file = tmp_path / "analysis.ipynb"
+    nb_file.write_text(json.dumps({
+        "cells": [
+            {"cell_type": "code", "metadata": {}, "source": ["# Budget analysis\n", "total = 5000\n"]},
+            {"cell_type": "markdown", "metadata": {}, "source": ["## No match here\n"]},
+        ],
+        "metadata": {}, "nbformat": 4, "nbformat_minor": 4,
+    }))
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "analysis.ipynb" in content
+    assert "Budget" in content
+
+
+def test_search_env(tmp_path, monkeypatch, capsys):
+    env_file = tmp_path / ".env"
+    env_file.write_text("DATABASE_URL=postgres://localhost\nAPI_KEY=budget_key_123\nSECRET=hidden\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert ".env" in content
+    assert "budget" in content
+
+
+def test_search_dockerfile(tmp_path, monkeypatch, capsys):
+    df = tmp_path / "Dockerfile"
+    df.write_text("FROM python:3.12-slim\nWORKDIR /app\nRUN pip install budget-tool\nEXPOSE 8080\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "Dockerfile" in content
+    assert "budget" in content
+
+
+def test_search_css(tmp_path, monkeypatch, capsys):
+    css_file = tmp_path / "styles.css"
+    css_file.write_text("body { margin: 0; }\n.budget-panel { color: blue; }\np { font-size: 14px; }\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "styles.css" in content
+
+
+def test_search_scss(tmp_path, monkeypatch, capsys):
+    scss_file = tmp_path / "app.scss"
+    scss_file.write_text("$primary: blue;\n.budget-view { color: $primary; }\nbody { margin: 0; }\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "app.scss" in content
+
+
+def test_search_lua(tmp_path, monkeypatch, capsys):
+    lua_file = tmp_path / "config.lua"
+    lua_file.write_text("local config = {}\nconfig.budget_limit = 5000\nreturn config\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "config.lua" in content
+
+
+def test_search_scala(tmp_path, monkeypatch, capsys):
+    scala_file = tmp_path / "Pipeline.scala"
+    scala_file.write_text("object Pipeline {\n  val budget = 10000\n  def run(): Unit = {}\n}\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "Pipeline.scala" in content
+
+
+def test_search_tf(tmp_path, monkeypatch, capsys):
+    tf_file = tmp_path / "main.tf"
+    tf_file.write_text('resource "aws_instance" "web" {\n  instance_type = "t3.medium"\n  tags = { Name = "budget-server" }\n}\n')
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "main.tf" in content
+
+
+def test_search_proto(tmp_path, monkeypatch, capsys):
+    proto_file = tmp_path / "schema.proto"
+    proto_file.write_text('syntax = "proto3";\nmessage BudgetRequest {\n  double amount = 1;\n}\n')
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "schema.proto" in content
+
+
+def test_search_graphql(tmp_path, monkeypatch, capsys):
+    gql_file = tmp_path / "schema.graphql"
+    gql_file.write_text("type Query {\n  budget(id: ID!): Budget\n}\ntype Budget {\n  amount: Float\n}\n")
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "schema.graphql" in content
+
+
+def test_search_jsonl(tmp_path, monkeypatch, capsys):
+    jsonl_file = tmp_path / "data.jsonl"
+    jsonl_file.write_text('{"name": "Alice", "amount": 100}\n{"name": "Bob", "budget": 500}\n{"name": "Carol", "amount": 200}\n')
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "data.jsonl" in content
+
+
+def test_search_ndjson(tmp_path, monkeypatch, capsys):
+    ndjson_file = tmp_path / "events.ndjson"
+    ndjson_file.write_text('{"event": "login"}\n{"event": "budget_update", "amount": 1000}\n')
+    monkeypatch.chdir(tmp_path)
+    result = main(["budget"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
+    content = (tmp_path / "peekdocs_results.txt").read_text()
+    assert "events.ndjson" in content
+
+
 def test_search_xml(tmp_path, monkeypatch, capsys):
     xml_file = tmp_path / "config.xml"
     xml_file.write_text('<?xml version="1.0"?>\n<root>\n  <title>Budget report</title>\n  <value>No match</value>\n</root>\n')
