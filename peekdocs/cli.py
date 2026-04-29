@@ -649,6 +649,7 @@ def _main_inner(argv=None):
         print("No sensitive data is displayed — only filenames, match counts, and line numbers.")
         print("To review the actual matches, open each file and go to the listed line numbers.")
         print("Re-run the scan at any time to see results again.")
+        print()
         return 0
 
     if args and args[0] == "--check":
