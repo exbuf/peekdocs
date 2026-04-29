@@ -459,6 +459,7 @@ def _main_inner(argv=None):
     if not quiet:
         print(BANNER_TOP)
         print(BANNER_BOTTOM)
+        print()
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
         print('-------------------------------------------------------------------------')
@@ -472,6 +473,7 @@ def _main_inner(argv=None):
         if quiet:
             print(BANNER_TOP)
             print(BANNER_BOTTOM)
+            print()
             print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
             print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
             print('-------------------------------------------------------------------------')
