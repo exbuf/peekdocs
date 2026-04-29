@@ -217,7 +217,7 @@ BANNER_QUICK = (
     '  peekdocs --clear               Delete peekdocs_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files\n'
     '\n'
-    'Type peekdocs -h for full help (all flags, file types, regex patterns).'
+    'Type peekdocs -h for full help (all flags, file types, regex patterns).\n'
 )
 
 REGEX_PATTERNS = (
