@@ -488,6 +488,8 @@ def _main_inner(argv=None):
             print('-------------------------------------------------------------------------')
             print()
         print(REGEX_PATTERNS)
+        print()
+        print('Type peekdocs to see examples directly over the command line.')
         return 0
 
     if args and args[0] == "--check":
