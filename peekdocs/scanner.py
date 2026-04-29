@@ -217,7 +217,7 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                 all_lines.append((row_num, row_text))
 
     elif ext in (".txt", ".md", ".json", ".xml", ".log", ".yaml", ".yml", ".toml", ".rst", ".tex", ".ini", ".cfg", ".sql", ".ics", ".vcf"):
-        with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+        with open(filepath, encoding="utf-8-sig", errors="replace") as txtfile:
             all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
 
     elif ext == ".mbox":
@@ -586,7 +586,7 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
     elif ext in SUPPORTED_TYPES:
         # Plain text fallback — source code, engineering files, and any other
         # text-based format in SUPPORTED_TYPES without a specialized parser.
-        with open(filepath, encoding="utf-8", errors="replace") as txtfile:
+        with open(filepath, encoding="utf-8-sig", errors="replace") as txtfile:
             all_lines = [(line_num, line.rstrip("\n")) for line_num, line in enumerate(txtfile, start=1)]
 
     return all_lines
@@ -925,6 +925,15 @@ def _friendly_file_error(exc, filename):
         if errno in (13, 32, 33):
             return (f"'{filename}' is locked or in use by another program. "
                     "Close it and try again.")
+    exc_str = str(exc).lower()
+    # Password-protected archives
+    if "password" in exc_str or "encrypted" in exc_str or "RuntimeError" in type(exc).__name__:
+        ext = os.path.splitext(filename)[1].lower()
+        if ext in (".zip", ".7z", ".rar", ".tar", ".gz", ".bz2", ".tgz"):
+            return f"'{filename}' appears to be password-protected. peekdocs cannot read encrypted archives."
+    # OneDrive placeholder files (cloud-only, not downloaded)
+    if "cloud" in exc_str or "not available" in exc_str or (isinstance(exc, FileNotFoundError) and os.path.exists(filename)):
+        return f"'{filename}' may be a cloud-only placeholder (e.g., OneDrive). Download the file first."
     return str(exc)
 
 
@@ -941,7 +950,11 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
 
     # Filenames to exclude from search results
     _EXCLUDE_NAMES = {".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc",
-                      "peekdocs_errors.log"}
+                      "peekdocs_errors.log",
+                      # System/OS files — not real documents
+                      "thumbs.db", "desktop.ini", ".ds_store", ".ds_store?",
+                      ".spotlight-v100", ".trashes", ".fseventsd",
+                      }
     _EXCLUDE_PREFIXES = ("peekdocs_results", "peekdocs_suite_results",
                          "peekdocs_report_", "peekdocs_accumulated_")
 
@@ -955,12 +968,14 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
         matches = glob.glob(glob_prefix + ext, recursive=recursive)
         for f in matches:
             basename = os.path.basename(f)
-            if basename in _EXCLUDE_NAMES:
+            if basename.lower() in _EXCLUDE_NAMES:
                 continue
             if any(basename.startswith(p) for p in _EXCLUDE_PREFIXES):
                 continue
-            if basename.startswith("~$"):
-                continue  # Word/Excel lock files — not real documents
+            if basename.startswith("~$") or basename.startswith("~"):
+                continue  # Word/Excel lock files and temp files
+            if os.path.islink(f):
+                continue  # Skip symlinks to prevent infinite loops
             discovered.append(f)
     # Also discover files with special names (no standard extension).
     # Glob("*") skips dotfiles, so also glob(".*") to catch .env etc.
