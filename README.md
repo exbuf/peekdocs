@@ -566,6 +566,23 @@ To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --i
 - **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
 - **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
 
+### File Handling
+
+peekdocs handles a wide range of real-world file issues automatically:
+
+- **Word/Excel lock files** (`~$filename.docx`) — silently skipped. These are temporary files created when a document is open in Word or Excel, not real documents.
+- **System files** (`Thumbs.db`, `desktop.ini`, `.DS_Store`) — silently skipped. These are OS metadata files, not user documents.
+- **Temp files** (files starting with `~`) — silently skipped to avoid processing backup and recovery files from other applications.
+- **Symlinks and shortcuts** — silently skipped to prevent infinite loops when a symlink points back to a parent folder during recursive search.
+- **Password-protected archives** (`.zip`, `.7z`, `.rar`) — reported with a clear message: "appears to be password-protected." peekdocs cannot read encrypted archives.
+- **OneDrive cloud-only placeholders** — files that exist as placeholders but haven't been downloaded yet are detected and reported: "may be a cloud-only placeholder. Download the file first."
+- **Windows path length limit** — when extracting archives, files with paths exceeding Windows' 260-character limit are silently skipped instead of failing the entire archive.
+- **Python version compatibility** — tar archive extraction works on both Python 3.10 (without filter safety) and Python 3.11.4+ (with filter safety). Falls back gracefully on older versions.
+- **Raw .gz files** — gzip-compressed files that aren't tar archives (e.g., compressed log files) are decompressed and searched instead of failing.
+- **SSL .key files** — certificate key files that share the `.key` extension with Apple Keynote are detected as non-zip and silently skipped.
+- **Byte Order Mark (BOM)** — text files with a UTF-8 BOM are handled automatically. The BOM is stripped so it doesn't interfere with search matches at the start of a file.
+- **Corrupted or misnamed files** — files that can't be read (wrong format, corrupted, truncated) are logged to `peekdocs_errors.log` with a description of the error, and the search continues with the remaining files.
+
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
 ## Glossary
