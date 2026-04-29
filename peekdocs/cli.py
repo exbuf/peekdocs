@@ -1221,10 +1221,16 @@ def _main_inner(argv=None):
             print(f"\n  Errors logged to peekdocs_errors.log ({len(skipped_files)} error(s))")
     print()
     if open_report:
+        # If -sa was used, point docx/txt to the accumulated files
+        if append_name is not None and open_report in ("docx", "txt"):
+            _append_ext = "docx" if open_report == "docx" else "txt"
+            _append_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.{_append_ext}")
+        else:
+            _append_path = None
         # Map format to the corresponding output path
         _open_paths = {
-            "docx": docx_output_path,
-            "txt": output_path,
+            "docx": _append_path or docx_output_path,
+            "txt": _append_path or output_path,
             "csv": csv_output_path,
             "json": json_output_path,
             "pdf": pdf_output_path,
