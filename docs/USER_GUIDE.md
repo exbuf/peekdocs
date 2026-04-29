@@ -967,7 +967,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 
 The **PII Scan** helps locate personally identifiable information you may have inadvertently left in your files. PII stands for **Personally Identifiable Information** — any data that could identify a specific person or compromise their accounts. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
 
-The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data.
+The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data — so there is no risk of piping PII to a file.
 
 ### What it does
 
