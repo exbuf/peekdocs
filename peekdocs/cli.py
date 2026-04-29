@@ -52,17 +52,6 @@ BANNER_TOP = (
     '                .ndjson .properties .proto .sql .tf .toml .txt .xml .yaml .yml\n'
     '  Notebooks:    .ipynb (Jupyter)\n'
     '  Images (OCR): .bmp .jpg .jpeg .png .tif .tiff (requires -O flag)\n'
-    '\n'
-    '── Search Modes ─────────────────────────────────────────────────\n'
-    '  peekdocs term1 term2           OR search (any term matches)\n'
-    '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
-    '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
-    '  peekdocs -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
-    '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
-    '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
-    '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
-    '  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)\n'
-    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)'
 )
 
 BANNER_BOTTOM = (
@@ -125,7 +114,18 @@ BANNER_BOTTOM = (
     'are mutually exclusive (pick one); and -e (expression) cannot be combined with\n'
     '-a (AND), -n (exclude), or -p (word proximity) — those are built into expression syntax.\n'
     '\n'
-    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.'
+    'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
+    '\n'
+    '── Search Modes (examples) ──────────────────────────────────────\n'
+    '  peekdocs term1 term2           OR search (any term matches)\n'
+    '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
+    '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
+    '  peekdocs -x "\\d{3}-\\d{4}"      Regex pattern matching\n'
+    '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
+    '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
+    '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
+    '  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)\n'
+    '  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)'
 )
 
 REGEX_PATTERNS = (
