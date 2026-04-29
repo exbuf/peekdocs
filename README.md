@@ -13,7 +13,7 @@
 
 <p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
 
-> peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, spreadsheets, emails and archives — 99 file types, all searched at once, all offline. Easy-to-read yellow-highlighted results with surrounding context, saved named searches you can repeat later, search suites that run a group of saved searches together in one click, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, a Search Wizard for building searches without memorizing syntax, and search modes from simple keywords to advanced patterns (regex). Whether you're a casual user looking for a lost document or a professional managing thousands of files, peekdocs scales to fit.
+> peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, spreadsheets, emails and archives — 99 file types, all searched at once, all offline. Built for developers, data scientists, engineers, analysts, researchers, IT pros, and power users who are tired of hunting through directories manually. Easy-to-read yellow-highlighted results with surrounding context, saved named searches you can repeat later, search suites that run a group of saved searches together in one click, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, a Search Wizard for building searches without memorizing syntax, and search modes from simple keywords to advanced patterns (regex). Whether you're a casual user looking for a lost document or a professional managing thousands of files, peekdocs scales to fit.
 >
 > Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. Nothing leaves your machine. Free. No fees, no subscriptions. (See [Report Security](#features) and [For IT and Security Teams](#for-it-and-security-teams) for details on how peekdocs actively protects your data.)
 
@@ -36,7 +36,7 @@ for match in results.matches:
     print(f"{match.filename}:{match.line_number} {match.text}")
 ```
 
-**Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Author](#author) · [License](#license)
+**Contents:** [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Author](#author) · [License](#license)
 
 ## Who Is It For?
 
@@ -418,6 +418,20 @@ Every search tool — from Google to Spotlight to $2,500 enterprise software —
 peekdocs reads 86 file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click (PII Scan). Save your searches by name and reload them later. Group them into search suites and run an entire set of searches with one click — the same 10 searches you ran last quarter, rerun in seconds. And it does all of this in a GUI that a non-technical person can use without reading a manual.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
+
+## Why Not Just Use OS Search?
+
+Windows Search, macOS Spotlight, and Linux file managers can search file contents — but they have real limitations:
+
+- **Format gaps** — OS search often can't read inside `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, or scanned PDFs. peekdocs reads 99 file types.
+- **No highlighting** — OS search tells you *which file* matched, but not *where* in the file. peekdocs shows the matched text with surrounding context, highlighted in yellow.
+- **No PII scanning** — no built-in way to scan for SSNs, credit cards, or passwords across all your files.
+- **No saved searches or suites** — you can't name a search, save it, and run it again next month. peekdocs can.
+- **No regex, Boolean, fuzzy, proximity, or range queries** — OS search is keyword-only.
+- **Inconsistent indexing** — Spotlight and Windows Search depend on background indexing services that may be disabled, incomplete, or slow to update. peekdocs searches files directly (or with its own optional index).
+- **No reports** — OS search can't produce a highlighted Word document or CSV of all matches that you can save, print, or share.
+
+peekdocs isn't a replacement for your OS — it's the tool you reach for when your OS can't find what you need.
 
 ## Why Not Just Use AI?
 
