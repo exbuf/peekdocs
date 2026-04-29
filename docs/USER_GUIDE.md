@@ -1678,7 +1678,7 @@ peekdocs creates several types of files during normal operation. Understanding w
 
 ### Search reports
 
-These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_results_20260331_103425.docx`) — useful for keeping a history, but these accumulate over time.
+These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_results_20260331_103425.docx`) — useful for keeping a history, but files accumulate over time. **Delete on Close**, **Delete Everything Now**, and **Clear Files** all clean up timestamped files — they match any file starting with `peekdocs_results`, regardless of the timestamp suffix.
 
 | File | Purpose | Location |
 |------|---------|----------|
