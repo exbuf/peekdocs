@@ -646,13 +646,9 @@ def _main_inner(argv=None):
                 print(f"  {fname} ({info['count']} matches — lines {lines_str})")
 
         print(f"\n{'=' * 60}")
-        print("Results shown on screen only — no file written to disk.")
-        print("This is a deliberate safety measure. Re-run the scan to see results again.")
-        if sys.stdout.isatty():
-            pass  # Normal terminal — output will scroll away
-        else:
-            print("\nWARNING: Output appears to be piped to a file or another program.")
-            print("The PII data above may be saved to disk. Delete the output file when done.")
+        print("No sensitive data is displayed — only filenames, match counts, and line numbers.")
+        print("To review the actual matches, open each file and go to the listed line numbers.")
+        print("Re-run the scan at any time to see results again.")
         return 0
 
     if args and args[0] == "--check":
