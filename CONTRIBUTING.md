@@ -39,7 +39,7 @@ pytest tests/ -v
 peekdocs/
   cli.py              — CLI entry point and argument parsing
   api.py              — Public Python API (search function)
-  scanner.py          — File discovery and text extraction (99 file types)
+  scanner.py          — File discovery and text extraction (100+ file types)
   reporter.py         — Report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   indexer.py          — SQLite FTS5 search index
   sensitive_patterns.py — PII scan regex patterns
