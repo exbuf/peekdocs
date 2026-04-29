@@ -42,6 +42,17 @@ for match in results.matches:
 
 **You have files. You need to find something in them.**
 
+| Who | What they search |
+|-----|-----------------|
+| **Developers** | Code notes, technical docs, markdown, exported logs, config files, API references, archived project folders, `.env` files, Dockerfiles |
+| **Data Scientists / Analysts** | Experiment notes, CSV/Excel documentation, research papers, Jupyter notebooks, methodology docs, report archives, JSONL training data |
+| **Engineers** | Specifications, manuals, design notes, vendor PDFs, test reports, maintenance records, datasheets, SPICE netlists, Verilog/VHDL |
+| **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs |
+| **Researchers** | Journal articles (PDF), interview transcripts, survey responses, field notes, grant proposals, historical documents (OCR) |
+| **Anyone with document chaos** | If your desktop is a maze, peekdocs helps. |
+
+**Details by role:**
+
 - **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes, and API keys accidentally saved in documents (PII Scan). A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. `pip install peekdocs` and you're running in seconds — CLI, GUI, or Python API. **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
 - **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once. Credential scanning: the PII Scan catches `password=`, `api_key=`, `secret=` patterns in source code — run it before pushing to a public repo.
 - **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions. Use PII Scan on CSV/Excel/JSONL training data to find SSNs, emails, or phone numbers before publishing a dataset or model.
