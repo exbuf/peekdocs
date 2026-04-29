@@ -498,7 +498,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
-| `--pii-scan` (pii-scan) | Scan for sensitive data (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, DOBs, dollar amounts). Results shown on screen only — no file written to disk. Add `-r` for recursive. Output shows filenames, match counts, and line numbers — never the actual sensitive data |
+| `--pii-scan` (pii-scan) | Scan for sensitive data (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, DOBs, dollar amounts). Results shown on screen only — no file written to disk. Add `-r` for recursive (flags can be in any order). Output shows filenames, match counts, and line numbers — never the actual sensitive data. No `--open` option — results are screen-only by design, matching the GUI's safety model |
 | `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |

@@ -28,8 +28,9 @@ pip install peekdocs     # if you prefer pip
 peekdocs "budget" ~/Documents
 
 # Scan for sensitive data (SSNs, credit cards, passwords)
-peekdocs --pii-scan        # current folder
-peekdocs --pii-scan -r     # recursive — shows filenames and line numbers only, never the actual sensitive data
+peekdocs --pii-scan        # current folder — screen only, no file written
+peekdocs --pii-scan -r     # recursive (flags can be in any order)
+# Shows filenames and line numbers only — never the actual sensitive data
 
 # Search with the GUI
 peekdocs-gui
