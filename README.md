@@ -625,17 +625,20 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 |------|--------------|
 | **Air-gapped** | A computer with no network connection — no Wi-Fi, no Ethernet, no internet. Used for the most sensitive work. peekdocs works perfectly on air-gapped machines since it has no network requirements |
 | **API** | Application Programming Interface — a way for programs to use peekdocs from Python code, not just the GUI or terminal. Example: `from peekdocs import search` |
+| **BOM** | Byte Order Mark — an invisible character at the very start of a text file that indicates the file's encoding. Common in files created by Windows Notepad. peekdocs strips it automatically so it doesn't interfere with searches |
 | **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
 | **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
 | **FTS5** | Full-Text Search 5 — a fast search technology built into SQLite that peekdocs uses for its search index |
 | **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
 | **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
+| **.gz file** | A file compressed with gzip. Often used for log files (e.g., `access.log.gz`) or combined with tar (`.tar.gz`). peekdocs searches both tar.gz archives and standalone .gz compressed files |
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
+| **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
 | **PII** | Personally Identifiable Information — data that can identify a person: Social Security numbers, credit card numbers, passwords, phone numbers, etc. |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
@@ -645,8 +648,10 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 | **Python** | The programming language peekdocs is written in. Users need Python 3.10 or newer installed (unless using the standalone download) |
 | **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches Social Security numbers like 123-45-6789 |
 | **Search suite** | A named group of saved searches that run together with one click. Create them in the GUI (Tools → Search Suites) or run from the CLI with `--suite` |
+| **SSL .key file** | A certificate key file used for website encryption (HTTPS). These share the `.key` extension with Apple Keynote presentations but are not zip archives. peekdocs detects the difference and skips certificate files |
 | **SQLite** | A lightweight database engine built into Python. peekdocs uses it for the search index — no separate database software needed |
 | **SSD** | Solid State Drive — a fast storage drive with no moving parts. Searches are faster on SSDs than on older spinning hard drives |
+| **Symlink** | Symbolic link — a shortcut that points to another file or folder. peekdocs skips symlinks during search to prevent infinite loops when a symlink points back to a parent folder |
 | **Tesseract** | Free OCR software that reads text from images. Optional — only needed if you want to search scanned documents or photos of text |
 | **Unicode** | The standard that lets computers handle text in every language — English, Chinese, Arabic, emoji, and everything else. peekdocs uses Unicode throughout |
 | **venv** | Virtual environment — an isolated copy of Python where peekdocs and its libraries are installed without affecting the rest of your system. You'll see `(venv)` in your terminal prompt when one is active |
