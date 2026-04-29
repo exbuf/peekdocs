@@ -192,9 +192,10 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Email** | .eml .mbox .msg .pst |
 | **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip |
 | **Calendar/Contacts** | .ics .vcf |
-| **Source Code** | .asm .bat .c .cpp .cs .f .f90 .go .h .hpp .java .js .kt .pl .ps1 .py .r .rb .rs .s .sh .swift .tcl .ts .vb |
+| **Source Code** | .asm .bat .c .cpp .cs .css .f .f90 .go .h .hpp .java .js .kt .lua .pl .ps1 .py .r .rb .rs .s .scala .scss .sh .swift .tcl .ts .vb |
 | **Engineering** | .cir .dxf .m .sp .spice .sv .v .vhd .vhdl .vsdx |
-| **Data/Config** | .cfg .ini .json .log .makefile .sql .toml .txt .xml .yaml .yml |
+| **Data/Config** | .cfg .dockerfile .env .graphql .gql .ini .json .jsonl .log .makefile .ndjson .proto .sql .tf .toml .txt .xml .yaml .yml |
+| **Notebooks** | .ipynb (Jupyter) |
 | **Images (OCR)** | .bmp .jpg .jpeg .png .tif .tiff (requires `-O` flag) |
 
 **Note:** Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format. peekdocs extracts whatever readable text exists inside these files, which may be partial. Older iWork files extract fully. Apple Pages (.pages) is fully supported.
