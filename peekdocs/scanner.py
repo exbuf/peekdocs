@@ -4,6 +4,7 @@ import csv
 import glob
 import os
 import re
+import stat
 import warnings
 from copy import deepcopy
 from html.parser import HTMLParser
@@ -974,8 +975,16 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
                 continue
             if basename.startswith("~$") or basename.startswith("~"):
                 continue  # Word/Excel lock files and temp files
+            if basename.startswith("._"):
+                continue  # macOS resource fork shadow files
             if os.path.islink(f):
                 continue  # Skip symlinks to prevent infinite loops
+            try:
+                mode = os.stat(f).st_mode
+                if stat.S_ISFIFO(mode) or stat.S_ISSOCK(mode):
+                    continue  # Named pipes and sockets would hang
+            except OSError:
+                continue
             discovered.append(f)
     # Also discover files with special names (no standard extension).
     # Glob("*") skips dotfiles, so also glob(".*") to catch .env etc.
@@ -989,6 +998,10 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
             if basename in _SPECIAL_FILENAMES:
                 discovered.append(f)
                 _special_seen.add(f)
+    # Skip virtual/system directories that could hang or return infinite data
+    _SKIP_DIRS = ("/proc/", "/sys/", "/dev/", "/.gvfs/")
+    discovered = [f for f in discovered if not any(skip in f for skip in _SKIP_DIRS)]
+
     all_files = sorted(discovered)
 
     if file_types is not None:

@@ -581,6 +581,9 @@ peekdocs handles a wide range of real-world file issues automatically:
 - **Raw .gz files** — gzip-compressed files that aren't tar archives (e.g., compressed log files) are decompressed and searched instead of failing.
 - **SSL .key files** — certificate key files that share the `.key` extension with Apple Keynote are detected as non-zip and silently skipped.
 - **Byte Order Mark (BOM)** — text files with a UTF-8 BOM are handled automatically. The BOM is stripped so it doesn't interfere with search matches at the start of a file.
+- **macOS resource fork files** (`._filename`) — silently skipped. These are macOS metadata shadow files that duplicate every real file and would create noise in search results.
+- **Named pipes and sockets** — silently skipped. Opening a named pipe (FIFO) or Unix socket without a writer would hang the process indefinitely. peekdocs detects these via `stat()` and skips them.
+- **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These Linux virtual filesystems contain infinite or pseudo-files that would hang the process or return meaningless data.
 - **Corrupted or misnamed files** — files that can't be read (wrong format, corrupted, truncated) are logged to `peekdocs_errors.log` with a description of the error, and the search continues with the remaining files.
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
