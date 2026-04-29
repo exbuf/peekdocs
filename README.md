@@ -558,6 +558,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
 | Term | What it means |
 |------|--------------|
+| **Air-gapped** | A computer with no network connection — no Wi-Fi, no Ethernet, no internet. Used for the most sensitive work. peekdocs works perfectly on air-gapped machines since it has no network requirements |
 | **API** | Application Programming Interface — a way for programs to use peekdocs from Python code, not just the GUI or terminal. Example: `from peekdocs import search` |
 | **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
 | **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
