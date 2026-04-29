@@ -709,6 +709,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 97 | Search and auto-open the .docx report | `peekdocs --open docx budget` |
 | 98 | Search and auto-open HTML in browser | `peekdocs --open html budget` |
 | 99 | Search and auto-open CSV in Excel/LibreOffice | `peekdocs --open csv budget` |
+| 100 | Search and auto-open PDF in a PDF viewer | `peekdocs --open pdf budget` |
+| 101 | Search and auto-open JSON in a text editor | `peekdocs --open json budget` |
 | | **Inverse Search** | |
 | 97 | Find files missing a term | `peekdocs --inverse "indemnification"` |
 | 98 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |

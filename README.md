@@ -384,6 +384,8 @@ peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
 peekdocs --open docx budget          # search and auto-open the .docx report
 peekdocs --open html budget          # auto-generate HTML and open in your browser
 peekdocs --open csv budget           # auto-generate CSV and open in Excel/LibreOffice
+peekdocs --open pdf budget           # auto-generate PDF and open in a PDF viewer
+peekdocs --open json budget          # auto-generate JSON and open in a text editor
 ```
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.

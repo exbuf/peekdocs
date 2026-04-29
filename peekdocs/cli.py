@@ -134,6 +134,8 @@ BANNER_BOTTOM = (
     '  peekdocs --open docx budget    Search and auto-open the highlighted Word report\n'
     '  peekdocs --open html budget    Search, generate HTML, and open it in your browser\n'
     '  peekdocs --open csv budget     Search, generate CSV, and open it in Excel/LibreOffice\n'
+    '  peekdocs --open pdf budget     Search, generate PDF, and open it in a PDF viewer\n'
+    '  peekdocs --open json budget    Search, generate JSON, and open it in a text editor\n'
     '\n'
     '  See Advanced Search Options in the GUI for the full list of search settings.'
 )
