@@ -136,6 +136,13 @@ BANNER_BOTTOM = (
     '  peekdocs --open csv budget     Search, generate CSV, and open it in Excel/LibreOffice\n'
     '  peekdocs --open pdf budget     Search, generate PDF, and open it in a PDF viewer\n'
     '  peekdocs --open json budget    Search, generate JSON, and open it in a text editor\n'
+    '  peekdocs -sa archive --open docx budget  Append to accumulated report and open it\n'
+    '  peekdocs -sa archive --open html budget  Append and open accumulated report in browser\n'
+    '\n'
+    '── Cleanup ──────────────────────────────────────────────────────\n'
+    '  peekdocs --clear               Delete peekdocs_results* files in the current directory\n'
+    '  peekdocs --clear-all           Delete all peekdocs output files (results, saved reports,\n'
+    '                                   accumulated reports, error log, and search index)\n'
     '\n'
     '  See Advanced Search Options in the GUI for the full list of search settings.'
 )

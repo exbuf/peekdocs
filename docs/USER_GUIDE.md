@@ -711,6 +711,11 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 99 | Search and auto-open CSV in Excel/LibreOffice | `peekdocs --open csv budget` |
 | 100 | Search and auto-open PDF in a PDF viewer | `peekdocs --open pdf budget` |
 | 101 | Search and auto-open JSON in a text editor | `peekdocs --open json budget` |
+| 101a | Append to accumulated report and open it | `peekdocs -sa archive --open docx budget` |
+| 101b | Append and open accumulated report in browser | `peekdocs -sa archive --open html budget` |
+| | **Cleanup** | |
+| 101c | Delete results files in current directory | `peekdocs --clear` |
+| 101d | Delete all peekdocs output files | `peekdocs --clear-all` |
 | | **Inverse Search** | |
 | 97 | Find files missing a term | `peekdocs --inverse "indemnification"` |
 | 98 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |

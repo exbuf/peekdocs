@@ -386,6 +386,10 @@ peekdocs --open html budget          # auto-generate HTML and open in your brows
 peekdocs --open csv budget           # auto-generate CSV and open in Excel/LibreOffice
 peekdocs --open pdf budget           # auto-generate PDF and open in a PDF viewer
 peekdocs --open json budget          # auto-generate JSON and open in a text editor
+peekdocs -sa archive --open docx budget  # append to accumulated report and open it
+peekdocs -sa archive --open html budget  # append and open accumulated report in browser
+peekdocs --clear                    # delete peekdocs_results* files in current directory
+peekdocs --clear-all                # delete all peekdocs output files (results, saved reports, index)
 ```
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
