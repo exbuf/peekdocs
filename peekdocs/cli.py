@@ -550,6 +550,13 @@ def _main_inner(argv=None):
         print('Type peekdocs for a quick command reference.')
         return 0
 
+    if not args:
+        print(f'\npeekdocs v{VERSION}')
+        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
+        print(BANNER_QUICK)
+        return 0
+
     if not quiet:
         # Normal search: show short banner before search runs
         print(f'\npeekdocs v{VERSION}')
@@ -740,13 +747,6 @@ def _main_inner(argv=None):
         print(f"Index refreshed: {result['added']} added, {result['updated']} updated, "
               f"{result['removed']} removed")
         print(f"Elapsed: {result['elapsed']:.2f} seconds\n")
-        return 0
-
-    if not args:
-        print(f'\npeekdocs v{VERSION}')
-        print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
-        print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
-        print(BANNER_QUICK)
         return 0
 
     if args and args[0] in ("-s", "-save"):
