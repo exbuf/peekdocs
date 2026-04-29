@@ -533,6 +533,25 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                 except Exception:
                     continue
 
+    elif ext == ".ipynb":
+        # Jupyter notebook — JSON file containing code and markdown cells.
+        # Extract source lines from all cells, preserving cell order.
+        import json as _json_nb
+        with open(filepath, encoding="utf-8", errors="replace") as nbfile:
+            try:
+                nb = _json_nb.load(nbfile)
+            except _json_nb.JSONDecodeError:
+                nb = {}
+        line_num = 0
+        for cell in nb.get("cells", []):
+            cell_type = cell.get("cell_type", "")
+            source = cell.get("source", [])
+            if cell_type in ("code", "markdown", "raw"):
+                for src_line in source:
+                    for part in src_line.split("\n"):
+                        line_num += 1
+                        all_lines.append((line_num, part.rstrip("\n")))
+
     elif ext in SUPPORTED_TYPES:
         # Plain text fallback — source code, engineering files, and any other
         # text-based format in SUPPORTED_TYPES without a specialized parser.

@@ -2168,7 +2168,7 @@ class ToolsMixin:
         b("  not match anything in the file's extracted text.")
         blank()
         b("\u2022 Some file formats may not be fully extracted. peekdocs")
-        b("  searches 86 file types, but extraction quality varies. A")
+        b("  searches 99 file types, but extraction quality varies. A")
         b("  scanned PDF without OCR enabled will not surface any")
         b("  text. An image file is ignored unless OCR is on. Complex")
         b("  binary formats may yield partial text. Files that")
