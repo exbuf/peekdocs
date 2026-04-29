@@ -464,6 +464,7 @@ def _main_inner(argv=None):
     cpu_count = os.cpu_count() or 1
     is_help = args and args[0] in ("-h", "-help", "--help")
     if not quiet:
+        print(f'\npeekdocs v{VERSION}')
         print(BANNER_TOP)
         print(BANNER_BOTTOM)
         print()
@@ -478,6 +479,7 @@ def _main_inner(argv=None):
 
     if is_help:
         if quiet:
+            print(f'\npeekdocs v{VERSION}')
             print(BANNER_TOP)
             print(BANNER_BOTTOM)
             print()
