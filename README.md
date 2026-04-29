@@ -372,6 +372,8 @@ source venv/bin/activate             # macOS/Linux (you'll see (venv) in your pr
 venv\Scripts\activate                # Windows
 ```
 
+**Tip:** Type `peekdocs` with no arguments to see a handy cheat sheet of all search modes, common options, PII scan, and cleanup commands — right above your command prompt. Type `peekdocs -h` for the full reference with all flags, file types, and regex patterns.
+
 Then navigate to your documents and search:
 
 ```bash
