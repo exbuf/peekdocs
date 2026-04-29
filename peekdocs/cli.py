@@ -571,9 +571,10 @@ def _main_inner(argv=None):
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
         print('-------------------------------------------------------------------------')
 
-    if args and args[0] == "--pii-scan":
+    if "--pii-scan" in args:
         import time as _pii_time
         from peekdocs.api import search as _pii_search
+        args = [a for a in args if a != "--pii-scan"]
         from peekdocs.sensitive_patterns import SENSITIVE_PATTERNS, SEVERITY_ORDER
 
         cwd = os.getcwd()
