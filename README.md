@@ -382,7 +382,8 @@ peekdocs -R amount:1000..5000 budget # range query
 peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
 peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
 peekdocs --open docx budget          # search and auto-open the .docx report
-peekdocs --open txt budget           # auto-open the .txt report instead
+peekdocs --open html budget          # auto-generate HTML and open in your browser
+peekdocs --open csv budget           # auto-generate CSV and open in Excel/LibreOffice
 ```
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.

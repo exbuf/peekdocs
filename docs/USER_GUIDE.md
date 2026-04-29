@@ -503,7 +503,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
-| `--open FMT` (open) | Automatically open the report when the search finishes. Specify the format: `docx`, `txt`, `csv`, `json`, `pdf`, or `html`. Opens in your default application for that file type. If the format wasn't generated, peekdocs tells you how to enable it |
+| `--open FMT` (open) | Automatically open the report when the search finishes. Specify the format: `docx`, `txt`, `csv`, `json`, `pdf`, or `html`. For csv/json/pdf/html, the output format is auto-generated if not already enabled — no need to also specify `-o`. Opens in a safe local application (cloud apps are blocked) |
 | `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON, PDF) to the specified directory instead of the search folder |
 | `-A N` (after) | Show N lines after each match |
 | `-B N` (before) | Show N lines before each match |
@@ -707,7 +707,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 95 | Delete results files | `peekdocs --clear` |
 | 96 | Delete all peekdocs output files | `peekdocs --clear-all` |
 | 97 | Search and auto-open the .docx report | `peekdocs --open docx budget` |
-| 98 | Search and auto-open the .txt report | `peekdocs --open txt budget` |
+| 98 | Search and auto-open HTML in browser | `peekdocs --open html budget` |
+| 99 | Search and auto-open CSV in Excel/LibreOffice | `peekdocs --open csv budget` |
 | | **Inverse Search** | |
 | 97 | Find files missing a term | `peekdocs --inverse "indemnification"` |
 | 98 | Files missing any of several terms | `peekdocs --inverse disclaimer warranty` |
