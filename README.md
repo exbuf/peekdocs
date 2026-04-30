@@ -4,6 +4,7 @@
 <p align="center"><i>Spotlight for serious document users.</i></p>
 
 <p align="center">
+  <a href="https://pypi.org/project/peekdocs/"><img src="https://img.shields.io/pypi/dm/peekdocs?label=downloads&color=orange" alt="PyPI Downloads"></a>&nbsp;&nbsp;
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>&nbsp;&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>&nbsp;&nbsp;
   <a href="docs/USER_GUIDE.md"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform"></a>
