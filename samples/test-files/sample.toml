@@ -1,0 +1,3 @@
+[test]
+title = "TOML test file for peekdocs"
+value = 42

@@ -335,6 +335,25 @@ The `-O` (OCR) flag needs three things:
 
 ---
 
+**"PST support requires the libpff-python package"**
+
+Searching `.pst` files (Outlook mailbox archives) requires `libpff-python`, which is a C extension that must be compiled from source:
+
+```bash
+pip install libpff-python
+```
+
+This requires a C compiler on your system:
+- **macOS:** Install Xcode Command Line Tools: `xcode-select --install`
+- **Ubuntu/Debian:** `sudo apt install build-essential python3-dev`
+- **Windows:** Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the "Desktop development with C++" workload
+
+If you can't install a C compiler, peekdocs still searches all other email formats (`.eml`, `.msg`, `.mbox`) — only `.pst` is affected.
+
+**Note for testing:** No Python library can create `.pst` files from scratch. The PST format is a proprietary Microsoft binary structure ([MS-PST specification](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-pst/)). To obtain a test `.pst` file, export one from Microsoft Outlook (File → Open & Export → Import/Export → Export to a file → Outlook Data File).
+
+---
+
 **"Index database was corrupted and has been removed"**
 
 peekdocs detected that the `.peekdocs.db` file was damaged and automatically deleted it. This can happen if a previous indexing operation was interrupted. Simply rebuild:

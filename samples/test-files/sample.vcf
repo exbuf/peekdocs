@@ -1,0 +1,7 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Test Contact for peekdocs
+N:Contact;Test;;;
+EMAIL:test@example.com
+TEL:555-0123
+END:VCARD

@@ -1,0 +1,7 @@
+// Gradle test file for peekdocs
+plugins {
+    id "java"
+}
+repositories {
+    mavenCentral()
+}

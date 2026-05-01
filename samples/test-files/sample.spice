@@ -1,0 +1,5 @@
+* SPICE (spice ext) test file for peekdocs
+V1 IN 0 AC 1V
+R1 IN OUT 1K
+.ac dec 10 1 1G
+.end

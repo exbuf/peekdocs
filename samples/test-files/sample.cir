@@ -1,0 +1,6 @@
+* SPICE circuit test file for peekdocs
+V1 1 0 DC 5V
+R1 1 2 1K
+C1 2 0 10uF
+.tran 1ms 100ms
+.end

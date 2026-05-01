@@ -725,6 +725,22 @@ peekdocs takes extensive steps to protect user data, but the following are outsi
 - **Safe output folder fallback.** If `~/peekdocs_reports` is itself inside a cloud-synced directory (e.g., the entire home directory is synced to OneDrive), peekdocs falls back to the system temp directory (`/tmp` on Unix/macOS, `%TEMP%` on Windows). This is automatic and requires no user action.
 - **Backup software.** Report files written to disk may be picked up by backup software (Time Machine, Windows Backup, Backblaze, Carbonite, etc.) and uploaded to cloud storage. peekdocs blocks cloud-synced *folders* but cannot detect or block background backup services that copy files after they are written. Use **Delete on Close** or **Delete Everything Now** to remove report files before backups run.
 
+## Testing
+
+**Unit tests** — 681 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, PII detection accuracy, expression parsing, range queries, and more.
+
+```bash
+pytest tests/ -v
+```
+
+**Integration test** — 56 end-to-end searches that verify operation: every flag and combination runs without crashing, all output formats are generated, file type coverage across 100+ sample files is reported, and match counts are confirmed stable. Results are saved to `peekdocs_global_test_results.txt`. Both scripts are tested on macOS, Linux, and Windows before each release. See the script headers for details.
+
+```bash
+cd samples/test-files
+bash peekdocs_global_test.sh "test file for peekdocs"    # macOS / Linux
+# Windows: powershell -ExecutionPolicy Bypass -File peekdocs_global_test_windows.ps1 "test file for peekdocs"
+```
+
 ## Contributing
 
 Ideas, bug reports, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.

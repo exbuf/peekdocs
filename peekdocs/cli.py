@@ -53,7 +53,18 @@ BANNER_TOP = (
 )
 
 BANNER_BOTTOM = (
-    '\n── Filters ──────────────────────────────────────────────────────\n'
+    '\n── Search Modes ─────────────────────────────────────────────────\n'
+    '  (default)          OR search — find lines containing any search term\n'
+    '  -a                 AND search — all terms must appear in the same line\n'
+    '  -e "EXPR"          Boolean expression with AND, OR, NOT, and parentheses\n'
+    '  -x "PATTERN"       Regex pattern matching\n'
+    '  -w "PATTERN"       Wildcard matching (* = any chars, ? = one char)\n'
+    '  -z                 Fuzzy matching (typo-tolerant)\n'
+    '  -W                 Whole-word matching (won\'t match "bob" inside "bobcat")\n'
+    '  -p 5 term1 term2   Word proximity — terms within 5 words of each other\n'
+    '  -P 3 term1 term2   Line proximity — terms within 3 lines of each other\n'
+    '\n'
+    '── Filters ──────────────────────────────────────────────────────\n'
     '  -t pdf,docx        Search only these file types\n'
     '  -f report.pdf      Search only specific files (comma-separated)\n'
     '  -r                 Search subdirectories recursively\n'
@@ -198,6 +209,7 @@ BANNER_QUICK = (
     '  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match\n'
     '  peekdocs -R amount:1000..5000 "" Filter by dollar range\n'
     '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
+    '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
     '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'
     '\n'
@@ -1155,7 +1167,16 @@ def _main_inner(argv=None):
 
     # Set up CLI progress bar / spinner
     bar_width = 40
-    spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    # Use ASCII fallbacks if the terminal can't handle Unicode (e.g. Windows cp1252)
+    _can_unicode = True
+    try:
+        "█░⠋".encode(sys.stdout.encoding or "utf-8")
+    except (UnicodeEncodeError, LookupError):
+        _can_unicode = False
+
+    spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏" if _can_unicode else "|/-\\"
+    _bar_fill = "█" if _can_unicode else "#"
+    _bar_empty = "░" if _can_unicode else "-"
     try:
         term_width = os.get_terminal_size().columns
     except OSError:
@@ -1170,7 +1191,7 @@ def _main_inner(argv=None):
             return
         pct = done / total_count
         filled = int(bar_width * pct)
-        bar = "█" * filled + "░" * (bar_width - filled)
+        bar = _bar_fill * filled + _bar_empty * (bar_width - filled)
         if spinner:
             line = f"\r  [{bar}] {done}/{total_count} {filename} {spinner}"
         else:

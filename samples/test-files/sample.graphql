@@ -1,0 +1,9 @@
+# GraphQL test file for peekdocs
+type Query {
+  hello(name: String!): String!
+  items: [Item!]!
+}
+type Item {
+  id: ID!
+  name: String!
+}

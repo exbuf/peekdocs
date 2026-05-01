@@ -1,0 +1,4 @@
+# GQL test file for peekdocs
+query GetItems {
+  items { id name }
+}
