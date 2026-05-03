@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Security",
 ]
 keywords = ["document-search", "file-search", "pii-scanner", "text-search", "pdf-search", "docx", "offline", "privacy", "cli", "gui"]
-license = {text = "MIT"}
+license = "MIT"
 authors = [{name = "Robert D. Schoening", email = "bobschoening@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
