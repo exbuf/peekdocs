@@ -1,13 +1,18 @@
 # ============================================================================
 # peekdocs_global_test_windows.ps1 — Automated test of every peekdocs search mode
-# Version: 1.1 - 2026-05-01
+# Version: 1.3 - 2026-05-01
 # ============================================================================
+#
+# Purpose: Developer/QA integration test for peekdocs. Exercises every search
+# mode and flag combination to verify the application runs without errors across
+# all supported features. This script is for app debugging and regression testing
+# -- not intended for end-user consumption.
 #
 # Runs peekdocs with every search flag and combination against the files
 # in the current folder (recursively), capturing all output to
 # peekdocs_global_test_results.txt in the current folder.
 #
-# Works on Windows only. For macOS and Linux, use peekdocs_global_test.sh.
+# Works on Windows only. For macOS and Linux, use peekdocs_global_test_unix.sh.
 #
 # Usage:
 #     cd C:\path\to\your\documents
@@ -32,6 +37,11 @@
 #     search terms. Create a real .rar with WinRAR on Windows if needed.
 #   - If "scripts are disabled" error: run this first:
 #     Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+#
+# Known behavior:
+#   - The results file (peekdocs_global_test_results.txt) is hidden during each
+#     test so peekdocs does not search its own growing output. This prevents
+#     inflated match counts from self-matching.
 #
 # Not tested (by design):
 #   - -sa (append/accumulate) -- requires multiple sequential runs to validate
@@ -62,8 +72,8 @@ $TERMS = $SearchTerms -join " "
 $TERM1 = $SearchTerms[0]
 $TERM2 = if ($SearchTerms.Count -ge 2) { $SearchTerms[1] } else { $TERM1 }
 
-$SCRIPT_VERSION = "1.1"
-$SCRIPT_DATE = "2026-05-01"
+$SCRIPT_VERSION = "1.3"
+$SCRIPT_DATE = "2026-05-03"
 $OUTFILE = "peekdocs_global_test_results.txt"
 $script:PASS = 0
 $script:FAIL = 0
@@ -166,12 +176,18 @@ $SUBDIV
 "@
     Add-Content -Path $OUTFILE -Value $testHeader -Encoding UTF8
 
+    # Hide the results file so peekdocs doesn't search its own growing output
+    if (Test-Path $OUTFILE) { Rename-Item $OUTFILE ".$OUTFILE.tmp" }
+
     # Run peekdocs and capture output (ignore exit code)
     try {
         $output = Invoke-Expression "$cmd 2>&1" | Out-String
     } catch {
         $output = $_.Exception.Message
     }
+
+    # Restore the results file
+    if (Test-Path ".$OUTFILE.tmp") { Rename-Item ".$OUTFILE.tmp" $OUTFILE }
 
     # Strip ANSI color codes for reliable parsing
     $clean = $output -replace '\x1b\[[0-9;]*m', ''

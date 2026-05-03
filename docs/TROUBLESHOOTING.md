@@ -230,6 +230,14 @@ After installing, `peekdocs-gui` will launch normally. This is a one-time setup.
 
 ---
 
+**Tools menu requires holding the mouse button (Linux)**
+
+On Linux, clicking the Tools menu once causes it to disappear immediately. You must press and hold the mouse button, then drag to the menu item you want.
+
+This is a known limitation of how Linux window managers handle menu focus in tkinter/customtkinter applications. It affects all tkinter-based apps on Linux, not just peekdocs. The menu is fully functional — the interaction is just different from macOS and Windows, where a single click keeps the menu open.
+
+---
+
 **"ensurepip" error when creating a virtual environment (Linux)**
 
 On Debian-based Linux distributions (Ubuntu, Linux Mint, Pop!_OS, Debian), the base `python3` package does not include the `venv` or `pip` modules. Running `python3 -m venv venv` fails with an error like:

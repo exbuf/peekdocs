@@ -2,10 +2,22 @@
 
 import multiprocessing
 import os
+import platform
 import re
 import signal
+import sys
 import time
 from dataclasses import dataclass
+
+# On Linux, the default multiprocessing start method is "fork", which can
+# deadlock when a multiprocessing.Pool is created from within a thread (e.g.
+# the GUI's PII scan daemon thread). Using "forkserver" avoids this by
+# spawning worker processes from a clean, non-threaded server process.
+if platform.system() == "Linux":
+    try:
+        multiprocessing.set_start_method("forkserver", force=False)
+    except RuntimeError:
+        pass  # Already set — ignore
 
 from peekdocs.constants import _default_cores
 from peekdocs.indexer import index_exists, refresh_index, search_with_index

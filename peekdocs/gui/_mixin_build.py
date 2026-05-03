@@ -1466,7 +1466,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._tools_btn.pack(side="right", padx=5)
-        Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more", anchor="above-left")
+        Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more. Linux: hold mouse button and drag to select — click-to-open is a known Linux/tkinter limitation", anchor="above-left")
 
         hover_label = "Hover: ON" if Tooltip.enabled else "Hover: OFF"
         self._hover_toggle_btn = ctk.CTkButton(

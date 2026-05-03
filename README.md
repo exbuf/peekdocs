@@ -737,7 +737,7 @@ pytest tests/ -v
 
 ```bash
 cd samples/test-files
-bash peekdocs_global_test.sh "test file for peekdocs"    # macOS / Linux
+bash peekdocs_global_test_unix.sh "test file for peekdocs"    # macOS / Linux
 # Windows: powershell -ExecutionPolicy Bypass -File peekdocs_global_test_windows.ps1 "test file for peekdocs"
 ```
 

@@ -1,8 +1,13 @@
 #!/bin/bash
 # ============================================================================
-# peekdocs_global_test.sh — Automated test of every peekdocs search mode
-# Version: 1.1 — 2026-05-01
+# peekdocs_global_test_unix.sh — Automated test of every peekdocs search mode
+# Version: 1.3 — 2026-05-01
 # ============================================================================
+#
+# Purpose: Developer/QA integration test for peekdocs. Exercises every search
+# mode and flag combination to verify the application runs without errors across
+# all supported features. This script is for app debugging and regression testing
+# — not intended for end-user consumption.
 #
 # Runs peekdocs with every search flag and combination against the files
 # in the current folder (recursively), capturing all output to
@@ -10,8 +15,8 @@
 #
 # Usage:
 #     cd /path/to/your/documents
-#     bash /path/to/peekdocs_global_test.sh "your search terms"
-#     bash /path/to/peekdocs_global_test.sh "term1" "term2"
+#     bash /path/to/peekdocs_global_test_unix.sh "your search terms"
+#     bash /path/to/peekdocs_global_test_unix.sh "term1" "term2"
 #
 # The script can live anywhere — it searches wherever you cd to.
 # Works on macOS and Linux only. For Windows, use peekdocs_global_test_windows.ps1.
@@ -32,7 +37,12 @@
 #     search terms. Create a real .rar with WinRAR on Windows if needed.
 #   - Line endings: if this .sh file is copied through Windows (git clone, email,
 #     etc.), it may get \r\n line endings and bash will fail with errors like
-#     "/bin/bash^M: bad interpreter". Fix with: sed -i 's/\r$//' peekdocs_global_test.sh
+#     "/bin/bash^M: bad interpreter". Fix with: sed -i 's/\r$//' peekdocs_global_test_unix.sh
+#
+# Known behavior:
+#   - The results file (peekdocs_global_test_results.txt) is hidden during each
+#     test so peekdocs does not search its own growing output. This prevents
+#     inflated match counts from self-matching.
 #
 # Not tested (by design):
 #   - -sa (append/accumulate) — requires multiple sequential runs to validate
@@ -61,8 +71,8 @@ TERM1="$1"
 # If we have 2+ terms, grab the second for proximity/AND tests
 TERM2="${2:-$1}"
 
-SCRIPT_VERSION="1.1"
-SCRIPT_DATE="2026-05-01"
+SCRIPT_VERSION="1.3"
+SCRIPT_DATE="2026-05-03"
 OUTFILE="peekdocs_global_test_results.txt"
 PASS=0
 FAIL=0
@@ -72,7 +82,7 @@ SUBDIV="$(printf -- '-%.0s' {1..78})"
 
 # Count files recursively (excludes peekdocs output files, index files, and this
 # script itself — so this count may be lower than a full directory listing)
-FILE_COUNT=$(find . -type f ! -name "peekdocs_*" ! -name ".peekdocs*" ! -name "peekdocs_global_test.sh" | wc -l | tr -d ' ')
+FILE_COUNT=$(find . -type f ! -name "peekdocs_*" ! -name ".peekdocs*" ! -name "peekdocs_global_test_unix.sh" | wc -l | tr -d ' ')
 
 # Clean up any leftover peekdocs output before we start
 peekdocs --clear 2>/dev/null || true
@@ -81,7 +91,7 @@ peekdocs --clear 2>/dev/null || true
 {
 echo "$DIVIDER"
 echo "  peekdocs Search Mode Test Results"
-echo "  Script:       peekdocs_global_test.sh v${SCRIPT_VERSION} (${SCRIPT_DATE})"
+echo "  Script:       peekdocs_global_test_unix.sh v${SCRIPT_VERSION} (${SCRIPT_DATE})"
 echo "  Generated:    $(date '+%Y-%m-%d %H:%M:%S')"
 echo "  Folder:       $(pwd)"
 echo "  Files found:  $FILE_COUNT (recursive, excludes peekdocs output/index/script files)"
@@ -127,9 +137,15 @@ run_test() {
     echo "$SUBDIV"
     } >> "$OUTFILE"
 
+    # Hide the results file so peekdocs doesn't search its own growing output
+    mv "$OUTFILE" ".${OUTFILE}.tmp" 2>/dev/null || true
+
     # Capture output regardless of exit code (peekdocs may return non-zero
     # when individual files fail to read, e.g. .pst — that's not a test failure)
     output=$(eval "$cmd" 2>&1) || true
+
+    # Restore the results file
+    mv ".${OUTFILE}.tmp" "$OUTFILE" 2>/dev/null || true
 
     # Strip ANSI color codes for reliable parsing
     clean=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g')
