@@ -67,6 +67,21 @@ class Tooltip:
     def _hide(self, event=None):
         """Destroy the tooltip window on mouse leave."""
         if self.tip_window:
+            # On Linux, moving the mouse into the tooltip itself triggers a
+            # Leave event on the widget. Check if the pointer is still inside
+            # the tooltip window before destroying it — prevents flicker loops.
+            if event and self.tip_window.winfo_exists():
+                try:
+                    x = self.widget.winfo_pointerx()
+                    y = self.widget.winfo_pointery()
+                    tx = self.tip_window.winfo_rootx()
+                    ty = self.tip_window.winfo_rooty()
+                    tw = self.tip_window.winfo_width()
+                    th = self.tip_window.winfo_height()
+                    if tx <= x <= tx + tw and ty <= y <= ty + th:
+                        return  # Pointer is over the tooltip — don't hide
+                except Exception:
+                    pass
             try:
                 self.tip_window.destroy()
             except Exception:

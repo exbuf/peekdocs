@@ -595,10 +595,10 @@ class BuildMixin:
         ctk.CTkLabel(
             adv_header_frame,
             text="All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=13),
             text_color=("gray50", "gray50"),
             justify="left",
-            wraplength=600,
+            wraplength=800,
         ).grid(row=0, column=0, sticky="w")
         adv_help_btn = ctk.CTkButton(
             adv_header_frame, text="?", width=28, height=28,
