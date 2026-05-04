@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 try:
     VERSION = pkg_version("peekdocs")
 except Exception:
-    VERSION = "0.3.3"  # fallback for PyInstaller builds
+    VERSION = "0.3.4"  # fallback for PyInstaller builds
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"

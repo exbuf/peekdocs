@@ -598,7 +598,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
             text_color=("gray50", "gray50"),
             justify="left",
-            wraplength=800,
+            wraplength=700,
         ).grid(row=0, column=0, sticky="w")
         adv_help_btn = ctk.CTkButton(
             adv_header_frame, text="?", width=28, height=28,
