@@ -697,7 +697,7 @@ class BuildMixin:
         self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         # Row 3: proximity + context lines
-        ctk.CTkLabel(self.advanced_frame, text="Proximity:").grid(
+        ctk.CTkLabel(self.advanced_frame, text="Word Proximity:").grid(
             row=4, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -903,7 +903,7 @@ class BuildMixin:
         Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
         Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
         Tooltip(self.file_types_entry, "Comma-separated file extensions to search. Leave blank to search ALL 46 supported file types (not every file on disk — unsupported formats like .DS_Store, .exe, random binaries are always skipped). Supported types: 7z, bz2, cfg, csv, doc, docx, eml, epub, gz, html, ics, ini, json, log, mbox, md, msg, odp, ods, odt, pages, pdf, ppt, pptx, pst, rar, rst, rtf, sql, tar, tex, tgz, toml, tsv, txt, vcf, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
-        Tooltip(self.proximity_entry, "Find terms within this many words of each other")
+        Tooltip(self.proximity_entry, "Word Proximity (-p): find terms within this many words of each other on the same line. Line Proximity (-P) is available in the CLI only — it finds terms within N lines of each other")
         Tooltip(self.context_before_entry, "Number of lines to show before each match")
         Tooltip(self.context_after_entry, "Number of lines to show after each match")
         Tooltip(self.cores_entry, f"Number of CPU cores to use. This machine has {os.cpu_count()}, default is {self._default_cores}")
