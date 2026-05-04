@@ -1840,8 +1840,10 @@ class ToolsMixin:
         blank()
 
         h("HOW TO USE IT")
-        b("1. Make sure the Search Folder points to the folder you want")
-        b("   to check (use Change Folder if needed)")
+        b("1. Use the Browse button in this PII Scan window to select the")
+        b("   folder you want to scan. Important: use this Browse button,")
+        b("   not the one on the main screen \u2014 the PII scan has its own")
+        b("   independent folder setting.")
         b("2. Check the categories you want to scan for (all are checked")
         b("   by default)")
         b("3. Click Run Scan")

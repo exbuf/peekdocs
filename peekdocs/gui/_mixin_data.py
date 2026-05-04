@@ -1695,10 +1695,12 @@ class DataMixin:
                 folder_label.configure(text=new_folder)
 
         change_btn = ctk.CTkButton(
-            top_row, text="Change Folder", command=_change_folder,
-            font=ctk.CTkFont(size=11), width=110, height=28,
+            top_row, text="Browse", command=_change_folder,
+            font=ctk.CTkFont(size=11), width=80, height=28,
         )
         change_btn.pack(side="right")
+        from peekdocs.gui._tooltip import Tooltip
+        Tooltip(change_btn, "Select the folder to scan. Use this Browse button — not the one on the main screen. The PII scan has its own independent folder setting")
 
         if recursive_var is not None:
             tk.Checkbutton(
