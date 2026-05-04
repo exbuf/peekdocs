@@ -479,7 +479,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=14),
         )
         self.browse_button.pack(side="left", padx=(6, 3), pady=4)
-        Tooltip(self.browse_button, "Browse for a folder to search", anchor="left")
+        Tooltip(self.browse_button, "Browse for a folder to search. Linux: double-click to select a folder in the dialog", anchor="left")
 
         self._multi_folder_btn = ctk.CTkButton(
             self._browse_frame, text="+Folder", width=65, command=self._add_folder,
