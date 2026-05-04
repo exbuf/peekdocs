@@ -1700,7 +1700,7 @@ class DataMixin:
         )
         change_btn.pack(side="right")
         from peekdocs.gui._tooltip import Tooltip
-        Tooltip(change_btn, "Select the folder to scan. Use this Browse button — not the one on the main screen. The PII scan has its own independent folder setting")
+        Tooltip(change_btn, "Select the folder to scan. Use this Browse button — not the one on the main screen. The PII scan has its own independent folder setting. Linux: double-click to select a folder in the dialog")
 
         if recursive_var is not None:
             tk.Checkbutton(

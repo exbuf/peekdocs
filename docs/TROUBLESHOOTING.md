@@ -238,6 +238,14 @@ This is a known limitation of how Linux window managers handle menu focus in tki
 
 ---
 
+**Browse button requires double-click to select a folder (Linux)**
+
+On Linux, clicking a folder once in the Browse dialog may not immediately select it — the folder shown in the window lags behind. Double-click the folder to confirm your selection, or single-click and then click OK.
+
+This is a known limitation of the tkinter file dialog on Linux. On macOS and Windows, a single click selects the folder correctly. The Browse button is fully functional — the interaction just requires an extra click on Linux.
+
+---
+
 **"ensurepip" error when creating a virtual environment (Linux)**
 
 On Debian-based Linux distributions (Ubuntu, Linux Mint, Pop!_OS, Debian), the base `python3` package does not include the `venv` or `pip` modules. Running `python3 -m venv venv` fails with an error like:
