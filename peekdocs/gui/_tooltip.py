@@ -12,15 +12,20 @@ class Tooltip:
         self.text = text
         self.anchor = anchor
         self.tip_window = None
+        self._hide_id = None
         widget.bind("<Enter>", self._show)
-        widget.bind("<Leave>", self._hide)
+        widget.bind("<Leave>", self._schedule_hide)
         # Bind to internal children (needed for CTk composite widgets)
         for child in widget.winfo_children():
             child.bind("<Enter>", self._show)
-            child.bind("<Leave>", self._hide)
+            child.bind("<Leave>", self._schedule_hide)
 
     def _show(self, event=None):
         """Display the tooltip window near the widget on mouse enter."""
+        # Cancel any pending hide — mouse re-entered the widget
+        if self._hide_id is not None:
+            self.widget.after_cancel(self._hide_id)
+            self._hide_id = None
         if self.tip_window or not Tooltip.enabled:
             return
         try:
@@ -64,24 +69,16 @@ class Tooltip:
         except Exception:
             self.tip_window = None
 
+    def _schedule_hide(self, event=None):
+        """Schedule tooltip hide with a short delay to prevent flicker on Linux."""
+        if self._hide_id is not None:
+            self.widget.after_cancel(self._hide_id)
+        self._hide_id = self.widget.after(150, self._hide)
+
     def _hide(self, event=None):
-        """Destroy the tooltip window on mouse leave."""
+        """Destroy the tooltip window."""
+        self._hide_id = None
         if self.tip_window:
-            # On Linux, moving the mouse into the tooltip itself triggers a
-            # Leave event on the widget. Check if the pointer is still inside
-            # the tooltip window before destroying it — prevents flicker loops.
-            if event and self.tip_window.winfo_exists():
-                try:
-                    x = self.widget.winfo_pointerx()
-                    y = self.widget.winfo_pointery()
-                    tx = self.tip_window.winfo_rootx()
-                    ty = self.tip_window.winfo_rooty()
-                    tw = self.tip_window.winfo_width()
-                    th = self.tip_window.winfo_height()
-                    if tx <= x <= tx + tw and ty <= y <= ty + th:
-                        return  # Pointer is over the tooltip — don't hide
-                except Exception:
-                    pass
             try:
                 self.tip_window.destroy()
             except Exception:
