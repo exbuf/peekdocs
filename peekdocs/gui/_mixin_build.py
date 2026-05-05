@@ -937,7 +937,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_save_btn.pack(side="left", padx=(5, 0))
-        Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc", anchor="above")
+        Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc. This includes all settings on this Advanced Search Options screen and on the main screen (search terms, folder, recursive, AND/OR mode, whole word, etc.). These become the defaults every time you launch the app", anchor="above")
 
         adv_close_btn = ctk.CTkButton(
             adv_bottom_frame, text="Close", width=80,

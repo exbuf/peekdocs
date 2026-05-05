@@ -1,5 +1,5 @@
 """peekdocs - A CLI tool for searching and retrieving content from documents."""
 
-__version__ = "0.3.38"
+__version__ = "0.3.39"
 
 from peekdocs.api import SearchMatch, SearchResult, search
