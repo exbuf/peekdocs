@@ -953,6 +953,15 @@ class BuildMixin:
         adv_restore_btn.pack(side="right", padx=(0, 5))
         Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI", anchor="above")
 
+        adv_reset_defaults_btn = ctk.CTkButton(
+            adv_bottom_frame, text="Reset Saved Defaults", width=130,
+            fg_color="#DC2626", hover_color="#B91C1C",
+            command=self._reset_saved_defaults,
+            font=ctk.CTkFont(size=13),
+        )
+        adv_reset_defaults_btn.pack(side="right", padx=(0, 5))
+        Tooltip(adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, PII scan categories, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
+
         adv_inspect_link = ctk.CTkLabel(
             adv_bottom_frame, text="Inspect .peekdocsrc",
             font=ctk.CTkFont(size=12, underline=True),

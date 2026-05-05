@@ -274,6 +274,33 @@ class DataMixin:
 
 
 
+    def _reset_saved_defaults(self):
+        """Delete ~/.peekdocsrc and reset all GUI fields to factory defaults."""
+        import tkinter.messagebox as mb
+        confirm = mb.askyesno(
+            "Reset Saved Defaults",
+            "This will delete ~/.peekdocsrc and return all settings to factory defaults.\n\n"
+            "Your documents, search history, and personal files are not affected.\n\n"
+            "Continue?",
+            parent=self.advanced_window if hasattr(self, "advanced_window") else self,
+        )
+        if not confirm:
+            return
+        import os
+        rc_path = os.path.expanduser("~/.peekdocsrc")
+        try:
+            if os.path.exists(rc_path):
+                os.remove(rc_path)
+        except Exception:
+            pass
+        # Reset GUI fields to factory defaults
+        if hasattr(self, "_reset_all_fields"):
+            self._reset_all_fields()
+        self.status_label.configure(
+            text="All saved defaults have been reset to factory settings.",
+            text_color=("blue", "#66BBFF"),
+        )
+
     def _inspect_settings(self):
         """Show the current saved settings from ~/.peekdocsrc in a read-only popup."""
         from peekdocs.cli import _config_path

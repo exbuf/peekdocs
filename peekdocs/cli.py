@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 try:
     VERSION = pkg_version("peekdocs")
 except Exception:
-    VERSION = "0.3.13"  # fallback for PyInstaller builds
+    VERSION = "0.3.14"  # fallback for PyInstaller builds
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
@@ -100,6 +100,7 @@ BANNER_BOTTOM = (
     '  --suite NAME       Run a search suite (group of saved searches) by name\n'
     '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
     '  --config           Show all saved settings\n'
+    '  --config --reset   Delete all saved settings and return to factory defaults\n'
     '\n'
     '  Config keys (boolean — true/false):\n'
     '    recursive, match_all, regex, fuzzy, wildcard, whole_word, ocr, inverse,\n'
@@ -908,6 +909,14 @@ def _main_inner(argv=None):
 
     if args and args[0] == "--config":
         config_args = args[1:]
+        if config_args and config_args[0] == "--reset":
+            rc_path = os.path.expanduser("~/.peekdocsrc")
+            if os.path.exists(rc_path):
+                os.remove(rc_path)
+                print("Saved defaults deleted (~/.peekdocsrc). All settings reset to factory defaults.\n")
+            else:
+                print("No saved defaults found — already at factory defaults.\n")
+            return 0
         if not config_args:
             # Show current config
             current = _load_config()

@@ -4556,7 +4556,15 @@ class ToolsMixin:
         s("Restore Settings")
         b("Reload saved defaults from ~/.peekdocsrc into the GUI.")
         s("Reset All Fields")
-        b("Clear all fields and reset to defaults. Does not modify the config file.")
+        b("Clear all fields and reset to defaults for the current session.")
+        b("Does not modify the saved config file (~/.peekdocsrc).")
+        blank()
+
+        s("Reset Saved Defaults")
+        b("Delete ~/.peekdocsrc entirely and return all settings to factory")
+        b("defaults. The app will start fresh next time as if newly installed.")
+        b("Your documents, search history, and personal files are not affected.")
+        b("CLI equivalent: peekdocs --config --reset")
         blank()
 
         h("TROUBLESHOOTING: SEARCH NOT FINDING EXPECTED RESULTS?")
