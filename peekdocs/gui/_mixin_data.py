@@ -206,13 +206,9 @@ class DataMixin:
         self.max_matches_entry.delete(0, "end")
         if "max_matches" in config:
             self.max_matches_entry.insert(0, str(config["max_matches"]))
-        else:
-            self.max_matches_entry.insert(0, "1000")
         self.max_file_size_entry.delete(0, "end")
         if "max_file_size_mb" in config:
             self.max_file_size_entry.insert(0, str(config["max_file_size_mb"]))
-        else:
-            self.max_file_size_entry.insert(0, "100")
         self.file_types_entry.delete(0, "end")
         if "file_types" in config:
             self.file_types_entry.insert(0, config["file_types"])
