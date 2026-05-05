@@ -863,7 +863,7 @@ class BuildMixin:
 
         # Row 12: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        settings_btn_frame.grid(row=12, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+        settings_btn_frame.grid(row=12, column=0, columnspan=3, padx=(0, 15), pady=(0, 0), sticky="e")
 
 
 
@@ -876,7 +876,6 @@ class BuildMixin:
         )
         reset_btn.pack(side="left", padx=5)
         Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it")
-
 
         # Row 11: Search Using Index(es)
         # Index checkbox moved to main panel (next to Load Settings)
