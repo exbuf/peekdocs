@@ -283,7 +283,7 @@ class BuildMixin:
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
-        Tooltip(_step_lbl_3, "Run Search — click to search all files in the folder")
+        Tooltip(_step_lbl_3, "Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self._run_search_frame = btn_frame
