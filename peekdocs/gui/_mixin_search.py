@@ -1599,6 +1599,7 @@ class SearchMixin:
         self.context_after_entry.delete(0, "end")
         self.cores_entry.delete(0, "end")
         self.max_matches_entry.delete(0, "end")
+        self.max_matches_entry.insert(0, "1000")
         self.max_file_size_entry.delete(0, "end")
         self.specific_files_entry.delete(0, "end")
         self.save_name_entry.delete(0, "end")
