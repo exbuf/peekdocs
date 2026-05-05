@@ -1179,10 +1179,14 @@ class DataMixin:
         popup.title(f"Excluded Files ({len(self._excluded_files)})")
         popup.resizable(True, True)
         popup.geometry("800x500")
+        popup.transient(self)
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
         popup.geometry(f"+{x}+{y}")
+        popup.lift()
+        popup.after(50, popup.lift)
+        popup.after(100, popup.focus_force)
 
         header_frame = tk.Frame(popup)
         header_frame.pack(fill="x", padx=10, pady=(10, 2))
