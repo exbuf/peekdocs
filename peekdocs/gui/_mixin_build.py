@@ -960,7 +960,7 @@ class BuildMixin:
         )
         adv_inspect_link.pack(side="left", padx=(5, 0))
         adv_inspect_link.bind("<Button-1>", lambda e: self._inspect_settings())
-        Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only)", anchor="above")
+        Tooltip(adv_inspect_link, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, PII scan categories, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
 
 
 
