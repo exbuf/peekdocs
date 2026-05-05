@@ -793,7 +793,7 @@ class BuildMixin:
 
         # Row 9: additional output formats
         output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 25), sticky="w")
+        output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
 
         ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
         self.output_csv_var = ctk.StringVar(value="off")
@@ -856,9 +856,14 @@ class BuildMixin:
         )
         cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
 
-        # Row 11: Save Defaults + Restore Settings buttons
+        # Separator line below output options
+        import tkinter as _tk_sep
+        _tk_sep.Frame(self.advanced_frame, height=2, bg="gray60").grid(
+            row=11, column=0, columnspan=3, padx=15, pady=(10, 10), sticky="ew")
+
+        # Row 12: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+        settings_btn_frame.grid(row=12, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
 
 
