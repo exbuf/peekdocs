@@ -557,8 +557,6 @@ def _build_command_from_values(
     mm_val = str(max_matches).strip()
     if mm_val and mm_val != "1000":
         cmd.extend(["-m", mm_val])
-    elif not mm_val:
-        cmd.extend(["-m", "0"])
 
     if str(max_file_size_mb).strip() and str(max_file_size_mb).strip() != "100":
         cmd.extend(["--max-file-size", str(max_file_size_mb).strip()])
