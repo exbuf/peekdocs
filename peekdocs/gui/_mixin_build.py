@@ -1856,6 +1856,12 @@ class BuildMixin:
         """
         import sys as _sys_tt
         win = ctk.CTkToplevel(parent or self)
+        # Windows: popups appear behind the main window without these
+        if _sys_tt.platform == "win32":
+            win.transient(parent or self)
+            win.lift()
+            win.after(50, win.lift)
+            win.after(100, win.focus_force)
         _is_dark = ctk.get_appearance_mode() == "Dark"
         if _is_dark and _sys_tt.platform != "win32":
             # macOS/Linux: place offscreen while building widgets to
