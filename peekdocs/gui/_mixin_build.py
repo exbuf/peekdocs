@@ -856,9 +856,12 @@ class BuildMixin:
         )
         cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
 
-        # Row 10: Save Defaults + Restore Settings buttons
+        # Spacer row below output options
+        ctk.CTkLabel(self.advanced_frame, text="").grid(row=11, column=0, pady=(2, 2))
+
+        # Row 12: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+        settings_btn_frame.grid(row=12, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
 
 
