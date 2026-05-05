@@ -3973,7 +3973,7 @@ class ToolsMixin:
 
         h("WHAT IS PEEKDOCS?")
         b("peekdocs searches Word docs, PDFs, spreadsheets, emails,")
-        b("archives, and 46 file types \u2014 all at once, all offline. Your")
+        b("archives, and 100+ file types \u2014 all at once, all offline. Your")
         b("files never leave your computer. Results are presented on")
         b("screen and in a Word document with every match highlighted")
         b("in yellow. peekdocs never modifies, moves, or deletes your")
@@ -4448,7 +4448,8 @@ class ToolsMixin:
         s("Max Matches")
         b("Cap the number of matches written to report files. Default: 1000.")
         b("The total count is always accurate — only the report is capped.")
-        b("Set to 0 for unlimited.")
+        b("The Matched Files list is also affected — when capped, only files")
+        b("with matches within the cap are shown. Set to 0 for unlimited.")
         blank()
 
         s("Max File Size (MB)")
