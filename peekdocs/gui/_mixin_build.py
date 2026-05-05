@@ -793,7 +793,7 @@ class BuildMixin:
 
         # Row 9: additional output formats
         output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="w")
+        output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 25), sticky="w")
 
         ctk.CTkLabel(output_frame, text="Also output report as ==>").grid(row=0, column=0, padx=(0, 10))
         self.output_csv_var = ctk.StringVar(value="off")
@@ -856,12 +856,9 @@ class BuildMixin:
         )
         cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
 
-        # Spacer row below output options
-        ctk.CTkLabel(self.advanced_frame, text="").grid(row=11, column=0, pady=(2, 2))
-
-        # Row 12: Save Defaults + Restore Settings buttons
+        # Row 11: Save Defaults + Restore Settings buttons
         settings_btn_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        settings_btn_frame.grid(row=12, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
+        settings_btn_frame.grid(row=11, column=0, columnspan=3, padx=(0, 15), pady=(0, 10), sticky="e")
 
 
 
