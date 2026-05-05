@@ -1036,10 +1036,14 @@ class DataMixin:
         popup.resizable(True, True)
         win_h = max(400, min(720, count * 28 + 250))
         popup.geometry(f"500x{win_h}")
+        popup.transient(self)
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 500) // 2
         y = self.winfo_rooty() + (self.winfo_height() - win_h) // 2
         popup.geometry(f"+{x}+{y}")
+        popup.lift()
+        popup.after(50, popup.lift)
+        popup.after(100, popup.focus_force)
 
         header_frame = tk.Frame(popup)
         header_frame.pack(fill="x", padx=10, pady=(10, 2))
