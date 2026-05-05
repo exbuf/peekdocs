@@ -954,7 +954,7 @@ class BuildMixin:
         Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI", anchor="above")
 
         adv_reset_defaults_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Reset Saved Defaults", width=130,
+            adv_bottom_frame, text="Restore Factory Settings", width=130,
             fg_color="#DC2626", hover_color="#B91C1C",
             command=self._reset_saved_defaults,
             font=ctk.CTkFont(size=13),

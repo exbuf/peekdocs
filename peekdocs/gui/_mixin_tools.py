@@ -4560,7 +4560,7 @@ class ToolsMixin:
         b("Does not modify the saved config file (~/.peekdocsrc).")
         blank()
 
-        s("Reset Saved Defaults")
+        s("Restore Factory Settings")
         b("Delete ~/.peekdocsrc entirely and return all settings to factory")
         b("defaults. The app will start fresh next time as if newly installed.")
         b("Your documents, search history, and personal files are not affected.")

@@ -278,7 +278,7 @@ class DataMixin:
         """Delete ~/.peekdocsrc and reset all GUI fields to factory defaults."""
         import tkinter.messagebox as mb
         confirm = mb.askyesno(
-            "Reset Saved Defaults",
+            "Restore Factory Settings",
             "This will delete ~/.peekdocsrc and return all settings to factory defaults.\n\n"
             "Your documents, search history, and personal files are not affected.\n\n"
             "Continue?",
