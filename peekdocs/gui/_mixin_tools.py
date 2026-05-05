@@ -2979,7 +2979,7 @@ class ToolsMixin:
             header_frame,
             text="Select one search type (click its radio button \u2014 only one can be active at a time), "
                  "fill in your values, then click Apply. Apply configures the main search bar and Advanced Search Options for you \u2014 "
-                 "then just click Run Search. Close this window at any time to cancel \u2014 nothing changes until you click Apply.",
+                 "then click Search on the main screen. Close this window at any time to cancel \u2014 nothing changes until you click Apply.",
             font=ctk.CTkFont(size=13),
             wraplength=650, justify="center",
         ).pack(expand=True)
