@@ -945,6 +945,14 @@ class BuildMixin:
         adv_close_btn.place(relx=0.5, rely=0.5, anchor="center")
         Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next Run Search. To make them permanent across sessions, click Save Defaults first", anchor="above")
 
+        adv_inspect_btn = ctk.CTkButton(
+            adv_bottom_frame, text="Inspect .peekdocsrc", width=130,
+            command=self._inspect_settings,
+            font=ctk.CTkFont(size=13),
+        )
+        adv_inspect_btn.pack(side="left", padx=(5, 0))
+        Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, PII scan categories, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
+
         adv_restore_btn = ctk.CTkButton(
             adv_bottom_frame, text="Restore Saved Defaults", width=130,
             command=self._load_saved_settings,
@@ -961,14 +969,6 @@ class BuildMixin:
         )
         adv_reset_defaults_btn.pack(side="right", padx=(0, 5))
         Tooltip(adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, PII scan categories, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
-
-        adv_inspect_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Inspect .peekdocsrc", width=130,
-            command=self._inspect_settings,
-            font=ctk.CTkFont(size=13),
-        )
-        adv_inspect_btn.pack(side="left", padx=(5, 0))
-        Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, PII scan categories, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
 
 
 

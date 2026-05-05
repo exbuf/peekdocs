@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "peekdocs"
-version = "0.3.15"
+version = "0.3.16"
 description = "Search 100+ file types at once — offline, private, with PII scanning. CLI + GUI + Python API."
 classifiers = [
     "Development Status :: 4 - Beta",
