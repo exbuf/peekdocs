@@ -1014,7 +1014,7 @@ class BuildMixin:
         )
         self._matched_files_link.pack(side="left", padx=(5, 0))
         self._matched_files_link.pack_forget()  # Hidden until matches found
-        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches")
+        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches. The number of files shown may be affected by the Max Matches setting in Advanced Search Options")
 
         self._excluded_files_btn = ctk.CTkButton(
             status_row, text="", font=ctk.CTkFont(size=10),
@@ -1154,7 +1154,7 @@ class BuildMixin:
             command=self._show_matched_files_popup,
             font=ctk.CTkFont(size=13),
         )
-        Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it)")
+        Tooltip(self.matched_files_button, "View the list of files that contained matches (click a file to open it). The number of files shown here may be affected by the Max Matches setting in Advanced Search Options — if the report is capped, only files with matches within the cap are listed")
 
         self.report_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         import tkinter as _tk_step4
