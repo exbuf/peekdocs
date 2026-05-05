@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 try:
     VERSION = pkg_version("peekdocs")
 except Exception:
-    VERSION = "0.3.31"  # fallback for PyInstaller builds
+    VERSION = "0.3.32"  # fallback for PyInstaller builds
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
@@ -1301,6 +1301,7 @@ def _main_inner(argv=None):
     # Cap matches for report generation to avoid minutes-long DOCX writes
     max_matches = parsed.get("max_matches", 1000)
     total_match_count = len(matches)
+    total_file_count = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
     capped = False
     if max_matches > 0 and total_match_count > max_matches:
         capped = True
@@ -1407,7 +1408,7 @@ def _main_inner(argv=None):
     if inverse:
         print(f"Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches. Files searched: {len(all_files)} ({size_str}).")
     elif capped:
-        print(f"Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}). Reports capped at {max_matches:,}.")
+        print(f"Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {total_file_count} file(s). Files searched: {len(all_files)} ({size_str}). Reports capped at {max_matches:,}.")
     else:
         print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
