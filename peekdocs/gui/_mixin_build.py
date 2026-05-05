@@ -1200,7 +1200,7 @@ class BuildMixin:
             fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,
         )
-        Tooltip(self._delete_everything_btn, "Immediately delete all result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Protects sensitive data from shoulder surfing and leaves nothing on screen or on disk for anyone else to find. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected", anchor="above")
+        Tooltip(self._delete_everything_btn, "Immediately delete all peekdocs result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Protects sensitive data from shoulder surfing and leaves nothing on screen or on disk for anyone else to find. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected. Your documents and personal files are never touched", anchor="above")
 
 
 
