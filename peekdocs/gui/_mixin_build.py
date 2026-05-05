@@ -578,7 +578,7 @@ class BuildMixin:
         self.advanced_window = ctk.CTkToplevel(self)
         self.advanced_window.title("Advanced Search Options")
         self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
-        self.advanced_window.geometry("900x780")
+        self.advanced_window.geometry("900x840")
         self.advanced_window.resizable(True, True)
         self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
         # Withdraw after event loop starts to avoid flash
