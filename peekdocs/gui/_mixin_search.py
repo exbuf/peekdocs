@@ -1522,6 +1522,24 @@ class SearchMixin:
         except Exception:
             searched_set = set()
 
+        # Check for oversized files — these are discovered but skipped at
+        # process time, so move them from searched_set to excluded.
+        try:
+            max_mb = int(self.max_file_size_entry.get().strip() or "100")
+        except (ValueError, AttributeError):
+            max_mb = 100
+        if max_mb > 0:
+            oversized = set()
+            for fp in searched_set:
+                try:
+                    size_mb = os.path.getsize(fp) / (1024 * 1024)
+                    if size_mb > max_mb:
+                        excluded.append((fp, f"file is {size_mb:.0f} MB, exceeds {max_mb} MB limit"))
+                        oversized.add(fp)
+                except OSError:
+                    pass
+            searched_set -= oversized
+
         _PEEKDOCS_INTERNAL = {
             ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
             ".peekdocs_collection.json", ".peekdocsrc",

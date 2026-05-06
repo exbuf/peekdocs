@@ -1923,10 +1923,12 @@ The following defaults exist to prevent accidental slowdowns or memory issues on
 | Safeguard | Default | Flag | Why it exists | How to remove |
 |-----------|---------|------|---------------|---------------|
 | **Max matches in reports** | 1,000 | `-m N` | Writing 50,000 matches to a .docx file can take minutes and produce a very large report. The total match count is always accurate in the summary — only the report files are capped | Set `-m 0` for unlimited |
-| **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files are logged to `peekdocs_errors.log` so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
+| **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files appear in the Excluded Files list after each search so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
 | **CPU cores** | Half of available | `-c N` | Using all cores speeds up searches but makes your computer unresponsive while searching | Set `-c` to your full core count for maximum speed |
 
 These safeguards exist because a user once searching a folder with multi-GB database exports shouldn't have to wonder why the app froze — the defaults protect against that while being easy to override. If you know your files are manageable, remove the limits entirely.
+
+**Why raising Max File Size can show fewer matched files:** This is counterintuitive but expected. When a very large file (e.g., a 110 MB log file) contains thousands of matches, those matches consume most of the Max Matches budget (default 1,000). Fewer slots remain for matches from other files, so the Matched Files count goes *down* even though you're searching *more* files. Lowering Max File Size to skip the large file frees up those match slots for other files, so you actually see more matched files. If you raise Max File Size and notice fewer matched files, raise Max Matches too (or set it to 0 for unlimited).
 
 **Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.peekdocsrc`) so it applies automatically every time you run peekdocs — you don't have to type the flag on every search. For example, if you always want a higher match cap:
 
