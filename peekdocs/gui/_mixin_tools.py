@@ -5983,7 +5983,7 @@ class ToolsMixin:
 
         b("How to Create a Suite")
         n("1. First, save some searches using the Save button on the main screen")
-        n("2. Open Search Suites from the Tools menu")
+        n("2. Click Suites from the main screen")
         n("3. Click New to create a named suite")
         n("4. Click Add Search to add saved searches to the suite")
         n("5. Use \u25b2 Up and \u25bc Down to set the run order")
