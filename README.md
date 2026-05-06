@@ -132,12 +132,6 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
-**PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
-
-![PII Scan category selection](docs/images/PII_Scan.png)
-
-![PII Scan results with severity badges](docs/images/PII_scan_results.png)
-
 **Highlighted HTML report — every match in yellow, with context:**
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
@@ -145,6 +139,12 @@ That's it. No server, no configuration, no account. Typical searches complete in
 **Highlighted Word report — every match in yellow, with context:**
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
+
+**PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
+
+![PII Scan category selection](docs/images/PII_Scan.png)
+
+![PII Scan results with severity badges](docs/images/PII_scan_results.png)
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
