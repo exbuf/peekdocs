@@ -36,7 +36,7 @@ peekdocs --pii-scan -r     # recursive (flags can be in any order)
 # Search with the GUI
 peekdocs-gui
 
-# Search from Python
+# Search from Python API
 from peekdocs import search
 results = search(["budget"], directory="~/Documents")
 for match in results.matches:
