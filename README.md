@@ -140,6 +140,18 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
+**Search for "heart" — results highlighted instantly:**
+
+![Main screen with heart search results](docs/images/main--screen-heart.png)
+
+**Highlighted HTML report — every match highlighted:**
+
+![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
+
+**Highlighted docx report — every match highlighted:**
+
+![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
+
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
