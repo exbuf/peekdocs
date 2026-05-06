@@ -144,6 +144,8 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
 
+**PII Scan results:**
+
 ![PII Scan results with severity badges](docs/images/PII_scan_results.png)
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
