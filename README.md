@@ -168,7 +168,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Search Suites](docs/images/search-suites.png)
 
-**Search Wizard:**
+**Search Wizard (5 of 21 entries shown):**
 
 ![Search Wizard](docs/images/search-wizard.png)
 
