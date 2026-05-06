@@ -6,6 +6,9 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 
 - [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
 - [Security Best Practices](#security-best-practices)
+- [Dependencies](#dependencies)
+  - [What gets installed automatically](#what-gets-installed-automatically)
+  - [What you must install yourself](#what-you-must-install-yourself)
 - [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [Python API Reference](#python-api-reference)
@@ -96,6 +99,44 @@ But because peekdocs works with sensitive documents (financial records, legal fi
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
 - **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient. (The PII Scan does not generate a printable report — results are on screen only, by design.)
+
+---
+
+## Dependencies
+
+When you install peekdocs (`pip install peekdocs` or `pipx install peekdocs`), pip automatically downloads and installs everything peekdocs needs to read all 100+ file types. You don't have to install these yourself — they come along for the ride.
+
+### What gets installed automatically
+
+peekdocs has 17 direct dependencies, which pull in about 50 packages total. Here's what they do:
+
+| Category | Packages | What they do |
+|----------|----------|-------------|
+| **Document readers** | python-docx, python-pptx, openpyxl, xlrd, odfpy, striprtf, EbookLib | Read Word, PowerPoint, Excel, LibreOffice, RTF, and ePub files |
+| **PDF** | PyMuPDF | Read PDF files (the largest dependency — about 56 MB) |
+| **Email** | extract-msg, olefile | Read Outlook .msg files and older Microsoft formats (.doc, .xls) |
+| **Archives** | py7zr, rarfile | Read .7z archives (rarfile also needs UnRAR — see below) |
+| **Images/OCR** | Pillow, pytesseract | Process images and call Tesseract for OCR |
+| **Search** | rapidfuzz | Fuzzy (typo-tolerant) matching |
+| **Report output** | fpdf2 | Generate PDF reports |
+| **GUI** | customtkinter | The graphical interface |
+
+**Total installed size:** approximately 244 MB on disk. Most of that is PyMuPDF (PDF reader, 56 MB), cryptography libraries (needed by the email reader, ~37 MB), and Pillow (image processing, 15 MB). The peekdocs code itself is about 2 MB.
+
+### What you must install yourself
+
+Most of these are covered in the [Prerequisites](../README.md#prerequisites) section of the README. Here's the complete list:
+
+| Dependency | Required? | What it's for | How to install |
+|-----------|-----------|--------------|----------------|
+| **Python 3.10+** | Yes | Runs peekdocs | [python.org/downloads](https://www.python.org/downloads/) or your package manager |
+| **tkinter** | For GUI only | The GUI framework (`peekdocs-gui`) | Included with Python on Windows. macOS: `brew install python-tk@3.13`. Linux: `sudo apt install python3-tk` |
+| **Tesseract** | Optional | OCR — reading text from scanned PDFs and images (`-O` flag) | macOS: `brew install tesseract`. Linux: `sudo apt install tesseract-ocr`. Windows: [download installer](https://github.com/UB-Mannheim/tesseract/wiki) |
+| **UnRAR** | Optional | Searching inside .rar archives | macOS: `brew install unrar`. Linux: `sudo apt install unrar`. Windows: comes with [WinRAR](https://www.win-rar.com/) or install standalone unrar |
+
+**If you don't install the optional ones:** peekdocs still works fine — it just can't do OCR or search inside .rar files. If you try to use OCR without Tesseract, peekdocs tells you it's missing and shows install instructions. If you try to search a .rar file without UnRAR, it logs an error and continues with the other files.
+
+**The CLI (`peekdocs`) works without tkinter.** You only need tkinter for the graphical interface (`peekdocs-gui`). If you only use the terminal, you can skip it.
 
 ---
 
