@@ -95,7 +95,7 @@ for match in results.matches:
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that many search tools skip. Requires Tesseract.
 - **Search inside archives** — searches inside .zip, .7z, and .rar files without extracting them first. Find a document buried in a compressed backup without unzipping anything.
 - **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders. With recursive mode, you can even search your entire computer from a single search — point it at your root folder and peekdocs will search every supported file on the drive (system files that can't be read are logged and skipped).
-- **Search Wizard** — configures complex searches for you with pre-built patterns for 7 professions (Business, Legal, Medical, Engineering, HR, Real Estate, Compliance). No regex or technical knowledge needed.
+- **Search Wizard** — configures complex searches for you with 21 pre-built search types (keywords, Boolean, fuzzy, proximity, dollar ranges, dates, SSNs, phone numbers, and more) plus a regex pattern builder with 8 profession categories (General, Business, Legal, Medical, Engineering, Real Estate, HR, Compliance). No regex or technical knowledge needed.
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly audits, onboarding reviews, or any workflow that involves the same set of searches. Like saved searches, suites are stored per folder — switch folders and you see a different set. Available from the GUI (Tools → Search Suites) and CLI (`peekdocs --suite "My Suite"`).
 - **Scheduled scans** (coming soon) — automatic PII scanning on a schedule. Set it and forget it — peekdocs monitors your folders for sensitive data without you remembering to run a scan.
@@ -158,7 +158,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
 - **Search Suites** — group saved searches into a named suite and run them all at once (Tools → Search Suites)
-- **Search Wizard** — guided search builder with 20+ pre-built patterns (SSN, phone, email, dollar range, and more) — no flags or regex knowledge needed
+- **Search Wizard** — guided search builder with 21 pre-built search types (SSN, phone, email, dollar range, Boolean, fuzzy, and more) plus a regex pattern builder with 8 profession categories — no flags or regex knowledge needed
 - **Inverse search** — find files that are *missing* required content
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, word proximity, line proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
@@ -424,7 +424,7 @@ peekdocs-gui
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Most users won't need anything beyond the search bar — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 20+ pre-built patterns, fill in your values, and click Apply. The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **PII Scan** (one-click sensitive data detection) and **Search Suites** (run a group of saved searches together).
+Most users won't need anything beyond the search bar — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 21 pre-built patterns, fill in your values, and click Apply. The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **PII Scan** (one-click sensitive data detection) and **Search Suites** (run a group of saved searches together).
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 

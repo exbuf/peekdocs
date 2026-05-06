@@ -517,6 +517,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-e` (expression) | Boolean expression search — use AND, OR, NOT, parentheses, and range specs for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
 | `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
+| `--max-file-size N` | Skip files larger than N MB (default 100, 0 = no limit) |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |

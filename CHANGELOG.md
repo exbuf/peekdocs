@@ -2,6 +2,92 @@
 
 All notable changes to peekdocs are documented here.
 
+## [0.3.41] — 2026-05-06
+
+### Added
+
+- **100+ file types** — added Jupyter notebooks, .env, Dockerfile, CSS, SCSS, Scala, Lua, GraphQL, Protobuf, Terraform, .properties, .gradle, .cmake, .conf, Apple Numbers/Keynote, Visio .vsdx, and 31 source code/engineering formats (up from 86)
+- **Search Suites** — group saved searches and run them together with per-suite output format options (DOCX, TXT, HTML, CSV, JSON, PDF) and progress bar during execution
+- **--pii-scan CLI flag** — terminal-based PII scanning, safe to pipe, never shows actual sensitive data; works on remote/SSH servers
+- **--open flag** — auto-open reports after search; auto-enables the requested output format (docx, txt, pdf, json, html)
+- **--list-files CLI command** — show all peekdocs-created files in the current directory
+- **--config --reset CLI command** — restore factory default settings
+- **--clear and --clear-all CLI commands** — delete peekdocs files from the current directory
+- **Line proximity search (-P N flag)** — find terms within N lines of each other across all file types
+- **-q and -qq flags** — quiet mode (suppress banner) and minimal output
+- **HTML report for suites** — search suites now generate HTML reports alongside DOCX and TXT
+- **Cloud folder protection** — blocks searches to cloud-synced folders (Google Drive, OneDrive, iCloud, Dropbox); auto-redirects report output to ~/peekdocs_reports
+- **Safe file opening** — blocks cloud-uploading apps (Apple Pages, Google Docs) from opening .docx and PDF reports to prevent data leaks
+- **Delete on Close checkbox** — auto-delete all reports, index, and tracked session folders when the app closes
+- **Delete Everything Now button** — one-click cleanup of all peekdocs files including search index, terms, and folder fields
+- **Clear Preview button** — instantly clear the results preview pane
+- **Clear History on Close option** — auto-clear search history when the app closes
+- **Clear Files popup** — per-file checkbox popup replacing multiple clear buttons
+- **Recent Searches persistence** — recent searches now saved across sessions in ~/.peekdocsrc
+- **Hover Text ON/OFF toggle** — on main screen bottom row to control tooltips
+- **Step 1–4 badges** — blue step labels replace numbered text on the main screen
+- **PII Scan on main screen** — moved from Tools menu to a prominent green/teal button next to Search
+- **PII Scan independence** — PII scan uses its own folder, recursive setting, and file types, independent from main search
+- **PII scan report improvements** — READ BEFORE ACTING disclaimer, Think Before You Print warning, page break before summary, category name in View Text window
+- **Suites button on main screen** — moved from Tools menu for easier access
+- **README button** — added to bottom row next to User Guide
+- **View Report HTML button** — added to main screen report row
+- **Network folder support** — documented and tested searching network/NFS/SMB shares
+- **Performance section** — benchmarks for 1K/10K/50K/1M files with real-world data (105 Word docs in 4.4s, index: 0.24s)
+- **Glossary of technical terms** — added to both README and User Guide
+- **Data Architecture section** — for IT and security teams in README
+- **PyInstaller build script** — standalone .exe/.app builds with GitHub Actions release workflow
+- **Integration test suite** — added alongside existing unit tests
+
+### Fixed
+
+- **Linux PII scan hang** — fixed blocking issue on Linux
+- **Linux tooltip flicker and sticking** — use delayed hide instead of pointer check
+- **Linux SPDX license format** — fixed PEP 639 compatibility for setuptools
+- **Linux Browse double-click behavior** — documented and added tooltip note
+- **Windows popups behind main window** — fixed Excluded Files, Matched Files, and all other popups appearing behind the main window
+- **Windows dark mode** — fixed white flash, invisible popups, stuck-offscreen popups, and CTkToplevel crash
+- **Windows path-too-long error** in tar archive extraction
+- **Windows Unicode progress bar** — fixed encoding issue
+- **Four Windows file handling issues** — hardened for cross-platform edge cases
+- **Named pipes, sockets, and virtual filesystems** — prevent hangs during file discovery
+- **.env and Dockerfile discovery** — handle dotfiles and extensionless files correctly
+- **--open with -sa** — now opens the accumulated report, not the regular one
+- **--pii-scan flag order** — works with -r in any position
+- **Duplicate version/CPU lines** in CLI banner output
+- **AND mode** — corrected 'same paragraph' to 'same line' with nuance
+- **Whole-word matching** for terms with punctuation
+- **View Text highlighting** for quoted phrases
+- **Duplicate Finder crash** — added missing @staticmethod to _format_file_size
+- **File Inventory crash** — removed stray @staticmethod decorator
+- **Suite runner crashes** — fixed _update_status missing method, subprocess hang, 0-file count parsing, inflated file counts, and match limit issues
+- **Max matches confusion** — reverted blank-means-unlimited; explicit 0 means no limit, defaults shown as 1000/100
+- **Confusing status** when max matches caps the report
+- **PII scan false positives** — fixed credit card matches on URLs, SSN matches on DOIs/ISBNs, password matches in URL query parameters
+- **macOS file opening** — fall back to TextEdit when default app fails; Linux fallback added too
+- **Dark mode fixes** — themed all 35 popups, fixed TOC text color, menu separators, PII scan status text, Search Wizard plain tk widgets
+
+### Changed
+
+- **GUI layout overhaul** — Search and PII Scan buttons enlarged with #76BA1B green/teal colors; AND/OR toggle changed to checkbox blue; Advanced and Wizard as icon buttons on options row; preview moved directly under status line; Cancel mode for Search and PII Scan buttons
+- **Rename Proximity to Word Proximity** — clarify that line proximity is CLI-only
+- **Rename Run Search to Search** — shorter button label
+- **Rename Reset Saved Defaults to Restore Factory Settings**
+- **Rename App Files to View All peekdocs Files** in Tools menu
+- **Rename DO_NOT_SEARCH_ prefix to peekdocs_ prefix** for easier file identification
+- **PII Scan report removed as file** — results shown on screen only, no file written
+- **PII credential detection expanded** — added passcode, pin, passphrase, signin, logon, signon, p/w, user_id, uid, login, username keywords with hyphen/underscore variants
+- **Token detection narrowed** to api_token/auth_token/access_token only (reduces false positives)
+- **PII Scan folder persistence** — remembers folder between invocations and across sessions
+- **Auto-save** for text size, appearance, hover text, preview size, and CSV/JSON/PDF/HTML checkbox states
+- **Moved PII Scan and Manage Indexes** from main screen to Tools menu, then PII Scan back to main screen
+- **Renamed Manage Indexes to Indexes** — shows search folder in popup
+- **CLI banner reorganized** — version at top, CPU cores and README URL prominent, search modes at bottom, common options section added
+- **Report headers** — added peekdocs version, 'Saved as' filepath, removed boilerplate
+- **Browse/+Folder/Single File enclosed in visible frame** with border
+- **Oversized files now shown in Excluded Files list** with Max File Size / Max Matches interaction documented
+- **Dependencies documented** in User Guide and README prerequisites
+
 ## [0.3.0] — 2026-04-16
 
 ### Added
