@@ -142,6 +142,10 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
+**Highlighted Word report — every match in yellow, with context:**
+
+![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
+
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
 Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted. Free and open-source.
