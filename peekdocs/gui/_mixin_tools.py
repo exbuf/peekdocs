@@ -2605,10 +2605,6 @@ class ToolsMixin:
         help_win.geometry("700x580")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                       padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -2883,10 +2879,6 @@ class ToolsMixin:
         help_win.geometry("650x520")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                       padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -3318,10 +3310,6 @@ class ToolsMixin:
         help_win.geometry("700x580")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
                       padx=15, pady=10, borderwidth=0, highlightthickness=0)
@@ -3774,10 +3762,6 @@ class ToolsMixin:
         win.geometry("740x680")
         win.resizable(True, True)
         win.transient(self)
-        try:
-            win.grab_set()
-        except Exception:
-            win.after(150, lambda: win.grab_set() if win.winfo_exists() else None)
 
         txt_frame = tk.Frame(win)
         txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -3909,10 +3893,6 @@ class ToolsMixin:
         help_win.geometry("750x700")
         help_win.resizable(True, True)
         help_win.transient(self)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
         help_win.lift()
         help_win.after(50, help_win.lift)
         help_win.after(100, help_win.focus_force)
@@ -4645,10 +4625,6 @@ class ToolsMixin:
         help_win.geometry("740x680")
         help_win.resizable(True, True)
         help_win.transient(self)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -4819,10 +4795,6 @@ class ToolsMixin:
         help_win.geometry("720x640")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -4959,10 +4931,6 @@ class ToolsMixin:
         help_win.geometry("720x680")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -5957,10 +5925,7 @@ class ToolsMixin:
         help_win.geometry("640x520")
         help_win.resizable(True, True)
         help_win.transient(parent)
-        try:
-            help_win.grab_set()
-        except Exception:
-            help_win.after(150, lambda: help_win.grab_set() if help_win.winfo_exists() else None)
+        # No grab_set() — user should be able to follow along in the Suites panel
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True)
