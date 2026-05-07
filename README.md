@@ -164,11 +164,11 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Advanced Search Options](docs/images/advanced-search-options.png)
 
-**Search Suites (click Suites on main screen):**
+**Search Suites (click 'Suites' on main screen):**
 
 ![Search Suites](docs/images/search-suites.png)
 
-**Search Wizard (5 of 21 entries shown, click Wizard icon on main screen):**
+**Search Wizard (5 of 21 entries shown, click 'Wizard' icon on main screen):**
 
 ![Search Wizard](docs/images/search-wizard.png)
 
