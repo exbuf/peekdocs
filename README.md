@@ -132,7 +132,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
-**Resulting highlighted HTML report — every match in yellow, with context:**
+**Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context:**
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
