@@ -145,7 +145,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
-**Resulting highlighted HTML report — every match highlighted:**
+**2.a Resulting highlighted HTML report — every match highlighted:**
 
 ![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
 
