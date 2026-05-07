@@ -153,7 +153,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
-**Example 3: Original insurance document that was scanned as a jpg doc:**
+**Example 3: Say you had scanned and saved this original insurance document as a jpg file. Now you need the VIN and policy details for your Honda:**
 
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
