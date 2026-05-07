@@ -129,7 +129,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Getting Started tab](docs/images/getting-started-tab.png)
 
-**Search for "password" on the main screen — results highlighted instantly:**
+**Example 1: Search for "password" on the main screen — results highlighted instantly:**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
