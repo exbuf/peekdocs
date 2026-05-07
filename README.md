@@ -399,11 +399,18 @@ Search modes:
   peekdocs -w "budg*"            Wildcard
   peekdocs -z budgt              Fuzzy (typo-tolerant)
   peekdocs -W bob                Whole-word only
-  peekdocs -p 5 budget revenue   Proximity (within 5 words)
+  peekdocs -p 5 budget revenue   Word proximity (within 5 words)
+  peekdocs -P 3 budget acme      Line proximity (within 3 lines)
+  peekdocs --inverse budget      Files that do NOT contain "budget"
 
 Filters:  -t pdf,docx  -r (recursive)  -n draft (exclude)  -O (OCR)
+          -R amount:1000..5000  --max-file-size 500  -f report.pdf
 Output:   -o csv,json,pdf,html  -s name (save)  --timestamp
+          --open docx  --open html  -sa archive (append)
 Index:    --index (build)  --index-refresh  --index-clear
+PII:      --pii-scan  --pii-scan -r (recursive)
+Cleanup:  --clear  --clear-all  --list-files
+Settings: --config KEY=VAL  --config --reset  --check
 ```
 
 Run `peekdocs -h` for the full list of flags and options.
