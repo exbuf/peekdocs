@@ -387,21 +387,55 @@ See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-
 
 ## CLI at a Glance
 
-```
-$ peekdocs -h
-Usage: peekdocs [OPTIONS] TERM [TERM ...]
+Type `peekdocs` with no arguments to see a quick command reference:
 
-Search modes:
+```
+$ peekdocs
+
+── Search Modes (examples — flags can be combined freely) ────────
   peekdocs term1 term2           OR search (any term matches)
-  peekdocs -a term1 term2        AND search (all terms in same line)
-  peekdocs -e "(A AND B) OR C"   Boolean expression
-  peekdocs -x "\d{3}-\d{4}"      Regex
-  peekdocs -w "budg*"            Wildcard
-  peekdocs -z budgt              Fuzzy (typo-tolerant)
-  peekdocs -W bob                Whole-word only
-  peekdocs -p 5 budget revenue   Word proximity (within 5 words)
-  peekdocs -P 3 budget acme      Line proximity (within 3 lines)
-  peekdocs --inverse budget      Files that do NOT contain "budget"
+  peekdocs -a term1 term2        AND search (all terms required in same line)
+  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens
+  peekdocs -x "\d{3}-\d{4}"      Regex pattern matching
+  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)
+  peekdocs -z budgt              Fuzzy matching (typo-tolerant)
+  peekdocs -W bob                Whole-word only (not "bobcat")
+  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)
+  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)
+  peekdocs --inverse budget      Find files that do NOT contain "budget"
+  peekdocs -n draft budget       Find "budget" but exclude lines containing "draft"
+  peekdocs -s quarterly budget   Save a named copy of the report
+  peekdocs --open docx budget    Search and auto-open the highlighted Word report
+  peekdocs --open html budget    Search, generate HTML, and open in browser
+
+── Common Options ───────────────────────────────────────────────
+  peekdocs -r budget               Search all subfolders recursively
+  peekdocs -t pdf,docx budget      Search only PDF and Word files
+  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match
+  peekdocs -R amount:1000..5000 "" Filter by dollar range
+  peekdocs -O budget               Enable OCR for scanned PDFs and images
+  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)
+  peekdocs --index                 Build search index for faster repeated searches
+
+── PII Scan ─────────────────────────────────────────────────────
+  peekdocs --pii-scan            Scan current folder for SSNs, credit cards, passwords, etc.
+  peekdocs --pii-scan -r         Scan all subfolders recursively
+
+── Cleanup ──────────────────────────────────────────────────────
+  peekdocs --list-files          List all peekdocs-created files
+  peekdocs --clear               Delete peekdocs_results* files
+  peekdocs --clear-all           Delete all peekdocs output files
+
+Type peekdocs -h for full help (all flags, file types, regex patterns).
+```
+
+Condensed version of `peekdocs -h` (all flags and options):
+
+```
+Search modes:
+  (default)          OR    -a AND    -e "EXPR" Boolean    -x Regex
+  -w Wildcard    -z Fuzzy    -W Whole-word    -p Word proximity
+  -P Line proximity    --inverse
 
 Filters:  -t pdf,docx  -r (recursive)  -n draft (exclude)  -O (OCR)
           -R amount:1000..5000  --max-file-size 500  -f report.pdf
@@ -413,7 +447,7 @@ Cleanup:  --clear  --clear-all  --list-files
 Settings: --config KEY=VAL  --config --reset  --check
 ```
 
-Run `peekdocs -h` for the full list of flags and options.
+Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ## Quick Start
 
