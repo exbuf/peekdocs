@@ -503,6 +503,8 @@ Run `peekdocs -h` for the full flag reference with examples. The complete flag l
 peekdocs-gui
 ```
 
+See [Screenshots](#screenshots) for what the GUI looks like.
+
 1. Click **Browse** to select a folder (or **File** to search a single file)
 2. Type your search terms
 3. Click **Run Search**
