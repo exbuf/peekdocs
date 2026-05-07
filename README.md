@@ -385,7 +385,7 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 
 See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
-## CLI at a Glance
+## CLI at a Glance (condensed — run `peekdocs -h` for full reference)
 
 Type `peekdocs` with no arguments to see a quick command reference:
 
