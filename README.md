@@ -140,7 +140,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
-**Search for "heart" — results highlighted instantly:**
+**Search for "heart" on the main screen — results highlighted instantly:**
 
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
