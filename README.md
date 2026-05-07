@@ -180,7 +180,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Help screen with Table of Contents](docs/images/main-help-screen.png)
 
-**Tools Menu (main screen — lower right corner):**
+**'Tools' Menu (main screen — lower right corner):**
 
 ![Tools Menu](docs/images/main-tools-menu.png)
 
