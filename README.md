@@ -164,7 +164,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Advanced Search Options](docs/images/advanced-search-options.png)
 
-**Search Suites:**
+**Search Suites (click Suites on main screen):**
 
 ![Search Suites](docs/images/search-suites.png)
 
