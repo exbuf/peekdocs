@@ -153,6 +153,10 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
+**Example 3: Original insurance document that was scanned as a jpg doc:**
+
+![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
+
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
