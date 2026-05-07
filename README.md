@@ -137,7 +137,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
-**Resulting highlighted Word report — every match in yellow, with context:**
+**1.b Resulting highlighted Word report — every match in yellow, with context:**
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
