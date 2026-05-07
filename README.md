@@ -133,7 +133,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
-**Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context. (The HTML report opens locally in your browser — it's a file on your computer, not a website. Nothing is uploaded or sent to the internet.)**
+**1.a Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context. (The HTML report opens locally in your browser — it's a file on your computer, not a website. Nothing is uploaded or sent to the internet.)**
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
