@@ -160,7 +160,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![PII Scan results with severity badges](docs/images/PII_scan_results.png)
 
-**Advanced Search Options:**
+**Advanced Search Options (click 'Advanced' on main screen):**
 
 ![Advanced Search Options](docs/images/advanced-search-options.png)
 
