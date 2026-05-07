@@ -149,7 +149,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
 
-**Resulting highlighted docx report — every match highlighted:**
+**2.b Resulting highlighted docx report — every match highlighted:**
 
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
