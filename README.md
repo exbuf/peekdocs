@@ -161,7 +161,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Search for honda with context lines](docs/images/main-search-honda.png)
 
-**Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page. Note: searching scanned images (.jpg, .png, .tiff, .bmp) requires the OCR checkbox to be checked in Advanced Search Options and Tesseract to be installed. Scanned PDFs with embedded text do not need OCR — peekdocs reads them directly:**
+**3.b Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page. Note: searching scanned images (.jpg, .png, .tiff, .bmp) requires the OCR checkbox to be checked in Advanced Search Options and Tesseract to be installed. Scanned PDFs with embedded text do not need OCR — peekdocs reads them directly:**
 
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
