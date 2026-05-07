@@ -161,7 +161,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Search for honda with context lines](docs/images/main-search-honda.png)
 
-**The Advanced Search Options menu (by clicking 'Advanced' on the main screen) showing Lines Before and Lines After set to 2:**
+**Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page:**
 
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
