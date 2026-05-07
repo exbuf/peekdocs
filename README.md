@@ -172,7 +172,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Search Wizard](docs/images/search-wizard.png)
 
-**Every screen has explanatory hover text for every button and data field.**
+**Every screen has explanatory hover text for every button and data field. Hover turns on and off — last row.**
 
 ![Hover text example](docs/images/main-hover-example.png)
 
