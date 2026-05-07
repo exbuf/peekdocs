@@ -159,6 +159,8 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 **Search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture context:**
 
+![Search for honda with context lines](docs/images/main-search-honda.png)
+
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
