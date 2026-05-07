@@ -180,6 +180,10 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Help screen with Table of Contents](docs/images/main-help-screen.png)
 
+**Tools Menu (main screen — lower right corner):**
+
+![Tools Menu](docs/images/main-tools-menu.png)
+
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
 Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are never altered or deleted. Free and open-source.
