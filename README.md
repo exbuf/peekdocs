@@ -132,11 +132,11 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
-**Highlighted HTML report — every match in yellow, with context:**
+**Resulting highlighted HTML report — every match in yellow, with context:**
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
-**Highlighted Word report — every match in yellow, with context:**
+**Resulting highlighted Word report — every match in yellow, with context:**
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
@@ -144,11 +144,11 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
-**Highlighted HTML report — every match highlighted:**
+**Resulting highlighted HTML report — every match highlighted:**
 
 ![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
 
-**Highlighted docx report — every match highlighted:**
+**Resulting highlighted docx report — every match highlighted:**
 
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
