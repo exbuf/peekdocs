@@ -157,6 +157,8 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
+**Search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture context:**
+
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
