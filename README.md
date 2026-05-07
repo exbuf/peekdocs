@@ -157,7 +157,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
-**From the main screen, search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
+**3.a From the main screen, search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
 
 ![Search for honda with context lines](docs/images/main-search-honda.png)
 
