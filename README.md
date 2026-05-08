@@ -747,7 +747,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **LSTM** | Long Short-Term Memory — a type of neural network designed to recognize patterns in sequences of data. Tesseract 4+ uses an LSTM network to recognize text in images, which significantly improved accuracy over the older template-matching approach |
-| **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
+| **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions. Originated in the 1980s from MIT's X Window System project — they wanted the broadest possible adoption with zero legal friction. Now the most popular open-source license on GitHub, used by React, Node.js, Ruby on Rails, and thousands of other projects. |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
 | **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
