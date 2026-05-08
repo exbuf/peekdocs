@@ -77,8 +77,11 @@ $ peekdocs
   peekdocs -R amount:1000..5000 "" Filter by dollar range
   peekdocs -O budget               Enable OCR for scanned PDFs and images
   peekdocs -o csv,json,pdf,html budget  Additional output formats (any combination)
+  peekdocs -m 5000 budget          Max matches in reports (0 = no limit, default: 1000)
   peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)
   peekdocs --index                 Build search index for faster repeated searches
+  peekdocs --suite "My Suite"      Run a saved search suite by name
+  peekdocs --config max_matches=5000  Save a default setting permanently
 
 ── PII Scan ─────────────────────────────────────────────────────
   peekdocs --pii-scan            Scan current folder for SSNs, credit cards, passwords, etc.
