@@ -861,7 +861,7 @@ If peekdocs saves you time, star the repo and share feedback — it helps others
 
 Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engineer, former IBM engineer, US software patent holder, and solo developer. Developed with [Claude Code](https://claude.ai/code) by Anthropic. All code reviewed, tested, and maintained by the author.
 
-**Why I built this.** I had decades of personal files — tax returns, medical records, insurance policies, old project documents — scattered across folders with no easy way to search them all at once. The tools that exist are either cloud-based (upload my files to someone's server? No thanks), expensive, or limited to one file type. I wanted something that searches everything, stays offline, and doesn't cost anything. So I built it with Claude Code. Then I realized if I needed this, other people do too. peekdocs is the tool I wanted to exist — so I made it exist, and gave it away.
+**Why I built this.** I had decades of personal files — tax returns, medical records, insurance policies, old project documents, daily journals, jogging records, cut-and-pasted newspaper articles — scattered across folders with no easy way to search them all at once. The tools that exist are either cloud-based (upload my files to someone's server? No thanks), expensive, or limited to one file type. I wanted something that searches everything, stays offline, and doesn't cost anything. So I built it with Claude Code. Then I realized if I needed this, other people do too. peekdocs is the tool I wanted to exist — so I made it exist, and gave it away.
 
 ## Disclaimer
 
