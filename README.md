@@ -6,6 +6,7 @@
 - Yellow-highlighted search results
 - Proximity searches (word distance, lines above, lines below)
 - AND/OR logic, fuzzy, inverse, wildcard, regex
+- Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
 - OCR, recursive, indexing (optional)
 - PII Scan (Personally Identifiable Information)
