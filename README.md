@@ -595,10 +595,10 @@ We're not here to replace grep. We're here to handle the 95% of files grep prete
 
 **Where peekdocs goes beyond what grep can practically do:**
 
+- **100+ file types in one command** — the bash script to handle all 100+ types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
 - **Highlighted reports** — grep outputs plain text to a terminal. peekdocs produces a `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this. (Microsoft Word is not required — when clicked, the report opens automatically in any word processor. [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) is recommended. peekdocs blocks reports from opening in Google Docs, Apple Pages, or any cloud-based application that may upload your data.)
 - **PII scanning with categorized severity** — helps locate personally identifiable information you may have inadvertently left in your files. Not just regex matching, but categorized findings (high/moderate/info), false-positive filtering (URLs, DOIs, environment variables), custom patterns, and a formatted report. You could run 10 separate `grep -P` calls for SSN/credit card/phone patterns, but the categorization, filtering, and reporting are not practically replicable.
 - **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
-- **100+ file types in one command** — the bash script to handle all 100+ types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
 - **GUI** — for anyone who doesn't live in a terminal.
 - **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
 - **Search suites** — save multiple searches by name and run them all together with one click. grep has no concept of saved searches or grouped batch execution.
