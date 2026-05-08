@@ -16,6 +16,8 @@ Document search for power users:
 
 <p align="center"><b><a href="#gui">Point-and-click GUI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#terminal">Terminal CLI</a> &nbsp;&nbsp;•&nbsp;&nbsp; <a href="#python-api">Python API</a></b></p>
 
+&nbsp;
+
 > peekdocs **document search app** searches your Word docs, PDFs, source code, data sheets, spreadsheets, emails and archives — 100+ file types, all searched at once, all offline. Built for developers, data scientists, engineers, analysts, researchers, IT pros, and power users who are tired of hunting through directories manually. Easy-to-read yellow-highlighted results with surrounding context, saved named searches you can repeat later, search suites that run a group of saved searches together in one click, sensitive-data (PII) scanning, text-from-images (OCR) for scanned documents, a Search Wizard for building searches without memorizing syntax, and search modes from simple keywords to advanced patterns (regex). Whether you're a casual user looking for a lost document or a professional managing thousands of files, peekdocs scales to fit.
 >
 > Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. Nothing leaves your machine. Free. No fees, no subscriptions. (See [Report Security](#features) and [For IT and Security Teams](#for-it-and-security-teams) for details on how peekdocs actively protects your data.)
