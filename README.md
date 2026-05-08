@@ -2,14 +2,14 @@
 
 ## Document search for power users:
 
-- Search 100+ file types in one query
-- Yellow-highlighted search results
-- Proximity searches (word distance, lines above, lines below)
-- AND/OR logic, fuzzy, inverse, wildcard, regex
+- Search 100+ file types in one query — Word, PDF, Excel, email, source code, archives, and more
+- Yellow-highlighted search results — .docx, .html, and .pdf reports you can save or share
+- Proximity searches — find terms within N words or N lines of each other
+- AND/OR logic, fuzzy, inverse, wildcard, regex — 11 search modes
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
-- OCR, recursive, indexing (optional)
-- PII Scan (Personally Identifiable Information)
+- OCR — search scanned PDFs and images (requires Tesseract)
+- PII Scan — find SSNs, credit cards, and passwords hiding in your files
 
 &nbsp;
 
