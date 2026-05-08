@@ -44,7 +44,7 @@ for match in results.matches:
     print(f"{match.filename}:{match.line_number} {match.text}")
 ```
 
-**Contents:** [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#screenshots) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
+**Contents:** [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
 
 ## CLI at a Glance
 
@@ -112,7 +112,7 @@ Settings: --config KEY=VAL  --config --reset  --check
 
 Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
-### Screenshots
+### GUI Screenshots
 
 *Click any image to enlarge, or visit [robertdschoening.com/peekdocs](https://robertdschoening.com/peekdocs) for full-size screenshots and a video walkthrough.*
 
