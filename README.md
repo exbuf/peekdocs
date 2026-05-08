@@ -203,7 +203,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 | Who | What they search |
 |-----|-----------------|
-| **Developers** | Code notes, technical docs, markdown, exported logs, config files, API references, archived project folders, `.env` files, Dockerfiles |
+| **Developers** | Source code, code notes, technical docs, markdown, exported logs, config files, API references, archived project folders, `.env` files, Dockerfiles |
 | **Data Scientists / Analysts** | Experiment notes, CSV/Excel documentation, research papers, Jupyter notebooks, methodology docs, report archives, JSONL training data |
 | **Engineers** | Specifications, manuals, design notes, vendor PDFs, test reports, maintenance records, datasheets, SPICE netlists, Verilog/VHDL |
 | **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs, server configs (.conf, .properties). PII scan via SSH — no GUI needed |
