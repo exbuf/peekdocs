@@ -24,6 +24,10 @@ pip install peekdocs     # if you prefer pip
 
 # Search from the terminal
 peekdocs "budget" ~/Documents
+# Found 47 match(es) in 12 file(s). Files searched: 238.
+#   2024_tax_return_summary.pdf: 8
+#   quarterly_report_Q1.docx: 6
+#   vendor_contract_2024.pdf: 5  ...
 
 # Scan for sensitive data (SSNs, credit cards, passwords)
 peekdocs --pii-scan        # current folder — screen only, no file written
