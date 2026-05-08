@@ -739,7 +739,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 | **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
 | **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
-| **FTS5** | Full-Text Search 5 — a fast search technology built into SQLite that peekdocs uses for its search index |
+| **FTS5** | Full-Text Search 5 — a fast search extension built into SQLite that peekdocs uses for its search index. FTS5 builds an inverted index (like a book's index — words mapped to locations) so searches run in milliseconds instead of re-reading every file. The "5" is the fifth generation, introduced in 2015, replacing FTS3/FTS4 with better performance and ranking support. It's the same technology behind search in many desktop and mobile apps. |
 | **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
 | **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
 | **.gz file** | A file compressed with gzip. Often used for log files (e.g., `access.log.gz`) or combined with tar (`.tar.gz`). peekdocs searches both tar.gz archives and standalone .gz compressed files |
