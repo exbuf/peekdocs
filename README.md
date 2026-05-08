@@ -1,6 +1,6 @@
 # peekdocs
 
-Document search for power users:
+## Document search for power users:
 
 - Search 100+ file types in one query
 - Yellow-highlighted search results
