@@ -5,7 +5,7 @@
 - Search 100+ file types in one query — Word, PDF, Excel, email, source code, archives, and more
 - Yellow-highlighted search results — .docx, .html, and .pdf reports, plus .csv, .json, and .txt output
 - Proximity searches — find terms within N words or N lines of each other
-- AND/OR logic, fuzzy, inverse, wildcard, regex — 11 search modes
+- AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
 - OCR — search scanned PDFs and images (requires Tesseract)
