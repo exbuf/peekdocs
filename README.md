@@ -176,7 +176,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Search Wizard](docs/images/search-wizard.png)
 
-**Every screen has explanatory hover text for every button and data field. Hover turns on and off — last row.**
+**Every screen has explanatory hover text for every button and data field. Hover turns on and off — bottom row.**
 
 ![Hover text example](docs/images/main-hover-example.png)
 
