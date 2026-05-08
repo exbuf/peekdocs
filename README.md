@@ -20,6 +20,8 @@
 
 &nbsp;
 
+> Completely private. Runs entirely on your computer — your files are never uploaded, altered, or deleted. Nothing leaves your machine. Free. No fees, no subscriptions. (See [Report Security](#features) and [For IT and Security Teams](#for-it-and-security-teams) for details on how peekdocs actively protects your data.)
+
 ```bash
 # Install
 pipx install peekdocs    # recommended (isolated)
