@@ -1,4 +1,4 @@
-# peekdocs
+<h1 align="center" style="font-size: 3em;">peekdocs</h1>
 
 ## Document search for power users:
 
