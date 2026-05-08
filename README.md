@@ -746,6 +746,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
+| **LSTM** | Long Short-Term Memory — a type of neural network designed to recognize patterns in sequences of data. Tesseract 4+ uses an LSTM network to recognize text in images, which significantly improved accuracy over the older template-matching approach |
 | **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
 | **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
