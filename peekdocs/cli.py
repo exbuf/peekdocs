@@ -210,6 +210,7 @@ BANNER_QUICK = (
     '  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match\n'
     '  peekdocs -R amount:1000..5000 "" Filter by dollar range\n'
     '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
+    '  peekdocs -o csv,json,pdf,html budget  Additional output formats (any combination)\n'
     '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
     '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'

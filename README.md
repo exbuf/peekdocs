@@ -76,6 +76,7 @@ $ peekdocs
   peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match
   peekdocs -R amount:1000..5000 "" Filter by dollar range
   peekdocs -O budget               Enable OCR for scanned PDFs and images
+  peekdocs -o csv,json,pdf,html budget  Additional output formats (any combination)
   peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)
   peekdocs --index                 Build search index for faster repeated searches
 
