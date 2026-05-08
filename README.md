@@ -748,6 +748,7 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 | **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
 | **PII** | Personally Identifiable Information — data that can identify a person: Social Security numbers, credit card numbers, passwords, phone numbers, etc. |
+| **PII Scan** | A one-click peekdocs feature that scans your files for PII (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth). Results are shown on screen only — no report file is written to disk. Available from the GUI (green PII Scan button) and CLI (`peekdocs --pii-scan`) |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
 | **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer |
 | **PyInstaller** | A tool that packages Python programs into standalone executables (.exe on Windows, .app on macOS) so users don't need Python installed |
