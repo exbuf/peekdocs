@@ -49,8 +49,6 @@ for match in results.matches:
 
 ## CLI at a Glance
 
-*Condensed — run `peekdocs -h` for full reference.*
-
 Type `peekdocs` with no arguments to see a quick command reference:
 
 ```
