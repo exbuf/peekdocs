@@ -18,7 +18,9 @@
 
 &nbsp;
 
-**Two ways to install:** Developers with Python: `pip install peekdocs` (below). Everyone else: [download the standalone app](#option-a-standalone-download-no-python-needed) — no Python needed, just download and run.
+**Two ways to install:**
+1. Developers with Python: `pip install peekdocs` (below)
+2. Everyone else: [download the standalone app](#option-a-standalone-download-no-python-needed) — no Python needed, just download and run
 
 ```bash
 # Install (requires Python 3.10+)
