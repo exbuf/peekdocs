@@ -116,8 +116,6 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-*Click any image to enlarge, or visit [robertdschoening.com/peekdocs](https://robertdschoening.com/peekdocs) for full-size screenshots and a video walkthrough.*
-
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
 
 ![Getting Started tab](docs/images/getting-started-tab.png)
