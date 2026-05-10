@@ -210,6 +210,15 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Researchers** | Journal articles (PDF), interview transcripts, survey responses, field notes, grant proposals, historical documents (OCR) |
 | **Anyone with document chaos** | If your desktop is a maze, peekdocs helps. |
 
+**How it works:**
+
+1. Point it at a folder on your computer
+2. Type what you're looking for
+3. Click Run Search
+4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
+
+That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster. For more sophisticated searches, open **Advanced Search Options** — target specific file types, add regex or Boolean expressions, filter by date or dollar ranges, set context lines, exclude terms, limit to specific files, and more. Every CLI flag is available in the GUI.
+
 <details>
 <summary><b>Details by role (click to expand)</b></summary>
 
@@ -265,15 +274,6 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Help everywhere** — every screen has a **?** button that opens a detailed help page explaining all the features on that screen. Every data field, button, and checkbox has a hover tooltip that explains what it does. No need to open the manual — the answers are right where you need them. Toggle tooltips on/off with the **Hover: ON/OFF** button on the bottom row of the main screen. Saved automatically.
 - **Adjustable text size** — five sizes from Small to Huge, accessible from the Tools menu. All text, labels, and buttons scale together. Helpful for users with low vision or high-DPI displays. Saved automatically.
 - **Dark mode** — switch between Dark, Light, or System (follows your OS setting) from the Tools menu. Saved automatically. Note: on Windows, popup windows may briefly flash white before the dark theme is applied — this is a normal Windows/tkinter limitation, not a bug. If the flashing is distracting, switch to Appearance: Light in the Tools menu.
-
-**How it works:**
-
-1. Point it at a folder on your computer
-2. Type what you're looking for
-3. Click Run Search
-4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
-
-That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster. For more sophisticated searches, open **Advanced Search Options** — target specific file types, add regex or Boolean expressions, filter by date or dollar ranges, set context lines, exclude terms, limit to specific files, and more. Every CLI flag is available in the GUI.
 
 ## Features
 
