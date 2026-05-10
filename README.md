@@ -250,7 +250,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Search Wizard** — configures complex searches for you with 21 pre-built search types (keywords, Boolean, fuzzy, proximity, dollar ranges, dates, SSNs, phone numbers, and more) plus a regex pattern builder with 8 profession categories (General, Business, Legal, Medical, Engineering, Real Estate, HR, Compliance). No regex or technical knowledge needed.
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly audits, onboarding reviews, or any workflow that involves the same set of searches. Like saved searches, suites are stored per folder — switch folders and you see a different set. Available from the GUI (Tools → Search Suites) and CLI (`peekdocs --suite "My Suite"`).
-- **Scheduled scans** (coming soon) — automatic PII scanning on a schedule. Set it and forget it — peekdocs monitors your folders for sensitive data without you remembering to run a scan.
+- **Scheduled scans** (coming soon) — automatic PII scanning on a schedule, so you don't have to remember to run it manually.
 - **Search templates** (coming soon) — pre-built search configurations for common tasks: "before selling a laptop," "tax season prep," "developer credential scan," "pre-publication check," and more. One click loads the search terms and settings — a convenience shortcut, not a compliance tool.
 - **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in milliseconds. Auto-refresh keeps the index current when files change.
 - **Built-in file analysis tools** — the Tools menu includes File Inventory (summary by type/size/date), Duplicate Finder (identical files by content hash), Large Files, Empty Files, Recent Changes, Protected Files (password-encrypted detection), Search History (automatic log of past searches), Bookmarks (pin files for quick access), and App Files (lists every file peekdocs has created in the folder — results, reports, indexes, saved searches — so you always know what's yours and what's peekdocs').
@@ -313,7 +313,7 @@ That's it. No server, no configuration, no account. Typical searches complete in
 - **Fast results** — 1,000 mixed-format documents in ~1 second. Milliseconds with the search index.
 - **Local-first** — no cloud, no API keys, no internet required. Works on air-gapped machines.
 - **Useful immediately** — solves a real problem on the first run. No learning curve for basic searches.
-- **No enterprise nonsense** — no seat licenses, no sales calls, no feature gating, no telemetry. MIT license. Use it, modify it, share it.
+- **No restrictions** — no seat licenses, no sales calls, no feature gating, no telemetry. MIT license. Use it, modify it, share it.
 
 ### Supported File Types
 
@@ -583,7 +583,7 @@ peekdocs isn't a replacement for your OS — it's the tool you reach for when yo
 
 AI document tools (ChatGPT, Copilot, NotebookLM) require uploading your files to a cloud server. A corporation sees your tax returns, medical records, and passwords. Your data may be used for training. A breach exposes everything you uploaded. And you pay $20+/month for the privilege. To search your own files.
 
-For finding specific content in your documents — keywords, patterns, SSNs, credit cards, phone numbers, account numbers — peekdocs does what AI does, without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
+For finding specific content in your documents — keywords, patterns, SSNs, credit cards, phone numbers, account numbers — peekdocs gets the same results without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
 
 What AI adds beyond search — summarization, question answering, semantic understanding — requires giving up your privacy. Most people searching for "where's my insurance policy number" or "do any of my files contain passwords" don't need that. They need to find something. peekdocs finds it.
 
