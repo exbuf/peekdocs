@@ -762,6 +762,27 @@ peekdocs logs the error to `peekdocs_errors.log` and continues with the remainin
 **How is peekdocs different from grep?**
 grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
 
+**What dependencies does peekdocs install? Can I audit them?**
+17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known, open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](docs/USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
+
+**How do I uninstall peekdocs completely?**
+`pipx uninstall peekdocs` or `pip uninstall peekdocs` removes the code. Your settings (`~/.peekdocsrc`), search history (`~/.peekdocs_history.json`), and bookmarks (`~/.peekdocs_bookmarks.json`) remain in your home directory — delete them manually for a clean slate. Saved searches (`.peekdocs_collection.json`) and indexes (`.peekdocs.db`) are in each folder you searched — delete those too if desired. peekdocs never writes to the registry, system directories, or startup folders.
+
+**Does peekdocs need admin or root permissions?**
+No. It runs entirely with your normal user permissions. It can only read files you already have access to. It does not elevate privileges or require sudo/administrator.
+
+**Can I use peekdocs in scripts, CI pipelines, or automation?**
+Yes. The CLI is designed for scripting: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable output, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details.
+
+**How does peekdocs handle 100,000+ files?**
+It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.
+
+**Can peekdocs search password-protected or encrypted files?**
+No. Password-protected PDFs, Word/Excel/PowerPoint files, and encrypted archives (.zip, .7z, .rar) cannot be read without the password. peekdocs detects them and reports a clear message ("appears to be password-protected") instead of a confusing error. The Protected Files tool (Tools menu) lists all encrypted files in a folder so you know what's locked.
+
+**Is peekdocs actively maintained? What if the developer stops?**
+peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 681 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages.
+
 ## Glossary
 
 | Term | What it means |
