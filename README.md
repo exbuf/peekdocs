@@ -326,6 +326,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 ## Installation
 
+[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: Quick Install with pipx](#option-b-quick-install-with-pipx) · [Option C: Manual Install (with git)](#option-c-manual-install-with-git) · [Option D: Manual Install (no git)](#option-d-manual-install-no-git-no-sign-up) · [Upgrading](#upgrading)
+
 ### Prerequisites
 
 *Using Option A (standalone download)? Skip this section — no prerequisites needed.*
