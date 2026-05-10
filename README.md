@@ -116,15 +116,6 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-**How it works:**
-
-1. Point it at a folder on your computer
-2. Type what you're looking for
-3. Click Run Search
-4. View results in the Results Preview window, or optionally open the highlighted `.docx` report
-
-That's it. No server, no configuration, no account. Typical searches complete in 1–5 seconds for personal document collections. An optional search index makes repeated searches even faster. For more sophisticated searches, open **Advanced Search Options** — target specific file types, add regex or Boolean expressions, filter by date or dollar ranges, set context lines, exclude terms, limit to specific files, and more. Every CLI flag is available in the GUI.
-
 *Click any image to enlarge, or visit [robertdschoening.com/peekdocs](https://robertdschoening.com/peekdocs) for full-size screenshots and a video walkthrough.*
 
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
