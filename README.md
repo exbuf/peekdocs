@@ -210,7 +210,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Researchers** | Journal articles (PDF), interview transcripts, survey responses, field notes, grant proposals, historical documents (OCR) |
 | **Anyone with document chaos** | If your desktop is a maze, peekdocs helps. |
 
-**Details by role:**
+<details>
+<summary><b>Details by role (click to expand)</b></summary>
 
 - **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes, and API keys accidentally saved in documents (PII Scan). A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. `pip install peekdocs` and you're running in seconds — CLI, GUI, or Python API. **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
 - **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once. Credential scanning: the PII Scan catches `password=`, `api_key=`, `secret=` patterns in source code — run it before pushing to a public repo.
@@ -236,6 +237,8 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Customer disputes** — find the original email, invoice, or agreement with a specific customer across years of correspondence
 - **Employee onboarding** — new hires searching policy manuals, benefit documents, and training materials for specific topics
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. Most general-purpose search tools can't read email formats — peekdocs can
+
+</details>
 
 **What makes peekdocs different:**
 
