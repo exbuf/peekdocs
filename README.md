@@ -44,7 +44,7 @@ for match in results.matches:
     print(f"{match.filename}:{match.line_number} {match.text}")
 ```
 
-### Contents: [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [PII Scan](#pii-scan-screenshot) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
+### Contents: [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [PII Scan](#pii-scan-screenshot) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
 
 ## CLI at a Glance
 
@@ -729,6 +729,35 @@ peekdocs handles a wide range of real-world file issues automatically on all pla
 - **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These contain infinite or pseudo-files that would hang the process.
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
+
+## Frequently Asked Questions
+
+**Can peekdocs search scanned PDFs (image-only, no text layer)?**
+Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed.
+
+**Does peekdocs modify, move, or delete my files?**
+Never. peekdocs only reads your files. It creates its own output files (reports, indexes, settings) but never touches yours.
+
+**Does peekdocs send my data anywhere?**
+No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
+
+**Do I need Microsoft Word to view the highlighted report?**
+No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) works great. Or enable HTML output and open the report in your web browser — every computer has one. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
+
+**Can peekdocs search files on a network drive?**
+Yes. Map or mount the network share so it appears as a regular folder, then point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network.
+
+**Can peekdocs search my entire computer?**
+Yes. Set your folder to the root directory (`/` on macOS/Linux, `C:\` on Windows), enable Recursive, and search. System files that can't be read are logged and skipped. Large collections may take longer — consider building a search index for repeated searches.
+
+**Will peekdocs slow down my computer?**
+By default, peekdocs uses half your CPU cores so your computer stays responsive. You can adjust this in Advanced Search Options or with the `-c` flag.
+
+**What happens if a file can't be read?**
+peekdocs logs the error to `peekdocs_errors.log` and continues with the remaining files. Password-protected archives, corrupted files, and cloud-only placeholders are reported with clear messages. After each search, click the Excluded Files button to see what was skipped and why.
+
+**How is peekdocs different from grep?**
+grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
 
 ## Glossary
 
