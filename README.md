@@ -742,7 +742,7 @@ Never. peekdocs only reads your files. It creates its own output files (reports,
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 
 **Do I need Microsoft Word to view the highlighted report?**
-No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser — every computer has one. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
+No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser — every computer has one, and the file is private on your computer, not on the internet. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
 
 **Can peekdocs search files on a network drive?**
 Yes. Map or mount the network share so it appears as a regular folder, then point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network.
