@@ -92,6 +92,11 @@ $ peekdocs
   peekdocs --pii-scan            Scan current folder for SSNs, credit cards, passwords, etc.
   peekdocs --pii-scan -r         Scan all subfolders recursively
 
+── Piping (for scripts and automation) ──────────────────────────
+  peekdocs --stdout -r "budget"  Output JSON to stdout (no report files written)
+  peekdocs --stdout -r "budget" | jq '.matches_found'
+  peekdocs --stdout -r "budget" | jq '[.matches_per_file[] | .filename]'
+
 ── Cleanup ──────────────────────────────────────────────────────
   peekdocs --list-files          List all peekdocs-created files
   peekdocs --clear               Delete peekdocs_results* files
@@ -112,6 +117,7 @@ Filters:  -t pdf,docx  -r (recursive)  -n draft (exclude)  -O (OCR)
           -R amount:1000..5000  --max-file-size 500  -f report.pdf
 Output:   -o csv,json,pdf,html  -s name (save)  --timestamp
           --open docx  --open html  -sa archive (append)
+          --stdout (JSON to stdout for piping, no report files)
 Index:    --index (build)  --index-refresh  --index-clear
 PII:      --pii-scan  --pii-scan -r (recursive)
 Cleanup:  --clear  --clear-all  --list-files
@@ -776,7 +782,15 @@ grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Ex
 No. It runs entirely with your normal user permissions. It can only read files you already have access to. It does not elevate privileges or require sudo/administrator.
 
 **Can I use peekdocs in scripts, CI pipelines, or automation?**
-Yes. The CLI is designed for scripting: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable output, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details.
+Yes. The `--stdout` flag outputs clean JSON to stdout for piping — no report files written, no banners, no progress bars. Combine with `jq` or any JSON processor:
+
+```bash
+peekdocs --stdout -r "password" | jq '.matches_found'
+peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
+peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
+```
+
+Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details. Note: `--stdout` is not available with `--pii-scan` — PII results are screen-only by design to prevent sensitive data from being piped to files.
 
 **How does peekdocs handle 100,000+ files?**
 It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.

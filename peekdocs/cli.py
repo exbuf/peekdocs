@@ -1,5 +1,6 @@
 """Command-line interface for PeekDocs."""
 
+import json
 import logging
 import multiprocessing
 import os
@@ -23,7 +24,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 try:
     VERSION = pkg_version("peekdocs")
 except Exception:
-    VERSION = "0.3.41"  # fallback for PyInstaller builds
+    VERSION = "0.3.42"  # fallback for PyInstaller builds
 
 HIGHLIGHT = "\033[1;94m"
 RESET = "\033[0m"
@@ -88,6 +89,9 @@ BANNER_BOTTOM = (
     '  --open FMT         Automatically open the report when search finishes:\n'
     '                       docx, txt, csv, json, pdf, html\n'
     '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
+    '  --stdout           Output JSON results to stdout (for piping). No report files\n'
+    '                       written. Suppresses all banners and progress. Not available\n'
+    '                       with --pii-scan.\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
     '  --index            Build/rebuild the search index (includes all subfolders)\n'
@@ -216,6 +220,7 @@ BANNER_QUICK = (
     '  peekdocs --index                 Build search index for faster repeated searches\n'
     '  peekdocs --suite "My Suite"      Run a saved search suite by name\n'
     '  peekdocs --config max_matches=5000  Save a default setting permanently\n'
+    '  peekdocs --stdout -r budget      Output JSON to stdout for piping (no report files)\n'
     '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'
     '\n'
     '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
@@ -556,7 +561,11 @@ def _main_inner(argv=None):
 
     config = {}  # CLI uses only explicit flags; config is for GUI only
 
-    minimal = "-qq" in args
+    stdout_json = "--stdout" in args
+    if stdout_json:
+        args.remove("--stdout")
+
+    minimal = stdout_json or "-qq" in args
     if "-qq" in args:
         args.remove("-qq")
     quiet = minimal or "-q" in args
@@ -597,6 +606,9 @@ def _main_inner(argv=None):
         print('-------------------------------------------------------------------------')
 
     if "--pii-scan" in args:
+        if stdout_json:
+            print("Error: --stdout cannot be used with --pii-scan. PII results are screen-only by design.\n")
+            return 2
         import time as _pii_time
         from peekdocs.api import search as _pii_search
         args = [a for a in args if a != "--pii-scan"]
@@ -1151,8 +1163,9 @@ def _main_inner(argv=None):
     report_mode = parsed["report_mode"]
 
     command_str = "peekdocs " + " ".join(f'"{a}"' if " " in a else a for a in original_args)
-    print('-------------------------------------------------------------------------')
-    print(command_str)
+    if not stdout_json:
+        print('-------------------------------------------------------------------------')
+        print(command_str)
     start_time = time.time()
     cwd = os.getcwd()
     if output_dir is None:
@@ -1171,12 +1184,13 @@ def _main_inner(argv=None):
         from peekdocs.range_query import parse_range
         for spec_str in range_specs_raw:
             parsed_range_specs.append(parse_range(spec_str))
-    if _will_use_index:
-        print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
-    else:
-        print(f"Searching ({mode}) on [{HIGHLIGHT}{display_label}{RESET}] ...")
-    if exclude_terms:
-        print(f"Excluding [{' '.join(exclude_terms)}]")
+    if not stdout_json:
+        if _will_use_index:
+            print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
+        else:
+            print(f"Searching ({mode}) on [{HIGHLIGHT}{display_label}{RESET}] ...")
+        if exclude_terms:
+            print(f"Excluding [{' '.join(exclude_terms)}]")
 
     # Set up CLI progress bar / spinner
     bar_width = 40
@@ -1232,7 +1246,8 @@ def _main_inner(argv=None):
         _render_progress(done, total_count, filename)
 
     spinner_t = threading.Thread(target=_spinner_thread_func, daemon=True)
-    spinner_t.start()
+    if not stdout_json:
+        spinner_t.start()
 
     try:
         from peekdocs.api import search as _api_search
@@ -1255,27 +1270,30 @@ def _main_inner(argv=None):
             line_proximity=line_proximity,
             cores=cores,
             use_index=None if not no_index else False,
-            progress=_cli_progress,
+            progress=None if stdout_json else _cli_progress,
             expression=expression,
             range_filters=range_specs_raw or None,
             max_file_size_mb=parsed.get("max_file_size_mb", 100),
         )
     except KeyboardInterrupt:
         spinner_stop.set()
-        spinner_t.join()
+        if spinner_t.is_alive():
+            spinner_t.join()
         sys.stdout.write("\n")
         print("\nSearch cancelled.\n")
         return 2
     except (ValueError, FileNotFoundError) as e:
         spinner_stop.set()
-        spinner_t.join()
+        if spinner_t.is_alive():
+            spinner_t.join()
         print(f"\nError: {e}")
         return 2
 
     spinner_stop.set()
-    spinner_t.join()
+    if spinner_t.is_alive():
+        spinner_t.join()
 
-    if spinner_state["total"] > 0:
+    if not stdout_json and spinner_state["total"] > 0:
         _render_progress(spinner_state["total"], spinner_state["total"], "done")
         sys.stdout.write("\n")
         sys.stdout.flush()
@@ -1310,6 +1328,56 @@ def _main_inner(argv=None):
     if max_matches > 0 and total_match_count > max_matches:
         capped = True
         matches = matches[:max_matches]
+
+    # --stdout: output JSON to stdout and exit (no report files written)
+    if stdout_json:
+        from peekdocs.reporter import _strip_highlights
+        elapsed = time.time() - start_time
+        if inverse_files is not None:
+            json_data = {
+                "generator": f"peekdocs v{VERSION}",
+                "search_terms": search_terms,
+                "mode": report_mode,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "files_searched": len(all_files),
+                "files_without_matches": len(inverse_files),
+                "elapsed_seconds": round(elapsed, 2),
+                "inverse_files": [
+                    {"filename": os.path.basename(fp), "folder": os.path.dirname(fp)}
+                    for fp in inverse_files
+                ],
+            }
+        else:
+            file_counts = {}
+            for file_dir, filename, _ln, _tx in matches:
+                key = (file_dir, filename)
+                if key not in file_counts:
+                    file_counts[key] = 0
+                file_counts[key] += 1
+            json_data = {
+                "generator": f"peekdocs v{VERSION}",
+                "search_terms": search_terms,
+                "mode": report_mode,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "files_searched": len(all_files),
+                "matches_found": total_match_count,
+                "elapsed_seconds": round(elapsed, 2),
+                "matches_per_file": [
+                    {"filename": fn, "folder": fd, "matches": count}
+                    for (fd, fn), count in file_counts.items()
+                ],
+                "matches": [
+                    {
+                        "filename": filename,
+                        "folder": file_dir,
+                        "line_number": line_num,
+                        "matched_text": _strip_highlights(text),
+                    }
+                    for file_dir, filename, line_num, text in matches
+                ],
+            }
+        sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
+        return 0 if (matches or inverse_files) else 1
 
     # Check disk space before writing reports
     free_space = shutil.disk_usage(output_dir).free
