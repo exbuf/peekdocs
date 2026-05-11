@@ -370,6 +370,8 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 
 **Upgrading:** Download the new version from the Releases page and replace the old file. Your settings and saved searches are stored in your home directory, not in the executable — nothing is lost.
 
+**No dependency breakage.** The standalone download bundles Python, all libraries, and peekdocs into a single file — frozen at the versions that were tested and working together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break. The app works the same way today as the day you downloaded it.
+
 ---
 
 *Options B through D below are alternative installation methods for users who prefer pipx, git, or pip. If you used Option A, you're done — skip ahead to [Quick Start](#quick-start).*
