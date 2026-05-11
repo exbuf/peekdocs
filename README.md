@@ -10,6 +10,7 @@
 - Search Suites — group saved searches and run them all with one click
 - OCR — search scanned PDFs and images (requires Tesseract)
 - PII Scan — find SSNs, credit cards, and passwords hiding in your files
+- Read-only — peekdocs never modifies, moves, or deletes your files
 
 &nbsp;
 
