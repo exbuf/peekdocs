@@ -105,6 +105,8 @@ $ peekdocs
 Type peekdocs -h for full help (all flags, file types, regex patterns).
 ```
 
+**When to use quotes around search terms:** Single words don't need quotes (`peekdocs budget`). Use quotes for phrases (`peekdocs "budget report"`), regex (`peekdocs -x "\d{3}-\d{4}"`), and anything with special characters like `$`, `*`, `(`, `)`, `|`, or `=` — the shell will interpret them before peekdocs sees them. When in doubt, use quotes — they never hurt.
+
 Condensed version of `peekdocs -h` (all flags and options):
 
 ```
@@ -768,6 +770,9 @@ By default, peekdocs uses half your CPU cores so your computer stays responsive.
 
 **What happens if a file can't be read?**
 peekdocs logs the error to `peekdocs_errors.log` and continues with the remaining files. Password-protected archives, corrupted files, and cloud-only placeholders are reported with clear messages. After each search, click the Excluded Files button to see what was skipped and why.
+
+**When do I need quotes around search terms?**
+Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases (`peekdocs "budget report"`), regex patterns (`peekdocs -x "\d{3}-\d{4}"`), Boolean expressions (`peekdocs -e "(budget OR revenue) AND NOT draft"`), and anything containing special characters (`$`, `*`, `(`, `)`, `|`, `=`, `<`, `>`). The shell interprets these characters before peekdocs sees them, so without quotes your search may not work as expected. When in doubt, use quotes — they never hurt.
 
 **How is peekdocs different from grep?**
 grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
