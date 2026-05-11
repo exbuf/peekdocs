@@ -372,6 +372,8 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 
 **No dependency breakage.** The standalone download bundles Python, all libraries, and peekdocs into a single file — frozen at the versions that were tested and working together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break. The app works the same way today as the day you downloaded it.
 
+**Safe for your computer.** Neither installation option (standalone or pip) modifies your existing Python installation, installs system services, writes to the registry, or interferes with any other programs on your computer. peekdocs runs when you launch it and stops when you close it.
+
 ---
 
 *Options B through D below are alternative installation methods for users who prefer pipx, git, or pip. If you used Option A, you're done — skip ahead to [Quick Start](#quick-start).*
