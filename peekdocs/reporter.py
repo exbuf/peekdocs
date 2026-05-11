@@ -832,7 +832,8 @@ def write_csv_report(output_path, matches, inverse_files=None):
 
 
 def write_json_report(output_path, matches, search_terms, report_mode,
-                      files_count, search_elapsed, inverse_files=None):
+                      files_count, search_elapsed, inverse_files=None,
+                      directory=None):
     """Write peekdocs_results.json."""
     if os.path.exists(output_path):
         os.remove(output_path)
@@ -841,6 +842,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
     if inverse_files is not None:
         json_data = {
             "generator": f"peekdocs v{_ver_j}",
+            **({"directory": directory} if directory else {}),
             "search_terms": search_terms,
             "mode": report_mode,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -870,6 +872,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
 
         json_data = {
             "generator": f"peekdocs v{_ver_j}",
+            **({"directory": directory} if directory else {}),
             "search_terms": search_terms,
             "mode": report_mode,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

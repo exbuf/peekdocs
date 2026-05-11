@@ -135,6 +135,8 @@ BANNER_BOTTOM = (
     '\n'
     'Special characters (<, >, [, ], *, ?, $, |, etc.) must be enclosed in quotes.\n'
     '\n'
+    'Exit codes: 0 = matches found, 1 = no matches, 2 = error.\n'
+    '\n'
     'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
     '       Navigate to the folder you want to search, then run peekdocs.\n'
     '\n'
@@ -1336,6 +1338,7 @@ def _main_inner(argv=None):
         if inverse_files is not None:
             json_data = {
                 "generator": f"peekdocs v{VERSION}",
+                "directory": cwd,
                 "search_terms": search_terms,
                 "mode": report_mode,
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -1356,6 +1359,7 @@ def _main_inner(argv=None):
                 file_counts[key] += 1
             json_data = {
                 "generator": f"peekdocs v{VERSION}",
+                "directory": cwd,
                 "search_terms": search_terms,
                 "mode": report_mode,
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -1445,6 +1449,7 @@ def _main_inner(argv=None):
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
             inverse_files=inverse_files,
+            directory=cwd,
         )
 
     if "pdf" in output_formats:
