@@ -51,7 +51,7 @@ for match in results.matches:
     print(f"{match.filename}:{match.line_number} {match.text}")
 ```
 
-### Contents: [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [PII Scan](#pii-scan-screenshot) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
+### Contents: [CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [PII Scan](#pii-scan-screenshot) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Preparing Documents](#preparing-your-documents-for-searching) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
 
 ## CLI at a Glance
 
@@ -742,6 +742,20 @@ peekdocs handles a wide range of real-world file issues automatically on all pla
 - **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These contain infinite or pseudo-files that would hang the process.
 
 For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
+
+## Preparing Your Documents for Searching
+
+Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are already searchable — just point peekdocs at the folder and search. No preparation needed.
+
+**For paper documents** (tax returns, receipts, medical records, old letters), you'll need to scan them first:
+
+1. **Scan at 300 DPI** — this is the sweet spot for text recognition. Lower resolutions produce poor OCR results. Most scanners default to 300 DPI.
+2. **Save as searchable PDF** — modern scanners with built-in OCR (like the Fujitsu ScanSnap) automatically embed a text layer in the PDF. peekdocs reads these directly — no OCR flag needed.
+3. **If your scanner doesn't have OCR** — save as PDF, JPG, or PNG. peekdocs can still search these using its OCR feature (enable the OCR checkbox in the GUI or use the `-O` flag in the CLI). Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed.
+4. **Organize by topic, not by date** — folders like `Tax Returns`, `Medical`, `Insurance`, `Receipts` make it easier to target searches. But peekdocs also works fine with one big folder and recursive search.
+5. **Phone camera works too** — take a photo of a document and save it as JPG or PNG. peekdocs can OCR it. For best results, photograph in good lighting with the document flat and square in the frame.
+
+**Tip:** Before selling or donating a computer, run the PII Scan on your entire documents folder. It finds SSNs, credit cards, and passwords you may have forgotten about.
 
 ## Frequently Asked Questions
 
