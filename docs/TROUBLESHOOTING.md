@@ -366,7 +366,8 @@ Run `peekdocs --check` to verify Tesseract is detected.
 
 Several possible causes:
 
-1. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Manage Indexes → Build Index) or uncheck the Index checkbox to search directly.
+1. **OCR not enabled** — check the OCR checkbox in Advanced Search Options (GUI) or add the `-O` flag (CLI). Without it, peekdocs only reads the text layer — image-only files will have no matches.
+2. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Manage Indexes → Build Index) or uncheck the Index checkbox to search directly.
 2. **Tesseract not installed** — run `peekdocs --check` to verify. See the entry above for installation instructions.
 3. **Low scan quality** — scans below 200 DPI produce poor OCR results. 300 DPI is recommended. Re-scan the document at a higher resolution if possible.
 4. **Skewed or rotated text** — Tesseract struggles with text that isn't level. Re-scan with the document flat and straight.
