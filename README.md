@@ -175,6 +175,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
+**4.b Resulting highlighted HTML report:**
+
+![Mandarin search HTML report](docs/images/mandarin-results.png)
+
 <a id="pii-scan-screenshot"></a>
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
