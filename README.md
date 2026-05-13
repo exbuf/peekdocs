@@ -138,102 +138,102 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 <a id="ss-getting-started"></a>
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
 
-![Getting Started tab](docs/images/getting-started-tab.png)
+![Getting Started tab](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/getting-started-tab.png)
 
 <a id="ss-ex1"></a>
 **Example 1: Search for "password" on the main screen — results highlighted instantly:**
 
-![Main screen with search results](docs/images/main--screen-password.png)
+![Main screen with search results](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main--screen-password.png)
 
 <a id="ss-ex1a"></a>
 **1.a Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context. (The HTML report opens locally in your browser — it's a file on your computer, not a website. Nothing is uploaded or sent to the internet.)**
 
-![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
+![Highlighted HTML report open in browser](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-screen-report.png)
 
 <a id="ss-ex1b"></a>
 **1.b Resulting highlighted Word report — every match in yellow, with context:**
 
-![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
+![Highlighted .docx report open in Word](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-screen-report-docx.png)
 
 <a id="ss-ex2"></a>
 **Example 2: Search for "heart" on the main screen:**
 
-![Main screen with heart search results](docs/images/main--screen-heart.png)
+![Main screen with heart search results](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main--screen-heart.png)
 
 <a id="ss-ex2a"></a>
 **2.a Resulting highlighted HTML report — every match highlighted:**
 
-![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
+![Highlighted HTML report for heart search](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main--screen-heart-report-html.png)
 
 <a id="ss-ex2b"></a>
 **2.b Resulting highlighted docx report — every match highlighted:**
 
-![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
+![Highlighted .docx report for heart search](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main--screen-heart-report-docx.png)
 
 <a id="ss-ex3"></a>
 **Example 3: Suppose you had scanned and saved this original insurance document as a png file. But you misplaced the original doc and now you need to find the policy details for your Honda:**
 
-![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
+![Original scanned insurance document](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-search-honda-original-doc.png)
 
 <a id="ss-ex3a"></a>
 **3.a From the main screen, search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
 
-![Search for honda with context lines](docs/images/main-search-honda.png)
+![Search for honda with context lines](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-search-honda.png)
 
 <a id="ss-ex3b"></a>
 **3.b Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page. Note: searching scanned images (.jpg, .png, .tiff, .bmp) requires the OCR checkbox to be checked in Advanced Search Options and Tesseract to be installed. Scanned PDFs with embedded text do not need OCR — peekdocs reads them directly:**
 
-![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
+![Advanced Search Options with context lines set to 2](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/honda-advanced-menu.png)
 
 <a id="ss-ex4"></a>
 **Example 4: Search for 预算 (Mandarin Chinese for "budget") — peekdocs searches in any language:**
 
-![Search for Chinese term](docs/images/mandarin-search.png)
+![Search for Chinese term](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/mandarin-search.png)
 
 <a id="ss-ex4a"></a>
 **4.a Resulting highlighted HTML report:**
 
-![Mandarin search HTML report](docs/images/mandarin-results.png)
+![Mandarin search HTML report](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/mandarin-results.png)
 
 <a id="pii-scan-screenshot"></a>
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
-![PII Scan category selection](docs/images/PII_Scan.png)
+![PII Scan category selection](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/PII_Scan.png)
 
 <a id="ss-pii-results"></a>
 **PII Scan results:**
 
-![PII Scan results with severity badges](docs/images/PII_scan_results.png)
+![PII Scan results with severity badges](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/PII_scan_results.png)
 
 <a id="ss-advanced"></a>
 **Advanced Search Options (click 'Advanced' on main screen):**
 
-![Advanced Search Options](docs/images/advanced-search-options.png)
+![Advanced Search Options](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/advanced-search-options.png)
 
 <a id="ss-suites"></a>
 **Search Suites (click 'Suites' on main screen):**
 
-![Search Suites](docs/images/search-suites.png)
+![Search Suites](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/search-suites.png)
 
 <a id="ss-wizard"></a>
 **Search Wizard (5 of 21 entries shown, click 'Wizard' icon on main screen):**
 
-![Search Wizard](docs/images/search-wizard.png)
+![Search Wizard](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/search-wizard.png)
 
 <a id="ss-hover"></a>
 **Every screen has explanatory hover text for every button and data field. Hover turns on and off — bottom row.**
 
-![Hover text example](docs/images/main-hover-example.png)
+![Hover text example](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-hover-example.png)
 
 <a id="ss-help"></a>
 **Every screen has a help menu with Table of Contents — ? at upper-right corner.**
 
-![Help screen with Table of Contents](docs/images/main-help-screen.png)
+![Help screen with Table of Contents](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-help-screen.png)
 
 <a id="ss-tools"></a>
 **'Tools' Menu (main screen — lower right corner):**
 
-![Tools Menu](docs/images/main-tools-menu.png)
+![Tools Menu](https://raw.githubusercontent.com/exbuf/peekdocs/main/docs/images/main-tools-menu.png)
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
@@ -389,7 +389,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 - **Tesseract** (optional, for OCR) — OCR (Optical Character Recognition) reads text from scanned PDFs and images (PNG, JPG, TIFF, BMP, GIF). Most users don't need this — it's only for documents that are pictures of text rather than actual text. If you do need it: macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) | Linux: `sudo apt install tesseract-ocr`
 - **UnRAR** (optional, for .rar archives) — only needed if you want to search inside .rar files. macOS: `brew install unrar` | Windows: comes with [WinRAR](https://www.win-rar.com/) | Linux: `sudo apt install unrar`
 
-**Everything else installs automatically.** When you run `pip install peekdocs`, pip downloads and installs all 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, etc.) — about 50 packages, ~244 MB total on disk. You don't have to install any of them yourself. See [Dependencies](docs/USER_GUIDE.md#dependencies) in the User Guide for the full list and what each one does.
+**Everything else installs automatically.** When you run `pip install peekdocs`, pip downloads and installs all 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, etc.) — about 50 packages, ~244 MB total on disk. You don't have to install any of them yourself. See [Dependencies](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#dependencies) in the User Guide for the full list and what each one does.
 
 ### Option A: Standalone Download (no Python needed)
 
@@ -444,7 +444,7 @@ pipx ensurepath           # adds pipx to your PATH (all platforms)
 
 After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — even after restarting your computer. It's a one-time install, not something you run daily. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
 
-**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, uninstall the old one first (`pipx uninstall peekdocs`), then install the new ZIP — your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
+**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, uninstall the old one first (`pipx uninstall peekdocs`), then install the new ZIP — your settings and saved searches are not affected. See the [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
 
 ### Option C: Manual Install (with git)
 
@@ -457,7 +457,7 @@ pip install --upgrade pip setuptools wheel   # required on some Linux distros �
 pip install -e .
 ```
 
-**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. When activated, you'll see `(venv)` at the beginning of your terminal prompt — this means peekdocs commands will work. If you see "command not found" when typing `peekdocs`, you forgot to activate — look for the missing `(venv)` prefix. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
+**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. When activated, you'll see `(venv)` at the beginning of your terminal prompt — this means peekdocs commands will work. If you see "command not found" when typing `peekdocs`, you forgot to activate — look for the missing `(venv)` prefix. See the [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
 
 **"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which peekdocs uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
 
@@ -488,7 +488,7 @@ No git? No problem. Download peekdocs as a ZIP file directly from your browser:
    pip install -e .
    ```
 
-**Important:** Same as Option C — you must activate the virtual environment each time you open a new terminal. Look for `(venv)` at the start of your prompt to confirm it's active. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
+**Important:** Same as Option C — you must activate the virtual environment each time you open a new terminal. Look for `(venv)` at the start of your prompt to confirm it's active. See the [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
 
 ### Upgrading
 
@@ -507,7 +507,7 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 - **git (Option C):** `cd peekdocs && git pull && pip install -e .`
 - **ZIP (Option D):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`
 
-See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
+See the [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
 ## Quick Start
 
@@ -554,7 +554,7 @@ Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlig
 
 To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
 
-Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
+Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
 
 ### GUI
 
@@ -585,17 +585,17 @@ for match in result.matches:
     print(f"  {match.filename}:{match.line_num}: {match.text}")
 ```
 
-See the [API Reference](docs/API.md) for all parameters and options.
+See the [API Reference](https://github.com/exbuf/peekdocs/blob/main/docs/API.md) for all parameters and options.
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
-| [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
-| [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
-| [Changelog](CHANGELOG.md) | Version history and release notes |
-| [Contributing](CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
+| [User Guide](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
+| [API Reference](https://github.com/exbuf/peekdocs/blob/main/docs/API.md) | Python library API — `search()` function, parameters, return values |
+| [FAQ & Troubleshooting](https://github.com/exbuf/peekdocs/blob/main/docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
+| [Changelog](https://github.com/exbuf/peekdocs/blob/main/CHANGELOG.md) | Version history and release notes |
+| [Contributing](https://github.com/exbuf/peekdocs/blob/main/CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
 
 ## Why peekdocs?
 
@@ -770,7 +770,7 @@ peekdocs handles a wide range of real-world file issues automatically on all pla
 - **Named pipes and sockets** — silently skipped. Opening a named pipe (FIFO) or Unix socket without a writer would hang the process indefinitely. peekdocs detects these via `stat()` and skips them.
 - **Virtual filesystems** (`/proc`, `/sys`, `/dev`, `.gvfs`) — automatically excluded during recursive searches. These contain infinite or pseudo-files that would hang the process.
 
-For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
+For more, see the [FAQ & Troubleshooting](https://github.com/exbuf/peekdocs/blob/main/docs/TROUBLESHOOTING.md).
 
 ## Preparing Your Documents for Searching
 
@@ -828,7 +828,7 @@ Several ways: (1) **Read the source code** — it's fully open on [GitHub](https
 grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
 
 **What dependencies does peekdocs install? Can I audit them?**
-17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known, open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](docs/USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
+17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known, open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
 
 **How do I uninstall peekdocs completely?**
 `pipx uninstall peekdocs` or `pip uninstall peekdocs` removes the code. Your settings (`~/.peekdocsrc`), search history (`~/.peekdocs_history.json`), and bookmarks (`~/.peekdocs_bookmarks.json`) remain in your home directory — delete them manually for a clean slate. Saved searches (`.peekdocs_collection.json`) and indexes (`.peekdocs.db`) are in each folder you searched — delete those too if desired. peekdocs never writes to the registry, system directories, or startup folders.
@@ -845,7 +845,7 @@ peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
 peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
 ```
 
-Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details. Note: `--stdout` is not available with `--pii-scan` — PII results are screen-only by design to prevent sensitive data from being piped to files.
+Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](https://github.com/exbuf/peekdocs/blob/main/docs/API.md) for details. Note: `--stdout` is not available with `--pii-scan` — PII results are screen-only by design to prevent sensitive data from being piped to files.
 
 **How does peekdocs handle 100,000+ files?**
 It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.
@@ -979,7 +979,7 @@ bash peekdocs_global_test_unix.sh "test file for peekdocs"    # macOS / Linux
 
 ## Contributing
 
-Ideas, bug reports, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Ideas, bug reports, and pull requests are welcome. See [CONTRIBUTING.md](https://github.com/exbuf/peekdocs/blob/main/CONTRIBUTING.md) for details.
 
 If peekdocs saves you time, star the repo and share feedback — it helps others discover the tool.
 
@@ -992,8 +992,8 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engi
 
 ## Disclaimer
 
-peekdocs is provided as-is under the [MIT License](LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature is a discovery aid, not a security product — it uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns. A clean scan does not guarantee that all sensitive data has been identified. Always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
+peekdocs is provided as-is under the [MIT License](https://github.com/exbuf/peekdocs/blob/main/LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature is a discovery aid, not a security product — it uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns. A clean scan does not guarantee that all sensitive data has been identified. Always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
 
 ## License
 
-Copyright (c) 2026 Robert D. Schoening. This project is licensed under the [MIT License](LICENSE).
+Copyright (c) 2026 Robert D. Schoening. This project is licensed under the [MIT License](https://github.com/exbuf/peekdocs/blob/main/LICENSE).
