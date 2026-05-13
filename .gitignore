@@ -17,14 +17,30 @@ env/
 
 # OS
 .DS_Store
+Thumbs.db
+desktop.ini
 
 # Environment
 .env
 
-# Output files
+# peekdocs output files
+peekdocs_results.*
+peekdocs_report_*
+peekdocs_accumulated_*
+peekdocs_suite_results.*
+peekdocs_errors.log
+.peekdocs.db
+.peekdocs.db-wal
+.peekdocs.db-shm
+.peekdocs_collection.json
+
+# Legacy output files (old app name)
 docsearch_results*
 docsearch_errors.log
 DO_NOT_SEARCH_docsearch_suite_*
+
+# PyInstaller
+*.spec
 
 # Sample/test data files
 dashboard.html
@@ -41,5 +57,3 @@ test_gui_debug.py
 # Claude Code
 .claude/
 CLAUDE.md
-peekdocs_results.*
-docsearch_results.*
