@@ -25,6 +25,7 @@ classifiers = [
 ]
 keywords = ["document-search", "file-search", "pii-scanner", "pii-detection", "text-search", "pdf-search", "docx", "offline", "offline-search", "privacy", "cli", "gui", "batch-search", "document-scanner"]
 license = "MIT"
+readme = "README.md"
 authors = [{name = "Robert D. Schoening", email = "bobschoening@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
