@@ -358,6 +358,22 @@ The `-O` (OCR) flag needs three things:
 
 2. **Python packages**: `pip install pytesseract Pillow`
 
+Run `peekdocs --check` to verify Tesseract is detected.
+
+---
+
+**OCR is enabled but peekdocs doesn't find text in my scanned PDF or image**
+
+Several possible causes:
+
+1. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Manage Indexes → Build Index) or uncheck the Index checkbox to search directly.
+2. **Tesseract not installed** — run `peekdocs --check` to verify. See the entry above for installation instructions.
+3. **Low scan quality** — scans below 200 DPI produce poor OCR results. 300 DPI is recommended. Re-scan the document at a higher resolution if possible.
+4. **Skewed or rotated text** — Tesseract struggles with text that isn't level. Re-scan with the document flat and straight.
+5. **Handwritten text** — Tesseract is designed for printed text. Handwriting recognition is unreliable.
+6. **Non-Latin scripts** — Tesseract needs language packs for non-English text. Install them: macOS: `brew install tesseract-lang`, Linux: `sudo apt install tesseract-ocr-chi-sim` (for Simplified Chinese, etc.).
+7. **The file isn't image-only** — some PDFs have a text layer that's nearly empty (a few whitespace characters). peekdocs may read the text layer instead of falling back to OCR. Try searching with `-O --no-index` from the CLI to confirm.
+
 ---
 
 **"PST support requires the libpff-python package"**
