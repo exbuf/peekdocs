@@ -131,50 +131,64 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
+[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.b HTML report](#ss-ex4b) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
+
+<a id="ss-getting-started"></a>
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
 
 ![Getting Started tab](docs/images/getting-started-tab.png)
 
+<a id="ss-ex1"></a>
 **Example 1: Search for "password" on the main screen — results highlighted instantly:**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
+<a id="ss-ex1a"></a>
 **1.a Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context. (The HTML report opens locally in your browser — it's a file on your computer, not a website. Nothing is uploaded or sent to the internet.)**
 
 ![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
 
+<a id="ss-ex1b"></a>
 **1.b Resulting highlighted Word report — every match in yellow, with context:**
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
+<a id="ss-ex2"></a>
 **Example 2: Search for "heart" on the main screen:**
 
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
+<a id="ss-ex2a"></a>
 **2.a Resulting highlighted HTML report — every match highlighted:**
 
 ![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
 
+<a id="ss-ex2b"></a>
 **2.b Resulting highlighted docx report — every match highlighted:**
 
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
+<a id="ss-ex3"></a>
 **Example 3: Suppose you had scanned and saved this original insurance document as a png file. But you misplaced the original doc and now you need the policy details for your Honda:**
 
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
+<a id="ss-ex3a"></a>
 **3.a From the main screen, search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
 
 ![Search for honda with context lines](docs/images/main-search-honda.png)
 
+<a id="ss-ex3b"></a>
 **3.b Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page. Note: searching scanned images (.jpg, .png, .tiff, .bmp) requires the OCR checkbox to be checked in Advanced Search Options and Tesseract to be installed. Scanned PDFs with embedded text do not need OCR — peekdocs reads them directly:**
 
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
+<a id="ss-ex4"></a>
 **Example 4: Search for 预算 (Mandarin Chinese for "budget") — peekdocs searches in any language:**
 
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
+<a id="ss-ex4b"></a>
 **4.b Resulting highlighted HTML report:**
 
 ![Mandarin search HTML report](docs/images/mandarin-results.png)
@@ -184,30 +198,37 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![PII Scan category selection](docs/images/PII_Scan.png)
 
+<a id="ss-pii-results"></a>
 **PII Scan results:**
 
 ![PII Scan results with severity badges](docs/images/PII_scan_results.png)
 
+<a id="ss-advanced"></a>
 **Advanced Search Options (click 'Advanced' on main screen):**
 
 ![Advanced Search Options](docs/images/advanced-search-options.png)
 
+<a id="ss-suites"></a>
 **Search Suites (click 'Suites' on main screen):**
 
 ![Search Suites](docs/images/search-suites.png)
 
+<a id="ss-wizard"></a>
 **Search Wizard (5 of 21 entries shown, click 'Wizard' icon on main screen):**
 
 ![Search Wizard](docs/images/search-wizard.png)
 
+<a id="ss-hover"></a>
 **Every screen has explanatory hover text for every button and data field. Hover turns on and off — bottom row.**
 
 ![Hover text example](docs/images/main-hover-example.png)
 
+<a id="ss-help"></a>
 **Every screen has a help menu with Table of Contents — ? at upper-right corner.**
 
 ![Help screen with Table of Contents](docs/images/main-help-screen.png)
 
+<a id="ss-tools"></a>
 **'Tools' Menu (main screen — lower right corner):**
 
 ![Tools Menu](docs/images/main-tools-menu.png)
