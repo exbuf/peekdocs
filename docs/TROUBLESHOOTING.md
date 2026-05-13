@@ -163,6 +163,15 @@ Every feature in peekdocs serves the core mission of finding content in document
 
 ## Troubleshooting
 
+**Search misses files I recently added (when using the index)**
+
+If you're using the search index and peekdocs doesn't find matches in files you recently added, moved, or modified, the index is stale — it doesn't know about the new files yet. Rebuild the index:
+
+- **GUI:** Tools → Manage Indexes → Build Index (or use Index Refresh for an incremental update)
+- **CLI:** `peekdocs --index` (full rebuild) or `peekdocs --index-refresh` (incremental)
+
+Alternatively, uncheck the Index checkbox or use `--no-index` to bypass the index and search files directly. Direct search always reads the current files on disk.
+
 **The DOCX report won't open when I click the DOCX button**
 
 The `.docx` report opens in whatever application your computer has associated with `.docx` files. If nothing happens when you click the button:
