@@ -131,7 +131,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.b HTML report](#ss-ex4b) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
+[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
 
 <a id="ss-getting-started"></a>
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
@@ -188,8 +188,8 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
-<a id="ss-ex4b"></a>
-**4.b Resulting highlighted HTML report:**
+<a id="ss-ex4a"></a>
+**4.a Resulting highlighted HTML report:**
 
 ![Mandarin search HTML report](docs/images/mandarin-results.png)
 
