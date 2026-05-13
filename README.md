@@ -141,7 +141,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Getting Started tab](docs/images/getting-started-tab.png)
 
 <a id="ss-ex1"></a>
-**Example 1: Search for "password" — 804 MB searched in 0.56 seconds (see status line):**
+**Example 1: Search for "password" — 804 MB searched in 0.56 seconds with index (see status line):**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
