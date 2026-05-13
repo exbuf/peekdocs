@@ -171,6 +171,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
+**Example 4: Search for 预算 (Mandarin Chinese for "budget") — peekdocs searches in any language:**
+
+![Search for Chinese term](docs/images/mandarin-search.png)
+
 <a id="pii-scan-screenshot"></a>
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
