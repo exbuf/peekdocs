@@ -169,7 +169,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
 
 <a id="ss-ex3"></a>
-**Example 3: Suppose you had scanned and saved this original insurance document as a png file. But you misplaced the original doc and now you need the policy details for your Honda:**
+**Example 3: Suppose you had scanned and saved this original insurance document as a png file. But you misplaced the original doc and now you need to find the policy details for your Honda:**
 
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
