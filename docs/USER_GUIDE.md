@@ -1990,6 +1990,7 @@ This is not a special feature unique to peekdocs. All modern search tools are bu
 - **No language detection.** peekdocs does not detect which language a document is written in. It treats all text as a sequence of Unicode characters regardless of language.
 - **No right-to-left layout in the GUI.** Arabic and Hebrew text is searchable and appears correctly in reports (Word handles bidirectional text natively), but the GUI's text widgets may not render right-to-left text perfectly on all platforms.
 - **No transliteration or translation.** Searching for "budget" will not find the Chinese word for budget (预算). You must search for the exact characters that appear in the document.
+- **PDF reports limited to Latin-1 characters.** The PDF output format uses a built-in font (Helvetica) that can only render Western European characters. Non-Latin scripts (Chinese, Japanese, Korean, Russian, Arabic, Greek, Hindi, Thai, etc.) will appear as `?` in PDF reports. This does not affect searching — all languages are found correctly. It only affects the PDF report. Use `.docx`, `.html`, or `.txt` output for non-Latin content.
 
 ### Documentation and GUI language
 
