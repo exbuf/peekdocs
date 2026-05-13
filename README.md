@@ -987,7 +987,7 @@ If peekdocs saves you time, star the repo and share feedback — it helps others
 
 Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engineer, former IBM engineer, U.S. software patent holder, and independent developer. Developed with assistance from [Claude Code](https://claude.ai/code) by Anthropic. All architecture, review, testing, and maintenance performed by the author.
 
-**Why I built this. TL;DR:** I built it to learn. I kept it because it works. I shared it because why not.
+**Why I built this.** I had a personal need and I wanted an AI learning project. I shared it because why not.
 
 
 ## Disclaimer
