@@ -1,6 +1,6 @@
 <h1 align="center">👀 peekdocs</h1>
 
-## Document search for power users:
+## Document search for power users
 
 - Search 100+ file types in one query — Word, PDF, Excel, text, email, source code, archives, and more
 - Yellow-highlighted search results — .docx, .html, and .pdf reports, plus .csv, .json, and .txt output
