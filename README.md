@@ -784,6 +784,8 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 4. **Organize by topic, not by date** — folders like `Tax Returns`, `Medical`, `Insurance`, `Receipts` make it easier to target searches. But peekdocs also works fine with one big folder and recursive search.
 5. **Phone camera works too** — take a photo of a document and save it as JPG or PNG. peekdocs can OCR it. For best results, photograph in good lighting with the document flat and square in the frame.
 
+**Consider going paperless.** Scanned PDFs are generally accepted for tax and financial records — the IRS has accepted digital records since 1997, and banks, brokerages, and the IRS itself deliver documents as PDFs. Scan your paper receipts, tax returns, and medical records, then organize them into folders. Once digitized, peekdocs can search years of documents in seconds — no more digging through shoeboxes. (Consult your tax advisor for your specific situation.)
+
 **Tip:** Before selling or donating a computer, run the PII Scan on your entire documents folder. It finds SSNs, credit cards, and passwords you may have forgotten about.
 
 ## Frequently Asked Questions
