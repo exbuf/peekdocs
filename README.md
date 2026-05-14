@@ -155,6 +155,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
+![Matched files list](docs/images/password-matched-files.png)
+
+![Matched file View Text](docs/images/password-matched-files-specific-file.png)
+
 <a id="ss-ex2"></a>
 **Example 2: Search for "heart" on the main screen:**
 
