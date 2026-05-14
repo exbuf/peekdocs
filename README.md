@@ -159,7 +159,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Matched files list](docs/images/password-matched-files.png)
 
-**1.d Password Matched Files — viewing the selected file from the previous screen:**
+**1.d Password Matched Files (after clicking 'View Text (with line numbers)' from the previous screen):**
 
 ![Matched file View Text](docs/images/password-matched-files-specific-file.png)
 
