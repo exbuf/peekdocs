@@ -1,3 +1,6 @@
+# Test/demo document collections (personal data, not part of the project)
+SearchTheseDocuments/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -48,6 +48,13 @@ dependencies = [
     "fpdf2>=2.7,<3.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/exbuf/peekdocs"
+Documentation = "https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md"
+Repository = "https://github.com/exbuf/peekdocs"
+"Bug Tracker" = "https://github.com/exbuf/peekdocs/issues"
+Changelog = "https://github.com/exbuf/peekdocs/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 pst = ["libpff-python"]
 

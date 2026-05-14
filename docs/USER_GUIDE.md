@@ -894,11 +894,11 @@ Text file format:
 Search Term(s) ==> budget, revenue
 
 Document: report.docx (2 matches), Line: 12, Match:
-(/Users/bob/GoogleDocs)
+(/Users/yourname/Documents)
 "The **budget** for this quarter exceeded expectations"
 
 Document: summary.docx (1 match), Line: 3, Match:
-(/Users/bob/GoogleDocs)
+(/Users/yourname/Documents)
 "Revised **budget** proposal attached"
 ```
 
@@ -934,7 +934,7 @@ Files searched: 12 (4.50 MB) — Found 3 match(es).
 Elapsed time: 0.45 seconds, Cores used: 4 of 8
   report.docx: 2
   summary.docx: 1
-Results ==> /Users/bob/GoogleDocs
+Results ==> /Users/yourname/Documents
 ```
 
 ## Search Index (Optional)
