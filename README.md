@@ -155,7 +155,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
 
-**1.c Password Matched Files (click the orange Matched Files button to get here):**
+**1.c Password Matched Files (click the orange Matched Files button on the main screen to get here):**
 
 ![Matched files list](docs/images/password-matched-files.png)
 
