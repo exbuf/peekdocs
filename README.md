@@ -209,7 +209,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![PII Scan category selection](docs/images/PII_Scan.png)
 
 <a id="ss-pii-results"></a>
-**PII Scan results (the View Files buttons operate similar to 1.c and 1.d above):**
+**PII Scan results (the blue 'View Files' buttons operate similar to 1.c and 1.d above):**
 
 ![PII Scan results with severity badges](docs/images/PII_scan_results.png)
 
