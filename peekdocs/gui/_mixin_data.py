@@ -1059,7 +1059,8 @@ class DataMixin:
         help_btn.pack(side="right")
         tk.Label(
             popup, text="Single-click a file and click View Text to see the highlighted matches. "
-                        "Double-click a file to open it. Right-click a file to add it to your Bookmarks for quick access later.",
+                        "Double-click a file to open it in its default application (Word, Adobe Reader, etc.). "
+                        "Right-click a file to add it to your Bookmarks for quick access later.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=460, justify="left",
         ).pack(pady=(0, 8))
 
