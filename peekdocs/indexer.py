@@ -675,14 +675,22 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
             if evaluate_expression(expression_ast, text, _term_matches, filename=filename):
                 matches.append((file_dir, filename, line_num, text))
     else:
+        use_whole_word = config.get("use_whole_word", False)
         check = all if match_all else any
         for file_dir, filename, line_num, text in rows:
-            text_lower = text.lower()
-            if check(t.lower() in text_lower for t in search_terms):
-                if exclude_terms:
-                    if any(e.lower() in text_lower for e in exclude_terms):
-                        continue
-                matches.append((file_dir, filename, line_num, text))
+            if use_whole_word:
+                if check(bool(re.search(r'\b' + re.escape(t) + r'\b', text, re.IGNORECASE)) for t in search_terms):
+                    if exclude_terms:
+                        if any(bool(re.search(r'\b' + re.escape(e) + r'\b', text, re.IGNORECASE)) for e in exclude_terms):
+                            continue
+                    matches.append((file_dir, filename, line_num, text))
+            else:
+                text_lower = text.lower()
+                if check(t.lower() in text_lower for t in search_terms):
+                    if exclude_terms:
+                        if any(e.lower() in text_lower for e in exclude_terms):
+                            continue
+                    matches.append((file_dir, filename, line_num, text))
 
     return matches, []
 
