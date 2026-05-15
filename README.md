@@ -208,7 +208,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Mandarin search HTML report](docs/images/mandarin-results.png)
 
 <a id="ss-ex5"></a>
-**Example 5: Boolean expression search — '(password OR credential) AND NOT test' (check 'Expression' in Advanced Search Options):**
+**Example 5: Boolean expression search — '(password OR credential) AND NOT test' — (check 'Expression' in Advanced Search Options):**
 
 ![Boolean expression search](docs/images/boolean-search.png)
 
