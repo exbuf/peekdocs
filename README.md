@@ -1016,7 +1016,9 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engi
 
 ## Disclaimer
 
-peekdocs is provided as-is under the [MIT License](LICENSE), without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature is a discovery aid, not a security product — it uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns. A clean scan does not guarantee that all sensitive data has been identified. Always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
+This software is provided for educational and informational purposes only and is distributed "as is" without warranty of any kind. Users are responsible for independently verifying results and suitability for their use case.
+
+peekdocs is provided under the [MIT License](LICENSE). It is a search and reporting tool and does not provide legal, regulatory, or compliance advice. The PII Scan feature is a discovery aid, not a security product — it uses regex pattern matching and may produce false positives or miss data that does not match its built-in patterns. A clean scan does not guarantee that all sensitive data has been identified. Always review results in context before making decisions. Users are solely responsible for how they use the tool and interpret its results.
 
 ## License
 
