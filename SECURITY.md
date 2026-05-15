@@ -12,7 +12,7 @@ Please include:
 - The version of peekdocs you're using (`peekdocs -v`)
 - Your operating system and Python version
 
-I will acknowledge your report within 48 hours and work with you to understand and address the issue.
+I will try to acknowledge your report promptly and work with you to understand and address the issue.
 
 ## Security Design
 
