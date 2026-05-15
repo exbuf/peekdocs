@@ -190,6 +190,7 @@ BANNER_QUICK = (
     '\n'
     'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
     '       Navigate to the folder you want to search, then run peekdocs.\n'
+    '       By default, only the current folder is searched. Use -r to include subfolders.\n'
     '\n'
     '── Search Modes (examples — flags can be combined freely) ────────\n'
     '  peekdocs term1 term2           OR search (any term matches)\n'
@@ -240,6 +241,8 @@ BANNER_QUICK = (
     '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files\n'
+    '\n'
+    'Exit codes: 0 = matches found, 1 = no matches, 2 = error.\n'
     '\n'
     'Type peekdocs -h for full help (all flags, file types, regex patterns).\n'
 )
@@ -1489,6 +1492,14 @@ def _main_inner(argv=None):
     else:
         print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
+    if len(all_files) == 0 and not minimal:
+        print()
+        print("  Tip: No files were found to search.")
+        if file_types:
+            print(f"  Requested types: {', '.join(file_types)}")
+        if not recursive:
+            print("  Use -r to include subfolders.")
+        print("  Check that you're in the right folder.")
     if not minimal:
         if inverse:
             for f in inverse_files:

@@ -833,7 +833,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
         )
         cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
-        Tooltip(cb_ts, "Add timestamp to report filenames (e.g., peekdocs_results_20260327_143022.txt). Each search creates new files instead of overwriting — useful for keeping a history, but files accumulate over time. Delete on Close, Delete Everything Now, and Clear Files all clean up timestamped files")
+        Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Delete Everything Now to clean up")
         self.delete_reports_var = ctk.StringVar(value="off")
         cb_delete_adv = ctk.CTkCheckBox(
             output_frame, text="Delete on Close", variable=self.delete_reports_var,

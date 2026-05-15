@@ -105,6 +105,9 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             f.write(f"Hits ==> {len(matches)} (of {total_matches:,} total — report capped at {max_matches:,}; use -m to change)\n")
         else:
             f.write(f"Hits ==> {len(matches)}\n")
+        if len(matches) == 0 and not inverse:
+            f.write(f"\n*** NO MATCHES FOUND ***\n")
+            f.write(f"Searched {len(all_files)} file(s). Check your search terms, folder, and settings above.\n")
 
         # ── Search Settings ──
         on_off = lambda v: "ON" if v else "OFF"
