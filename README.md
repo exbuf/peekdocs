@@ -137,7 +137,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [Example 5: Boolean](#ss-ex5) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
+[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [Example 5: Boolean](#ss-ex5) · [5.a HTML report](#ss-ex5a) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
 
 <a id="ss-getting-started"></a>
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
@@ -211,6 +211,11 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 **Example 5: Boolean expression search — `(password OR credential) AND NOT test`:**
 
 ![Boolean expression search](docs/images/boolean-search.png)
+
+<a id="ss-ex5a"></a>
+**5.a Boolean search results — highlighted HTML report:**
+
+![Boolean search HTML report](docs/images/boolean-search-results.png)
 
 <a id="pii-scan-screenshot"></a>
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
