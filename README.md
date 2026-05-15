@@ -62,6 +62,8 @@ Type `peekdocs` with no arguments to see a quick command reference:
 ```
 $ peekdocs
 
+By default, only the current folder is searched. Use -r to include subfolders.
+
 ── Search Modes (examples — flags can be combined freely) ────────
   peekdocs term1 term2           OR search (any term matches)
   peekdocs -a term1 term2        AND search (all terms required in same line)
@@ -104,6 +106,8 @@ $ peekdocs
   peekdocs --list-files          List all peekdocs-created files
   peekdocs --clear               Delete peekdocs_results* files
   peekdocs --clear-all           Delete all peekdocs output files
+
+Exit codes: 0 = matches found, 1 = no matches, 2 = error.
 
 Type peekdocs -h for full help (all flags, file types, regex patterns).
 ```
