@@ -194,7 +194,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
 <a id="ss-ex4"></a>
-**Example 4: Search for '预算' (Mandarin Chinese for 'budget') — peekdocs searches in any language:**
+**Example 4: Search for '预算' (Chinese for 'budget') — peekdocs searches in any language:**
 
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
