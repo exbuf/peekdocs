@@ -141,7 +141,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Getting Started tab](docs/images/getting-started-tab.png)
 
 <a id="ss-ex1"></a>
-**Example 1: Search for "password" — 804 MB searched in 0.56 seconds with index (see status line):**
+**Example 1: Search for 'password' — 804 MB searched in 0.56 seconds with index (see status line):**
 
 ![Main screen with search results](docs/images/main--screen-password.png)
 
@@ -164,7 +164,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Matched file View Text](docs/images/password-matched-files-specific-file.png)
 
 <a id="ss-ex2"></a>
-**Example 2: Search for "heart" on the main screen:**
+**Example 2: Search for 'heart' on the main screen:**
 
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
@@ -184,7 +184,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
 
 <a id="ss-ex3a"></a>
-**3.a From the main screen, search on "honda" with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
+**3.a From the main screen, search on 'honda' with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
 
 ![Search for honda with context lines](docs/images/main-search-honda.png)
 
@@ -194,7 +194,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
 
 <a id="ss-ex4"></a>
-**Example 4: Search for 预算 (Mandarin Chinese for "budget") — peekdocs searches in any language:**
+**Example 4: Search for '预算' (Mandarin Chinese for 'budget') — peekdocs searches in any language:**
 
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
