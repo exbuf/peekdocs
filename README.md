@@ -824,6 +824,9 @@ Never. peekdocs only reads your files. It creates its own output files (reports,
 **Does peekdocs send my data anywhere?**
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 
+**Is peekdocs actively maintained? What if the developer stops?**
+peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 681 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
+
 **Can peekdocs search scanned PDFs (image-only, no text layer)?**
 Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
 
@@ -876,9 +879,6 @@ It scales. peekdocs uses multiprocessing (separate OS processes across multiple 
 
 **Can peekdocs search password-protected or encrypted files?**
 No. Password-protected PDFs, Word/Excel/PowerPoint files, and encrypted archives (.zip, .7z, .rar) cannot be read without the password. peekdocs detects them and reports a clear message ("appears to be password-protected") instead of a confusing error. The Protected Files tool (Tools menu) lists all encrypted files in a folder so you know what's locked.
-
-**Is peekdocs actively maintained? What if the developer stops?**
-peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 681 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
 
 ## Glossary
 
