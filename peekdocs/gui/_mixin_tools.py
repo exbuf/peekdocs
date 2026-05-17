@@ -5950,10 +5950,13 @@ class ToolsMixin:
         # No grab_set() — user should be able to follow along in the Suites panel
 
         txt_frame = tk.Frame(help_win)
-        txt_frame.pack(fill="both", expand=True)
+        txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        scrollbar = tk.Scrollbar(txt_frame)
+        scrollbar.pack(side="right", fill="y")
         txt = tk.Text(txt_frame, wrap="word", font=("TkDefaultFont", 12),
-                      padx=15, pady=10, spacing3=4)
-        txt.pack(fill="both", expand=True)
+                      padx=15, pady=10, spacing3=4, yscrollcommand=scrollbar.set)
+        txt.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=txt.yview)
 
         def b(text):
             txt.insert("end", text + "\n", "bold")
@@ -6024,6 +6027,14 @@ class ToolsMixin:
         n("suites and saved searches.")
 
         txt.configure(state="disabled")
+
+        close_frame = tk.Frame(help_win)
+        close_frame.pack(pady=(5, 10))
+        ctk.CTkButton(
+            close_frame, text="Close", width=80,
+            font=ctk.CTkFont(size=12),
+            command=help_win.destroy,
+        ).pack()
 
         ctk.CTkButton(
             help_win, text="Close", width=80,
