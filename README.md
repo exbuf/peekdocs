@@ -173,7 +173,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Main screen with heart search results](docs/images/main--screen-heart.png)
 
 <a id="ss-ex2a"></a>
-**2.a Resulting highlighted HTML report — every match highlighted:**
+**2.a Resulting highlighted HTML report (opens privately in browser) — every match highlighted:**
 
 ![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
 
@@ -203,7 +203,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Search for Chinese term](docs/images/mandarin-search.png)
 
 <a id="ss-ex4a"></a>
-**4.a Resulting highlighted HTML report:**
+**4.a Resulting highlighted HTML report (opens privately in browser):**
 
 ![Mandarin search HTML report](docs/images/mandarin-results.png)
 
@@ -213,7 +213,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 ![Boolean expression search](docs/images/boolean-search.png)
 
 <a id="ss-ex5a"></a>
-**5.a Boolean search results — highlighted HTML report:**
+**5.a Boolean search results — highlighted HTML report (opens privately in browser):**
 
 ![Boolean search HTML report](docs/images/boolean-search-results.png)
 
