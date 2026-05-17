@@ -5944,7 +5944,7 @@ class ToolsMixin:
         import tkinter as tk
         help_win, _dark = self._themed_toplevel(parent)
         help_win.title("Search Suites — Help")
-        help_win.geometry("640x520")
+        help_win.geometry("640x600")
         help_win.resizable(True, True)
         help_win.transient(parent)
         # No grab_set() — user should be able to follow along in the Suites panel
