@@ -957,6 +957,14 @@ class SearchMixin:
         safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
         if os.path.isdir(safe_dir):
             folders_to_clean.add(safe_dir)
+        # Also check the last-used folder from saved config
+        try:
+            from peekdocs.cli import _load_config
+            _cfg_folder = _load_config().get("folder", "")
+            if _cfg_folder and os.path.isdir(_cfg_folder):
+                folders_to_clean.add(_cfg_folder)
+        except Exception:
+            pass
 
         # Delete result files and search indexes from all folders
         for folder in folders_to_clean:
@@ -1000,6 +1008,9 @@ class SearchMixin:
             self._recent_searches = []
         except Exception:
             pass
+
+        # Uncheck the index checkbox since the index was deleted
+        self.index_search_var.set("off")
 
         # Clear search terms and folder fields
         self.search_entry.delete(0, "end")
