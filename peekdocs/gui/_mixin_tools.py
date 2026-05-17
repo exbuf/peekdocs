@@ -5365,10 +5365,16 @@ class ToolsMixin:
             search_listbox.delete(0, "end")
             _refresh_suite_list()
 
-        ctk.CTkButton(left_btns, text="New", width=60, font=ctk.CTkFont(size=12), command=_new_suite).pack(side="left", padx=2)
-        ctk.CTkButton(left_btns, text="Rename", width=70, font=ctk.CTkFont(size=12), command=_rename_suite_btn).pack(side="left", padx=2)
-        ctk.CTkButton(left_btns, text="Delete", width=60, font=ctk.CTkFont(size=12),
-                       fg_color="#CC3333", hover_color="#AA2222", command=_delete_suite).pack(side="left", padx=2)
+        _btn_new = ctk.CTkButton(left_btns, text="New", width=60, font=ctk.CTkFont(size=12), command=_new_suite)
+        _btn_new.pack(side="left", padx=2)
+        Tooltip(_btn_new, "Create a new named suite")
+        _btn_rename = ctk.CTkButton(left_btns, text="Rename", width=70, font=ctk.CTkFont(size=12), command=_rename_suite_btn)
+        _btn_rename.pack(side="left", padx=2)
+        Tooltip(_btn_rename, "Rename the selected suite")
+        _btn_delete = ctk.CTkButton(left_btns, text="Delete", width=60, font=ctk.CTkFont(size=12),
+                       fg_color="#CC3333", hover_color="#AA2222", command=_delete_suite)
+        _btn_delete.pack(side="left", padx=2)
+        Tooltip(_btn_delete, "Delete the selected suite (does not delete the saved searches)")
 
         # ── Right panel buttons ──
         def _add_search():
@@ -5459,10 +5465,18 @@ class ToolsMixin:
             _refresh_search_list()
             search_listbox.selection_set(idx + 1)
 
-        ctk.CTkButton(right_btns, text="Add Search", width=90, font=ctk.CTkFont(size=12), command=_add_search).pack(side="left", padx=2)
-        ctk.CTkButton(right_btns, text="Remove", width=70, font=ctk.CTkFont(size=12), command=_remove_search).pack(side="left", padx=2)
-        ctk.CTkButton(right_btns, text="\u25b2 Up", width=60, font=ctk.CTkFont(size=12), command=_move_up).pack(side="left", padx=2)
-        ctk.CTkButton(right_btns, text="\u25bc Down", width=70, font=ctk.CTkFont(size=12), command=_move_down).pack(side="left", padx=2)
+        _btn_add = ctk.CTkButton(right_btns, text="Add Search", width=90, font=ctk.CTkFont(size=12), command=_add_search)
+        _btn_add.pack(side="left", padx=2)
+        Tooltip(_btn_add, "Add a saved search to this suite — save searches first from the main screen")
+        _btn_remove = ctk.CTkButton(right_btns, text="Remove", width=70, font=ctk.CTkFont(size=12), command=_remove_search)
+        _btn_remove.pack(side="left", padx=2)
+        Tooltip(_btn_remove, "Remove the selected search from this suite")
+        _btn_up = ctk.CTkButton(right_btns, text="\u25b2 Up", width=60, font=ctk.CTkFont(size=12), command=_move_up)
+        _btn_up.pack(side="left", padx=2)
+        Tooltip(_btn_up, "Move the selected search up in the run order")
+        _btn_down = ctk.CTkButton(right_btns, text="\u25bc Down", width=70, font=ctk.CTkFont(size=12), command=_move_down)
+        _btn_down.pack(side="left", padx=2)
+        Tooltip(_btn_down, "Move the selected search down in the run order")
 
         # ── Output formats ──
         output_frame = tk.Frame(win)
@@ -5510,12 +5524,14 @@ class ToolsMixin:
             win.destroy()
             self._run_suite_searches(suite_name, searches, folder, suite_formats=suite_formats)
 
-        ctk.CTkButton(
+        _btn_run = ctk.CTkButton(
             bottom, text="Run Suite", width=120,
             font=ctk.CTkFont(size=14, weight="bold"),
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
             command=_run_suite,
-        ).pack()
+        )
+        _btn_run.pack()
+        Tooltip(_btn_run, "Run all searches in this suite — results are combined into a single highlighted report")
 
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 10))
