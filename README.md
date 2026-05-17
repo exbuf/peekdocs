@@ -812,6 +812,9 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 
 ## Frequently Asked Questions
 
+**How can I verify peekdocs is safe before installing?**
+Several ways: (1) **Read the source code** — it's fully open on [GitHub](https://github.com/exbuf/peekdocs). All Python files are readable; `grep -r "http\|socket\|urllib\|requests" peekdocs/` confirms there are no network calls. (2) **Check dependencies** — `pip download peekdocs` downloads without installing so you can inspect the code; all 17 dependencies are well-known PyPI packages with thousands of users. (3) **Build from source** — clone the repo, read the code, `pip install -e .` — you know exactly what you're running. (4) **Scan the standalone exe** — upload it to [VirusTotal](https://www.virustotal.com), which scans with 70+ antivirus engines (note: PyInstaller executables often trigger 1-2 false positives because the bundling technique resembles malware packers — this is normal for legitimate open-source tools). (5) **Run in a sandbox** — Windows Sandbox, a VM, or a Docker container. peekdocs has no network calls, no telemetry, and no background processes.
+
 **Can peekdocs search scanned PDFs (image-only, no text layer)?**
 Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
 
@@ -844,9 +847,6 @@ The PDF output uses a built-in font (Helvetica) that only supports Latin-1 chara
 
 **When do I need quotes around search terms?**
 Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases (`peekdocs "budget report"`), regex patterns (`peekdocs -x "\d{3}-\d{4}"`), Boolean expressions (`peekdocs -e "(budget OR revenue) AND NOT draft"`), and anything containing special characters (`$`, `*`, `(`, `)`, `|`, `=`, `<`, `>`). The shell interprets these characters before peekdocs sees them, so without quotes your search may not work as expected. When in doubt, use quotes — they never hurt.
-
-**How can I verify peekdocs is safe before installing?**
-Several ways: (1) **Read the source code** — it's fully open on [GitHub](https://github.com/exbuf/peekdocs). All Python files are readable; `grep -r "http\|socket\|urllib\|requests" peekdocs/` confirms there are no network calls. (2) **Check dependencies** — `pip download peekdocs` downloads without installing so you can inspect the code; all 17 dependencies are well-known PyPI packages with thousands of users. (3) **Build from source** — clone the repo, read the code, `pip install -e .` — you know exactly what you're running. (4) **Scan the standalone exe** — upload it to [VirusTotal](https://www.virustotal.com), which scans with 70+ antivirus engines (note: PyInstaller executables often trigger 1-2 false positives because the bundling technique resembles malware packers — this is normal for legitimate open-source tools). (5) **Run in a sandbox** — Windows Sandbox, a VM, or a Docker container. peekdocs has no network calls, no telemetry, and no background processes.
 
 **How is peekdocs different from grep?**
 grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
