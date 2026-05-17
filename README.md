@@ -818,14 +818,14 @@ Several ways: (1) **Read the source code** — it's fully open on [GitHub](https
 **How does peekdocs protect my privacy?**
 Multiple layers: PII Scan results are shown on screen only — no file is ever written to disk. Search reports are blocked from opening in cloud-based apps (Google Docs, Apple Pages) that could upload your data. If your search folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud, Dropbox), peekdocs automatically redirects report output to a safe local folder. HTML reports open locally in your browser — nothing goes online. **Delete on Close** automatically removes all result files when you close the app. **Clear History on Close** erases your search history. **Delete Everything Now** instantly removes all peekdocs output files, search history, and the preview in one click. The search index can be deleted at any time. See [For IT and Security Teams](#for-it-and-security-teams) for the complete data architecture.
 
-**Can peekdocs search scanned PDFs (image-only, no text layer)?**
-Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
-
 **Does peekdocs modify, move, or delete my files?**
 Never. peekdocs only reads your files. It creates its own output files (reports, indexes, settings) but never touches yours.
 
 **Does peekdocs send my data anywhere?**
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
+
+**Can peekdocs search scanned PDFs (image-only, no text layer)?**
+Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
 
 **Do I need Microsoft Word to view the highlighted report?**
 No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser — every computer has one, and the file is private on your computer, not on the internet. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
