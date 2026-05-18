@@ -228,6 +228,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Regex dollar amount search](docs/images/regex-dollar-search.png)
 
+**6.a Advanced Search Options showing 'Regex' checked:**
+
+![Regex Advanced Search Options](docs/images/regex-dollar-search-advanced.png)
+
 <a id="pii-scan-screenshot"></a>
 **PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
 
