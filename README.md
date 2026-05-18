@@ -814,7 +814,7 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 
 **How can I verify peekdocs is safe?**
 
-- **Why this matters:** Software that phones home can transmit your search terms, filenames, file contents, or usage patterns to a remote server — often without your knowledge or consent. For a tool that handles sensitive documents and PII scanning, this is especially dangerous.
+- **Why this matters:** "Safe" means more than just no viruses. For a tool that handles sensitive documents and PII scanning, you should verify: Does it send data anywhere (telemetry)? Does it modify or delete my files? Does it install background services or change system settings? Does it require admin/root privileges? Does it persist after closing? peekdocs does none of these — it's read-only, fully offline, installs no services, requires no elevated privileges, and runs only when launched. Below is how to verify the telemetry claim yourself. For the other concerns, see the FAQ entries on [file safety](#faq-file-safety), [data sending](#faq-data-sending), [permissions](#faq-permissions), and [dependencies](#faq-dependencies). Software that phones home can transmit your search terms, filenames, file contents, or usage patterns to a remote server — often without your knowledge or consent.
 - **General advice for checking any open-source software for telemetry:**
   - `grep -r "http\|socket\|urllib\|requests" <source_folder>/` checks for common networking libraries — if it returns nothing, no obvious network calls are present. This is a quick first-pass check, not a full security audit — it won't detect dynamic imports, subprocess-based network calls, or network activity in third-party dependencies.
   - For deeper assurance, read the source code directly or run the software in a sandbox with network monitoring (e.g., Windows Sandbox with [Wireshark](https://www.wireshark.org), a VirtualBox VM with tcpdump, or Docker with `--network=none` to block all network access).
@@ -830,9 +830,11 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 **How does peekdocs protect my privacy?**
 Multiple layers: PII Scan results are shown on screen only — no file is ever written to disk. Search reports are blocked from opening in cloud-based apps (Google Docs, Apple Pages) that could upload your data. If your search folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud, Dropbox), peekdocs automatically redirects report output to a safe local folder. HTML reports open locally in your browser — nothing goes online. **Delete on Close** automatically removes all result files when you close the app. **Clear History on Close** erases your search history. **Delete Everything Now** instantly removes all peekdocs output files, search history, and the preview in one click. The search index can be deleted at any time. See [For IT and Security Teams](#for-it-and-security-teams) for the complete data architecture.
 
+<a id="faq-file-safety"></a>
 **Does peekdocs modify, move, or delete my files?**
 Never. peekdocs only reads your files. It creates its own output files (reports, indexes, settings) but never touches yours.
 
+<a id="faq-data-sending"></a>
 **Does peekdocs send my data anywhere?**
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 
@@ -866,12 +868,14 @@ Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases 
 **How is peekdocs different from grep?**
 grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
 
+<a id="faq-dependencies"></a>
 **What dependencies does peekdocs install? Can I audit them?**
 17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known, open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](docs/USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
 
 **How do I uninstall peekdocs completely?**
 `pipx uninstall peekdocs` or `pip uninstall peekdocs` removes the code. Your settings (`~/.peekdocsrc`), search history (`~/.peekdocs_history.json`), and bookmarks (`~/.peekdocs_bookmarks.json`) remain in your home directory — delete them manually for a clean slate. Saved searches (`.peekdocs_collection.json`) and indexes (`.peekdocs.db`) are in each folder you searched — delete those too if desired. peekdocs never writes to the registry, system directories, or startup folders.
 
+<a id="faq-permissions"></a>
 **Does peekdocs need admin or root permissions?**
 No. It runs entirely with your normal user permissions. It can only read files you already have access to. It does not elevate privileges or require sudo/administrator.
 
