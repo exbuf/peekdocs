@@ -812,7 +812,7 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 
 ## Frequently Asked Questions
 
-**How can I verify peekdocs is safe before installing?**
+**How can I verify peekdocs is safe?**
 
 - **Why this matters:** Software that phones home can transmit your search terms, filenames, file contents, or usage patterns to a remote server — often without your knowledge or consent. For a tool that handles sensitive documents and PII scanning, this is especially dangerous.
 - **General advice for checking any open-source software for telemetry:**
