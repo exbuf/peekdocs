@@ -1,5 +1,11 @@
 <h1 align="center">👀 peekdocs</h1>
 
+<p align="center">
+  <a href="https://github.com/exbuf/peekdocs/actions/workflows/test.yml"><img src="https://github.com/exbuf/peekdocs/actions/workflows/test.yml/badge.svg" alt="Tests"></a>&nbsp;&nbsp;
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>&nbsp;&nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
+</p>
+
 ## Document search for power users
 
 - Search 100+ file types in one query — Word, PDF, Excel, text, email, source code, archives, and more
