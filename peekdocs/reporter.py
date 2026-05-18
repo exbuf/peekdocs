@@ -915,21 +915,24 @@ def _pdf_safe(text):
     return text.encode('latin-1', errors='replace').decode('latin-1')
 
 
-def _pdf_insert_highlighted(pdf, text, search_terms):
+def _pdf_insert_highlighted(pdf, text, search_terms, highlight_re=None):
     """Insert text with search terms highlighted in orange background."""
     import re as _re
-    if not search_terms:
+    if not search_terms and not highlight_re:
         pdf.multi_cell(0, 5, text)
         return
-    # Build pattern from search terms
-    patterns = []
-    for term in search_terms:
-        patterns.append(_re.escape(term))
-    try:
-        pattern = _re.compile("|".join(patterns), _re.IGNORECASE)
-    except _re.error:
-        pdf.multi_cell(0, 5, text)
-        return
+    # Use pre-built regex if available, otherwise build from literal terms
+    if highlight_re:
+        pattern = highlight_re
+    else:
+        patterns = []
+        for term in search_terms:
+            patterns.append(_re.escape(term))
+        try:
+            pattern = _re.compile("|".join(patterns), _re.IGNORECASE)
+        except _re.error:
+            pdf.multi_cell(0, 5, text)
+            return
     parts = pattern.split(text)
     found = pattern.findall(text)
     if not found:
@@ -953,9 +956,42 @@ def _pdf_insert_highlighted(pdf, text, search_terms):
 
 
 def write_pdf_report(output_path, matches, search_terms=None,
-                     report_mode="ANY", inverse_files=None):
+                     report_mode="ANY", inverse_files=None,
+                     use_regex=False, use_wildcard=False,
+                     use_whole_word=False, use_fuzzy=False,
+                     expression=None):
     """Write peekdocs_results.pdf with highlighted matches."""
     from fpdf import FPDF
+    import re as _re_pdf
+
+    # Build highlight regex — same logic as DOCX/HTML reporters
+    _pdf_highlight_re = None
+    if not use_fuzzy:
+        _h_patterns = []
+        if expression:
+            try:
+                from peekdocs.expr_parser import parse_expression, extract_positive_terms
+                _h_terms = extract_positive_terms(parse_expression(expression))
+            except Exception:
+                _h_terms = search_terms or []
+        else:
+            _h_terms = search_terms or []
+        for _t in _h_terms:
+            if use_wildcard:
+                _h_patterns.append(_wildcard_to_regex(_t))
+            elif use_regex:
+                _h_patterns.append(_t)
+            elif use_whole_word:
+                _pfx = r'\b' if _re_pdf.match(r'\w', _t) else ''
+                _sfx = r'\b' if _re_pdf.search(r'\w$', _t) else ''
+                _h_patterns.append(_pfx + _re_pdf.escape(_t) + _sfx)
+            else:
+                _h_patterns.append(_re_pdf.escape(_t))
+        if _h_patterns:
+            try:
+                _pdf_highlight_re = _re_pdf.compile("|".join(_h_patterns), _re_pdf.IGNORECASE)
+            except _re_pdf.error:
+                _pdf_highlight_re = None
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -1013,7 +1049,7 @@ def write_pdf_report(output_path, matches, search_terms=None,
             clean_text = _pdf_safe(_strip_highlights(text))
             if len(clean_text) > 200:
                 clean_text = clean_text[:197] + "..."
-            _pdf_insert_highlighted(pdf, clean_text, [_pdf_safe(t) for t in (search_terms or [])])
+            _pdf_insert_highlighted(pdf, clean_text, [_pdf_safe(t) for t in (search_terms or [])], highlight_re=_pdf_highlight_re)
             pdf.ln(1)
 
     pdf.output(output_path)
