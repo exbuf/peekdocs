@@ -1021,7 +1021,10 @@ def write_pdf_report(output_path, matches, search_terms=None,
 
 
 def write_html_report(output_path, matches, search_terms=None,
-                      report_mode="ANY", inverse_files=None):
+                      report_mode="ANY", inverse_files=None,
+                      use_regex=False, use_wildcard=False,
+                      use_whole_word=False, use_fuzzy=False,
+                      expression=None):
     """Write peekdocs_results.html with highlighted matches."""
     import html as html_mod
     import re as _re_html
@@ -1031,6 +1034,36 @@ def write_html_report(output_path, matches, search_terms=None,
 
     from peekdocs.cli import VERSION as _ver_h
     terms = search_terms or []
+
+    # Build highlight regex — same logic as DOCX reporter
+    _highlight_re = None
+    if not use_fuzzy:
+        _h_patterns = []
+        if expression:
+            try:
+                from peekdocs.expr_parser import parse_expression, extract_positive_terms
+                _h_terms = extract_positive_terms(parse_expression(expression))
+            except Exception:
+                _h_terms = terms
+        else:
+            _h_terms = terms
+        for _t in _h_terms:
+            if use_wildcard:
+                _h_patterns.append(_wildcard_to_regex(_t))
+            elif use_regex:
+                _h_patterns.append(_t)
+            elif use_whole_word:
+                _pfx = r'\b' if _re_html.match(r'\w', _t) else ''
+                _sfx = r'\b' if _re_html.search(r'\w$', _t) else ''
+                _h_patterns.append(_pfx + _re_html.escape(_t) + _sfx)
+            else:
+                _h_patterns.append(_re_html.escape(_t))
+        if _h_patterns:
+            try:
+                _highlight_re = _re_html.compile("|".join(_h_patterns), _re_html.IGNORECASE)
+            except _re_html.error:
+                _highlight_re = None
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("<!DOCTYPE html>\n<html lang='en'>\n<head>\n")
         f.write("<meta charset='UTF-8'>\n")
@@ -1077,14 +1110,19 @@ def write_html_report(output_path, matches, search_terms=None,
                     prev_file = current_file
 
                 clean = html_mod.escape(_strip_highlights(text))
-                # Highlight search terms in the HTML output
-                for term in terms:
-                    escaped_term = _re_html.escape(html_mod.escape(term))
-                    clean = _re_html.sub(
-                        f"(?i)({escaped_term})",
-                        lambda m: f"<mark>{m.group()}</mark>",
-                        clean,
-                    )
+                # Highlight matches in the HTML output
+                if _highlight_re:
+                    # Work on the HTML-escaped text: find matches, wrap in <mark>
+                    # We must match against the raw text and map positions to escaped text
+                    raw_text = _strip_highlights(text)
+                    parts = []
+                    last_end = 0
+                    for m in _highlight_re.finditer(raw_text):
+                        parts.append(html_mod.escape(raw_text[last_end:m.start()]))
+                        parts.append(f"<mark>{html_mod.escape(m.group())}</mark>")
+                        last_end = m.end()
+                    parts.append(html_mod.escape(raw_text[last_end:]))
+                    clean = "".join(parts)
                 f.write(f"<div class='match-row'>"
                         f"<span class='line-num'>{line_num}:</span>{clean}</div>\n")
 

@@ -1473,6 +1473,9 @@ def _main_inner(argv=None):
             write_html_report(
                 html_output_path, matches, search_terms=search_terms,
                 report_mode=report_mode, inverse_files=inverse_files,
+                use_regex=use_regex, use_wildcard=use_wildcard,
+                use_whole_word=use_whole_word, use_fuzzy=use_fuzzy,
+                expression=expression,
             )
         except Exception as html_err:
             print(f"Warning: HTML report could not be generated ({html_err})")
