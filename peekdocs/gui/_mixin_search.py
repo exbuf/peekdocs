@@ -787,6 +787,9 @@ class SearchMixin:
             if is_expression:
                 from peekdocs.expr_parser import parse_expression, extract_positive_terms
                 terms = extract_positive_terms(parse_expression(search_text))
+            elif use_regex:
+                # Regex mode: use the raw search text as-is (shlex strips backslashes)
+                terms = [search_text]
             else:
                 # Use shlex.split to respect quoted phrases (e.g., "insecure core")
                 import shlex as _shlex_hl
