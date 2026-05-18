@@ -817,7 +817,7 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 - **Why this matters:** Software that phones home can transmit your search terms, filenames, file contents, or usage patterns to a remote server — often without your knowledge or consent. For a tool that handles sensitive documents and PII scanning, this is especially dangerous.
 - **General advice for checking any open-source software for telemetry:**
   - `grep -r "http\|socket\|urllib\|requests" <source_folder>/` checks for common networking libraries — if it returns nothing, no obvious network calls are present. This is a quick first-pass check, not a full security audit — it won't detect dynamic imports, subprocess-based network calls, or network activity in third-party dependencies.
-  - For deeper assurance, read the source code directly or run the software in a sandbox with network monitoring.
+  - For deeper assurance, read the source code directly or run the software in a sandbox with network monitoring (e.g., Windows Sandbox with Wireshark, a VirtualBox VM with tcpdump, or Docker with `--network=none` to block all network access).
   - Another quick check: turn off your Wi-Fi and verify the software works normally — this confirms it doesn't require a network connection, though it won't detect software that silently retries when connectivity returns.
   - For closed-source software where you can't inspect the code, use network monitoring tools like Wireshark or Little Snitch, or run the software in a sandbox with a firewall to observe whether it makes outbound connections. These tools work for open-source software too.
 - **For peekdocs specifically:**
