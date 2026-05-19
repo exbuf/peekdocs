@@ -2462,7 +2462,7 @@ class ToolsMixin:
         import tkinter as tk
         from peekdocs.sensitive_patterns import SEVERITY_COLORS, SEVERITY_ORDER
         popup, _dark = self._themed_toplevel()
-        popup.title("Sensitive Data Scan Results")
+        popup.title("PII Scan Results")
         popup.resizable(True, True)
         popup.geometry("800x520")
         self.update_idletasks()
@@ -2484,7 +2484,7 @@ class ToolsMixin:
         header_frame = tk.Frame(popup)
         header_frame.pack(fill="x", padx=15, pady=(10, 2))
         tk.Label(
-            header_frame, text="Sensitive Data Scan Results",
+            header_frame, text="PII Scan Results",
             font=("TkDefaultFont", 14, "bold"),
         ).pack(side="left", expand=True)
         ctk.CTkButton(
@@ -2737,7 +2737,7 @@ class ToolsMixin:
         b("never concentrated into a file that could leak. You can")
         b("always re-run the scan to see the results again.")
         blank()
-        b("As soon as you close the Sensitive Data Scan Results window, the scan data is")
+        b("As soon as you close the PII Scan Results window, the scan data is")
         b("permanently gone \u2014 nothing is saved, cached, or")
         b("recoverable. This is intentional.")
         blank()
@@ -2982,7 +2982,7 @@ class ToolsMixin:
         b("(SSNs, credit card numbers, passwords) into a single")
         b("file that could be exposed.")
         blank()
-        b("As soon as you close the Sensitive Data Scan Results window, the scan data is")
+        b("As soon as you close the PII Scan Results window, the scan data is")
         b("permanently gone \u2014 nothing is saved, cached, or")
         b("recoverable. This is intentional. You can always re-run")
         b("the PII Scan to see the results again.")
