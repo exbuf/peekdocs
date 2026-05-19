@@ -177,7 +177,7 @@ class BuildMixin:
         b("Click the ? button inside Advanced Search Options for help.")
         blank()
         s("Scan for sensitive data")
-        b("Click the red Sensitive Data Scan button to check your")
+        b("Click the red PII Scan button to check your")
         b("documents for SSNs, credit cards, tax IDs, emails, phone")
         b("numbers, passwords, and more \u2014 one click, no setup needed.")
         blank()
