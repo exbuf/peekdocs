@@ -12,10 +12,10 @@
 - Yellow-highlighted search results — .docx, .html, and .pdf reports, plus .csv, .json, and .txt output
 - Proximity searches — find terms within N words or N lines of each other
 - AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
-- Search Wizard — 21 pre-built search types, no syntax to memorize
-- Search Suites — group saved searches and run them all with one click
 - OCR — search scanned PDFs and images that most tools can't. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
 - PII Scan — find SSNs, credit cards, and passwords hiding in your files
+- Search Wizard — 21 pre-built search types, no syntax to memorize
+- Search Suites — group saved searches and run them all with one click
 - Read-only — peekdocs never modifies, moves, or deletes your files
 
 &nbsp;
