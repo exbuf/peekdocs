@@ -1544,10 +1544,17 @@ class DataMixin:
         win.geometry("900x600")
         win.resizable(True, True)
 
+        _tv_header = tk.Frame(win)
+        _tv_header.pack(fill="x", padx=15, pady=(10, 2))
         tk.Label(
-            win, text=f"{filename}  —  {len(lines)} line(s) extracted",
+            _tv_header, text=f"{filename}  —  {len(lines)} line(s) extracted",
             font=("TkDefaultFont", 12, "bold"),
-        ).pack(pady=(10, 2))
+        ).pack(side="left", expand=True)
+        ctk.CTkButton(
+            _tv_header, text="?", width=30,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=lambda: self._show_text_view_help(win),
+        ).pack(side="right")
         if highlight_label:
             tk.Label(
                 win, text=f"PII Scan category: {highlight_label}",
@@ -1687,6 +1694,102 @@ class DataMixin:
         ).pack(pady=(5, 10))
         self._apply_dark_theme(win)
 
+
+    def _show_text_view_help(self, parent):
+        """Show help for the Text View popup."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Text View — Help")
+        help_win.geometry("650x520")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+
+        txt_frame = tk.Frame(help_win)
+        txt_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        scrollbar = tk.Scrollbar(txt_frame)
+        scrollbar.pack(side="right", fill="y")
+        txt = tk.Text(
+            txt_frame, wrap="word", font=("TkDefaultFont", 12),
+            yscrollcommand=scrollbar.set, padx=10, pady=10,
+            borderwidth=1, relief="sunken",
+        )
+        txt.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=txt.yview)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 13, "bold"), spacing1=8, spacing3=4)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), lmargin1=10, lmargin2=10, spacing3=2)
+        txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"), spacing1=5, spacing3=8)
+        txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20, lmargin2=20,
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
+        txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11, "bold"), lmargin1=20,
+                          lmargin2=20, foreground="red")
+        txt.tag_configure("heading_red", font=("TkDefaultFont", 13, "bold"),
+                          spacing1=8, spacing3=4, foreground="red")
+
+        def h(s): txt.insert("end", s + "\n", "heading")
+        def h_red(s): txt.insert("end", s + "\n", "heading_red")
+        def b(s): txt.insert("end", s + "\n", "body")
+        def blank(): txt.insert("end", "\n")
+
+        txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+        for section in [
+            "What This Window Shows",
+            "Line Numbers",
+            "Highlighting",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item")
+        for section in [
+            "Disclaimer",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item_red")
+        txt.insert("end", "\n")
+
+        h("WHAT THIS WINDOW SHOWS")
+        b("The full extracted text of the selected file, with line")
+        b("numbers down the left side and every match highlighted")
+        b("in yellow. This lets you see exactly where your search")
+        b("terms (or PII patterns) appear in the file, in context,")
+        b("without opening the original document.")
+        blank()
+
+        h("LINE NUMBERS")
+        b("Line numbers refer to the extracted text, not the original")
+        b("page or paragraph number in the source document. For plain")
+        b("text files, these match. For PDFs, Word docs, and other")
+        b("formats, peekdocs extracts the text content and numbers the")
+        b("resulting lines \u2014 so line 47 here will match line 47 in")
+        b("the Results Preview, but may not match a page number in")
+        b("the original file.")
+        blank()
+
+        h("HIGHLIGHTING")
+        b("Yellow highlighting shows where your search terms (or PII")
+        b("patterns) matched in the text. For regular searches, the")
+        b("highlighting uses the terms from the search bar. For PII")
+        b("Scan, it uses the regex pattern for the selected category.")
+        blank()
+
+        h_red("DISCLAIMER")
+        b("Highlighted matches are pattern-based and may include false")
+        b("positives or missed matches. PII Scan is a discovery aid,")
+        b("not a security or compliance tool. A \u201cclean\u201d scan does not")
+        b("guarantee that all sensitive or personal data has been")
+        b("identified. This tool is not designed or intended for")
+        b("high-assurance or safety-critical use cases. Users remain")
+        b("solely responsible for how they use and interpret its output.")
+        blank()
+
+        txt.configure(state="disabled")
+
+        close_frame = tk.Frame(help_win)
+        close_frame.pack(pady=(5, 10))
+        ctk.CTkButton(
+            close_frame, text="Close", width=80,
+            font=ctk.CTkFont(size=12),
+            command=help_win.destroy,
+        ).pack()
+
+        self._apply_dark_theme(help_win)
 
 
     def _add_folder_bar(self, parent, message="Your search will run against this folder.", initial_folder=None, recursive_var=None):
