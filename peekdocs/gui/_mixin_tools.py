@@ -2662,6 +2662,10 @@ class ToolsMixin:
             "False Positives",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
+        for section in [
+            "Disclaimer",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item_red")
         txt.insert("end", "\n")
 
         b("This window shows the results of the PII Scan \u2014 each")
@@ -2747,6 +2751,17 @@ class ToolsMixin:
         b("Always review findings in context before taking action.")
         b("Click View Files to see the matched text with surrounding")
         b("context so you can quickly judge whether a finding is real.")
+        blank()
+
+        h_red("DISCLAIMER")
+        b("PII Scan is a discovery aid, not a security or compliance tool.")
+        b("It uses regex-based pattern matching to identify likely sensitive")
+        b("data. Results are heuristic and may include false positives or")
+        b("miss data that does not match the built-in patterns. A \u201cclean\u201d")
+        b("scan does not guarantee that all sensitive or personal data has")
+        b("been identified. This tool is not designed or intended for")
+        b("high-assurance or safety-critical use cases. Users remain solely")
+        b("responsible for how they use and interpret its output.")
         blank()
 
         txt.configure(state="disabled")
