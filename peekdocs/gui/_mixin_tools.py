@@ -2925,6 +2925,13 @@ class ToolsMixin:
         txt.tag_configure("heading_red", font=("TkDefaultFont", 13, "bold"),
                           spacing1=8, spacing3=4, foreground="red")
 
+        txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=5, spacing3=8)
+        txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
+                          lmargin2=20, foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
+        txt.tag_configure("toc_item_red", font=("TkDefaultFont", 11, "bold"), lmargin1=20,
+                          lmargin2=20, foreground="red")
+
         def h(text):
             txt.insert("end", text + "\n", "heading")
         def h_red(text):
@@ -2933,6 +2940,20 @@ class ToolsMixin:
             txt.insert("end", text + "\n", "body")
         def blank():
             txt.insert("end", "\n")
+
+        txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+        for section in [
+            "View Files",
+            "What You Can Do",
+            "No Files Are Written",
+            "False Positives",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item")
+        for section in [
+            "Disclaimer",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item_red")
+        txt.insert("end", "\n")
 
         h("VIEW FILES")
         b("This popup lists every file where the PII Scan found")
@@ -2973,6 +2994,17 @@ class ToolsMixin:
         b("number can match the credit card pattern, or the word")
         b("'password' can appear in a help document. Use View Text")
         b("to review each finding in context before taking action.")
+        blank()
+
+        h_red("DISCLAIMER")
+        b("PII Scan is a discovery aid, not a security or compliance tool.")
+        b("It uses regex-based pattern matching to identify likely sensitive")
+        b("data. Results are heuristic and may include false positives or")
+        b("miss data that does not match the built-in patterns. A \u201cclean\u201d")
+        b("scan does not guarantee that all sensitive or personal data has")
+        b("been identified. This tool is not designed or intended for")
+        b("high-assurance or safety-critical use cases. Users remain solely")
+        b("responsible for how they use and interpret its output.")
         blank()
 
         txt.configure(state="disabled")
