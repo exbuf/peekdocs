@@ -13,7 +13,7 @@
 - Proximity searches — find terms within N words or N lines of each other
 - AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
 - OCR — search scanned PDFs and images that most tools can't. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
-- PII Scan — scan for possible SSNs, credit cards, and passwords hiding in your files
+- PII Scan — identify possible patterns such as SSNs, credit cards, and passwords
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
 - Read-only — peekdocs never modifies, moves, or deletes your files
