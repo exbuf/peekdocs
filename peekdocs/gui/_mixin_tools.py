@@ -1412,8 +1412,8 @@ class ToolsMixin:
         win.bind("<FocusIn>", lambda e: win.lift())
 
         tk.Label(
-            win, text="Regex-based pattern detection. May produce false positives or miss matches.",
-            font=("TkDefaultFont", 10), fg="gray",
+            win, text="PII Scan uses regex-based pattern matching to identify likely sensitive data (e.g., emails, phone numbers, IDs). Results are heuristic and may include false positives or missed matches.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=550, justify="left",
         ).pack(fill="x", padx=15, pady=(10, 0))
 
         header = tk.Frame(win)
@@ -1829,6 +1829,10 @@ class ToolsMixin:
         b("The PII Scan helps locate personally identifiable information")
         b("you may have inadvertently left in your files \u2014 SSNs, credit")
         b("cards, tax IDs, passwords, and more \u2014 with one click.")
+        blank()
+        b("PII Scan uses regex-based pattern matching to identify likely")
+        b("sensitive data (e.g., emails, phone numbers, IDs). Results are")
+        b("heuristic and may include false positives or missed matches.")
         blank()
 
         h("WHAT IS THE PII SCAN?")
