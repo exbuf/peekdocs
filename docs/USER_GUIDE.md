@@ -1887,7 +1887,7 @@ All methods except **Delete Everything Now** leave the search index untouched. *
 
 ### Cloud-synced folders
 
-If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`). Your documents are still searched in the original cloud-synced location — only the report output changes. This ensures no report files are written to a location that automatically uploads to the cloud.
+If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`). Your documents are still searched in the original cloud-synced location — only the report output changes. This helps prevent report files from being written to a location that automatically uploads to the cloud.
 
 The redirect happens silently — the search runs without interruption. The status line tells you where reports were saved and why. The output directory setting is saved to `~/.peekdocsrc` and persists between sessions.
 
