@@ -328,7 +328,32 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 **What makes peekdocs different:**
 
 - **[100+ file types at once](#supported-file-types)** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously in a single pass.
-- **Highlighted results** — matches are highlighted two ways. The **Results Preview** pane shows matches instantly inside the app for quick scanning — right-click to copy, double-click a filename to open it. The `.docx` **Word report** is a standalone document with every match highlighted in yellow, organized by file with surrounding context, search metadata, and match counts. (Note: for Word docs and PDFs, each match shows the full paragraph because that's how text is extracted. For plain text files, each match shows the individual line. Use Context Lines in Advanced Search Options to add extra lines before/after each match for any file type.) The yellow highlighting makes a real difference when you're scanning through results from dozens or hundreds of files — your eyes go straight to the matches instead of reading every line. It's a polished report you can save, print, email, or share with anyone. Both show the same matches; the preview is for quick review, the report is for keeping or sharing. (A `.txt` plain-text report is also generated automatically, and CSV, JSON, PDF, and HTML output are available optionally.) Don't have Microsoft Word? No problem — enable HTML output in Advanced Search Options and click the HTML button to open your highlighted report directly in your web browser. Every computer has a browser, so no extra software is needed. (Don't worry — the HTML file is stored locally on your computer, not on the internet. It's a private file that opens in your browser, but nothing is uploaded or made public.) The `.docx` report also opens automatically in any word processor — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs blocks reports from opening in Google Docs, Apple Pages, or any cloud-based application that may upload your data.
+- **Highlighted Results**
+  Matches are highlighted in two ways:
+  - **1) Results Preview (in-app):**
+    - See matches instantly inside peekdocs
+    - Right-click to copy text
+    - Double-click a filename to open the file
+  - **2) Word Report (.docx):**
+    - Standalone document with all matches highlighted in yellow
+    - Organized by file with surrounding context, search metadata, and match counts
+    - Easy to save, print, email, or share
+  - Both views show the same matches: Preview = quick scanning, Report = saving and sharing
+  - **How matches are displayed:**
+    - Word documents and PDFs: full paragraph is shown (based on text extraction)
+    - Plain text files: individual lines are shown
+    - Use Context Lines (Advanced Search Options) to include extra lines before/after matches
+    - The yellow highlighting makes a real difference when reviewing large result sets — your eyes go straight to the matches instead of reading every line
+  - **Other output options:**
+    - A plain-text (.txt) report is generated automatically
+    - Optional formats: CSV, JSON, PDF, HTML
+  - **No Microsoft Word?**
+    - Enable HTML output in Advanced Search Options
+    - Click the HTML button to open the highlighted report in your browser
+    - The file is stored locally — nothing is uploaded or shared
+  - **Compatibility and privacy:**
+    - The `.docx` report opens in Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free)
+    - peekdocs blocks opening in Google Docs, Apple Pages, or other cloud-based apps that may upload your data
 - **One-click PII Scan** (Personally Identifiable Information)
   Helps locate patterns that may indicate personally identifiable information in your files.
   - **What it scans for:**
