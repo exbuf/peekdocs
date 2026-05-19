@@ -1562,7 +1562,7 @@ class DataMixin:
             ).pack(pady=(0, 2))
         tk.Label(
             win, text="Line numbers match those shown in the Results Preview. "
-                      "Matches are highlighted in yellow.",
+                      "Possible matches are highlighted in yellow. Review each in context — not all highlights are actual sensitive data.",
             font=("TkDefaultFont", 10), fg="gray",
         ).pack(pady=(0, 2))
         tk.Label(
