@@ -2856,7 +2856,7 @@ class ToolsMixin:
 
         tk.Label(
             popup, text="Double-click a file to open it in its default application — "
-                        "from there you can edit the file to remove or redact the sensitive data. "
+                        "from there you can review, remove, or redact data you confirm is sensitive. "
                         "Or select a file and click View Text below to review the "
                         "matches with line numbers highlighted.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=700, justify="center",
