@@ -2788,7 +2788,7 @@ class ToolsMixin:
         import subprocess, sys
 
         popup, _dark = self._themed_toplevel(parent)
-        popup.title(f"Files containing: {category}")
+        popup.title(f"PII Scan — Files containing: {category}")
         popup.resizable(True, True)
         popup.geometry("750x400")
         parent.update_idletasks()
@@ -2907,7 +2907,7 @@ class ToolsMixin:
         """Show help for the PII Scan category files popup."""
         import tkinter as tk
         help_win, _dark = self._themed_toplevel(parent)
-        help_win.title("View Files — Help")
+        help_win.title("PII Scan — View Files — Help")
         help_win.geometry("650x520")
         help_win.resizable(True, True)
         help_win.transient(parent)
