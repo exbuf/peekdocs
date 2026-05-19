@@ -1075,7 +1075,7 @@ peekdocs is provided under the [MIT License](LICENSE) and is offered "as is," wi
 
 The PII Scan feature is a discovery aid, not a security or compliance tool. It uses regex-based pattern matching and may produce false positives or fail to detect data that does not match its built-in patterns. A "clean" scan does not guarantee that all sensitive or personal data has been identified. All results should be reviewed in context before making decisions.
 
-The tool is not intended for high-assurance or safety-critical use cases. Users are solely responsible for how they use the tool and interpret its output.
+The tool is not designed or intended for high-assurance or safety-critical use cases. Users are solely responsible for how they use the tool and interpret its output.
 
 ## License
 
