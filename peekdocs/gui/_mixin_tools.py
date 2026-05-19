@@ -1411,8 +1411,13 @@ class ToolsMixin:
         # anywhere (macOS doesn't auto-reorder transient siblings).
         win.bind("<FocusIn>", lambda e: win.lift())
 
+        tk.Label(
+            win, text="Detects likely PII patterns using regex. May miss or misidentify data.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(fill="x", padx=15, pady=(10, 0))
+
         header = tk.Frame(win)
-        header.pack(fill="x", padx=15, pady=(12, 4))
+        header.pack(fill="x", padx=15, pady=(4, 4))
         tk.Label(
             header, text="Select which categories to scan for:",
             font=("TkDefaultFont", 13, "bold"),
