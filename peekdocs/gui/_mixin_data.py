@@ -1561,8 +1561,15 @@ class DataMixin:
                 font=("TkDefaultFont", 11, "bold"), fg="#CC0000",
             ).pack(pady=(0, 2))
         tk.Label(
-            win, text="Line numbers match those shown in the Results Preview. "
-                      "Possible matches are highlighted in yellow. Review each in context — not all highlights are actual sensitive data.",
+            win, text="Line numbers match those shown in the Results Preview.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 0))
+        tk.Label(
+            win, text="Possible matches are highlighted in yellow.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 0))
+        tk.Label(
+            win, text="Review each in context — not all highlights are actual sensitive data.",
             font=("TkDefaultFont", 10), fg="gray",
         ).pack(pady=(0, 2))
         tk.Label(
