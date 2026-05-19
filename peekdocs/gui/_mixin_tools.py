@@ -2807,6 +2807,10 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12, weight="bold"),
             command=lambda: self._show_category_files_help(popup),
         ).pack(side="right")
+        tk.Label(
+            popup, text="Matches are pattern-based and may include false positives or missed matches.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(fill="x", padx=15, pady=(0, 2))
 
         list_frame = tk.Frame(popup)
         list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
