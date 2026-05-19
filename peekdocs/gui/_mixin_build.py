@@ -568,7 +568,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._pii_scan_btn, "PII (Personally Identifiable Information) Scan — helps locate personally identifiable information you may have inadvertently left in your files. Scans for SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Regex-based pattern detection. May produce false positives or miss matches. Fully independent from the main search — has its own folder and Recursive setting")
+        Tooltip(self._pii_scan_btn, "Heuristic scan for possible PII patterns. Best-effort regex-based detection. Fully independent from the main search — has its own folder and Recursive setting")
 
 
 
