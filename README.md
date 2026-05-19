@@ -395,7 +395,10 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 ## Features
 
-- **PII Scan** — **Do you know what's hiding in your documents?** One click scans for possible Social Security numbers, credit cards, passwords (including pw, p/w, login, username, user ID, UID), tax IDs, emails, phone numbers, dates of birth, and user-configurable dollar-amount ranges — with possible matches highlighted showing approximately where. Results are categorized by severity (high/moderate/info) with per-file details. **Custom patterns:** advanced users can add their own regex (e.g., UK NINO, Canadian SIN, German Steuer-ID, company account IDs) to extend the scan beyond the built-in categories
+- **PII Scan** — Quickly identify patterns that may indicate personally identifiable information in your documents.
+  - One-click scan for possible Social Security numbers, credit cards, tax IDs, emails, phone numbers, dates of birth, and password-related terms (e.g., pw, p/w, login, username, user ID, UID), as well as user-defined dollar-amount ranges. Matches are highlighted to show approximate locations within files.
+  - Results are categorized by severity (high / moderate / info) with per-file details.
+  - **Custom patterns:** Advanced users can add their own regex (e.g., UK NINO, Canadian SIN, German Steuer-ID, company account IDs) to extend detection beyond built-in categories.
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
 - **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
