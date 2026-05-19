@@ -358,7 +358,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Sensitive Data Scan:**
 
-Click the red **PII Scan** button to scan your documents for PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.peekdocsrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
+Click the red **PII Scan** button to scan your documents for patterns that may indicate PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.peekdocsrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
 
 | Category | Severity | What it finds |
 |----------|----------|---------------|
@@ -1009,7 +1009,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 
 The **PII Scan** helps locate personally identifiable information you may have inadvertently left in your files. PII stands for **Personally Identifiable Information** — any data that could identify a specific person or compromise their accounts. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
 
-The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data — so there is no risk of piping PII to a file. This means data scientists and IT pros on remote servers can scan for sensitive data over SSH without a GUI, and the output is safe by design.
+The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data — which helps prevent PII from being piped to a file. This means data scientists and IT pros on remote servers can scan for sensitive data over SSH without a GUI, and the output is safe by design.
 
 ### What it does
 
