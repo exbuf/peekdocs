@@ -2790,7 +2790,7 @@ class ToolsMixin:
         popup, _dark = self._themed_toplevel(parent)
         popup.title(f"PII Scan — Files containing: {category}")
         popup.resizable(True, True)
-        popup.geometry("750x400")
+        popup.geometry("750x480")
         parent.update_idletasks()
         x = parent.winfo_rootx() + 25
         y = parent.winfo_rooty() + 25
