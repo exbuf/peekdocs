@@ -6,17 +6,17 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-## Document search for power users
+## Advanced document search for power users
 
 - Search 100+ file types in one query — Word, PDF, Excel, text, email, source code, archives, and more
 - Yellow-highlighted search results — .docx, .html, and .pdf reports, plus .csv, .json, and .txt output
 - Proximity searches — find terms within N words or N lines of each other
 - AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
-- OCR — search scanned PDFs and images that most tools can't. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
-- PII Scan — identify possible patterns such as SSNs, credit cards, and passwords
+- OCR — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
+- PII Scan — identify patterns such as SSNs, credit cards, and passwords
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
-- Read-only — peekdocs never modifies, moves, or deletes your files
+- Read-only — peekdocs runs locally and never modifies, moves, or deletes your files
 
 &nbsp;
 
