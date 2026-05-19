@@ -1558,6 +1558,10 @@ class DataMixin:
                       "Matches are highlighted in yellow.",
             font=("TkDefaultFont", 10), fg="gray",
         ).pack(pady=(0, 2))
+        tk.Label(
+            win, text="Highlighted matches are pattern-based and may include false positives or missed matches.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 2))
         matching_lines_label = tk.Label(
             win, text="", font=("TkDefaultFont", 11, "bold"),
             fg="#FF6B35", anchor="w",
