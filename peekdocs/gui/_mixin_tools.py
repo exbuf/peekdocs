@@ -1412,7 +1412,7 @@ class ToolsMixin:
         win.bind("<FocusIn>", lambda e: win.lift())
 
         tk.Label(
-            win, text="Detects likely PII patterns using regex. May miss or misidentify data.",
+            win, text="Regex-based pattern detection. May produce false positives or miss matches.",
             font=("TkDefaultFont", 10), fg="gray",
         ).pack(fill="x", padx=15, pady=(10, 0))
 
