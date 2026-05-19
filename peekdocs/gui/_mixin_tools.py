@@ -2493,6 +2493,10 @@ class ToolsMixin:
             command=lambda: self._show_pii_scan_results_help(popup),
         ).pack(side="right")
         tk.Label(
+            popup, text="Pattern-based results. May include false positives or missed matches.",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(fill="x", padx=15, pady=(0, 2))
+        tk.Label(
             popup, text=header_text,
             font=("TkDefaultFont", 12), fg=header_color,
         ).pack(pady=(0, 8))
