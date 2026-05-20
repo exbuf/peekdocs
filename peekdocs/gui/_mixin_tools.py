@@ -6564,6 +6564,7 @@ class ToolsMixin:
             "How to Use It",
             "Pattern Tips",
             "Report Checkbox",
+            "Advanced Search Options",
             "Performance and Index",
             "Disclaimer",
         ]:
@@ -6640,6 +6641,30 @@ class ToolsMixin:
         b("written to report files on disk. Use this option when your")
         b("search patterns may match content you prefer not to save in")
         b("exported reports.")
+        blank()
+
+        h("ADVANCED SEARCH OPTIONS")
+        b("When the report checkbox is UNCHECKED (normal mode), Regex")
+        b("Search triggers a standard search and respects most Advanced")
+        b("Search Options settings:")
+        blank()
+        b("\u2022 Max Matches, Max File Size, Context Lines (Before/After)")
+        b("\u2022 Output formats (CSV, JSON, PDF, HTML)")
+        b("\u2022 File type filters, Exclude terms")
+        b("\u2022 Save report as, Delete on Close")
+        blank()
+        b("These settings are overridden by the Regex Search popup:")
+        blank()
+        b("\u2022 Folder \u2014 uses the popup's folder, not the main screen")
+        b("\u2022 Recursive \u2014 uses the popup's checkbox")
+        b("\u2022 Regex \u2014 forced on")
+        b("\u2022 Fuzzy / Wildcard \u2014 forced off")
+        b("\u2022 Index \u2014 forced off (always scans files directly)")
+        blank()
+        b("When the report checkbox is CHECKED (screen-only mode), the")
+        b("search runs through the API and none of the Advanced Search")
+        b("Options apply. Only the popup's folder and Recursive setting")
+        b("are used.")
         blank()
 
         h("PERFORMANCE AND INDEX")
