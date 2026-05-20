@@ -6302,6 +6302,8 @@ class ToolsMixin:
                 self.regex_var.set("on")
                 self.fuzzy_var.set("off")
                 self.wildcard_var.set("off")
+                # Disable index for regex search — scan files directly
+                self.index_search_var.set("off")
                 # Trigger the search
                 self.start_search()
 
