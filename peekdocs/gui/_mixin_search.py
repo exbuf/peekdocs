@@ -818,13 +818,14 @@ class SearchMixin:
         def _insert_highlighted(line):
             """Insert a line with yellow highlighting on matched terms."""
             if highlight_pattern:
-                parts = highlight_pattern.split(line)
-                matches = highlight_pattern.findall(line)
-                for i, part in enumerate(parts):
-                    if part:
-                        self.preview_text.insert("end", part)
-                    if i < len(matches):
-                        self.preview_text.insert("end", matches[i], "match")
+                last_end = 0
+                for m in highlight_pattern.finditer(line):
+                    if m.start() > last_end:
+                        self.preview_text.insert("end", line[last_end:m.start()])
+                    self.preview_text.insert("end", m.group(), "match")
+                    last_end = m.end()
+                if last_end < len(line):
+                    self.preview_text.insert("end", line[last_end:])
             elif _fuzzy_highlight:
                 # Highlight words that fuzzy-match the search terms
                 import re as _re_fz
