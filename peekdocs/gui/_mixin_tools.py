@@ -6564,6 +6564,7 @@ class ToolsMixin:
             "How to Use It",
             "Pattern Tips",
             "Report Checkbox",
+            "Performance and Index",
             "Disclaimer",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
@@ -6623,6 +6624,31 @@ class ToolsMixin:
         b("written to report files on disk. Use this option when your")
         b("search patterns may match content you prefer not to save in")
         b("exported reports.")
+        blank()
+
+        h("PERFORMANCE AND INDEX")
+        b("Regex searches do not use the search index. Every search")
+        b("scans files directly from disk. This means:")
+        blank()
+        b("\u2022 No need to build or refresh an index before searching")
+        b("\u2022 Results always reflect current file contents")
+        b("\u2022 Searches may be slower than indexed keyword searches,")
+        b("  especially on large folders or network drives")
+        blank()
+        b("If a search takes a long time, common causes are:")
+        blank()
+        b("\u2022 Too many results \u2014 a broad pattern like .+ matches")
+        b("  every line in every file. Be specific.")
+        b("\u2022 Very large files \u2014 set Max File Size in Advanced")
+        b("  Search Options to skip files over a certain size")
+        b("  (default 100 MB, set to 0 for no limit).")
+        b("\u2022 Large folder tree \u2014 uncheck Recursive to search")
+        b("  only the selected folder, not all subfolders.")
+        blank()
+        b("Tip: set Max Matches in Advanced Search Options to")
+        b("limit results. Default is 1000. Set to 0 for unlimited,")
+        b("but be aware that very large result sets slow down")
+        b("report generation and the Results Preview.")
         blank()
 
         h("DISCLAIMER")
