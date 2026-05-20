@@ -14,6 +14,7 @@
 - AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
 - OCR — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
 - PII Scan — identify patterns such as SSNs, credit cards, and passwords
+- Regex Search — run up to 10 regex patterns at once with optional report suppression
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
 - Read-only — peekdocs runs locally and never modifies, moves, or deletes your files
@@ -374,6 +375,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
     - Always scans all supported file types regardless of Advanced Search filters
     - Results are shown on screen only — no report file is written to disk
   - **Important:** PII Scan is a discovery aid. It uses pattern-based matching and may miss some data or flag content that is not sensitive. Always review results before acting. See [Disclaimer](#disclaimer).
+- **Regex Search** — run up to 10 custom regex patterns simultaneously from a dedicated popup. Each pattern has a name and regex field, with settings saved across sessions. Check "Do not save regex match contents to reports" to display results on screen only — no report files written. Useful when patterns may match sensitive content you prefer not to export. Always scans files directly (index is bypassed) to ensure current results.
 - **11 search modes** — plain keywords, AND/OR, Boolean expressions (`(budget OR revenue) AND NOT draft`), regex, wildcards, fuzzy matching (typo-tolerant), whole-word, word proximity (terms within N words on the same line), line proximity (terms within N lines of each other), inverse search (find files that DON'T contain a term), and range queries (filter by dollar amounts, dates, percentages, ages, file sizes).
 - **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). All search modes work from all three interfaces except the Search Wizard, which is GUI-only. PII Scan works from both GUI and CLI (`peekdocs --pii-scan` — shows filenames and line numbers only, never the actual sensitive data). Use the GUI for daily work, the CLI for scripting, the API for integration.
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that most tools can't search. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest.
