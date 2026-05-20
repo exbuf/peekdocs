@@ -6128,7 +6128,8 @@ class ToolsMixin:
 
         tk.Label(
             win,
-            text="Regex-based pattern matching. Results depend on your patterns "
+            text="Regex searches do not use an index. If searches take a long time it could be due to "
+                 "too many results. Check your regex syntax. Results depend on your patterns "
                  "\u2014 peekdocs does not validate correctness.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
         ).pack(fill="x", padx=15, pady=(10, 0))
