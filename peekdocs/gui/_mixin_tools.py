@@ -6583,6 +6583,11 @@ class ToolsMixin:
         b("error codes, project identifiers, or data formats across")
         b("a large folder tree.")
         blank()
+        b("Regex Search is a GUI-only feature. The CLI supports single")
+        b("regex searches via the -x flag (e.g., peekdocs -x \"\\d{3}-\\d{4}\").")
+        b("To run multiple patterns from the CLI, combine them manually")
+        b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
+        blank()
 
         h("HOW TO USE IT")
         b("1. Click the Regex Search button on the main screen.")
