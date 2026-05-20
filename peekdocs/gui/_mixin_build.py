@@ -570,6 +570,18 @@ class BuildMixin:
         self._pii_scan_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._pii_scan_btn, "Heuristic scan for possible PII patterns. Best-effort regex-based detection. Fully independent from the main search — has its own folder and Recursive setting")
 
+        # Regex Search — purple button
+        self._regex_search_btn = ctk.CTkButton(
+            self._run_search_frame,
+            text="\U0001f50d Regex Search", width=160, height=44,
+            fg_color="#7C3AED", hover_color="#6D28D9",
+            text_color="white",
+            command=self._start_regex_search,
+            font=ctk.CTkFont(size=24, weight="bold"),
+        )
+        self._regex_search_btn.pack(side="left", padx=(12, 0))
+        Tooltip(self._regex_search_btn, "Run multiple regex patterns at once. Results depend on report checkbox setting.")
+
 
 
     def _build_advanced_panel(self):

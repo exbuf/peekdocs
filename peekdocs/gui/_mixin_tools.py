@@ -6108,3 +6108,521 @@ class ToolsMixin:
         ).pack(pady=(5, 10))
 
         self._apply_dark_theme(help_win)
+
+
+    # ── Regex Search ─────────────────────────────────────────────────
+
+    def _start_regex_search(self):
+        """Open the Regex Search popup with 10 pattern rows."""
+        import tkinter as tk
+
+        if getattr(self, "search_thread", None) and self.search_thread.is_alive():
+            self._show_error("A search is already running.")
+            return
+
+        win, _dark = self._themed_toplevel()
+        win.title("Regex Search")
+        win.resizable(True, True)
+        win.transient(self)
+        win.bind("<FocusIn>", lambda e: win.lift())
+
+        tk.Label(
+            win,
+            text="Regex-based pattern matching. Results depend on your patterns "
+                 "\u2014 peekdocs does not validate correctness.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
+        ).pack(fill="x", padx=15, pady=(10, 0))
+
+        header = tk.Frame(win)
+        header.pack(fill="x", padx=15, pady=(4, 4))
+        tk.Label(
+            header, text="Regex Search",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, font=ctk.CTkFont(size=12, weight="bold"),
+            command=lambda: self._show_regex_search_help(win),
+        ).pack(side="right")
+
+        # Folder bar with Browse and Recursive
+        from peekdocs.cli import _load_config as _lc_rs
+        _rs_cfg = _lc_rs()
+        _saved_rs_folder = getattr(self, "_last_regex_search_folder", None)
+        if not _saved_rs_folder:
+            _saved_rs_folder = _rs_cfg.get("regex_search_folder")
+        _rs_recursive_saved = _rs_cfg.get("regex_search_recursive", True)
+        _rs_recursive_var = tk.BooleanVar(value=_rs_recursive_saved)
+        _rs_folder_label = self._add_folder_bar(
+            win, "",
+            initial_folder=_saved_rs_folder,
+            recursive_var=_rs_recursive_var,
+        )
+
+        # 10 pattern rows
+        from tkinter import ttk as _ttk
+        _ttk.Separator(win, orient="horizontal").pack(fill="x", padx=15, pady=(6, 4))
+
+        patterns_frame = tk.Frame(win)
+        patterns_frame.pack(fill="x", padx=20, pady=(0, 2))
+
+        pattern_rows = []  # list of (enabled_var, name_entry, regex_entry)
+        for i in range(1, 11):
+            saved_enabled = bool(_rs_cfg.get(f"regex_search_{i}_enabled", False))
+            saved_name = _rs_cfg.get(f"regex_search_{i}_name", "")
+            saved_regex = _rs_cfg.get(f"regex_search_{i}_regex", "")
+
+            row = tk.Frame(patterns_frame)
+            row.pack(fill="x", pady=(3, 0))
+
+            enabled_var = tk.BooleanVar(value=saved_enabled)
+            tk.Checkbutton(
+                row, variable=enabled_var, font=("TkDefaultFont", 11),
+            ).pack(side="left")
+
+            tk.Label(row, text="Name:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+            name_entry = ctk.CTkEntry(row, width=130, font=ctk.CTkFont(size=11))
+            name_entry.insert(0, saved_name)
+            name_entry.pack(side="left", padx=(0, 6))
+
+            tk.Label(row, text="Regex:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 2))
+            regex_entry = ctk.CTkEntry(row, width=220, font=ctk.CTkFont(size=11))
+            regex_entry.insert(0, saved_regex)
+            regex_entry.pack(side="left", padx=(0, 6))
+            Tooltip(
+                regex_entry,
+                "Your regex pattern. peekdocs does NOT validate that it "
+                "correctly finds what you intend \u2014 you own the outcome.",
+            )
+
+            pattern_rows.append((enabled_var, name_entry, regex_entry))
+
+        # "Do not save regex match contents to reports" checkbox
+        _ttk.Separator(win, orient="horizontal").pack(fill="x", padx=15, pady=(8, 4))
+        no_report_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_no_report", False)))
+        no_report_frame = tk.Frame(win)
+        no_report_frame.pack(fill="x", padx=20, pady=(0, 4))
+        tk.Checkbutton(
+            no_report_frame, variable=no_report_var,
+            text="Do not save regex match contents to reports",
+            font=("TkDefaultFont", 11),
+        ).pack(anchor="w")
+
+        # Run and Close buttons
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(pady=(8, 2))
+        close_frame = tk.Frame(win)
+        close_frame.pack(pady=(0, 12))
+
+        def _run():
+            import re as _re
+            from tkinter import messagebox as _mb
+
+            # Collect enabled patterns with non-empty regex
+            active = []
+            for idx, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows, 1):
+                if not en_var.get():
+                    continue
+                rx = rx_entry.get().strip()
+                if not rx:
+                    continue
+                nm = nm_entry.get().strip() or f"Pattern {idx}"
+                # Validate regex
+                try:
+                    _re.compile(rx)
+                except _re.error as exc:
+                    self._show_error(
+                        f"Pattern {idx} ({nm}) has invalid regex:\n\n{exc}\n\n"
+                        "Fix the pattern and try again."
+                    )
+                    return
+                active.append((nm, rx))
+
+            if not active:
+                self._show_error("Enable at least one pattern with a non-empty Regex field.")
+                return
+
+            # Combine with OR
+            combined = "|".join(f"(?:{rx})" for _nm, rx in active)
+
+            # Save all settings to config
+            try:
+                from peekdocs.cli import _load_config, _save_config
+                config = _load_config()
+                for idx, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows, 1):
+                    config[f"regex_search_{idx}_enabled"] = en_var.get()
+                    config[f"regex_search_{idx}_name"] = nm_entry.get().strip()
+                    config[f"regex_search_{idx}_regex"] = rx_entry.get().strip()
+                rs_folder = _rs_folder_label.cget("text")
+                if rs_folder and rs_folder != "(none)":
+                    config["regex_search_folder"] = rs_folder
+                config["regex_search_recursive"] = _rs_recursive_var.get()
+                config["regex_search_no_report"] = no_report_var.get()
+                _save_config(config)
+            except Exception:
+                pass
+
+            rs_folder = _rs_folder_label.cget("text")
+            rs_recursive = _rs_recursive_var.get()
+            self._last_regex_search_folder = rs_folder
+
+            if no_report_var.get():
+                # Screen-only mode — run via API and show results in popup
+                win.destroy()
+                self._run_regex_search_screen_only(active, combined, rs_folder, rs_recursive)
+            else:
+                # Normal search mode — set search bar and trigger
+                win.destroy()
+                # Set folder
+                if rs_folder and rs_folder != "(none)" and os.path.isdir(rs_folder):
+                    self.folder_entry.delete(0, "end")
+                    self.folder_entry.insert(0, rs_folder)
+                # Set recursive
+                if rs_recursive:
+                    self.recursive_var.set("on")
+                else:
+                    self.recursive_var.set("off")
+                # Set search bar to combined regex and enable Regex mode
+                self.search_entry.delete(0, "end")
+                self.search_entry.insert(0, combined)
+                self.regex_var.set("on")
+                self.fuzzy_var.set("off")
+                self.wildcard_var.set("off")
+                # Trigger the search
+                self.start_search()
+
+        ctk.CTkButton(
+            btn_frame, text="Run", width=100,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="green", hover_color="darkgreen",
+            command=_run,
+        ).pack()
+        ctk.CTkButton(
+            close_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=win.destroy,
+            font=ctk.CTkFont(size=12),
+        ).pack()
+
+        self._apply_dark_theme(win)
+
+
+    def _run_regex_search_screen_only(self, active_patterns, combined_regex, folder, recursive):
+        """Run regex search via API and show results in a screen-only popup (no report files)."""
+        import tkinter as tk
+
+        if not folder or folder == "(none)" or not os.path.isdir(folder):
+            self._show_error("Please select a valid folder first.")
+            return
+
+        # Show progress
+        self.status_label.configure(
+            text="Running Regex Search (screen only, no reports)...",
+            text_color=("blue", "#66BBFF"),
+        )
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_bar.start()
+        self.progress_bar.grid(row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
+
+        if hasattr(self, "_regex_search_btn"):
+            self._regex_search_btn.configure(state="disabled")
+
+        def _thread():
+            from peekdocs.api import search as api_search
+            start = time.time()
+            scan_results = []
+            files_searched = 0
+
+            for name, regex in active_patterns:
+                try:
+                    result = api_search(
+                        [regex],
+                        directory=folder,
+                        recursive=recursive,
+                        use_regex=True,
+                        use_index=False,
+                    )
+                    files_searched = max(files_searched, len(result.files_searched))
+                    file_matches = {}
+                    for match in result.matches:
+                        key = match.filename
+                        if key not in file_matches:
+                            file_matches[key] = {
+                                "path": os.path.join(match.file_dir, match.filename),
+                                "count": 0,
+                                "lines": [],
+                                "match_texts": [],
+                            }
+                        file_matches[key]["count"] += 1
+                        file_matches[key]["lines"].append(match.line_num)
+                        file_matches[key]["match_texts"].append(match.text)
+                    scan_results.append({
+                        "name": name,
+                        "regex": regex,
+                        "match_count": len(result.matches),
+                        "file_count": len(file_matches),
+                        "files": file_matches,
+                    })
+                except Exception:
+                    scan_results.append({
+                        "name": name,
+                        "regex": regex,
+                        "match_count": 0,
+                        "file_count": 0,
+                        "files": {},
+                    })
+
+            elapsed = time.time() - start
+            self.after(0, _finished, scan_results, elapsed, files_searched)
+
+        def _finished(scan_results, elapsed, files_searched):
+            self.progress_bar.stop()
+            self.progress_bar.grid_remove()
+            if hasattr(self, "_regex_search_btn"):
+                self._regex_search_btn.configure(state="normal")
+
+            total = sum(r["match_count"] for r in scan_results)
+            if total == 0:
+                self.status_label.configure(
+                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 no matches.",
+                    text_color="green",
+                )
+            else:
+                self.status_label.configure(
+                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 {total} match(es).",
+                    text_color=("black", "#e0e0e0"),
+                )
+
+            # Show results popup
+            popup, _dark = self._themed_toplevel()
+            popup.title("Regex Search Results")
+            popup.resizable(True, True)
+            popup.geometry("800x520")
+            self.update_idletasks()
+            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
+            popup.geometry(f"+{x}+{y}")
+
+            header_frame = tk.Frame(popup)
+            header_frame.pack(fill="x", padx=15, pady=(10, 2))
+            if total == 0:
+                header_text = f"No matches found \u2014 {files_searched} files scanned in {elapsed:.1f}s"
+                header_color = "green"
+            else:
+                header_text = f"{total} match(es) across {files_searched} files ({elapsed:.1f}s)"
+                header_color = "black"
+            tk.Label(
+                header_frame, text="Regex Search Results",
+                font=("TkDefaultFont", 14, "bold"),
+            ).pack(side="left", expand=True)
+            tk.Label(
+                popup,
+                text="Screen-only results \u2014 no report files were written.",
+                font=("TkDefaultFont", 10), fg="gray",
+            ).pack(fill="x", padx=15, pady=(0, 2))
+            tk.Label(
+                popup, text=header_text,
+                font=("TkDefaultFont", 12), fg=header_color,
+            ).pack(pady=(0, 8))
+
+            # Scrollable results
+            canvas_frame = tk.Frame(popup)
+            canvas_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            canvas = tk.Canvas(canvas_frame, highlightthickness=0)
+            scrollbar = tk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
+            inner = tk.Frame(canvas)
+            inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+
+            for res in scan_results:
+                row_frame = tk.Frame(inner, bd=1, relief="groove")
+                row_frame.pack(fill="x", padx=5, pady=3)
+
+                top_row = tk.Frame(row_frame)
+                top_row.pack(fill="x", padx=8, pady=(4, 2))
+                tk.Label(
+                    top_row, text=res["name"],
+                    font=("TkDefaultFont", 12, "bold"),
+                ).pack(side="left")
+                count_text = f"{res['match_count']} match(es) in {res['file_count']} file(s)"
+                count_color = "green" if res["match_count"] == 0 else "black"
+                tk.Label(
+                    top_row, text=count_text,
+                    font=("TkDefaultFont", 11), fg=count_color,
+                ).pack(side="right")
+
+                tk.Label(
+                    row_frame, text=f"Regex: {res['regex']}",
+                    font=("Courier", 10), fg="gray",
+                ).pack(anchor="w", padx=8, pady=(0, 4))
+
+                if res["files"]:
+                    details_var = tk.BooleanVar(value=False)
+                    details_frame = tk.Frame(row_frame)
+
+                    def _toggle_details(df=details_frame, dv=details_var):
+                        if dv.get():
+                            df.pack(fill="x", padx=12, pady=(0, 4))
+                        else:
+                            df.pack_forget()
+
+                    tk.Checkbutton(
+                        row_frame, text="Show files", variable=details_var,
+                        command=_toggle_details, font=("TkDefaultFont", 10),
+                    ).pack(anchor="w", padx=8, pady=(0, 2))
+
+                    for fname, info in sorted(res["files"].items()):
+                        tk.Label(
+                            details_frame,
+                            text=f"  {info['path']}  ({info['count']} match(es))",
+                            font=("TkDefaultFont", 10), anchor="w",
+                        ).pack(anchor="w")
+
+            # Close button
+            ctk.CTkButton(
+                popup, text="Close", width=80,
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=popup.destroy, font=ctk.CTkFont(size=12),
+            ).pack(pady=(5, 10))
+
+            self._apply_dark_theme(popup)
+
+        thread = threading.Thread(target=_thread, daemon=True)
+        thread.start()
+
+
+    def _show_regex_search_help(self, parent):
+        """Show help for the Regex Search feature."""
+        import tkinter as tk
+
+        help_win, _dark = self._themed_toplevel()
+        help_win.title("Regex Search \u2014 Help")
+        help_win.geometry("700x600")
+        help_win.resizable(True, True)
+        help_win.transient(self)
+        help_win.bind("<FocusIn>", lambda e: help_win.lift())
+        help_win.lift()
+        help_win.after(50, help_win.lift)
+        help_win.after(100, help_win.focus_force)
+
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=15, pady=10, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=5)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                          lmargin2=30, spacing1=2)
+        txt.tag_configure("toc_title", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=5, spacing3=8)
+        txt.tag_configure("toc_item", font=("TkDefaultFont", 11), lmargin1=20,
+                          lmargin2=20,
+                          foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
+
+        def h(text):
+            txt.insert("end", text + "\n", "heading")
+
+        def b(text):
+            txt.insert("end", text + "\n", "body")
+
+        def e(text):
+            txt.insert("end", text + "\n", "example")
+
+        def blank():
+            txt.insert("end", "\n")
+
+        # Table of Contents
+        txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
+        for section in [
+            "What This Is",
+            "How to Use It",
+            "Pattern Tips",
+            "Report Checkbox",
+            "Disclaimer",
+        ]:
+            txt.insert("end", f"\u2022 {section}\n", "toc_item")
+        txt.insert("end", "\n")
+
+        h("WHAT THIS IS")
+        b("Regex Search lets you define up to 10 named regex patterns")
+        b("and run them all at once against a folder of your choice.")
+        b("Each pattern has a Name (for your reference) and a Regex")
+        b("(the actual pattern to search for). Enabled patterns with")
+        b("non-empty Regex fields are combined with OR and executed")
+        b("as a single regex search.")
+        blank()
+        b("This is useful when you have several patterns you want to")
+        b("check simultaneously \u2014 for example, searching for multiple")
+        b("error codes, project identifiers, or data formats across")
+        b("a large folder tree.")
+        blank()
+
+        h("HOW TO USE IT")
+        b("1. Click the Regex Search button on the main screen.")
+        b("2. Use Browse to select the folder to search.")
+        b("3. Check the Recursive box to include subfolders.")
+        b("4. For each pattern you want to use:")
+        b("   a. Check the checkbox on the left to enable it.")
+        b("   b. Enter a short name in the Name field.")
+        b("   c. Enter your regex in the Regex field.")
+        b("5. Decide whether to generate report files (see below).")
+        b("6. Click Run.")
+        blank()
+        b("Your pattern names, regex strings, folder, and checkbox")
+        b("settings are automatically saved between sessions.")
+        blank()
+
+        h("PATTERN TIPS")
+        b("Patterns use Python regex syntax. A few common examples:")
+        blank()
+        e("  \\bERR-\\d{4}\\b        Match error codes like ERR-1234")
+        e("  (?i)todo|fixme        Case-insensitive TODO or FIXME")
+        e("  \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}   IPv4 addresses")
+        e("  https?://\\S+          URLs starting with http or https")
+        blank()
+        b("Use regex101.com (Python flavor) to test your patterns")
+        b("before running them here.")
+        blank()
+
+        h("REPORT CHECKBOX")
+        b("'Do not save regex match contents to reports'")
+        blank()
+        b("When UNCHECKED (default): the combined regex is placed in")
+        b("the main search bar, the Regex checkbox is turned on, and")
+        b("a normal search runs. Report files (.txt, .docx, etc.)")
+        b("are generated as usual.")
+        blank()
+        b("When CHECKED: the search runs in the background via the")
+        b("API. Results are shown in a screen-only popup. No report")
+        b("files are written to disk. Use this when your patterns")
+        b("might match sensitive content you do not want saved to")
+        b("files.")
+        blank()
+
+        h("DISCLAIMER")
+        b("peekdocs does NOT validate that your regex patterns")
+        b("correctly identify the data you intend to find. You are")
+        b("responsible for the accuracy of your patterns and the")
+        b("interpretation of results. Regex-based matching is")
+        b("heuristic \u2014 false positives and missed matches are")
+        b("possible.")
+        blank()
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
+        self._apply_dark_theme(help_win)
