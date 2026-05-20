@@ -4005,6 +4005,7 @@ class ToolsMixin:
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
             "What Is peekdocs?", "Who Is It For?", "Getting Started",
+            "Regex Search vs Standard Search",
             "Saving and Loading Searches", "Simple Search",
             "Phrase Search (Quoted Terms)", "AND Mode",
             "Boolean Expressions", "Breaking Down Complex Searches",
@@ -4088,6 +4089,29 @@ class ToolsMixin:
         blank()
         b("PII Scan works the same way \u2014 click View Files on any category,")
         b("then View Text to see where the sensitive data was found.")
+        blank()
+
+        h("REGEX SEARCH vs STANDARD SEARCH")
+        b("The purple Regex Search button and the main search bar overlap")
+        b("in capability. Here's the difference:")
+        blank()
+        b("Standard search (main search bar):")
+        b("\u2022 Supports all 11 search modes: keywords, AND/OR, Boolean,")
+        b("  regex, fuzzy, wildcard, whole-word, proximity, inverse, range")
+        b("\u2022 Single regex via the Regex checkbox in Advanced Search Options")
+        b("\u2022 Uses the index when available for faster results")
+        blank()
+        b("Regex Search popup:")
+        b("\u2022 Save and name up to 10 regex patterns across sessions")
+        b("\u2022 Run all enabled patterns simultaneously (combined with OR)")
+        b("\u2022 Optional screen-only mode (no report files written)")
+        b("\u2022 Always scans files directly (index is bypassed)")
+        b("\u2022 Does not support AND, Boolean, fuzzy, wildcard, whole-word,")
+        b("  proximity, inverse, or range queries")
+        blank()
+        b("Use Regex Search when you have a recurring set of regex patterns")
+        b("you want to save and reuse. Use the main search bar for everything")
+        b("else \u2014 including single regex searches with the Regex checkbox.")
         blank()
 
         h("SAVING AND LOADING SEARCHES")
@@ -6593,6 +6617,10 @@ class ToolsMixin:
         b("regex searches via the -x flag (e.g., peekdocs -x \"\\d{3}-\\d{4}\").")
         b("To run multiple patterns from the CLI, combine them manually")
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
+        blank()
+        b("For a detailed comparison of Regex Search vs the standard")
+        b("search bar, see 'Regex Search vs Standard Search' in the")
+        b("main screen ? help.")
         blank()
 
         h("HOW TO USE IT")
