@@ -6610,6 +6610,12 @@ class ToolsMixin:
         blank()
 
         h("PATTERN TIPS")
+        b("Plain words and phrases work as patterns too \u2014 for example,")
+        b("entering budget or quarterly report will match those terms")
+        b("literally. If your search term contains special regex characters")
+        b("($ . * + ? [ ] ( ) { } | ^), prefix them with a backslash.")
+        b("For example, use \\$500 to search for $500.")
+        blank()
         b("Patterns use Python regex syntax. A few common examples:")
         blank()
         e("  \\bERR-\\d{4}\\b        Match error codes like ERR-1234")
