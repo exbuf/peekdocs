@@ -308,6 +308,18 @@ def _load_config():
                     config[key] = _json_rc.loads(value)
                 except Exception:
                     pass
+            elif key.startswith("regex_search_"):
+                # Regex Search popup settings — dynamic keys
+                if value.lower() in ("true", "false"):
+                    config[key] = value.lower() == "true"
+                else:
+                    config[key] = value
+            elif key.startswith("pii_scan_"):
+                # PII Scan settings not in the static key sets
+                if value.lower() in ("true", "false"):
+                    config[key] = value.lower() == "true"
+                else:
+                    config[key] = value
     return config
 
 
