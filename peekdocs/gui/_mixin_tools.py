@@ -6207,6 +6207,24 @@ class ToolsMixin:
             font=("TkDefaultFont", 11),
         ).pack(anchor="w")
 
+        def _save_regex_settings():
+            """Save all pattern rows and settings to config."""
+            try:
+                from peekdocs.cli import _load_config, _save_config
+                config = _load_config()
+                for idx, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows, 1):
+                    config[f"regex_search_{idx}_enabled"] = en_var.get()
+                    config[f"regex_search_{idx}_name"] = nm_entry.get().strip()
+                    config[f"regex_search_{idx}_regex"] = rx_entry.get().strip()
+                rs_folder = _rs_folder_label.cget("text")
+                if rs_folder and rs_folder != "(none)":
+                    config["regex_search_folder"] = rs_folder
+                config["regex_search_recursive"] = _rs_recursive_var.get()
+                config["regex_search_no_report"] = no_report_var.get()
+                _save_config(config)
+            except Exception:
+                pass
+
         # Run and Close buttons
         btn_frame = tk.Frame(win)
         btn_frame.pack(pady=(8, 2))
@@ -6241,25 +6259,22 @@ class ToolsMixin:
                 self._show_error("Enable at least one pattern with a non-empty Regex field.")
                 return
 
-            # Combine with OR
-            combined = "|".join(f"(?:{rx})" for _nm, rx in active)
+            # Strip inline global flags (e.g., (?i)) — they cause errors
+            # when combined with OR. We apply re.IGNORECASE to the whole pattern.
+            _flag_re = _re.compile(r'^\(\?[aiLmsux]+\)')
+            cleaned = []
+            for _nm, rx in active:
+                cleaned.append((_nm, _flag_re.sub('', rx)))
+            combined = "|".join(f"(?:{rx})" for _nm, rx in cleaned)
 
-            # Save all settings to config
+            # Validate the combined regex
             try:
-                from peekdocs.cli import _load_config, _save_config
-                config = _load_config()
-                for idx, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows, 1):
-                    config[f"regex_search_{idx}_enabled"] = en_var.get()
-                    config[f"regex_search_{idx}_name"] = nm_entry.get().strip()
-                    config[f"regex_search_{idx}_regex"] = rx_entry.get().strip()
-                rs_folder = _rs_folder_label.cget("text")
-                if rs_folder and rs_folder != "(none)":
-                    config["regex_search_folder"] = rs_folder
-                config["regex_search_recursive"] = _rs_recursive_var.get()
-                config["regex_search_no_report"] = no_report_var.get()
-                _save_config(config)
-            except Exception:
-                pass
+                _re.compile(combined, _re.IGNORECASE)
+            except _re.error as exc:
+                self._show_error(f"Combined regex is invalid:\n\n{exc}")
+                return
+
+            _save_regex_settings()
 
             rs_folder = _rs_folder_label.cget("text")
             rs_recursive = _rs_recursive_var.get()
@@ -6300,7 +6315,7 @@ class ToolsMixin:
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
-            command=win.destroy,
+            command=lambda: (_save_regex_settings(), win.destroy()),
             font=ctk.CTkFont(size=12),
         ).pack()
 
