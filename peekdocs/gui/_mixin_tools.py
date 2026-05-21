@@ -4006,6 +4006,7 @@ class ToolsMixin:
         for section in [
             "What Is peekdocs?", "Who Is It For?", "Getting Started",
             "Regex Search vs Standard Search",
+            "Regex Search vs Search Suites",
             "Saving and Loading Searches", "Simple Search",
             "Phrase Search (Quoted Terms)", "AND Mode",
             "Boolean Expressions", "Breaking Down Complex Searches",
@@ -4112,6 +4113,31 @@ class ToolsMixin:
         b("Use Regex Search when you have a recurring set of regex patterns")
         b("you want to save and reuse. Use the main search bar for everything")
         b("else \u2014 including single regex searches with the Regex checkbox.")
+        blank()
+
+        h("REGEX SEARCH vs SEARCH SUITES")
+        b("Regex Search and Search Suites are related but serve different")
+        b("purposes:")
+        blank()
+        b("Regex Search popup:")
+        b("\u2022 10 named regex patterns in one view")
+        b("\u2022 All patterns combined with OR into a single search")
+        b("\u2022 Screen-only mode available (no reports written)")
+        b("\u2022 Regex patterns only")
+        b("\u2022 One folder per search")
+        blank()
+        b("Search Suites:")
+        b("\u2022 Group any number of saved searches into a named suite")
+        b("\u2022 Each search runs independently with its own settings")
+        b("  (AND, regex, fuzzy, wildcard, etc.)")
+        b("\u2022 Results organized by search in a combined report")
+        b("\u2022 Per-folder collections")
+        b("\u2022 No screen-only mode")
+        blank()
+        b("If you need multiple regex patterns with screen-only results,")
+        b("use Regex Search. If you need multiple searches with different")
+        b("modes (e.g., one regex, one Boolean, one fuzzy), save each as")
+        b("a named search and group them into a Search Suite.")
         blank()
 
         h("SAVING AND LOADING SEARCHES")
@@ -6619,8 +6645,9 @@ class ToolsMixin:
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
         blank()
         b("For a detailed comparison of Regex Search vs the standard")
-        b("search bar, see 'Regex Search vs Standard Search' in the")
-        b("main screen ? help.")
+        b("search bar and vs Search Suites, see 'Regex Search vs")
+        b("Standard Search' and 'Regex Search vs Search Suites' in")
+        b("the main screen ? help.")
         blank()
 
         h("HOW TO USE IT")
