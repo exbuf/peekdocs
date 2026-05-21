@@ -4954,7 +4954,7 @@ class ToolsMixin:
             command=_clear_all,
         ).pack(side="left", padx=(15, 0))
         # Invisible spacer on the right to balance Clear All so Run centers
-        tk.Frame(btn_frame, width=115).pack(side="right")
+        tk.Frame(btn_frame, width=130).pack(side="right")
         ctk.CTkButton(
             btn_frame, text="Run", width=100,
             font=ctk.CTkFont(size=12, weight="bold"),
