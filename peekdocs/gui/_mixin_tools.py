@@ -6561,23 +6561,22 @@ class ToolsMixin:
                 tk.Label(
                     top_row, text=count_text,
                     font=("TkDefaultFont", 11), fg=count_color,
-                ).pack(side="right")
+                ).pack(side="left", padx=(0, 8))
+
+                if res["files"]:
+                    _files_data = res["files"]
+                    _cat_name = res["name"]
+                    _cat_regex = res["regex"]
+                    ctk.CTkButton(
+                        top_row, text="View Files",
+                        width=80, font=ctk.CTkFont(size=10),
+                        command=lambda f=_files_data, c=_cat_name, p=popup, r=_cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
+                    ).pack(side="right", padx=(0, 5))
 
                 tk.Label(
                     row_frame, text=f"Regex: {res['regex']}",
                     font=("Courier", 10), fg="gray",
                 ).pack(anchor="w", padx=8, pady=(0, 4))
-
-                if res["files"]:
-                    # Pass files dict directly — matches format expected by _show_sensitive_category_files
-                    _files_data = res["files"]
-                    _cat_name = res["name"]
-                    _cat_regex = res["regex"]
-                    ctk.CTkButton(
-                        row_frame, text="View Files",
-                        width=80, font=ctk.CTkFont(size=10),
-                        command=lambda f=_files_data, c=_cat_name, p=popup, r=_cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
-                    ).pack(anchor="w", padx=8, pady=(0, 4))
 
             # Close button
             ctk.CTkButton(
