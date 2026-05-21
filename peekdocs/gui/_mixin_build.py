@@ -448,7 +448,7 @@ class BuildMixin:
         Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
 
 
-        Tooltip(self.search_entry, "Main Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+        Tooltip(self.search_entry, "Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
 
 
@@ -514,7 +514,7 @@ class BuildMixin:
         search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
         Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
-        Tooltip(self.folder_entry, "Search Folder Bar: The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
+        Tooltip(self.folder_entry, "Search Folder: The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
 
 
 
