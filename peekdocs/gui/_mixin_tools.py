@@ -4005,7 +4005,7 @@ class ToolsMixin:
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
             "What Is peekdocs?", "Who Is It For?", "Getting Started",
-            "Standard Search vs Regex Search",
+            "Standard Search (green button) vs Regex Search",
             "Regex Search vs Search Suites",
             "Saving and Loading Searches", "Simple Search",
             "Phrase Search (Quoted Terms)", "AND Mode",
@@ -4094,11 +4094,11 @@ class ToolsMixin:
         b("then View Text to see where the sensitive data was found.")
         blank()
 
-        h("STANDARD SEARCH vs REGEX SEARCH")
+        h("STANDARD SEARCH (GREEN BUTTON) vs REGEX SEARCH")
         b("The purple Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
-        b("Standard search (main search bar \u2014 next to Step 2):")
+        b("Standard Search (green button, main search bar \u2014 next to Step 2):")
         b("\u2022 Supports all 11 search modes: keywords, AND/OR, Boolean,")
         b("  regex, fuzzy, wildcard, whole-word, proximity, inverse, range")
         b("\u2022 Single regex via the Regex checkbox in Advanced Search Options")
@@ -4140,9 +4140,9 @@ class ToolsMixin:
         blank()
         e("  I want to...                          Use")
         e("  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500")
-        e("  Search for a word or phrase            Standard Search")
-        e("  Use AND, Boolean, fuzzy, proximity     Standard Search")
-        e("  Search with one regex pattern           Standard Search")
+        e("  Search for a word or phrase            Standard Search (green button)")
+        e("  Use AND, Boolean, fuzzy, proximity     Standard Search (green button)")
+        e("  Search with one regex pattern           Standard Search (green button)")
         e("  Run multiple regex patterns at once     Regex Search")
         e("  Save and reuse named regex patterns     Regex Search")
         e("  Hide results from report files          Regex Search")
@@ -6700,7 +6700,7 @@ class ToolsMixin:
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
         blank()
         b("For a detailed comparison of Regex Search vs the standard")
-        b("search bar and vs Search Suites, see 'Standard Search vs")
+        b("search bar and vs Search Suites, see 'Standard Search (green button) vs")
         b("Regex Search' and 'Regex Search vs Search Suites' in")
         b("the main screen ? help.")
         blank()
