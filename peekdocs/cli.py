@@ -101,6 +101,8 @@ BANNER_BOTTOM = (
     '\n'
     '── Settings & Info ──────────────────────────────────────────────\n'
     '  --suite NAME       Run a search suite (group of saved searches) by name\n'
+    '  --regex-collection NAME  Run a saved regex collection by name\n'
+    '  --regex-collection --list  List all saved regex collections\n'
     '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
     '  --config           Show all saved settings\n'
     '  --config --reset   Delete all saved settings and return to factory defaults\n'
@@ -216,6 +218,8 @@ BANNER_QUICK = (
     '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
     '  peekdocs --suite "My Suite"      Run a saved search suite by name\n'
+    '  peekdocs --regex-collection "name"  Run a saved regex collection by name\n'
+    '  peekdocs --regex-collection --list  List all saved regex collections\n'
     '  peekdocs --config max_matches=5000  Save a default setting permanently\n'
     '  peekdocs --stdout -r budget      Output JSON to stdout for piping (no report files)\n'
     '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'
@@ -1001,6 +1005,161 @@ def _main_inner(argv=None):
         print(f"Reports: {txt_path}")
         print(f"         {docx_path}")
         return 0
+
+    # ── --regex-collection NAME: run a saved regex collection ──
+    if args and args[0] == "--regex-collection":
+        if len(args) < 2:
+            print("Error: --regex-collection requires a collection name.\n"
+                  "Usage: peekdocs --regex-collection \"security audit\"\n"
+                  "       peekdocs --regex-collection --list\n")
+            return 2
+        if args[1] == "--list":
+            _rc_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+            if not os.path.exists(_rc_path):
+                print("No saved regex collections found.")
+                return 0
+            try:
+                with open(_rc_path, "r", encoding="utf-8") as _rc_f:
+                    _rc_data = json.loads(_rc_f.read())
+                if not _rc_data:
+                    print("No saved regex collections found.")
+                    return 0
+                print("Saved regex collections:")
+                for _rc_name in sorted(_rc_data.keys()):
+                    _rc_patterns = _rc_data[_rc_name]
+                    _rc_enabled = sum(1 for p in _rc_patterns if p.get("enabled"))
+                    print(f"  {_rc_name} ({_rc_enabled} enabled pattern(s))")
+            except Exception as e:
+                print(f"Error reading collections: {e}")
+                return 2
+            return 0
+
+        collection_name = args[1]
+        _rc_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+        if not os.path.exists(_rc_path):
+            print("No saved regex collections found. Create one in the GUI (Regex Search → Save Collection As).")
+            return 2
+        try:
+            with open(_rc_path, "r", encoding="utf-8") as _rc_f:
+                _rc_data = json.loads(_rc_f.read())
+        except Exception as e:
+            print(f"Error reading collections: {e}")
+            return 2
+
+        if collection_name not in _rc_data:
+            available = sorted(_rc_data.keys())
+            print(f"Collection '{collection_name}' not found.")
+            if available:
+                print(f"Available collections: {', '.join(available)}")
+            return 2
+
+        patterns = _rc_data[collection_name]
+        active = [(p["name"], p["regex"]) for p in patterns if p.get("enabled") and p.get("regex", "").strip()]
+        if not active:
+            print(f"Collection '{collection_name}' has no enabled patterns with regex.")
+            return 2
+
+        # Parse remaining flags: -r, -d, --stdout
+        _rc_recursive = "-r" in args[2:]
+        _rc_stdout = "--stdout" in args[2:]
+        _rc_dir = os.getcwd()
+        if "-d" in args[2:]:
+            _d_idx = args.index("-d", 2)
+            if _d_idx + 1 < len(args):
+                _rc_dir = args[_d_idx + 1]
+        if not os.path.isdir(_rc_dir):
+            print(f"Error: directory '{_rc_dir}' not found.")
+            return 2
+
+        from peekdocs.api import search as _rc_search
+        import re as _rc_re
+
+        if not quiet:
+            print(f"Running regex collection '{collection_name}' ({len(active)} pattern(s)) in {_rc_dir}")
+
+        start_time = time.time()
+        all_results = []
+        all_matches = []
+
+        for i, (name, regex) in enumerate(active, 1):
+            # Validate regex
+            try:
+                _rc_re.compile(regex)
+            except _rc_re.error as exc:
+                print(f"  Warning: pattern '{name}' has invalid regex ({exc}) — skipping.")
+                continue
+
+            if not quiet:
+                print(f"  [{i}/{len(active)}] {name}")
+
+            result = _rc_search(
+                [regex],
+                directory=_rc_dir,
+                recursive=_rc_recursive,
+                use_regex=True,
+                use_index=False,
+            )
+            match_tuples = [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches]
+            all_results.append({
+                "name": name,
+                "regex": regex,
+                "match_count": len(result.matches),
+                "file_count": len({m.filename for m in result.matches}),
+            })
+            all_matches.extend(match_tuples)
+
+            if not quiet:
+                file_count = len({m.filename for m in result.matches})
+                print(f"           {len(result.matches)} match(es) in {file_count} file(s)")
+
+        elapsed = time.time() - start_time
+        total_matches = sum(r["match_count"] for r in all_results)
+
+        if _rc_stdout:
+            # JSON output to stdout
+            from peekdocs.reporter import _strip_highlights
+            json_data = {
+                "generator": f"peekdocs v{VERSION}",
+                "collection": collection_name,
+                "directory": _rc_dir,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "elapsed_seconds": round(elapsed, 2),
+                "total_matches": total_matches,
+                "patterns": all_results,
+                "matches": [
+                    {"filename": fn, "folder": fd, "line_number": ln, "matched_text": _strip_highlights(tx)}
+                    for fd, fn, ln, tx in all_matches
+                ],
+            }
+            sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
+        else:
+            # Write reports
+            if all_matches:
+                # write_txt_report, write_docx_report, insert_file_sizes already imported at module level
+                output_path = os.path.join(_rc_dir, "peekdocs_results.txt")
+                docx_path = os.path.join(_rc_dir, "peekdocs_results.docx")
+                search_terms = [regex for _name, regex in active]
+                command_str = f"peekdocs --regex-collection \"{collection_name}\""
+                write_txt_report(
+                    output_path, all_matches, [], search_terms, command_str,
+                    "ANY", False, [], False, False, True, False,
+                    elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
+                    recursive=_rc_recursive, use_index=False,
+                )
+                result_doc = write_docx_report(
+                    docx_path, output_path,
+                    search_terms=search_terms,
+                    use_regex=True,
+                )
+                insert_file_sizes(output_path, docx_path, result_doc)
+
+            if not quiet:
+                print(f"\nCollection '{collection_name}': {len(active)} pattern(s), {total_matches} total match(es) ({elapsed:.1f}s)")
+                if all_matches:
+                    print(f"Reports: {os.path.join(_rc_dir, 'peekdocs_results.txt')}")
+                    print(f"         {os.path.join(_rc_dir, 'peekdocs_results.docx')}")
+
+        return 0 if total_matches > 0 else 1
 
     no_index = "--no-index" in args
     if no_index:

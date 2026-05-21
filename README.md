@@ -94,10 +94,13 @@ By default, only the current folder is searched. Use -r to include subfolders.
   peekdocs --suite "My Suite"      Run a saved search suite by name
   peekdocs --config max_matches=5000  Save a default setting permanently
 
-── Piping (for scripts and automation) ──────────────────────────
+── Piping and automation ─────────────────────────────────────────
   peekdocs --stdout -r "budget"  Output JSON to stdout (no report files written)
   peekdocs --stdout -r "budget" | jq '.matches_found'
-  peekdocs --stdout -r "budget" | jq '[.matches_per_file[] | .filename]'
+  peekdocs --regex-collection "security audit"     Run a saved regex collection
+  peekdocs --regex-collection "security audit" -r  Recursive
+  peekdocs --regex-collection "security audit" --stdout  JSON output
+  peekdocs --regex-collection --list               List saved collections
 
 ── Cleanup ──────────────────────────────────────────────────────
   peekdocs --list-files          List all peekdocs-created files
@@ -921,6 +924,15 @@ Yes. The `--stdout` flag outputs clean JSON to stdout for piping — no report f
 peekdocs --stdout -r "password" | jq '.matches_found'
 peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
 peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
+
+# Run saved regex collections from the CLI (created in GUI → Regex Search → Save Collection As)
+peekdocs --regex-collection "security audit" -r     # run with reports
+peekdocs --regex-collection "security audit" --stdout  # JSON output for piping
+peekdocs --regex-collection --list                  # list all saved collections
+
+# Schedule with cron (macOS/Linux) or Task Scheduler (Windows)
+# Example: run a regex collection every Monday at 8am
+# 0 8 * * 1 cd /path/to/docs && peekdocs --regex-collection "weekly scan" -r -qq
 ```
 
 Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details.
