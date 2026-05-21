@@ -6556,13 +6556,6 @@ class ToolsMixin:
                     top_row, text=res["name"],
                     font=("TkDefaultFont", 12, "bold"),
                 ).pack(side="left")
-                count_text = f"{res['match_count']} match(es) in {res['file_count']} file(s)"
-                count_color = "green" if res["match_count"] == 0 else "black"
-                tk.Label(
-                    top_row, text=count_text,
-                    font=("TkDefaultFont", 11), fg=count_color,
-                ).pack(side="left", padx=(0, 8))
-
                 if res["files"]:
                     _files_data = res["files"]
                     _cat_name = res["name"]
@@ -6572,6 +6565,13 @@ class ToolsMixin:
                         width=80, font=ctk.CTkFont(size=10),
                         command=lambda f=_files_data, c=_cat_name, p=popup, r=_cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
                     ).pack(side="right", padx=(0, 5))
+
+                count_text = f"{res['match_count']} match(es) in {res['file_count']} file(s)"
+                count_color = "green" if res["match_count"] == 0 else "black"
+                tk.Label(
+                    top_row, text=count_text,
+                    font=("TkDefaultFont", 11), fg=count_color,
+                ).pack(side="left", padx=(0, 8))
 
                 tk.Label(
                     row_frame, text=f"Regex: {res['regex']}",
