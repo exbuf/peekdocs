@@ -514,7 +514,7 @@ class BuildMixin:
         search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
         Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
-        Tooltip(self.folder_entry, "Search Folder: The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
+        Tooltip(self.folder_entry, "Search Folder Bar: The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
 
 
 
