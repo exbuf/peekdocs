@@ -4796,6 +4796,129 @@ class ToolsMixin:
             command=lambda: self._show_regex_search_help(win),
         ).pack(side="right")
 
+        # Save/Restore collection buttons
+        _collections_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+
+        def _save_collection():
+            from tkinter import simpledialog
+            import json as _json_rc
+            name = simpledialog.askstring("Save Collection As", "Collection name:", parent=win)
+            if not name or not name.strip():
+                return
+            name = name.strip()
+            # Gather current patterns
+            patterns = []
+            for en_var, nm_entry, rx_entry in pattern_rows:
+                patterns.append({
+                    "enabled": en_var.get(),
+                    "name": nm_entry.get(),
+                    "regex": rx_entry.get(),
+                })
+            # Load existing collections
+            collections = {}
+            if os.path.exists(_collections_path):
+                try:
+                    with open(_collections_path, "r", encoding="utf-8") as f:
+                        collections = _json_rc.load(f)
+                except Exception:
+                    pass
+            collections[name] = patterns
+            with open(_collections_path, "w", encoding="utf-8") as f:
+                _json_rc.dump(collections, f, indent=2, ensure_ascii=False)
+            self.status_label.configure(
+                text=f"Regex collection '{name}' saved.",
+                text_color="green",
+            )
+
+        def _restore_collection():
+            import json as _json_rc
+            if not os.path.exists(_collections_path):
+                self._show_error("No saved collections found.")
+                return
+            try:
+                with open(_collections_path, "r", encoding="utf-8") as f:
+                    collections = _json_rc.load(f)
+            except Exception:
+                self._show_error("Could not read collections file.")
+                return
+            if not collections:
+                self._show_error("No saved collections found.")
+                return
+            # Show picker popup
+            pick_win, _ = self._themed_toplevel(win)
+            pick_win.title("Restore From Collection")
+            pick_win.geometry("350x300")
+            pick_win.transient(win)
+            pick_win.grab_set()
+            self.update_idletasks()
+            px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
+            py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
+            pick_win.geometry(f"+{px}+{py}")
+
+            tk.Label(pick_win, text="Select a collection:", font=("TkDefaultFont", 11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
+            pick_lb = tk.Listbox(pick_win, font=("TkDefaultFont", 11), exportselection=False)
+            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            for cname in sorted(collections.keys()):
+                pick_lb.insert("end", cname)
+
+            def _do_restore():
+                sel = pick_lb.curselection()
+                if not sel:
+                    return
+                chosen = pick_lb.get(sel[0])
+                patterns = collections[chosen]
+                for i, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows):
+                    if i < len(patterns):
+                        p = patterns[i]
+                        en_var.set(p.get("enabled", False))
+                        nm_entry.delete(0, "end")
+                        nm_entry.insert(0, p.get("name", ""))
+                        rx_entry.delete(0, "end")
+                        rx_entry.insert(0, p.get("regex", ""))
+                    else:
+                        en_var.set(False)
+                        nm_entry.delete(0, "end")
+                        rx_entry.delete(0, "end")
+                pick_win.destroy()
+                self.status_label.configure(
+                    text=f"Regex collection '{chosen}' restored.",
+                    text_color="green",
+                )
+
+            def _do_delete():
+                sel = pick_lb.curselection()
+                if not sel:
+                    return
+                chosen = pick_lb.get(sel[0])
+                from tkinter import messagebox
+                if not messagebox.askyesno("Delete Collection", f"Delete '{chosen}'?", parent=pick_win):
+                    return
+                del collections[chosen]
+                with open(_collections_path, "w", encoding="utf-8") as f:
+                    _json_rc.dump(collections, f, indent=2, ensure_ascii=False)
+                pick_lb.delete(sel[0])
+
+            btn_row = tk.Frame(pick_win)
+            btn_row.pack(pady=(0, 10))
+            ctk.CTkButton(btn_row, text="Restore", width=80, font=ctk.CTkFont(size=12), command=_do_restore).pack(side="left", padx=5)
+            ctk.CTkButton(btn_row, text="Delete", width=80, font=ctk.CTkFont(size=12),
+                          fg_color="#CC3333", hover_color="#AA2222", command=_do_delete).pack(side="left", padx=5)
+            ctk.CTkButton(btn_row, text="Cancel", width=80, font=ctk.CTkFont(size=12),
+                          fg_color="transparent", text_color=("gray30", "gray70"),
+                          hover_color=("gray90", "gray25"), command=pick_win.destroy).pack(side="left", padx=5)
+            self._apply_dark_theme(pick_win)
+
+        collection_frame = tk.Frame(win)
+        collection_frame.pack(fill="x", padx=15, pady=(2, 2))
+        ctk.CTkButton(
+            collection_frame, text="Save Collection As", width=140,
+            font=ctk.CTkFont(size=11), command=_save_collection,
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkButton(
+            collection_frame, text="Restore From Collection", width=170,
+            font=ctk.CTkFont(size=11), command=_restore_collection,
+        ).pack(side="left")
+
         # Folder bar with Browse and Recursive
         from peekdocs.cli import _load_config as _lc_rs
         _rs_cfg = _lc_rs()
