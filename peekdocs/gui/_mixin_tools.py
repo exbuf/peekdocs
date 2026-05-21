@@ -5418,6 +5418,7 @@ class ToolsMixin:
         for section in [
             "What This Is",
             "How to Use It",
+            "Saving and Restoring Collections",
             "Pattern Tips",
             "Common Regex Patterns (50 Examples)",
             "Report Checkbox",
@@ -5485,6 +5486,22 @@ class ToolsMixin:
         b("and regex fields). Restore All puts them back \u2014 it undoes")
         b("the most recent Clear All. Useful if you accidentally clear")
         b("patterns you meant to keep.")
+        blank()
+
+        h("SAVING AND RESTORING COLLECTIONS")
+        b("Save Collection As saves all 10 pattern rows (enabled state,")
+        b("name, and regex) under a label you choose. Restore From")
+        b("Collection loads a previously saved collection, replacing")
+        b("whatever is currently in the pattern rows.")
+        blank()
+        b("Use this to maintain multiple regex profiles \u2014 for example:")
+        b("\u2022 'Security audit' \u2014 passwords, API keys, credentials")
+        b("\u2022 'Code review' \u2014 TODOs, deprecated APIs, error patterns")
+        b("\u2022 'Financial' \u2014 dollar amounts, account numbers, dates")
+        blank()
+        b("Collections are stored in ~/.peekdocs_regex_collections.json")
+        b("and persist across sessions. The Restore picker also includes")
+        b("a Delete button to remove collections you no longer need.")
         blank()
 
         h("PATTERN TIPS")
