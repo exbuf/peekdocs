@@ -387,11 +387,11 @@ class DataMixin:
         # Shorten row 3 button labels at Extra Large and Huge to save width
         try:
             if value in ("Extra Large", "Huge"):
-                self.search_button.configure(text="Search")
+                self.search_button.configure(text="\U0001f50d Search")
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
             else:
-                self.search_button.configure(text="Search")
+                self.search_button.configure(text="\U0001f50d Search")
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
         except Exception:

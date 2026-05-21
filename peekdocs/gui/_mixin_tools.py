@@ -4496,7 +4496,7 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
 
         import re as _re_fin
@@ -4634,7 +4634,7 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
