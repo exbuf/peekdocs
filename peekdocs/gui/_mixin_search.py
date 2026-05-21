@@ -941,9 +941,14 @@ class SearchMixin:
         # Also check the last-used folder from saved config
         try:
             from peekdocs.cli import _load_config
-            _cfg_folder = _load_config().get("folder", "")
+            _cfg = _load_config()
+            _cfg_folder = _cfg.get("folder", "")
             if _cfg_folder and os.path.isdir(_cfg_folder):
                 folders_to_clean.add(_cfg_folder)
+            # Include last-used regex search folder
+            _rs_folder = _cfg.get("regex_search_folder", "")
+            if _rs_folder and os.path.isdir(_rs_folder):
+                folders_to_clean.add(_rs_folder)
         except Exception:
             pass
 

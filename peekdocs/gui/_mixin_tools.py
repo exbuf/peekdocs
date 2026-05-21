@@ -4938,6 +4938,10 @@ class ToolsMixin:
             rs_folder = _rs_folder_label.cget("text")
             rs_recursive = _rs_recursive_var.get()
             self._last_regex_search_folder = rs_folder
+            if rs_folder and rs_folder != "(none)" and os.path.isdir(rs_folder):
+                if not hasattr(self, "_searched_folders"):
+                    self._searched_folders = set()
+                self._searched_folders.add(rs_folder)
 
             screen_only = no_report_var.get()
             win.destroy()
