@@ -1439,6 +1439,7 @@ class BuildMixin:
             _dark_sep()
             # Cleanup
             menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)
+            menu.add_command(label="Clean Folder — delete peekdocs files in any folder", command=self._clean_folder)
             _dark_sep()
             # Text Size — direct items instead of a cascade submenu
             # (cascades open to the right and go off-screen on small displays)

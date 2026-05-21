@@ -1233,6 +1233,54 @@ class SearchMixin:
 
 
 
+    def _clean_folder(self):
+        """Browse to any folder and delete all peekdocs-generated files in it."""
+        import tkinter as tk
+        from tkinter import filedialog, messagebox
+
+        folder = filedialog.askdirectory(title="Select folder to clean")
+        if not folder or not os.path.isdir(folder):
+            return
+
+        # Find all peekdocs files in the selected folder (non-recursive)
+        peekdocs_files = []
+        for fname in os.listdir(folder):
+            if (fname.startswith("peekdocs_results") or
+                    fname.startswith("peekdocs_suite_results") or
+                    fname.startswith("peekdocs_report_") or
+                    fname.startswith("peekdocs_accumulated_") or
+                    fname == "peekdocs_errors.log" or
+                    fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm")):
+                peekdocs_files.append(fname)
+
+        if not peekdocs_files:
+            messagebox.showinfo("Clean Folder", f"No peekdocs files found in:\n{folder}")
+            return
+
+        # Show confirmation with file list
+        file_list = "\n".join(f"  \u2022 {f}" for f in sorted(peekdocs_files))
+        if not messagebox.askyesno(
+            "Clean Folder",
+            f"Delete {len(peekdocs_files)} peekdocs file(s) from:\n{folder}\n\n"
+            f"{file_list}\n\n"
+            "Saved searches (.peekdocs_collection.json) and settings (~/.peekdocsrc) "
+            "are not affected.\n\nContinue?",
+        ):
+            return
+
+        deleted = 0
+        for fname in peekdocs_files:
+            try:
+                os.remove(os.path.join(folder, fname))
+                deleted += 1
+            except OSError:
+                pass
+
+        self.status_label.configure(
+            text=f"Cleaned {deleted} file(s) from {os.path.basename(folder)}.",
+            text_color="green",
+        )
+
     def _clear_files(self):
         """Show a popup with checkboxes for every peekdocs-created file so the user can choose which to delete."""
         import tkinter as tk
