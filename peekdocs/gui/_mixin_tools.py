@@ -4948,17 +4948,17 @@ class ToolsMixin:
             self._run_regex_search_per_pattern(active, combined, rs_folder, rs_recursive, screen_only)
 
         ctk.CTkButton(
+            btn_frame, text="Clear All", width=100,
+            font=ctk.CTkFont(size=12),
+            fg_color="#CC3333", hover_color="#AA2222",
+            command=_clear_all,
+        ).pack(side="left", padx=(15, 0))
+        ctk.CTkButton(
             btn_frame, text="Run", width=100,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color="green", hover_color="darkgreen",
             command=_run,
-        ).pack()
-        ctk.CTkButton(
-            close_frame, text="Clear All", width=100,
-            font=ctk.CTkFont(size=12),
-            fg_color="#CC3333", hover_color="#AA2222",
-            command=_clear_all,
-        ).pack(side="left", padx=5)
+        ).pack(expand=True)
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
