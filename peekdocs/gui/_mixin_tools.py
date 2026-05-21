@@ -4878,11 +4878,17 @@ class ToolsMixin:
             except Exception:
                 pass
 
-        # Run and Close buttons
+        # Clear All, Run, and Close buttons
         btn_frame = tk.Frame(win)
         btn_frame.pack(pady=(8, 2))
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 12))
+
+        def _clear_all():
+            for en_var, nm_entry, rx_entry in pattern_rows:
+                en_var.set(False)
+                nm_entry.delete(0, "end")
+                rx_entry.delete(0, "end")
 
         def _run():
             import re as _re
@@ -4942,7 +4948,13 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color="green", hover_color="darkgreen",
             command=_run,
-        ).pack()
+        ).pack(side="left", padx=5)
+        ctk.CTkButton(
+            btn_frame, text="Clear All", width=100,
+            font=ctk.CTkFont(size=12),
+            fg_color="#CC3333", hover_color="#AA2222",
+            command=_clear_all,
+        ).pack(side="left", padx=5)
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
