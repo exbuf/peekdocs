@@ -13,7 +13,6 @@
 - Proximity searches — find terms within N words or N lines of each other
 - AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex — 11 search modes
 - OCR — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
-- PII Scan — identify patterns such as SSNs, credit cards, and passwords
 - Regex Search — run up to 10 named regex patterns with per-pattern results and optional report suppression
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
@@ -43,11 +42,6 @@ peekdocs "budget" ~/Documents
 #   quarterly_report_Q1.docx: 6
 #   vendor_contract_2024.pdf: 5  ...
 
-# Scan for sensitive data (SSNs, credit cards, passwords)
-peekdocs --pii-scan        # current folder — screen only, no file written
-peekdocs --pii-scan -r     # recursive (flags can be in any order)
-# Shows filenames and line numbers only — never the actual sensitive data
-
 # Search with the GUI
 peekdocs-gui
 
@@ -60,7 +54,7 @@ for match in results.matches:
 
 ## Contents
 
-[CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [PII Scan](#pii-scan-screenshot) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Preparing Documents](#preparing-your-documents-for-searching) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
+[CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Preparing Documents](#preparing-your-documents-for-searching) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
 
 ## CLI at a Glance
 
@@ -100,10 +94,6 @@ By default, only the current folder is searched. Use -r to include subfolders.
   peekdocs --suite "My Suite"      Run a saved search suite by name
   peekdocs --config max_matches=5000  Save a default setting permanently
 
-── PII Scan ─────────────────────────────────────────────────────
-  peekdocs --pii-scan            Scan current folder for SSNs, credit cards, passwords, etc.
-  peekdocs --pii-scan -r         Scan all subfolders recursively
-
 ── Piping (for scripts and automation) ──────────────────────────
   peekdocs --stdout -r "budget"  Output JSON to stdout (no report files written)
   peekdocs --stdout -r "budget" | jq '.matches_found'
@@ -135,7 +125,6 @@ Output:   -o csv,json,pdf,html  -s name (save)  --timestamp
           --open docx  --open html  -sa archive (append)
           --stdout (JSON to stdout for piping, no report files)
 Index:    --index (build)  --index-refresh  --index-clear
-PII:      --pii-scan  --pii-scan -r (recursive)
 Cleanup:  --clear  --clear-all  --list-files
 Settings: --config KEY=VAL  --config --reset  --check
 ```
@@ -144,7 +133,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [Example 5: Boolean](#ss-ex5) · [5.a HTML report](#ss-ex5a) · [Example 6: Regex](#ss-ex6) · [PII Scan](#pii-scan-screenshot) · [PII results](#ss-pii-results) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
+[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [Example 5: Boolean](#ss-ex5) · [5.a HTML report](#ss-ex5a) · [Example 6: Regex](#ss-ex6) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
 
 <a id="ss-getting-started"></a>
 **Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
@@ -237,16 +226,6 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Regex dollar amount PDF report](docs/images/regex-dollar-search-pdf.png)
 
-<a id="pii-scan-screenshot"></a>
-**PII Scan — helps locate personally identifiable information you may have inadvertently left in your files:**
-
-![PII Scan category selection](docs/images/PII_Scan.png)
-
-<a id="ss-pii-results"></a>
-**PII Scan results (the blue 'View Files' buttons operate similar to 1.c and 1.d above):**
-
-![PII Scan results with severity badges](docs/images/PII_scan_results.png)
-
 <a id="ss-advanced"></a>
 **Advanced Search Options (click 'Advanced' on main screen):**
 
@@ -277,7 +256,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Tools Menu](docs/images/main-tools-menu.png)
 
-**Simple for everyone, powerful when you need it.** Most users never leave the search bar and PII Scan button. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
+**Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
 Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are not altered or deleted. Free and open-source.
 
@@ -292,34 +271,34 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 | **Developers** | Source code, code notes, technical docs, markdown, exported logs, config files, API references, archived project folders, `.env` files, Dockerfiles |
 | **Data Scientists / Analysts** | Experiment notes, CSV/Excel documentation, research papers, Jupyter notebooks, methodology docs, report archives, JSONL training data |
 | **Engineers** | Specifications, manuals, design notes, vendor PDFs, test reports, maintenance records, datasheets, SPICE netlists, Verilog/VHDL |
-| **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs, server configs (.conf, .properties). PII scan via SSH — no GUI needed |
+| **IT / Operations** | Procedures, inventories, runbooks, exported tickets, deployment notes, email archives (.pst, .mbox), error logs, server configs (.conf, .properties). CLI works over SSH — no GUI needed |
 | **Researchers** | Journal articles (PDF), interview transcripts, survey responses, field notes, grant proposals, historical documents (OCR) |
 | **Anyone with document chaos** | If your desktop is a maze, peekdocs helps. |
 
 <details>
 <summary><b>Details by role (click to expand)</b></summary>
 
-- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes, and API keys accidentally saved in documents (PII Scan). A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. `pip install peekdocs` and you're running in seconds — CLI, GUI, or Python API. **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
-- **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once. Credential scanning: the PII Scan catches `password=`, `api_key=`, `secret=` patterns in source code — run it before pushing to a public repo.
-- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions. Use PII Scan on CSV/Excel/JSONL training data to check for possible SSNs, emails, or phone numbers before publishing a dataset or model.
+- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. `pip install peekdocs` and you're running in seconds — CLI, GUI, or Python API. **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
+- **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once. Credential scanning: use Regex Search to find `password=`, `api_key=`, `secret=` patterns in source code — run it before pushing to a public repo.
+- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions. Use Regex Search on CSV/Excel/JSONL training data to check for possible SSNs, emails, or phone numbers before publishing a dataset or model.
 - **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold. Search for inconsistent data formats across files.
-- **Your personal laptop too** — you spend all day writing code, but your personal machine has tax returns, bank statements, old resumes, and years of random files. Before you sell a laptop, share a drive, or hand off a device, run the PII Scan — it scans for SSNs, credit cards, and passwords that may be hiding in your files. Then tell your non-technical friends and family to do the same. peekdocs has a point-and-click GUI that anyone can use — no terminal required.
-- **Home users** — almost everyone has tax returns, medical records, insurance policies, journals or diaries they need to retrieve information from. Or a laptop they may sell that might still contain personal information. Once installed, type your keyword(s), click Run Search, done. No configuration, no manual. Or click **PII Scan** to check your files for Social Security numbers, credit cards, and other sensitive data that shouldn't be there — one click, no setup. (Note: PII Scan is a discovery aid — it may miss some data or flag things that aren't sensitive. Always review results before acting. See [Disclaimer](#disclaimer).)
+- **Your personal laptop too** — you spend all day writing code, but your personal machine has tax returns, bank statements, old resumes, and years of random files. Before you sell a laptop, share a drive, or hand off a device, search for sensitive data that may be hiding in your files. peekdocs has a point-and-click GUI that anyone can use — no terminal required.
+- **Home users** — almost everyone has tax returns, medical records, insurance policies, journals or diaries they need to retrieve information from. Or a laptop they may sell that might still contain personal information. Once installed, type your keyword(s), click Run Search, done. No configuration, no manual.
 - **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. Find calibration records, inspection reports, and certification dates. Search change orders and ECNs for a specific part number. Find every document that references a vendor, supplier, or material. Search old test data reports for baseline measurements. OCR reads scanned engineering drawings and handwritten notes. Engineers accumulate PDFs like nobody else — datasheets, standards, specs, reports, manuals — and most are in formats that grep (a popular command-line text search tool, limited to plain text files) and VS Code can't read. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
-- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The PII Scan works from both the GUI and CLI (`peekdocs --pii-scan`) — the CLI version shows only filenames and line numbers, never the actual sensitive data. The Search Wizard is GUI-only
+- **Power users** — regex, Boolean expressions, range queries, fuzzy matching, wildcards, proximity search, OCR, a terminal CLI, and a Python API. All search modes work from both the GUI and the command line. The Search Wizard is GUI-only
 - **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates. Locate transactions and policy references before an audit. (peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status)
-- **Documentation teams and tech writers** — managing hundreds or thousands of documents across multiple formats? Search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. PII Scan catches sensitive data that shouldn't be in published materials — customer names, internal IPs, credentials left in code samples. Check for regulatory language, required disclaimers, or missing boilerplate before publishing. Tech writers dealing with content from multiple authors, departments, or product lines can verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search
+- **Documentation teams and tech writers** — managing hundreds or thousands of documents across multiple formats? Search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Use Regex Search to catch sensitive data that shouldn't be in published materials — customer names, internal IPs, credentials left in code samples. Check for regulatory language, required disclaimers, or missing boilerplate before publishing. Tech writers dealing with content from multiple authors, departments, or product lines can verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search
 - **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. Find a methodology reference buried in last year's literature review. Search grant proposals and progress reports for specific aims or deliverables. OCR reads scanned source materials and historical documents. The highlighted Word report serves as an annotated bibliography or evidence trail
 - **Students and writers** — search across course notes, research papers, interview transcripts, and assignments in any format
-- **Teachers** — search years of lesson plans for a specific topic or standard. Find old tests, quizzes, and worksheets that covered a particular concept — across Word docs, PDFs, and scanned handouts (OCR). Search parent correspondence for a specific student or issue. Find what you wrote on report cards last year. PII Scan is critical for IEP documents and student accommodation records, which contain highly sensitive data
-- **Librarians** — search donated document collections and digital archives without opening files one by one. Find specific titles, authors, or ISBNs across acquisition lists, catalog records, and spreadsheets. Search grant applications, board meeting minutes, and policy documents across years. PII Scan on patron records before archiving or sharing
+- **Teachers** — search years of lesson plans for a specific topic or standard. Find old tests, quizzes, and worksheets that covered a particular concept — across Word docs, PDFs, and scanned handouts (OCR). Search parent correspondence for a specific student or issue. Find what you wrote on report cards last year
+- **Librarians** — search donated document collections and digital archives without opening files one by one. Find specific titles, authors, or ISBNs across acquisition lists, catalog records, and spreadsheets. Search grant applications, board meeting minutes, and policy documents across years
 - **Tax season** — search years of tax returns, W-2s, 1099s, and receipts for a specific deduction, amount, or account number. Find what you need in seconds instead of opening files one by one
 - **Medical records** — find old lab results, prescriptions, doctor names, and diagnoses across years of PDFs from patient portals
 - **Estate and family documents** — handling a relative's files? Search for wills, insurance policies, account numbers, passwords, and important records across an entire folder of unfamiliar documents
 - **Home renovation and vehicles** — find contractor invoices, permits, appliance model numbers, warranty dates, VIN numbers, and maintenance records buried in old documents
 - **Warranties and receipts** — "when did I buy the dishwasher?" Search years of email receipts and scanned warranties to find purchase dates, model numbers, and return policies
 - **Genealogy** — search scanned family documents, old letters (OCR), immigration records, and historical PDFs for names, dates, and places
-- **Selling or donating a computer** — run the PII Scan before handing off a device to make sure no Social Security numbers, credit cards, or passwords are left behind
+- **Selling or donating a computer** — search for sensitive data before handing off a device to make sure no passwords or personal information are left behind
 - **Customer disputes** — find the original email, invoice, or agreement with a specific customer across years of correspondence
 - **Employee onboarding** — new hires searching policy manuals, benefit documents, and training materials for specific topics
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. Most general-purpose search tools can't read email formats — peekdocs can
@@ -355,29 +334,9 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
   - **Compatibility and privacy:**
     - The `.docx` report opens in Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free)
     - peekdocs blocks opening in Google Docs, Apple Pages, or other cloud-based apps that may upload your data
-- **One-click PII Scan** (Personally Identifiable Information)
-  Helps locate patterns that may indicate personally identifiable information in your files.
-  - **What it scans for:**
-    - Social Security numbers, credit cards, tax IDs
-    - Emails, phone numbers, dates of birth
-    - Password-related patterns (e.g., pw, p/w, login, username, user ID, UID, passcode, PIN)
-    - User-configurable dollar-amount ranges
-    - Custom regex patterns for specialized detection
-  - **How it works:**
-    - Results are categorized by severity (high / moderate / info)
-    - Click **View Files** to see affected files
-    - Click **View Text** to review matches with highlighted line numbers
-    - Double-click a file to open it in its default application for review or redaction
-    - Re-run the scan to verify changes
-    - Tip: Use Find & Replace in your word processor to locate exact matches. Note that peekdocs line numbers refer to extracted paragraphs, not visual lines.
-  - **Behavior:**
-    - Fully independent from the main search (separate folder and Recursive setting)
-    - Always scans all supported file types regardless of Advanced Search filters
-    - Results are shown on screen only — no report file is written to disk
-  - **Important:** PII Scan is a discovery aid. It uses pattern-based matching and may miss some data or flag content that is not sensitive. Always review results before acting. See [Disclaimer](#disclaimer).
-- **Regex Search** — run up to 10 custom regex patterns from a dedicated popup (GUI only), each executed separately with per-pattern results and status updates. Each pattern has a name and regex field, with settings saved across sessions. Results show per-pattern match counts with View Files buttons to see affected files and View Text to review highlighted matches — same workflow as PII Scan. Cancel button stops the search between patterns. Check "Do not save regex match contents to reports" to prevent sensitive information from being saved to files — results are displayed in a screen-only popup only. Always scans files directly (index is bypassed) to ensure current results. The ? help includes 50 common regex patterns you can copy and paste. Note: you can also run a single regex search from the main search bar by checking "Regex" in Advanced Search Options — the main search bar supports all 11 search modes (AND, Boolean, fuzzy, wildcard, proximity, etc.) that the Regex Search popup does not.
+- **Regex Search** — run up to 10 custom regex patterns from a dedicated popup (GUI only), each executed separately with per-pattern results and status updates. Each pattern has a name and regex field, with settings saved across sessions. Results show per-pattern match counts with View Files buttons to see affected files and View Text to review highlighted matches. Cancel button stops the search between patterns. Check "Do not save regex match contents to reports" to prevent sensitive information from being saved to files — results are displayed in a screen-only popup only. Always scans files directly (index is bypassed) to ensure current results. The ? help includes 50 common regex patterns you can copy and paste. Note: you can also run a single regex search from the main search bar by checking "Regex" in Advanced Search Options — the main search bar supports all 11 search modes (AND, Boolean, fuzzy, wildcard, proximity, etc.) that the Regex Search popup does not.
 - **11 search modes** — plain keywords, AND/OR, Boolean expressions (`(budget OR revenue) AND NOT draft`), regex, wildcards, fuzzy matching (typo-tolerant), whole-word, word proximity (terms within N words on the same line), line proximity (terms within N lines of each other), inverse search (find files that DON'T contain a term), and range queries (filter by dollar amounts, dates, percentages, ages, file sizes).
-- **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). All search modes work from all three interfaces except the Search Wizard, which is GUI-only. PII Scan works from both GUI and CLI (`peekdocs --pii-scan` — shows filenames and line numbers only, never the actual sensitive data). Use the GUI for daily work, the CLI for scripting, the API for integration.
+- **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). All search modes work from all three interfaces except the Search Wizard, which is GUI-only. Use the GUI for daily work, the CLI for scripting, the API for integration.
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that most tools can't search. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest.
 - **Search inside archives** — searches inside .zip, .7z, and .rar files without extracting them first. Find a document buried in a compressed backup without unzipping anything.
 - **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders. With recursive mode, you can even search your entire computer from a single search — point it at your root folder and peekdocs will search every supported file on the drive (system files that can't be read are logged and skipped).
@@ -398,7 +357,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
     - This allows you to search cloud-synced documents without uploading report files
   - **Automatic cleanup:**
     - Enable **Delete on Close** to remove all result files when the app closes
-- **Report security** — peekdocs takes steps to reduce the risk of your search results being exposed. Reports are opened in safe local applications rather than cloud-based viewers like Google Docs or Apple Pages. If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`) — your documents are still searched, but no report files are written to the cloud-synced location. The status line tells you where reports were saved and why. The PII Scan shows results on screen only — no file is ever written to disk. **Delete on Close** automatically removes result files when you close the app. **Clear History on Close** clears your search history and recent searches (important if you searched for sensitive terms). **Clear Preview** wipes the Results Preview pane on demand. **Delete Everything Now** (main screen) immediately deletes result files, clears the preview, and wipes search history in one click — useful if you don't close the app regularly. If you type a search term that looks like an SSN, credit card, or Tax ID, peekdocs warns you before proceeding because that term will appear in report files. See [For IT and Security Teams](#for-it-and-security-teams) for details.
+- **Report security** — peekdocs takes steps to reduce the risk of your search results being exposed. Reports are opened in safe local applications rather than cloud-based viewers like Google Docs or Apple Pages. If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`) — your documents are still searched, but no report files are written to the cloud-synced location. The status line tells you where reports were saved and why. **Delete on Close** automatically removes result files when you close the app. **Clear History on Close** clears your search history and recent searches (important if you searched for sensitive terms). **Clear Preview** wipes the Results Preview pane on demand. **Delete Everything Now** (main screen) immediately deletes result files, clears the preview, and wipes search history in one click — useful if you don't close the app regularly. If you type a search term that looks like an SSN, credit card, or Tax ID, peekdocs warns you before proceeding because that term will appear in report files. See [For IT and Security Teams](#for-it-and-security-teams) for details.
 - **Network folders** — search documents on a shared network drive just like a local folder. Map or mount the network share (e.g., `Z:\` on Windows, `/Volumes/` on macOS) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Cross-platform** — Windows, macOS, and Linux. Tested on all three.
 - **Performance** — 1,000 mixed-format documents (PDFs, Word, Excel, email) searched in ~1 second. 105 real Word docs (1.9 GB) in 4 seconds (0.24 seconds with index). See [Performance](#performance) for detailed benchmarks.
@@ -408,14 +367,10 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 ## Features
 
-- **PII Scan** — Quickly identify patterns that may indicate personally identifiable information in your documents.
-  - One-click scan for possible Social Security numbers, credit cards, tax IDs, emails, phone numbers, dates of birth, and password-related terms (e.g., pw, p/w, login, username, user ID, UID), as well as user-defined dollar-amount ranges. Matches are highlighted to show approximate locations within files.
-  - Results are categorized by severity (high / moderate / info) with per-file details.
-  - **Custom patterns:** Advanced users can add their own regex (e.g., UK NINO, Canadian SIN, German Steuer-ID, company account IDs) to extend detection beyond built-in categories.
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
 - **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
-- **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy. **To locate all matches in a specific file:** click the orange **Matched Files** button on the status line, single-click a file, then click **View Text** — peekdocs displays the file's full extracted text with line numbers and every match highlighted in yellow. This is the fastest way to see exactly where your search terms appear in each file, without opening external software. You can also double-click any file to open it in its native application (Word, Adobe Reader, etc.), or click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report with all matches across all files. PII Scan works the same way — click **View Files** on any category, then **View Text** to see where the sensitive data was found
+- **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy. **To locate all matches in a specific file:** click the orange **Matched Files** button on the status line, single-click a file, then click **View Text** — peekdocs displays the file's full extracted text with line numbers and every match highlighted in yellow. This is the fastest way to see exactly where your search terms appear in each file, without opening external software. You can also double-click any file to open it in its native application (Word, Adobe Reader, etc.), or click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report with all matches across all files
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
 - **Search Suites** — group saved searches into a named suite and run them all at once (Tools → Search Suites)
@@ -622,7 +577,7 @@ source venv/bin/activate             # macOS/Linux (you'll see (venv) in your pr
 venv\Scripts\activate                # Windows
 ```
 
-**Tip:** Type `peekdocs` with no arguments to see a handy cheat sheet of all search modes, common options, PII scan, and cleanup commands — right above your command prompt. Type `peekdocs -h` for the full reference with all flags, file types, and regex patterns.
+**Tip:** Type `peekdocs` with no arguments to see a handy cheat sheet of all search modes, common options, and cleanup commands — right above your command prompt. Type `peekdocs -h` for the full reference with all flags, file types, and regex patterns.
 
 Then navigate to your documents and search:
 
@@ -670,7 +625,7 @@ See [Screenshots](#screenshots) for what the GUI looks like.
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Most users won't need anything beyond the search bar — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 21 pre-built patterns, fill in your values, and click Apply. The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **PII Scan** (one-click sensitive data detection) and **Search Suites** (run a group of saved searches together).
+Most users won't need anything beyond the search bar — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 21 pre-built patterns, fill in your values, and click Apply. The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **Search Suites** (run a group of saved searches together).
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 
@@ -702,7 +657,7 @@ See the [API Reference](docs/API.md) for all parameters and options.
 
 Every search tool — from Google to Spotlight to $2,500 enterprise software — does the same thing at its core: match a pattern against text. The difference is never the matching. It's what happens around it: what files can it read, how does it present the results, how easy is it to use, and what can you do with the output.
 
-peekdocs reads 100+ file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. It finds sensitive data with one click (PII Scan). Save your searches by name and reload them later. Group them into search suites and run an entire set of searches with one click — the same 10 searches you ran last quarter, rerun in seconds. And it does all of this in a GUI that a non-technical person can use without reading a manual.
+peekdocs reads 100+ file formats that most tools can't touch — Word, PDF, Excel, email archives, .7z, .rar, scanned images. It produces a highlighted Word report with every match in context — not a list of filenames in a terminal, but a real document you can save, print, or hand to someone. Save your searches by name and reload them later. Group them into search suites and run an entire set of searches with one click — the same 10 searches you ran last quarter, rerun in seconds. And it does all of this in a GUI that a non-technical person can use without reading a manual.
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
@@ -712,7 +667,6 @@ Windows Search, macOS Spotlight, and Linux file managers can search file content
 
 - **Format gaps** — OS search often can't read inside `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, or scanned PDFs. peekdocs reads 100+ file types.
 - **No highlighting** — OS search tells you *which file* matched, but not *where* in the file. peekdocs shows the matched text with surrounding context, highlighted in yellow.
-- **No PII scanning** — no built-in way to scan for SSNs, credit cards, or passwords across all your files.
 - **No saved searches or suites** — you can't name a search, save it, and run it again next month. peekdocs can.
 - **No regex, Boolean, fuzzy, proximity, or range queries** — OS search is keyword-only.
 - **Inconsistent indexing** — Spotlight and Windows Search depend on background indexing services that may be disabled, incomplete, or slow to update. peekdocs searches files directly (or with its own optional index).
@@ -740,7 +694,6 @@ We're not here to replace grep. We're here to handle the 95% of files grep prete
 
 - **100+ file types in one command** — the bash script to handle all 100+ types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
 - **Highlighted reports** — grep outputs plain text to a terminal. peekdocs produces a `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this. (Microsoft Word is not required — when clicked, the report opens automatically in any word processor. [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) is recommended. peekdocs blocks reports from opening in Google Docs, Apple Pages, or any cloud-based application that may upload your data.)
-- **PII scanning with categorized severity** — helps locate personally identifiable information you may have inadvertently left in your files. Not just regex matching, but categorized findings (high/moderate/info), false-positive filtering (URLs, DOIs, environment variables), custom patterns, and a formatted report. You could run 10 separate `grep -P` calls for SSN/credit card/phone patterns, but the categorization, filtering, and reporting are not practically replicable.
 - **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
 - **GUI** — for anyone who doesn't live in a terminal.
 - **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
@@ -887,7 +840,7 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 
 **Consider going paperless.** Scanned PDFs are generally accepted for tax and financial records — the IRS has accepted digital records since 1997, and banks, brokerages, and the IRS itself deliver documents as PDFs. Scan your paper receipts, tax returns, and medical records, then organize them into folders. Once digitized, peekdocs can search years of documents in seconds — no more digging through shoeboxes. (Consult your tax advisor for your specific situation.)
 
-**Tip:** Before selling or donating a computer, run the PII Scan on your entire documents folder. It scans for patterns that may indicate SSNs, credit cards, and passwords you may have forgotten about.
+**Tip:** Before selling or donating a computer, search your entire documents folder for sensitive data — passwords, account numbers, and personal information you may have forgotten about.
 
 ## Frequently Asked Questions
 
@@ -910,7 +863,7 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
   - For a deeper dive into peekdocs's security architecture, data storage, and known limitations, see [For IT and Security Teams](#for-it-and-security-teams).
 
 **How does peekdocs protect my privacy?**
-Multiple layers: PII Scan results are shown on screen only — no file is ever written to disk. Search reports are blocked from opening in cloud-based apps (Google Docs, Apple Pages) that could upload your data. If your search folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud, Dropbox), peekdocs automatically redirects report output to a safe local folder. HTML reports open locally in your browser — nothing goes online. **Delete on Close** automatically removes all result files when you close the app. **Clear History on Close** erases your search history. **Delete Everything Now** instantly removes all peekdocs output files, search history, and the preview in one click. The search index can be deleted at any time. See [For IT and Security Teams](#for-it-and-security-teams) for the complete data architecture.
+Multiple layers: Search reports are blocked from opening in cloud-based apps (Google Docs, Apple Pages) that could upload your data. If your search folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud, Dropbox), peekdocs automatically redirects report output to a safe local folder. HTML reports open locally in your browser — nothing goes online. **Delete on Close** automatically removes all result files when you close the app. **Clear History on Close** erases your search history. **Delete Everything Now** instantly removes all peekdocs output files, search history, and the preview in one click. The search index can be deleted at any time. See [For IT and Security Teams](#for-it-and-security-teams) for the complete data architecture.
 
 <a id="faq-file-safety"></a>
 **Does peekdocs modify, move, or delete my files?**
@@ -948,7 +901,7 @@ The PDF output uses a built-in font (Helvetica) that only supports Latin-1 chara
 Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases (`peekdocs "budget report"`), regex patterns (`peekdocs -x "\d{3}-\d{4}"`), Boolean expressions (`peekdocs -e "(budget OR revenue) AND NOT draft"`), and anything containing special characters (`$`, `*`, `(`, `)`, `|`, `=`, `<`, `>`). The shell interprets these characters before peekdocs sees them, so without quotes your search may not work as expected. When in doubt, use quotes — they never hurt.
 
 **How is peekdocs different from grep?**
-grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, scans for PII, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
+grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
 
 <a id="faq-dependencies"></a>
 **What dependencies does peekdocs install? Can I audit them?**
@@ -970,7 +923,7 @@ peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
 peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
 ```
 
-Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details. Note: `--stdout` is not available with `--pii-scan` — PII results are screen-only by design to prevent sensitive data from being piped to files.
+Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details.
 
 **How does peekdocs handle 100,000+ files?**
 It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.
@@ -1006,8 +959,6 @@ No. Password-protected PDFs, Word/Excel/PowerPoint files, and encrypted archives
 | **paramiko** | A Python library for SSH and SFTP connections. If found in source code, it could indicate remote server access. peekdocs does not use it |
 | **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
-| **PII** | Personally Identifiable Information — data that can identify a person: Social Security numbers, credit card numbers, passwords, phone numbers, etc. |
-| **PII Scan** | A one-click peekdocs feature that scans your files for PII (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth). Results are shown on screen only — no report file is written to disk. Available from the GUI (green PII Scan button) and CLI (`peekdocs --pii-scan`). Run it before you sell your laptop. Trust us. |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
 | **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer. **pipx vs pip:** `pip install peekdocs` installs into your current Python environment — simple and fast, but peekdocs's 50 dependencies mix with your other Python packages and could cause version conflicts. `pipx install peekdocs` creates a private environment just for peekdocs — completely isolated, no conflicts, and the `peekdocs` command works from any terminal without activating a virtual environment. The tradeoff: pipx must be installed first (`pip install pipx` on Windows, `brew install pipx` on macOS, `sudo apt install pipx` on Linux). For developers who manage multiple Python projects, pipx is strongly recommended. For a quick try, `pip install peekdocs` works fine. |
 | **pycurl** | A Python wrapper for the curl library, used for making HTTP requests. If found in source code, it could indicate network activity. peekdocs does not use it |
@@ -1042,7 +993,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | Question | Answer |
 |----------|--------|
 | **Does it send data anywhere?** | No. peekdocs has no network calls, no telemetry, no tracking, no analytics, no phone-home. It never connects to the internet. All processing happens locally on the user's machine. |
-| **Does it store what it finds?** | It depends on the feature. **PII Scan:** No — results are shown on screen only, and no file is ever written to disk. This is a deliberate design decision, not a missing feature — if PII results could be piped, saved, or returned via API, sensitive data (SSNs, credit cards, passwords) could escape to files on disk, which is exactly the problem PII Scan is designed to find. **Regular search:** Yes — results are written to disk as `.txt` and `.docx` reports (plus optional CSV, JSON, PDF, HTML). These files contain matched text from your documents. Use **Delete on Close** to automatically remove them when you close the app, or **Delete Everything Now** to remove them immediately. Reports are blocked from opening in cloud apps. If your search folder is cloud-synced, peekdocs automatically redirects reports to a safe local folder (`~/peekdocs_reports`) so no report files are uploaded. |
+| **Does it store what it finds?** | Yes — results are written to disk as `.txt` and `.docx` reports (plus optional CSV, JSON, PDF, HTML). These files contain matched text from your documents. Use **Delete on Close** to automatically remove them when you close the app, or **Delete Everything Now** to remove them immediately. Reports are blocked from opening in cloud apps. If your search folder is cloud-synced, peekdocs automatically redirects reports to a safe local folder (`~/peekdocs_reports`) so no report files are uploaded. |
 | **What about the search index?** | The optional search index (`.peekdocs.db`) is a SQLite database that contains the extracted text of every indexed file — this means it holds a searchable copy of your document content, including any sensitive data in those documents. Treat the index file with the same care as the documents themselves. The index is never required (uncheck "Index" to search files directly), and **Delete Everything Now** on the main screen deletes the index along with all result files, preview content, and search history. If you index a folder containing sensitive documents, consider deleting the index when you're done. |
 | **Can it access files the user can't?** | No. peekdocs runs with the user's own file permissions. It cannot read files the user doesn't already have access to. It does not elevate privileges or bypass OS security. |
 | **Is it a compliance tool?** | No. It is a search and discovery aid. It does not certify compliance with any regulation. See [Disclaimer](#disclaimer). |
@@ -1079,7 +1030,6 @@ peekdocs stores data in three locations. No data is stored anywhere else — no 
 
 | Data | Contains | Cleanup |
 |------|----------|---------|
-| PII Scan results | SSNs, credit cards, passwords found in files | Gone when the Sensitive Data Scan Results window is closed |
 | Results Preview | Matched text displayed on screen | Clear Preview button, or close the app |
 
 All peekdocs-created files use the `peekdocs` prefix or `.peekdocs` prefix, making them easy to identify and audit. peekdocs never writes to system directories, the registry, or any location outside the search folder and home directory.
@@ -1091,18 +1041,18 @@ peekdocs takes extensive steps to protect user data, but the following are outsi
 - **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
 - **Report file permissions.** Check **Restrict File Permissions** in Advanced Search Options to set all report files to owner-only read/write (chmod 600) on Unix/macOS. This prevents other users on shared machines from reading your search results. Off by default — leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently).
 - **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
-- **Process memory.** Sensitive data found during a PII Scan or search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
+- **Process memory.** Sensitive data found during a search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
 - **Error log file paths.** The error log (`peekdocs_errors.log`) contains file paths of documents that could not be read. This reveals which folders and files were being searched, though not the content of those files.
 - **Microsoft 365 desktop apps.** peekdocs launches the local Word desktop application (`WINWORD.EXE` / `Microsoft Word.app`) — never Word Online or any browser-based editor. However, if the user is signed into a Microsoft 365 account, the desktop Word app may show the file in their "Recent" list on office.com, prompt to upload to OneDrive, or auto-save if the file is in a OneDrive-synced folder. peekdocs cannot control the internal cloud features of local applications after launching them. If this is a concern, use LibreOffice (which has no cloud integration) or the HTML report (which opens in your browser directly from local disk).
 - **Forced process termination.** Delete on Close and Clear History on Close run during normal app shutdown. If the process is force-killed (kill -9, Task Manager End Process, or a system crash), cleanup does not run and report files, search history, and indexes remain on disk. Use Delete Everything Now before closing if immediate cleanup is critical.
-- **Custom regex patterns.** User-supplied regex patterns (in the search bar, PII Scan custom patterns, or the Search Wizard) have no execution timeout. A pathological pattern (e.g., catastrophic backtracking) could cause the search to hang indefinitely. peekdocs validates regex syntax but does not limit pattern complexity.
+- **Custom regex patterns.** User-supplied regex patterns (in the search bar, Regex Search, or the Search Wizard) have no execution timeout. A pathological pattern (e.g., catastrophic backtracking) could cause the search to hang indefinitely. peekdocs validates regex syntax but does not limit pattern complexity.
 - **Cloud folder detection is path-based.** peekdocs detects cloud-synced folders by looking for keywords like "OneDrive," "Dropbox," "Google Drive," and "iCloud" in the folder path. A folder with a cloud keyword in its name (e.g., `MyDropboxAnalysis`) would be falsely detected as cloud-synced and reports would be redirected to `~/peekdocs_reports`. Rename the folder to avoid the false trigger.
 - **Safe output folder fallback.** If `~/peekdocs_reports` is itself inside a cloud-synced directory (e.g., the entire home directory is synced to OneDrive), peekdocs falls back to the system temp directory (`/tmp` on Unix/macOS, `%TEMP%` on Windows). This is automatic and requires no user action.
 - **Backup software.** Report files written to disk may be picked up by backup software (Time Machine, Windows Backup, Backblaze, Carbonite, etc.) and uploaded to cloud storage. peekdocs blocks cloud-synced *folders* but cannot detect or block background backup services that copy files after they are written. Use **Delete on Close** or **Delete Everything Now** to remove report files before backups run.
 
 ## Testing
 
-**Unit tests** — 681 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, PII detection accuracy, expression parsing, range queries, and more.
+**Unit tests** — 681 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
 
 ```bash
 pytest tests/ -v
@@ -1133,7 +1083,7 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engi
 
 peekdocs is provided under the [MIT License](LICENSE) and is offered "as is" without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice.
 
-The PII Scan feature is a discovery aid, not a security or compliance tool. It uses regex-based pattern matching and may produce false positives or fail to detect data that does not match its built-in patterns. A "clean" scan does not guarantee that all sensitive or personal data has been identified. All results should be reviewed in context before making decisions.
+The Regex Search feature is a discovery aid, not a security or compliance tool. It uses regex-based pattern matching and may produce false positives or fail to detect data that does not match the supplied patterns. Results should be reviewed in context before making decisions.
 
 The tool is not designed or intended for high-assurance or safety-critical use cases. Users remain solely responsible for how they use and interpret its output.
 

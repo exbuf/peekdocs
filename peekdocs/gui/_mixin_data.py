@@ -1525,8 +1525,8 @@ class DataMixin:
 
         If highlight_regex_pattern is provided, matches for that regex are
         highlighted instead of matches for the main search bar's terms. This
-        is used by the PII Scan View Files popup so the highlights reflect
-        the PII category (SSN, credit card, etc.) rather than whatever is
+        is used by the Regex Search View Files popup so the highlights reflect
+        the regex category rather than whatever is
         currently in the search bar.
         """
         import tkinter as tk
@@ -1557,7 +1557,7 @@ class DataMixin:
         ).pack(side="right")
         if highlight_label:
             tk.Label(
-                win, text=f"PII Scan category: {highlight_label}",
+                win, text=f"Regex Search category: {highlight_label}",
                 font=("TkDefaultFont", 11, "bold"), fg="#CC0000",
             ).pack(pady=(0, 2))
         tk.Label(
@@ -1599,7 +1599,7 @@ class DataMixin:
         txt.tag_configure("match", background="yellow", foreground="black")
 
         # Build highlight pattern — either from the caller-supplied regex
-        # (PII Scan path) or from the main search bar (normal path).
+        # (Regex Search path) or from the main search bar (normal path).
         patterns = []
         if highlight_regex_pattern:
             patterns.append(highlight_regex_pattern)
@@ -1755,7 +1755,7 @@ class DataMixin:
         b("The full extracted text of the selected file, with line")
         b("numbers down the left side and every match highlighted")
         b("in yellow. This lets you see exactly where your search")
-        b("terms (or PII patterns) appear in the file, in context,")
+        b("terms (or regex patterns) appear in the file, in context,")
         b("without opening the original document.")
         blank()
 
@@ -1770,19 +1770,16 @@ class DataMixin:
         blank()
 
         h("HIGHLIGHTING")
-        b("Yellow highlighting shows where your search terms (or PII")
+        b("Yellow highlighting shows where your search terms (or regex")
         b("patterns) matched in the text. For regular searches, the")
-        b("highlighting uses the terms from the search bar. For PII")
-        b("Scan, it uses the regex pattern for the selected category.")
+        b("highlighting uses the terms from the search bar. For Regex")
+        b("Search, it uses the regex pattern for the selected category.")
         blank()
 
         h_red("DISCLAIMER")
         b("Highlighted matches are pattern-based and may include false")
-        b("positives or missed matches. PII Scan is a discovery aid,")
-        b("not a security or compliance tool. A \u201cclean\u201d scan does not")
-        b("guarantee that all sensitive or personal data has been")
-        b("identified. This tool is not designed or intended for")
-        b("high-assurance or safety-critical use cases. Users remain")
+        b("positives or missed matches. Pattern-based detection is a")
+        b("discovery aid, not a guarantee. Users remain")
         b("solely responsible for how they use and interpret its output.")
         blank()
 
@@ -1844,7 +1841,7 @@ class DataMixin:
         )
         change_btn.pack(side="right")
         from peekdocs.gui._tooltip import Tooltip
-        Tooltip(change_btn, "Select the folder to scan. Use this Browse button — not the one on the main screen. The PII scan has its own independent folder setting. Linux: double-click to select a folder in the dialog")
+        Tooltip(change_btn, "Select the folder to scan. Linux: double-click to select a folder in the dialog")
 
         if recursive_var is not None:
             tk.Checkbutton(

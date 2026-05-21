@@ -70,7 +70,6 @@ class BuildMixin:
         tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
 
         features = [
-            ("\U0001f50d  PII Scan", "Helps locate personally identifiable information you may have inadvertently left in your files \u2014 SSNs, credit cards, passwords, and more. Advanced users can add their own custom regex.", "#0D9488"),
             ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
             ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
             ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
@@ -175,11 +174,6 @@ class BuildMixin:
         b("Open Advanced Search Options for regex, fuzzy matching,")
         b("wildcards, Boolean expressions, range queries, and more.")
         b("Click the ? button inside Advanced Search Options for help.")
-        blank()
-        s("Scan for sensitive data")
-        b("Click the red PII Scan button to check your")
-        b("documents for SSNs, credit cards, tax IDs, emails, phone")
-        b("numbers, passwords, and more \u2014 one click, no setup needed.")
         blank()
         s("Save your searches")
         b("Once you've configured a search you'll want to reuse,")
@@ -557,18 +551,6 @@ class BuildMixin:
         )
         self._suites_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
-
-        # PII Scan — teal button (distinct from green Search, signals privacy)
-        self._pii_scan_btn = ctk.CTkButton(
-            self._run_search_frame,
-            text="\U0001f50d PII Scan", width=140, height=44,
-            fg_color="#0D9488", hover_color="#0B7A70",
-            text_color="white",
-            command=self._start_sensitive_scan,
-            font=ctk.CTkFont(size=24, weight="bold"),
-        )
-        self._pii_scan_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._pii_scan_btn, "Heuristic scan for possible PII patterns. Best-effort regex-based detection. Fully independent from the main search — has its own folder and Recursive setting")
 
         # Regex Search — purple button
         self._regex_search_btn = ctk.CTkButton(
@@ -976,7 +958,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_reset_defaults_btn.pack(side="right", padx=(0, 5))
-        Tooltip(adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, PII scan categories, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
+        Tooltip(adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
 
         adv_inspect_btn = ctk.CTkButton(
             adv_bottom_frame, text="Inspect .peekdocsrc", width=130,
@@ -984,7 +966,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_inspect_btn.pack(side="right", padx=(0, 5))
-        Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, PII scan categories, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
+        Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
 
 
 

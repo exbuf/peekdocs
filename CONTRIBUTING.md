@@ -42,7 +42,6 @@ peekdocs/
   scanner.py          — File discovery and text extraction (100+ file types)
   reporter.py         — Report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   indexer.py          — SQLite FTS5 search index
-  sensitive_patterns.py — PII scan regex patterns
   expr_parser.py      — Boolean expression parser (AND, OR, NOT, parentheses)
   constants.py        — Shared constants
   gui/                — GUI package (customtkinter), split into mixins:
@@ -50,7 +49,7 @@ peekdocs/
     _helpers.py       — Free functions (safe file opening, cloud detection)
     _mixin_build.py   — UI construction
     _mixin_search.py  — Search execution and results
-    _mixin_tools.py   — PII scan, wizard, help windows
+    _mixin_tools.py   — Regex search, wizard, help windows
     _mixin_data.py    — Settings, history, bookmarks
 tests/                — Pytest test suite (681+ tests)
 docs/                 — Documentation (user guide, API, troubleshooting)

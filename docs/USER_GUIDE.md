@@ -22,7 +22,6 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Command Translation](#command-translation)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
-- [PII Scan](#pii-scan)
 - [Boolean Expression Search](#boolean-expression-search)
 - [Range Queries](#range-queries)
 - [Combining Modes](#combining-modes)
@@ -91,14 +90,14 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_results.txt`, `peekdocs_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
 
-But because peekdocs works with sensitive documents (financial records, legal files, medical records, PII), here are some practices to keep your data safe:
+But because peekdocs works with sensitive documents (financial records, legal files, medical records), here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
-- **Be careful with report files.** The `peekdocs_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done. (The PII Scan does not write any files — results are shown on screen only.)
+- **Be careful with report files.** The `peekdocs_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
 - **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
-- **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient. (The PII Scan does not generate a printable report — results are on screen only, by design.)
+- **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient.
 
 ---
 
@@ -338,7 +337,7 @@ The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field with **▼ Recent Searches** dropdown (shows your last 10 search terms — stored in memory only, not saved to disk, lost when you close the app; different from Search History in the Tools menu which persists across sessions), **Run Search** and **PII Scan** buttons, **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
+| **Search Bar** | Search entry field with **▼ Recent Searches** dropdown (shows your last 10 search terms — stored in memory only, not saved to disk, lost when you close the app; different from Search History in the Tools menu which persists across sessions), **Run Search** button, **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), **Single File** button (select a single file to search — click the ✕ to clear), and **+Folder** button (add another folder for multi-folder search — folders are separated by semicolons) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
 | **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
@@ -356,28 +355,8 @@ The GUI window is organized into these regions, from top to bottom:
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. The .txt report can be opened on any computer with no additional software. You can also enable HTML output in Advanced Search Options for a highlighted report that opens directly in your browser. peekdocs blocks reports from opening in Google Docs, Apple Pages, or any cloud-based application that may upload your data.
 
-**Sensitive Data Scan:**
 
-Click the red **PII Scan** button to scan your documents for patterns that may indicate PII and sensitive data. A configuration popup appears with checkboxes for each category — all are enabled by default. Uncheck any categories you don't need, then click **Run Scan**. Use **Select All** / **Deselect All** for quick toggling. Your selections are saved to `~/.peekdocsrc` and remembered between sessions — the next time you open the popup, the same checkboxes will be checked. The scan checks for 8 categories of sensitive data:
-
-| Category | Severity | What it finds |
-|----------|----------|---------------|
-| Social Security Numbers | HIGH | SSN patterns (XXX-XX-XXXX) |
-| Credit Card Numbers | HIGH | Visa, Mastercard, Amex, Discover patterns |
-| Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
-| Email Addresses | MODERATE | Email address patterns |
-| Phone Numbers | MODERATE | US phone number patterns |
-| Passwords / Secrets | MODERATE | Lines containing password, pw, p/w, secret, login, username, user ID, UID, or API key/token assignments |
-| Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
-| Dollar Amounts Over $10,000 | INFO | Dollar amounts $10,000 and above |
-
-Results appear in a popup with color-coded severity badges (red for HIGH, yellow for MODERATE, blue for INFO). Categories with no findings show a green "Clean" label. Click **View Files** on any category to see which files are affected, with match counts and line numbers. Double-click a file to open it.
-
-The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure to prevent concentrating sensitive data into a single file that could be exposed. You can always re-run the scan to see results again. Pattern-based detection may produce false positives — click **View Files** and review each finding to confirm it represents actual sensitive data.
-
-The scan respects your current **Recursive** and **File Type** settings. It always scans files directly — the search index is not used because regex pattern matching requires scanning every line of text. The Use Index checkbox is temporarily unchecked during the scan and restored afterward.
-
-Each popup (PII Scan and Search Wizard) has its own **Change Folder** button and operates independently — changing the folder inside a popup does not change the Search Folder on the main screen. The PII Scan is fully independent from the main search: it has its own folder, its own **Include subfolders (Recursive)** checkbox, and always scans all supported file types — it ignores any File Types filter or Recursive setting in Advanced Search Options. Both the folder and Recursive setting are remembered between sessions (saved to `~/.peekdocsrc`). The Search Wizard is the one exception: when you click **Apply**, the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
+The Search Wizard has its own **Change Folder** button and operates independently — changing the folder inside the wizard does not change the Search Folder on the main screen until you click **Apply**, at which point the main screen folder is updated to match the wizard's folder, since the search runs from the main screen.
 
 **Advanced Search Options:**
 
@@ -448,13 +427,12 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Large Files** | Lists the 50 largest files in the folder with their sizes. Useful for finding disk hogs — large files you may have forgotten about. |
 | **Empty Files** | Finds zero-byte files. These are completely empty — often failed downloads, placeholders, or leftover junk that can be safely deleted. |
 | **Recent Changes** | Shows files modified in the last 7, 30, and 90 days, grouped by time period. Each file is shown with its modification date and size. Useful for seeing what changed recently in a folder you haven't visited in a while. |
-| **Protected Files** | Detects password-protected and encrypted files: PDFs, Word/Excel/PowerPoint (both modern and legacy formats), ODF documents, ZIP/7z/RAR archives. These files cannot be searched or scanned for PII by peekdocs. The report tells you exactly which files are locked so you can decide whether to unprotect them. Click **Save Report** to export. |
+| **Protected Files** | Detects password-protected and encrypted files: PDFs, Word/Excel/PowerPoint (both modern and legacy formats), ODF documents, ZIP/7z/RAR archives. These files cannot be searched by peekdocs. The report tells you exactly which files are locked so you can decide whether to unprotect them. Click **Save Report** to export. |
 | **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
-| **PII Scan** | Helps locate personally identifiable information you may have inadvertently left in your files — SSNs, credit cards, passwords, tax IDs, emails, phone numbers, dates of birth, and dollar amounts. Add your own custom regex patterns. Results categorized by severity. See [PII Scan](#pii-scan) for details. |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
-| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. (Note: The PII Scan does not create any files — results are shown on screen only.) |
+| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, and cleanup options (Clear Files, Clean Up Practice Files). **Hover Text** is toggled from the **Hover: ON/OFF** button on the bottom row of the main screen (not in the Tools menu). Your **Appearance**, **Text Size**, and **Hover Text** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
@@ -540,7 +518,6 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
-| `--pii-scan` (pii-scan) | Scan for sensitive data (SSNs, credit cards, passwords, tax IDs, emails, phone numbers, DOBs, dollar amounts). Results shown on screen only — no file written to disk. Add `-r` for recursive (flags can be in any order). Output shows filenames, match counts, and line numbers — never the actual sensitive data. No `--open` option — results are screen-only by design, matching the GUI's safety model |
 | `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
@@ -1004,141 +981,6 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 **In the GUI:** Check the **Inverse** checkbox in the Search Bar (next to the Wizard button) before clicking **Run Search**. The results summary will show how many files are missing the search terms.
 
 **Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
-
-## PII Scan
-
-The **PII Scan** helps locate personally identifiable information you may have inadvertently left in your files. PII stands for **Personally Identifiable Information** — any data that could identify a specific person or compromise their accounts. Click the red **PII Scan** button on the main screen — peekdocs runs a battery of regex pattern searches for Social Security numbers, credit cards, tax IDs / EINs, email addresses, phone numbers, passwords, dates of birth, and dollar amounts, and produces a highlighted Word report showing exactly where each finding was detected.
-
-The PII Scan is available from both the **GUI** (click the PII Scan button) and the **CLI** (`peekdocs --pii-scan`). Add `-r` for recursive scanning. In both cases, results are shown on screen only — no file is written to disk. The CLI output shows filenames, match counts, and line numbers but never displays the actual sensitive data — which helps prevent PII from being piped to a file. This means data scientists and IT pros on remote servers can scan for sensitive data over SSH without a GUI, and the output is safe by design.
-
-### What it does
-
-- Runs the eight built-in PII regex patterns against every supported file in your selected search folder. Always scans all file types — uses its own Recursive checkbox (not the one in Advanced Search Options).
-- Groups findings by category (SSN, credit card, tax ID, email, phone, password, DOB, dollar amounts).
-- Categorizes each category by severity (HIGH for SSNs, credit cards, and tax IDs; MODERATE for emails, phones, passwords, and dates of birth; INFO for dollar amounts).
-- Produces a consolidated `.docx` report with a summary table, a detail section per category, every affected file listed with match counts and line numbers, and the matched text highlighted in yellow.
-- Everything runs locally on your machine. Nothing is uploaded, transmitted, or sent to any third party.
-
-### How to use it
-
-1. Open the GUI: `peekdocs-gui`.
-2. Browse to the folder you want to scan (use **Change Folder** inside the PII Scan popup if you want to scan a different folder without changing the main screen). The PII Scan folder is independent from the main Search Folder and is remembered between sessions.
-3. Click the red **PII Scan** button in the main Search Bar.
-4. A configuration popup appears. All eight categories are checked by default. Uncheck any you don't want, or use **Select All** / **Deselect All**.
-5. For **Dollar Amounts**, set the **Min $** and **Max $** range. Defaults are $10,000 and $999,999,999. The scan uses a loose regex to match any dollar amount and then filters results to those within your range.
-6. Click **Run Scan**. The status bar shows progress through each category.
-7. When the scan finishes, a results popup appears with one row per category, showing severity and findings count. Categories with no findings show a green "Clean" label. Click **View Files** on any category with findings to see exactly which files are affected.
-8. Inside the View Files popup, each row shows the filename, match count, and up to 20 line numbers. Select a row and click **View Text (with line numbers)** to review the matches with line numbers highlighted in yellow. Or **double-click** a row to open the original file in its default application — from there you can edit the file to remove or redact the sensitive data.
-9. **Tip: finding and redacting matches in Word or LibreOffice.** peekdocs line numbers refer to extracted text paragraphs, not visual lines in a word processor. A long paragraph that wraps across multiple lines on screen counts as one line in peekdocs. Instead of scrolling to a line number, use **Edit → Find & Replace** (Ctrl+H on Windows, Cmd+H on macOS) to locate and redact:
-   - **Find:** paste the sensitive text from View Text (e.g., `123-45-6789`)
-   - **Replace with:** `[REDACTED]`, `XXX-XX-XXXX`, or whatever placeholder you prefer. For partial redaction, keep the last few characters (e.g., replace `123-45-6789` with `XXX-XX-6789`)
-   - Click **Replace All** to catch every instance in the document
-   - Search for the original text one more time — "Search key not found" confirms it's gone
-   - Save the file
-
-   (LibreOffice can show line numbers via **Tools → Line Numbering → Show numbering**, but these may not match peekdocs's paragraph-based numbering for Word docs and PDFs.)
-
-   **Note: LibreOffice and Google Docs compatibility.** Files created in Google Docs and downloaded as `.docx` may display corrupted or garbled text in LibreOffice. This is a known compatibility issue between Google Docs and LibreOffice — not a peekdocs problem. peekdocs extracts text using python-docx, not LibreOffice, so **View Text in peekdocs may show the text correctly even when LibreOffice cannot display it.** If you need to edit a Google Docs file in LibreOffice, try re-exporting from Google Docs as OpenDocument format (.odt) instead of .docx — this is LibreOffice's native format and renders correctly. Alternatively, re-export as PDF if you only need to read, not edit.
-10. After editing, re-run the PII Scan to verify the sensitive data has been removed.
-10. The PII Scan shows results on screen only — no report file is written to disk. This is a deliberate safety measure: a file that concentrates all your SSNs and credit card numbers into one document would itself be a data exposure risk. You can always re-run the scan to see results again.
-
-### Categories
-
-| Category | Severity | What it finds |
-|----------|----------|---------------|
-| Social Security Numbers | HIGH | SSN patterns (XXX-XX-XXXX) |
-| Credit Card Numbers | HIGH | Visa, Mastercard, Amex, Discover patterns |
-| Tax ID / EIN | HIGH | Employer Identification Numbers (XX-XXXXXXX) |
-| Email Addresses | MODERATE | Email address patterns |
-| Phone Numbers | MODERATE | US phone number patterns |
-| Passwords / Secrets | MODERATE | Lines containing password, pw, p/w, secret, login, username, user ID, UID, or API key/token assignments |
-| Dates of Birth | MODERATE | Date-of-birth patterns near keywords like "DOB" or "born" |
-| Dollar Amounts | INFO | Dollar amounts in a user-specified range |
-
-### When to use it
-
-The PII Scan answers the question *"what sensitive data is hiding in my own files?"* Common uses:
-
-- **Before sharing a file or folder** — run a scan to check what's about to go out the door.
-- **Before selling, donating, or retiring a computer** — see what's still sitting on the disk.
-- **Helping a relative with a device** — check an elderly parent's laptop or an estate's records before handing it off.
-- **Periodic personal audit** — once or twice a year, see what's accumulated in your Documents folder over the years.
-- **Small-business file hygiene** — scan a shared folder for data that shouldn't be there anymore.
-
-The workflow is: scan → review → fix. View Text shows you what was found and where. Double-click opens the file so you can remove or redact the sensitive data. Re-run the scan to confirm it's gone.
-
-The PII Scan runs entirely on the user's own files, on the user's own machine, so there's no custody relationship with anyone else's data — it's just you looking at what's already on your disk.
-
-### Custom Pattern (Advanced)
-
-The eight built-in categories cover common US PII. If you need something the built-ins don't match — an international ID number, a company-specific account format, an internal reference code, an API key shape — the **Advanced — Custom Pattern** section at the bottom of the PII Scan configuration popup lets you add your own regex to the scan.
-
-**How to use it:**
-
-1. Open **PII Scan** on the main screen.
-2. Scroll to the bottom of the category selection popup. You'll see a horizontal separator and a section labeled **Advanced — Custom Pattern (optional)**.
-3. Check the checkbox to include your custom pattern in the scan.
-4. Fill in three fields:
-   - **Name** — a short label for this pattern (e.g., `UK NINO` or `Client Account ID`). The name appears as a category in the results popup and report.
-   - **Regex** — the pattern to search for.
-   - **Severity** — `high`, `moderate`, or `info`. Used for the color badge in the results popup and the heading color in the report.
-5. Click **Run Scan**. Your custom pattern runs alongside the built-in categories you have checked, and findings appear as a separate category in the results.
-
-**Example patterns** for common international and use-case formats:
-
-| Pattern | What it matches |
-|---------|-----------------|
-| `[A-Z]{2}\d{6}[A-Z]` | UK National Insurance Number (NINO) |
-| `\d{3}[- ]?\d{3}[- ]?\d{3}` | Canadian Social Insurance Number (SIN) |
-| `GB\d{9}` | UK VAT number |
-| `\d{2}[ ]?\d{3}[ ]?\d{3}[ ]?\d{3}` | German Steuer-ID |
-| `[A-Z]{5}\d{4}[A-Z]` | Indian PAN (Permanent Account Number) |
-| `[A-Za-z0-9_]{20,}` | Long alphanumeric token (API keys, session tokens) |
-| `AKIA[0-9A-Z]{16}` | AWS access key ID |
-
-**Regex basics**, if you need a refresher:
-
-```
-\d              any digit 0–9
-\d{3}           exactly 3 digits
-\d{3,5}         3 to 5 digits
-[A-Z]           any uppercase letter
-\s              any whitespace character
-.               any single character (escape as \. for a literal dot)
-?               the previous item is optional
-|               OR (e.g., cat|dog)
-( )             grouping
-```
-
-**What can go wrong — and what can't.** Writing a custom regex is a power-user affordance, and it comes with the usual regex footguns: a broad pattern like `\d+` will match every digit sequence in every file and flood the report, and a pattern like `[0-9` (missing closing bracket) won't even compile. peekdocs catches syntax errors before starting the scan and shows a friendly error message. peekdocs also warns you if your pattern looks suspiciously broad (three characters or less, or one of the common too-broad patterns like `.`, `.*`, `\d+`) and asks you to confirm before running.
-
-**But note what can't go wrong:** peekdocs never modifies, moves, or deletes the files it searches. A bad custom regex cannot corrupt your documents, change filenames, delete anything, or touch your data in any destructive way. The worst outcome of a poorly written pattern is a useless or overwhelming report, which you fix by editing the pattern and running the scan again.
-
-**Persistence.** Your custom pattern is saved to `~/.peekdocsrc` and restored the next time you open the PII Scan. Uncheck the box to skip your custom pattern for a scan without losing it — it stays filled in, ready for the next run.
-
-### Why no report file?
-
-The PII Scan shows results on screen only — it does not write a report file to disk. This is a deliberate safety measure. A report file that concentrates all your SSNs, credit card numbers, and passwords into a single highlighted document would itself be a data exposure risk — it could be uploaded to the cloud by backup software, synced by OneDrive or Dropbox, or left behind when you sell or donate a computer. By keeping results on screen only, the sensitive data is never concentrated into a file that could leak. You can always re-run the scan to see the results again.
-
-### Important disclaimers
-
-The PII Scan is a **pattern-matching discovery aid**, not a security product. Please read these before you rely on it.
-
-- **Pattern-based detection produces false positives.** A 9-digit account number can look like an SSN. A tracking number can match the credit card pattern. The word "password" can appear in a help document that contains no actual passwords. Always review findings in context before taking action — click View Files to see the matched text with surrounding context so you can judge whether each finding is real.
-- **Pattern-based detection also produces false negatives.** peekdocs cannot find PII that doesn't match its built-in regex patterns. An SSN written as `123 45 6789` (spaces instead of dashes) may not be detected. A credit card number written without any separator may be missed. A foreign tax ID in a format peekdocs doesn't know about will not be flagged. **A clean PII Scan does not prove that a file is free of sensitive data.** It proves only that peekdocs's specific regex patterns did not match anything in the file's extracted text.
-- **Some file formats may not be fully extracted.** peekdocs searches 100+ file types, but extraction quality varies — a scanned PDF without OCR enabled will not surface any text at all, an image file will be ignored unless OCR is on, and complex binary formats may yield partial text. Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format; peekdocs extracts whatever readable XML exists inside these files, which may be partial. Older iWork files (XML-based) extract fully. Files that peekdocs could not read or partially read will not produce findings even if they contain PII. Check the **View N excluded file(s)** button after each scan to see which files were skipped.
-- **The PII Scan is not a breach prevention tool.** It does not block, encrypt, move, delete, or otherwise secure any data. It only finds and displays results. If you decide that a file needs to be removed or redacted, that's your decision to make and your action to take — peekdocs does not modify your files.
-- **The PII Scan is not compliance software.** A clean scan does not certify HIPAA, GDPR, PCI-DSS, SOX, or any other regulatory compliance. If your organization has compliance obligations, the PII Scan can be one input to your review process, but it is not a substitute for professional compliance expertise or a formal audit.
-- **Custom user-supplied patterns are your responsibility.** When you enter your own regex in the Custom Pattern section, peekdocs does not validate that your pattern correctly identifies the data you intend to find. A pattern that is too broad will produce many false positives; a pattern that is too narrow will miss the data you are looking for. If you type your own regex, you own the outcome. peekdocs will catch regex syntax errors and warn you about obviously too-broad patterns, but it cannot judge whether your regex is *semantically* right for your data.
-- **peekdocs is provided as-is under the [MIT License](../LICENSE).** There is no warranty of any kind, express or implied. Users are solely responsible for how they interpret and act on the results. See the LICENSE file for the full text.
-
-In short: **the PII Scan is a helpful set of eyes on your own files. It is not a guarantee, a certification, or a security system.** Use the results as a starting point for your own review, not as a final answer.
-
-### Privacy and the local-only model
-
-The PII Scan is built around a simple principle: **your files never leave your computer**. The scan runs in the same Python process as the rest of peekdocs, reads your files directly from local disk, and shows results on screen. Nothing is written to a report file. Nothing is sent to a server, an API, a cloud service, or any third party.
-
-This matters for two reasons. First, you can scan files containing real PII (your own tax returns, your own credit card statements, your own medical records) without worrying that the tool is creating a new exposure. Second, there is no network traffic for a firewall or ISP to observe, no API key to leak, no cloud bill to pay, and no vendor relationship to audit.
 
 ## Boolean Expression Search
 
@@ -1712,8 +1554,6 @@ Once saved, your settings apply automatically every time you run peekdocs. For e
 | `text_size` | text | — | Normal (GUI only) |
 | `preview_size` | text | — | 11 (GUI only) |
 | `appearance_mode` | text | — | System (GUI only) |
-| `pii_scan_folder` | path | — | empty, uses main search folder (GUI only) |
-| `pii_scan_categories` | list | — | all 8 categories enabled (SSNs, credit cards, tax IDs, emails, phones, passwords, DOB, dollar amounts) |
 
 If no settings are saved or if a value is invalid, peekdocs uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
 
@@ -1895,20 +1735,20 @@ The redirect happens silently — the search runs without interruption. The stat
 
 ### Sensitive search term warning
 
-If you type a search term that looks like a Social Security number, credit card number, or Tax ID / EIN, peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk, and suggests using the PII Scan instead (which shows results on screen only and never writes a file). You can choose to continue or cancel.
+If you type a search term that looks like a Social Security number, credit card number, or Tax ID / EIN, peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk. You can choose to continue or cancel.
 
 ### Known limitations (what peekdocs cannot control)
 
-peekdocs takes extensive steps to protect user data (safe app opening, cloud folder detection, PII Scan on-screen only, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, sensitive search term warnings). The following are outside the application's control:
+peekdocs takes extensive steps to protect user data (safe app opening, cloud folder detection, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, sensitive search term warnings). The following are outside the application's control:
 
 - **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
 - **Report file permissions.** Check **Restrict File Permissions** in Advanced Search Options to set all report files to owner-only read/write (chmod 600) on Unix/macOS. This prevents other users on shared machines from reading your search results. Off by default — leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently).
 - **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
-- **Process memory.** Sensitive data found during a PII Scan or search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
+- **Process memory.** Sensitive data found during a search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
 - **Error log file paths.** The error log (`peekdocs_errors.log`) contains file paths of documents that could not be read. This reveals which folders and files were being searched, though not the content of those files.
 - **Microsoft 365 desktop apps.** peekdocs launches the local Word desktop application (`WINWORD.EXE` / `Microsoft Word.app`) — never Word Online or any browser-based editor. However, if the user is signed into a Microsoft 365 account, the desktop Word app may show the file in their "Recent" list on office.com, prompt to upload to OneDrive, or auto-save if the file is in a OneDrive-synced folder. peekdocs cannot control the internal cloud features of local applications after launching them. If this is a concern, use LibreOffice (which has no cloud integration) or the HTML report (which opens in your browser directly from local disk).
 - **Forced process termination.** Delete on Close and Clear History on Close run during normal app shutdown. If the process is force-killed (kill -9, Task Manager End Process, or a system crash), cleanup does not run and report files, search history, and indexes remain on disk. Use Delete Everything Now before closing if immediate cleanup is critical.
-- **Custom regex patterns.** User-supplied regex patterns (in the search bar, PII Scan custom patterns, or the Search Wizard) have no execution timeout. A pathological pattern (e.g., catastrophic backtracking) could cause the search to hang indefinitely. peekdocs validates regex syntax but does not limit pattern complexity.
+- **Custom regex patterns.** User-supplied regex patterns (in the search bar, Regex Search, or the Search Wizard) have no execution timeout. A pathological pattern (e.g., catastrophic backtracking) could cause the search to hang indefinitely. peekdocs validates regex syntax but does not limit pattern complexity.
 - **Cloud folder detection is path-based.** peekdocs detects cloud-synced folders by looking for keywords like "OneDrive," "Dropbox," "Google Drive," and "iCloud" in the folder path. A folder with a cloud keyword in its name (e.g., `MyDropboxAnalysis`) would be falsely detected as cloud-synced and reports would be redirected to `~/peekdocs_reports`. Rename the folder to avoid the false trigger.
 - **Safe output folder fallback.** If `~/peekdocs_reports` is itself inside a cloud-synced directory (e.g., the entire home directory is synced to OneDrive), peekdocs falls back to the system temp directory (`/tmp` on Unix/macOS, `%TEMP%` on Windows). This is automatic and requires no user action.
 - **Backup software.** Report files written to disk may be picked up by backup software (Time Machine, Windows Backup, Backblaze, Carbonite, etc.) and uploaded to cloud storage. peekdocs blocks cloud-synced *folders* but cannot detect or block background backup services that copy files after they are written. Use **Delete on Close** or **Delete Everything Now** to remove report files before backups run.
@@ -1980,7 +1820,7 @@ This is not a special feature unique to peekdocs. All modern search tools are bu
 - **Regex in any language.** You can write regex patterns that match characters in any script. For example, `[A-Z]{2}\d{6}[A-Z]` matches a UK National Insurance Number, and `[\u4e00-\u9fff]+` matches Chinese characters.
 - **Mixed-language documents.** A single file can contain text in multiple languages. peekdocs searches all of it — the same search can find English keywords in one file and Chinese keywords in another.
 - **All 100+ file types.** Multilingual support applies to every format peekdocs reads — .docx, .pdf, .xlsx, .eml, .txt, and all the rest. If the file's text extraction produces Unicode (which it does for all modern file formats), peekdocs can search it.
-- **PII Scan custom patterns.** The Custom Pattern feature in the PII Scan lets you add regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, German Steuer-ID, Brazilian CPF, and more).
+- **Regex Search custom patterns.** The Regex Search lets you add regex patterns for international ID formats (UK NINO, Canadian SIN, Indian PAN, German Steuer-ID, Brazilian CPF, and more).
 
 ### What doesn't work (limitations)
 
@@ -1994,7 +1834,7 @@ This is not a special feature unique to peekdocs. All modern search tools are bu
 
 ### Documentation and GUI language
 
-The peekdocs GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload, PII Scan), so most non-English speakers can navigate the interface without difficulty.
+The peekdocs GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload), so most non-English speakers can navigate the interface without difficulty.
 
 ### Sample multilingual files
 
@@ -2184,7 +2024,7 @@ peekdocs/
 │   │   ├── _tooltip.py   #   Tooltip widget
 │   │   ├── _mixin_build.py  #   UI construction
 │   │   ├── _mixin_search.py #   Search execution
-│   │   ├── _mixin_tools.py  #   Tools, PII scan, wizard, help
+│   │   ├── _mixin_tools.py  #   Tools, regex search, wizard, help
 │   │   └── _mixin_data.py   #   Settings, history, bookmarks, index
 │   ├── indexer.py       # Optional SQLite FTS5 search index
 │   ├── parser.py        # Command-line flag parsing
@@ -2198,7 +2038,6 @@ peekdocs/
 │   ├── test_expr_parser.py # Boolean expression parser tests
 │   ├── test_collection.py # Saved search collection tests
 │   ├── test_gui.py        # GUI test suite
-│   ├── test_pii_patterns.py # PII pattern accuracy tests
 │   ├── test_translator.py # Translator test suite
 │   └── test_wizard.py     # Wizard patterns test suite
 ├── pyproject.toml       # Project metadata and dependencies
@@ -2230,7 +2069,6 @@ peekdocs/
 | **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
-| **PII** | Personally Identifiable Information — data that can identify a person: Social Security numbers, credit card numbers, passwords, phone numbers, etc. |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
 | **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer |
 | **Proximity search** | Finding terms that appear near each other — within N words on the same line (word proximity) or within N lines of each other (line proximity) |

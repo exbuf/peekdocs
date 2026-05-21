@@ -72,29 +72,6 @@ class SearchMixin:
             self._show_error("Please enter search terms or a range filter.")
             return
 
-        # Warn if search terms look like PII — they'll appear in report files
-        import re as _re_pii
-        _pii_patterns = [
-            (r'\b\d{3}-\d{2}-\d{4}\b', "a Social Security number"),
-            (r'\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{1,4}\b', "a credit card number"),
-            (r'\b\d{2}-\d{7}\b', "a Tax ID / EIN"),
-        ]
-        for pattern, desc in _pii_patterns:
-            if _re_pii.search(pattern, search_text):
-                from tkinter import messagebox
-                proceed = messagebox.askyesno(
-                    "Sensitive Search Term",
-                    f"Your search term looks like it may contain {desc}.\n\n"
-                    f"This term will appear in the report files "
-                    f"(peekdocs_results.txt, .docx, etc.) written to disk. "
-                    f"Consider using the PII Scan instead, which shows "
-                    f"results on screen only and never writes a file.\n\n"
-                    f"Continue with the search?",
-                )
-                if not proceed:
-                    return
-                break  # Only warn once
-
         # Auto-save search terms, folder, and max file size for next launch
         # (max_file_size_mb must be saved here so the CLI subprocess picks it up)
         try:

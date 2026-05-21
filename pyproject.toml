@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "peekdocs"
 version = "1.0.0"
-description = "Search 100+ file types at once — offline, private, yellow-highlighted results, PII scanning, OCR, regex/Boolean/fuzzy/proximity/wildcard, search suites. All platforms. CLI + GUI + Python API."
+description = "Search 100+ file types at once — offline, private, yellow-highlighted results, OCR, regex/Boolean/fuzzy/proximity/wildcard, search suites. All platforms. CLI + GUI + Python API."
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Security",
 ]
-keywords = ["document-search", "file-search", "pii-scanner", "pii-detection", "text-search", "pdf-search", "docx", "offline", "offline-search", "privacy", "cli", "gui", "batch-search", "document-scanner"]
+keywords = ["document-search", "file-search", "text-search", "pdf-search", "docx", "offline", "offline-search", "privacy", "cli", "gui", "batch-search", "document-scanner"]
 license = "MIT"
 readme = "README.md"
 authors = [{name = "Robert D. Schoening", email = "bobschoening@gmail.com"}]
