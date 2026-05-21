@@ -1264,7 +1264,9 @@ class SearchMixin:
             f"Delete {len(peekdocs_files)} peekdocs file(s) from:\n{folder}\n\n"
             f"{file_list}\n\n"
             "Saved searches (.peekdocs_collection.json) and settings (~/.peekdocsrc) "
-            "are not affected.\n\nContinue?",
+            "are not affected.\n\n"
+            "Review the list carefully \u2014 only files created by peekdocs should be listed.\n\n"
+            "Continue?",
         ):
             return
 
