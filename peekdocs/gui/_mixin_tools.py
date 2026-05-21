@@ -1469,9 +1469,9 @@ class ToolsMixin:
         listbox.bind("<Double-1>", _on_double_click)
 
         tk.Label(
-            popup, text="Single-click to select a file, then click View Text below to review the "
+            popup, text="Single-click to select a file (above), then click View Text below to review the "
                         "matches with line numbers highlighted. "
-                        "Or, double-click a file to open it in its default application.",
+                        "Or, double-click a file (above) to open it in its default application.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=700, justify="center",
         ).pack(padx=10)
 
