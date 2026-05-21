@@ -4005,7 +4005,7 @@ class ToolsMixin:
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
             "What Is peekdocs?", "Who Is It For?", "Getting Started",
-            "Regex Search vs Standard Search",
+            "Standard Search vs Regex Search",
             "Regex Search vs Search Suites",
             "Saving and Loading Searches", "Simple Search",
             "Phrase Search (Quoted Terms)", "AND Mode",
@@ -4094,7 +4094,7 @@ class ToolsMixin:
         b("then View Text to see where the sensitive data was found.")
         blank()
 
-        h("REGEX SEARCH vs STANDARD SEARCH")
+        h("STANDARD SEARCH vs REGEX SEARCH")
         b("The purple Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
@@ -6700,8 +6700,8 @@ class ToolsMixin:
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
         blank()
         b("For a detailed comparison of Regex Search vs the standard")
-        b("search bar and vs Search Suites, see 'Regex Search vs")
-        b("Standard Search' and 'Regex Search vs Search Suites' in")
+        b("search bar and vs Search Suites, see 'Standard Search vs")
+        b("Regex Search' and 'Regex Search vs Search Suites' in")
         b("the main screen ? help.")
         blank()
         b("Note: Regex Search results appear in a separate popup window,")
