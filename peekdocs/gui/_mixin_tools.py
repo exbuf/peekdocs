@@ -5214,7 +5214,7 @@ class ToolsMixin:
 
         help_win, _dark = self._themed_toplevel()
         help_win.title("Regex Search \u2014 Help")
-        help_win.geometry("700x600")
+        help_win.geometry("850x600")
         help_win.resizable(True, True)
         help_win.transient(self)
         help_win.bind("<FocusIn>", lambda e: help_win.lift())
