@@ -285,7 +285,7 @@ class BuildMixin:
 
         # Run Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="Search", width=140, height=44, command=self.start_search,
+            btn_frame, text="\U0001f50d Search", width=140, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
@@ -555,7 +555,7 @@ class BuildMixin:
         # Regex Search — purple button
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="\U0001f50d Regex Search", width=160, height=44,
+            text="Regex Search", width=160, height=44,
             fg_color="#7C3AED", hover_color="#6D28D9",
             text_color="white",
             command=self._start_regex_search,
