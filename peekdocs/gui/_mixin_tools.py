@@ -6331,32 +6331,9 @@ class ToolsMixin:
             rs_recursive = _rs_recursive_var.get()
             self._last_regex_search_folder = rs_folder
 
-            if no_report_var.get():
-                # Screen-only mode — run via API and show results in popup
-                win.destroy()
-                self._run_regex_search_screen_only(active, combined, rs_folder, rs_recursive)
-            else:
-                # Normal search mode — set search bar and trigger
-                win.destroy()
-                # Set folder
-                if rs_folder and rs_folder != "(none)" and os.path.isdir(rs_folder):
-                    self.folder_entry.delete(0, "end")
-                    self.folder_entry.insert(0, rs_folder)
-                # Set recursive
-                if rs_recursive:
-                    self.recursive_var.set("on")
-                else:
-                    self.recursive_var.set("off")
-                # Set search bar to combined regex and enable Regex mode
-                self.search_entry.delete(0, "end")
-                self.search_entry.insert(0, combined)
-                self.regex_var.set("on")
-                self.fuzzy_var.set("off")
-                self.wildcard_var.set("off")
-                # Disable index for regex search — scan files directly
-                self.index_search_var.set("off")
-                # Trigger the search
-                self.start_search()
+            screen_only = no_report_var.get()
+            win.destroy()
+            self._run_regex_search_per_pattern(active, combined, rs_folder, rs_recursive, screen_only)
 
         ctk.CTkButton(
             btn_frame, text="Run", width=100,
@@ -6375,17 +6352,21 @@ class ToolsMixin:
         self._apply_dark_theme(win)
 
 
-    def _run_regex_search_screen_only(self, active_patterns, combined_regex, folder, recursive):
-        """Run regex search via API and show results in a screen-only popup (no report files)."""
+    def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True):
+        """Run regex search per-pattern via API with status updates.
+
+        If screen_only is True, results are shown in a popup with no reports.
+        If screen_only is False, results are written to report files and shown in the preview.
+        """
         import tkinter as tk
 
         if not folder or folder == "(none)" or not os.path.isdir(folder):
             self._show_error("Please select a valid folder first.")
             return
 
-        # Show progress
+        mode_label = "screen only, no reports" if screen_only else "with reports"
         self.status_label.configure(
-            text="Running Regex Search (screen only, no reports)...",
+            text=f"Running Regex Search ({mode_label})...",
             text_color=("blue", "#66BBFF"),
         )
         self.progress_bar.configure(mode="indeterminate")
@@ -6399,9 +6380,17 @@ class ToolsMixin:
             from peekdocs.api import search as api_search
             start = time.time()
             scan_results = []
+            all_matches = []  # combined matches for report generation
             files_searched = 0
+            total_patterns = len(active_patterns)
 
-            for name, regex in active_patterns:
+            for pat_idx, (name, regex) in enumerate(active_patterns, 1):
+                self.after(0, lambda i=pat_idx, t=total_patterns, n=name:
+                    self.status_label.configure(
+                        text=f"Regex Search ({mode_label})... ({i}/{t}) {n}",
+                        text_color=("blue", "#66BBFF"),
+                    )
+                )
                 try:
                     result = api_search(
                         [regex],
@@ -6424,6 +6413,8 @@ class ToolsMixin:
                         file_matches[key]["count"] += 1
                         file_matches[key]["lines"].append(match.line_num)
                         file_matches[key]["match_texts"].append(match.text)
+                        if not screen_only:
+                            all_matches.append((match.file_dir, match.filename, match.line_num, match.text))
                     scan_results.append({
                         "name": name,
                         "regex": regex,
@@ -6441,9 +6432,9 @@ class ToolsMixin:
                     })
 
             elapsed = time.time() - start
-            self.after(0, _finished, scan_results, elapsed, files_searched)
+            self.after(0, _finished, scan_results, elapsed, files_searched, all_matches)
 
-        def _finished(scan_results, elapsed, files_searched):
+        def _finished(scan_results, elapsed, files_searched, all_matches):
             self.progress_bar.stop()
             self.progress_bar.grid_remove()
             if hasattr(self, "_regex_search_btn"):
@@ -6460,6 +6451,32 @@ class ToolsMixin:
                     text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 {total} match(es).",
                     text_color=("black", "#e0e0e0"),
                 )
+
+            # Write reports if not screen-only
+            if not screen_only and all_matches:
+                try:
+                    from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
+                    from peekdocs.cli import VERSION
+                    output_dir = folder
+                    search_terms = [regex for _name, regex in active_patterns]
+                    command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
+                    output_path = os.path.join(output_dir, "peekdocs_results.txt")
+                    docx_path = os.path.join(output_dir, "peekdocs_results.docx")
+                    write_txt_report(
+                        output_path, all_matches, [], search_terms, command_str,
+                        "ANY", False, [], False, False, True, False,
+                        elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
+                        recursive=recursive, use_index=False,
+                    )
+                    result_doc = write_docx_report(
+                        docx_path, output_path,
+                        search_terms=search_terms,
+                        use_regex=True,
+                    )
+                    insert_file_sizes(output_path, docx_path, result_doc)
+                    self.results_dir = output_dir
+                except Exception:
+                    pass
 
             # Show results popup
             popup, _dark = self._themed_toplevel()
@@ -6483,11 +6500,18 @@ class ToolsMixin:
                 header_frame, text="Regex Search Results",
                 font=("TkDefaultFont", 14, "bold"),
             ).pack(side="left", expand=True)
-            tk.Label(
-                popup,
-                text="Screen-only results \u2014 no report files were written.",
-                font=("TkDefaultFont", 10), fg="gray",
-            ).pack(fill="x", padx=15, pady=(0, 2))
+            if screen_only:
+                tk.Label(
+                    popup,
+                    text="Screen-only results \u2014 no report files were written.",
+                    font=("TkDefaultFont", 10), fg="gray",
+                ).pack(fill="x", padx=15, pady=(0, 2))
+            else:
+                tk.Label(
+                    popup,
+                    text="Reports saved to search folder (peekdocs_results.txt and .docx).",
+                    font=("TkDefaultFont", 10), fg="gray",
+                ).pack(fill="x", padx=15, pady=(0, 2))
             tk.Label(
                 popup, text=header_text,
                 font=("TkDefaultFont", 12), fg=header_color,
