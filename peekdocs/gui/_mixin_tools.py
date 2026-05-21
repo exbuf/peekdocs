@@ -6440,7 +6440,7 @@ class ToolsMixin:
             elapsed = time.time() - start
 
             # Write reports in the background thread (not on GUI thread)
-            if not screen_only and all_matches:
+            if not screen_only and all_matches and not getattr(self, "_regex_search_cancelled", False):
                 self.after(0, lambda: self.status_label.configure(
                     text="Regex Search \u2014 writing reports...",
                     text_color=("blue", "#66BBFF"),
@@ -6466,6 +6466,8 @@ class ToolsMixin:
                 except Exception:
                     pass
 
+            if getattr(self, "_regex_search_cancelled", False):
+                return
             self.after(0, _finished, scan_results, elapsed, files_searched, all_matches)
 
         def _finished(scan_results, elapsed, files_searched, all_matches):
