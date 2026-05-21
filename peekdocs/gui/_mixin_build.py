@@ -559,7 +559,7 @@ class BuildMixin:
             fg_color="#7C3AED", hover_color="#6D28D9",
             text_color="white",
             command=self._start_regex_search,
-            font=ctk.CTkFont(size=24, weight="bold"),
+            font=ctk.CTkFont(size=24),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._regex_search_btn, "Run multiple regex patterns at once. Results depend on report checkbox setting.")
