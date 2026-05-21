@@ -4884,11 +4884,28 @@ class ToolsMixin:
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 12))
 
+        _saved_before_clear = []  # stores snapshot for Restore All
+
         def _clear_all():
+            # Save current state before clearing
+            _saved_before_clear.clear()
             for en_var, nm_entry, rx_entry in pattern_rows:
+                _saved_before_clear.append((en_var.get(), nm_entry.get(), rx_entry.get()))
                 en_var.set(False)
                 nm_entry.delete(0, "end")
                 rx_entry.delete(0, "end")
+
+        def _restore_all():
+            if not _saved_before_clear:
+                return
+            for i, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows):
+                if i < len(_saved_before_clear):
+                    saved_en, saved_nm, saved_rx = _saved_before_clear[i]
+                    en_var.set(saved_en)
+                    nm_entry.delete(0, "end")
+                    nm_entry.insert(0, saved_nm)
+                    rx_entry.delete(0, "end")
+                    rx_entry.insert(0, saved_rx)
 
         def _run():
             import re as _re
@@ -4953,8 +4970,12 @@ class ToolsMixin:
             fg_color="#CC3333", hover_color="#AA2222",
             command=_clear_all,
         ).pack(side="left", padx=(15, 0))
-        # Invisible spacer on the right to balance Clear All so Run centers
-        tk.Frame(btn_frame, width=145).pack(side="right")
+        ctk.CTkButton(
+            btn_frame, text="Restore All", width=100,
+            font=ctk.CTkFont(size=12),
+            fg_color="#555555", hover_color="#444444",
+            command=_restore_all,
+        ).pack(side="right", padx=(0, 15))
         ctk.CTkButton(
             btn_frame, text="Run", width=100,
             font=ctk.CTkFont(size=12, weight="bold"),
