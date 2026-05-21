@@ -514,7 +514,7 @@ class BuildMixin:
         search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
         Tooltip(search_help_btn, "Search examples and quick-start guide", anchor="left")
 
-        Tooltip(self.folder_entry, "The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
+        Tooltip(self.folder_entry, "Search Folder: The folder or file to search. Use Browse to pick a folder, Single File to pick a specific file")
 
 
 
@@ -1086,6 +1086,7 @@ class BuildMixin:
         )
         self.preview_text.pack(side="left", fill="both", expand=True)
         preview_scroll.config(command=self.preview_text.yview)
+        Tooltip(self.preview_text, "Results Preview: Shows search matches with highlighted terms. Right-click to copy text. Double-click a filename to open it in its default application.")
 
         # Apply dark theme to preview area if in dark mode
         if ctk.get_appearance_mode() == "Dark":
