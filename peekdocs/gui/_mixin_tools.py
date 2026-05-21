@@ -6373,8 +6373,12 @@ class ToolsMixin:
         self.progress_bar.start()
         self.progress_bar.grid(row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
 
+        self._regex_search_cancelled = False
         if hasattr(self, "_regex_search_btn"):
-            self._regex_search_btn.configure(state="disabled")
+            self._regex_search_btn.configure(
+                fg_color="red", hover_color="darkred", text="Cancel",
+                command=self._cancel_regex_search,
+            )
 
         def _thread():
             from peekdocs.api import search as api_search
@@ -6385,6 +6389,8 @@ class ToolsMixin:
             total_patterns = len(active_patterns)
 
             for pat_idx, (name, regex) in enumerate(active_patterns, 1):
+                if getattr(self, "_regex_search_cancelled", False):
+                    break
                 self.after(0, lambda i=pat_idx, t=total_patterns, n=name:
                     self.status_label.configure(
                         text=f"Regex Search ({mode_label})... ({i}/{t}) {n}",
@@ -6466,7 +6472,11 @@ class ToolsMixin:
             self.progress_bar.stop()
             self.progress_bar.grid_remove()
             if hasattr(self, "_regex_search_btn"):
-                self._regex_search_btn.configure(state="normal")
+                self._regex_search_btn.configure(
+                    state="normal", fg_color="#7C3AED", hover_color="#6D28D9",
+                    text_color="white", text="\U0001f50d Regex Search",
+                    command=self._start_regex_search,
+                )
 
             total = sum(r["match_count"] for r in scan_results)
             if total == 0:
@@ -6580,6 +6590,19 @@ class ToolsMixin:
         thread = threading.Thread(target=_thread, daemon=True)
         thread.start()
 
+
+    def _cancel_regex_search(self):
+        """Cancel a running Regex Search."""
+        self._regex_search_cancelled = True
+        self.status_label.configure(text="Regex Search cancelled.", text_color=("blue", "#66BBFF"))
+        self.progress_bar.stop()
+        self.progress_bar.grid_remove()
+        if hasattr(self, "_regex_search_btn"):
+            self._regex_search_btn.configure(
+                state="normal", fg_color="#7C3AED", hover_color="#6D28D9",
+                text_color="white", text="\U0001f50d Regex Search",
+                command=self._start_regex_search,
+            )
 
     def _show_regex_search_help(self, parent):
         """Show help for the Regex Search feature."""
