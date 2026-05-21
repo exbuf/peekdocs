@@ -6432,6 +6432,34 @@ class ToolsMixin:
                     })
 
             elapsed = time.time() - start
+
+            # Write reports in the background thread (not on GUI thread)
+            if not screen_only and all_matches:
+                self.after(0, lambda: self.status_label.configure(
+                    text="Regex Search \u2014 writing reports...",
+                    text_color=("blue", "#66BBFF"),
+                ))
+                try:
+                    from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
+                    search_terms = [regex for _name, regex in active_patterns]
+                    command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
+                    output_path = os.path.join(folder, "peekdocs_results.txt")
+                    docx_path = os.path.join(folder, "peekdocs_results.docx")
+                    write_txt_report(
+                        output_path, all_matches, [], search_terms, command_str,
+                        "ANY", False, [], False, False, True, False,
+                        elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
+                        recursive=recursive, use_index=False,
+                    )
+                    result_doc = write_docx_report(
+                        docx_path, output_path,
+                        search_terms=search_terms,
+                        use_regex=True,
+                    )
+                    insert_file_sizes(output_path, docx_path, result_doc)
+                except Exception:
+                    pass
+
             self.after(0, _finished, scan_results, elapsed, files_searched, all_matches)
 
         def _finished(scan_results, elapsed, files_searched, all_matches):
@@ -6452,31 +6480,8 @@ class ToolsMixin:
                     text_color=("black", "#e0e0e0"),
                 )
 
-            # Write reports if not screen-only
             if not screen_only and all_matches:
-                try:
-                    from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
-                    from peekdocs.cli import VERSION
-                    output_dir = folder
-                    search_terms = [regex for _name, regex in active_patterns]
-                    command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
-                    output_path = os.path.join(output_dir, "peekdocs_results.txt")
-                    docx_path = os.path.join(output_dir, "peekdocs_results.docx")
-                    write_txt_report(
-                        output_path, all_matches, [], search_terms, command_str,
-                        "ANY", False, [], False, False, True, False,
-                        elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
-                        recursive=recursive, use_index=False,
-                    )
-                    result_doc = write_docx_report(
-                        docx_path, output_path,
-                        search_terms=search_terms,
-                        use_regex=True,
-                    )
-                    insert_file_sizes(output_path, docx_path, result_doc)
-                    self.results_dir = output_dir
-                except Exception:
-                    pass
+                self.results_dir = folder
 
             # Show results popup
             popup, _dark = self._themed_toplevel()
