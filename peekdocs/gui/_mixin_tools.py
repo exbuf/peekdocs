@@ -6413,7 +6413,7 @@ class ToolsMixin:
                         file_matches[key]["count"] += 1
                         file_matches[key]["lines"].append(match.line_num)
                         file_matches[key]["match_texts"].append(match.text)
-                        if not screen_only:
+                        if not screen_only and len(all_matches) < 10000:
                             all_matches.append((match.file_dir, match.filename, match.line_num, match.text))
                     scan_results.append({
                         "name": name,
@@ -6559,9 +6559,19 @@ class ToolsMixin:
                 if res["files"]:
                     details_var = tk.BooleanVar(value=False)
                     details_frame = tk.Frame(row_frame)
+                    details_populated = [False]
 
-                    def _toggle_details(df=details_frame, dv=details_var):
+                    def _toggle_details(df=details_frame, dv=details_var, files=res["files"], pop=details_populated):
                         if dv.get():
+                            if not pop[0]:
+                                # Lazy creation — only build widgets when first expanded
+                                for fname, info in sorted(files.items()):
+                                    tk.Label(
+                                        df,
+                                        text=f"  {info['path']}  ({info['count']} match(es))",
+                                        font=("TkDefaultFont", 10), anchor="w",
+                                    ).pack(anchor="w")
+                                pop[0] = True
                             df.pack(fill="x", padx=12, pady=(0, 4))
                         else:
                             df.pack_forget()
@@ -6570,13 +6580,6 @@ class ToolsMixin:
                         row_frame, text="Show files", variable=details_var,
                         command=_toggle_details, font=("TkDefaultFont", 10),
                     ).pack(anchor="w", padx=8, pady=(0, 2))
-
-                    for fname, info in sorted(res["files"].items()):
-                        tk.Label(
-                            details_frame,
-                            text=f"  {info['path']}  ({info['count']} match(es))",
-                            font=("TkDefaultFont", 10), anchor="w",
-                        ).pack(anchor="w")
 
             # Close button
             ctk.CTkButton(
