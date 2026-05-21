@@ -1047,7 +1047,7 @@ class BuildMixin:
             command=self._clear_preview,
         )
         self._clear_preview_btn.pack(side="left", padx=(8, 0))
-        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane — removes all visible match data from the screen. Protects sensitive data from shoulder surfing — useful if you've finished reviewing and don't want results visible to anyone who walks by. Does not delete report files on disk")
+        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk")
 
         # App-wide text size dropdown
         self._app_size_menu = ctk.CTkOptionMenu(
@@ -1207,7 +1207,7 @@ class BuildMixin:
             fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,
         )
-        Tooltip(self._delete_everything_btn, "Immediately delete all peekdocs result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields — leaves no trace of what you searched or where. Protects sensitive data from shoulder surfing and leaves nothing on screen or on disk for anyone else to find. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected. Your documents and personal files are never touched", anchor="above")
+        Tooltip(self._delete_everything_btn, "Immediately delete all peekdocs result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields. Deletes report files from the most recent search and clears displayed results to reduce leftover local artifacts. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, and settings are not affected. Your documents and personal files are never touched", anchor="above")
 
 
 
