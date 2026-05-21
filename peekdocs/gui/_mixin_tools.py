@@ -6557,29 +6557,15 @@ class ToolsMixin:
                 ).pack(anchor="w", padx=8, pady=(0, 4))
 
                 if res["files"]:
-                    details_var = tk.BooleanVar(value=False)
-                    details_frame = tk.Frame(row_frame)
-                    details_populated = [False]
-
-                    def _toggle_details(df=details_frame, dv=details_var, files=res["files"], pop=details_populated):
-                        if dv.get():
-                            if not pop[0]:
-                                # Lazy creation — only build widgets when first expanded
-                                for fname, info in sorted(files.items()):
-                                    tk.Label(
-                                        df,
-                                        text=f"  {info['path']}  ({info['count']} match(es))",
-                                        font=("TkDefaultFont", 10), anchor="w",
-                                    ).pack(anchor="w")
-                                pop[0] = True
-                            df.pack(fill="x", padx=12, pady=(0, 4))
-                        else:
-                            df.pack_forget()
-
-                    tk.Checkbutton(
-                        row_frame, text="Show files", variable=details_var,
-                        command=_toggle_details, font=("TkDefaultFont", 10),
-                    ).pack(anchor="w", padx=8, pady=(0, 2))
+                    # Pass files dict directly — matches format expected by _show_sensitive_category_files
+                    _files_data = res["files"]
+                    _cat_name = res["name"]
+                    _cat_regex = res["regex"]
+                    ctk.CTkButton(
+                        row_frame, text="View Files",
+                        width=80, font=ctk.CTkFont(size=10),
+                        command=lambda f=_files_data, c=_cat_name, p=popup, r=_cat_regex: self._show_sensitive_category_files(f, c, p, regex=r),
+                    ).pack(anchor="w", padx=8, pady=(0, 4))
 
             # Close button
             ctk.CTkButton(
