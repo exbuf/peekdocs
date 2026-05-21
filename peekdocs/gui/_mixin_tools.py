@@ -4952,9 +4952,9 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color="green", hover_color="darkgreen",
             command=_run,
-        ).pack(side="left", padx=5)
+        ).pack()
         ctk.CTkButton(
-            btn_frame, text="Clear All", width=100,
+            close_frame, text="Clear All", width=100,
             font=ctk.CTkFont(size=12),
             fg_color="#CC3333", hover_color="#AA2222",
             command=_clear_all,
