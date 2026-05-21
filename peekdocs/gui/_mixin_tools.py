@@ -5359,6 +5359,11 @@ class ToolsMixin:
         b("Your pattern names, regex strings, folder, and checkbox")
         b("settings are automatically saved between sessions.")
         blank()
+        b("Clear All erases all 10 pattern rows (checkboxes, names,")
+        b("and regex fields). Restore All puts them back \u2014 it undoes")
+        b("the most recent Clear All. Useful if you accidentally clear")
+        b("patterns you meant to keep.")
+        blank()
 
         h("PATTERN TIPS")
         b("Plain words and phrases work as patterns too \u2014 for example,")
