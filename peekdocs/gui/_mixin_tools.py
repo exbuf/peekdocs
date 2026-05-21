@@ -4880,7 +4880,7 @@ class ToolsMixin:
 
         # Clear All, Run, and Close buttons
         btn_frame = tk.Frame(win)
-        btn_frame.pack(pady=(8, 2))
+        btn_frame.pack(fill="x", pady=(8, 2), padx=15)
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 12))
 
