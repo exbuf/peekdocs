@@ -556,7 +556,7 @@ class BuildMixin:
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
             text="Regex Search", width=160, height=44,
-            fg_color="#7C3AED", hover_color="#6D28D9",
+            fg_color="#6B5B95", hover_color="#5A4A80",
             text_color="white",
             command=self._start_regex_search,
             font=ctk.CTkFont(size=24),
