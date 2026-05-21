@@ -4098,7 +4098,7 @@ class ToolsMixin:
         b("The purple Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
-        b("Standard search (main search bar):")
+        b("Standard search (main search bar \u2014 next to Step 2):")
         b("\u2022 Supports all 11 search modes: keywords, AND/OR, Boolean,")
         b("  regex, fuzzy, wildcard, whole-word, proximity, inverse, range")
         b("\u2022 Single regex via the Regex checkbox in Advanced Search Options")
