@@ -36,7 +36,7 @@ from peekdocs.constants import (  # noqa: E402
 
 BANNER_TOP = (
     '\npeekdocs — privacy-first local document search and analysis platform.\n'
-    'Search 100+ file types with 11 search modes, regex workflows, batch analysis, and automated reporting.\n'
+    'Search 100+ file types with 11 search modes, regex workflows, batch analysis, yellow-highlighted reports, and automated reporting.\n'
     'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
     'Supported file types (100+):\n'
