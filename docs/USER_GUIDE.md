@@ -31,6 +31,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Files Created by peekdocs](#files-created-by-peekdocs)
   - [Delete on Close](#delete-on-close)
 - [Limits and Constraints](#limits-and-constraints)
+- [Platform Notes](#platform-notes)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
 - [Running Tests](#running-tests)
@@ -1977,6 +1978,69 @@ To see all your saved settings: `peekdocs --config`. To reset a setting to its d
 | **Disk space** | peekdocs checks available disk space before writing reports. If free space is below 10 MB, it warns and skips report generation | Free disk space, or use `--output-dir` to write reports to a different drive |
 | **Path length (Windows)** | Windows has a default 260-character path limit. Deeply nested folders with long filenames may cause files to be silently skipped | Enable long paths in Windows. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
 | **SQLite lock timeout** | If another process holds the index database lock, peekdocs waits up to 10 seconds before falling back to direct file scanning | Close other peekdocs instances, or delete stale lock files. See [FAQ & Troubleshooting](TROUBLESHOOTING.md) |
+
+## Platform Notes
+
+peekdocs runs on Windows, macOS, and Linux with the same features in all three. A handful of day-to-day operations vary by operating system — this section collects them in one place. For install-related platform details, see [Dependencies](#dependencies) and [Getting Started with the Terminal](#getting-started-with-the-terminal). For lower-level file-handling differences (lock files, symlinks, virtual filesystems, etc.), see the **Platform Notes** section in the README.
+
+### Showing hidden files
+
+peekdocs uses dot-files (`.peekdocs_collection.json`, `~/.peekdocsrc`, etc.) that are hidden by default.
+
+- **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files.
+- **Windows:** In File Explorer, click the **View** tab and check **Show hidden items**.
+- **Linux:** In your file manager, press **Ctrl+H**, or use `ls -a` in the terminal.
+
+### Locking the screen
+
+peekdocs stores results in plain files on disk, so lock the screen when stepping away.
+
+- **Windows:** Win+L
+- **macOS:** Ctrl+Cmd+Q
+- **Linux:** Super+L
+
+### Network folder paths
+
+Map or mount the share so it appears as a regular folder, then point peekdocs at it. Build an index on the first search to avoid re-reading files over the network on every run.
+
+- **Windows:** mapped drive (e.g., `Z:\`)
+- **macOS:** `/Volumes/ShareName`
+- **Linux:** NFS or SMB mount point
+
+### Activating the virtual environment
+
+Required only for the manual-install (Option B) workflow. pipx users (Option A) can skip this — peekdocs is always on `PATH`.
+
+- **macOS/Linux:** `source venv/bin/activate`
+- **Windows:** `venv\Scripts\activate`
+
+You'll see `(venv)` appear in your prompt when activation succeeds.
+
+### File picker differences
+
+When you click **File** in the Folder Bar:
+
+- **macOS:** The picker includes a preview panel on the right.
+- **Windows:** The picker does not include a preview.
+
+This is an OS-level difference, not a peekdocs choice.
+
+### Opening reports without Microsoft Word
+
+The `.docx` report opens with whatever word processor is installed on your computer. [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) is recommended on all three platforms. The `.txt` report opens anywhere with no additional software. Enable HTML output in Advanced Search Options for a browser-based highlighted report. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based app that may upload your data.
+
+### Schedule Search command format
+
+The Schedule Search dialog (Tools menu) generates the correct command format for your detected OS:
+
+- **macOS/Linux:** crontab entry (paste into `crontab -e`)
+- **Windows:** `schtasks` command (paste into Command Prompt or Task Scheduler)
+
+### Batch loops over collections and suites
+
+- **macOS/Linux:** bash `for ... do ... done` loops. See [Regex Collection Use Cases](#regex-collection-use-cases) and [Search Suite Use Cases](#search-suite-use-cases).
+- **Windows:** PowerShell `foreach (...) { ... }` loops. Same sections include PowerShell variants.
+- **Any OS:** the Python API works identically. Use `list_regex_collections()` / `list_suites()` to enumerate, then `run_regex_collection()` / `run_suite()` to execute.
 
 ## Multilingual Support
 
