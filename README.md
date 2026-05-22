@@ -102,6 +102,9 @@ By default, only the current folder is searched. Use -r to include subfolders.
   peekdocs --regex-collection "security audit" --stdout  JSON output
   peekdocs --regex-collection --list               List saved collections
 
+  GUI users: Tools → Schedule Search generates these commands for you
+  with step-by-step instructions — no terminal experience needed.
+
 ── Cleanup ──────────────────────────────────────────────────────
   peekdocs --list-files          List all peekdocs-created files
   peekdocs --clear               Delete peekdocs_results* files
@@ -401,6 +404,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
   - **Protected Files** — detects password-protected PDFs, Word/Excel/PowerPoint, ZIP/7z/RAR archives that peekdocs can't search
   - **Search History** — automatic diary of every search you run: date, terms, match count, file count, elapsed time
   - **Bookmarks** — pin files from search results for quick access later
+  - **Schedule Search** — generates a ready-to-paste cron (Mac/Linux) or Task Scheduler (Windows) command to run any saved search suite or regex collection on a schedule. Step-by-step instructions are included — no terminal experience required
 
 ### Why Developers Like It
 
@@ -704,7 +708,32 @@ We're not here to replace grep. We're here to handle the 95% of files grep prete
 - **Search index with auto-refresh** — grep has no index. You'd need a separate tool (recoll, xapian) — at which point you're not using grep anymore.
 - **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters, different tool flags). peekdocs works identically on all three platforms.
 
-**The honest summary:** For plain-text search in a terminal, grep is faster and simpler — use it. For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, scanning for sensitive data, or giving a non-terminal user a search tool they can actually use, peekdocs does what would take hundreds of lines of custom scripting to approximate — and does it in one command.
+**Side-by-side comparison:**
+
+| Capability | grep | peekdocs |
+|---|---|---|
+| Plain text files (.txt, .log, .csv) | Yes | Yes |
+| PDF text extraction | Manual (`pdftotext \| grep`) | Built in |
+| Word documents (.docx) | Manual (`unzip -p \| grep`) | Built in |
+| Excel spreadsheets (.xlsx) | Manual (`xlsx2csv \| grep`) | Built in |
+| PowerPoint (.pptx) | No practical method | Built in |
+| Email archives (.eml, .msg) | No practical method | Built in |
+| OCR (scanned PDFs, images) | Manual (`tesseract \| grep`) | Built in (`-O`) |
+| RTF, EPUB, ODT, ODS, ODP | Each needs a different converter | Built in |
+| Source code (46 languages) | Yes | Yes |
+| Highlighted .docx/.pdf/.html reports | No | Yes |
+| CSV and JSON export | Manual scripting | Built in (`-o csv,json`) |
+| Boolean expressions | No | Yes (`-e "A AND (B OR C)"`) |
+| Proximity search | No | Yes (`-p 5`) |
+| Fuzzy / typo-tolerant matching | No | Yes (`-z`) |
+| Range queries (amounts, dates) | No | Yes (`-R amount:1000..5000`) |
+| Saved searches and suites | No | Yes |
+| Regex collections (batch patterns) | Manual scripting | Built in (`--regex-collection`) |
+| Search index with auto-refresh | No (needs separate tool) | Built in (`--index`) |
+| Cross-platform consistency | Varies (GNU vs BSD grep) | Identical on all platforms |
+| GUI | No | Yes |
+
+**The honest summary:** For plain-text search in a terminal, grep is faster and simpler — use it. For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, or giving a non-terminal user a search tool they can actually use, peekdocs does what would take hundreds of lines of custom scripting to approximate — and does it in one command.
 
 ## Performance
 
@@ -935,7 +964,7 @@ peekdocs --regex-collection --list                  # list all saved collections
 # 0 8 * * 1 cd /path/to/docs && peekdocs --regex-collection "weekly scan" -r -qq
 ```
 
-Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details.
+Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details. **GUI users:** if you're not comfortable with the terminal, go to Tools → Schedule Search — it generates the cron or Task Scheduler command for you and shows step-by-step instructions with screenshots-style detail. Just copy, paste, and done.
 
 **How does peekdocs handle 100,000+ files?**
 It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.

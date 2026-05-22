@@ -4761,6 +4761,385 @@ class ToolsMixin:
         self._apply_dark_theme(help_win)
 
 
+    # ── Schedule Search ───────────────────────────────────────────────
+
+    def _open_schedule_search(self):
+        """Open the Schedule Search dialog — generates cron or schtasks commands."""
+        import tkinter as tk
+
+        win, _dark = self._themed_toplevel()
+        win.title("Schedule Search")
+        win.resizable(True, True)
+        win.geometry("680x780")
+        win.transient(self)
+        win.bind("<FocusIn>", lambda e: win.lift())
+
+        # ── Title & subtitle ──
+        tk.Label(
+            win, text="Schedule Search",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(anchor="w", padx=15, pady=(10, 0))
+        tk.Label(
+            win,
+            text="Generate a command to run a peekdocs search automatically on a schedule. "
+                 "This dialog creates the command for you \u2014 you paste it into your "
+                 "system's scheduler. Step-by-step instructions are shown below.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=640, justify="left",
+        ).pack(fill="x", padx=15, pady=(2, 8))
+
+        # ── What to run ──
+        tk.Label(
+            win, text="What to run:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+
+        search_type_var = tk.StringVar(value="regex_collection")
+        choice_frame = tk.Frame(win)
+        choice_frame.pack(fill="x", padx=15, pady=(0, 4))
+        tk.Radiobutton(
+            choice_frame, text="Search Suite", variable=search_type_var,
+            value="suite", font=("TkDefaultFont", 11),
+            command=lambda: _refresh_names(),
+        ).pack(side="left", padx=(0, 15))
+        tk.Radiobutton(
+            choice_frame, text="Regex Collection", variable=search_type_var,
+            value="regex_collection", font=("TkDefaultFont", 11),
+            command=lambda: _refresh_names(),
+        ).pack(side="left")
+
+        name_var = tk.StringVar(value="")
+        name_dropdown = ctk.CTkOptionMenu(
+            win, variable=name_var, values=["(none found)"],
+            width=400, font=ctk.CTkFont(size=11),
+            command=lambda _: _regenerate(),
+        )
+        name_dropdown.pack(anchor="w", padx=15, pady=(0, 6))
+
+        # ── Folder ──
+        tk.Label(
+            win, text="Search folder:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+        folder_frame = tk.Frame(win)
+        folder_frame.pack(fill="x", padx=15, pady=(0, 2))
+        folder_var = tk.StringVar(value=self.folder_entry.get().strip() or os.path.expanduser("~"))
+        folder_entry = tk.Entry(folder_frame, textvariable=folder_var, font=("TkDefaultFont", 11))
+        folder_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+        def _browse_folder():
+            d = filedialog.askdirectory(parent=win, initialdir=folder_var.get())
+            if d:
+                folder_var.set(d)
+                _refresh_names()
+                _regenerate()
+
+        ctk.CTkButton(
+            folder_frame, text="Browse", width=70,
+            font=ctk.CTkFont(size=11), command=_browse_folder,
+        ).pack(side="left")
+
+        recursive_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(
+            win, text="Recursive (-r) \u2014 include subfolders",
+            variable=recursive_var, font=("TkDefaultFont", 11),
+            command=lambda: _regenerate(),
+        ).pack(anchor="w", padx=15, pady=(0, 6))
+
+        # ── Schedule ──
+        tk.Label(
+            win, text="How often:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+
+        sched_frame = tk.Frame(win)
+        sched_frame.pack(fill="x", padx=15, pady=(0, 2))
+
+        freq_var = tk.StringVar(value="Weekly")
+        freq_menu = ctk.CTkOptionMenu(
+            sched_frame, variable=freq_var,
+            values=["Daily", "Weekly", "Monthly"],
+            width=120, font=ctk.CTkFont(size=11),
+            command=lambda _: (_toggle_day_pickers(), _regenerate()),
+        )
+        freq_menu.pack(side="left", padx=(0, 10))
+
+        day_of_week_var = tk.StringVar(value="Monday")
+        day_of_week_menu = ctk.CTkOptionMenu(
+            sched_frame, variable=day_of_week_var,
+            values=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            width=130, font=ctk.CTkFont(size=11),
+            command=lambda _: _regenerate(),
+        )
+        day_of_week_menu.pack(side="left", padx=(0, 10))
+
+        day_of_month_var = tk.StringVar(value="1")
+        day_of_month_menu = ctk.CTkOptionMenu(
+            sched_frame, variable=day_of_month_var,
+            values=[str(i) for i in range(1, 29)],
+            width=70, font=ctk.CTkFont(size=11),
+            command=lambda _: _regenerate(),
+        )
+
+        def _toggle_day_pickers():
+            freq = freq_var.get()
+            day_of_week_menu.pack_forget()
+            day_of_month_menu.pack_forget()
+            if freq == "Weekly":
+                day_of_week_menu.pack(side="left", padx=(0, 10), after=freq_menu)
+            elif freq == "Monthly":
+                day_of_month_menu.pack(side="left", padx=(0, 10), after=freq_menu)
+
+        # Time row
+        time_frame = tk.Frame(win)
+        time_frame.pack(fill="x", padx=15, pady=(2, 6))
+        tk.Label(time_frame, text="At:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 5))
+        hour_var = tk.StringVar(value="08")
+        ctk.CTkOptionMenu(
+            time_frame, variable=hour_var,
+            values=[f"{h:02d}" for h in range(24)],
+            width=70, font=ctk.CTkFont(size=11),
+            command=lambda _: _regenerate(),
+        ).pack(side="left", padx=(0, 3))
+        tk.Label(time_frame, text=":", font=("TkDefaultFont", 11)).pack(side="left")
+        minute_var = tk.StringVar(value="00")
+        ctk.CTkOptionMenu(
+            time_frame, variable=minute_var,
+            values=["00", "15", "30", "45"],
+            width=70, font=ctk.CTkFont(size=11),
+            command=lambda _: _regenerate(),
+        ).pack(side="left", padx=(3, 0))
+
+        # ── Options ──
+        tk.Label(
+            win, text="Options:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+        timestamp_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(
+            win, text="Add timestamp to report filenames (--timestamp)",
+            variable=timestamp_var, font=("TkDefaultFont", 11),
+            command=lambda: _regenerate(),
+        ).pack(anchor="w", padx=15)
+        stdout_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            win, text="Also save JSON output to a file (--stdout)",
+            variable=stdout_var, font=("TkDefaultFont", 11),
+            command=lambda: _regenerate(),
+        ).pack(anchor="w", padx=15, pady=(0, 6))
+
+        # ── Generated command ──
+        tk.Label(
+            win, text="Your scheduling command:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+        cmd_text = tk.Text(
+            win, height=4, wrap="word", font=("Courier", 11),
+            relief="solid", borderwidth=1,
+        )
+        cmd_text.pack(fill="x", padx=15, pady=(0, 4))
+
+        cmd_btn_frame = tk.Frame(win)
+        cmd_btn_frame.pack(fill="x", padx=15, pady=(0, 6))
+        ctk.CTkButton(
+            cmd_btn_frame, text="Copy to Clipboard", width=140,
+            font=ctk.CTkFont(size=11),
+            fg_color="#2E7D32", hover_color="#1B5E20",
+            command=lambda: _copy_command(),
+        ).pack(side="left")
+
+        # ── Instructions ──
+        tk.Label(
+            win, text="Step-by-step instructions:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+        instr_text = tk.Text(
+            win, height=12, wrap="word", font=("TkDefaultFont", 11),
+            relief="solid", borderwidth=1,
+        )
+        instr_text.pack(fill="both", expand=True, padx=15, pady=(0, 6))
+
+        # ── Close ──
+        ctk.CTkButton(
+            win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(pady=(0, 10))
+
+        # ── Helper functions ──
+
+        def _get_suite_names():
+            """Return list of suite names for the selected folder."""
+            from peekdocs.collection import load_collection
+            folder = folder_var.get().strip()
+            if not folder or not os.path.isdir(folder):
+                return []
+            data = load_collection(folder)
+            return sorted(data.get("suites", {}).keys())
+
+        def _get_collection_names():
+            """Return list of regex collection names."""
+            rc_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+            if not os.path.exists(rc_path):
+                return []
+            try:
+                with open(rc_path, "r", encoding="utf-8") as f:
+                    return sorted(json.load(f).keys())
+            except Exception:
+                return []
+
+        def _refresh_names():
+            """Repopulate the name dropdown based on search type."""
+            if search_type_var.get() == "suite":
+                names = _get_suite_names()
+            else:
+                names = _get_collection_names()
+            if names:
+                name_dropdown.configure(values=names)
+                name_var.set(names[0])
+            else:
+                label = "No suites found" if search_type_var.get() == "suite" else "No collections found"
+                name_dropdown.configure(values=[label])
+                name_var.set(label)
+            _regenerate()
+
+        def _build_peekdocs_cmd():
+            """Build the peekdocs CLI command string."""
+            python = sys.executable
+            stype = search_type_var.get()
+            name = name_var.get()
+            parts = [python, "-m", "peekdocs"]
+            if stype == "suite":
+                parts += ["--suite", f'"{name}"']
+            else:
+                parts += ["--regex-collection", f'"{name}"']
+            if recursive_var.get():
+                parts.append("-r")
+            if timestamp_var.get():
+                parts.append("--timestamp")
+            parts.append("-qq")  # suppress terminal output for background jobs
+            return " ".join(parts)
+
+        def _regenerate():
+            """Regenerate the command and instructions."""
+            folder = folder_var.get().strip()
+            peekdocs_cmd = _build_peekdocs_cmd()
+            is_win = platform.system() == "Windows"
+            minute = minute_var.get()
+            hour = hour_var.get()
+            freq = freq_var.get()
+
+            if is_win:
+                # schtasks command
+                task_name = "peekdocs_scheduled_search"
+                # Build the /tr argument
+                tr_cmd = f'cmd /c "cd /d \\"{folder}\\" && {peekdocs_cmd}'
+                if stdout_var.get():
+                    tr_cmd += f' --stdout >> \\"{folder}\\peekdocs_scheduled.json\\"'
+                tr_cmd += '"'
+                sched = f"/sc {freq.upper()} /st {hour}:{minute}"
+                if freq == "Weekly":
+                    day_abbr = {"Monday": "MON", "Tuesday": "TUE", "Wednesday": "WED",
+                                "Thursday": "THU", "Friday": "FRI", "Saturday": "SAT",
+                                "Sunday": "SUN"}
+                    sched += f" /d {day_abbr[day_of_week_var.get()]}"
+                elif freq == "Monthly":
+                    sched += f" /d {day_of_month_var.get()}"
+                full_cmd = f'schtasks /create /tn "{task_name}" /tr "{tr_cmd}" {sched} /f'
+            else:
+                # cron entry
+                dow_map = {"Sunday": "0", "Monday": "1", "Tuesday": "2",
+                           "Wednesday": "3", "Thursday": "4", "Friday": "5",
+                           "Saturday": "6"}
+                if freq == "Daily":
+                    cron_time = f"{minute} {hour} * * *"
+                elif freq == "Weekly":
+                    cron_time = f"{minute} {hour} * * {dow_map[day_of_week_var.get()]}"
+                else:  # Monthly
+                    cron_time = f"{minute} {hour} {day_of_month_var.get()} * *"
+
+                shell_cmd = f'cd "{folder}" && {peekdocs_cmd}'
+                if stdout_var.get():
+                    shell_cmd += f' --stdout >> "{folder}/peekdocs_scheduled.json"'
+                full_cmd = f"{cron_time} {shell_cmd}"
+
+            # Update command box
+            cmd_text.configure(state="normal")
+            cmd_text.delete("1.0", "end")
+            cmd_text.insert("1.0", full_cmd)
+            cmd_text.configure(state="disabled")
+
+            # Update instructions
+            instr_text.configure(state="normal")
+            instr_text.delete("1.0", "end")
+            if is_win:
+                instr_text.insert("end", _windows_instructions(folder))
+            else:
+                instr_text.insert("end", _mac_linux_instructions(folder))
+            instr_text.configure(state="disabled")
+
+        def _mac_linux_instructions(folder):
+            return (
+                "How to set up this scheduled search (Mac / Linux):\n\n"
+                "1. Copy the command above (click Copy to Clipboard).\n\n"
+                "2. Open Terminal.\n"
+                "   Mac: press Cmd+Space, type \"Terminal\", press Enter.\n"
+                "   Linux: press Ctrl+Alt+T, or find Terminal in your applications menu.\n\n"
+                "3. Type this and press Enter:\n"
+                "   crontab -e\n\n"
+                "4. Your crontab file opens in a text editor (usually nano).\n"
+                "   Use arrow keys to move to the bottom of the file.\n\n"
+                "5. Paste the command on a new line at the bottom.\n"
+                "   Mac Terminal: press Cmd+V to paste.\n"
+                "   Linux Terminal: press Ctrl+Shift+V to paste.\n\n"
+                "6. Save and exit:\n"
+                "   In nano: press Ctrl+O, then Enter to save, then Ctrl+X to exit.\n"
+                "   In vi: press Escape, then type :wq and press Enter.\n\n"
+                "7. Verify it was saved by running:\n"
+                "   crontab -l\n"
+                "   You should see your new line in the output.\n\n"
+                f"Reports will be saved in:\n{folder}\n\n"
+                "To stop the scheduled search later:\n"
+                "Run \"crontab -e\" again and delete the line, then save.\n"
+            )
+
+        def _windows_instructions(folder):
+            return (
+                "How to set up this scheduled search (Windows):\n\n"
+                "1. Copy the command above (click Copy to Clipboard).\n\n"
+                "2. Open Command Prompt as Administrator.\n"
+                "   Press the Windows key, type \"cmd\".\n"
+                "   Right-click \"Command Prompt\" and select\n"
+                "   \"Run as administrator\".\n"
+                "   Click \"Yes\" when asked for permission.\n\n"
+                "3. Paste the command and press Enter.\n"
+                "   Right-click in the Command Prompt window to paste.\n\n"
+                "4. You should see:\n"
+                "   SUCCESS: The scheduled task has been successfully created.\n\n"
+                f"Reports will be saved in:\n{folder}\n\n"
+                "To see your scheduled tasks:\n"
+                "Open Task Scheduler (press Windows key, type \"Task Scheduler\").\n"
+                "Look under Task Scheduler Library for\n"
+                "\"peekdocs_scheduled_search\".\n\n"
+                "To stop the scheduled search later:\n"
+                "Open Command Prompt as Administrator and run:\n"
+                "schtasks /delete /tn \"peekdocs_scheduled_search\" /f\n"
+            )
+
+        def _copy_command():
+            cmd = cmd_text.get("1.0", "end").strip()
+            self.clipboard_clear()
+            self.clipboard_append(cmd)
+            self.status_label.configure(
+                text="Scheduling command copied to clipboard.",
+                text_color="green",
+            )
+
+        # Initial population
+        _toggle_day_pickers()
+        _refresh_names()
+        self._apply_dark_theme(win)
+
     # ── Regex Search ─────────────────────────────────────────────────
 
     def _start_regex_search(self):
@@ -5502,6 +5881,19 @@ class ToolsMixin:
         b("Collections are stored in ~/.peekdocs_regex_collections.json")
         b("and persist across sessions. The Restore picker also includes")
         b("a Delete button to remove collections you no longer need.")
+        blank()
+        b("CLI usage: saved collections can also be run from the")
+        b("command line for automation and scheduling:")
+        blank()
+        e("  peekdocs --regex-collection \"security audit\" -r")
+        e("  peekdocs --regex-collection \"security audit\" --stdout")
+        e("  peekdocs --regex-collection --list")
+        blank()
+        b("This enables scheduled searches via cron (macOS/Linux) or")
+        b("Task Scheduler (Windows). For example:")
+        blank()
+        e("  # Run every Monday at 8am")
+        e("  0 8 * * 1 cd /path/to/docs && peekdocs --regex-collection \"weekly scan\" -r -qq")
         blank()
 
         h("PATTERN TIPS")

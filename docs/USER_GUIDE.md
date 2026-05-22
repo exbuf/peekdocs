@@ -12,6 +12,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
 - [Python API Reference](#python-api-reference)
+- [Why peekdocs Instead of grep?](#why-peekdocs-instead-of-grep)
 - [Usage](#usage)
   - [Regex search](#regex-search)
     - [Common Regex Search Patterns](#common-regex-search-patterns)
@@ -432,10 +433,43 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
+| **Schedule Search** | Generates a ready-to-paste scheduling command so peekdocs runs automatically on a timer — no terminal experience required. Pick a saved search suite or regex collection, choose a folder, set the frequency (daily, weekly, or monthly) and time, and the dialog builds the correct command for your operating system: a crontab entry for Mac/Linux or a schtasks command for Windows. Step-by-step instructions walk you through pasting the command into your system's scheduler. Options include `--timestamp` (each run produces uniquely named reports instead of overwriting) and `--stdout` (also saves JSON output to a file). Click **Copy to Clipboard** to copy the generated command. Reports are saved automatically in the search folder each time the scheduled search runs. |
 | **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, and cleanup options (Clear Files, Clean Up Practice Files). **Hover Text** is toggled from the **Hover: ON/OFF** button on the bottom row of the main screen (not in the Tools menu). Your **Appearance**, **Text Size**, and **Hover Text** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
+
+## Why peekdocs Instead of grep?
+
+grep is an excellent tool for searching plain text files. However, most real-world document folders contain a mix of PDFs, Word documents, spreadsheets, emails, and other binary formats that grep cannot read. To search those with grep, you would need to install separate converters for each format, write a script to detect file types and pipe each through the right converter, and glue the results together — a fragile pipeline that can be hundreds of lines long.
+
+peekdocs handles all of this in a single command. Here is what each tool can do:
+
+| Capability | grep | peekdocs |
+|---|---|---|
+| Plain text files (.txt, .log, .csv) | Yes | Yes |
+| PDF text extraction | Manual piping required | Built in |
+| Word documents (.docx) | Manual piping required | Built in |
+| Excel spreadsheets (.xlsx) | Manual piping required | Built in |
+| PowerPoint, email, EPUB, RTF, ODT | Each needs a different converter | Built in |
+| OCR (scanned PDFs and images) | Manual piping required | Built in (`-O` flag) |
+| Highlighted .docx, .pdf, .html reports | No | Yes |
+| CSV and JSON export | Manual scripting | Built in (`-o csv,json`) |
+| Boolean expressions | No | Yes (`-e "A AND (B OR C)"`) |
+| Proximity search (terms near each other) | No | Yes (`-p 5`) |
+| Fuzzy matching (typo-tolerant) | No | Yes (`-z`) |
+| Range queries (amounts, dates, file size) | No | Yes (`-R amount:1000..5000`) |
+| Saved searches and search suites | No | Yes |
+| Regex collections (batch patterns) | Manual scripting | Built in (`--regex-collection`) |
+| Search index with auto-refresh | No | Built in (`--index`) |
+| GUI | No | Yes |
+| Cross-platform consistency | Varies (GNU vs BSD grep) | Identical on all platforms |
+
+**When to use grep:** For quick plain-text searches in a terminal, grep is faster and simpler. Use it when all your files are plain text and you don't need reports.
+
+**When to use peekdocs:** For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, running saved pattern collections, or giving a non-terminal user a search tool with a GUI.
+
+For a more detailed comparison, see [Why Not Just Use Grep?](../README.md#why-not-just-use-grep) in the README.
 
 ## Usage
 
@@ -516,6 +550,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
 | `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
+| `--regex-collection NAME` | Run a saved regex collection by name — executes each enabled pattern separately with per-pattern results. Create collections in the GUI (Regex Search → Save Collection As). Add `-r` for recursive, `-d DIR` for a specific directory, `--stdout` for JSON output. Use `--regex-collection --list` to list all saved collections. See [Regex Collection Use Cases](#regex-collection-use-cases) below |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
 | `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
@@ -600,6 +635,41 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-R filesize` accepts size suffixes: `K` (kilobytes), `M` (megabytes), `G` (gigabytes), `T` (terabytes). Example: `-R filesize:1M..10M`
 - `-R` works with all other flags including `-a`, `-e`, `-x`, `-z`, `-w`, `-r`, `-t`, and `-O`
 - `-R` range specs can also be embedded directly inside `-e` expressions (e.g., `-e "budget AND amount:1000..5000"`). Metadata fields only work with `-R`, not inside expressions
+
+### Regex Collection Use Cases
+
+The `--regex-collection` flag lets you run saved regex collections from the command line. Collections are created in the GUI (Regex Search → Save Collection As) and can contain up to 10 regex patterns each. Here are some practical scenarios:
+
+**Security audit** — Create a collection with patterns for passwords (`(password|passwd|pwd)\s*[=:]\s*\S+`), API keys (`(api[_-]?key|secret[_-]?key)\s*[=:]\s*\S+`), and hardcoded credentials. Run it against your source code before every release:
+
+```
+peekdocs --regex-collection "security audit" -d ~/projects/myapp -r
+```
+
+**Code review** — Build a collection with patterns for TODO/FIXME comments (`(TODO|FIXME|HACK|XXX)\b`), deprecated function calls, and debug print statements. Run it against a feature branch to catch loose ends:
+
+```
+peekdocs --regex-collection "code review" -d ~/projects/myapp/src -r --stdout
+```
+
+**Financial document check** — Create a collection with patterns for dollar amounts (`\$[\d,]+(\.\d{2})?`), account numbers (`\b\d{8,12}\b`), and date formats. Run it against a folder of invoices or reports:
+
+```
+peekdocs --regex-collection "financial" -d ~/Documents/invoices
+```
+
+**Scheduled log monitoring** — Set up a cron job (macOS/Linux) or Task Scheduler entry (Windows) to run a collection against log files on a regular schedule. Results are appended to a JSON file for later review:
+
+```
+# Every Monday at 8am — scan server logs for error patterns
+0 8 * * 1 cd /var/log && peekdocs --regex-collection "error patterns" -r --stdout >> /tmp/weekly_errors.json
+```
+
+**Listing and managing collections** — See all saved collections before running one:
+
+```
+peekdocs --regex-collection --list
+```
 
 ### Command Examples
 
@@ -812,12 +882,21 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | 150 | Expression + -R metadata filter | `peekdocs -e "budget AND amount:1000..5000" -R filesize:..1M` |
 | 151 | Expression with wildcard + range | `peekdocs -e -w "budg* AND amount:1000..5000"` |
 | 152 | Expression with regex + range | `peekdocs -e -x "INV-\\d+ AND amount:1000..5000"` |
+| | **Regex Collections (CLI)** | |
+| 153 | List saved regex collections | `peekdocs --regex-collection --list` |
+| 154 | Run a saved regex collection | `peekdocs --regex-collection "Email Patterns"` |
+| 155 | Run collection on a specific folder | `peekdocs --regex-collection "Email Patterns" -d ~/Documents` |
+| 156 | Run collection recursively | `peekdocs --regex-collection "Email Patterns" -r` |
+| 157 | Run collection with JSON to stdout | `peekdocs --regex-collection "Email Patterns" --stdout` |
+| 158 | Run collection on folder, recursive, JSON | `peekdocs --regex-collection "IP Addresses" -d /var/log -r --stdout` |
+| 159 | Pipe collection results to a file | `peekdocs --regex-collection "Dates" --stdout > results.json` |
+| 160 | Run collection in a scheduled task | `peekdocs --regex-collection "Audit Patterns" -d ~/reports -r --stdout >> /tmp/audit.json` |
 | | **Installation Check** | |
-| 153 | Check installation health | `peekdocs --check` |
+| 161 | Check installation health | `peekdocs --check` |
 | | **Version and Help** | |
-| 154 | Show version | `peekdocs -v` |
-| 155 | Show help | `peekdocs -h` |
-| 156 | Show help (no arguments) | `peekdocs` |
+| 162 | Show version | `peekdocs -v` |
+| 163 | Show help | `peekdocs -h` |
+| 164 | Show help (no arguments) | `peekdocs` |
 
 ## Output
 
