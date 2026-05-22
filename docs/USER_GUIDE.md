@@ -640,16 +640,16 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 
 The `--regex-collection` flag lets you run saved regex collections from the command line. Collections are created in the GUI (Regex Search → Save Collection As) and can contain up to 10 regex patterns each. Here are some practical scenarios:
 
-**Security audit** — Create a collection with patterns for passwords (`(password|passwd|pwd)\s*[=:]\s*\S+`), API keys (`(api[_-]?key|secret[_-]?key)\s*[=:]\s*\S+`), and hardcoded credentials. Run it against your source code before every release:
+**Code patterns** — Create a collection with patterns for TODO/FIXME comments (`(TODO|FIXME|HACK|XXX)\b`), deprecated function calls, and debug print statements. Run it against your source code to catch loose ends:
 
 ```
-peekdocs --regex-collection "security audit" -d ~/projects/myapp -r
+peekdocs --regex-collection "code patterns" -d ~/projects/myapp -r
 ```
 
-**Code review** — Build a collection with patterns for TODO/FIXME comments (`(TODO|FIXME|HACK|XXX)\b`), deprecated function calls, and debug print statements. Run it against a feature branch to catch loose ends:
+**Documentation review** — Build a collection with patterns for broken links (`\[.*?\]\(.*?\)`), placeholder text (`(TBD|TODO|FIXME)`), and missing sections. Run it against your docs folder:
 
 ```
-peekdocs --regex-collection "code review" -d ~/projects/myapp/src -r --stdout
+peekdocs --regex-collection "documentation review" -d ~/projects/myapp/docs -r --stdout
 ```
 
 **Financial document check** — Create a collection with patterns for dollar amounts (`\$[\d,]+(\.\d{2})?`), account numbers (`\b\d{8,12}\b`), and date formats. Run it against a folder of invoices or reports:

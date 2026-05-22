@@ -31,7 +31,7 @@ def main():
         print(f"  {sr.search_name}: {len(sr.matches)} matches")
 
     # Run a named regex collection
-    collection = run_regex_collection("Security Audit", directory="/path/to/docs", recursive=True)
+    collection = run_regex_collection("Code Patterns", directory="/path/to/docs", recursive=True)
     for pr in collection.pattern_results:
         print(f"  {pr.name}: {len(pr.matches)} matches")
 
@@ -372,7 +372,7 @@ Run saved regex collections programmatically. Collections are created in the GUI
 from peekdocs import list_regex_collections
 
 names = list_regex_collections()
-print(names)  # e.g. ['Code Review', 'Financial', 'Security Audit']
+print(names)  # e.g. ['Code Patterns', 'Financial', 'Invoice Extraction']
 ```
 
 ### Run a collection
@@ -382,7 +382,7 @@ from peekdocs import run_regex_collection
 
 def main():
     result = run_regex_collection(
-        "Security Audit",
+        "Code Patterns",
         directory="/path/to/project",
         recursive=True,
     )

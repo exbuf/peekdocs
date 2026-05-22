@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, and advanced regex workflows. Features batch analysis, highlighted reports, automated reporting, reusable search profiles, and interfaces for CLI, GUI, and Python automation. Free and open-source under the MIT license.
+peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, Boolean, and advanced regex workflows. Features include batch analysis, highlighted reports, automated reporting, reusable search profiles, and CLI, GUI, and Python interfaces. Free and open-source under the MIT license.
 
 ## Feature Highlights
 
@@ -97,12 +97,24 @@ By default, only the current folder is searched. Use -r to include subfolders.
   peekdocs --config max_matches=5000  Save a default setting permanently
 
 ── Piping and automation ─────────────────────────────────────────
-  peekdocs --stdout -r "budget"  Output JSON to stdout (no report files written)
+
+  # Output structured JSON to stdout (no report files created)
+  peekdocs --stdout -r "budget"
+
+  # Use jq to extract match statistics
   peekdocs --stdout -r "budget" | jq '.matches_found'
-  peekdocs --regex-collection "security audit"     Run a saved regex collection
-  peekdocs --regex-collection "security audit" -r  Recursive
-  peekdocs --regex-collection "security audit" --stdout  JSON output
-  peekdocs --regex-collection --list               List saved collections
+
+  # Run a saved regex workflow
+  peekdocs --regex-collection "code patterns"
+
+  # Run recursively across subdirectories
+  peekdocs --regex-collection "code patterns" -r
+
+  # Emit regex workflow results as JSON
+  peekdocs --regex-collection "code patterns" --stdout
+
+  # List available regex collections
+  peekdocs --regex-collection --list
 
   GUI users: Tools → Schedule Search generates these commands for you
   with step-by-step instructions — no terminal experience needed.
@@ -342,7 +354,7 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
   - **Compatibility and privacy:**
     - The `.docx` report opens in Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free)
     - peekdocs blocks opening in Google Docs, Apple Pages, or other cloud-based apps that may upload your data
-- **Regex Search** — run up to 10 custom regex patterns from a dedicated popup (GUI only), each executed separately with per-pattern results and status updates. Each pattern has a name and regex field, with settings saved across sessions. Save and restore named collections of patterns (Save Collection As / Restore From Collection) to switch between different regex profiles (e.g., "security audit", "code review", "financial"). Clear All erases all patterns; Restore All undoes the last clear. Results show per-pattern match counts with View Files buttons to see affected files and View Text to review highlighted matches. Cancel button stops the search between patterns. Check "Do not save regex match contents to reports" to prevent sensitive information from being saved to files — results are displayed in a screen-only popup only. Always scans files directly (index is bypassed) to ensure current results. The ? help includes 50 common regex patterns you can copy and paste. Note: you can also run a single regex search from the main search bar by checking "Regex" in Advanced Search Options — the main search bar supports all 11 search modes (AND, Boolean, fuzzy, wildcard, proximity, etc.) that the Regex Search popup does not.
+- **Regex Search** — run up to 10 custom regex patterns from a dedicated popup (GUI only), each executed separately with per-pattern results and status updates. Each pattern has a name and regex field, with settings saved across sessions. Save and restore named collections of patterns (Save Collection As / Restore From Collection) to switch between different regex profiles (e.g., "code patterns", "code review", "financial"). Clear All erases all patterns; Restore All undoes the last clear. Results show per-pattern match counts with View Files buttons to see affected files and View Text to review highlighted matches. Cancel button stops the search between patterns. Check "Do not save regex match contents to reports" to prevent sensitive information from being saved to files — results are displayed in a screen-only popup only. Always scans files directly (index is bypassed) to ensure current results. The ? help includes 50 common regex patterns you can copy and paste. Note: you can also run a single regex search from the main search bar by checking "Regex" in Advanced Search Options — the main search bar supports all 11 search modes (AND, Boolean, fuzzy, wildcard, proximity, etc.) that the Regex Search popup does not.
 - **11 search modes** — plain keywords, AND/OR, Boolean expressions (`(budget OR revenue) AND NOT draft`), regex, wildcards, fuzzy matching (typo-tolerant), whole-word, word proximity (terms within N words on the same line), line proximity (terms within N lines of each other), inverse search (find files that DON'T contain a term), and range queries (filter by dollar amounts, dates, percentages, ages, file sizes).
 - **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). All search modes work from all three interfaces except the Search Wizard, which is GUI-only. Use the GUI for daily work, the CLI for scripting, the API for integration.
 - **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp) that most tools can't search. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest.
@@ -957,8 +969,8 @@ peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
 peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
 
 # Run saved regex collections from the CLI (created in GUI → Regex Search → Save Collection As)
-peekdocs --regex-collection "security audit" -r     # run with reports
-peekdocs --regex-collection "security audit" --stdout  # JSON output for piping
+peekdocs --regex-collection "code patterns" -r     # run with reports
+peekdocs --regex-collection "code patterns" --stdout  # JSON output for piping
 peekdocs --regex-collection --list                  # list all saved collections
 
 # Schedule with cron (macOS/Linux) or Task Scheduler (Windows)

@@ -1013,7 +1013,7 @@ def _main_inner(argv=None):
     if args and args[0] == "--regex-collection":
         if len(args) < 2:
             print("Error: --regex-collection requires a collection name.\n"
-                  "Usage: peekdocs --regex-collection \"security audit\"\n"
+                  "Usage: peekdocs --regex-collection \"code patterns\"\n"
                   "       peekdocs --regex-collection --list\n")
             return 2
         if args[1] == "--list":
