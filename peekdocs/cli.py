@@ -1063,8 +1063,9 @@ def _main_inner(argv=None):
             return 2
 
         # Parse remaining flags: -r, -d, --stdout
+        # Note: --stdout was already removed from args and stored in stdout_json
         _rc_recursive = "-r" in args[2:]
-        _rc_stdout = "--stdout" in args[2:]
+        _rc_stdout = stdout_json or "--stdout" in args[2:]
         _rc_dir = os.getcwd()
         if "-d" in args[2:]:
             _d_idx = args.index("-d", 2)
