@@ -333,3 +333,353 @@ def search(
         elapsed=elapsed,
         used_index=indexed,
     )
+
+
+# ── Search suites ──────────────────────────────────────────────────
+
+
+@dataclass
+class SuiteSearchResult:
+    """Result for a single saved search within a suite run."""
+
+    search_name: str        # name of the saved search
+    search_terms: list      # list of search terms or [expression]
+    matches: list           # List[SearchMatch]
+    files_searched: list    # List[str]
+    elapsed: float          # seconds
+    mode: str               # "ALL" or "ANY"
+
+
+@dataclass
+class SuiteResult:
+    """Complete result of running a search suite."""
+
+    suite: str              # suite name
+    search_results: list    # List[SuiteSearchResult]
+    total_matches: int      # sum of all search match counts
+    elapsed: float          # total seconds
+    skipped_searches: list  # List[Tuple[str, str]] — (name, reason)
+
+
+def list_suites(directory=None):
+    """Return a dict of suite names to their search name lists for a directory.
+
+    Parameters
+    ----------
+    directory : str, optional
+        Directory containing the collection file. Defaults to current directory.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Mapping of suite names to lists of saved search names.
+        Empty dict if no suites exist.
+    """
+    from peekdocs.collection import load_collection
+    if directory is None:
+        directory = os.getcwd()
+    data = load_collection(directory)
+    return dict(data.get("suites", {}))
+
+
+def run_suite(
+    name,
+    *,
+    directory=None,
+    progress=None,
+    max_file_size_mb=100,
+):
+    """Run a saved search suite by name.
+
+    Each saved search in the suite is executed with its original settings
+    (AND/OR, regex, recursive, etc.).  Suites are stored per-folder in
+    ``.peekdocs_collection.json``.
+
+    Parameters
+    ----------
+    name : str
+        Name of a saved search suite (created in the GUI via
+        Tools → Search Suites).
+    directory : str, optional
+        Directory containing the suite and its saved searches.
+        Defaults to current working directory.
+    progress : callable, optional
+        Callback ``progress(search_index, total_searches, search_name)``
+        called before each search starts.
+    max_file_size_mb : int
+        Skip files larger than this (MB). 0 = no limit.
+
+    Returns
+    -------
+    SuiteResult
+        Per-search results and aggregate totals.
+
+    Raises
+    ------
+    FileNotFoundError
+        If no collection file exists in the directory.
+    KeyError
+        If the named suite is not found.
+    ValueError
+        If the suite has no searches.
+    """
+    import shlex
+    from peekdocs.collection import load_collection, get_suite, get_search_params
+
+    if directory is None:
+        directory = os.getcwd()
+
+    # Validate suite exists
+    data = load_collection(directory)
+    suite_searches = get_suite(directory, name)
+    if suite_searches is None:
+        available = sorted(data.get("suites", {}).keys())
+        raise KeyError(
+            f"Suite '{name}' not found in {directory}. "
+            f"Available: {', '.join(available) if available else '(none)'}"
+        )
+    if not suite_searches:
+        raise ValueError(f"Suite '{name}' has no searches.")
+
+    start_time = time.time()
+    search_results = []
+    skipped = []
+
+    for i, search_name in enumerate(suite_searches):
+        if progress:
+            progress(i, len(suite_searches), search_name)
+
+        params = get_search_params(directory, search_name)
+        if params is None:
+            skipped.append((search_name, "saved search not found"))
+            continue
+
+        # Convert saved-search params to search() kwargs
+        terms_str = params.get("search_text", "")
+        try:
+            search_terms = shlex.split(terms_str) if terms_str else []
+        except ValueError:
+            search_terms = terms_str.split() if terms_str else []
+
+        expr = params.get("expression") if params.get("expression") else None
+        kwargs = {
+            "directory": directory,
+            "match_all": params.get("and_mode", False),
+            "recursive": params.get("recursive", False),
+            "use_fuzzy": params.get("fuzzy", False),
+            "use_wildcard": params.get("wildcard", False),
+            "use_regex": params.get("regex", False),
+            "use_ocr": params.get("ocr", False),
+            "use_whole_word": params.get("whole_word", False),
+            "use_index": params.get("index_search", False),
+            "max_file_size_mb": max_file_size_mb,
+        }
+        if params.get("exclude"):
+            kwargs["exclude_terms"] = [t.strip() for t in params["exclude"].split(",") if t.strip()]
+        if params.get("file_types"):
+            kwargs["file_types"] = [t.strip() for t in params["file_types"].split(",") if t.strip()]
+        if params.get("proximity"):
+            kwargs["proximity"] = int(params["proximity"])
+        if params.get("context_before"):
+            kwargs["context_before"] = int(params["context_before"])
+        if params.get("context_after"):
+            kwargs["context_after"] = int(params["context_after"])
+        if params.get("range_filters"):
+            rf = params["range_filters"]
+            kwargs["range_filters"] = rf if isinstance(rf, list) else [r.strip() for r in rf.split(",") if r.strip()]
+
+        result = search(search_terms if not expr else [], expression=expr, **kwargs)
+
+        mode = "ALL" if params.get("and_mode") else "ANY"
+        display_terms = search_terms if not expr else [expr]
+
+        search_results.append(SuiteSearchResult(
+            search_name=search_name,
+            search_terms=display_terms,
+            matches=result.matches,
+            files_searched=result.files_searched,
+            elapsed=result.elapsed,
+            mode=mode,
+        ))
+
+    if progress:
+        progress(len(suite_searches), len(suite_searches), "done")
+
+    elapsed = time.time() - start_time
+    total = sum(len(sr.matches) for sr in search_results)
+
+    return SuiteResult(
+        suite=name,
+        search_results=search_results,
+        total_matches=total,
+        elapsed=elapsed,
+        skipped_searches=skipped,
+    )
+
+
+# ── Regex collections ──────────────────────────────────────────────
+
+_COLLECTIONS_PATH = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+
+
+@dataclass
+class PatternResult:
+    """Result for a single regex pattern within a collection run."""
+
+    name: str               # pattern label (e.g. "Passwords")
+    regex: str              # the regex string
+    matches: list           # List[SearchMatch]
+    files_matched: int      # number of distinct files with matches
+
+
+@dataclass
+class CollectionResult:
+    """Complete result of running a regex collection."""
+
+    collection: str         # collection name
+    pattern_results: list   # List[PatternResult]
+    total_matches: int      # sum of all pattern match counts
+    files_searched: list    # List[str] — absolute paths (from last pattern run)
+    elapsed: float          # seconds
+    skipped_patterns: list  # List[Tuple[str, str]] — (name, error_msg)
+
+
+def list_regex_collections():
+    """Return a list of saved regex collection names.
+
+    Returns
+    -------
+    list[str]
+        Sorted list of collection names. Empty list if no collections exist.
+    """
+    import json as _json
+    if not os.path.exists(_COLLECTIONS_PATH):
+        return []
+    try:
+        with open(_COLLECTIONS_PATH, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+        return sorted(data.keys())
+    except Exception:
+        return []
+
+
+def run_regex_collection(
+    name,
+    *,
+    directory=None,
+    recursive=False,
+    progress=None,
+    max_file_size_mb=100,
+):
+    """Run a saved regex collection by name.
+
+    Each enabled pattern in the collection is executed separately as an
+    independent regex search.  Results are returned per-pattern and also
+    aggregated.
+
+    Parameters
+    ----------
+    name : str
+        Name of a saved regex collection (created in the GUI via
+        Regex Search → Save Collection As).
+    directory : str, optional
+        Directory to search in. Defaults to current working directory.
+    recursive : bool
+        Search subdirectories.
+    progress : callable, optional
+        Callback ``progress(pattern_index, total_patterns, pattern_name)``
+        called before each pattern starts.
+    max_file_size_mb : int
+        Skip files larger than this (MB). 0 = no limit.
+
+    Returns
+    -------
+    CollectionResult
+        Per-pattern results and aggregate totals.
+
+    Raises
+    ------
+    FileNotFoundError
+        If no collections file exists.
+    KeyError
+        If the named collection is not found.
+    ValueError
+        If the collection has no enabled patterns.
+    """
+    import json as _json
+
+    if directory is None:
+        directory = os.getcwd()
+
+    # Load collection
+    if not os.path.exists(_COLLECTIONS_PATH):
+        raise FileNotFoundError(
+            "No saved regex collections found. "
+            "Create one in the GUI (Regex Search \u2192 Save Collection As)."
+        )
+    with open(_COLLECTIONS_PATH, "r", encoding="utf-8") as f:
+        all_collections = _json.load(f)
+
+    if name not in all_collections:
+        available = sorted(all_collections.keys())
+        raise KeyError(
+            f"Collection '{name}' not found. "
+            f"Available: {', '.join(available) if available else '(none)'}"
+        )
+
+    patterns = all_collections[name]
+    active = [
+        (p.get("name", ""), p["regex"])
+        for p in patterns
+        if p.get("enabled") and p.get("regex", "").strip()
+    ]
+    if not active:
+        raise ValueError(f"Collection '{name}' has no enabled patterns.")
+
+    start_time = time.time()
+    pattern_results = []
+    skipped = []
+    files_searched = []
+
+    for i, (pname, regex) in enumerate(active):
+        if progress:
+            progress(i, len(active), pname)
+
+        # Validate regex
+        try:
+            re.compile(regex)
+        except re.error as exc:
+            skipped.append((pname, str(exc)))
+            continue
+
+        result = search(
+            [regex],
+            directory=directory,
+            recursive=recursive,
+            use_regex=True,
+            use_index=False,
+            max_file_size_mb=max_file_size_mb,
+        )
+        files_searched = result.files_searched
+
+        pattern_results.append(PatternResult(
+            name=pname,
+            regex=regex,
+            matches=result.matches,
+            files_matched=len({m.filename for m in result.matches}),
+        ))
+
+    if progress:
+        progress(len(active), len(active), "done")
+
+    elapsed = time.time() - start_time
+    total = sum(len(pr.matches) for pr in pattern_results)
+
+    return CollectionResult(
+        collection=name,
+        pattern_results=pattern_results,
+        total_matches=total,
+        files_searched=files_searched,
+        elapsed=elapsed,
+        skipped_patterns=skipped,
+    )
