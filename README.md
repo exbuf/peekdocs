@@ -119,7 +119,7 @@ By default, only the current folder is searched. Use -r to include subfolders.
   # Workflow: run overnight recursive analysis and save JSON results
   peekdocs --regex-collection "research review" -d ~/Documents -r --stdout > results.json
 
-  GUI users: Tools → Schedule Search generates these commands for you
+  GUI users: Tools → Schedule Search can generate these commands
   with step-by-step instructions — no terminal experience needed.
 
 ── Cleanup ──────────────────────────────────────────────────────
