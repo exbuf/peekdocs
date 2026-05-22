@@ -2070,7 +2070,17 @@ Now that you're comfortable with individual advanced searches, you can:
 
 ## Python API Reference
 
-peekdocs includes a Python API that lets you call the search engine directly from your own scripts. For full documentation, parameters, return types, and examples, see the [peekdocs Library API Reference](API.md).
+peekdocs includes a Python API that lets you call the search engine directly from your own scripts. Every search workflow available in the CLI and GUI is also available in the API:
+
+| Function | What it does |
+|---|---|
+| `search()` | Run a single search with any combination of modes (regex, fuzzy, Boolean, etc.) |
+| `run_suite(name)` | Run a saved search suite by name — executes each saved search with its original settings |
+| `run_regex_collection(name)` | Run a saved regex collection by name — executes each enabled pattern separately |
+| `list_suites(directory)` | List all saved search suites in a folder |
+| `list_regex_collections()` | List all saved regex collections |
+
+For full documentation, parameters, return types, and examples, see the [peekdocs Library API Reference](API.md).
 
 A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
 
@@ -2092,7 +2102,7 @@ peekdocs/
 ├── peekdocs/
 │   ├── __init__.py      # Package init, re-exports library API
 │   ├── __main__.py      # Enables python -m peekdocs
-│   ├── api.py           # Public library API (search(), SearchMatch, SearchResult)
+│   ├── api.py           # Public library API (search(), run_suite(), run_regex_collection(), list functions)
 │   ├── cli.py           # CLI entry point (calls api.search internally)
 │   ├── collection.py    # Saved search collections
 │   ├── constants.py     # Shared constants and defaults
@@ -2129,7 +2139,7 @@ peekdocs/
 | Term | What it means |
 |------|--------------|
 | **AND mode** | A search setting where all terms must appear on the same line to count as a match. Without AND mode, any single term matching counts |
-| **API** | Application Programming Interface — a way for programs to use peekdocs from Python code. Example: `from peekdocs import search` |
+| **API** | Application Programming Interface — a way for programs to use peekdocs from Python code. Example: `from peekdocs import search, run_suite, run_regex_collection` |
 | **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
 | **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
 | **Collection** | The file (`.peekdocs_collection.json`) in each folder that stores your saved searches and search suites for that folder |
