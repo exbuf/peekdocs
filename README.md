@@ -993,6 +993,21 @@ It scales. peekdocs uses multiprocessing (separate OS processes across multiple 
 **Can peekdocs search password-protected or encrypted files?**
 No. Password-protected PDFs, Word/Excel/PowerPoint files, and encrypted archives (.zip, .7z, .rar) cannot be read without the password. peekdocs detects them and reports a clear message ("appears to be password-protected") instead of a confusing error. The Protected Files tool (Tools menu) lists all encrypted files in a folder so you know what's locked.
 
+**Can peekdocs search my Gmail or Outlook email?**
+Yes, but you need to export your email first — peekdocs searches local files, not email servers. **Gmail:** Go to [Google Takeout](https://takeout.google.com), select "Mail", and download. You'll get an `.mbox` file that peekdocs can search directly. **Outlook (desktop app):** File → Open & Export → Import/Export → Export to a file → Outlook Data File (.pst). Point peekdocs at the exported `.pst` file. **Outlook on the web:** Unfortunately, Microsoft's web-based Outlook does not offer a bulk export to `.pst` or `.mbox`. You can save individual emails as `.eml` files (open the email → three dots → "Save as" or drag to your desktop), but there is no built-in way to export an entire mailbox. Consider using the Outlook desktop app (included with Microsoft 365) for full `.pst` export. **Thunderbird:** Tools → Export (or copy the profile folder). Thunderbird stores mail as `.mbox` files. **Apple Mail:** Select messages → File → Save As. peekdocs reads `.eml`, `.msg`, `.pst`, and `.mbox` formats.
+
+**I found what I was looking for — now what?**
+peekdocs is read-only — it finds matches but doesn't modify your files. After finding a match: (1) **Double-click** any filename in the Matched Files list to open it in its native application (Word, Adobe Reader, etc.) for editing or redaction. (2) Click **View Text** to see the full extracted text with line numbers and highlighted matches — useful for locating the exact position. (3) Right-click in the Results Preview to **copy text**. (4) Click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report — you can save, print, or email it to someone.
+
+**Can I share my search results with someone?**
+Yes. The highlighted `.docx` report is a standalone Word document — email it, print it, or drop it in a shared folder. The recipient doesn't need peekdocs installed. For web-friendly sharing, enable HTML output in Advanced Search Options — the `.html` report opens in any browser. For machine-readable data, use `-o csv,json` to generate CSV and JSON exports. For CLI users, `--stdout` outputs JSON that can be piped or redirected to a file.
+
+**Can I set a default search folder?**
+Yes. Use `peekdocs --config search_folder=/path/to/your/docs` to save a default folder. The GUI also remembers your last-used folder between sessions. To search multiple folders regularly, use the **+Folder** button to add folders, or save different searches pointing at different folders and reload them with one click.
+
+**Can I compare two searches to see what changed?**
+Not directly — peekdocs doesn't have a built-in diff or comparison feature. However, you can approximate it: (1) Use `--timestamp` so each search run creates uniquely named reports instead of overwriting. (2) Use `--stdout` to save JSON results from different dates, then compare with `diff` or `jq`. (3) Use `-o csv` to generate spreadsheets you can compare in Excel. This is a good candidate for a future enhancement.
+
 ## Glossary
 
 | Term | What it means |
