@@ -26,13 +26,13 @@ class SearchMixin:
         """Validate inputs, build the CLI command, and launch a search thread."""
         if self.process is not None:
             self.process.terminate()
-            self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+            self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
             self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
-            self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+            self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
 
         # Wait for any in-progress index build or auto-refresh to finish
@@ -433,7 +433,7 @@ class SearchMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
         self.process = None
         self._multi_folder_cancelled = None  # Reset for next search
@@ -548,7 +548,7 @@ class SearchMixin:
             self.after_cancel(self.elapsed_timer_id)
             self.elapsed_timer_id = None
 
-        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
 
         if returncode == -1:

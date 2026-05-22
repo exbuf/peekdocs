@@ -4496,7 +4496,7 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
 
         import re as _re_fin
@@ -4634,7 +4634,7 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
@@ -5821,8 +5821,8 @@ class ToolsMixin:
         b("error codes, project identifiers, or data formats across")
         b("a large folder tree.")
         blank()
-        b("Note: you can also run a single regex search from the main")
-        b("search bar by checking 'Regex' in Advanced Search Options and")
+        b("Note: you can also run a single regex search via Standard")
+        b("Search by checking 'Regex' in Advanced Search Options and")
         b("typing your pattern directly. The Regex Search popup is for")
         b("running multiple named patterns at once with saved settings.")
         blank()
@@ -5831,14 +5831,14 @@ class ToolsMixin:
         b("To run multiple patterns from the CLI, combine them manually")
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
         blank()
-        b("For a detailed comparison of Regex Search vs the standard")
-        b("search bar and vs Search Suites, see 'Standard Search (green button) vs")
+        b("For a detailed comparison of Regex Search vs Standard Search")
+        b("and vs Search Suites, see 'Standard Search (green button) vs")
         b("Regex Search' and 'Regex Search vs Search Suites' in")
         b("the main screen ? help.")
         blank()
         b("Note: Regex Search results appear in a separate popup window,")
         b("not in the main Results Preview pane. This is different from")
-        b("standard search, which shows results in the Results Preview")
+        b("Standard Search, which shows results in the Results Preview")
         b("with an orange Matched Files button on the status line. The")
         b("popup approach is used because Regex Search runs each pattern")
         b("separately and supports screen-only mode (no reports). Use")

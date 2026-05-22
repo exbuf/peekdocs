@@ -277,20 +277,20 @@ class BuildMixin:
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
-        Tooltip(_step_lbl_3, "Search — click to search all files in the folder")
+        Tooltip(_step_lbl_3, "Standard Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self._run_search_frame = btn_frame
         btn_frame.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
-        # Run Search button — standalone
+        # Standard Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="\U0001f50d Search", width=140, height=44, command=self.start_search,
+            btn_frame, text="\U0001f50d Standard Search", width=220, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
-        Tooltip(self.search_button, "Run the search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
