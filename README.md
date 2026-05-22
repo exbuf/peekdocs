@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-Privacy-first local document search and analysis platform featuring multi-format search across 100+ file types, 11 search modes including OCR and fuzzy matching, advanced regex workflows, batch analysis, yellow-highlighted reports, and automated reporting. Available as CLI, GUI, and Python API on Windows, macOS, and Linux. Free and open source (MIT License).
+peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, and advanced regex workflows. Features batch analysis, highlighted reports, automated reporting, reusable search profiles, and interfaces for CLI, GUI, and Python automation. Free and open-source under the MIT license.
 
 ## Feature Highlights
 

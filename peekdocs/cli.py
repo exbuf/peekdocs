@@ -35,9 +35,10 @@ from peekdocs.constants import (  # noqa: E402
 )
 
 BANNER_TOP = (
-    '\npeekdocs — privacy-first local document search and analysis platform.\n'
-    'Search 100+ file types with 11 search modes, regex workflows, batch analysis, yellow-highlighted reports, and automated reporting.\n'
-    'Free and open source (MIT License).\n'
+    '\npeekdocs — privacy-first local document search and analysis platform for Windows, macOS, and Linux.\n'
+    'Search 100+ file types using keyword, fuzzy, OCR, and advanced regex workflows.\n'
+    'Features batch analysis, highlighted reports, automated reporting, and reusable search profiles.\n'
+    'Free and open-source under the MIT license.\n'
     'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
     'Supported file types (100+):\n'
@@ -184,7 +185,7 @@ BANNER_BOTTOM = (
 
 # Short quick-reference shown when user types just `peekdocs` with no arguments.
 BANNER_QUICK = (
-    '\npeekdocs — privacy-first local document search. 100+ file types, 11 search modes. GUI: run peekdocs-gui\n'
+    '\npeekdocs — privacy-first local document search. 100+ file types, keyword/fuzzy/OCR/regex. GUI: run peekdocs-gui\n'
     '\n'
     'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
     '       Navigate to the folder you want to search, then run peekdocs.\n'
