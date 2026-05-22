@@ -6,7 +6,9 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-## Advanced document search for power users
+Privacy-first local document search and analysis platform featuring multi-format search across 100+ file types, 11 search modes including OCR and fuzzy matching, advanced regex workflows, batch analysis, and automated reporting. Available as CLI, GUI, and Python API on Windows, macOS, and Linux.
+
+## Feature Highlights
 
 - Search 100+ file types in one query — Word, PDF, Excel, text, email, source code, archives, and more
 - Yellow-highlighted search results — .docx, .html, and .pdf reports, plus .csv, .json, and .txt output

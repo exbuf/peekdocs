@@ -35,7 +35,8 @@ from peekdocs.constants import (  # noqa: E402
 )
 
 BANNER_TOP = (
-    '\npeekdocs — search Word docs, PDFs, spreadsheets, emails, source code, and 80+ other file types, all at once, all offline.\n'
+    '\npeekdocs — privacy-first local document search and analysis platform.\n'
+    'Search 100+ file types with 11 search modes, regex workflows, batch analysis, and automated reporting.\n'
     'Results are saved to highlighted .docx and .txt reports. GUI available: run peekdocs-gui\n'
     '\n'
     'Supported file types (100+):\n'
@@ -182,7 +183,7 @@ BANNER_BOTTOM = (
 
 # Short quick-reference shown when user types just `peekdocs` with no arguments.
 BANNER_QUICK = (
-    '\npeekdocs — search 100+ file types at once, all offline. GUI: run peekdocs-gui\n'
+    '\npeekdocs — privacy-first local document search. 100+ file types, 11 search modes. GUI: run peekdocs-gui\n'
     '\n'
     'Usage: cd /path/to/your/documents && peekdocs [OPTIONS] TERM [TERM ...]\n'
     '       Navigate to the folder you want to search, then run peekdocs.\n'

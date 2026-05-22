@@ -1872,7 +1872,7 @@ class DataMixin:
         about_win, _dark = self._themed_toplevel()
         about_win.title("About peekdocs")
         about_win.resizable(False, False)
-        about_win.geometry("300x210")
+        about_win.geometry("300x245")
         # Center on parent
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 300) // 2
@@ -1883,6 +1883,8 @@ class DataMixin:
         except Exception:
             ver = "unknown"
         tk.Label(about_win, text="peekdocs", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
+        tk.Label(about_win, text="Privacy-first local document search\nand analysis platform",
+                 font=("TkDefaultFont", 10), fg="gray", justify="center").pack(pady=(0, 4))
         tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
         tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
         tk.Label(about_win, text="MIT License", font=("TkDefaultFont", 11)).pack()
