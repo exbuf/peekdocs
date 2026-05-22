@@ -3158,3 +3158,90 @@ def test_whole_word_no_match(tmp_path, monkeypatch, capsys):
     assert result == 1
     assert "0" in captured.out and "match(es)" in captured.out
 
+
+def test_suite_timestamp_creates_unique_reports(tmp_path, monkeypatch, capsys):
+    """--suite --timestamp produces uniquely named reports so a second run does not overwrite the first."""
+    (tmp_path / "doc.txt").write_text("TODO: finish this\nrelevant text here\n")
+    collection = {
+        "saved_searches": {
+            "find_todos": {"search_text": "TODO", "recursive": True, "and_mode": False},
+        },
+        "suites": {"my suite": ["find_todos"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "my suite", "--timestamp"])
+    assert result == 0
+
+    plain_txt = tmp_path / "peekdocs_suite_results.txt"
+    plain_docx = tmp_path / "peekdocs_suite_results.docx"
+    assert not plain_txt.exists(), "unsuffixed file should not be written when --timestamp is set"
+    assert not plain_docx.exists()
+
+    stamped_txt = list(tmp_path.glob("peekdocs_suite_results_*.txt"))
+    stamped_docx = list(tmp_path.glob("peekdocs_suite_results_*.docx"))
+    assert len(stamped_txt) == 1
+    assert len(stamped_docx) == 1
+    assert re.match(r"peekdocs_suite_results_\d{8}_\d{6}\.txt$", stamped_txt[0].name)
+
+
+def test_suite_without_timestamp_uses_plain_filename(tmp_path, monkeypatch, capsys):
+    """Backward compatibility: omitting --timestamp keeps the original report filename."""
+    (tmp_path / "doc.txt").write_text("TODO: finish this\n")
+    collection = {
+        "saved_searches": {
+            "find_todos": {"search_text": "TODO", "recursive": True, "and_mode": False},
+        },
+        "suites": {"my suite": ["find_todos"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "my suite"])
+    assert result == 0
+    assert (tmp_path / "peekdocs_suite_results.txt").exists()
+    assert (tmp_path / "peekdocs_suite_results.docx").exists()
+    assert not list(tmp_path.glob("peekdocs_suite_results_*.txt"))
+
+
+def test_regex_collection_timestamp_creates_unique_reports(tmp_path, monkeypatch, capsys):
+    """--regex-collection --timestamp produces uniquely named reports so consecutive runs do not overwrite each other."""
+    (tmp_path / "doc.txt").write_text("TODO: review\nhttps://example.com\n")
+    rc_data = {
+        "my collection": [
+            {"name": "TODOs", "regex": r"TODO\b", "enabled": True},
+        ],
+    }
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "--timestamp"])
+    assert result == 0
+
+    plain_txt = tmp_path / "peekdocs_results.txt"
+    assert not plain_txt.exists(), "unsuffixed file should not be written when --timestamp is set"
+
+    stamped_txt = list(tmp_path.glob("peekdocs_results_*.txt"))
+    stamped_docx = list(tmp_path.glob("peekdocs_results_*.docx"))
+    assert len(stamped_txt) == 1
+    assert len(stamped_docx) == 1
+    assert re.match(r"peekdocs_results_\d{8}_\d{6}\.txt$", stamped_txt[0].name)
+
+
+def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkeypatch, capsys):
+    """Backward compatibility: omitting --timestamp keeps the original report filename."""
+    (tmp_path / "doc.txt").write_text("TODO: review\n")
+    rc_data = {
+        "my collection": [
+            {"name": "TODOs", "regex": r"TODO\b", "enabled": True},
+        ],
+    }
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r"])
+    assert result == 0
+    assert (tmp_path / "peekdocs_results.txt").exists()
+    assert (tmp_path / "peekdocs_results.docx").exists()
+    assert not list(tmp_path.glob("peekdocs_results_*.txt"))

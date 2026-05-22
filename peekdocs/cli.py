@@ -916,6 +916,10 @@ def _main_inner(argv=None):
             print("Error: --suite requires a suite name. Usage: peekdocs --suite \"My Suite\"\n")
             return 2
         suite_name = args[1]
+        suite_ts_suffix = ""
+        if "--timestamp" in args[2:]:
+            args.remove("--timestamp")
+            suite_ts_suffix = "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
         cwd = os.getcwd()
         from peekdocs.collection import get_suite, get_search_params, load_collection
         suite_searches = get_suite(cwd, suite_name)
@@ -998,8 +1002,8 @@ def _main_inner(argv=None):
             print("No searches were run.")
             return 2
 
-        txt_path = os.path.join(cwd, "peekdocs_suite_results.txt")
-        docx_path = os.path.join(cwd, "peekdocs_suite_results.docx")
+        txt_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.txt")
+        docx_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.docx")
         write_suite_txt_report(txt_path, suite_name, sections)
         write_suite_docx_report(docx_path, txt_path, sections)
 
@@ -1062,10 +1066,14 @@ def _main_inner(argv=None):
             print(f"Collection '{collection_name}' has no enabled patterns with regex.")
             return 2
 
-        # Parse remaining flags: -r, -d, --stdout
+        # Parse remaining flags: -r, -d, --stdout, --timestamp
         # Note: --stdout was already removed from args and stored in stdout_json
         _rc_recursive = "-r" in args[2:]
         _rc_stdout = stdout_json or "--stdout" in args[2:]
+        _rc_ts_suffix = ""
+        if "--timestamp" in args[2:]:
+            args.remove("--timestamp")
+            _rc_ts_suffix = "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
         _rc_dir = os.getcwd()
         if "-d" in args[2:]:
             _d_idx = args.index("-d", 2)
@@ -1140,8 +1148,8 @@ def _main_inner(argv=None):
             # Write reports
             if all_matches:
                 # write_txt_report, write_docx_report, insert_file_sizes already imported at module level
-                output_path = os.path.join(_rc_dir, "peekdocs_results.txt")
-                docx_path = os.path.join(_rc_dir, "peekdocs_results.docx")
+                output_path = os.path.join(_rc_dir, f"peekdocs_results{_rc_ts_suffix}.txt")
+                docx_path = os.path.join(_rc_dir, f"peekdocs_results{_rc_ts_suffix}.docx")
                 search_terms = [regex for _name, regex in active]
                 command_str = f"peekdocs --regex-collection \"{collection_name}\""
                 write_txt_report(
@@ -1160,8 +1168,8 @@ def _main_inner(argv=None):
             if not quiet:
                 print(f"\nCollection '{collection_name}': {len(active)} pattern(s), {total_matches} total match(es) ({elapsed:.1f}s)")
                 if all_matches:
-                    print(f"Reports: {os.path.join(_rc_dir, 'peekdocs_results.txt')}")
-                    print(f"         {os.path.join(_rc_dir, 'peekdocs_results.docx')}")
+                    print(f"Reports: {output_path}")
+                    print(f"         {docx_path}")
 
         return 0 if total_matches > 0 else 1
 

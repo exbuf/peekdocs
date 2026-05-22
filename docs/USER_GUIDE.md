@@ -665,11 +665,77 @@ peekdocs --regex-collection "financial" -d ~/Documents/invoices
 0 8 * * 1 cd /var/log && peekdocs --regex-collection "error patterns" -r --stdout >> /tmp/weekly_errors.json
 ```
 
+**Running several collections in one pass** — `--regex-collection` takes one collection at a time. To run several in sequence (e.g., for IT scans or daily sweeps), use a shell loop or the Python API. Add `--timestamp` so each run produces uniquely named reports (`peekdocs_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting the previous run.
+
+*Shell loop (macOS/Linux):*
+
+```
+for c in "code patterns" "log analysis" "invoice extraction"; do
+  peekdocs --regex-collection "$c" -d /path/to/folder -r --timestamp
+done
+```
+
+*Shell loop (Windows PowerShell):*
+
+```
+foreach ($c in "code patterns","log analysis","invoice extraction") {
+  peekdocs --regex-collection $c -d C:\path -r --timestamp
+}
+```
+
+*Python API (single process, programmatic results):*
+
+```python
+from peekdocs.api import list_regex_collections, run_regex_collection
+
+for name in list_regex_collections():
+    result = run_regex_collection(name, directory="/path", recursive=True)
+    print(f"{name}: {result.total_matches} matches in {result.elapsed:.1f}s")
+```
+
+The Python API is the most reliable way to enumerate and run every saved collection in one pass — `list_regex_collections()` returns a clean list of names you can iterate over, and the API returns results in memory rather than writing report files. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs. Note: Search Suites group *saved searches*, not regex collections — they don't replace this pattern.
+
 **Listing and managing collections** — See all saved collections before running one:
 
 ```
 peekdocs --regex-collection --list
 ```
+
+### Search Suite Use Cases
+
+The `--suite` flag runs a saved search suite from the command line. One thing to know up front: suites are **folder-scoped** — they live in `.peekdocs_collection.json` inside each folder, so `--suite "name"` always runs against the current working directory. There is no `-d DIR` flag for `--suite`. Add `--timestamp` to produce uniquely named reports (`peekdocs_suite_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting `peekdocs_suite_results.txt`/`.docx` on each run.
+
+**Running several suites in the same folder** — Loop through suite names:
+
+```
+cd /path/to/folder
+for s in "monthly review" "compliance scan" "vendor audit"; do
+  peekdocs --suite "$s" --timestamp
+done
+```
+
+**Running the same suite across several folders** — Each folder has its own `.peekdocs_collection.json`, so the suite name must exist in every folder you target:
+
+```
+for d in /clients/acme /clients/globex /clients/initech; do
+  (cd "$d" && peekdocs --suite "monthly review")
+done
+```
+
+Reports stay in each folder (`/clients/acme/peekdocs_suite_results.txt`, etc.) with no overwriting since they're in different locations. Add `--timestamp` if you plan to re-run periodically and want history preserved.
+
+**Python API (cleanest — programmatic results, no report files):**
+
+```python
+from peekdocs.api import list_suites, run_suite
+
+folder = "/path/to/folder"
+for name in list_suites(directory=folder):
+    result = run_suite(name, directory=folder)
+    print(f"{name}: {result.total_matches} matches across {len(result.search_results)} searches ({result.elapsed:.2f}s)")
+```
+
+`list_suites()` returns a dict of suite names to their member search lists. `run_suite()` returns a `SuiteResult` with `total_matches`, `search_results` (a list of per-search results), `elapsed`, and `skipped_searches`. The API returns results in memory without writing reports, so you can collect everything and build a custom combined report. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs.
 
 ### Command Examples
 
