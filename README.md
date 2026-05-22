@@ -8,7 +8,7 @@
 
 peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, Boolean, proximity, and advanced regex searches. Features include batch analysis, highlighted reports, automated reporting, reusable search profiles, and CLI, GUI, and Python interfaces. Free and open-source under the MIT license.
 
-Most search tools handle text files. peekdocs handles everything else too.
+Most search tools handle text files. peekdocs handles everything else too. Use peekdocs from the command line, GUI, or Python — from quick interactive searches to large automated workflows.
 
 ## Feature Highlights
 
