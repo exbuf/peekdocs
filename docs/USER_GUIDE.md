@@ -2296,6 +2296,7 @@ peekdocs/
 | **AND mode** | A search setting where all terms must appear on the same line to count as a match. Without AND mode, any single term matching counts |
 | **API** | Application Programming Interface — a way for programs to use peekdocs from Python code. Example: `from peekdocs import search, run_suite, run_regex_collection` |
 | **Boolean expression** | A search using AND, OR, and NOT to combine terms. Example: `(budget OR revenue) AND NOT draft` |
+| **CI pipeline** | Continuous Integration pipeline — an automated workflow (GitHub Actions, GitLab CI, Jenkins, CircleCI, etc.) that runs tests or checks on every code change. peekdocs fits in via its CLI: `--stdout` JSON, exit codes (0 = matches, 1 = none), and `--regex-collection` for batch pattern scans. Example: a nightly job that scans every repo for TODO/FIXME comments or deprecated APIs |
 | **CLI** | Command-Line Interface — the terminal version of peekdocs. You type commands like `peekdocs budget -r` instead of clicking buttons |
 | **Collection** | The file (`.peekdocs_collection.json`) in each folder that stores your saved searches and search suites for that folder |
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
