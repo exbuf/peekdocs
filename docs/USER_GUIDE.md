@@ -707,7 +707,9 @@ peekdocs --regex-collection --list
 
 The `--suite` flag runs a saved search suite from the command line. One thing to know up front: suites are **folder-scoped** — they live in `.peekdocs_collection.json` inside each folder, so `--suite "name"` always runs against the current working directory. There is no `-d DIR` flag for `--suite`. Add `--timestamp` to produce uniquely named reports (`peekdocs_suite_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting `peekdocs_suite_results.txt`/`.docx` on each run.
 
-**Running several suites in the same folder** — Loop through suite names:
+**Running several suites in the same folder** — Loop through suite names.
+
+*Shell loop (macOS/Linux):*
 
 ```
 cd /path/to/folder
@@ -716,7 +718,18 @@ for s in "monthly review" "compliance scan" "vendor audit"; do
 done
 ```
 
-**Running the same suite across several folders** — Each folder has its own `.peekdocs_collection.json`, so the suite name must exist in every folder you target:
+*Shell loop (Windows PowerShell):*
+
+```
+Set-Location C:\path\to\folder
+foreach ($s in "monthly review","compliance scan","vendor audit") {
+  peekdocs --suite $s --timestamp
+}
+```
+
+**Running the same suite across several folders** — Each folder has its own `.peekdocs_collection.json`, so the suite name must exist in every folder you target.
+
+*Shell loop (macOS/Linux):* — the `( … )` subshell ensures `cd` doesn't affect the outer shell.
 
 ```
 for d in /clients/acme /clients/globex /clients/initech; do
@@ -724,7 +737,17 @@ for d in /clients/acme /clients/globex /clients/initech; do
 done
 ```
 
-Reports stay in each folder (`/clients/acme/peekdocs_suite_results.txt`, etc.) with no overwriting since they're in different locations. Add `--timestamp` if you plan to re-run periodically and want history preserved.
+*Shell loop (Windows PowerShell):* — `Push-Location`/`Pop-Location` (aliased `pushd`/`popd`) play the same role as the bash subshell.
+
+```
+foreach ($d in "C:\clients\acme","C:\clients\globex","C:\clients\initech") {
+  Push-Location $d
+  peekdocs --suite "monthly review"
+  Pop-Location
+}
+```
+
+Reports stay in each folder (`acme/peekdocs_suite_results.txt`, etc.) with no overwriting since they're in different locations. Add `--timestamp` if you plan to re-run periodically and want history preserved.
 
 **Python API (cleanest — programmatic results, no report files):**
 
