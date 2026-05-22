@@ -710,20 +710,18 @@ What AI adds beyond search — summarization, question answering, semantic under
 
 ## Why Not Just Use Grep?
 
-**Credit where it's due:** grep is an excellent tool. For plain text files, it's fast, reliable, and battle-tested for decades. With piping, a skilled developer can extend it to binary formats: `pdftotext file.pdf - | grep term` works for PDFs, `unzip -p file.docx word/document.xml | grep term` works (roughly) for Word, `xlsx2csv file.xlsx | grep term` for Excel, and `tesseract image.png stdout | grep term` for OCR. grep also has built-in regex (`-E`/`-P`), recursive search (`-r`), inverse matching (`-rL`), context lines (`-B`/`-A`), and whole-word matching (`-w`). A determined developer could write a bash script that loops over files, detects types, pipes each through the right converter, and greps the output.
+**Credit where it's due:** grep is excellent for plain text. With piping you can extend it: `pdftotext file.pdf - | grep term` for PDFs, `unzip -p file.docx word/document.xml | grep term` for Word, `tesseract image.png stdout | grep term` for OCR. A determined developer could write a bash script that detects file types and pipes each through the right converter.
 
-We're not here to replace grep. We're here to handle the 95% of files grep pretends don't exist.
+We're not here to replace grep. We handle the file types grep can't read, and add what grep was never designed to do.
 
-**Where peekdocs goes beyond what grep can practically do:**
+**Where peekdocs goes beyond grep:**
 
-- **100+ file types in one command** — the bash script to handle all 100+ types with appropriate converters would be hundreds of lines, fragile, and require installing and maintaining 10+ external tools. peekdocs: `pip install peekdocs` and you're done.
-- **Highlighted reports** — grep outputs plain text to a terminal. peekdocs produces a `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context — a document you can save, print, or hand to someone. No amount of grep piping produces this. (Microsoft Word is not required — when clicked, the report opens automatically in any word processor. [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) is recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data.)
-- **Boolean expressions, proximity, fuzzy matching, range queries** — `(budget OR revenue) AND NOT draft`, "find A within 5 words of B", typo-tolerant matching, and `amount:1000..5000` are not expressible in grep.
+- **100+ file types in one command** — no bash scripting, no chain of converters to install and maintain. `pip install peekdocs` and you're done.
+- **Highlighted reports** — `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context. Save, print, or share. grep piping doesn't produce this.
+- **Boolean, proximity, fuzzy, range queries** — `(budget OR revenue) AND NOT draft`, "A within 5 words of B", typo-tolerant matching, `amount:1000..5000`. Not expressible in grep.
 - **GUI** — for anyone who doesn't live in a terminal.
-- **Save/reload searches, bookmarks, search history, file analysis tools** — application features that don't exist in grep's world.
-- **Search suites** — save multiple searches by name and run them all together with one click. grep has no concept of saved searches or grouped batch execution.
-- **Search index with auto-refresh** — grep has no index. You'd need a separate tool (recoll, xapian) — at which point you're not using grep anymore.
-- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters, different tool flags). peekdocs works identically on all three platforms.
+- **Saved searches, suites, bookmarks, history, index with auto-refresh** — application features that don't exist in grep's world.
+- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters). peekdocs works identically everywhere.
 
 **Side-by-side comparison:**
 
@@ -750,7 +748,7 @@ We're not here to replace grep. We're here to handle the 95% of files grep prete
 | Cross-platform consistency | Varies (GNU vs BSD grep) | Identical on all platforms |
 | GUI | No | Yes |
 
-**The honest summary:** For plain-text search in a terminal, grep is faster and simpler — use it. For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, or giving a non-terminal user a search tool they can actually use, peekdocs does what would take hundreds of lines of custom scripting to approximate — and does it in one command.
+**The honest summary:** For plain-text search in a terminal, grep is faster — use it. For mixed-format documents, shareable highlighted reports, or non-terminal users, peekdocs does in one command what would take hundreds of lines of bash to approximate.
 
 ## Performance
 
