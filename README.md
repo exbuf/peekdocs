@@ -6,18 +6,18 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, Boolean, and advanced regex workflows. Features include batch analysis, highlighted reports, automated reporting, reusable search profiles, and CLI, GUI, and Python interfaces. Free and open-source under the MIT license.
+peekdocs is a privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search across 100+ file types using keyword, fuzzy, OCR, Boolean, proximity, and advanced regex searches. Features include batch analysis, highlighted reports, automated reporting, reusable search profiles, and CLI, GUI, and Python interfaces. Free and open-source under the MIT license.
 
 Most search tools handle text files. peekdocs handles everything else too.
 
 ## Feature Highlights
 
-**This is not a grep wrapper.** peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that grep cannot read — then produces highlighted reports you can save, print, or share.
+**This is not a grep wrapper.** peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that traditional text-search tools cannot read — then generates highlighted reports you can save, print, or share.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Yellow-highlighted reports** — .docx, .html, and .pdf reports with matches highlighted, plus .csv, .json, and .txt output
 - **OCR** — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest
-- **11 search modes** — AND/OR logic, Boolean expressions, fuzzy, inverse, wildcard, regex, proximity, whole-word, range queries
+- **11 search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
 - Regex Search — run up to 10 named regex patterns with per-pattern results and optional report suppression
 - Search Wizard — 21 pre-built search types, no syntax to memorize
 - Search Suites — group saved searches and run them all with one click
