@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-peekdocs is a privacy-first local document search and analysis platform. Searches 100+ file types with 11 search modes including OCR and fuzzy matching, advanced regex workflows, batch analysis, yellow-highlighted reports, and automated reporting. CLI, GUI, and Python API.
+peekdocs is a privacy-first local document search and analysis platform. Searches 100+ file types with 11 search modes including OCR and fuzzy matching, advanced regex workflows, batch analysis, yellow-highlighted reports, and automated reporting. CLI, GUI, and Python API. Free and open source (MIT License).
 
 - CLI entry point: `peekdocs/cli.py` → `main()`
 - GUI entry point: `peekdocs/gui/__init__.py` → `main()`
