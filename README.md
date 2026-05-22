@@ -308,10 +308,6 @@ peekdocs is a local, privacy-first search and analysis engine for heterogeneous 
 | **Business and office power users** | Search years of mixed-format files without learning any syntax — just type keywords and click Run | Find contracts, search invoices, review budgets, search years of Word/PDF files, find information across correspondence |
 | **Engineers** | Search across datasheets, specs, and engineering files that most tools can't read, with highlighted reports for design reviews | Search SPICE netlists, Verilog/VHDL, DXF, MATLAB files alongside PDFs, test reports, maintenance records, and standards references |
 
-### Most likely early adopters
-
-If you're publishing on GitHub and PyPI, the first users are typically: developers, Linux/macOS power users, IT staff, researchers, technical consultants, data hoarders and archive-heavy users, and privacy-conscious professionals.
-
 ### What makes peekdocs distinctive
 
 The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is genuinely unusual. Most tools do one or two of these well. peekdocs does all of them in a single install.
