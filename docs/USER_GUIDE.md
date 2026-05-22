@@ -695,6 +695,8 @@ for name in list_regex_collections():
 
 The Python API is the most reliable way to enumerate and run every saved collection in one pass — `list_regex_collections()` returns a clean list of names you can iterate over, and the API returns results in memory rather than writing report files. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs. Note: Search Suites group *saved searches*, not regex collections — they don't replace this pattern.
 
+**Zero-match runs write no report.** If a `--regex-collection` run finds no matches, no `peekdocs_results.{txt,docx}` file is written for that run (with or without `--timestamp`). The CLI still prints the summary line and exits with status 1. This matters for batch loops where you want a permanent record of every run: use `--stdout > results.json` instead to always capture a file, or rely on the JSON exit-code (0 = matches, 1 = no matches) to detect empty runs. Search Suites are different — `--suite` always writes a report file even when every search returns zero matches.
+
 **Listing and managing collections** — See all saved collections before running one:
 
 ```
