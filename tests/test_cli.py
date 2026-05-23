@@ -3671,3 +3671,35 @@ def test_dry_run_not_logged(tmp_path, monkeypatch):
     main(["--dry-run", "--stdout", "world"])
     log = tmp_path / ".peekdocs_runs.log"
     assert not log.exists() or log.read_text() == ""
+
+
+def test_dry_run_with_suite_errors_cleanly(tmp_path, monkeypatch, capsys):
+    """--dry-run with --suite should error, not silently run the suite."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    collection = {
+        "saved_searches": {"t": {"search_text": "TODO", "recursive": True}},
+        "suites": {"S": ["t"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "S", "--dry-run"])
+    assert result == 2
+    out = capsys.readouterr().out
+    assert "not supported with --suite" in out
+    # No suite report should have been written.
+    assert not (tmp_path / "peekdocs_suite_results.txt").exists()
+
+
+def test_dry_run_with_regex_collection_errors_cleanly(tmp_path, monkeypatch, capsys):
+    """--dry-run with --regex-collection should error, not silently run the collection."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    rc_data = {"c": [{"name": "T", "regex": r"TODO\b", "enabled": True}]}
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "c", "-d", str(tmp_path), "-r", "--dry-run"])
+    assert result == 2
+    out = capsys.readouterr().out
+    assert "not supported with --regex-collection" in out
+    assert not (tmp_path / "peekdocs_regex_results.txt").exists()

@@ -1130,6 +1130,10 @@ def _main_inner(argv=None):
 
     # ── --suite NAME: run a search suite ──
     if args and args[0] == "--suite":
+        if dry_run:
+            print("Error: --dry-run is not supported with --suite in this release.")
+            print("Use --dry-run on a standard search to preview scope, or run --suite without --dry-run.\n")
+            return 2
         if len(args) < 2:
             print("Error: --suite requires a suite name. Usage: peekdocs --suite \"My Suite\"\n")
             return 2
@@ -1265,6 +1269,10 @@ def _main_inner(argv=None):
 
     # ── --regex-collection NAME: run a saved regex collection ──
     if args and args[0] == "--regex-collection":
+        if dry_run:
+            print("Error: --dry-run is not supported with --regex-collection in this release.")
+            print("Use --dry-run on a standard search to preview scope.\n")
+            return 2
         if len(args) < 2:
             print("Error: --regex-collection requires a collection name.\n"
                   "Usage: peekdocs --regex-collection \"code patterns\"\n"
