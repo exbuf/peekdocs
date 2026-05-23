@@ -298,6 +298,7 @@ def is_search_invocation(argv):
         "--index", "--index-clear", "--index-status", "--index-refresh",
         "--config",
         "--runs",
+        "--diff",
         "--regex-collection-list",  # paranoia; --regex-collection --list is handled below
         "-s", "-save",
     }

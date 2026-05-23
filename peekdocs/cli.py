@@ -97,6 +97,7 @@ BANNER_BOTTOM = (
     '  --dry-run          Report what would be searched (file count, size, by extension); no search\n'
     '  --no-log           Skip writing this run to ~/.peekdocs_runs.log (run log is on by default)\n'
     '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'
+    '  --diff OLD NEW     Compare two peekdocs JSON outputs (new/removed/changed/modified)\n'
     '  --on-match CMD     Run CMD when search finds matches (notification hook). 30s timeout. See User Guide\n'
     '                       written. Suppresses all banners and progress.\n'
     '\n'
@@ -779,10 +780,12 @@ def _main_inner(argv=None):
     if dry_run:
         args.remove("--dry-run")
 
-    # --runs --json must emit clean JSONL with no banner above it.
+    # --runs --json and --diff ... --json must emit clean JSON with no banner
+    # above. Same rationale as --stdout.
     runs_json = (args and args[0] == "--runs" and "--json" in args[1:])
+    diff_json = (args and args[0] == "--diff" and "--json" in args[1:])
 
-    minimal = stdout_json or runs_json or "-qq" in args
+    minimal = stdout_json or runs_json or diff_json or "-qq" in args
     if "-qq" in args:
         args.remove("-qq")
     quiet = minimal or "-q" in args
@@ -1123,6 +1126,35 @@ def _main_inner(argv=None):
         return 0
 
     # ── --list-suites [--rescan]: show all suites and where they live ──
+    # ── --diff OLD.json NEW.json [--json]: compare two JSON outputs ──
+    if args and args[0] == "--diff":
+        if len(args) < 3:
+            print("Error: --diff requires two JSON file paths.")
+            print("Usage: peekdocs --diff old.json new.json [--json]\n")
+            return 2
+        old_path = args[1]
+        new_path = args[2]
+        emit_json = "--json" in args[3:]
+
+        from peekdocs.diff import load_json, compute_diff, format_human, is_actionable
+        old_data, err = load_json(old_path)
+        if err:
+            print(f"Error reading old file: {err}\n")
+            return 2
+        new_data, err = load_json(new_path)
+        if err:
+            print(f"Error reading new file: {err}\n")
+            return 2
+
+        diff = compute_diff(old_data, new_data)
+        if emit_json:
+            sys.stdout.write(json.dumps(diff, indent=2, ensure_ascii=False) + "\n")
+        else:
+            sys.stdout.write(format_human(diff, old_path, new_path))
+        # Exit 1 if anything actionable changed (new files, more matches,
+        # content modified). Exit 0 if only removals or all unchanged.
+        return 1 if is_actionable(diff) else 0
+
     # ── --runs [N] [--json]: show recent run-log entries ──
     if args and args[0] == "--runs":
         from peekdocs.run_log import read_recent, log_path

@@ -3848,3 +3848,246 @@ def test_on_match_not_fired_on_dry_run(tmp_path, monkeypatch):
 
     main(["--dry-run", "--on-match", str(script), "TODO"])
     assert not flag_file.exists()
+
+
+# ── --diff (compare two JSON outputs) ──────────────────────────────────
+
+def _write_json(path, payload):
+    path.write_text(json.dumps(payload))
+
+
+def _stdout_shape(matches_per_file, **extras):
+    """Mock a peekdocs --stdout JSON payload."""
+    payload = {
+        "generator": "peekdocs vTEST",
+        "directory": "/tmp/docs",
+        "search_terms": ["x"],
+        "mode": "ANY",
+        "files_searched": 100,
+        "matches_found": sum(e["matches"] for e in matches_per_file),
+        "elapsed_seconds": 0.1,
+        "matches_per_file": matches_per_file,
+        "matches": [],
+    }
+    payload.update(extras)
+    return payload
+
+
+def test_diff_detects_new_files(tmp_path, monkeypatch, capsys):
+    """A file that matches in NEW but not OLD shows up as NEW."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    _write_json(new, _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 3},
+        {"filename": "b.txt", "folder": "/d", "matches": 7},
+    ]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 1  # actionable: new file matching
+    out = capsys.readouterr().out
+    assert "NEW: 1 file" in out
+    assert "b.txt" in out
+
+
+def test_diff_detects_removed_files(tmp_path, monkeypatch, capsys):
+    """A file that matched in OLD but not NEW shows up as REMOVED."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 3},
+        {"filename": "gone.txt", "folder": "/d", "matches": 5},
+    ]))
+    _write_json(new, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    # Removed-only is NOT actionable per design.
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "REMOVED: 1 file" in out
+    assert "gone.txt" in out
+
+
+def test_diff_detects_changed_counts(tmp_path, monkeypatch, capsys):
+    """Same file, different match count → CHANGED with delta."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    _write_json(new, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 7}]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 1  # gained matches → actionable
+    out = capsys.readouterr().out
+    assert "CHANGED: 1 file" in out
+    assert "3 → 7" in out
+    assert "(+4)" in out
+
+
+def test_diff_changed_decrease_not_actionable(tmp_path, monkeypatch, capsys):
+    """Fewer matches than before is NOT actionable (file probably got cleaned up)."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 10}]))
+    _write_json(new, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "CHANGED" in out
+    assert "(-7)" in out
+
+
+def test_diff_detects_modified_when_sha256_changes(tmp_path, monkeypatch, capsys):
+    """Same path, same match count, different sha256 → MODIFIED (only when --hash was used)."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 3, "sha256": "aaa"},
+    ]))
+    _write_json(new, _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 3, "sha256": "bbb"},
+    ]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 1  # modified content is actionable
+    out = capsys.readouterr().out
+    assert "MODIFIED: 1 file" in out
+
+
+def test_diff_no_modified_without_hashes(tmp_path, monkeypatch, capsys):
+    """No --hash → sha256 absent → MODIFIED detection silently skipped."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    _write_json(new, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 0  # nothing changed
+    out = capsys.readouterr().out
+    assert "MODIFIED" not in out
+    assert "UNCHANGED: 1" in out
+
+
+def test_diff_json_output(tmp_path, monkeypatch, capsys):
+    """--json emits a structured diff with no banner above it."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 3}]))
+    _write_json(new, _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 5},
+        {"filename": "b.txt", "folder": "/d", "matches": 2},
+    ]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new), "--json"])
+    assert result == 1
+    out = capsys.readouterr().out
+    payload = json.loads(out)
+    assert len(payload["new"]) == 1
+    assert payload["new"][0]["filename"] == "b.txt"
+    assert len(payload["changed"]) == 1
+    assert payload["changed"][0]["delta"] == 2
+    assert payload["old_match_total"] == 3
+    assert payload["new_match_total"] == 7
+
+
+def test_diff_reconstructs_from_flat_matches(tmp_path, monkeypatch, capsys):
+    """If matches_per_file is absent (regex-collection without --hash), reconstruct from matches."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    # Mimic regex-collection JSON without --hash (no matches_per_file)
+    old_data = {
+        "generator": "peekdocs v0", "collection": "c", "directory": "/d",
+        "timestamp": "...", "elapsed_seconds": 0.1, "total_matches": 2,
+        "patterns": [],
+        "matches": [
+            {"filename": "a.txt", "folder": "/d", "line_number": 1, "matched_text": "x"},
+            {"filename": "a.txt", "folder": "/d", "line_number": 5, "matched_text": "x"},
+        ],
+    }
+    new_data = {
+        "generator": "peekdocs v0", "collection": "c", "directory": "/d",
+        "timestamp": "...", "elapsed_seconds": 0.1, "total_matches": 1,
+        "patterns": [],
+        "matches": [
+            {"filename": "b.txt", "folder": "/d", "line_number": 1, "matched_text": "x"},
+        ],
+    }
+    _write_json(old, old_data)
+    _write_json(new, new_data)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert result == 1
+    new_files = {e["filename"] for e in payload["new"]}
+    removed_files = {e["filename"] for e in payload["removed"]}
+    assert new_files == {"b.txt"}
+    assert removed_files == {"a.txt"}
+
+
+def test_diff_missing_file_errors_cleanly(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    result = main(["--diff", str(tmp_path / "nope.json"), str(tmp_path / "nope2.json")])
+    assert result == 2
+    out = capsys.readouterr().out
+    assert "Error reading old file" in out
+    assert "file not found" in out
+
+
+def test_diff_invalid_json_errors_cleanly(tmp_path, monkeypatch, capsys):
+    bad = tmp_path / "bad.json"
+    bad.write_text("{this is not valid json")
+    good = tmp_path / "good.json"
+    _write_json(good, _stdout_shape([]))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(bad), str(good)])
+    assert result == 2
+    out = capsys.readouterr().out
+    assert "invalid JSON" in out
+
+
+def test_diff_no_changes_returns_0(tmp_path, monkeypatch, capsys):
+    """Identical inputs → no diff → exit 0."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    payload = _stdout_shape([
+        {"filename": "a.txt", "folder": "/d", "matches": 3},
+        {"filename": "b.txt", "folder": "/d", "matches": 7},
+    ])
+    _write_json(old, payload)
+    _write_json(new, payload)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(old), str(new)])
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "UNCHANGED: 2" in out
+
+
+def test_diff_too_few_args(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    result = main(["--diff", "only-one.json"])
+    assert result == 2
+    out = capsys.readouterr().out
+    assert "requires two" in out
+
+
+def test_diff_not_logged(tmp_path, monkeypatch):
+    """--diff is informational and should not appear in the run log."""
+    old = tmp_path / "old.json"
+    new = tmp_path / "new.json"
+    _write_json(old, _stdout_shape([]))
+    _write_json(new, _stdout_shape([{"filename": "a.txt", "folder": "/d", "matches": 1}]))
+    monkeypatch.chdir(tmp_path)
+
+    main(["--diff", str(old), str(new)])
+    log = tmp_path / ".peekdocs_runs.log"
+    assert not log.exists() or log.read_text() == ""

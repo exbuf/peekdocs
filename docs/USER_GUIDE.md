@@ -29,6 +29,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Where things live](#where-things-live)
   - [Per-run structured log](#per-run-structured-log)
   - [Notification hook](#notification-hook)
+  - [Diff between runs](#diff-between-runs)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
@@ -559,6 +560,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--dry-run` (dry-run) | Show the scope of a search without running it. Walks file discovery (`-r`, `-t`, `-f`, `-O`, `--max-file-size` all respected) and prints the count, total size, and per-extension breakdown. No content is read, no reports are written, the index is not touched, and the run is not added to `~/.peekdocs_runs.log`. Search terms are accepted but ignored — they don't affect scope. Add `--stdout` for JSON output. Useful as a "what would this do?" preflight on network shares and large folders. **Standard search only in this release** — `--dry-run` with `--suite` or `--regex-collection` exits with an error rather than running silently. |
 | `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
 | `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
+| `--diff OLD NEW` (diff) | Compare two peekdocs JSON outputs (from `--stdout` or `-o json`) and report what changed: NEW files matching, REMOVED files, CHANGED match counts, MODIFIED file content (when both were produced with `--hash`). Default output is human-readable; add `--json` for a structured payload. Exit codes are diff-flavored: 0 = no actionable change, 1 = new findings detected, 2 = error — so `peekdocs --diff yesterday.json today.json \|\| alert` works. See [Diff between runs](#diff-between-runs) |
 | `--on-match CMD` (on-match) | Run an external command (notification hook) when a search finds matches. Fires only on exit 0; skipped for no-match runs, errors, `--dry-run`, and informational commands. The command is invoked without a shell — quoted arguments work, pipes/redirects do not (wrap them in a script). 30-second timeout. Hook receives `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_FILE_COUNT`, `PEEKDOCS_ERROR_COUNT`, `PEEKDOCS_ELAPSED_SECONDS`, `PEEKDOCS_ARGV`, `PEEKDOCS_CWD`, and `PEEKDOCS_REPORT_TXT` / `_DOCX` / `_JSON` / `_HTML` / `_CSV` / `_PDF` (whichever were written). Persistent default: `--config on_match=/path/to/script`. Override per-run with `--on-match ""` (empty string) to disable. See [Notification hook](#notification-hook) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
@@ -1384,6 +1386,67 @@ jq 'select(.on_match_fired == false and .match_count > 0) | .timestamp + " " + (
 
 (Lists runs where matches were found but the hook reported failure — the IT-relevant "we should have been notified but weren't" query.)
 
+### Diff between runs
+
+For weekly compliance scans the question is almost never "what matches?" but "what's *new* since last week?" The `--diff` command compares two peekdocs JSON outputs and reports just the delta — new files matching, files that gained matches, files whose content changed under a steady match count.
+
+**Basic usage:**
+
+```bash
+# Snapshot 1 (run weekly via cron, save with --timestamp or a date in the name)
+peekdocs --regex-collection compliance -r --stdout --hash > /var/log/peekdocs/2026-W20.json
+
+# Next week: snapshot 2
+peekdocs --regex-collection compliance -r --stdout --hash > /var/log/peekdocs/2026-W21.json
+
+# Diff
+peekdocs --diff /var/log/peekdocs/2026-W20.json /var/log/peekdocs/2026-W21.json
+```
+
+**Five buckets in the output:**
+
+| Bucket | Meaning |
+|--------|---------|
+| **NEW** | Files matching in the new run that weren't matching before. The most actionable category — "we have new findings since last scan." |
+| **REMOVED** | Files that were matching but no longer are. Usually means the file was deleted, cleaned up, or removed from scope. Not actionable by itself. |
+| **CHANGED** | Same file, different match count. e.g. `contract-v2.pdf  3 → 7  (+4)` means four more occurrences appeared. |
+| **MODIFIED** | Same file, **same** match count, but the SHA-256 differs — content changed in a way that didn't affect the search outcome. Only detected when both inputs were produced with `--hash`; otherwise this bucket is silently empty. Useful for "the file was edited but our scan didn't notice" investigations. |
+| **UNCHANGED** | Files matching in both runs with same count and same content (when hashes are available). Summarized as a count, not enumerated. |
+
+**Exit codes** are diff-flavored, the opposite of search exit codes:
+
+| Code | Meaning |
+|------|---------|
+| `0` | No actionable change. Either nothing changed, or only files were removed. This is the "boring" success case a cron health check wants. |
+| `1` | Actionable change detected: new files matching, more matches in existing files, or content modified. Wrap in `\|\| alert ...` to fire on this. |
+| `2` | Error reading or parsing one of the inputs. |
+
+**JSON output for pipelines:**
+
+```bash
+peekdocs --diff a.json b.json --json | jq '.new | length'
+peekdocs --diff a.json b.json --json | jq '.changed[] | select(.delta > 5)'
+```
+
+The JSON payload includes `new`, `removed`, `changed`, `modified`, `unchanged_count`, `old_file_count`, `new_file_count`, `old_match_total`, `new_match_total`. Each entry preserves `folder`, `filename`, match counts, and `sha256` values where available.
+
+**Works with any peekdocs JSON shape:** standard search (`--stdout`), inverse search (`--inverse --stdout`), and regex collections (`--regex-collection --stdout`). If `matches_per_file` is absent (regex-collection without `--hash`), it's reconstructed from the flat `matches` array — you still get a usable diff, just without the MODIFIED bucket.
+
+**Pair with `--on-match` and cron** for a complete IT loop: weekly run produces a snapshot, diff against last week's snapshot, fire a notification only when new findings appear:
+
+```bash
+# /usr/local/bin/weekly-compliance.sh
+WEEK=$(date +%Y-W%V)
+LAST=$(ls /var/log/peekdocs/*.json | tail -1)
+peekdocs --regex-collection compliance -r --stdout --hash \
+    > "/var/log/peekdocs/$WEEK.json"
+if ! peekdocs --diff "$LAST" "/var/log/peekdocs/$WEEK.json" --json \
+      > "/var/log/peekdocs/$WEEK.diff.json"; then
+    mail -s "peekdocs: new findings this week" sec@example.com \
+        < "/var/log/peekdocs/$WEEK.diff.json"
+fi
+```
+
 ### Service accounts and file permissions
 
 When peekdocs runs under a Windows service account or a Linux service user (typical for scheduled tasks), the account's read permissions limit what gets searched. peekdocs treats a permission denial the same as any other read failure:
@@ -1418,6 +1481,7 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 - `peekdocs --runs` — last 20 search runs from `~/.peekdocs_runs.log` in a readable table. Add a number for more (`--runs 100`), `--json` to re-emit raw JSONL for piping. See [Per-run structured log](#per-run-structured-log).
 - `peekdocs --dry-run <terms>` — preflight: how many files, how big, broken down by extension. Honors `-r`, `-t`, `-f`, `--max-file-size`. No content read, no reports, no log entry. Add `--stdout` for JSON output. Use this before unleashing a recursive scan on a network share or unfamiliar folder.
 - `peekdocs --on-match /path/to/notify.sh <args>` — fire a shell command when matches are found. Hook receives `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_REPORT_*`, and friends as env vars; you write the script that does the actual notifying (email, Slack, webhook, syslog). Set `--config on_match=...` for a persistent default that every cron run inherits. See [Notification hook](#notification-hook).
+- `peekdocs --diff old.json new.json` — compare two JSON outputs and report what's new, removed, changed, or modified. Exit 1 if anything actionable changed, 0 otherwise — the natural shape for `|| alert "new findings"` wrappers. Add `--json` for machine-readable output. See [Diff between runs](#diff-between-runs).
 - `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
 - `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
 
