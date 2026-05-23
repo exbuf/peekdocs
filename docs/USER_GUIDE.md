@@ -2701,6 +2701,8 @@ peekdocs/
 | **Collection** | The file (`.peekdocs_collection.json`) in each folder that stores your saved searches and search suites for that folder |
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
 | **Context lines** | Extra lines shown before and/or after each match to give you surrounding context — helpful for understanding what the match is part of |
+| **cron** | A built-in Unix/Linux/macOS scheduler for running commands on a schedule. Windows equivalent: **Task Scheduler** (`schtasks`). peekdocs's CLI flags compose into cron / Task Scheduler jobs for unattended scans. See Tools → Schedule Search in the GUI for an OS-correct command generator |
+| **Diff** | Comparison of two files or datasets — term from the Unix `diff` command. peekdocs's `--diff old.json new.json` reports what's new, removed, changed, or modified between two scan snapshots — the IT compliance "what's new since last week?" question. See [Diff between runs](#diff-between-runs) |
 | **Direct search** | Searching by reading each file on the fly, without using a pre-built index. Slower for repeated searches but always up-to-date |
 | **Expression mode** | A search mode that lets you type Boolean expressions like `(budget OR revenue) AND NOT draft` directly in the search bar |
 | **Flag** | A command-line option that modifies how a search works. Example: `-r` for recursive, `-a` for AND mode. In the GUI, each flag has a corresponding checkbox |
@@ -2712,6 +2714,8 @@ peekdocs/
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **Inverse search** | Finding files that do *not* contain a term — the opposite of a normal search |
+| **jq** | Command-line JSON processor — grep/awk/sed for JSON. Useful for filtering peekdocs's `--stdout`, `-o json`, and `~/.peekdocs_runs.log` outputs. Install via `brew install jq` or your distro's package manager |
+| **JSON Lines (JSONL / NDJSON)** | Streaming text format: one self-contained JSON object per line. Universal in log shipping (Filebeat, Splunk, Elastic) because malformed lines don't break later ones. peekdocs's `~/.peekdocs_runs.log` uses it; so does `--runs --json` |
 | **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
@@ -2724,10 +2728,12 @@ peekdocs/
 | **Recursive** | Searching not just the selected folder but all subfolders inside it, and their subfolders, and so on |
 | **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches Social Security numbers like 123-45-6789 |
 | **Search suite** | A named group of saved searches that run together with one click. Create them in the GUI (Tools → Search Suites) or run from the CLI with `--suite` |
+| **SIEM** | Security Information and Event Management — tools (Splunk, Elastic Security, Datadog, Microsoft Sentinel) that aggregate logs for searching and alerting. peekdocs feeds them via JSON Lines and `--stdout` JSON — no plugin needed |
 | **SQLite** | A lightweight database engine built into Python. peekdocs uses it for the search index — no separate database software needed |
 | **SSD** | Solid State Drive — a fast storage drive with no moving parts. Searches are faster on SSDs than on older spinning hard drives |
 | **Tesseract** | Free OCR software that reads text from images. Optional — only needed if you want to search scanned documents or photos of text |
 | **Unicode** | The standard that lets computers handle text in every language — English, Chinese, Arabic, emoji, and everything else. peekdocs uses Unicode throughout |
 | **venv** | Virtual environment — an isolated copy of Python where peekdocs and its libraries are installed without affecting the rest of your system. You'll see `(venv)` in your terminal prompt when one is active |
 | **Whole-word matching** | Only matching complete words — searching for "cat" won't match "catalog" or "concatenate" |
+| **Webhook** | A user-defined HTTP callback — your service POSTs JSON to a URL. Common in Slack, GitHub, alerting systems (PagerDuty, Opsgenie). peekdocs's `--on-match` hook can `curl` a webhook URL to fire chat / paging / ticketing notifications |
 | **Wildcard** | A search pattern where `*` matches any characters and `?` matches one character. Example: `budg*` matches "budget," "budgeting," "budgetary" |
