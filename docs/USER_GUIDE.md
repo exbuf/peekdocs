@@ -1581,7 +1581,7 @@ peekdocs -e "(budget OR revenue) AND (cost OR profit)"
 peekdocs -e "(budget AND NOT draft) OR (revenue AND NOT obsolete)"
 
 # Complex nested logic
-peekdocs -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND SEC)"
+peekdocs -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND prospectus)"
 ```
 
 ### Operators
@@ -1971,10 +1971,10 @@ In the GUI, enter range filters in the **Range** field in Advanced Search Option
 
 You can mix multiple modes together for more powerful searches.
 
-**Regex + AND + Recursive** — Find files containing both an SSN and a dollar amount anywhere in nested subfolders:
+**Regex + AND + Recursive** — Find files containing both an invoice ID (`INV-12345`) and a dollar amount anywhere in nested subfolders:
 
 ```bash
-peekdocs -x -a -r "\d{3}-\d{2}-\d{4}" "\$[\d,]+\.\d{2}"
+peekdocs -x -a -r "\bINV-\d+\b" "\$[\d,]+\.\d{2}"
 ```
 
 In the GUI:
@@ -2503,18 +2503,18 @@ You know how to do a basic search — type a word, click Run Search, see results
 
 All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a folder with some documents, and follow along.
 
-### Example 1: Find Social Security numbers with regex
+### Example 1: Find an invoice-ID pattern with regex
 
-**Goal:** Find any document containing a Social Security number (format: 123-45-6789).
+**Goal:** Find any document containing an invoice ID (format: `INV-12345`).
 
 1. Open **Advanced Search Options** and check the **Regex** checkbox
-2. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
-   - This is a regex pattern: `\d` means "any digit" and `{3}` means "exactly 3 of them"
+2. In the **Search Terms** field, type: `\bINV-\d+\b`
+   - This is a regex pattern: `\b` means "word boundary", `INV-` matches that exact text, and `\d+` means "one or more digits"
    - You don't need to memorize regex — click the **Wizard** button next to the search box for a list of pre-built patterns you can insert with one click
 3. Click **Run Search**
 4. Look at the results preview:
-   - Each match shows the filename, line number, and the actual SSN found, highlighted in yellow
-   - If no matches appear, your documents don't contain SSNs — that's good
+   - Each match shows the filename, line number, and the actual invoice ID found, highlighted in yellow
+   - If no matches appear, your documents don't contain text in that format
 5. Open **Advanced Search Options** and uncheck **Regex** when you're done
 
 **Tip:** The Wizard button has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
@@ -2602,9 +2602,9 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
 
 ### Example 7: Combine multiple features together
 
-**Goal:** Find SSNs in PDF files across all subfolders, showing 2 lines of context before and after each match.
+**Goal:** Find invoice IDs in PDF files across all subfolders, showing 2 lines of context before and after each match.
 
-1. In the **Search Terms** field, type: `\d{3}-\d{2}-\d{4}`
+1. In the **Search Terms** field, type: `\bINV-\d+\b`
 2. Open **Advanced Search Options** and set:
    - Check **Regex**
    - Check **Recursive** (searches subfolders)
@@ -2612,7 +2612,7 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
    - **Lines Before:** `2`
    - **Lines After:** `2`
 3. Click **Run Search**
-4. The results show each SSN match with 2 lines above and below for context, from PDF files only, across all subfolders
+4. The results show each invoice-ID match with 2 lines above and below for context, from PDF files only, across all subfolders
 
 **You can mix and match almost any combination of features.** The main restrictions:
 - Regex and Fuzzy can't be used together
