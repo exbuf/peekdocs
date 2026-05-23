@@ -927,9 +927,19 @@ def _main_inner(argv=None):
             available = list(load_collection(cwd).get("suites", {}).keys())
             print(f"Suite '{suite_name}' not found in {cwd}")
             if available:
-                print(f"Available suites: {', '.join(available)}")
+                print(f"Available suites in this folder: {', '.join(available)}")
             else:
-                print("No suites defined. Create one in the GUI (Tools → Search Suites).")
+                print()
+                print("Suites are stored per-folder, in .peekdocs_collection.json,")
+                print("alongside the documents they search. Run --suite from the")
+                print("folder where the suite was created, e.g.:")
+                print()
+                print(f"  cd /path/to/your/documents && peekdocs --suite \"{suite_name}\"")
+                print()
+                print("To find folders that contain suites:")
+                print("  find ~ -name .peekdocs_collection.json 2>/dev/null")
+                print()
+                print("Or create a suite for this folder in the GUI (Tools → Search Suites).")
             return 2
 
         if not suite_searches:
