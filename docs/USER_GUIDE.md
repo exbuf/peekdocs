@@ -556,7 +556,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to peekdocs_accumulated_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The peekdocs_accumulated_ prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file peekdocs_accumulated_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_standard_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
-| `--hash` (hash) | Compute SHA-256 of each matched file's raw bytes and add a `sha256` field to JSON output (`--stdout` and `-o json`). Chain-of-custody / forensic use. Hashing happens once per matched file (not per match) so the overhead is bounded by match count, not files searched. See [Automation and IT Use → JSON output](#json-output---stdout-schema) |
+| `--hash` (hash) | Compute SHA-256 of each matched file's raw bytes and add a `sha256` field to JSON output (`--stdout` and `-o json`). File-identity / integrity-verification use. Hashing happens once per matched file (not per match) so the overhead is bounded by match count, not files searched. See [Automation and IT Use → JSON output](#json-output---stdout-schema) |
 | `--dry-run` (dry-run) | Show the scope of a search without running it. Walks file discovery (`-r`, `-t`, `-f`, `-O`, `--max-file-size` all respected) and prints the count, total size, and per-extension breakdown. No content is read, no reports are written, the index is not touched, and the run is not added to `~/.peekdocs_runs.log`. Search terms are accepted but ignored — they don't affect scope. Add `--stdout` for JSON output. Useful as a "what would this do?" preflight on network shares and large folders. **Standard search only in this release** — `--dry-run` with `--suite` or `--regex-collection` exits with an error rather than running silently. |
 | `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
 | `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
@@ -741,7 +741,7 @@ The index is updated automatically every time you create, rename, or delete a su
 *Shell loop (macOS/Linux):*
 
 ```
-for s in "monthly review" "compliance scan" "vendor audit"; do
+for s in "monthly review" "quarterly review" "vendor audit"; do
   peekdocs --suite "$s" --timestamp
 done
 ```
@@ -749,7 +749,7 @@ done
 *Shell loop (Windows PowerShell):*
 
 ```
-foreach ($s in "monthly review","compliance scan","vendor audit") {
+foreach ($s in "monthly review","quarterly review","vendor audit") {
   peekdocs --suite $s --timestamp
 }
 ```
@@ -1143,10 +1143,10 @@ Every CLI command returns one of three codes. Wrappers and schedulers should bra
 Typical usage in a shell wrapper:
 
 ```bash
-peekdocs --regex-collection "compliance-quarterly" -r --timestamp --stdout > /var/log/peekdocs/$(date +%Y%m%d).json
+peekdocs --regex-collection "my-patterns" -r --timestamp --stdout > /var/log/peekdocs/$(date +%Y%m%d).json
 rc=$?
 case $rc in
-  0) echo "Findings logged" | mail -s "peekdocs: findings" secops@example.com ;;
+  0) echo "Findings logged" | mail -s "peekdocs: findings" admin@example.com ;;
   1) ;;  # clean scan, no action
   2) echo "peekdocs failed (see peekdocs_errors.log)" | mail -s "peekdocs: FAIL" oncall@example.com ;;
 esac
@@ -1195,28 +1195,28 @@ Every payload starts with a `generator` field that includes the peekdocs version
 ```json
 {
   "generator": "peekdocs v1.0.0",
-  "collection": "compliance-quarterly",
+  "collection": "my-patterns",
   "directory": "/abs/.../docs",
   "timestamp": "2026-05-23 09:08:31",
   "elapsed_seconds": 4.81,
   "total_matches": 47,
   "patterns": [
-    {"name": "US SSN", "regex": "\\d{3}-\\d{2}-\\d{4}", "match_count": 3, "...": "..."}
+    {"name": "Invoice IDs", "regex": "\\bINV-\\d+\\b", "match_count": 3, "...": "..."}
   ],
   "matches": [
-    {"filename": "intake.pdf", "folder": "/abs/.../docs", "line_number": 19, "matched_text": "123-45-6789"}
+    {"filename": "ledger.pdf", "folder": "/abs/.../docs", "line_number": 19, "matched_text": "INV-12345"}
   ]
 }
 ```
 
 `mode` is `"ALL"` (AND) or `"ANY"` (OR). `matched_text` has the highlight markers stripped — pipe into your own indexer or SIEM without post-processing.
 
-**File hashes (`--hash`).** For chain-of-custody and forensic workflows, add `--hash` to any of the above. Each entry in `matches_per_file` / `inverse_files` then carries a `"sha256"` field with the hex digest of the file's *raw bytes* (not the extracted text). For `--regex-collection`, `--hash` adds a top-level `matches_per_file` array of unique matched files with their hashes. Hashing happens once per matched file (not per match) so a file with 100 matches is only read for hashing once. If a file can't be read for hashing — deleted between search and hash, permission revoked — the field is `null` and an entry is appended to `peekdocs_errors.log`; the search itself is not aborted. The field is omitted entirely when `--hash` is not set, so existing consumers see no schema change.
+**File hashes (`--hash`).** For file-identity and integrity-verification workflows, add `--hash` to any of the above. Each entry in `matches_per_file` / `inverse_files` then carries a `"sha256"` field with the hex digest of the file's *raw bytes* (not the extracted text). For `--regex-collection`, `--hash` adds a top-level `matches_per_file` array of unique matched files with their hashes. Hashing happens once per matched file (not per match) so a file with 100 matches is only read for hashing once. If a file can't be read for hashing — deleted between search and hash, permission revoked — the field is `null` and an entry is appended to `peekdocs_errors.log`; the search itself is not aborted. The field is omitted entirely when `--hash` is not set, so existing consumers see no schema change.
 
 ```json
 {
   "matches_per_file": [
-    {"filename": "intake.pdf", "folder": "/abs/.../docs", "matches": 3,
+    {"filename": "ledger.pdf", "folder": "/abs/.../docs", "matches": 3,
      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}
   ]
 }
@@ -1335,9 +1335,9 @@ The hook's stdout/stderr are captured. If the hook exits non-zero, both streams 
 **Worked example — email on match:**
 
 ```bash
-# /usr/local/bin/notify-secops.sh
+# /usr/local/bin/notify.sh
 #!/bin/bash
-mail -s "peekdocs: $PEEKDOCS_MATCH_COUNT findings on $(hostname)" sec@example.com <<EOF
+mail -s "peekdocs: $PEEKDOCS_MATCH_COUNT findings on $(hostname)" admin@example.com <<EOF
 Command: $PEEKDOCS_ARGV
 Folder:  $PEEKDOCS_CWD
 Matches: $PEEKDOCS_MATCH_COUNT in $PEEKDOCS_FILE_COUNT file(s)
@@ -1348,8 +1348,8 @@ EOF
 ```
 
 ```bash
-peekdocs --regex-collection "compliance" -r --timestamp \
-    --on-match /usr/local/bin/notify-secops.sh
+peekdocs --regex-collection "my-patterns" -r --timestamp \
+    --on-match /usr/local/bin/notify.sh
 ```
 
 **Worked example — Slack webhook with the JSON report:**
@@ -1366,14 +1366,14 @@ jq --arg cwd "$PEEKDOCS_CWD" --arg n "$PEEKDOCS_MATCH_COUNT" \
 ```
 
 ```bash
-peekdocs --regex-collection "secrets" -r -o json \
+peekdocs --regex-collection "my-patterns" -r -o json \
     --on-match /usr/local/bin/notify-slack.sh
 ```
 
 **Persistent default for every cron run:**
 
 ```bash
-peekdocs --config on_match=/usr/local/bin/notify-secops.sh
+peekdocs --config on_match=/usr/local/bin/notify.sh
 ```
 
 This saves the hook to `~/.peekdocsrc`. Every subsequent CLI search inherits it without retyping. Override for one run with `--on-match ""` (empty string) to disable, or `--on-match /other/script` to substitute a different hook.
@@ -1388,16 +1388,16 @@ jq 'select(.on_match_fired == false and .match_count > 0) | .timestamp + " " + (
 
 ### Diff between runs
 
-For weekly compliance scans the question is almost never "what matches?" but "what's *new* since last week?" The `--diff` command compares two peekdocs JSON outputs and reports just the delta — new files matching, files that gained matches, files whose content changed under a steady match count.
+For periodic scheduled scans the question is almost never "what matches?" but "what's *new* since last week?" The `--diff` command compares two peekdocs JSON outputs and reports just the delta — new files matching, files that gained matches, files whose content changed under a steady match count.
 
 **Basic usage:**
 
 ```bash
 # Snapshot 1 (run weekly via cron, save with --timestamp or a date in the name)
-peekdocs --regex-collection compliance -r --stdout --hash > /var/log/peekdocs/2026-W20.json
+peekdocs --regex-collection my-patterns -r --stdout --hash > /var/log/peekdocs/2026-W20.json
 
 # Next week: snapshot 2
-peekdocs --regex-collection compliance -r --stdout --hash > /var/log/peekdocs/2026-W21.json
+peekdocs --regex-collection my-patterns -r --stdout --hash > /var/log/peekdocs/2026-W21.json
 
 # Diff
 peekdocs --diff /var/log/peekdocs/2026-W20.json /var/log/peekdocs/2026-W21.json
@@ -1435,14 +1435,14 @@ The JSON payload includes `new`, `removed`, `changed`, `modified`, `unchanged_co
 **Pair with `--on-match` and cron** for a complete IT loop: weekly run produces a snapshot, diff against last week's snapshot, fire a notification only when new findings appear:
 
 ```bash
-# /usr/local/bin/weekly-compliance.sh
+# /usr/local/bin/weekly-scan.sh
 WEEK=$(date +%Y-W%V)
 LAST=$(ls /var/log/peekdocs/*.json | tail -1)
-peekdocs --regex-collection compliance -r --stdout --hash \
+peekdocs --regex-collection my-patterns -r --stdout --hash \
     > "/var/log/peekdocs/$WEEK.json"
 if ! peekdocs --diff "$LAST" "/var/log/peekdocs/$WEEK.json" --json \
       > "/var/log/peekdocs/$WEEK.diff.json"; then
-    mail -s "peekdocs: new findings this week" sec@example.com \
+    mail -s "peekdocs: new findings this week" admin@example.com \
         < "/var/log/peekdocs/$WEEK.diff.json"
 fi
 ```
@@ -1466,7 +1466,7 @@ Regex collections live in one global file per user:
 ~/.peekdocs_regex_collections.json
 ```
 
-To ship a curated set of patterns (compliance scans, sensitive-data probes) to a fleet, distribute this file via your configuration management tool (Ansible, Puppet, Chef, Intune, Jamf, plain `scp`). The GUI Regex Search popup's **Save Collection As** / **Restore From Collection** menu items export and import a single named collection as a portable JSON file — convenient for sharing one collection without overwriting a user's other patterns.
+To ship a curated set of patterns to a fleet, distribute this file via your configuration management tool (Ansible, Puppet, Chef, Intune, Jamf, plain `scp`). The GUI Regex Search popup's **Save Collection As** / **Restore From Collection** menu items export and import a single named collection as a portable JSON file — convenient for sharing one collection without overwriting a user's other patterns.
 
 Saved searches and suites are per-folder (`<search-folder>/.peekdocs_collection.json`), so they travel with the data: copy the documents folder and the collection file goes with it.
 
@@ -1484,6 +1484,10 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 - `peekdocs --diff old.json new.json` — compare two JSON outputs and report what's new, removed, changed, or modified. Exit 1 if anything actionable changed, 0 otherwise — the natural shape for `|| alert "new findings"` wrappers. Add `--json` for machine-readable output. See [Diff between runs](#diff-between-runs).
 - `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
 - `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
+
+---
+
+*peekdocs is provided "as is" under the [MIT License](https://github.com/exbuf/peekdocs/blob/main/LICENSE), without warranty of any kind, express or implied. The flags and schemas described in this section are operational features of a general-purpose search tool.*
 
 ## Search Index (Optional)
 
@@ -2702,7 +2706,7 @@ peekdocs/
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
 | **Context lines** | Extra lines shown before and/or after each match to give you surrounding context — helpful for understanding what the match is part of |
 | **cron** | A built-in Unix/Linux/macOS scheduler for running commands on a schedule. Windows equivalent: **Task Scheduler** (`schtasks`). peekdocs's CLI flags compose into cron / Task Scheduler jobs for unattended scans. See Tools → Schedule Search in the GUI for an OS-correct command generator |
-| **Diff** | Comparison of two files or datasets — term from the Unix `diff` command. peekdocs's `--diff old.json new.json` reports what's new, removed, changed, or modified between two scan snapshots — the IT compliance "what's new since last week?" question. See [Diff between runs](#diff-between-runs) |
+| **Diff** | Comparison of two files or datasets — term from the Unix `diff` command. peekdocs's `--diff old.json new.json` reports what's new, removed, changed, or modified between two scan snapshots — the scheduled-scan "what's new since last week?" question. See [Diff between runs](#diff-between-runs) |
 | **Direct search** | Searching by reading each file on the fly, without using a pre-built index. Slower for repeated searches but always up-to-date |
 | **Expression mode** | A search mode that lets you type Boolean expressions like `(budget OR revenue) AND NOT draft` directly in the search bar |
 | **Flag** | A command-line option that modifies how a search works. Example: `-r` for recursive, `-a` for AND mode. In the GUI, each flag has a corresponding checkbox |
@@ -2710,7 +2714,7 @@ peekdocs/
 | **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
 | **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
-| **Hash (SHA-256)** | A fixed-length fingerprint (64 hexadecimal characters) computed from a file's raw bytes — any change to the file produces a completely different hash. peekdocs's `--hash` flag adds a `sha256` field to JSON output (`--stdout` or `-o json`) so an auditor can prove later that "this is the exact file I found" — chain-of-custody for forensic and compliance work. Same algorithm used by Git, Bitcoin, and most modern security tools |
+| **Hash (SHA-256)** | A fixed-length fingerprint (64 hexadecimal characters) computed from a file's raw bytes — any change to the file produces a completely different hash. peekdocs's `--hash` flag adds a `sha256` field to JSON output (`--stdout` or `-o json`) so a reviewer can verify later that "this is the exact file I found" — file-identity and integrity verification. Same algorithm used by Git, Bitcoin, and most modern security tools |
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **Inverse search** | Finding files that do *not* contain a term — the opposite of a normal search |
