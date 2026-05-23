@@ -202,4 +202,7 @@ def is_search_invocation(argv):
     # `--regex-collection --list` is informational.
     if first == "--regex-collection" and len(argv) >= 2 and argv[1] == "--list":
         return False
+    # Dry-run is preflight, not a search. Skip the log.
+    if "--dry-run" in argv:
+        return False
     return True

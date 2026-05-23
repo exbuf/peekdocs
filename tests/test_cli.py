@@ -3576,3 +3576,98 @@ def test_run_log_path_override(tmp_path, monkeypatch):
     main(["TODO"])
     assert custom.exists()
     assert not _run_log_path(tmp_path).exists()
+
+
+# ── --dry-run (scope preflight) ────────────────────────────────────────
+
+def test_dry_run_reports_file_count(tmp_path, monkeypatch, capsys):
+    """--dry-run prints scope info without running a search."""
+    (tmp_path / "a.txt").write_text("hello world\n")
+    (tmp_path / "b.txt").write_text("another file\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--dry-run", "anything"])
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "Dry run" in out
+    assert "2 file" in out
+    assert "By extension" in out
+    assert ".txt" in out
+    assert "No content read" in out
+
+
+def test_dry_run_writes_no_reports(tmp_path, monkeypatch):
+    """--dry-run never produces peekdocs_*_results.* files."""
+    (tmp_path / "a.txt").write_text("hello world\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--dry-run", "hello"])
+    assert not any(tmp_path.glob("peekdocs_*_results.*"))
+
+
+def test_dry_run_exit_code_zero_files(tmp_path, monkeypatch, capsys):
+    """--dry-run returns 1 when no files match the filters."""
+    monkeypatch.chdir(tmp_path)  # empty dir
+    result = main(["--dry-run", "anything"])
+    assert result == 1
+
+
+def test_dry_run_json_emits_clean_payload(tmp_path, monkeypatch, capsys):
+    """--dry-run --stdout emits a clean JSON payload with no banner."""
+    (tmp_path / "a.txt").write_text("hello\n")
+    (tmp_path / "b.pdf").write_bytes(b"fake pdf bytes\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--dry-run", "--stdout", "x"])
+    assert result == 0
+    out = capsys.readouterr().out
+    payload = json.loads(out)
+    assert payload["dry_run"] is True
+    assert payload["file_count"] == 2
+    assert payload["total_bytes"] > 0
+    exts = {row["ext"] for row in payload["by_extension"]}
+    assert ".txt" in exts and ".pdf" in exts
+
+
+def test_dry_run_honors_file_type_filter(tmp_path, monkeypatch, capsys):
+    """-t pdf in dry-run only counts PDFs."""
+    (tmp_path / "a.txt").write_text("text\n")
+    (tmp_path / "b.pdf").write_bytes(b"pdf bytes\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--dry-run", "--stdout", "-t", "pdf", "x"])
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["file_count"] == 1
+    assert payload["by_extension"][0]["ext"] == ".pdf"
+
+
+def test_dry_run_honors_recursive(tmp_path, monkeypatch, capsys):
+    """-r in dry-run picks up subfolder files."""
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    (tmp_path / "top.txt").write_text("top\n")
+    (sub / "deep.txt").write_text("deep\n")
+    monkeypatch.chdir(tmp_path)
+
+    flat = json.loads(_capture_dry_run_json(["--dry-run", "--stdout", "x"], capsys))
+    rec = json.loads(_capture_dry_run_json(["--dry-run", "--stdout", "-r", "x"], capsys))
+    assert flat["file_count"] == 1
+    assert rec["file_count"] == 2
+
+
+def _capture_dry_run_json(argv, capsys):
+    capsys.readouterr()  # discard prior output
+    main(argv)
+    return capsys.readouterr().out
+
+
+def test_dry_run_not_logged(tmp_path, monkeypatch):
+    """--dry-run runs are not recorded in ~/.peekdocs_runs.log."""
+    (tmp_path / "a.txt").write_text("hello\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--dry-run", "hello"])
+    main(["--dry-run", "--stdout", "world"])
+    log = tmp_path / ".peekdocs_runs.log"
+    assert not log.exists() or log.read_text() == ""

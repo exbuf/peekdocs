@@ -555,6 +555,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_standard_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `--hash` (hash) | Compute SHA-256 of each matched file's raw bytes and add a `sha256` field to JSON output (`--stdout` and `-o json`). Chain-of-custody / forensic use. Hashing happens once per matched file (not per match) so the overhead is bounded by match count, not files searched. See [Automation and IT Use → JSON output](#json-output---stdout-schema) |
+| `--dry-run` (dry-run) | Show the scope of a search without running it. Walks file discovery (`-r`, `-t`, `-f`, `-O`, `--max-file-size` all respected) and prints the count, total size, and per-extension breakdown. No content is read, no reports are written, the index is not touched, and the run is not added to `~/.peekdocs_runs.log`. Search terms are accepted but ignored — they don't affect scope. Add `--stdout` for JSON output. Useful as a "what would this do?" preflight on network shares and large folders |
 | `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
 | `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
@@ -1332,6 +1333,7 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 - `peekdocs --regex-collection --list` — every regex collection by name with its pattern count.
 - `peekdocs --index-status` — file count, line count, database size, and creation date for the search index in the current folder.
 - `peekdocs --runs` — last 20 search runs from `~/.peekdocs_runs.log` in a readable table. Add a number for more (`--runs 100`), `--json` to re-emit raw JSONL for piping. See [Per-run structured log](#per-run-structured-log).
+- `peekdocs --dry-run <terms>` — preflight: how many files, how big, broken down by extension. Honors `-r`, `-t`, `-f`, `--max-file-size`. No content read, no reports, no log entry. Add `--stdout` for JSON output. Use this before unleashing a recursive scan on a network share or unfamiliar folder.
 - `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
 - `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
 

@@ -94,6 +94,7 @@ BANNER_BOTTOM = (
     '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
     '  --stdout           Output JSON results to stdout (for piping). No report files\n'
     '  --hash             Add SHA-256 of each matched file to JSON output (chain-of-custody)\n'
+    '  --dry-run          Report what would be searched (file count, size, by extension); no search\n'
     '  --no-log           Skip writing this run to ~/.peekdocs_runs.log (run log is on by default)\n'
     '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'
     '                       written. Suppresses all banners and progress.\n'
@@ -494,6 +495,97 @@ def _diagnose(exc):
             "Please report this at https://github.com/exbuf/peekdocs/issues")
 
 
+def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
+                    max_file_size_mb, emit_json):
+    """Print/emit a scope report of what a real search would touch.
+
+    Walks discovery only — no content read, no pattern matching, no reports,
+    no index. Returns 0 if files would be searched, 1 if zero, 2 if discovery
+    errors out.
+    """
+    discovered = discover_files(
+        cwd, recursive, use_ocr,
+        file_types=file_types,
+        file_names=file_names,
+    )
+    # discover_files returns (exit_code, message) on error
+    if isinstance(discovered, tuple):
+        print(f"Error: {discovered[1]}")
+        return discovered[0]
+
+    # Apply max-file-size filter the way the real search does
+    max_bytes = max_file_size_mb * 1024 * 1024 if max_file_size_mb and max_file_size_mb > 0 else 0
+    files_kept = []
+    skipped_too_large = 0
+    total_bytes = 0
+    by_ext = {}
+    for fp in discovered:
+        try:
+            size = os.path.getsize(fp)
+        except OSError:
+            continue
+        if max_bytes and size > max_bytes:
+            skipped_too_large += 1
+            continue
+        files_kept.append(fp)
+        total_bytes += size
+        ext = os.path.splitext(fp)[1].lower() or "(no ext)"
+        if ext not in by_ext:
+            by_ext[ext] = {"count": 0, "bytes": 0}
+        by_ext[ext]["count"] += 1
+        by_ext[ext]["bytes"] += size
+
+    ext_rows = sorted(
+        ({"ext": ext, "count": v["count"], "bytes": v["bytes"]} for ext, v in by_ext.items()),
+        key=lambda r: (-r["count"], r["ext"]),
+    )
+
+    if emit_json:
+        payload = {
+            "generator": f"peekdocs v{VERSION}",
+            "dry_run": True,
+            "directory": cwd,
+            "recursive": bool(recursive),
+            "use_ocr": bool(use_ocr),
+            "file_count": len(files_kept),
+            "total_bytes": total_bytes,
+            "skipped_oversize": skipped_too_large,
+            "max_file_size_mb": max_file_size_mb if max_file_size_mb else None,
+            "by_extension": ext_rows,
+        }
+        sys.stdout.write(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+        return 0 if files_kept else 1
+
+    def _fmt_size(n):
+        if n >= 1_000_000_000:
+            return f"{n / 1_000_000_000:.2f} GB"
+        if n >= 1_000_000:
+            return f"{n / 1_000_000:.2f} MB"
+        if n >= 1_000:
+            return f"{n / 1_000:.2f} KB"
+        return f"{n} B"
+
+    print()
+    print(f"Dry run — would search {len(files_kept):,} file(s) ({_fmt_size(total_bytes)}) in {cwd}")
+    if recursive:
+        print("  (recursive: subfolders included)")
+    if skipped_too_large:
+        print(f"  ({skipped_too_large} file(s) skipped — exceed --max-file-size {max_file_size_mb} MB)")
+    if ext_rows:
+        print()
+        print("By extension:")
+        ext_w = max(len(r["ext"]) for r in ext_rows)
+        for row in ext_rows[:30]:
+            print(f"  {row['ext'].ljust(ext_w)}   {row['count']:>6}   {_fmt_size(row['bytes']):>10}")
+        if len(ext_rows) > 30:
+            print(f"  ... and {len(ext_rows) - 30} more extension(s)")
+    print()
+    print("No content read. No reports written. No index touched.")
+    print("Remove --dry-run to run the actual search.")
+    print()
+    return 0 if files_kept else 1
+
+
 def main(argv=None):
     # Force UTF-8 output on Windows to prevent UnicodeEncodeError
     # when printing Unicode characters (progress bars, filenames, etc.)
@@ -624,6 +716,10 @@ def _main_inner(argv=None):
     compute_hashes = "--hash" in args
     if compute_hashes:
         args.remove("--hash")
+
+    dry_run = "--dry-run" in args
+    if dry_run:
+        args.remove("--dry-run")
 
     # --runs --json must emit clean JSONL with no banner above it.
     runs_json = (args and args[0] == "--runs" and "--json" in args[1:])
@@ -1422,6 +1518,21 @@ def _main_inner(argv=None):
         output_dir = cwd
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir, exist_ok=True)
+
+    # --dry-run: report what would be searched and exit. No content extraction,
+    # no pattern matching, no report files, no index hit. Honors the scope
+    # filters (-r, -t, -f, -O, --max-file-size). Search terms are accepted
+    # for syntactic consistency but ignored — they don't affect scope.
+    if dry_run:
+        return _dry_run_report(
+            cwd=cwd,
+            recursive=recursive,
+            use_ocr=use_ocr,
+            file_types=file_types,
+            file_names=file_names,
+            max_file_size_mb=parsed.get("max_file_size_mb", 100),
+            emit_json=stdout_json,
+        )
 
     # Determine index mode for display
     _will_use_index = index_exists(cwd) and not no_index
