@@ -4401,11 +4401,12 @@ class ToolsMixin:
                     "stdout": stdout,
                 })
 
-            # Auto-redirect to a safe local folder if output dir is cloud-synced.
+            # Auto-redirect to a safe local folder if the search folder is
+            # cloud-synced. `folder` is the search folder (read-only here);
+            # `output_folder` is where suite reports get written.
             from peekdocs.gui._helpers import check_cloud_folder, get_safe_output_dir
             cloud_warning = check_cloud_folder(folder)
-            if cloud_warning:
-                folder = get_safe_output_dir()
+            output_folder = get_safe_output_dir() if cloud_warning else folder
 
             # Generate combined suite reports
             # Set restrictive file permissions if enabled
@@ -4415,8 +4416,8 @@ class ToolsMixin:
                 and self.restrict_permissions_var.get() == "on"
             )
 
-            txt_path = os.path.join(folder, "peekdocs_suite_results.txt")
-            docx_path = os.path.join(folder, "peekdocs_suite_results.docx")
+            txt_path = os.path.join(output_folder, "peekdocs_suite_results.txt")
+            docx_path = os.path.join(output_folder, "peekdocs_suite_results.docx")
             _fmts = suite_formats or {}
             write_suite_txt_report(txt_path, suite_name, sections)
             write_suite_docx_report(docx_path, txt_path, sections)
@@ -4424,13 +4425,13 @@ class ToolsMixin:
             csv_path = ""
             json_path = ""
             if _fmts.get("html", False):
-                html_path = os.path.join(folder, "peekdocs_suite_results.html")
+                html_path = os.path.join(output_folder, "peekdocs_suite_results.html")
                 try:
                     write_suite_html_report(html_path, suite_name, sections)
                 except Exception:
                     html_path = ""
             if _fmts.get("csv", False):
-                csv_path = os.path.join(folder, "peekdocs_suite_results.csv")
+                csv_path = os.path.join(output_folder, "peekdocs_suite_results.csv")
                 try:
                     import csv as _csv_s
                     all_matches = []
@@ -4447,7 +4448,7 @@ class ToolsMixin:
                 except Exception:
                     csv_path = ""
             if _fmts.get("json", False):
-                json_path = os.path.join(folder, "peekdocs_suite_results.json")
+                json_path = os.path.join(output_folder, "peekdocs_suite_results.json")
                 try:
                     import json as _json_s
                     from peekdocs.cli import VERSION as _ver_sj
