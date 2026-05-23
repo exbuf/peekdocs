@@ -1012,6 +1012,8 @@ peekdocs has three distinct search modes. They share the same search engine, fla
 | **Regex Search** | A named collection of up to 10 regex patterns, each run separately with per-pattern results | GUI **Regex Search** button, or `peekdocs --regex-collection "Name"` | `peekdocs_regex_results.txt`, `peekdocs_regex_results.docx` |
 | **Suite** | A named group of saved Standard searches, run together and combined into one highlighted report | GUI **Run Suite** (Tools → Search Suites, or **Suites** button), or `peekdocs --suite "Name"` | `peekdocs_suite_results.txt`, `peekdocs_suite_results.docx`, plus optional `.html` / `.csv` / `.json` |
 
+> **What counts as which mode?** The "mode" is defined by the workflow, not by the flag set. A one-off `peekdocs -x "pattern"` (or `-z` for fuzzy, `-w` for wildcard, `-W` for whole-word) is a *Standard Search* with a search-mode flag — it writes `peekdocs_standard_results.*`. Only the dedicated **Regex Search** workflow (the GUI popup or `--regex-collection`) writes `peekdocs_regex_results.*`. This is deliberate: the CLI's `-x`, `-z`, `-w`, etc. are all just search modifiers on the same Standard pipeline, and giving each its own filename would be a slippery slope.
+
 Within each family, the report files are overwritten on every run unless `--timestamp` is set (or the GUI's Timestamp checkbox is enabled), in which case `_YYYYMMDD_HHMMSS` is appended to every filename. `peekdocs --clear` and the GUI's **Clear Files** match all three families by prefix; saved/accumulated reports (`peekdocs_report_*`, `peekdocs_accumulated_*`) and the search index (`.peekdocs.db`) are separate file families and are not part of this overview.
 
 ### Results Preview vs. Reports
