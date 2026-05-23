@@ -38,13 +38,23 @@ DEFAULT_LOG_FILENAME = ".peekdocs_runs.log"
 # start of each run, read at the end. Module-level mutable state is the
 # simplest way to thread these out of deep code paths without changing every
 # function signature.
-_RUN_STATS = {"match_count": 0, "file_count": 0, "error_count": 0}
+_RUN_STATS = {
+    "match_count": 0,
+    "file_count": 0,
+    "error_count": 0,
+    "report_paths": {},   # {"txt": "...", "docx": "...", "json": "...", ...}
+}
 
 
 def reset_stats():
     """Clear the run-stats slate at the start of a new invocation."""
     global _RUN_STATS
-    _RUN_STATS = {"match_count": 0, "file_count": 0, "error_count": 0}
+    _RUN_STATS = {
+        "match_count": 0,
+        "file_count": 0,
+        "error_count": 0,
+        "report_paths": {},
+    }
 
 
 def set_stats(match_count=None, file_count=None, error_count=None):
@@ -60,6 +70,20 @@ def set_stats(match_count=None, file_count=None, error_count=None):
         _RUN_STATS["file_count"] = int(file_count)
     if error_count is not None:
         _RUN_STATS["error_count"] = int(error_count)
+
+
+def set_report_paths(**paths):
+    """Record absolute paths of report files written this run.
+
+    Keys (txt, docx, json, csv, pdf, html) are exposed as env vars
+    (PEEKDOCS_REPORT_TXT, etc.) to any --on-match hook so the hook
+    can mail/upload/process the report without having to compute the
+    filename itself.
+    """
+    bucket = _RUN_STATS.setdefault("report_paths", {})
+    for key, value in paths.items():
+        if value:
+            bucket[key] = value
 
 
 def get_stats():
@@ -109,7 +133,7 @@ def log_path():
 
 def record_run(argv, cwd, exit_code, elapsed_seconds,
                match_count=0, file_count=0, error_count=0,
-               peekdocs_version=None):
+               peekdocs_version=None, on_match_fired=None):
     """Append one JSON line to the run log. Silently no-ops on write failure.
 
     The log is best-effort observability — a write failure (disk full,
@@ -134,6 +158,10 @@ def record_run(argv, cwd, exit_code, elapsed_seconds,
         "error_count": int(error_count),
         "elapsed_seconds": round(float(elapsed_seconds), 3),
     }
+    # Only include the on-match outcome if --on-match was actually used
+    # this run, so absent fields stay absent for normal searches.
+    if on_match_fired is not None:
+        entry["on_match_fired"] = bool(on_match_fired)
 
     try:
         path = log_path()
@@ -144,6 +172,82 @@ def record_run(argv, cwd, exit_code, elapsed_seconds,
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     except OSError:
         # Disk full, no write permission, etc. Don't crash the search.
+        pass
+
+
+def fire_on_match(command, argv, cwd, match_count, file_count, error_count,
+                  elapsed_seconds, report_paths, timeout=30):
+    """Run *command* as a subprocess with PEEKDOCS_* env vars set.
+
+    Called by main() after a search finishes with matches (exit code 0).
+    Splits *command* via shlex so quoted args work and there is no shell —
+    no shell injection from user args, no implicit pipes/redirects.
+    Returns True on success (hook exited 0 within timeout), False on any
+    failure. Failures are non-fatal — the user's search succeeded; their
+    hook script breaking shouldn't penalize the exit code.
+    """
+    import shlex
+    import subprocess
+
+    try:
+        parts = shlex.split(command)
+    except ValueError as exc:
+        _log_hook_error(f"--on-match command could not be parsed: {exc}")
+        return False
+    if not parts:
+        return False
+
+    env = os.environ.copy()
+    env["PEEKDOCS_EXIT_CODE"] = "0"
+    env["PEEKDOCS_MATCH_COUNT"] = str(match_count)
+    env["PEEKDOCS_FILE_COUNT"] = str(file_count)
+    env["PEEKDOCS_ERROR_COUNT"] = str(error_count)
+    env["PEEKDOCS_ELAPSED_SECONDS"] = f"{elapsed_seconds:.3f}"
+    env["PEEKDOCS_ARGV"] = " ".join(argv) if argv else ""
+    env["PEEKDOCS_CWD"] = cwd or ""
+    for key, val in (report_paths or {}).items():
+        env[f"PEEKDOCS_REPORT_{key.upper()}"] = val
+
+    try:
+        result = subprocess.run(
+            parts,
+            env=env,
+            timeout=timeout,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        _log_hook_error(f"--on-match command not found: {parts[0]}")
+        return False
+    except subprocess.TimeoutExpired:
+        _log_hook_error(
+            f"--on-match command timed out after {timeout}s: {' '.join(parts)}"
+        )
+        return False
+    except OSError as exc:
+        _log_hook_error(f"--on-match command failed to launch: {exc}")
+        return False
+
+    if result.returncode != 0:
+        _log_hook_error(
+            f"--on-match command exited with code {result.returncode}: {' '.join(parts)}\n"
+            f"  stdout: {result.stdout[:500] if result.stdout else '(empty)'}\n"
+            f"  stderr: {result.stderr[:500] if result.stderr else '(empty)'}"
+        )
+        return False
+    return True
+
+
+def _log_hook_error(message):
+    """Print a hook-related warning to stderr and append it to peekdocs_errors.log."""
+    import sys
+    sys.stderr.write(f"Warning: {message}\n")
+    try:
+        error_log = os.path.join(os.getcwd(), "peekdocs_errors.log")
+        from datetime import datetime
+        with open(error_log, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.now().isoformat(timespec='seconds')}] {message}\n")
+    except OSError:
         pass
 
 

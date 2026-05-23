@@ -97,6 +97,7 @@ BANNER_BOTTOM = (
     '  --dry-run          Report what would be searched (file count, size, by extension); no search\n'
     '  --no-log           Skip writing this run to ~/.peekdocs_runs.log (run log is on by default)\n'
     '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'
+    '  --on-match CMD     Run CMD when search finds matches (notification hook). 30s timeout. See User Guide\n'
     '                       written. Suppresses all banners and progress.\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
@@ -271,7 +272,7 @@ REGEX_PATTERNS = (
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path", "on_match"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
@@ -602,25 +603,31 @@ def main(argv=None):
         except Exception:
             pass
 
-    # Snapshot the original argv (after --no-log is filtered) for the run log.
-    # _main_inner mutates its args list while parsing flags, so we capture
-    # what the user actually typed before any of that happens.
+    # Snapshot the original argv (after --no-log / --on-match are filtered)
+    # for the run log. _main_inner mutates its args list while parsing flags,
+    # so we capture what the user actually typed before any of that happens.
     from peekdocs import run_log as _rl
     _rl.reset_stats()
     incoming = list(sys.argv[1:] if argv is None else argv)
+
     no_log = "--no-log" in incoming
-    if no_log:
-        incoming_for_log = [a for a in incoming if a != "--no-log"]
-        # Mutate the caller's argv too if they passed a list, so --no-log is
-        # also removed before _main_inner sees it.
-        if argv is not None and isinstance(argv, list):
-            while "--no-log" in argv:
-                argv.remove("--no-log")
-        else:
-            sys.argv = [sys.argv[0]] + incoming_for_log
-            incoming = incoming_for_log
+    on_match_cmd, on_match_explicit = _extract_on_match(incoming)
+    # If --on-match wasn't on the command line, fall back to the persistent
+    # default from ~/.peekdocsrc. An explicit empty string (--on-match "")
+    # disables the hook for this run even if config says otherwise.
+    if not on_match_explicit:
+        on_match_cmd = _rl._config_value("on_match") or ""
+
+    # Filter --no-log and --on-match (+value) out of args before _main_inner
+    # sees them, both in the caller's list (if passed) and in sys.argv.
+    cleaned = [a for a in incoming if a != "--no-log"]
+    cleaned = _strip_on_match(cleaned)
+    if argv is not None and isinstance(argv, list):
+        argv[:] = cleaned
     else:
-        incoming_for_log = incoming
+        sys.argv = [sys.argv[0]] + cleaned
+    incoming_for_log = cleaned
+
     cwd_at_start = os.getcwd()
     start_time = time.time()
 
@@ -633,18 +640,69 @@ def main(argv=None):
         exit_code = _handle_unexpected_exception(exc, argv)
 
     elapsed = time.time() - start_time
+    stats = _rl.get_stats()
+    report_paths = stats.pop("report_paths", {})
+
+    # Fire the --on-match hook on a successful match-finding run.
+    on_match_fired = False
+    if (on_match_cmd
+            and exit_code == 0
+            and _rl.is_search_invocation(incoming_for_log)
+            and stats.get("match_count", 0) > 0):
+        on_match_fired = _rl.fire_on_match(
+            command=on_match_cmd,
+            argv=["peekdocs"] + incoming_for_log,
+            cwd=cwd_at_start,
+            match_count=stats.get("match_count", 0),
+            file_count=stats.get("file_count", 0),
+            error_count=stats.get("error_count", 0),
+            elapsed_seconds=elapsed,
+            report_paths=report_paths,
+        )
+
     if (not no_log
             and _rl.is_search_invocation(incoming_for_log)
             and _rl.is_enabled()):
-        stats = _rl.get_stats()
+        extra = {}
+        if on_match_cmd:
+            extra["on_match_fired"] = on_match_fired
         _rl.record_run(
             argv=["peekdocs"] + incoming_for_log,
             cwd=cwd_at_start,
             exit_code=exit_code,
             elapsed_seconds=elapsed,
+            on_match_fired=on_match_fired if on_match_cmd else None,
             **stats,
         )
     return exit_code
+
+
+def _extract_on_match(args):
+    """Return (command, explicit_flag_present) without mutating *args*.
+
+    `peekdocs --on-match "/path/to/script"` → ("/path/to/script", True)
+    `peekdocs --on-match ""`               → ("", True)  # disable for this run
+    `peekdocs ...` (no flag)               → ("", False)
+    """
+    if "--on-match" in args:
+        idx = args.index("--on-match")
+        if idx + 1 < len(args):
+            return (args[idx + 1], True)
+        return ("", True)  # treat trailing --on-match as "disable"
+    return ("", False)
+
+
+def _strip_on_match(args):
+    """Return a copy of *args* with `--on-match` and its value removed."""
+    out = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--on-match":
+            i += 2  # skip flag and its value
+            continue
+        out.append(args[i])
+        i += 1
+    return out
 
 
 def _handle_unexpected_exception(exc, argv):
@@ -1263,8 +1321,9 @@ def _main_inner(argv=None):
         print(f"\nSuite '{suite_name}': {len(sections)} search(es), {total_matches} total match(es)")
         print(f"Reports: {txt_path}")
         print(f"         {docx_path}")
-        from peekdocs.run_log import set_stats as _set_stats_suite
+        from peekdocs.run_log import set_stats as _set_stats_suite, set_report_paths as _set_paths_suite
         _set_stats_suite(match_count=total_matches, file_count=total_files)
+        _set_paths_suite(txt=txt_path, docx=docx_path)
         return 0
 
     # ── --regex-collection NAME: run a saved regex collection ──
@@ -1437,11 +1496,16 @@ def _main_inner(argv=None):
                     print(f"Reports: {output_path}")
                     print(f"         {docx_path}")
 
-        from peekdocs.run_log import set_stats as _set_stats_rc
+        from peekdocs.run_log import set_stats as _set_stats_rc, set_report_paths as _set_paths_rc
         _set_stats_rc(
             match_count=total_matches,
             file_count=len({(fd, fn) for fd, fn, _ln, _tx in all_matches}),
         )
+        # output_path / docx_path are only bound when reports were written
+        # (which happens only in the non-stdout branch AND when all_matches
+        # is non-empty). Skip set_report_paths otherwise.
+        if not _rc_stdout and all_matches:
+            _set_paths_rc(txt=output_path, docx=docx_path)
         return 0 if total_matches > 0 else 1
 
     no_index = "--no-index" in args
@@ -1942,7 +2006,15 @@ def _main_inner(argv=None):
             print(f"Note: Unknown format '{open_report}'.")
         else:
             print(f"Note: {open_report} report file not found.")
-    from peekdocs.run_log import set_stats
+    from peekdocs.run_log import set_stats, set_report_paths
+    set_report_paths(
+        txt=output_path,
+        docx=docx_output_path,
+        csv=csv_output_path,
+        json=json_output_path,
+        pdf=pdf_output_path,
+        html=html_output_path,
+    )
     if inverse:
         set_stats(
             match_count=len(inverse_files) if inverse_files else 0,

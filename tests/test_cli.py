@@ -3703,3 +3703,148 @@ def test_dry_run_with_regex_collection_errors_cleanly(tmp_path, monkeypatch, cap
     out = capsys.readouterr().out
     assert "not supported with --regex-collection" in out
     assert not (tmp_path / "peekdocs_regex_results.txt").exists()
+
+
+# ── --on-match (notification hook) ─────────────────────────────────────
+
+def test_on_match_fires_when_matches_found(tmp_path, monkeypatch):
+    """--on-match runs the given command when matches are found."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    flag_file = tmp_path / "fired.txt"
+    # Tiny inline script that writes a flag file with the env vars.
+    script = tmp_path / "hook.sh"
+    script.write_text(
+        f"#!/bin/sh\n"
+        f"echo \"matches=$PEEKDOCS_MATCH_COUNT files=$PEEKDOCS_FILE_COUNT cwd=$PEEKDOCS_CWD\" > {flag_file}\n"
+    )
+    script.chmod(0o755)
+
+    result = main(["--on-match", str(script), "TODO"])
+    assert result == 0
+    assert flag_file.exists()
+    content = flag_file.read_text()
+    assert "matches=1" in content
+    # files= reflects what peekdocs searched (may include hook.sh in the same dir)
+    assert "files=" in content
+    assert str(tmp_path) in content
+
+
+def test_on_match_does_not_fire_on_no_match(tmp_path, monkeypatch):
+    """--on-match does NOT fire when search finds zero matches (exit 1)."""
+    (tmp_path / "doc.txt").write_text("nothing here\n")
+    monkeypatch.chdir(tmp_path)
+    flag_file = tmp_path / "fired.txt"
+    script = tmp_path / "hook.sh"
+    script.write_text(f"#!/bin/sh\necho fired > {flag_file}\n")
+    script.chmod(0o755)
+
+    result = main(["--on-match", str(script), "nope"])
+    assert result == 1
+    assert not flag_file.exists()
+
+
+def test_on_match_passes_report_paths_for_standard_search(tmp_path, monkeypatch):
+    """PEEKDOCS_REPORT_TXT / _DOCX are set when standard reports are written."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    env_dump = tmp_path / "env.txt"
+    script = tmp_path / "hook.sh"
+    script.write_text(
+        f"#!/bin/sh\n"
+        f"echo \"TXT=$PEEKDOCS_REPORT_TXT\" > {env_dump}\n"
+        f"echo \"DOCX=$PEEKDOCS_REPORT_DOCX\" >> {env_dump}\n"
+    )
+    script.chmod(0o755)
+
+    main(["--on-match", str(script), "TODO"])
+    out = env_dump.read_text()
+    assert "peekdocs_standard_results.txt" in out
+    assert "peekdocs_standard_results.docx" in out
+
+
+def test_on_match_hook_failure_does_not_change_exit_code(tmp_path, monkeypatch, capsys):
+    """A failing hook script logs a warning but the search exit code is preserved."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    script = tmp_path / "broken.sh"
+    script.write_text("#!/bin/sh\nexit 1\n")
+    script.chmod(0o755)
+
+    result = main(["--on-match", str(script), "TODO"])
+    # Search succeeded; hook failed; result reflects the search.
+    assert result == 0
+
+
+def test_on_match_unknown_command_warns_but_succeeds(tmp_path, monkeypatch, capsys):
+    """If the hook command doesn't exist, peekdocs warns but the search succeeds."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--on-match", "/nonexistent/path/nothing.sh", "TODO"])
+    assert result == 0
+
+
+def test_on_match_logged_in_run_log(tmp_path, monkeypatch):
+    """The run log entry includes on_match_fired when --on-match was set."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    script = tmp_path / "hook.sh"
+    script.write_text("#!/bin/sh\nexit 0\n")
+    script.chmod(0o755)
+
+    main(["--on-match", str(script), "TODO"])
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 1
+    assert entries[0]["on_match_fired"] is True
+
+
+def test_on_match_absent_when_flag_not_used(tmp_path, monkeypatch):
+    """Routine runs without --on-match have no on_match_fired key in the log."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["TODO"])
+    entries = _read_log_entries(tmp_path)
+    assert "on_match_fired" not in entries[0]
+
+
+def test_on_match_config_default_picked_up(tmp_path, monkeypatch):
+    """`--config on_match=...` saves a persistent default that fires without the flag."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    flag_file = tmp_path / "fired.txt"
+    script = tmp_path / "hook.sh"
+    script.write_text(f"#!/bin/sh\necho default fired > {flag_file}\n")
+    script.chmod(0o755)
+    (tmp_path / ".peekdocsrc").write_text(f"on_match = {script}\n")
+
+    main(["TODO"])
+    assert flag_file.exists()
+
+
+def test_on_match_empty_string_disables_config_default(tmp_path, monkeypatch):
+    """`--on-match ''` disables the hook for one run even if config sets it."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    flag_file = tmp_path / "fired.txt"
+    script = tmp_path / "hook.sh"
+    script.write_text(f"#!/bin/sh\necho fired > {flag_file}\n")
+    script.chmod(0o755)
+    (tmp_path / ".peekdocsrc").write_text(f"on_match = {script}\n")
+
+    main(["--on-match", "", "TODO"])
+    assert not flag_file.exists()
+
+
+def test_on_match_not_fired_on_dry_run(tmp_path, monkeypatch):
+    """--dry-run never produces matches, so --on-match never fires."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    flag_file = tmp_path / "fired.txt"
+    script = tmp_path / "hook.sh"
+    script.write_text(f"#!/bin/sh\necho fired > {flag_file}\n")
+    script.chmod(0o755)
+
+    main(["--dry-run", "--on-match", str(script), "TODO"])
+    assert not flag_file.exists()

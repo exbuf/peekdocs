@@ -28,6 +28,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
   - [Where things live](#where-things-live)
   - [Per-run structured log](#per-run-structured-log)
+  - [Notification hook](#notification-hook)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
@@ -558,6 +559,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--dry-run` (dry-run) | Show the scope of a search without running it. Walks file discovery (`-r`, `-t`, `-f`, `-O`, `--max-file-size` all respected) and prints the count, total size, and per-extension breakdown. No content is read, no reports are written, the index is not touched, and the run is not added to `~/.peekdocs_runs.log`. Search terms are accepted but ignored — they don't affect scope. Add `--stdout` for JSON output. Useful as a "what would this do?" preflight on network shares and large folders. **Standard search only in this release** — `--dry-run` with `--suite` or `--regex-collection` exits with an error rather than running silently. |
 | `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
 | `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
+| `--on-match CMD` (on-match) | Run an external command (notification hook) when a search finds matches. Fires only on exit 0; skipped for no-match runs, errors, `--dry-run`, and informational commands. The command is invoked without a shell — quoted arguments work, pipes/redirects do not (wrap them in a script). 30-second timeout. Hook receives `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_FILE_COUNT`, `PEEKDOCS_ERROR_COUNT`, `PEEKDOCS_ELAPSED_SECONDS`, `PEEKDOCS_ARGV`, `PEEKDOCS_CWD`, and `PEEKDOCS_REPORT_TXT` / `_DOCX` / `_JSON` / `_HTML` / `_CSV` / `_PDF` (whichever were written). Persistent default: `--config on_match=/path/to/script`. Override per-run with `--on-match ""` (empty string) to disable. See [Notification hook](#notification-hook) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -1301,6 +1303,87 @@ jq 'select(.match_count > 100)' ~/.peekdocs_runs.log   # heavy-find runs
 
 **Write failures don't break searches.** If the log file can't be written (disk full, permission denied, locked on Windows), peekdocs silently skips the log line for that run and continues — observability is best-effort by design, and the user's actual search must never fail because of a logging issue.
 
+### Notification hook
+
+For unattended runs (cron, Task Scheduler), the obvious next question is *"how do I find out when something matched?"* The `--on-match COMMAND` flag fires an external command of your choice whenever a search exits with code 0 (matches found). peekdocs doesn't know about email, Slack, Splunk, PagerDuty, or any specific notification system — it just runs your command and passes context via environment variables. You write the script that does the actual notifying, which keeps peekdocs's surface area small and your stack open.
+
+**When the hook fires:** exit code 0 only (matches found). Skipped on exit 1 (no matches), exit 2 (error), `--dry-run`, and informational commands (`--list-suites`, `--runs`, etc.). The hook runs *after* the search completes and reports are written, so report files referenced by env vars are guaranteed to exist on disk.
+
+**How the hook is invoked:** `subprocess.run(shlex.split(command))` — no shell. Quoted args work (`--on-match "python /opt/scripts/notify.py --priority high"`), but pipes and redirects need to be inside a wrapper script.
+
+**Timeout:** 30 seconds. A hung hook does not block peekdocs forever; it is killed and a warning is logged to `peekdocs_errors.log`. The user's search exit code is preserved regardless of hook outcome — a broken notification script never penalizes a successful search.
+
+**Environment variables passed to the hook:**
+
+| Variable | Meaning |
+|----------|---------|
+| `PEEKDOCS_EXIT_CODE` | Always `0` (the hook only fires on matches) |
+| `PEEKDOCS_MATCH_COUNT` | Total matches across all files |
+| `PEEKDOCS_FILE_COUNT` | Files actually searched |
+| `PEEKDOCS_ERROR_COUNT` | Files skipped due to read errors |
+| `PEEKDOCS_ELAPSED_SECONDS` | Wall-clock duration, milliseconds |
+| `PEEKDOCS_ARGV` | The original command, space-joined |
+| `PEEKDOCS_CWD` | Working directory where the search ran |
+| `PEEKDOCS_REPORT_TXT` | Absolute path to the .txt report (if written) |
+| `PEEKDOCS_REPORT_DOCX` | Absolute path to the .docx report (if written) |
+| `PEEKDOCS_REPORT_JSON` / `_HTML` / `_CSV` / `_PDF` | Set if those optional formats were written |
+
+The hook's stdout/stderr are captured. If the hook exits non-zero, both streams (truncated to 500 chars each) and the exit code are written to `peekdocs_errors.log` so you can debug a broken hook after the fact.
+
+**Worked example — email on match:**
+
+```bash
+# /usr/local/bin/notify-secops.sh
+#!/bin/bash
+mail -s "peekdocs: $PEEKDOCS_MATCH_COUNT findings on $(hostname)" sec@example.com <<EOF
+Command: $PEEKDOCS_ARGV
+Folder:  $PEEKDOCS_CWD
+Matches: $PEEKDOCS_MATCH_COUNT in $PEEKDOCS_FILE_COUNT file(s)
+Errors:  $PEEKDOCS_ERROR_COUNT file(s) couldn't be read
+Elapsed: ${PEEKDOCS_ELAPSED_SECONDS}s
+Report:  $PEEKDOCS_REPORT_DOCX
+EOF
+```
+
+```bash
+peekdocs --regex-collection "compliance" -r --timestamp \
+    --on-match /usr/local/bin/notify-secops.sh
+```
+
+**Worked example — Slack webhook with the JSON report:**
+
+```bash
+# /usr/local/bin/notify-slack.sh
+#!/bin/bash
+[ -f "$PEEKDOCS_REPORT_JSON" ] || exit 0
+jq --arg cwd "$PEEKDOCS_CWD" --arg n "$PEEKDOCS_MATCH_COUNT" \
+   '{text: "\($n) findings in \($cwd)", attachments: [.matches[:5]]}' \
+   "$PEEKDOCS_REPORT_JSON" \
+| curl -s -X POST -H 'Content-Type: application/json' \
+   -d @- "$SLACK_WEBHOOK_URL"
+```
+
+```bash
+peekdocs --regex-collection "secrets" -r -o json \
+    --on-match /usr/local/bin/notify-slack.sh
+```
+
+**Persistent default for every cron run:**
+
+```bash
+peekdocs --config on_match=/usr/local/bin/notify-secops.sh
+```
+
+This saves the hook to `~/.peekdocsrc`. Every subsequent CLI search inherits it without retyping. Override for one run with `--on-match ""` (empty string) to disable, or `--on-match /other/script` to substitute a different hook.
+
+**Observability:** every run that uses `--on-match` (whether by flag or persistent default) records `"on_match_fired": true|false` in its `~/.peekdocs_runs.log` entry. Grep across the log to verify your notifications are actually going out:
+
+```bash
+jq 'select(.on_match_fired == false and .match_count > 0) | .timestamp + " " + (.argv | join(" "))' ~/.peekdocs_runs.log
+```
+
+(Lists runs where matches were found but the hook reported failure — the IT-relevant "we should have been notified but weren't" query.)
+
 ### Service accounts and file permissions
 
 When peekdocs runs under a Windows service account or a Linux service user (typical for scheduled tasks), the account's read permissions limit what gets searched. peekdocs treats a permission denial the same as any other read failure:
@@ -1334,6 +1417,7 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 - `peekdocs --index-status` — file count, line count, database size, and creation date for the search index in the current folder.
 - `peekdocs --runs` — last 20 search runs from `~/.peekdocs_runs.log` in a readable table. Add a number for more (`--runs 100`), `--json` to re-emit raw JSONL for piping. See [Per-run structured log](#per-run-structured-log).
 - `peekdocs --dry-run <terms>` — preflight: how many files, how big, broken down by extension. Honors `-r`, `-t`, `-f`, `--max-file-size`. No content read, no reports, no log entry. Add `--stdout` for JSON output. Use this before unleashing a recursive scan on a network share or unfamiliar folder.
+- `peekdocs --on-match /path/to/notify.sh <args>` — fire a shell command when matches are found. Hook receives `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_REPORT_*`, and friends as env vars; you write the script that does the actual notifying (email, Slack, webhook, syslog). Set `--config on_match=...` for a persistent default that every cron run inherits. See [Notification hook](#notification-hook).
 - `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
 - `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
 
