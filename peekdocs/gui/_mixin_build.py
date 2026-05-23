@@ -290,7 +290,7 @@ class BuildMixin:
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
-        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Configure Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
@@ -552,17 +552,17 @@ class BuildMixin:
         self._suites_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
 
-        # Regex Search button — gray, font matches Run Standard Search
+        # Configure Regex Search button — gray, font matches Run Standard Search
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Regex Search", width=180, height=44,
+            text="Configure Regex Search", width=320, height=44,
             fg_color="#6B7280", hover_color="#5B6270",
             text_color="white",
             command=self._start_regex_search,
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._regex_search_btn, "Run multiple regex patterns at once. Results depend on report checkbox setting.")
+        Tooltip(self._regex_search_btn, "Open the Regex Search workflow — create or run a named collection of up to 10 regex patterns, each executed separately with per-pattern results. Results depend on the report checkbox setting in the popup.")
 
 
 

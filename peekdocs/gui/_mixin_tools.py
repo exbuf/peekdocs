@@ -2686,7 +2686,7 @@ class ToolsMixin:
         blank()
 
         h("STANDARD SEARCH (GREEN BUTTON) vs REGEX SEARCH")
-        b("The purple Regex Search button and the main search bar overlap")
+        b("The gray Configure Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
         b("Standard Search (green button, main search bar \u2014 next to Step 2):")
