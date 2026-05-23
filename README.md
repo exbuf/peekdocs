@@ -129,7 +129,7 @@ By default, only the current folder is searched. Use -r to include subfolders.
 
 ── Cleanup ──────────────────────────────────────────────────────
   peekdocs --list-files          List all peekdocs-created files
-  peekdocs --clear               Delete peekdocs_results* files
+  peekdocs --clear               Delete peekdocs_*_results* files
   peekdocs --clear-all           Delete all peekdocs output files
 
 Exit codes: 0 = matches found, 1 = no matches, 2 = error.
@@ -635,13 +635,13 @@ peekdocs --open pdf budget           # auto-generate PDF and open in a PDF viewe
 peekdocs --open json budget          # auto-generate JSON and open in a text editor
 peekdocs -sa archive --open docx budget  # append to accumulated report and open it
 peekdocs -sa archive --open html budget  # append and open accumulated report in browser
-peekdocs --clear                    # delete peekdocs_results* files in current directory
+peekdocs --clear                    # delete peekdocs_*_results* files in current directory
 peekdocs --clear-all                # delete all peekdocs output files (results, saved reports, index)
 ```
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
-Results are saved to `peekdocs_results.txt` and `peekdocs_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too. **All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data. The .txt report works on any computer with no extra software.
+Results are saved to `peekdocs_standard_results.txt` and `peekdocs_standard_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too. **All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data. The .txt report works on any computer with no extra software.
 
 To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
 
@@ -1093,7 +1093,8 @@ peekdocs stores data in three locations. No data is stored anywhere else — no 
 
 | File | Contains | Sensitive? | Cleanup |
 |------|----------|-----------|---------|
-| `peekdocs_results.*` (.txt, .docx, .csv, .json, .pdf, .html) | Search results with matched text | Yes — contains text from your documents | Delete on Close, Delete Everything Now, Clear Files |
+| `peekdocs_standard_results.*` (.txt, .docx, .csv, .json, .pdf, .html) | Standard search results with matched text | Yes — contains text from your documents | Delete on Close, Delete Everything Now, Clear Files |
+| `peekdocs_regex_results.*` (.txt, .docx) | Regex search results | Yes | Same as above |
 | `peekdocs_suite_results.*` | Combined suite search results | Yes | Same as above |
 | `peekdocs_report_*` | Named saved reports | Yes | Clear Files only (user must explicitly choose) |
 | `peekdocs_accumulated_*` | Appended multi-search reports | Yes | Clear Files only |

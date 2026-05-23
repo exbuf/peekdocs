@@ -12,6 +12,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 from peekdocs.gui._tooltip import Tooltip
+from peekdocs.scanner import RESULT_FILE_PREFIXES
 from peekdocs.gui._helpers import (
     _build_command_from_values,
     _parse_summary_text,
@@ -26,13 +27,13 @@ class SearchMixin:
         """Validate inputs, build the CLI command, and launch a search thread."""
         if self.process is not None:
             self.process.terminate()
-            self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+            self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
             self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
-            self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+            self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
             return
 
         # Wait for any in-progress index build or auto-refresh to finish
@@ -171,19 +172,19 @@ class SearchMixin:
         # Remove stale output files for formats not requested (skip when timestamps are on)
         if not self._last_ts_suffix:
             if self.output_csv_var.get() != "on":
-                stale = os.path.join(self.results_dir, "peekdocs_results.csv")
+                stale = os.path.join(self.results_dir, "peekdocs_standard_results.csv")
                 if os.path.exists(stale):
                     os.remove(stale)
             if self.output_json_var.get() != "on":
-                stale = os.path.join(self.results_dir, "peekdocs_results.json")
+                stale = os.path.join(self.results_dir, "peekdocs_standard_results.json")
                 if os.path.exists(stale):
                     os.remove(stale)
             if self.output_pdf_var.get() != "on":
-                stale = os.path.join(self.results_dir, "peekdocs_results.pdf")
+                stale = os.path.join(self.results_dir, "peekdocs_standard_results.pdf")
                 if os.path.exists(stale):
                     os.remove(stale)
             if self.output_html_var.get() != "on":
-                stale = os.path.join(self.results_dir, "peekdocs_results.html")
+                stale = os.path.join(self.results_dir, "peekdocs_standard_results.html")
                 if os.path.exists(stale):
                     os.remove(stale)
         self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
@@ -371,12 +372,12 @@ class SearchMixin:
 
                 # Collect matched files from this folder's results
                 is_inverse = self.inverse_var.get() == "on"
-                results_txt = os.path.join(folder, "peekdocs_results.txt")
+                results_txt = os.path.join(folder, "peekdocs_standard_results.txt")
                 if os.path.exists(results_txt):
                     if is_inverse:
-                        folder_matches = _parse_inverse_files(folder, "peekdocs_results.txt")
+                        folder_matches = _parse_inverse_files(folder, "peekdocs_standard_results.txt")
                     else:
-                        folder_matches = _parse_matched_files(folder, "peekdocs_results.txt")
+                        folder_matches = _parse_matched_files(folder, "peekdocs_standard_results.txt")
                     all_matched_files.extend(folder_matches)
             except Exception as e:
                 failed_folders.append((folder, str(e)))
@@ -388,7 +389,7 @@ class SearchMixin:
         # (output_dir may be folders[0], so writing first would overwrite it)
         folder_contents = []
         for folder in folders:
-            txt = os.path.join(folder, "peekdocs_results.txt")
+            txt = os.path.join(folder, "peekdocs_standard_results.txt")
             if os.path.exists(txt):
                 try:
                     with open(txt, "r", encoding="utf-8", errors="replace") as src:
@@ -398,7 +399,7 @@ class SearchMixin:
 
         # Write combined results.txt to output_dir
         try:
-            combined_txt_path = os.path.join(output_dir, "peekdocs_results.txt")
+            combined_txt_path = os.path.join(output_dir, "peekdocs_standard_results.txt")
             with open(combined_txt_path, "w", encoding="utf-8") as out:
                 out.write(f"Multi-folder search: {len(folders)} folder(s)\n")
                 out.write(f"Search terms: {search_text}\n")
@@ -433,7 +434,7 @@ class SearchMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
         self.process = None
         self._multi_folder_cancelled = None  # Reset for next search
@@ -548,7 +549,7 @@ class SearchMixin:
             self.after_cancel(self.elapsed_timer_id)
             self.elapsed_timer_id = None
 
-        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
         self.search_entry.configure(state="normal")
 
         if returncode == -1:
@@ -632,7 +633,7 @@ class SearchMixin:
                     return
             # Populate file list for the popup button
             ts = getattr(self, '_last_ts_suffix', '')
-            results_fn = f"peekdocs_results_{ts}.txt" if ts else "peekdocs_results.txt"
+            results_fn = f"peekdocs_standard_results_{ts}.txt" if ts else "peekdocs_standard_results.txt"
             self._inverse_results = self.inverse_var.get() == "on"
             if self._inverse_results:
                 self.matched_files = _parse_inverse_files(self.results_dir, results_fn)
@@ -669,7 +670,7 @@ class SearchMixin:
         elif returncode == 2:
             # Check if results were produced despite the error (e.g., .docx generation failed)
             ts = getattr(self, '_last_ts_suffix', '')
-            results_fn = f"peekdocs_results_{ts}.txt" if ts else "peekdocs_results.txt"
+            results_fn = f"peekdocs_standard_results_{ts}.txt" if ts else "peekdocs_standard_results.txt"
             results_path = os.path.join(self.results_dir or folder, results_fn)
             if os.path.exists(results_path):
                 # Search succeeded but something else failed (likely report generation)
@@ -824,7 +825,7 @@ class SearchMixin:
         results_path = None
         if self.results_dir:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-            results_path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.txt")
+            results_path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.txt")
 
         lines_added = 0
         max_preview_lines = 500  # Cap to keep the GUI responsive
@@ -914,7 +915,7 @@ class SearchMixin:
         if not messagebox.askyesno(
             "Delete Everything Now",
             "This will immediately:\n\n"
-            "\u2022 Delete all search result files (peekdocs_results.*, peekdocs_suite_results.*)\n"
+            "\u2022 Delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*)\n"
             "\u2022 Delete the search index (.peekdocs.db) — contains extracted text of indexed files\n"
             "\u2022 Clear the Results Preview\n"
             "\u2022 Clear your search history and recent searches\n"
@@ -957,8 +958,7 @@ class SearchMixin:
             if not os.path.isdir(folder):
                 continue
             for fname in os.listdir(folder):
-                if (fname.startswith("peekdocs_results") or
-                        fname.startswith("peekdocs_suite_results")):
+                if fname.startswith(RESULT_FILE_PREFIXES):
                     try:
                         os.remove(os.path.join(folder, fname))
                         deleted += 1
@@ -1045,7 +1045,7 @@ class SearchMixin:
         if self.results_dir:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
             for fmt in ("txt", "docx", "csv", "json", "pdf", "html"):
-                path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
+                path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.{fmt}")
                 report_formats[fmt] = os.path.exists(path)
 
         has_any_report = any(report_formats.values())
@@ -1178,15 +1178,15 @@ class SearchMixin:
 
 
     def _clear_results_files(self):
-        """Delete all peekdocs_results* files from the search folder."""
+        """Delete all peekdocs_*_results* files from the search folder."""
         folder = self.results_dir or self.folder_entry.get().strip()
         if not folder or not os.path.isdir(folder):
             self._show_error("Please select a folder first.")
             return
-        # Find all peekdocs_results* files
+        # Find all standard/regex/suite result files
         results_files = [
             f for f in os.listdir(folder)
-            if f.startswith("peekdocs_results") and not f.startswith("peekdocs_results_dir")
+            if f.startswith(RESULT_FILE_PREFIXES)
         ]
         if not results_files:
             self.status_label.configure(text="No results files to clear.")
@@ -1245,8 +1245,7 @@ class SearchMixin:
         # Find all peekdocs files in the selected folder (non-recursive)
         peekdocs_files = []
         for fname in os.listdir(folder):
-            if (fname.startswith("peekdocs_results") or
-                    fname.startswith("peekdocs_suite_results") or
+            if (fname.startswith(RESULT_FILE_PREFIXES) or
                     fname.startswith("peekdocs_report_") or
                     fname.startswith("peekdocs_accumulated_") or
                     fname == "peekdocs_errors.log" or
@@ -1295,8 +1294,11 @@ class SearchMixin:
         # Categorize all peekdocs-created files
         # Each category: (label, description, files_list)
         categories = [
-            ("Search results",
-             "Overwritten after each search. Safe to delete.",
+            ("Standard search results",
+             "Overwritten after each Standard Search. Safe to delete.",
+             []),
+            ("Regex search results",
+             "Overwritten after each Regex Search. Safe to delete.",
              []),
             ("Suite results",
              "Overwritten after each suite run. Safe to delete.",
@@ -1318,18 +1320,20 @@ class SearchMixin:
         for root, dirs, files in os.walk(folder):
             for fname in files:
                 filepath = os.path.join(root, fname)
-                if fname.startswith("peekdocs_suite_results"):
-                    categories[1][2].append(filepath)
-                elif fname.startswith("peekdocs_results"):
+                if fname.startswith("peekdocs_standard_results"):
                     categories[0][2].append(filepath)
-                elif fname.startswith("peekdocs_accumulated_"):
-                    categories[3][2].append(filepath)
-                elif fname.startswith("peekdocs_report_"):
+                elif fname.startswith("peekdocs_regex_results"):
+                    categories[1][2].append(filepath)
+                elif fname.startswith("peekdocs_suite_results"):
                     categories[2][2].append(filepath)
-                elif fname == "peekdocs_errors.log":
+                elif fname.startswith("peekdocs_report_"):
+                    categories[3][2].append(filepath)
+                elif fname.startswith("peekdocs_accumulated_"):
                     categories[4][2].append(filepath)
-                elif fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                elif fname == "peekdocs_errors.log":
                     categories[5][2].append(filepath)
+                elif fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                    categories[6][2].append(filepath)
 
         all_files = []
         for _, _, cat_files in categories:
@@ -1468,8 +1472,8 @@ class SearchMixin:
         for root, dirs, files in os.walk(folder):
             for fname in files:
                 filepath = os.path.join(root, fname)
-                # Search result files
-                if fname.startswith("peekdocs_results"):
+                # Search result files (standard / regex / suite)
+                if fname.startswith(RESULT_FILE_PREFIXES):
                     to_delete.append((filepath, "search results"))
                 # Saved reports (peekdocs_report_*, peekdocs_accumulated_*) are preserved — use Clear Saved Reports
                 # Error log
@@ -1536,7 +1540,7 @@ class SearchMixin:
         """Open the report file for the given format (txt, docx, csv, json)."""
         from peekdocs.gui._helpers import safe_open_file
         suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-        path = os.path.join(self.results_dir, f"peekdocs_results{suffix}.{fmt}")
+        path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.{fmt}")
         if not os.path.exists(path):
             self._show_error(f"Report file not found: {os.path.basename(path)}")
             return
@@ -1611,7 +1615,7 @@ class SearchMixin:
                     continue
 
                 # peekdocs output files
-                if fname.startswith("peekdocs_results") or fname.startswith(("peekdocs_report_", "peekdocs_accumulated_")):
+                if fname.startswith(RESULT_FILE_PREFIXES) or fname.startswith(("peekdocs_report_", "peekdocs_accumulated_")):
                     excluded.append((filepath, "peekdocs output file (prior search results)"))
                     continue
                 if fname in _PEEKDOCS_INTERNAL:

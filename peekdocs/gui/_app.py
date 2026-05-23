@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 
 import customtkinter as ctk
+from peekdocs.scanner import RESULT_FILE_PREFIXES
 
 import webbrowser
 from tkinter import filedialog, messagebox
@@ -159,8 +160,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                 if not os.path.isdir(folder):
                     continue
                 for fname in os.listdir(folder):
-                    if (fname.startswith("peekdocs_results") or
-                            fname.startswith("peekdocs_suite_results")):
+                    if fname.startswith(RESULT_FILE_PREFIXES):
                         try:
                             os.remove(os.path.join(folder, fname))
                         except OSError:

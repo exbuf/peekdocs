@@ -636,8 +636,8 @@ def _parse_summary_text(stdout):
     return " ".join(parts) if parts else ""
 
 
-def _parse_matched_files(results_dir, results_filename="peekdocs_results.txt"):
-    """Parse peekdocs_results.txt and return a list of (filepath, filename, count, line_nums) tuples.
+def _parse_matched_files(results_dir, results_filename="peekdocs_standard_results.txt"):
+    """Parse a .txt result report and return a list of (filepath, filename, count, line_nums) tuples.
 
     Handles both normal results (Document: ..., Line: ...) and inverse results
     (Files WITHOUT matches: ... followed by filename/directory pairs).
@@ -708,8 +708,8 @@ def _parse_matched_files(results_dir, results_filename="peekdocs_results.txt"):
     return [(fp, data[fp]["filename"], data[fp]["count"], data[fp]["lines"]) for fp in order]
 
 
-def _parse_inverse_files(results_dir, results_filename="peekdocs_results.txt"):
-    """Parse peekdocs_results.txt for inverse search and return (filepath, filename, 0, []) tuples."""
+def _parse_inverse_files(results_dir, results_filename="peekdocs_standard_results.txt"):
+    """Parse a .txt result report for inverse search and return (filepath, filename, 0, []) tuples."""
     results_path = os.path.join(results_dir, results_filename)
     if not os.path.exists(results_path):
         return []

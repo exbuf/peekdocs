@@ -387,11 +387,11 @@ class DataMixin:
         # Shorten row 3 button labels at Extra Large and Huge to save width
         try:
             if value in ("Extra Large", "Huge"):
-                self.search_button.configure(text="\U0001f50d Standard Search")
+                self.search_button.configure(text="\U0001f50d Run Standard Search")
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
             else:
-                self.search_button.configure(text="\U0001f50d Standard Search")
+                self.search_button.configure(text="\U0001f50d Run Standard Search")
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
         except Exception:
@@ -1266,8 +1266,10 @@ class DataMixin:
 
                 if fname.startswith("peekdocs_suite_results"):
                     app_files.append((filepath, "Suite results"))
-                elif fname.startswith("peekdocs_results"):
-                    app_files.append((filepath, "Search results"))
+                elif fname.startswith("peekdocs_standard_results"):
+                    app_files.append((filepath, "Standard search results"))
+                elif fname.startswith("peekdocs_regex_results"):
+                    app_files.append((filepath, "Regex search results"))
                 elif fname.startswith("peekdocs_accumulated_"):
                     app_files.append((filepath, "Accumulated results"))
                 elif fname.startswith("peekdocs_report_"):

@@ -12,6 +12,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 from peekdocs.gui._tooltip import Tooltip
+from peekdocs.scanner import RESULT_FILE_PREFIXES
 from peekdocs.gui._helpers import (
     _build_command_from_values,
     _parse_summary_text,
@@ -700,9 +701,9 @@ class ToolsMixin:
                     entries = []
                 walker = [(folder, [], entries)]
 
-            _SKIP_PREFIXES = ("peekdocs_results", "peekdocs_report_",
-                              "peekdocs_accumulated_",
-                              "peekdocs_suite_results")
+            _SKIP_PREFIXES = RESULT_FILE_PREFIXES + (
+                "peekdocs_report_", "peekdocs_accumulated_",
+            )
             _SKIP_NAMES = {".peekdocs_collection.json", ".peekdocs.db",
                            ".peekdocs.db-wal", ".peekdocs.db-shm",
                            ".peekdocsrc", "peekdocs_errors.log"}
@@ -2666,7 +2667,7 @@ class ToolsMixin:
         b("All searches are case-insensitive. Type your terms in the Search Bar,")
         b("pick a folder with Browse, and click Run Search. Use the checkboxes")
         b("under Advanced Search Options to change search modes \u2014 do not type flags in")
-        b("the search box. Results are saved to peekdocs_results.txt and .docx.")
+        b("the search box. Results are saved to peekdocs_standard_results.txt and .docx.")
         blank()
         b("Quick tips: Click the \u25bc button next to the search bar to reuse one of")
         b("your last 10 searches. While a search is running, the status line shows")
@@ -2900,11 +2901,19 @@ class ToolsMixin:
         b("All peekdocs files are safe to delete manually too \u2014")
         b("peekdocs recreates them as needed.")
         blank()
-        s("Search reports (overwritten each search)")
-        e("peekdocs_results.txt       \u2014 text report")
-        e("peekdocs_results.docx      \u2014 Word report with highlights")
-        e("peekdocs_results.csv       \u2014 optional (-o csv)")
-        e("peekdocs_results.json      \u2014 optional (-o json)")
+        s("Standard search reports (overwritten each Standard Search)")
+        e("peekdocs_standard_results.txt       \u2014 text report")
+        e("peekdocs_standard_results.docx      \u2014 Word report with highlights")
+        e("peekdocs_standard_results.csv       \u2014 optional (-o csv)")
+        e("peekdocs_standard_results.json      \u2014 optional (-o json)")
+        blank()
+        s("Regex search reports (overwritten each Regex Search)")
+        e("peekdocs_regex_results.txt          \u2014 text report")
+        e("peekdocs_regex_results.docx         \u2014 Word report with highlights")
+        blank()
+        s("Suite reports (overwritten each suite run)")
+        e("peekdocs_suite_results.txt          \u2014 combined text report")
+        e("peekdocs_suite_results.docx         \u2014 combined Word report")
         blank()
         s("Saved/archived reports")
         e("peekdocs_report_{name}.txt/docx         \u2014 saved with -s")
@@ -4347,7 +4356,7 @@ class ToolsMixin:
                 import re as _re
                 matches = []
                 all_files = []
-                txt_result = os.path.join(folder, "peekdocs_results.txt")
+                txt_result = os.path.join(folder, "peekdocs_standard_results.txt")
                 if os.path.exists(txt_result):
                     try:
                         with open(txt_result, "r", encoding="utf-8") as f:
@@ -4385,7 +4394,7 @@ class ToolsMixin:
 
                 # Parse matched files using the same parser as regular search
                 from peekdocs.gui._helpers import _parse_matched_files
-                parsed_files = _parse_matched_files(folder, "peekdocs_results.txt")
+                parsed_files = _parse_matched_files(folder, "peekdocs_standard_results.txt")
 
                 sections.append({
                     "search_name": search_name,
@@ -4497,7 +4506,7 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
 
         import re as _re_fin
@@ -4542,11 +4551,11 @@ class ToolsMixin:
             except Exception:
                 pass
 
-        # Build matched files list from the last search's peekdocs_results.txt
+        # Build matched files list from the last search's peekdocs_standard_results.txt
         # (each subprocess overwrites it, so the last one is current)
         from peekdocs.gui._helpers import _parse_matched_files
         if folder:
-            self.matched_files = _parse_matched_files(folder, "peekdocs_results.txt")
+            self.matched_files = _parse_matched_files(folder, "peekdocs_standard_results.txt")
         else:
             self.matched_files = []
         self._inverse_results = False
@@ -4635,7 +4644,7 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
                                      text_color="white", command=self.start_search)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
@@ -5487,7 +5496,7 @@ class ToolsMixin:
             command=_restore_all,
         ).pack(side="right", padx=(0, 15))
         ctk.CTkButton(
-            btn_frame, text="Run", width=100,
+            btn_frame, text="Run Regex Search", width=170,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color="green", hover_color="darkgreen",
             command=_run,
@@ -5600,8 +5609,8 @@ class ToolsMixin:
                     from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
                     search_terms = [regex for _name, regex in active_patterns]
                     command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
-                    output_path = os.path.join(folder, "peekdocs_results.txt")
-                    docx_path = os.path.join(folder, "peekdocs_results.docx")
+                    output_path = os.path.join(folder, "peekdocs_regex_results.txt")
+                    docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
                     write_txt_report(
                         output_path, all_matches, [], search_terms, command_str,
                         "ANY", False, [], False, False, True, False,
@@ -5675,10 +5684,13 @@ class ToolsMixin:
                     font=("TkDefaultFont", 10), fg="gray",
                 ).pack(fill="x", padx=15, pady=(0, 2))
             else:
+                _txt_full = os.path.join(folder, "peekdocs_regex_results.txt")
+                _docx_full = os.path.join(folder, "peekdocs_regex_results.docx")
                 tk.Label(
                     popup,
-                    text="Reports saved to search folder (peekdocs_results.txt and .docx).",
+                    text=f"Reports saved to:\n  {_txt_full}\n  {_docx_full}",
                     font=("TkDefaultFont", 10), fg="gray",
+                    justify="left", anchor="w",
                 ).pack(fill="x", padx=15, pady=(0, 2))
             tk.Label(
                 popup, text=header_text,

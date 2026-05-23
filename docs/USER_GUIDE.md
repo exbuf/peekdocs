@@ -63,7 +63,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 | Settings | `~/.peekdocsrc` (home directory) | Yes |
 | Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
 | Search index | `.peekdocs.db` (each search folder) | Yes |
-| Search reports | `peekdocs_results.*` (each search folder) | Yes |
+| Search reports | `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*` (each search folder) | Yes |
 | Saved reports | `peekdocs_report_*`, `peekdocs_accumulated_*` (each search folder) | Yes |
 | Error log | `peekdocs_errors.log` (each search folder) | Yes |
 
@@ -90,12 +90,12 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 ## Security Best Practices
 
-peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_results.txt`, `peekdocs_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
+peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
 
 But because peekdocs works with sensitive documents (financial records, legal files, medical records), here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
-- **Be careful with report files.** The `peekdocs_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
+- **Be careful with report files.** The `peekdocs_standard_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
 - **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
 - **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
@@ -230,31 +230,31 @@ peekdocs will scan every supported file in the folder and show a summary:
 Files searched: 47 (12.34 MB) — Found 23 match(es).
 Elapsed time: 1.2 seconds, Cores used: 4 of 8
 Results ==> /Users/YourName/Documents
-  peekdocs_results.txt (5.67 KB), peekdocs_results.docx (42.31 KB)
+  peekdocs_standard_results.txt (5.67 KB), peekdocs_standard_results.docx (42.31 KB)
 ```
 
 That's it — you just searched 47 files in 1.2 seconds. Your results are saved in two files.
 
 ### Step 4: Open your results
 
-The results are saved in the same folder where you ran the search (`peekdocs_results.txt` and `peekdocs_results.docx`). Open the Word report to see your matches highlighted in yellow:
+The results are saved in the same folder where you ran the search (`peekdocs_standard_results.txt` and `peekdocs_standard_results.docx`). Open the Word report to see your matches highlighted in yellow:
 
 **Windows:**
 ```cmd
-start peekdocs_results.docx
+start peekdocs_standard_results.docx
 ```
 
 **macOS:**
 ```bash
-open peekdocs_results.docx
+open peekdocs_standard_results.docx
 ```
 
 **Linux:**
 ```bash
-xdg-open peekdocs_results.docx
+xdg-open peekdocs_standard_results.docx
 ```
 
-Or simply navigate to the folder in your file manager and double-click `peekdocs_results.docx`.
+Or simply navigate to the folder in your file manager and double-click `peekdocs_standard_results.docx`.
 
 ### Step 5: Try a few more searches
 
@@ -435,7 +435,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"` auto-locates the folder a suite was saved in, and `peekdocs --list-suites` shows every suite peekdocs knows about. See [Suite Use Cases](#search-suite-use-cases). |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
 | **Schedule Search** | Generates a ready-to-paste scheduling command so peekdocs runs automatically on a timer — no terminal experience required. Pick a saved search suite or regex collection, choose a folder, set the frequency (daily, weekly, or monthly) and time, and the dialog builds the correct command for your operating system: a crontab entry for Mac/Linux or a schtasks command for Windows. Step-by-step instructions walk you through pasting the command into your system's scheduler. Options include `--timestamp` (each run produces uniquely named reports instead of overwriting) and `--stdout` (also saves JSON output to a file). Click **Copy to Clipboard** to copy the generated command. Reports are saved automatically in the search folder each time the scheduled search runs. |
-| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
+| **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: standard-search reports (`peekdocs_standard_results.*`), regex-search reports (`peekdocs_regex_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, and cleanup options (Clear Files, Clean Up Practice Files). **Hover Text** is toggled from the **Hover: ON/OFF** button on the bottom row of the main screen (not in the Tools menu). Your **Appearance**, **Text Size**, and **Hover Text** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
@@ -540,10 +540,10 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
 | `-r` (recursive) | Search subdirectories recursively |
-| `-s` (save) | Archive results — copies peekdocs_results files to peekdocs_report_your_file_name.docx (and .txt). The peekdocs_report_ prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
+| `-s` (save) | Archive results — copies peekdocs_standard_results files to peekdocs_report_your_file_name.docx (and .txt). The peekdocs_report_ prefix is added automatically so archived files are never re-searched. Does not erase the original results files, but they are overwritten on the next search. Example: `peekdocs -s my_report` |
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to peekdocs_accumulated_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The peekdocs_accumulated_ prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file peekdocs_accumulated_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
-| `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
+| `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_standard_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -554,7 +554,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--list-suites` (list-suites) | List every known suite with its folder and search count. Add `--rescan` to re-discover suites by walking `~/Documents` and `~/Desktop` for `.peekdocs_collection.json` files (useful after moving folders or copying them in from another machine) |
 | `--regex-collection NAME` | Run a saved regex collection by name — executes each enabled pattern separately with per-pattern results. Create collections in the GUI (Regex Search → Save Collection As). Add `-r` for recursive, `-d DIR` for a specific directory, `--stdout` for JSON output. Use `--regex-collection --list` to list all saved collections. See [Regex Collection Use Cases](#regex-collection-use-cases) below |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
-| `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
+| `--clear` (clear) | Delete `peekdocs_standard_results*`, `peekdocs_regex_results*`, and `peekdocs_suite_results*` files in the current directory |
 | `--clear-all` (clear-all) | Delete all peekdocs output files — results, saved reports (`peekdocs_report_*`, `peekdocs_accumulated_*`), error log, and search index. Does not touch saved searches (`.peekdocs_collection.json`) or settings (`~/.peekdocsrc`) |
 | `--index-clear` (index-clear) | Delete the search index |
 | `--index-refresh` (index-refresh) | Incrementally update the index — add new files, re-index changed files, remove deleted files |
@@ -610,16 +610,16 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-o` always needs its format list immediately after it (e.g., `-o csv` or `-o csv,json`)
 - `-o` supported formats are `csv`, `json`, `pdf`, and `html`
 - `-o` does not replace the default `.txt` and `.docx` reports — it adds additional output files
-- `-o csv` creates `peekdocs_results.csv` with columns: filename, folder, line_number, matched_text
-- `-o json` creates `peekdocs_results.json` with metadata and a matches array
+- `-o csv` creates `peekdocs_standard_results.csv` with columns: filename, folder, line_number, matched_text
+- `-o json` creates `peekdocs_standard_results.json` with metadata and a matches array
 - `-o csv,json` creates both files; `-o csv,json,pdf,html` creates all four
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
 - `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
 - `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Search Options panel
-- `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `peekdocs_results_20260327_143022.txt`)
+- `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `peekdocs_standard_results_20260327_143022.txt`)
 - `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Search Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
-- `--timestamp` and `-s` are independent — `-s` looks for `peekdocs_results.txt` by name, so it only works when `--timestamp` is not used
+- `--timestamp` and `-s` are independent — `-s` looks for `peekdocs_standard_results.txt` by name, so it only works when `--timestamp` is not used
 - `--output-dir` writes all output files to the specified directory instead of the search folder. The search still runs in the current directory — only the output destination changes
 - `--output-dir` creates the directory if it doesn't exist
 - `--output-dir` works with all other flags including `--timestamp`, `-s`, `-sa`, and `-o`
@@ -667,7 +667,7 @@ peekdocs --regex-collection "financial" -d ~/Documents/invoices
 0 8 * * 1 cd /var/log && peekdocs --regex-collection "error patterns" -r --stdout >> /tmp/weekly_errors.json
 ```
 
-**Running several collections in one pass** — `--regex-collection` takes one collection at a time. To run several in sequence (e.g., for IT scans or daily sweeps), use a shell loop or the Python API. Add `--timestamp` so each run produces uniquely named reports (`peekdocs_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting the previous run.
+**Running several collections in one pass** — `--regex-collection` takes one collection at a time. To run several in sequence (e.g., for IT scans or daily sweeps), use a shell loop or the Python API. Add `--timestamp` so each run produces uniquely named reports (`peekdocs_regex_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting the previous run.
 
 *Shell loop (macOS/Linux):*
 
@@ -697,7 +697,7 @@ for name in list_regex_collections():
 
 The Python API is the most reliable way to enumerate and run every saved collection in one pass — `list_regex_collections()` returns a clean list of names you can iterate over, and the API returns results in memory rather than writing report files. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs. Note: Search Suites group *saved searches*, not regex collections — they don't replace this pattern.
 
-**Zero-match runs write no report.** If a `--regex-collection` run finds no matches, no `peekdocs_results.{txt,docx}` file is written for that run (with or without `--timestamp`). The CLI still prints the summary line and exits with status 1. This matters for batch loops where you want a permanent record of every run: use `--stdout > results.json` instead to always capture a file, or rely on the JSON exit-code (0 = matches, 1 = no matches) to detect empty runs. Search Suites are different — `--suite` always writes a report file even when every search returns zero matches.
+**Zero-match runs write no report.** If a `--regex-collection` run finds no matches, no `peekdocs_standard_results.{txt,docx}` file is written for that run (with or without `--timestamp`). The CLI still prints the summary line and exits with status 1. This matters for batch loops where you want a permanent record of every run: use `--stdout > results.json` instead to always capture a file, or rely on the JSON exit-code (0 = matches, 1 = no matches) to detect empty runs. Search Suites are different — `--suite` always writes a report file even when every search returns zero matches.
 
 **Listing and managing collections** — See all saved collections before running one:
 
@@ -1023,13 +1023,13 @@ When a search completes, you see results in two places:
 
 Search results are always written to two files in the current directory:
 
-- **`peekdocs_results.txt`** — Plain text with `**` markers around matched terms
-- **`peekdocs_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
+- **`peekdocs_standard_results.txt`** — Plain text with `**` markers around matched terms
+- **`peekdocs_standard_results.docx`** — Word document with search terms highlighted in green in the header and matched terms highlighted in yellow throughout
 
 With the `-o` flag, additional output files are created:
 
-- **`peekdocs_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
-- **`peekdocs_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating peekdocs into automated workflows, dashboards, or other tools.
+- **`peekdocs_standard_results.csv`** (`-o csv`) — Spreadsheet-ready format with columns: filename, folder, line_number, matched_text. Open in Excel, Google Sheets, or any spreadsheet application to sort, filter, and analyze results.
+- **`peekdocs_standard_results.json`** (`-o json`) — Machine-readable format with search metadata, per-file match counts, and a matches array. Useful for integrating peekdocs into automated workflows, dashboards, or other tools.
 
 ### Command Translation
 
@@ -1748,17 +1748,17 @@ peekdocs creates several types of files during normal operation. Understanding w
 
 ### Search reports
 
-These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_results_20260331_103425.docx`) — useful for keeping a history, but files accumulate over time. **Delete on Close**, **Delete Everything Now**, and **Clear Files** all clean up timestamped files — they match any file starting with `peekdocs_results`, regardless of the timestamp suffix.
+These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_standard_results_20260331_103425.docx`) — useful for keeping a history, but files accumulate over time. **Delete on Close**, **Delete Everything Now**, and **Clear Files** all clean up timestamped files — they match any file starting with `peekdocs_standard_results`, `peekdocs_regex_results`, or `peekdocs_suite_results`, regardless of the timestamp suffix.
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `peekdocs_results.txt` | Plain text report | Search folder (or `--output-dir`) |
-| `peekdocs_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
-| `peekdocs_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
-| `peekdocs_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
+| `peekdocs_standard_results.txt` | Plain text report | Search folder (or `--output-dir`) |
+| `peekdocs_standard_results.docx` | Word report with yellow-highlighted matches | Search folder (or `--output-dir`) |
+| `peekdocs_standard_results.csv` | Spreadsheet format (optional, with `-o csv`) | Search folder (or `--output-dir`) |
+| `peekdocs_standard_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
 
-**Protected from searching:** Yes — all filenames starting with `peekdocs_results` are excluded so peekdocs never searches its own reports (including timestamped versions).
-**How to delete:** Click **Clear Results** on the bottom toolbar to delete all `peekdocs_results*` files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search. You can also check **Delete on Close** (on the main screen next to the report buttons, or in Advanced Search Options) to automatically delete all result files when you close peekdocs — see [Delete on Close](#delete-on-close) below.
+**Protected from searching:** Yes — all filenames starting with `peekdocs_standard_results`, `peekdocs_regex_results`, or `peekdocs_suite_results` are excluded so peekdocs never searches its own reports (including timestamped versions).
+**How to delete:** Click **Clear Results** on the bottom toolbar to delete all of these result files at once (a confirmation dialog lists the files before deletion). Or delete them manually. They are recreated on the next search. You can also check **Delete on Close** (on the main screen next to the report buttons, or in Advanced Search Options) to automatically delete all result files when you close peekdocs — see [Delete on Close](#delete-on-close) below.
 
 ### Saved and accumulated reports
 
@@ -1772,7 +1772,7 @@ Created when you use `-s` (save) or `-sa` (append) to archive results with a nam
 | `peekdocs_accumulated_{name}.docx` | Accumulated results from multiple searches (Word) | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — the `peekdocs_report_` and `peekdocs_accumulated_` prefixes ensure these are never included in future searches.
-**How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove peekdocs_results files.
+**How to delete:** Delete them manually at any time, or use **Clear Results** on the main screen to remove the standard/regex/suite result files.
 
 ### Error log
 
@@ -1872,7 +1872,7 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 
 ### Delete on Close
 
-Check the **Delete on Close** checkbox to automatically delete all search result files (`peekdocs_results.*`, `peekdocs_suite_results.*`) when you close peekdocs. The checkbox appears in two places — on the main screen next to the report buttons, and in Advanced Search Options — both stay in sync.
+Check the **Delete on Close** checkbox to automatically delete all search result files (`peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`) when you close peekdocs. The checkbox appears in two places — on the main screen next to the report buttons, and in Advanced Search Options — both stay in sync.
 
 You can check or uncheck this at any time. It only matters at the moment you close the app. A typical workflow:
 
@@ -1883,7 +1883,7 @@ You can check or uncheck this at any time. It only matters at the moment you clo
 
 If you change your mind, uncheck the box before closing and the files are kept.
 
-**What gets deleted:** `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session — not just the last one. If you searched three different folders, all three are cleaned.
+**What gets deleted:** `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session — not just the last one. If you searched three different folders, all three are cleaned.
 
 **What is never deleted:** Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, indexes, and error logs. These are files you explicitly chose to keep or that peekdocs needs to function.
 
@@ -1895,7 +1895,7 @@ peekdocs provides several ways to clean up after a search session:
 
 | Feature | Where | What it does | When |
 |---------|-------|-------------|------|
-| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session | Automatically when you close peekdocs |
+| **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
 | **Delete Everything Now** | Main screen (report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |

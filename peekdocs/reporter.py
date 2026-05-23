@@ -68,7 +68,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      expression=None, use_whole_word=False,
                      total_matches=None, max_matches=None,
                      range_specs=None, index_meta=None):
-    """Write peekdocs_results.txt report file.
+    """Write the .txt result report (e.g. peekdocs_standard_results.txt).
 
     Returns (total_bytes, size_str) for use in console summary.
     """
@@ -187,7 +187,7 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
                       use_regex=False, use_wildcard=False,
                       use_whole_word=False, use_fuzzy=False,
                       expression=None):
-    """Create peekdocs_results.docx from the .txt report with yellow highlighting.
+    """Create the .docx result report from the .txt report with yellow highlighting.
 
     Highlights matched terms directly using the search parameters rather than
     parsing markers from the text. Returns the Document object for further
@@ -371,7 +371,7 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
 
 
 def write_csv_report(output_path, matches, inverse_files=None):
-    """Write peekdocs_results.csv."""
+    """Write the .csv result report."""
     if os.path.exists(output_path):
         os.remove(output_path)
     with open(output_path, "w", newline="", encoding="utf-8") as f:
@@ -390,7 +390,7 @@ def write_csv_report(output_path, matches, inverse_files=None):
 def write_json_report(output_path, matches, search_terms, report_mode,
                       files_count, search_elapsed, inverse_files=None,
                       directory=None):
-    """Write peekdocs_results.json."""
+    """Write the .json result report."""
     if os.path.exists(output_path):
         os.remove(output_path)
 
@@ -513,7 +513,7 @@ def write_pdf_report(output_path, matches, search_terms=None,
                      use_regex=False, use_wildcard=False,
                      use_whole_word=False, use_fuzzy=False,
                      expression=None):
-    """Write peekdocs_results.pdf with highlighted matches."""
+    """Write the .pdf result report with highlighted matches."""
     from fpdf import FPDF
     import re as _re_pdf
 
@@ -614,7 +614,7 @@ def write_html_report(output_path, matches, search_terms=None,
                       use_regex=False, use_wildcard=False,
                       use_whole_word=False, use_fuzzy=False,
                       expression=None):
-    """Write peekdocs_results.html with highlighted matches."""
+    """Write the .html result report with highlighted matches."""
     import html as html_mod
     import re as _re_html
 

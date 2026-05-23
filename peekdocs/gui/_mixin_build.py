@@ -156,8 +156,8 @@ class BuildMixin:
         b("peekdocs scans every supported file in the folder and")
         b("shows a summary when finished. Your results appear in")
         b("a preview below, and are saved to two report files:")
-        e("peekdocs_results.txt   (plain text)")
-        e("peekdocs_results.docx  (Word, with highlights)")
+        e("peekdocs_standard_results.txt   (plain text)")
+        e("peekdocs_standard_results.docx  (Word, with highlights)")
         blank()
         st("Step 4: View your results")
         b("Click the DOCX button next to View Report to open the")
@@ -277,15 +277,15 @@ class BuildMixin:
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
-        Tooltip(_step_lbl_3, "Standard Search — click to search all files in the folder")
+        Tooltip(_step_lbl_3, "Run Standard Search — click to search all files in the folder")
 
         btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self._run_search_frame = btn_frame
         btn_frame.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
 
-        # Standard Search button — standalone
+        # Run Standard Search button — standalone
         self.search_button = ctk.CTkButton(
-            btn_frame, text="\U0001f50d Standard Search", width=220, height=44, command=self.start_search,
+            btn_frame, text="\U0001f50d Run Standard Search", width=270, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
@@ -552,14 +552,14 @@ class BuildMixin:
         self._suites_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
 
-        # Regex Search — purple button
+        # Regex Search button — gray, font matches Run Standard Search
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Regex Search", width=160, height=44,
+            text="Regex Search", width=180, height=44,
             fg_color="#6B7280", hover_color="#5B6270",
             text_color="white",
             command=self._start_regex_search,
-            font=ctk.CTkFont(family="Courier", size=22),
+            font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._regex_search_btn, "Run multiple regex patterns at once. Results depend on report checkbox setting.")
@@ -827,7 +827,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
         )
         cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
-        Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Delete Everything Now to clean up")
+        Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Delete Everything Now to clean up")
         self.delete_reports_var = ctk.StringVar(value="off")
         cb_delete_adv = ctk.CTkCheckBox(
             output_frame, text="Delete on Close", variable=self.delete_reports_var,
@@ -908,13 +908,13 @@ class BuildMixin:
         Tooltip(self.max_matches_entry, "Maximum matches included in reports. Default 1000. Set to 0 for no limit. See \u2753 help for possible counterintuitive results when this interacts with Max File Size.")
         Tooltip(self.max_file_size_entry, "Skip files larger than this (in MB). Default 100. Set to 0 for no limit. See \u2753 help for possible counterintuitive results when this interacts with Max Matches.")
         Tooltip(self.specific_files_entry, "Comma-separated filenames to search — no limit to the number of files (e.g., report.pdf,notes.txt)")
-        Tooltip(self.save_name_entry, "Save an extra copy of the report with a custom name after search completes. peekdocs_report_ will be added to the front of your file name. This is in addition to the regular results files (peekdocs_results.txt and .docx) shown in View Report. Important: without this, your regular reports are overwritten every time you run a new search. Fill in this field to keep a permanent copy. To open it later, navigate to your Search Folder using File Explorer (Windows), Finder (macOS), or your file manager (Linux) and double-click the peekdocs_report_ file")
+        Tooltip(self.save_name_entry, "Save an extra copy of the report with a custom name after search completes. peekdocs_report_ will be added to the front of your file name. This is in addition to the regular results files (peekdocs_standard_results.txt and .docx) shown in View Report. Important: without this, your regular reports are overwritten every time you run a new search. Fill in this field to keep a permanent copy. To open it later, navigate to your Search Folder using File Explorer (Windows), Finder (macOS), or your file manager (Linux) and double-click the peekdocs_report_ file")
         Tooltip(self.append_name_entry, "Append results to a named report file (creates or extends it). peekdocs_accumulated_ will be added to the front of your file name")
-        Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
-        Tooltip(cb_json, "Also save results as a JSON file (peekdocs_results.json) — machine-readable format for automation and integration")
-        Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
-        Tooltip(cb_html, "Also save results as an HTML file (peekdocs_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
-        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
+        Tooltip(cb_csv, "Also save results as a CSV file (peekdocs_standard_results.csv) — open in Excel or Google Sheets to sort, filter, and analyze")
+        Tooltip(cb_json, "Also save results as a JSON file (peekdocs_standard_results.json) — machine-readable format for automation and integration")
+        Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_standard_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
+        Tooltip(cb_html, "Also save results as an HTML file (peekdocs_standard_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
+        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
         Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If you searched for a specific name, SSN, account number, or any sensitive term, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings")
         Tooltip(cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML")
 
@@ -1199,7 +1199,7 @@ class BuildMixin:
             command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
             font=ctk.CTkFont(size=12),
         )
-        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
+        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted", anchor="above")
 
         self._delete_everything_btn = ctk.CTkButton(
             self.report_frame, text="Delete Everything Now", width=170,

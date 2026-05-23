@@ -1,5 +1,17 @@
 """File processing and discovery for peekdocs."""
 
+# Filename prefixes for the three kinds of result reports peekdocs writes.
+# Used everywhere that needs to discover, list, or clean up result files:
+# the CLI (--list-files / --clear / --clear-all), the GUI's "View All
+# peekdocs Files" / "Delete on Close" / per-search stale-file cleanup, and
+# the scanner's own skip-list (so a search doesn't recurse into its own
+# prior reports).
+RESULT_FILE_PREFIXES = (
+    "peekdocs_standard_results",
+    "peekdocs_regex_results",
+    "peekdocs_suite_results",
+)
+
 import csv
 import glob
 import os
@@ -956,8 +968,9 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
                       "thumbs.db", "desktop.ini", ".ds_store", ".ds_store?",
                       ".spotlight-v100", ".trashes", ".fseventsd",
                       }
-    _EXCLUDE_PREFIXES = ("peekdocs_results", "peekdocs_suite_results",
-                         "peekdocs_report_", "peekdocs_accumulated_")
+    _EXCLUDE_PREFIXES = RESULT_FILE_PREFIXES + (
+        "peekdocs_report_", "peekdocs_accumulated_",
+    )
 
     # Filenames that are searchable despite having no standard extension
     _SPECIAL_FILENAMES = {".env", "dockerfile", ".dockerfile"}

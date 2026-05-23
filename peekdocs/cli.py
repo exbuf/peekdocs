@@ -122,7 +122,7 @@ BANNER_BOTTOM = (
     '    append_name, output_dir, range, text_size, preview_size, appearance_mode\n'
     '  --check            Verify Python, dependencies, Tesseract, and disk space\n'
     '  --list-files       List all peekdocs-created files in the current directory\n'
-    '  --clear            Delete peekdocs_results* files in the current directory\n'
+    '  --clear            Delete peekdocs_*_results* files in the current directory\n'
     '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
     '  -c 4               Number of CPU cores to use\n'
     '  -q                 Suppress the output banner\n'
@@ -181,7 +181,7 @@ BANNER_BOTTOM = (
     '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
-    '  peekdocs --clear               Delete peekdocs_results* files\n'
+    '  peekdocs --clear               Delete peekdocs_*_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files (results, saved reports,\n'
     '                                   accumulated reports, error log, and search index)\n'
     '\n'
@@ -239,7 +239,7 @@ BANNER_QUICK = (
     '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
-    '  peekdocs --clear               Delete peekdocs_results* files\n'
+    '  peekdocs --clear               Delete peekdocs_*_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files\n'
     '\n'
     'Exit codes: 0 = matches found, 1 = no matches, 2 = error.\n'
@@ -341,7 +341,7 @@ def _save_config(settings):
 
 
 # Re-export from scanner so tests can monkeypatch via peekdocs.cli
-from peekdocs.scanner import _process_file, _ocr_image, discover_files, _extract_lines, _search_file_lines  # noqa: E402
+from peekdocs.scanner import _process_file, _ocr_image, discover_files, _extract_lines, _search_file_lines, RESULT_FILE_PREFIXES  # noqa: E402
 from peekdocs.parser import parse_flags  # noqa: E402
 from peekdocs.indexer import (  # noqa: E402
     index_exists, build_index, refresh_index, clear_index,
@@ -682,8 +682,7 @@ def _main_inner(argv=None):
         cwd = os.getcwd()
         found = []
         for f in sorted(os.listdir(cwd)):
-            if (f.startswith("peekdocs_results") or
-                f.startswith("peekdocs_suite_results") or
+            if (f.startswith(RESULT_FILE_PREFIXES) or
                 f.startswith("peekdocs_report_") or
                 f.startswith("peekdocs_accumulated_") or
                 f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal",
@@ -713,7 +712,7 @@ def _main_inner(argv=None):
 
         # Always delete results files
         for f in os.listdir(cwd):
-            if f.startswith("peekdocs_results"):
+            if f.startswith(RESULT_FILE_PREFIXES):
                 os.remove(os.path.join(cwd, f))
                 deleted.append(f)
 
@@ -837,8 +836,8 @@ def _main_inner(argv=None):
         name = "_".join(args[1:]).replace(" ", "_")
         cwd = os.getcwd()
         save_dir = _load_config().get("output_dir", cwd)
-        src_docx = os.path.join(save_dir, "peekdocs_results.docx")
-        src_txt = os.path.join(save_dir, "peekdocs_results.txt")
+        src_docx = os.path.join(save_dir, "peekdocs_standard_results.docx")
+        src_txt = os.path.join(save_dir, "peekdocs_standard_results.txt")
         dest_docx = os.path.join(save_dir, f"peekdocs_report_{name}.docx")
         dest_txt = os.path.join(save_dir, f"peekdocs_report_{name}.txt")
         if not os.path.exists(src_docx) or not os.path.exists(src_txt):
@@ -1206,8 +1205,8 @@ def _main_inner(argv=None):
             # Write reports
             if all_matches:
                 # write_txt_report, write_docx_report, insert_file_sizes already imported at module level
-                output_path = os.path.join(_rc_dir, f"peekdocs_results{_rc_ts_suffix}.txt")
-                docx_path = os.path.join(_rc_dir, f"peekdocs_results{_rc_ts_suffix}.docx")
+                output_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.txt")
+                docx_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.docx")
                 search_terms = [regex for _name, regex in active]
                 command_str = f"peekdocs --regex-collection \"{collection_name}\""
                 write_txt_report(
@@ -1530,8 +1529,8 @@ def _main_inner(argv=None):
         return 2
 
     # Generate reports
-    output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.txt")
-    docx_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.docx")
+    output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.txt")
+    docx_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.docx")
 
     idx_meta = index_status(cwd) if use_index else None
 
@@ -1579,11 +1578,11 @@ def _main_inner(argv=None):
     pdf_output_path = None
 
     if "csv" in output_formats:
-        csv_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.csv")
+        csv_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.csv")
         write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
-        json_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.json")
+        json_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
             len(all_files), search_elapsed,
@@ -1592,7 +1591,7 @@ def _main_inner(argv=None):
         )
 
     if "pdf" in output_formats:
-        pdf_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.pdf")
+        pdf_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.pdf")
         try:
             write_pdf_report(
                 pdf_output_path, matches, search_terms=search_terms,
@@ -1607,7 +1606,7 @@ def _main_inner(argv=None):
 
     html_output_path = None
     if "html" in output_formats:
-        html_output_path = os.path.join(output_dir, f"peekdocs_results{ts_suffix}.html")
+        html_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.html")
         try:
             write_html_report(
                 html_output_path, matches, search_terms=search_terms,

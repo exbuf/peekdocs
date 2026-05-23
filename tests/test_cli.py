@@ -49,15 +49,15 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
-    results_file = tmp_path / "peekdocs_results.txt"
+    results_file = tmp_path / "peekdocs_standard_results.txt"
     assert results_file.exists()
     content = results_file.read_text()
     assert "Search Term(s) ==> hello (match: ANY)" in content
     assert f'Document: sample.docx (2 matches), Line: 1, Match:\n({tmp_path})\n"Hello world"\n\n' in content
     assert f'Document: sample.docx (2 matches), Line: 3, Match:\n({tmp_path})\n"Hello again"\n\n' in content
 
-    # Check peekdocs_results.docx was created with yellow highlighting
-    docx_results = tmp_path / "peekdocs_results.docx"
+    # Check peekdocs_standard_results.docx was created with yellow highlighting
+    docx_results = tmp_path / "peekdocs_standard_results.docx"
     assert docx_results.exists()
     result_doc = Document(str(docx_results))
     highlighted_runs = [
@@ -81,7 +81,7 @@ def test_search_no_matches(tmp_path, monkeypatch, capsys):
     assert result == 1
     assert f"{HIGHLIGHT}0{RESET} match(es)" in captured.out
 
-    results_file = tmp_path / "peekdocs_results.txt"
+    results_file = tmp_path / "peekdocs_standard_results.txt"
     assert results_file.exists()
     content = results_file.read_text()
     assert "Search Term(s) ==> zzzzz (match: ANY)" in content
@@ -95,7 +95,7 @@ def test_search_case_insensitive(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     main(["PYTHON"])
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert f'Document: test.docx (1 match), Line: 1, Match:\n({tmp_path})\n"Python is great"' in content
 
 
@@ -113,7 +113,7 @@ def test_search_multi_word_phrase(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Hello world" in content
 
 
@@ -132,7 +132,7 @@ def test_search_multiple_terms(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Search Term(s) ==> Hello Goodbye (match: ANY)" in content
     assert "Hello" in content
     assert "Goodbye" in content
@@ -153,7 +153,7 @@ def test_search_all_terms(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Search Term(s) ==> Hello Goodbye (match: ALL)" in content
     assert "Hello Goodbye" in content
 
@@ -176,7 +176,7 @@ def test_search_pdf(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "report.pdf" in content
     assert "budget" in content or "Budget" in content
 
@@ -195,7 +195,7 @@ def test_search_docx(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "report.docx" in content
     assert "budget" in content
 
@@ -211,7 +211,7 @@ def test_search_csv(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.csv" in content
     assert "budget" in content
 
@@ -234,7 +234,7 @@ def test_search_odt(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "test.odt" in content
     assert "Hello" in content
 
@@ -250,7 +250,7 @@ def test_search_txt(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "Budget" in content
 
@@ -266,7 +266,7 @@ def test_search_html(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "page.html" in content
     assert "Budget" in content
 
@@ -289,7 +289,7 @@ def test_search_ics(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert "match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "event.ics" in content
     assert "budget" in content.lower()
 
@@ -309,7 +309,7 @@ def test_search_vcf(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "contact.vcf" in content
     assert "budget" in content.lower()
 
@@ -332,7 +332,7 @@ def test_search_mbox(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "mail.mbox" in content
     assert "budget" in content.lower()
 
@@ -349,7 +349,7 @@ def test_search_pages(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "doc.pages" in content
     assert "budget" in content.lower()
 
@@ -370,7 +370,7 @@ def test_search_xlsx(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.xlsx" in content
     assert "budget" in content
 
@@ -409,7 +409,7 @@ def test_search_recursive(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert str(tmp_path / "sub" / "deep") in content
     assert "nested.txt" in content
     assert "Budget" in content
@@ -443,7 +443,7 @@ def test_search_with_type_filter(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" not in content
 
@@ -463,7 +463,7 @@ def test_search_with_multiple_type_filters(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" in content
     assert "page.html" not in content
@@ -490,7 +490,7 @@ def test_search_md(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.md" in content
     assert "Budget" in content
 
@@ -507,7 +507,7 @@ def test_search_regex(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "contacts.txt" in content
     assert "555-123-4567" in content
     assert "555-987-6543" in content
@@ -525,7 +525,7 @@ def test_search_regex_with_and(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "REGEX+AND" in content
 
 
@@ -550,7 +550,7 @@ def test_search_json(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.json" in content
     assert "Budget" in content
 
@@ -567,7 +567,7 @@ def test_search_context_after(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Line 3" in content
     assert "Line 4" in content
     assert "Line 5" in content
@@ -586,7 +586,7 @@ def test_search_context_before(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Line 1" in content
     assert "Line 2" in content
     assert "Line 3" in content
@@ -605,7 +605,7 @@ def test_search_context_both(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Line 1" not in content
     assert "Line 2" in content
     assert "Line 3" in content
@@ -627,7 +627,7 @@ def test_search_context_merge(tmp_path, monkeypatch, capsys):
     # Overlapping context should merge into one group
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "beta" in content
     assert "MATCH_ONE" in content
     assert "gamma" in content
@@ -665,7 +665,7 @@ def test_search_ods(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.ods" in content
     assert "Budget" in content
 
@@ -692,7 +692,7 @@ def test_search_odp(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "slides.odp" in content
     assert "Budget" in content
 
@@ -708,7 +708,7 @@ def test_search_toml(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "config.toml" in content
     assert "budget" in content
 
@@ -724,7 +724,7 @@ def test_search_rst(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "docs.rst" in content
     assert "Budget" in content
 
@@ -740,7 +740,7 @@ def test_search_tex(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "paper.tex" in content
     assert "Budget" in content
 
@@ -756,7 +756,7 @@ def test_search_ini(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "settings.ini" in content
     assert "budget" in content
 
@@ -772,7 +772,7 @@ def test_search_cfg(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "app.cfg" in content
     assert "budget" in content
 
@@ -788,7 +788,7 @@ def test_search_sql(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "queries.sql" in content
     assert "budget" in content
 
@@ -804,7 +804,7 @@ def test_search_tsv(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.tsv" in content
     assert "budget" in content
 
@@ -830,7 +830,7 @@ def test_search_epub(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "book.epub" in content
     assert "Budget" in content
 
@@ -846,7 +846,7 @@ def test_search_yaml(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "config.yaml" in content
     assert "Budget" in content
 
@@ -862,7 +862,7 @@ def test_search_yml(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "settings.yml" in content
     assert "budget" in content
 
@@ -881,7 +881,7 @@ def test_search_ipynb(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "analysis.ipynb" in content
     assert "Budget" in content
 
@@ -894,7 +894,7 @@ def test_search_env(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert ".env" in content
     assert "budget" in content
 
@@ -907,7 +907,7 @@ def test_search_dockerfile(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Dockerfile" in content
     assert "budget" in content
 
@@ -920,7 +920,7 @@ def test_search_css(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "styles.css" in content
 
 
@@ -932,7 +932,7 @@ def test_search_scss(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "app.scss" in content
 
 
@@ -944,7 +944,7 @@ def test_search_lua(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "config.lua" in content
 
 
@@ -956,7 +956,7 @@ def test_search_scala(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Pipeline.scala" in content
 
 
@@ -968,7 +968,7 @@ def test_search_tf(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "main.tf" in content
 
 
@@ -980,7 +980,7 @@ def test_search_proto(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "schema.proto" in content
 
 
@@ -991,7 +991,7 @@ def test_search_graphql(tmp_path, monkeypatch, capsys):
     result = main(["budget"])
     captured = capsys.readouterr()
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "schema.graphql" in content
 
 
@@ -1003,7 +1003,7 @@ def test_search_jsonl(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "data.jsonl" in content
 
 
@@ -1015,7 +1015,7 @@ def test_search_ndjson(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "events.ndjson" in content
 
 
@@ -1030,7 +1030,7 @@ def test_search_xml(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "config.xml" in content
     assert "Budget" in content
 
@@ -1046,7 +1046,7 @@ def test_search_log(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "app.log" in content
     assert "Budget" in content
 
@@ -1069,7 +1069,7 @@ def test_search_pptx(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "report.pptx" in content
     assert "Budget" in content
 
@@ -1086,7 +1086,7 @@ def test_search_rtf(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "report.rtf" in content
     assert "Budget" in content
 
@@ -1114,7 +1114,7 @@ def test_search_with_file_filter(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
 
@@ -1134,7 +1134,7 @@ def test_search_with_multiple_file_filters(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}2{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" in content
     assert "page.html" not in content
@@ -1163,7 +1163,7 @@ def test_search_file_filter_with_and(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
 
@@ -1181,7 +1181,7 @@ def test_search_file_filter_with_regex(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
 
@@ -1198,7 +1198,7 @@ def test_search_file_filter_with_context(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
     assert "Line one" in content
@@ -1220,7 +1220,7 @@ def test_search_file_filter_recursive(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "other.txt" not in content
 
@@ -1284,8 +1284,8 @@ def test_search_save_append(tmp_path, monkeypatch, capsys):
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
     assert "Results appended to peekdocs_accumulated_my_report.txt and peekdocs_accumulated_my_report.docx" in captured.out
 
-    assert (tmp_path / "peekdocs_results.txt").exists()
-    assert (tmp_path / "peekdocs_results.docx").exists()
+    assert (tmp_path / "peekdocs_standard_results.txt").exists()
+    assert (tmp_path / "peekdocs_standard_results.docx").exists()
     assert (tmp_path / "peekdocs_accumulated_my_report.txt").exists()
     assert (tmp_path / "peekdocs_accumulated_my_report.docx").exists()
 
@@ -1595,7 +1595,7 @@ def test_ocr_scanned_pdf(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "scanned.pdf" in content
     assert "Budget" in content
 
@@ -1616,7 +1616,7 @@ def test_ocr_image_jpg(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "scan.jpg" in content
 
 
@@ -1636,7 +1636,7 @@ def test_ocr_image_png(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "scan.png" in content
 
 
@@ -1654,7 +1654,7 @@ def test_ocr_images_ignored_without_flag(tmp_path, monkeypatch, capsys):
 
     assert "Files searched: 0" in captured.out
     # Verify image files were not found in results
-    results = (tmp_path / "peekdocs_results.txt").read_text()
+    results = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "photo.jpg" not in results
     assert "photo.png" not in results
 
@@ -1717,7 +1717,7 @@ def test_search_fuzzy_match(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "budgt" in content
 
@@ -1758,7 +1758,7 @@ def test_search_fuzzy_with_and(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "FUZZY" in content
 
 
@@ -1828,7 +1828,7 @@ def test_search_exclude_basic(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "approved" in content
     assert "draft" not in content.split("Document:")[1]
 
@@ -1870,7 +1870,7 @@ def test_search_exclude_with_regex(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "pending" in content
 
 
@@ -1911,7 +1911,7 @@ def test_search_exclude_multiple(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Exclude Term(s) ==> draft obsolete" in content
 
 
@@ -1940,7 +1940,7 @@ def test_search_wildcard_star(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "budget" in content
 
 
@@ -1954,7 +1954,7 @@ def test_search_wildcard_question(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "test" in content or "text" in content
 
 
@@ -2058,7 +2058,7 @@ def test_search_wildcard_with_exclude(tmp_path, monkeypatch, capsys):
 
     assert result == 0
     assert f"{HIGHLIGHT}1{RESET} match(es)" in captured.out
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "approved" in content
 
 
@@ -2070,7 +2070,7 @@ def test_output_csv(tmp_path, capsys, monkeypatch):
     result = main(["-q", "-o", "csv", "budget"])
     assert result == 0
 
-    csv_path = tmp_path / "peekdocs_results.csv"
+    csv_path = tmp_path / "peekdocs_standard_results.csv"
     assert csv_path.exists()
     with open(csv_path) as f:
         reader = csv.reader(f)
@@ -2091,7 +2091,7 @@ def test_output_json(tmp_path, capsys, monkeypatch):
     result = main(["-q", "-o", "json", "budget"])
     assert result == 0
 
-    json_path = tmp_path / "peekdocs_results.json"
+    json_path = tmp_path / "peekdocs_standard_results.json"
     assert json_path.exists()
     with open(json_path) as f:
         data = json.load(f)
@@ -2115,8 +2115,8 @@ def test_output_csv_and_json(tmp_path, capsys, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = main(["-q", "-o", "csv,json", "budget"])
     assert result == 0
-    assert (tmp_path / "peekdocs_results.csv").exists()
-    assert (tmp_path / "peekdocs_results.json").exists()
+    assert (tmp_path / "peekdocs_standard_results.csv").exists()
+    assert (tmp_path / "peekdocs_standard_results.json").exists()
 
 
 def test_output_invalid_format(tmp_path, capsys, monkeypatch):
@@ -2266,12 +2266,12 @@ def test_indexed_search_keyword(tmp_path, monkeypatch, capsys):
 
     # Direct scan
     main(["-q", "budget"])
-    direct_content = (tmp_path / "peekdocs_results.txt").read_text()
+    direct_content = (tmp_path / "peekdocs_standard_results.txt").read_text()
 
     # Build index and search again
     main(["--index"])
     main(["-q", "budget"])
-    indexed_content = (tmp_path / "peekdocs_results.txt").read_text()
+    indexed_content = (tmp_path / "peekdocs_standard_results.txt").read_text()
 
     # Both should find "Budget overview" with highlighting
     assert "Budget overview" in direct_content
@@ -2314,7 +2314,7 @@ def test_indexed_search_fuzzy(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
 
 
@@ -2328,7 +2328,7 @@ def test_indexed_search_wildcard(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
 
 
@@ -2343,7 +2343,7 @@ def test_indexed_search_with_file_type_filter(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
     assert "data.csv" not in content
 
@@ -2584,7 +2584,7 @@ def test_indexed_search_exclude(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "final version" in content
     assert "draft overview" not in content
 
@@ -2599,7 +2599,7 @@ def test_indexed_search_proximity(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "notes.txt" in content
 
 
@@ -2613,7 +2613,7 @@ def test_indexed_search_context(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Line one" in content
     assert "Line three" in content
 
@@ -2638,7 +2638,7 @@ def test_indexed_search_report_shows_last_updated(tmp_path, monkeypatch, capsys)
     main(["--index"])
     main(["-q", "budget"])
 
-    report = (tmp_path / "peekdocs_results.txt").read_text()
+    report = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Index last updated:" in report
 
 
@@ -2758,21 +2758,21 @@ def test_crash_report_includes_versions(tmp_path, monkeypatch):
 
 
 def test_results_csv_json_not_searched(tmp_path, monkeypatch):
-    """peekdocs_results.csv and peekdocs_results.json must not be searched."""
+    """peekdocs_standard_results.csv and peekdocs_standard_results.json must not be searched."""
     # Create a real searchable file
     (tmp_path / "real.txt").write_text("budget line here")
     # Create result files that contain the search term — these should be skipped
-    (tmp_path / "peekdocs_results.csv").write_text("budget,amount\n100,200\n")
-    (tmp_path / "peekdocs_results.json").write_text('{"query": "budget"}')
+    (tmp_path / "peekdocs_standard_results.csv").write_text("budget,amount\n100,200\n")
+    (tmp_path / "peekdocs_standard_results.json").write_text('{"query": "budget"}')
 
     monkeypatch.chdir(tmp_path)
     result = main(["-q", "budget"])
     assert result == 0
 
-    content = (tmp_path / "peekdocs_results.txt").read_text()
+    content = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "real.txt" in content
-    assert "peekdocs_results.csv" not in content
-    assert "peekdocs_results.json" not in content
+    assert "peekdocs_standard_results.csv" not in content
+    assert "peekdocs_standard_results.json" not in content
 
 
 def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
@@ -2789,7 +2789,7 @@ def test_per_file_match_counts(tmp_path, monkeypatch, capsys):
     assert "file_a.txt: 3" in captured
     assert "file_b.txt: 1" in captured
 
-    report = (tmp_path / "peekdocs_results.txt").read_text()
+    report = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Hits ==> 4" in report
 
     # -q suppresses the banner but still shows per-file listing
@@ -2816,7 +2816,7 @@ def test_search_inverse(tmp_path, monkeypatch, capsys):
     # The file with the match should NOT appear in the inverse listing
     assert "has_match.txt" not in captured.split("WITHOUT matches")[1]
 
-    report = (tmp_path / "peekdocs_results.txt").read_text()
+    report = (tmp_path / "peekdocs_standard_results.txt").read_text()
     assert "Files WITHOUT matches: 2" in report
     assert "no_match.txt" in report
     assert "also_no_match.txt" in report
@@ -2858,7 +2858,7 @@ def test_search_inverse_csv(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main(["-q", "--inverse", "-o", "csv", "budget"])
 
-    csv_path = tmp_path / "peekdocs_results.csv"
+    csv_path = tmp_path / "peekdocs_standard_results.csv"
     assert csv_path.exists()
     content = csv_path.read_text()
     assert "filename,folder" in content
@@ -2874,7 +2874,7 @@ def test_search_inverse_json(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main(["-q", "--inverse", "-o", "json", "budget"])
 
-    json_path = tmp_path / "peekdocs_results.json"
+    json_path = tmp_path / "peekdocs_standard_results.json"
     assert json_path.exists()
     data = json.load(open(json_path))
     assert "inverse_files" in data
@@ -2989,7 +2989,7 @@ def test_expression_report(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     main(["-e", "hello AND world"])
 
-    results_file = tmp_path / "peekdocs_results.txt"
+    results_file = tmp_path / "peekdocs_standard_results.txt"
     content = results_file.read_text()
     assert "Search Expression ==> hello AND world" in content
     assert "Expression: ON" in content
@@ -3058,7 +3058,7 @@ def test_expression_with_context(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert result == 0
-    results_file = tmp_path / "peekdocs_results.txt"
+    results_file = tmp_path / "peekdocs_standard_results.txt"
     content = results_file.read_text()
     assert "line one" in content
     assert "line three" in content
@@ -3094,7 +3094,7 @@ def test_whole_word_basic(tmp_path, monkeypatch, capsys):
     assert result == 0
     assert "1" in captured.out and "match(es)" in captured.out
     # Verify report only has the whole-word match
-    report_path = tmp_path / "peekdocs_results.txt"
+    report_path = tmp_path / "peekdocs_standard_results.txt"
     report = report_path.read_text()
     assert "bob is here" in report
     assert "bobcat" not in report
@@ -3252,14 +3252,14 @@ def test_regex_collection_timestamp_creates_unique_reports(tmp_path, monkeypatch
     result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "--timestamp"])
     assert result == 0
 
-    plain_txt = tmp_path / "peekdocs_results.txt"
+    plain_txt = tmp_path / "peekdocs_regex_results.txt"
     assert not plain_txt.exists(), "unsuffixed file should not be written when --timestamp is set"
 
-    stamped_txt = list(tmp_path.glob("peekdocs_results_*.txt"))
-    stamped_docx = list(tmp_path.glob("peekdocs_results_*.docx"))
+    stamped_txt = list(tmp_path.glob("peekdocs_regex_results_*.txt"))
+    stamped_docx = list(tmp_path.glob("peekdocs_regex_results_*.docx"))
     assert len(stamped_txt) == 1
     assert len(stamped_docx) == 1
-    assert re.match(r"peekdocs_results_\d{8}_\d{6}\.txt$", stamped_txt[0].name)
+    assert re.match(r"peekdocs_regex_results_\d{8}_\d{6}\.txt$", stamped_txt[0].name)
 
 
 def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkeypatch, capsys):
@@ -3275,6 +3275,6 @@ def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkey
 
     result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r"])
     assert result == 0
-    assert (tmp_path / "peekdocs_results.txt").exists()
-    assert (tmp_path / "peekdocs_results.docx").exists()
-    assert not list(tmp_path.glob("peekdocs_results_*.txt"))
+    assert (tmp_path / "peekdocs_regex_results.txt").exists()
+    assert (tmp_path / "peekdocs_regex_results.docx").exists()
+    assert not list(tmp_path.glob("peekdocs_regex_results_*.txt"))

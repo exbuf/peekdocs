@@ -186,7 +186,7 @@ def test_parse_summary_with_ansi():
         "Files searched: 5 (1.23 MB)\n"
         "Found \033[1;94m12\033[0m match(es).\n"
         "Results ==> /tmp/docs\n"
-        "  peekdocs_results.txt (2.50 KB), peekdocs_results.docx (15.30 KB)\n"
+        "  peekdocs_standard_results.txt (2.50 KB), peekdocs_standard_results.docx (15.30 KB)\n"
         "Elapsed time: 1.45 seconds, Cores used: 4 of 8\n"
     )
     result = _parse_summary_text(stdout)
@@ -201,7 +201,7 @@ def test_parse_summary_with_errors():
         "Files searched: 97 (4.23 MB)\n"
         "Found \033[1;94m5\033[0m match(es).\n"
         "Results ==> /tmp/docs\n"
-        "  peekdocs_results.txt (2.50 KB), peekdocs_results.docx (15.30 KB)\n"
+        "  peekdocs_standard_results.txt (2.50 KB), peekdocs_standard_results.docx (15.30 KB)\n"
         "Elapsed time: 2.34 seconds, Cores used: 4 of 8\n"
         "Errors logged to peekdocs_errors.log (3 error(s))\n"
     )
@@ -217,7 +217,7 @@ def test_parse_summary_empty():
 
 
 def test_parse_matched_files(tmp_path):
-    results = tmp_path / "peekdocs_results.txt"
+    results = tmp_path / "peekdocs_standard_results.txt"
     results.write_text(
         'Program name: peekdocs\n'
         '\n'
