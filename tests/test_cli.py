@@ -3394,3 +3394,185 @@ def test_hash_missing_file_yields_null(tmp_path, monkeypatch, capsys, mocker=Non
     assert result == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["matches_per_file"][0]["sha256"] is None
+
+
+# ── --no-log / --runs (per-run structured log) ─────────────────────────
+
+def _run_log_path(tmp_path):
+    return tmp_path / ".peekdocs_runs.log"
+
+
+def _read_log_entries(tmp_path):
+    p = _run_log_path(tmp_path)
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        out.append(json.loads(line))
+    return out
+
+
+def test_run_log_created_on_first_search(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["TODO"])
+    assert result == 0
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["argv"] == ["peekdocs", "TODO"]
+    assert e["exit_code"] == 0
+    assert e["match_count"] == 1
+    assert e["file_count"] >= 1
+    assert e["error_count"] == 0
+    assert e["elapsed_seconds"] >= 0
+    assert e["peekdocs_version"]
+    assert "T" in e["timestamp"]  # ISO 8601
+
+
+def test_run_log_appends_not_overwrites(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["TODO"])
+    main(["nope"])
+    main(["TODO"])
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 3
+    assert [e["argv"][-1] for e in entries] == ["TODO", "nope", "TODO"]
+    assert [e["exit_code"] for e in entries] == [0, 1, 0]
+
+
+def test_no_log_flag_suppresses_single_run(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["--no-log", "TODO"])
+    assert not _run_log_path(tmp_path).exists() or _read_log_entries(tmp_path) == []
+
+
+def test_config_run_log_false_suppresses(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".peekdocsrc").write_text("run_log = false\n")
+
+    main(["TODO"])
+    assert _read_log_entries(tmp_path) == []
+
+
+def test_informational_commands_not_logged(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    main(["--check"])
+    main(["--list-files"])
+    main([])  # no-args banner
+    main(["-h"])
+    main(["--config"])
+    assert _read_log_entries(tmp_path) == []
+
+
+def test_suite_command_logged(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    collection = {
+        "saved_searches": {"t": {"search_text": "TODO", "recursive": True}},
+        "suites": {"S": ["t"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "S"])
+    assert result == 0
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 1
+    assert entries[0]["argv"] == ["peekdocs", "--suite", "S"]
+    assert entries[0]["match_count"] == 1
+
+
+def test_regex_collection_logged(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    rc_data = {"c": [{"name": "T", "regex": r"TODO\b", "enabled": True}]}
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "c", "-d", str(tmp_path), "-r"])
+    assert result == 0
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 1
+    assert entries[0]["argv"][:2] == ["peekdocs", "--regex-collection"]
+
+
+def test_regex_collection_list_not_logged(tmp_path, monkeypatch):
+    """--regex-collection --list is informational, not a real run."""
+    rc_data = {"c": [{"name": "T", "regex": r"x", "enabled": True}]}
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    main(["--regex-collection", "--list"])
+    assert _read_log_entries(tmp_path) == []
+
+
+def test_runs_command_reads_log(tmp_path, monkeypatch, capsys):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    main(["TODO"])
+
+    result = main(["--runs"])
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "Run log:" in out
+    assert "TODO" in out
+    assert "1 run(s)" in out
+
+
+def test_runs_command_json_emits_jsonl(tmp_path, monkeypatch, capsys):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    main(["TODO"])
+    main(["nope"])
+    capsys.readouterr()  # discard prior output
+
+    result = main(["--runs", "--json"])
+    assert result == 0
+    out = capsys.readouterr().out
+    lines = [l for l in out.splitlines() if l.strip()]
+    assert len(lines) == 2
+    for line in lines:
+        parsed = json.loads(line)
+        assert "argv" in parsed
+        assert "exit_code" in parsed
+
+
+def test_runs_command_empty_log(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    result = main(["--runs"])
+    assert result == 0
+    out = capsys.readouterr().out
+    assert "No run log entries" in out
+
+
+def test_runs_command_not_logged_itself(tmp_path, monkeypatch):
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+    main(["TODO"])
+    main(["--runs"])
+    # --runs itself should not appear in the log
+    entries = _read_log_entries(tmp_path)
+    assert len(entries) == 1
+    assert entries[0]["argv"] == ["peekdocs", "TODO"]
+
+
+def test_run_log_path_override(tmp_path, monkeypatch):
+    """--config run_log_path redirects the log to a custom location."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    custom = tmp_path / "custom" / "runs.log"
+    custom.parent.mkdir()
+    (tmp_path / ".peekdocsrc").write_text(f"run_log_path = {custom}\n")
+    monkeypatch.chdir(tmp_path)
+
+    main(["TODO"])
+    assert custom.exists()
+    assert not _run_log_path(tmp_path).exists()

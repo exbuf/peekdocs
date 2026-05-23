@@ -94,6 +94,8 @@ BANNER_BOTTOM = (
     '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
     '  --stdout           Output JSON results to stdout (for piping). No report files\n'
     '  --hash             Add SHA-256 of each matched file to JSON output (chain-of-custody)\n'
+    '  --no-log           Skip writing this run to ~/.peekdocs_runs.log (run log is on by default)\n'
+    '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'
     '                       written. Suppresses all banners and progress.\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
@@ -266,9 +268,9 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
-CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history"}
+CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
@@ -507,35 +509,77 @@ def main(argv=None):
             _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
         except Exception:
             pass
+
+    # Snapshot the original argv (after --no-log is filtered) for the run log.
+    # _main_inner mutates its args list while parsing flags, so we capture
+    # what the user actually typed before any of that happens.
+    from peekdocs import run_log as _rl
+    _rl.reset_stats()
+    incoming = list(sys.argv[1:] if argv is None else argv)
+    no_log = "--no-log" in incoming
+    if no_log:
+        incoming_for_log = [a for a in incoming if a != "--no-log"]
+        # Mutate the caller's argv too if they passed a list, so --no-log is
+        # also removed before _main_inner sees it.
+        if argv is not None and isinstance(argv, list):
+            while "--no-log" in argv:
+                argv.remove("--no-log")
+        else:
+            sys.argv = [sys.argv[0]] + incoming_for_log
+            incoming = incoming_for_log
+    else:
+        incoming_for_log = incoming
+    cwd_at_start = os.getcwd()
+    start_time = time.time()
+
     try:
-        return _main_inner(argv)
+        exit_code = _main_inner(argv)
     except KeyboardInterrupt:
         print("\nSearch cancelled.\n")
-        return 2
+        exit_code = 2
     except Exception as exc:
-        error_log_path = os.path.join(os.getcwd(), "peekdocs_errors.log")
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        diagnosis = _diagnose(exc)
-        with open(error_log_path, "a", encoding="utf-8") as log_f:
-            log_f.write(f"\n{'='*60}\n")
-            log_f.write(f"{timestamp}  CRASH REPORT\n")
-            log_f.write(f"peekdocs {VERSION}\n")
-            log_f.write(f"Python {sys.version}\n")
-            log_f.write(f"OS: {platform.system()} {platform.release()}\n")
-            cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
-            log_f.write(f"Command: peekdocs {cmd}\n")
-            log_f.write(f"\nDiagnosis: {diagnosis}\n")
-            log_f.write(f"\nDependency versions:\n")
-            try:
-                log_f.write(_dep_versions_str() + "\n")
-            except Exception:
-                log_f.write("  (could not determine)\n")
-            log_f.write(f"{'='*60}\n")
-            traceback.print_exc(file=log_f)
-            log_f.write("\n")
-        print(f"\nError: An unexpected error occurred. Details logged to peekdocs_errors.log")
-        print(f"Run 'peekdocs --check' to verify your installation.\n")
-        return 2
+        exit_code = _handle_unexpected_exception(exc, argv)
+
+    elapsed = time.time() - start_time
+    if (not no_log
+            and _rl.is_search_invocation(incoming_for_log)
+            and _rl.is_enabled()):
+        stats = _rl.get_stats()
+        _rl.record_run(
+            argv=["peekdocs"] + incoming_for_log,
+            cwd=cwd_at_start,
+            exit_code=exit_code,
+            elapsed_seconds=elapsed,
+            **stats,
+        )
+    return exit_code
+
+
+def _handle_unexpected_exception(exc, argv):
+    """Crash-report path, extracted so main() can wrap with run logging."""
+    error_log_path = os.path.join(os.getcwd(), "peekdocs_errors.log")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    diagnosis = _diagnose(exc)
+    with open(error_log_path, "a", encoding="utf-8") as log_f:
+        log_f.write(f"\n{'='*60}\n")
+        log_f.write(f"{timestamp}  CRASH REPORT\n")
+        log_f.write(f"peekdocs {VERSION}\n")
+        log_f.write(f"Python {sys.version}\n")
+        log_f.write(f"OS: {platform.system()} {platform.release()}\n")
+        cmd = " ".join(argv) if argv else " ".join(sys.argv[1:])
+        log_f.write(f"Command: peekdocs {cmd}\n")
+        log_f.write(f"\nDiagnosis: {diagnosis}\n")
+        log_f.write(f"\nDependency versions:\n")
+        try:
+            log_f.write(_dep_versions_str() + "\n")
+        except Exception:
+            log_f.write("  (could not determine)\n")
+        log_f.write(f"{'='*60}\n")
+        traceback.print_exc(file=log_f)
+        log_f.write("\n")
+    print(f"\nError: An unexpected error occurred. Details logged to peekdocs_errors.log")
+    print(f"Run 'peekdocs --check' to verify your installation.\n")
+    return 2
 
 
 def _main_inner(argv=None):
@@ -581,7 +625,10 @@ def _main_inner(argv=None):
     if compute_hashes:
         args.remove("--hash")
 
-    minimal = stdout_json or "-qq" in args
+    # --runs --json must emit clean JSONL with no banner above it.
+    runs_json = (args and args[0] == "--runs" and "--json" in args[1:])
+
+    minimal = stdout_json or runs_json or "-qq" in args
     if "-qq" in args:
         args.remove("-qq")
     quiet = minimal or "-q" in args
@@ -922,6 +969,48 @@ def _main_inner(argv=None):
         return 0
 
     # ── --list-suites [--rescan]: show all suites and where they live ──
+    # ── --runs [N] [--json]: show recent run-log entries ──
+    if args and args[0] == "--runs":
+        from peekdocs.run_log import read_recent, log_path
+        emit_json = "--json" in args[1:]
+        limit = 20
+        for tok in args[1:]:
+            if tok == "--json":
+                continue
+            try:
+                limit = max(0, int(tok))
+                break
+            except ValueError:
+                print(f"Error: --runs argument must be a positive integer. Got: {tok}\n")
+                return 2
+        entries = read_recent(limit=limit if limit > 0 else 0)
+        if emit_json:
+            for e in entries:
+                sys.stdout.write(json.dumps(e, ensure_ascii=False) + "\n")
+            return 0
+        if not entries:
+            print(f"No run log entries found. Log file: {log_path()}")
+            print("(The log is written automatically after every search; use --no-log to skip a single run.)")
+            return 0
+        print(f"Run log: {log_path()}")
+        print()
+        print(f"{'Time':<19}  {'Exit':>4}  {'Matches':>8}  {'Files':>6}  {'Errors':>6}  {'Elapsed':>8}  Command")
+        print(f"{'-'*19}  {'-'*4}  {'-'*8}  {'-'*6}  {'-'*6}  {'-'*8}  {'-'*40}")
+        for e in entries:
+            ts = (e.get("timestamp") or "")[:19]
+            ec = e.get("exit_code", "")
+            mc = e.get("match_count", 0)
+            fc = e.get("file_count", 0)
+            er = e.get("error_count", 0)
+            el = e.get("elapsed_seconds", 0)
+            cmd = " ".join(e.get("argv", []))
+            if len(cmd) > 80:
+                cmd = cmd[:77] + "..."
+            print(f"{ts:<19}  {str(ec):>4}  {mc:>8}  {fc:>6}  {er:>6}  {el:>8.2f}  {cmd}")
+        print()
+        print(f"{len(entries)} run(s). --runs N for more, --runs --json for raw JSON Lines.")
+        return 0
+
     if args and args[0] == "--list-suites":
         from peekdocs.suite_index import list_suites_global, rescan
         if "--rescan" in args[1:]:
@@ -1070,9 +1159,12 @@ def _main_inner(argv=None):
         write_suite_docx_report(docx_path, txt_path, sections)
 
         total_matches = sum(len(s["matches"]) for s in sections)
+        total_files = sum(len(s.get("all_files", [])) for s in sections)
         print(f"\nSuite '{suite_name}': {len(sections)} search(es), {total_matches} total match(es)")
         print(f"Reports: {txt_path}")
         print(f"         {docx_path}")
+        from peekdocs.run_log import set_stats as _set_stats_suite
+        _set_stats_suite(match_count=total_matches, file_count=total_files)
         return 0
 
     # ── --regex-collection NAME: run a saved regex collection ──
@@ -1241,6 +1333,11 @@ def _main_inner(argv=None):
                     print(f"Reports: {output_path}")
                     print(f"         {docx_path}")
 
+        from peekdocs.run_log import set_stats as _set_stats_rc
+        _set_stats_rc(
+            match_count=total_matches,
+            file_count=len({(fd, fn) for fd, fn, _ln, _tx in all_matches}),
+        )
         return 0 if total_matches > 0 else 1
 
     no_index = "--no-index" in args
@@ -1542,6 +1639,11 @@ def _main_inner(argv=None):
                 ],
             }
         sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
+        from peekdocs.run_log import set_stats as _set_stats_stdout
+        _set_stats_stdout(
+            match_count=(len(inverse_files) if inverse_files else len(matches)),
+            file_count=len(all_files),
+        )
         return 0 if (matches or inverse_files) else 1
 
     # Check disk space before writing reports
@@ -1721,8 +1823,19 @@ def _main_inner(argv=None):
             print(f"Note: Unknown format '{open_report}'.")
         else:
             print(f"Note: {open_report} report file not found.")
+    from peekdocs.run_log import set_stats
     if inverse:
+        set_stats(
+            match_count=len(inverse_files) if inverse_files else 0,
+            file_count=len(all_files),
+            error_count=len(skipped_files) if skipped_files else 0,
+        )
         return 0 if inverse_files else 1
+    set_stats(
+        match_count=total_match_count,
+        file_count=len(all_files),
+        error_count=len(skipped_files) if skipped_files else 0,
+    )
     return 0 if matches else 1
 
 

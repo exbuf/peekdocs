@@ -27,6 +27,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [JSON output (--stdout) schema](#json-output---stdout-schema)
   - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
   - [Where things live](#where-things-live)
+  - [Per-run structured log](#per-run-structured-log)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
@@ -554,6 +555,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_standard_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
 | `--hash` (hash) | Compute SHA-256 of each matched file's raw bytes and add a `sha256` field to JSON output (`--stdout` and `-o json`). Chain-of-custody / forensic use. Hashing happens once per matched file (not per match) so the overhead is bounded by match count, not files searched. See [Automation and IT Use → JSON output](#json-output---stdout-schema) |
+| `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
+| `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -1242,11 +1245,60 @@ For batch loops (run several collections or suites in one cron job) see [Regex C
 | `<search-folder>/.peekdocs_collection.json` | Saved searches and suites for this folder | Per-folder |
 | `~/.peekdocsrc` | Per-user CLI/GUI defaults | Per-user (one file) |
 | `~/.peekdocs_history.json` | Search history | Per-user |
+| `~/.peekdocs_runs.log` | Per-run structured log (JSON Lines, one line per CLI invocation) | Per-user, default path |
 | `~/.peekdocs_bookmarks.json` | Bookmarked files | Per-user |
 | `~/.peekdocs_regex_collections.json` | All regex collections (single namespace, all folders) | Per-user (one file) |
 | `~/.peekdocs_suites_index.json` | Global suite name → folder index so `peekdocs --suite NAME` works from anywhere | Per-user |
 
 `peekdocs --list-files` shows all peekdocs-created files in the current directory; the GUI's **View All peekdocs Files** does the same recursively.
+
+### Per-run structured log
+
+Every search-mode CLI invocation appends one JSON object to `~/.peekdocs_runs.log` (JSON Lines / NDJSON format — one self-contained JSON per line). This gives IT a tail-able, grep-able, SIEM-shippable record of every search peekdocs has run on this machine, without setting anything up first.
+
+```json
+{"timestamp":"2026-05-23T10:32:01","peekdocs_version":"1.0.0","argv":["peekdocs","--suite","Example 1"],"cwd":"/Users/bob/Documents/SearchTheseDocuments","exit_code":0,"match_count":3339,"file_count":444,"error_count":0,"elapsed_seconds":3.05}
+```
+
+**What's captured:**
+
+| Field | Meaning |
+|-------|---------|
+| `timestamp` | Local time, ISO 8601 to the second |
+| `peekdocs_version` | Version string of the running peekdocs |
+| `argv` | The full command as an array (`["peekdocs", "--suite", "Example 1"]`) — preserves quoting cleanly so consumers can filter on flags without parsing shell syntax. **Note:** search terms are part of `argv` and therefore land in the log, same as the existing `~/.peekdocs_history.json`. Opt out with `--no-log` per-run or `--config run_log=false` permanently if that's a concern. |
+| `cwd` | The working directory where the command ran |
+| `exit_code` | 0 = matches found, 1 = no matches, 2 = error |
+| `match_count` | Total matches across all files (or for inverse search, the count of files-without-matches) |
+| `file_count` | Files actually searched |
+| `error_count` | Files skipped due to read errors (mirrors the count in `peekdocs_errors.log`) |
+| `elapsed_seconds` | Wall-clock duration, rounded to milliseconds |
+
+**What's logged:** the three search modes — Standard Search, `--suite`, `--regex-collection`. Informational commands (`--help`, `--version`, `--check`, `--list-*`, `--clear*`, `--index*`, `--config`, `--runs` itself) are skipped, so the log captures search activity rather than every CLI invocation.
+
+**Reading the log:**
+
+```bash
+peekdocs --runs           # last 20 in a readable table
+peekdocs --runs 100       # last 100
+peekdocs --runs --json    # re-emit raw JSONL for piping
+tail -f ~/.peekdocs_runs.log | jq .          # live tail, filtered
+grep '"exit_code":2' ~/.peekdocs_runs.log    # every failed run
+jq 'select(.match_count > 100)' ~/.peekdocs_runs.log   # heavy-find runs
+```
+
+**Disabling:**
+
+| What you want | How |
+|---|---|
+| Skip this one run | `peekdocs --no-log <args>` |
+| Disable permanently (per user) | `peekdocs --config run_log=false` |
+| Route to a different path | `peekdocs --config run_log_path=/var/log/peekdocs/runs.log` (path must be writable by the user) |
+| Move into syslog / Splunk / Elastic | Run Filebeat or your shipper of choice against the log path — JSONL is universally supported. Or set `run_log_path` to a fifo / tmpfs that your pipeline reads. |
+
+**No rotation today.** Each entry is ~400 bytes, so 10,000 runs is ~4 MB. If you hit a size where rotation matters, point `run_log_path` at a file managed by `logrotate` (Linux) or rotate it yourself from cron.
+
+**Write failures don't break searches.** If the log file can't be written (disk full, permission denied, locked on Windows), peekdocs silently skips the log line for that run and continues — observability is best-effort by design, and the user's actual search must never fail because of a logging issue.
 
 ### Service accounts and file permissions
 
@@ -1279,6 +1331,7 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 - `peekdocs --list-suites` — every suite peekdocs knows about, with its folder and search count. Add `--rescan` to walk `~/Documents` and `~/Desktop` for any collection files the index doesn't know about yet.
 - `peekdocs --regex-collection --list` — every regex collection by name with its pattern count.
 - `peekdocs --index-status` — file count, line count, database size, and creation date for the search index in the current folder.
+- `peekdocs --runs` — last 20 search runs from `~/.peekdocs_runs.log` in a readable table. Add a number for more (`--runs 100`), `--json` to re-emit raw JSONL for piping. See [Per-run structured log](#per-run-structured-log).
 - `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
 - `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
 
