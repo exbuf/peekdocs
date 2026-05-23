@@ -1128,8 +1128,6 @@ Results ==> /Users/yourname/Documents
 
 ## Automation and IT Use
 
-**Who this section is for:** people who run peekdocs unattended — typically the IT person at a small or mid-sized organization (clinic, law firm, financial advisor, school, nonprofit, municipal office), an MSP technician visiting client sites, a compliance officer at a regulated SMB, or an independent security or e-discovery consultant. Common thread: one person owns a problem end to end, has no enterprise DLP suite, and needs scans that run on a schedule and produce reports an auditor would accept. If you only use peekdocs interactively from the GUI to search your own documents, you can safely skip this section — the GUI works without any of it.
-
 peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines. Read this once and you should have everything needed to wrap peekdocs in your own automation.
 
 ### Exit codes
