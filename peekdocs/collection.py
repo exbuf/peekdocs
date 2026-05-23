@@ -88,6 +88,8 @@ def add_suite(folder, name, search_names=None):
     data = load_collection(folder)
     data["suites"][name] = search_names or []
     save_collection(folder, data)
+    from peekdocs.suite_index import register_suite
+    register_suite(folder, name)
 
 
 def remove_suite(folder, name):
@@ -95,6 +97,8 @@ def remove_suite(folder, name):
     data = load_collection(folder)
     data["suites"].pop(name, None)
     save_collection(folder, data)
+    from peekdocs.suite_index import unregister_suite
+    unregister_suite(folder, name)
 
 
 def get_suite(folder, name):
@@ -116,6 +120,9 @@ def rename_suite(folder, old_name, new_name):
         return False
     data["suites"][new_name] = data["suites"].pop(old_name)
     save_collection(folder, data)
+    from peekdocs.suite_index import register_suite, unregister_suite
+    unregister_suite(folder, old_name)
+    register_suite(folder, new_name)
     return True
 
 

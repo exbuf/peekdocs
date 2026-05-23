@@ -432,7 +432,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Protected Files** | Detects password-protected and encrypted files: PDFs, Word/Excel/PowerPoint (both modern and legacy formats), ODF documents, ZIP/7z/RAR archives. These files cannot be searched by peekdocs. The report tells you exactly which files are locked so you can decide whether to unprotect them. Click **Save Report** to export. |
 | **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
-| **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"`. |
+| **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main screen — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"` auto-locates the folder a suite was saved in, and `peekdocs --list-suites` shows every suite peekdocs knows about. See [Suite Use Cases](#search-suite-use-cases). |
 | **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
 | **Schedule Search** | Generates a ready-to-paste scheduling command so peekdocs runs automatically on a timer — no terminal experience required. Pick a saved search suite or regex collection, choose a folder, set the frequency (daily, weekly, or monthly) and time, and the dialog builds the correct command for your operating system: a crontab entry for Mac/Linux or a schtasks command for Windows. Step-by-step instructions walk you through pasting the command into your system's scheduler. Options include `--timestamp` (each run produces uniquely named reports instead of overwriting) and `--stdout` (also saves JSON output to a file). Click **Copy to Clipboard** to copy the generated command. Reports are saved automatically in the search folder each time the scheduled search runs. |
 | **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: results files (`peekdocs_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
@@ -550,7 +550,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-z` (fuzzy) | Fuzzy matching — find approximate matches (e.g., typos like "budgt" matching "budget") |
 | `--check` (check) | Verify installation — checks Python version, dependencies, Tesseract, and disk space |
 | `--config` (config) | View, set, or remove saved settings. See [Saved Settings](#saved-settings-optional) |
-| `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Create suites in the GUI (Tools → Search Suites) |
+| `--suite NAME` (suite) | Run a search suite — executes all saved searches in the named suite and produces a combined report (`peekdocs_suite_results.txt` and `.docx`). Auto-locates the folder from a global suite index, so you can run it from any directory. Create suites in the GUI (Tools → Search Suites). See [Suite Use Cases](#search-suite-use-cases) |
+| `--list-suites` (list-suites) | List every known suite with its folder and search count. Add `--rescan` to re-discover suites by walking `~/Documents` and `~/Desktop` for `.peekdocs_collection.json` files (useful after moving folders or copying them in from another machine) |
 | `--regex-collection NAME` | Run a saved regex collection by name — executes each enabled pattern separately with per-pattern results. Create collections in the GUI (Regex Search → Save Collection As). Add `-r` for recursive, `-d DIR` for a specific directory, `--stdout` for JSON output. Use `--regex-collection --list` to list all saved collections. See [Regex Collection Use Cases](#regex-collection-use-cases) below |
 | `--index` (index) | Build or rebuild the search index for faster repeated searches. See [Search Index](#search-index-optional) |
 | `--clear` (clear) | Delete `peekdocs_results*` files in the current directory |
@@ -706,14 +707,22 @@ peekdocs --regex-collection --list
 
 ### Search Suite Use Cases
 
-The `--suite` flag runs a saved search suite from the command line. One thing to know up front: suites are **folder-scoped** — they live in `.peekdocs_collection.json` inside each folder, so `--suite "name"` always runs against the current working directory. There is no `-d DIR` flag for `--suite`. Add `--timestamp` to produce uniquely named reports (`peekdocs_suite_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting `peekdocs_suite_results.txt`/`.docx` on each run.
+The `--suite` flag runs a saved search suite from the command line. Suites live in `.peekdocs_collection.json` inside each search folder, but peekdocs keeps a small global index (`~/.peekdocs_suites_index.json`) so the CLI can find a suite by name from any working directory. Concretely:
 
-**Running several suites in the same folder** — Loop through suite names.
+- `peekdocs --suite "monthly review"` — runs in the current folder if a suite by that name exists there; otherwise consults the global index and auto-locates the right folder. Reports are written next to the documents, in the folder where the suite is saved.
+- `peekdocs --suite ~/Documents/MyDocs/"Example 1"` — explicit form, useful for disambiguating when the same suite name exists in several folders, or when scripting against a known path. Only the part containing whitespace needs quotes; the folder path can be unquoted.
+- If the same suite name exists in more than one folder (e.g., you cloned "monthly review" into several client directories) and you used the bare-name form, the CLI prints every match and asks you to re-run with the full path.
+- `peekdocs --list-suites` shows every known suite, its folder, and the number of saved searches it contains. Use `--list-suites --rescan` to walk `~/Documents` and `~/Desktop` for `.peekdocs_collection.json` files — handy after moving folders or copying a project in from another machine.
+
+The index is updated automatically every time you create, rename, or delete a suite in the GUI. On first CLI use, peekdocs seeds the index by scanning your search history and the same two directories. Add `--timestamp` to produce uniquely named reports (`peekdocs_suite_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting `peekdocs_suite_results.txt`/`.docx` on each run.
+
+**Why does this only apply to suites, not regex collections?** Suites group *saved searches*, which live per folder inside each folder's `.peekdocs_collection.json` — so a suite has to live in the same file as the searches it references, and the same name can legitimately exist in different folders pointing at different searches. Regex collections are self-contained patterns with no per-folder dependencies; they all live in a single global file (`~/.peekdocs_regex_collections.json`) under one shared namespace, so `peekdocs --regex-collection "name"` is always unambiguous and never needs a folder hint.
+
+**Running several suites by name from anywhere** — Loop through suite names; no `cd` needed when each name is unique.
 
 *Shell loop (macOS/Linux):*
 
 ```
-cd /path/to/folder
 for s in "monthly review" "compliance scan" "vendor audit"; do
   peekdocs --suite "$s" --timestamp
 done
@@ -722,29 +731,28 @@ done
 *Shell loop (Windows PowerShell):*
 
 ```
-Set-Location C:\path\to\folder
 foreach ($s in "monthly review","compliance scan","vendor audit") {
   peekdocs --suite $s --timestamp
 }
 ```
 
-**Running the same suite across several folders** — Each folder has its own `.peekdocs_collection.json`, so the suite name must exist in every folder you target.
+Each suite runs in the folder where it was saved, and reports land there.
 
-*Shell loop (macOS/Linux):* — the `( … )` subshell ensures `cd` doesn't affect the outer shell.
+**Running the same suite across several folders** — When the same suite name exists in multiple folders (`monthly review` in three different client directories), pass the full path so each iteration targets one folder unambiguously.
+
+*Shell loop (macOS/Linux):*
 
 ```
 for d in /clients/acme /clients/globex /clients/initech; do
-  (cd "$d" && peekdocs --suite "monthly review")
+  peekdocs --suite "$d/monthly review"
 done
 ```
 
-*Shell loop (Windows PowerShell):* — `Push-Location`/`Pop-Location` (aliased `pushd`/`popd`) play the same role as the bash subshell.
+*Shell loop (Windows PowerShell):*
 
 ```
 foreach ($d in "C:\clients\acme","C:\clients\globex","C:\clients\initech") {
-  Push-Location $d
-  peekdocs --suite "monthly review"
-  Pop-Location
+  peekdocs --suite "$d\monthly review"
 }
 ```
 

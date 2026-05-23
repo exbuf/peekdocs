@@ -3205,6 +3205,39 @@ def test_suite_without_timestamp_uses_plain_filename(tmp_path, monkeypatch, caps
     assert not list(tmp_path.glob("peekdocs_suite_results_*.txt"))
 
 
+def test_suite_accepts_path_prefixed_name(tmp_path, monkeypatch, capsys):
+    """`--suite "/path/to/folder/Name"` runs the suite in that folder, even from elsewhere."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "doc.txt").write_text("TODO: x\n")
+    collection = {
+        "saved_searches": {"t": {"search_text": "TODO", "recursive": True}},
+        "suites": {"My Suite": ["t"]},
+    }
+    (docs / ".peekdocs_collection.json").write_text(json.dumps(collection))
+
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+
+    full = str(docs / "My Suite")
+    result = main(["--suite", full])
+    assert result == 0
+    assert (docs / "peekdocs_suite_results.txt").exists()
+    assert (docs / "peekdocs_suite_results.docx").exists()
+    # Reports go to the suite's folder, not the cwd we ran from.
+    assert not (elsewhere / "peekdocs_suite_results.txt").exists()
+
+
+def test_suite_path_prefix_falls_through_when_name_contains_slash_but_no_match(tmp_path, monkeypatch, capsys):
+    """A slash in the name with no matching folder/suite still hits the not-found path cleanly."""
+    monkeypatch.chdir(tmp_path)
+    result = main(["--suite", "/nonexistent/path/Nothing"])
+    assert result == 2
+    captured = capsys.readouterr()
+    assert "not found" in captured.out
+
+
 def test_regex_collection_timestamp_creates_unique_reports(tmp_path, monkeypatch, capsys):
     """--regex-collection --timestamp produces uniquely named reports so consecutive runs do not overwrite each other."""
     (tmp_path / "doc.txt").write_text("TODO: review\nhttps://example.com\n")

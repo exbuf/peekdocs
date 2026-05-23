@@ -104,6 +104,8 @@ BANNER_BOTTOM = (
     '\n'
     '── Settings & Info ──────────────────────────────────────────────\n'
     '  --suite NAME       Run a search suite (group of saved searches) by name\n'
+    '  --list-suites      List every known suite and the folder it lives in\n'
+    '  --list-suites --rescan   Re-discover suites by scanning ~/Documents and ~/Desktop\n'
     '  --regex-collection NAME  Run a saved regex collection by name\n'
     '  --regex-collection --list  List all saved regex collections\n'
     '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
@@ -169,6 +171,9 @@ BANNER_BOTTOM = (
     '  peekdocs -R amount:1000..5000 "" Filter by dollar range (empty search = range only)\n'
     '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
+    '  peekdocs --suite "My Suite"      Run a saved search suite by name (auto-locates folder)\n'
+    '  peekdocs --suite ~/Documents/MyDocs/"Example 1"  Run a suite by full path (explicit folder)\n'
+    '  peekdocs --list-suites           List every known suite and its folder\n'
     '  peekdocs -r -a -t pdf budget revenue  Combine: recursive, AND, PDF only\n'
     '\n'
     '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
@@ -220,7 +225,9 @@ BANNER_QUICK = (
     '  peekdocs -m 5000 budget          Max matches in reports (0 = no limit, default: 1000)\n'
     '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
-    '  peekdocs --suite "My Suite"      Run a saved search suite by name\n'
+    '  peekdocs --suite "My Suite"      Run a saved search suite by name (auto-locates folder)\n'
+    '  peekdocs --suite ~/Documents/MyDocs/"Example 1"  Run a suite by full path (explicit folder)\n'
+    '  peekdocs --list-suites           List every known suite and its folder\n'
     '  peekdocs --regex-collection "name"  Run a saved regex collection by name\n'
     '  peekdocs --regex-collection --list  List all saved regex collections\n'
     '  peekdocs --config max_matches=5000  Save a default setting permanently\n'
@@ -910,6 +917,28 @@ def _main_inner(argv=None):
         print()
         return 0
 
+    # ── --list-suites [--rescan]: show all suites and where they live ──
+    if args and args[0] == "--list-suites":
+        from peekdocs.suite_index import list_suites_global, rescan
+        if "--rescan" in args[1:]:
+            rescan()
+        entries = list_suites_global()
+        if not entries:
+            print("No suites found.")
+            print()
+            print("Create one in the GUI (Tools → Search Suites), or run a search")
+            print("first so peekdocs learns which folders to look in.")
+            return 0
+        name_w = max(len(e["name"]) for e in entries)
+        name_w = max(name_w, len("Suite"))
+        print(f"{'Suite'.ljust(name_w)}  Searches  Folder")
+        print(f"{'-' * name_w}  --------  ------")
+        for e in entries:
+            print(f"{e['name'].ljust(name_w)}  {str(e['search_count']).rjust(8)}  {e['folder']}")
+        print()
+        print(f"{len(entries)} suite(s).  Run with:  peekdocs --suite \"<name>\"")
+        return 0
+
     # ── --suite NAME: run a search suite ──
     if args and args[0] == "--suite":
         if len(args) < 2:
@@ -922,25 +951,44 @@ def _main_inner(argv=None):
             suite_ts_suffix = "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
         cwd = os.getcwd()
         from peekdocs.collection import get_suite, get_search_params, load_collection
+
+        # Accept a path-prefixed form like "/path/to/folder/Suite Name" — useful
+        # when the same suite name exists in several folders, or when the user
+        # copy-pastes from `peekdocs --list-suites` output.
+        if (os.sep in suite_name or "/" in suite_name) and not get_suite(cwd, suite_name):
+            head, tail = os.path.split(suite_name)
+            if head and tail and os.path.isdir(head):
+                if get_suite(head, tail) is not None:
+                    cwd = os.path.abspath(head)
+                    suite_name = tail
+
         suite_searches = get_suite(cwd, suite_name)
         if suite_searches is None:
-            available = list(load_collection(cwd).get("suites", {}).keys())
-            print(f"Suite '{suite_name}' not found in {cwd}")
-            if available:
-                print(f"Available suites in this folder: {', '.join(available)}")
+            from peekdocs.suite_index import find_suite
+            matches = find_suite(suite_name)
+            if len(matches) == 1:
+                cwd = matches[0]
+                print(f"Suite '{suite_name}' found in {cwd}")
+                suite_searches = get_suite(cwd, suite_name)
+            elif len(matches) > 1:
+                print(f"Suite '{suite_name}' exists in more than one folder:")
+                for f in matches:
+                    print(f"  {f}")
+                print()
+                print("Pick one by passing the full path, e.g.:")
+                print(f'  peekdocs --suite {matches[0]}/"{suite_name}"')
+                return 2
             else:
+                available = list(load_collection(os.getcwd()).get("suites", {}).keys())
+                print(f"Suite '{suite_name}' not found.")
+                if available:
+                    print(f"Available suites in this folder: {', '.join(available)}")
                 print()
-                print("Suites are stored per-folder, in .peekdocs_collection.json,")
-                print("alongside the documents they search. Run --suite from the")
-                print("folder where the suite was created, e.g.:")
+                print("List every known suite and its folder:")
+                print("  peekdocs --list-suites")
                 print()
-                print(f"  cd /path/to/your/documents && peekdocs --suite \"{suite_name}\"")
-                print()
-                print("To find folders that contain suites:")
-                print("  find ~ -name .peekdocs_collection.json 2>/dev/null")
-                print()
-                print("Or create a suite for this folder in the GUI (Tools → Search Suites).")
-            return 2
+                print("Or create one in the GUI (Tools → Search Suites).")
+                return 2
 
         if not suite_searches:
             print(f"Suite '{suite_name}' has no searches.")

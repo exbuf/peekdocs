@@ -10,6 +10,14 @@ from peekdocs.collection import (
 )
 
 
+@pytest.fixture(autouse=True)
+def isolate_home(tmp_path, monkeypatch):
+    """Redirect ~ so the global suite index doesn't touch the user's real home."""
+    home = tmp_path / "_home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+
+
 @pytest.fixture
 def suite_folder(tmp_path):
     """Create a temp folder with some saved searches."""
