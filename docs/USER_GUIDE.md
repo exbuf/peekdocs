@@ -20,6 +20,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Notes](#notes)
   - [Command Examples](#command-examples)
 - [Output](#output)
+  - [Search Modes and Their Reports](#search-modes-and-their-reports)
   - [Command Translation](#command-translation)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
@@ -999,6 +1000,19 @@ for name in list_suites(directory=folder):
 | 164 | Show help (no arguments) | `peekdocs` |
 
 ## Output
+
+<a id="search-modes-and-their-reports"></a>
+### Search Modes and Their Reports
+
+peekdocs has three distinct search modes. They share the same search engine, flags, and 100+ file-type support, but each writes its own report family so a run in one mode never overwrites a run in another:
+
+| Mode | What it does | How to launch | Report files (in the search folder) |
+|------|-------------|--------------|-------------------------------------|
+| **Standard Search** | One search, configured by flags or GUI options (keyword, AND/OR, fuzzy, wildcard, OCR, etc.) | GUI **Run Standard Search** button, or `peekdocs <terms>` | `peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, plus optional `.csv` / `.json` / `.pdf` / `.html` with `-o` |
+| **Regex Search** | A named collection of up to 10 regex patterns, each run separately with per-pattern results | GUI **Regex Search** button, or `peekdocs --regex-collection "Name"` | `peekdocs_regex_results.txt`, `peekdocs_regex_results.docx` |
+| **Suite** | A named group of saved Standard searches, run together and combined into one highlighted report | GUI **Run Suite** (Tools → Search Suites, or **Suites** button), or `peekdocs --suite "Name"` | `peekdocs_suite_results.txt`, `peekdocs_suite_results.docx`, plus optional `.html` / `.csv` / `.json` |
+
+Within each family, the report files are overwritten on every run unless `--timestamp` is set (or the GUI's Timestamp checkbox is enabled), in which case `_YYYYMMDD_HHMMSS` is appended to every filename. `peekdocs --clear` and the GUI's **Clear Files** match all three families by prefix; saved/accumulated reports (`peekdocs_report_*`, `peekdocs_accumulated_*`) and the search index (`.peekdocs.db`) are separate file families and are not part of this overview.
 
 ### Results Preview vs. Reports
 

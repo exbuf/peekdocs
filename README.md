@@ -401,6 +401,16 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 
 ## Features
 
+peekdocs has **three search modes**, each writing its own self-described report family next to your documents so they never collide:
+
+| Mode | How to run | Reports |
+|------|-----------|---------|
+| **Standard Search** | GUI button, or `peekdocs <terms>` | `peekdocs_standard_results.{txt,docx,csv,json,pdf,html}` |
+| **Regex Search** | GUI button, or `peekdocs --regex-collection NAME` | `peekdocs_regex_results.{txt,docx}` |
+| **Suite** (group of saved searches) | GUI **Run Suite**, or `peekdocs --suite NAME` | `peekdocs_suite_results.{txt,docx,html,csv,json}` |
+
+All three share the same engine, flags, and 100+ file-type support. The matching `peekdocs_<mode>_results.*` naming means a Regex run never overwrites a Standard run (and vice versa), and `peekdocs --clear` / **Clear Files** can find them by prefix.
+
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
 - **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
