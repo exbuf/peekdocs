@@ -3278,3 +3278,119 @@ def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkey
     assert (tmp_path / "peekdocs_regex_results.txt").exists()
     assert (tmp_path / "peekdocs_regex_results.docx").exists()
     assert not list(tmp_path.glob("peekdocs_regex_results_*.txt"))
+
+
+# ── --hash (SHA-256 chain-of-custody) ──────────────────────────────────
+
+def _sha256_hex(data: bytes) -> str:
+    import hashlib
+    return hashlib.sha256(data).hexdigest()
+
+
+def test_hash_absent_without_flag(tmp_path, monkeypatch, capsys):
+    """Without --hash, no sha256 field appears in stdout JSON."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--stdout", "TODO"])
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["matches_found"] == 1
+    assert "sha256" not in payload["matches_per_file"][0]
+    for m in payload["matches"]:
+        assert "sha256" not in m
+
+
+def test_hash_present_with_flag(tmp_path, monkeypatch, capsys):
+    """With --hash, matches_per_file entries gain a sha256 with the real hex digest."""
+    content = b"TODO: x\n"
+    (tmp_path / "doc.txt").write_bytes(content)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--stdout", "--hash", "TODO"])
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    entries = payload["matches_per_file"]
+    assert len(entries) == 1
+    assert entries[0]["sha256"] == _sha256_hex(content)
+    # Per-match entries are not hashed (would be redundant); only per-file.
+    for m in payload["matches"]:
+        assert "sha256" not in m
+
+
+def test_hash_deduplicates_per_file(tmp_path, monkeypatch, capsys):
+    """A file with N matches gets one sha256, not N."""
+    (tmp_path / "doc.txt").write_text("TODO: a\nTODO: b\nTODO: c\n")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--stdout", "--hash", "TODO"])
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["matches_found"] == 3
+    assert len(payload["matches_per_file"]) == 1
+    assert "sha256" in payload["matches_per_file"][0]
+
+
+def test_hash_inverse_search(tmp_path, monkeypatch, capsys):
+    """Inverse search: files-without-matches each carry a sha256 with --hash."""
+    a = b"contains the term\n"
+    b = b"this file does not\n"
+    (tmp_path / "a.txt").write_bytes(a)
+    (tmp_path / "b.txt").write_bytes(b)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--stdout", "--hash", "--inverse", "term"])
+    # Inverse returns files lacking the term — at least b.txt; exit 0 if any found.
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["files_without_matches"] >= 1
+    for entry in payload["inverse_files"]:
+        assert "sha256" in entry
+        if entry["filename"] == "b.txt":
+            assert entry["sha256"] == _sha256_hex(b)
+
+
+def test_hash_in_json_report_file(tmp_path, monkeypatch, capsys):
+    """-o json --hash writes the sha256 into the .json report file too."""
+    content = b"TODO: x\n"
+    (tmp_path / "doc.txt").write_bytes(content)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["-o", "json", "--hash", "TODO"])
+    assert result == 0
+    report = json.loads((tmp_path / "peekdocs_standard_results.json").read_text())
+    assert report["matches_per_file"][0]["sha256"] == _sha256_hex(content)
+
+
+def test_hash_regex_collection_stdout(tmp_path, monkeypatch, capsys):
+    """--regex-collection --hash --stdout produces a top-level matches_per_file with sha256s."""
+    content = b"TODO: review\n"
+    (tmp_path / "doc.txt").write_bytes(content)
+    rc_data = {"my collection": [{"name": "TODOs", "regex": r"TODO\b", "enabled": True}]}
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "--stdout", "--hash"])
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "matches_per_file" in payload
+    assert len(payload["matches_per_file"]) == 1
+    assert payload["matches_per_file"][0]["sha256"] == _sha256_hex(content)
+
+
+def test_hash_missing_file_yields_null(tmp_path, monkeypatch, capsys, mocker=None):
+    """If a matched file disappears between search and hash, sha256 is null (not a crash)."""
+    import peekdocs.reporter as reporter
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    monkeypatch.chdir(tmp_path)
+
+    # Force the helper to act as if the file vanished.
+    original = reporter._sha256_of_file
+    monkeypatch.setattr(reporter, "_sha256_of_file", lambda _p: None)
+    try:
+        result = main(["--stdout", "--hash", "TODO"])
+    finally:
+        monkeypatch.setattr(reporter, "_sha256_of_file", original)
+    assert result == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["matches_per_file"][0]["sha256"] is None

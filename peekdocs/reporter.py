@@ -56,6 +56,25 @@ def _strip_highlights(text):
     return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
 
 
+def _sha256_of_file(path):
+    """Return the SHA-256 hex digest of *path*'s raw bytes, or None on read error.
+
+    Reads the file in 64 KiB chunks so multi-GB files don't load into memory.
+    Used by --hash for chain-of-custody / forensic reporting; any OS-level read
+    failure (missing, permission denied, deleted between search and hash) yields
+    None so the search itself isn't aborted.
+    """
+    import hashlib
+    try:
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except OSError:
+        return None
+
+
 def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      report_mode, use_ocr, exclude_terms, use_context,
                      use_fuzzy, use_regex, use_wildcard,
@@ -389,13 +408,28 @@ def write_csv_report(output_path, matches, inverse_files=None):
 
 def write_json_report(output_path, matches, search_terms, report_mode,
                       files_count, search_elapsed, inverse_files=None,
-                      directory=None):
-    """Write the .json result report."""
+                      directory=None, compute_hashes=False):
+    """Write the .json result report.
+
+    If *compute_hashes* is True, each entry in ``matches_per_file`` /
+    ``inverse_files`` gains a ``sha256`` field with the hex digest of the
+    file's raw bytes (or null on read failure).
+    """
     if os.path.exists(output_path):
         os.remove(output_path)
 
     from peekdocs.cli import VERSION as _ver_j
     if inverse_files is not None:
+        inverse_entries = [
+            {
+                "filename": os.path.basename(fp),
+                "folder": os.path.dirname(fp),
+            }
+            for fp in inverse_files
+        ]
+        if compute_hashes:
+            for entry, fp in zip(inverse_entries, inverse_files):
+                entry["sha256"] = _sha256_of_file(fp)
         json_data = {
             "generator": f"peekdocs v{_ver_j}",
             **({"directory": directory} if directory else {}),
@@ -405,13 +439,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
             "files_searched": files_count,
             "files_without_matches": len(inverse_files),
             "elapsed_seconds": round(search_elapsed, 2),
-            "inverse_files": [
-                {
-                    "filename": os.path.basename(fp),
-                    "folder": os.path.dirname(fp),
-                }
-                for fp in inverse_files
-            ],
+            "inverse_files": inverse_entries,
         }
     else:
         # Per-file match counts (ordered by first appearance)
@@ -425,6 +453,11 @@ def write_json_report(output_path, matches, search_terms, report_mode,
             {"filename": fn, "folder": fd, "matches": count}
             for (fd, fn), count in file_counts.items()
         ]
+        if compute_hashes:
+            for entry in matches_per_file:
+                entry["sha256"] = _sha256_of_file(
+                    os.path.join(entry["folder"], entry["filename"])
+                )
 
         json_data = {
             "generator": f"peekdocs v{_ver_j}",

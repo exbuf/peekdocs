@@ -553,6 +553,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-sa` (save-append) | Search and auto-append — runs the search normally, then appends the results to peekdocs_accumulated_your_file_name.txt (and .docx). Use this to accumulate results from multiple searches into one file. The peekdocs_accumulated_ prefix is added automatically.<br><br>Example: `peekdocs -sa my_report budget revenue` results in your search for the terms budget and revenue being saved in file peekdocs_accumulated_my_report.docx (and .txt). |
 | `-t` (types) | Filter by file type (comma-separated, e.g., `pdf,docx`) |
 | `--timestamp` (timestamp) | Add a timestamp suffix to report filenames (e.g., `peekdocs_standard_results_20260327_143022.txt`). Each search produces uniquely named files so previous results are preserved |
+| `--hash` (hash) | Compute SHA-256 of each matched file's raw bytes and add a `sha256` field to JSON output (`--stdout` and `-o json`). Chain-of-custody / forensic use. Hashing happens once per matched file (not per match) so the overhead is bounded by match count, not files searched. See [Automation and IT Use → JSON output](#json-output---stdout-schema) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
 | `-x` (regex) | Regex pattern search (case-insensitive) |
@@ -1201,6 +1202,19 @@ Every payload starts with a `generator` field that includes the peekdocs version
 ```
 
 `mode` is `"ALL"` (AND) or `"ANY"` (OR). `matched_text` has the highlight markers stripped — pipe into your own indexer or SIEM without post-processing.
+
+**File hashes (`--hash`).** For chain-of-custody and forensic workflows, add `--hash` to any of the above. Each entry in `matches_per_file` / `inverse_files` then carries a `"sha256"` field with the hex digest of the file's *raw bytes* (not the extracted text). For `--regex-collection`, `--hash` adds a top-level `matches_per_file` array of unique matched files with their hashes. Hashing happens once per matched file (not per match) so a file with 100 matches is only read for hashing once. If a file can't be read for hashing — deleted between search and hash, permission revoked — the field is `null` and an entry is appended to `peekdocs_errors.log`; the search itself is not aborted. The field is omitted entirely when `--hash` is not set, so existing consumers see no schema change.
+
+```json
+{
+  "matches_per_file": [
+    {"filename": "intake.pdf", "folder": "/abs/.../docs", "matches": 3,
+     "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}
+  ]
+}
+```
+
+The algorithm is SHA-256 in this release; the field is named `sha256` so additional algorithms (SHA-512, BLAKE3) can be added later without breaking consumers. `--hash` works with `--stdout`, with `-o json`, and with `--regex-collection --stdout`. It does not currently affect the `.txt` / `.docx` reports.
 
 ### Scheduled and unattended runs
 
@@ -2491,6 +2505,7 @@ peekdocs/
 | **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
 | **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
+| **Hash (SHA-256)** | A fixed-length fingerprint (64 hexadecimal characters) computed from a file's raw bytes — any change to the file produces a completely different hash. peekdocs's `--hash` flag adds a `sha256` field to JSON output (`--stdout` or `-o json`) so an auditor can prove later that "this is the exact file I found" — chain-of-custody for forensic and compliance work. Same algorithm used by Git, Bitcoin, and most modern security tools |
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **Inverse search** | Finding files that do *not* contain a term — the opposite of a normal search |

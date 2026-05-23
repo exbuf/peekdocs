@@ -93,6 +93,7 @@ BANNER_BOTTOM = (
     '                       docx, txt, csv, json, pdf, html\n'
     '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
     '  --stdout           Output JSON results to stdout (for piping). No report files\n'
+    '  --hash             Add SHA-256 of each matched file to JSON output (chain-of-custody)\n'
     '                       written. Suppresses all banners and progress.\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
@@ -575,6 +576,10 @@ def _main_inner(argv=None):
     stdout_json = "--stdout" in args
     if stdout_json:
         args.remove("--stdout")
+
+    compute_hashes = "--hash" in args
+    if compute_hashes:
+        args.remove("--hash")
 
     minimal = stdout_json or "-qq" in args
     if "-qq" in args:
@@ -1186,7 +1191,7 @@ def _main_inner(argv=None):
 
         if _rc_stdout:
             # JSON output to stdout
-            from peekdocs.reporter import _strip_highlights
+            from peekdocs.reporter import _strip_highlights, _sha256_of_file
             json_data = {
                 "generator": f"peekdocs v{VERSION}",
                 "collection": collection_name,
@@ -1200,6 +1205,14 @@ def _main_inner(argv=None):
                     for fd, fn, ln, tx in all_matches
                 ],
             }
+            if compute_hashes:
+                # Deduplicate by (folder, filename) so each matched file is hashed once.
+                seen = {}
+                for fd, fn, _ln, _tx in all_matches:
+                    key = (fd, fn)
+                    if key not in seen:
+                        seen[key] = {"filename": fn, "folder": fd, "sha256": _sha256_of_file(os.path.join(fd, fn))}
+                json_data["matches_per_file"] = list(seen.values())
             sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
         else:
             # Write reports
@@ -1471,9 +1484,16 @@ def _main_inner(argv=None):
 
     # --stdout: output JSON to stdout and exit (no report files written)
     if stdout_json:
-        from peekdocs.reporter import _strip_highlights
+        from peekdocs.reporter import _strip_highlights, _sha256_of_file
         elapsed = time.time() - start_time
         if inverse_files is not None:
+            inverse_entries = [
+                {"filename": os.path.basename(fp), "folder": os.path.dirname(fp)}
+                for fp in inverse_files
+            ]
+            if compute_hashes:
+                for entry, fp in zip(inverse_entries, inverse_files):
+                    entry["sha256"] = _sha256_of_file(fp)
             json_data = {
                 "generator": f"peekdocs v{VERSION}",
                 "directory": cwd,
@@ -1483,10 +1503,7 @@ def _main_inner(argv=None):
                 "files_searched": len(all_files),
                 "files_without_matches": len(inverse_files),
                 "elapsed_seconds": round(elapsed, 2),
-                "inverse_files": [
-                    {"filename": os.path.basename(fp), "folder": os.path.dirname(fp)}
-                    for fp in inverse_files
-                ],
+                "inverse_files": inverse_entries,
             }
         else:
             file_counts = {}
@@ -1495,6 +1512,15 @@ def _main_inner(argv=None):
                 if key not in file_counts:
                     file_counts[key] = 0
                 file_counts[key] += 1
+            per_file_entries = [
+                {"filename": fn, "folder": fd, "matches": count}
+                for (fd, fn), count in file_counts.items()
+            ]
+            if compute_hashes:
+                for entry in per_file_entries:
+                    entry["sha256"] = _sha256_of_file(
+                        os.path.join(entry["folder"], entry["filename"])
+                    )
             json_data = {
                 "generator": f"peekdocs v{VERSION}",
                 "directory": cwd,
@@ -1504,10 +1530,7 @@ def _main_inner(argv=None):
                 "files_searched": len(all_files),
                 "matches_found": total_match_count,
                 "elapsed_seconds": round(elapsed, 2),
-                "matches_per_file": [
-                    {"filename": fn, "folder": fd, "matches": count}
-                    for (fd, fn), count in file_counts.items()
-                ],
+                "matches_per_file": per_file_entries,
                 "matches": [
                     {
                         "filename": filename,
@@ -1588,6 +1611,7 @@ def _main_inner(argv=None):
             len(all_files), search_elapsed,
             inverse_files=inverse_files,
             directory=cwd,
+            compute_hashes=compute_hashes,
         )
 
     if "pdf" in output_formats:
