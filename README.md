@@ -303,9 +303,16 @@ Developers, sysadmins, engineers, and technical writers — people who work with
 | Who | Why they care | What they do with it |
 |-----|--------------|---------------------|
 | **Developers and technical power users** | Integrate document search into scripts and CI pipelines with CLI, JSON output, Python API, and regex collections | Search source trees for patterns, analyze logs, scan repos for TODO/FIXME, build automation scripts, generate machine-readable reports |
-| **System administrators and IT staff** | Run automated searches over SSH, schedule recurring scans, and pipe JSON results into monitoring workflows. See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the User Guide for exit codes, `--stdout` JSON schemas, service-account behavior, and fleet-distribution patterns | Search config files, review logs, inventory analysis, scan backups and document shares, identify patterns in text dumps |
 | **Engineers** | Search across datasheets, specs, and engineering files that most tools can't read, with highlighted reports for design reviews | Search SPICE netlists, Verilog/VHDL, DXF, MATLAB files alongside PDFs, test reports, maintenance records, and standards references |
 | **Technical writers and documentation teams** | Catch inconsistencies across large documentation sets using fuzzy matching, regex workflows, and recursive analysis | Find inconsistent terminology, review documentation trees, audit references across manuals, search exported HTML/Markdown/DOCX collections |
+
+### System administrators and IT staff at small-to-mid-sized organizations
+
+peekdocs is useful for solo IT professionals and small teams who need to search large document collections quickly across mixed Mac, Windows, and Linux environments. Common scenarios include independent IT consultants visiting multiple client sites, MSP technicians, financial or accounting offices, school districts or municipal offices, and technical staff managing document-heavy environments.
+
+The common thread: one person owns the problem end-to-end, needs fast local document discovery with exportable reports, and prefers a privacy-first tool that runs entirely offline. Users can build their own search patterns (including regex) for whatever content matters to them.
+
+See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the User Guide for exit codes, `--stdout` JSON schemas, scheduled-scan patterns, the `--diff` / `--hash` / `--on-match` flags, and where reports and run logs are stored on disk.
 
 ### Professional and research audiences
 
