@@ -22,6 +22,14 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Output](#output)
   - [Search Modes and Their Reports](#search-modes-and-their-reports)
   - [Command Translation](#command-translation)
+- [Automation and IT Use](#automation-and-it-use)
+  - [Exit codes](#exit-codes)
+  - [JSON output (--stdout) schema](#json-output---stdout-schema)
+  - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
+  - [Where things live](#where-things-live)
+  - [Service accounts and file permissions](#service-accounts-and-file-permissions)
+  - [Sharing collections across machines](#sharing-collections-across-machines)
+  - [Useful CLI references for IT](#useful-cli-references-for-it)
 - [Search Index (Optional)](#search-index-optional)
 - [Inverse Search](#inverse-search)
 - [Boolean Expression Search](#boolean-expression-search)
@@ -1108,6 +1116,157 @@ Elapsed time: 0.45 seconds, Cores used: 4 of 8
   summary.docx: 1
 Results ==> /Users/yourname/Documents
 ```
+
+## Automation and IT Use
+
+peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines. Read this once and you should have everything needed to wrap peekdocs in your own automation.
+
+### Exit codes
+
+Every CLI command returns one of three codes. Wrappers and schedulers should branch on these, not on parsing stdout.
+
+| Code | Meaning |
+|------|---------|
+| `0` | The command completed and matches were found (or, for informational commands like `--check`, `--list-files`, `--list-suites`, the command succeeded). |
+| `1` | The command completed but no matches were found. Common in scheduled scans where "no findings" is the expected good case. |
+| `2` | The command failed. Validation error, suite or regex collection not found, `--check` reported a missing dependency, an unexpected exception, etc. |
+
+Typical usage in a shell wrapper:
+
+```bash
+peekdocs --regex-collection "compliance-quarterly" -r --timestamp --stdout > /var/log/peekdocs/$(date +%Y%m%d).json
+rc=$?
+case $rc in
+  0) echo "Findings logged" | mail -s "peekdocs: findings" secops@example.com ;;
+  1) ;;  # clean scan, no action
+  2) echo "peekdocs failed (see peekdocs_errors.log)" | mail -s "peekdocs: FAIL" oncall@example.com ;;
+esac
+```
+
+### JSON output (`--stdout`) schema
+
+`--stdout` writes a JSON object to standard output and skips report-file generation. The exit code is still 0 (matches) / 1 (no matches), so a wrapper can use both signals. Two schemas exist — one for the standard pipeline, one for `--regex-collection` — because regex collections carry per-pattern results.
+
+Every payload starts with a `generator` field that includes the peekdocs version, so downstream consumers can branch on it if the schema ever evolves.
+
+**Standard search** (`peekdocs --stdout <terms>` and variants):
+
+```json
+{
+  "generator": "peekdocs v1.0.0",
+  "directory": "/abs/path/to/search/folder",
+  "search_terms": ["budget", "revenue"],
+  "mode": "ANY",
+  "timestamp": "2026-05-23 09:08:31",
+  "files_searched": 444,
+  "matches_found": 3246,
+  "elapsed_seconds": 2.27,
+  "matches_per_file": [
+    {"filename": "Q3.docx", "folder": "/abs/.../docs", "matches": 17}
+  ],
+  "matches": [
+    {"filename": "Q3.docx", "folder": "/abs/.../docs", "line_number": 42, "matched_text": "revenue growth"}
+  ]
+}
+```
+
+**Inverse search** (`--inverse`) — `matches` / `matches_found` / `matches_per_file` are replaced by:
+
+```json
+{
+  "files_without_matches": 38,
+  "inverse_files": [
+    {"filename": "missing-disclaimer.docx", "folder": "/abs/.../docs"}
+  ]
+}
+```
+
+**Regex collection** (`peekdocs --regex-collection NAME --stdout`):
+
+```json
+{
+  "generator": "peekdocs v1.0.0",
+  "collection": "compliance-quarterly",
+  "directory": "/abs/.../docs",
+  "timestamp": "2026-05-23 09:08:31",
+  "elapsed_seconds": 4.81,
+  "total_matches": 47,
+  "patterns": [
+    {"name": "US SSN", "regex": "\\d{3}-\\d{2}-\\d{4}", "match_count": 3, "...": "..."}
+  ],
+  "matches": [
+    {"filename": "intake.pdf", "folder": "/abs/.../docs", "line_number": 19, "matched_text": "123-45-6789"}
+  ]
+}
+```
+
+`mode` is `"ALL"` (AND) or `"ANY"` (OR). `matched_text` has the highlight markers stripped — pipe into your own indexer or SIEM without post-processing.
+
+### Scheduled and unattended runs
+
+Three pieces matter for unattended operation:
+
+1. **Use `--timestamp`** on every scheduled run so each invocation produces uniquely named reports (`peekdocs_standard_results_YYYYMMDD_HHMMSS.txt`, `peekdocs_regex_results_YYYYMMDD_HHMMSS.txt`, `peekdocs_suite_results_YYYYMMDD_HHMMSS.txt`). Without it, every run overwrites the previous report and you lose the historical record that is usually the point of scheduling.
+
+2. **Use the Schedule Search dialog** (Tools menu in the GUI) to generate the correct cron / `schtasks` command for your OS — it pre-checks `--timestamp` by default and pre-fills the search folder, search type (suite or regex collection), frequency, and time. Copy the generated command into your scheduler.
+
+3. **Persist common defaults via `~/.peekdocsrc`.** `peekdocs --config timestamp=true` saves the timestamp flag as a default so every CLI run gets it without re-typing. Other useful keys: `recursive=true`, `cores=N`, `max_file_size_mb=N`. See [Saved Settings (Optional)](#saved-settings-optional) for the full key list.
+
+For batch loops (run several collections or suites in one cron job) see [Regex Collection Use Cases](#regex-collection-use-cases) and [Search Suite Use Cases](#search-suite-use-cases).
+
+### Where things live
+
+| Path | Contents | Per-folder or global? |
+|------|---------|----------------------|
+| `<search-folder>/peekdocs_standard_results.*` | Standard search reports (overwritten each run unless `--timestamp`) | Per-folder |
+| `<search-folder>/peekdocs_regex_results.*` | Regex Search / regex collection reports | Per-folder |
+| `<search-folder>/peekdocs_suite_results.*` | Suite reports | Per-folder |
+| `<search-folder>/peekdocs_errors.log` | Per-file read errors and uncaught exceptions from runs in this folder | Per-folder |
+| `<search-folder>/peekdocs_report_*` | Reports archived with `-s` | Per-folder |
+| `<search-folder>/peekdocs_accumulated_*` | Reports appended with `-sa` | Per-folder |
+| `<search-folder>/.peekdocs.db` | Optional FTS5 search index | Per-folder |
+| `<search-folder>/.peekdocs_collection.json` | Saved searches and suites for this folder | Per-folder |
+| `~/.peekdocsrc` | Per-user CLI/GUI defaults | Per-user (one file) |
+| `~/.peekdocs_history.json` | Search history | Per-user |
+| `~/.peekdocs_bookmarks.json` | Bookmarked files | Per-user |
+| `~/.peekdocs_regex_collections.json` | All regex collections (single namespace, all folders) | Per-user (one file) |
+| `~/.peekdocs_suites_index.json` | Global suite name → folder index so `peekdocs --suite NAME` works from anywhere | Per-user |
+
+`peekdocs --list-files` shows all peekdocs-created files in the current directory; the GUI's **View All peekdocs Files** does the same recursively.
+
+### Service accounts and file permissions
+
+When peekdocs runs under a Windows service account or a Linux service user (typical for scheduled tasks), the account's read permissions limit what gets searched. peekdocs treats a permission denial the same as any other read failure:
+
+- The file is **skipped**, not retried.
+- An entry is appended to `peekdocs_errors.log` in the output directory with the filename and the underlying error message.
+- The terminal/stdout summary line reports the total skip count: `Errors logged to peekdocs_errors.log (N error(s))`.
+- The search continues with the remaining readable files. Exit code is still based on whether *any* matches were found.
+
+If you want to surface this in your wrapper, parse `peekdocs_errors.log` after the run, or use the `(N error(s))` line from stdout. The error log is overwritten on each run (it's not append-only), so capture it before the next run if you need history.
+
+### Sharing collections across machines
+
+Regex collections live in one global file per user:
+
+```
+~/.peekdocs_regex_collections.json
+```
+
+To ship a curated set of patterns (compliance scans, sensitive-data probes) to a fleet, distribute this file via your configuration management tool (Ansible, Puppet, Chef, Intune, Jamf, plain `scp`). The GUI Regex Search popup's **Save Collection As** / **Restore From Collection** menu items export and import a single named collection as a portable JSON file — convenient for sharing one collection without overwriting a user's other patterns.
+
+Saved searches and suites are per-folder (`<search-folder>/.peekdocs_collection.json`), so they travel with the data: copy the documents folder and the collection file goes with it.
+
+There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you need to enforce defaults across a fleet, push `~/.peekdocsrc` via your config-management tool.
+
+### Useful CLI references for IT
+
+- `peekdocs --check` — verifies Python version, dependencies, Tesseract, and disk space. Returns 0 if everything is fine, 2 if something is missing. Run this as the first step of a deployment validation.
+- `peekdocs --list-suites` — every suite peekdocs knows about, with its folder and search count. Add `--rescan` to walk `~/Documents` and `~/Desktop` for any collection files the index doesn't know about yet.
+- `peekdocs --regex-collection --list` — every regex collection by name with its pattern count.
+- `peekdocs --index-status` — file count, line count, database size, and creation date for the search index in the current folder.
+- `peekdocs --clear` and `--clear-all` — non-recursive cleanup of result files; useful as a pre-step in test pipelines that want a clean folder.
+- `peekdocs -h` — full flag reference. Add `peekdocs --suite "name" --timestamp` or `peekdocs --regex-collection "name" --timestamp --stdout` for the most common batch shapes.
 
 ## Search Index (Optional)
 
