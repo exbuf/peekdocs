@@ -296,6 +296,12 @@ Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscripti
 
 peekdocs is a local, privacy-first search and analysis engine for heterogeneous document collections. It combines the power of grep with OCR, regex workflows, reporting, and automation — across 100+ file types that grep can't read.
 
+### Home users and individuals
+
+peekdocs works just as well on personal documents as it does on professional ones. Most people accumulate years of digital files — scanned tax forms, medical records, insurance documents, school papers, family correspondence, financial statements, warranties, e-books, downloaded receipts — spread across folders, drives, and cloud backups. peekdocs searches all of it locally with whatever words come to mind: a vendor name, a policy number, a year, a phrase from an old letter. Nothing is uploaded; nothing is sent anywhere; the search runs on your computer and the results stay there.
+
+No technical knowledge required. The GUI handles everything with a folder picker, a search box, and a Run button — no terminal, no flags, no syntax to learn.
+
 ### Core technical users
 
 Developers, sysadmins, engineers, and technical writers — people who work with the tool from a terminal, automate it, or integrate it into pipelines.
