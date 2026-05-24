@@ -291,7 +291,12 @@ class BuildMixin:
         )
         self._options_lbl.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="nw")
 
-        self._options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        self._options_row = ctk.CTkFrame(
+            self._input_frame,
+            fg_color=("gray85", "gray20"),
+            border_width=2, border_color=("gray40", "gray60"),
+            corner_radius=8,
+        )
         self._options_row.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="w")
         options_row = self._options_row  # local alias for convenience
 
@@ -318,11 +323,9 @@ class BuildMixin:
 
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
-        options_group = ctk.CTkFrame(
-            options_row, border_width=2, border_color=("gray40", "gray60"),
-            corner_radius=8, fg_color=("gray85", "gray20"),
-        )
-        options_group.pack(side="left", padx=(0, 10))
+        # Transparent — sits inside the now-tinted options_row.
+        options_group = ctk.CTkFrame(options_row, fg_color="transparent")
+        options_group.pack(side="left", padx=(4, 10), pady=4)
 
         # AND/OR toggle buttons — the active mode is highlighted blue (matches checkboxes)
         self.and_mode_var = ctk.StringVar(value="off")
@@ -445,11 +448,9 @@ class BuildMixin:
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
 
         # Save, Reload, and ? grouped together
-        save_group = ctk.CTkFrame(
-            options_row, border_width=2, border_color=("gray40", "gray60"),
-            corner_radius=8, fg_color=("gray85", "gray20"),
-        )
-        save_group.pack(side="left", padx=(15, 0))
+        # Transparent — sits inside the now-tinted options_row.
+        save_group = ctk.CTkFrame(options_row, fg_color="transparent")
+        save_group.pack(side="left", padx=(15, 4), pady=4)
 
         self.save_to_collection_btn = ctk.CTkButton(
             save_group, text="\u25b6 Save", width=120,
