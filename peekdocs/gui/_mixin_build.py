@@ -426,7 +426,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self.toggle_advanced,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=16, weight="bold", underline=True),
         )
         self.advanced_toggle.pack(side="left", padx=(10, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
@@ -445,13 +445,13 @@ class BuildMixin:
         # Search Wizard — sits before the Save / Reload group
         self._search_wiz_btn = ctk.CTkButton(
             options_row,
-            text="Search Wizard", width=0,
+            text="Wizard", width=0,
             fg_color="transparent",
             text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=13, weight="bold"),
+            font=ctk.CTkFont(size=16, weight="bold", underline=True),
         )
         self._search_wiz_btn.pack(side="left", padx=(20, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
