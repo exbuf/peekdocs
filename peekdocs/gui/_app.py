@@ -92,7 +92,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._search_parent.pack(fill="both", expand=True)
         self._search_parent.grid_columnconfigure(0, weight=0)
         self._search_parent.grid_columnconfigure(1, weight=1)
-        self._search_parent.grid_rowconfigure(0, weight=1)  # _input_frame expands with preview
+        self._search_parent.grid_rowconfigure(1, weight=1)  # _input_frame (now at row 1; row 0 is the Main page header)
 
         # Empty toggle_row kept for compatibility (no longer displayed)
         self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")

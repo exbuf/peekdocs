@@ -208,11 +208,24 @@ class BuildMixin:
         is built later by _build_folder_row at row 0; this method builds
         the search row at rows 1-2.
         """
+        # Page header — small "Main page" label at the very top so users
+        # know which screen they're on. Subordinate to tab/Step labels.
+        self._page_header_lbl = ctk.CTkLabel(
+            self._search_parent,
+            text="Main page",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=("gray45", "gray60"),
+        )
+        self._page_header_lbl.grid(
+            row=0, column=0, columnspan=3,
+            padx=(15, 5), pady=(2, 0), sticky="w"
+        )
+
         # Combined frame for both input rows — shared grid columns
         # guarantee the labels, entries, and button frames align.
         self._input_frame = ctk.CTkFrame(self._search_parent, fg_color="transparent")
         self._input_frame.grid(
-            row=0, column=0, columnspan=3,
+            row=1, column=0, columnspan=3,
             padx=10, pady=(5, 2), sticky="nsew"
         )
         self._input_frame.grid_columnconfigure(0)
