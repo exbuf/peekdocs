@@ -450,8 +450,11 @@ class DataMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left")
         ctk.CTkButton(
-            hist_header, text="?", width=30, height=26,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            hist_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_search_history_help(popup),
         ).pack(side="right")
 
@@ -681,8 +684,11 @@ class DataMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left")
         ctk.CTkButton(
-            bm_header, text="?", width=30, height=26,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            bm_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_bookmarks_help(popup),
         ).pack(side="right")
 
@@ -1052,8 +1058,11 @@ class DataMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left", expand=True)
         help_btn = ctk.CTkButton(
-            header_frame, text="?", width=30, height=26,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            header_frame, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_matched_files_help(popup),
         )
         help_btn.pack(side="right")
@@ -1200,8 +1209,11 @@ class DataMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left", expand=True)
         help_btn = ctk.CTkButton(
-            header_frame, text="?", width=30, height=26,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            header_frame, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_excluded_files_help(popup),
         )
         help_btn.pack(side="right")
@@ -1553,8 +1565,11 @@ class DataMixin:
             font=("TkDefaultFont", 12, "bold"),
         ).pack(side="left", expand=True)
         ctk.CTkButton(
-            _tv_header, text="?", width=30,
-            font=ctk.CTkFont(size=12, weight="bold"),
+            _tv_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_text_view_help(win),
         ).pack(side="right")
         if highlight_label:

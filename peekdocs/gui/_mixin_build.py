@@ -404,13 +404,13 @@ class BuildMixin:
         self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
         Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options")
 
-        # ? help for this options group — chip styling so the help affordance
-        # reads clearly on the green options-row background.
+        # ? help for this options group — blue chip styling, unified with
+        # every other help affordance on the page (white ? on blue circle).
         options_help_btn = ctk.CTkButton(
             options_group, text="?", width=30, height=30,
             font=ctk.CTkFont(size=18, weight="bold"),
-            fg_color=("gray80", "gray50"), text_color=("black", "black"),
-            hover_color=("gray70", "gray60"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
             corner_radius=15,
             command=self._show_search_options_help,
         )
@@ -489,9 +489,9 @@ class BuildMixin:
         self.save_load_help_btn = ctk.CTkButton(
             save_group, text="?", width=30, height=30,
             font=ctk.CTkFont(size=18, weight="bold"),
-            fg_color=("gray80", "gray50"),
-            text_color=("black", "black"),
-            hover_color=("gray70", "gray60"),
+            fg_color="#1565C0",
+            text_color="white",
+            hover_color="#0D47A1",
             corner_radius=15,
             command=self._show_save_load_help,
         )
@@ -555,11 +555,14 @@ class BuildMixin:
         # Hidden until a file is selected
         Tooltip(self._clear_file_btn, "Clear the selected file and search the entire folder", anchor="left")
 
+        # Top-right ? — same blue chip styling as the help affordances on
+        # the options bar so the help vocabulary is consistent everywhere.
         search_help_btn = ctk.CTkButton(
-            self, text="?", width=28, height=28,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            self, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=self._show_search_help,
         )
         search_help_btn.place(relx=1.0, y=8, anchor="ne", x=-15)
@@ -629,11 +632,13 @@ class BuildMixin:
             justify="left",
             wraplength=700,
         ).grid(row=0, column=0, sticky="w")
+        # Advanced help — same blue chip vocabulary as every other ? on the app.
         adv_help_btn = ctk.CTkButton(
-            adv_header_frame, text="?", width=28, height=28,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            adv_header_frame, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=self._show_advanced_help,
         )
         adv_help_btn.grid(row=0, column=1, sticky="e")
@@ -1282,11 +1287,13 @@ class BuildMixin:
             text_color=("gray50", "gray50"),
         )
         self._index_folder_label.pack(anchor="w", padx=5, pady=(0, 5))
+        # Manage Indexes help — unified blue chip styling.
         idx_help_btn = ctk.CTkButton(
-            idx_header, text="?", width=28, height=28,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            idx_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=self._show_index_help,
         )
         idx_help_btn.pack(side="right")
@@ -1707,11 +1714,13 @@ class BuildMixin:
         _recent_header.pack(fill="x", padx=10, pady=(8, 4))
         tk.Label(_recent_header, text="Click a search to re-use it:",
                  font=("TkDefaultFont", 11), fg="gray").pack(side="left")
+        # Recent Searches help — unified blue chip styling.
         ctk.CTkButton(
-            _recent_header, text="?", width=28, height=24,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            _recent_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_recent_searches_help(popup),
         ).pack(side="right")
 

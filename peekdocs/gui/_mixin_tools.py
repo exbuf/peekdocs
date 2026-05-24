@@ -1418,8 +1418,11 @@ class ToolsMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left", expand=True)
         ctk.CTkButton(
-            header_frame, text="?", width=30,
-            font=ctk.CTkFont(size=12, weight="bold"),
+            header_frame, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_category_files_help(popup),
         ).pack(side="right")
         tk.Label(
@@ -1634,9 +1637,12 @@ class ToolsMixin:
             wraplength=650, justify="center",
         ).pack(expand=True)
         ctk.CTkButton(
-            header_frame, text="?", width=30,
+            header_frame, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_search_wizard_help(win),
-            font=ctk.CTkFont(size=14, weight="bold"),
         ).pack(side="right")
 
         self._sw_folder_label = self._add_folder_bar(win, "Search will run against this folder.")
@@ -3963,8 +3969,11 @@ class ToolsMixin:
         header.pack(fill="x", padx=12, pady=(10, 5))
         tk.Label(header, text="Search Suites", font=_sf(14, "bold")).pack(side="left")
         ctk.CTkButton(
-            header, text="?", width=30, height=26,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_search_suites_help(win),
         ).pack(side="right")
         tk.Label(
@@ -5189,7 +5198,11 @@ class ToolsMixin:
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left")
         ctk.CTkButton(
-            header, text="?", width=30, font=ctk.CTkFont(size=12, weight="bold"),
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
             command=lambda: self._show_regex_search_help(win),
         ).pack(side="right")
 
