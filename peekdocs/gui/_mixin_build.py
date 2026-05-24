@@ -404,18 +404,32 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self.toggle_advanced,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=16, weight="bold"),
         )
         self.advanced_toggle.pack(side="left", padx=(10, 0))
         Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
 
         self.index_search_var = ctk.StringVar(value="off")
         self.cb_index_search = ctk.CTkCheckBox(
-            options_row, text="Index", variable=self.index_search_var,
+            options_row, text="Use Index", variable=self.index_search_var,
             onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
+
+        # Search Wizard — sits before the Save / Reload group
+        self._search_wiz_btn = ctk.CTkButton(
+            options_row,
+            text="Search Wizard", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._open_search_wizard_guide,
+            font=ctk.CTkFont(size=13),
+        )
+        self._search_wiz_btn.pack(side="left", padx=(20, 0))
+        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
 
         # Save, Reload, and ? grouped together
         save_group = ctk.CTkFrame(
@@ -425,25 +439,25 @@ class BuildMixin:
         save_group.pack(side="left", padx=(15, 0))
 
         self.save_to_collection_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Save", width=0,
+            save_group, text="\u25b6 Save", width=120,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=self._save_to_collection,
             font=ctk.CTkFont(size=13),
         )
-        self.save_to_collection_btn.pack(side="left", padx=(4, 2), pady=3)
+        self.save_to_collection_btn.pack(side="left", padx=(10, 6), pady=3)
         Tooltip(self.save_to_collection_btn, "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
 
         self.load_search_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Reload", width=0,
+            save_group, text="\u25b6 Reload", width=120,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=self._open_load_search_popup,
             font=ctk.CTkFont(size=13),
         )
-        self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
+        self.load_search_btn.pack(side="left", padx=(6, 6), pady=3)
         Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
         self._load_search_popup = None
 
@@ -457,20 +471,6 @@ class BuildMixin:
         )
         self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
         Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
-
-        # Standard Search Wizard — at the end of the options row
-        self._search_wiz_btn = ctk.CTkButton(
-            options_row,
-            text="Standard Search Wizard", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
-            command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=13),
-        )
-        self._search_wiz_btn.pack(side="left", padx=(20, 0))
-        Tooltip(self._search_wiz_btn, "Standard Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
 
 
         Tooltip(self.search_entry, "Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
@@ -2093,10 +2093,12 @@ class BuildMixin:
         popup.transient(self)
         self._load_search_popup = popup
 
-        # Position below the button
-        btn = self.load_search_btn
-        x = btn.winfo_rootx()
-        y = btn.winfo_rooty() + btn.winfo_height()
+        # Center on the main window (matches the Save popup's positioning).
+        # Width is approximate — the listbox sizes itself once packed; the
+        # popup re-centers cleanly even if the actual width differs slightly.
+        approx_w = 320
+        x = self.winfo_rootx() + (self.winfo_width() - approx_w) // 2
+        y = self.winfo_rooty() + 120
         popup.geometry(f"+{x}+{y}")
 
         frame = ctk.CTkFrame(popup)
