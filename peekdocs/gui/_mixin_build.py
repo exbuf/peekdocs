@@ -62,7 +62,7 @@ class BuildMixin:
 
         _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
         _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
-        _step(3, "Click Run Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
+        _step(3, "Click Run Standard Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
         _step(4, "View your results", "Scan matches in the Results Preview pane, or click DOCX / TXT next to View Report for a highlighted report. No Microsoft Word? The DOCX opens in any word processor — LibreOffice (free) is recommended. Prefer your browser? Enable HTML in Advanced Search Options and click the HTML button. All reports stay on your computer — peekdocs avoids opening them in Google Docs, Apple Pages, or any cloud-based application that may upload your data. Check Delete on Close to automatically remove result files when you close the app.")
 
         tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
@@ -152,7 +152,7 @@ class BuildMixin:
         b("Separate multiple terms with spaces.")
         e("budget revenue")
         blank()
-        st("Step 3: Click Run Search")
+        st("Step 3: Click Run Standard Search")
         b("peekdocs scans every supported file in the folder and")
         b("shows a summary when finished. Your results appear in")
         b("a preview below, and are saved to two report files:")
@@ -282,7 +282,7 @@ class BuildMixin:
         self._options_row.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="w")
         options_row = self._options_row  # local alias for convenience
 
-        # Row 3: "Step 3" label + Run Search button
+        # Row 3: "Step 3" label + Run Standard Search button
         import tkinter as _tk_step3
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
@@ -597,7 +597,7 @@ class BuildMixin:
         adv_header_frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(
             adv_header_frame,
-            text="All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next Run Search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
+            text="All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next search \u2014 no need to press Save As Defaults. That button saves your settings as permanent defaults for future sessions.",
             font=ctk.CTkFont(size=13),
             text_color=("gray50", "gray50"),
             justify="left",
@@ -950,7 +950,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         adv_close_btn.place(relx=0.5, rely=0.5, anchor="center")
-        Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next Run Search. To make them permanent across sessions, click Save Defaults first", anchor="above")
+        Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next search. To make them permanent across sessions, click Save Defaults first", anchor="above")
 
         adv_restore_btn = ctk.CTkButton(
             adv_bottom_frame, text="Restore Saved Defaults", width=130,
