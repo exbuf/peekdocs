@@ -418,11 +418,12 @@ class BuildMixin:
         Tooltip(options_help_btn, "Help — explains AND/OR, Recursive, and Whole Word")
 
         # Advanced Search Options toggle — between options group and save group
+        # Styled as a hyperlink (blue + underline) to signal "click me".
         self.advanced_toggle = ctk.CTkButton(
             options_row,
             text="Advanced", width=0,
             fg_color="transparent",
-            text_color=("black", "black"),
+            text_color="#1565C0",
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self.toggle_advanced,
@@ -443,11 +444,12 @@ class BuildMixin:
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
 
         # Search Wizard — sits before the Save / Reload group
+        # Styled as a hyperlink (blue + underline) to signal "click me".
         self._search_wiz_btn = ctk.CTkButton(
             options_row,
             text="Wizard", width=0,
             fg_color="transparent",
-            text_color=("black", "black"),
+            text_color="#1565C0",
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self._open_search_wizard_guide,
