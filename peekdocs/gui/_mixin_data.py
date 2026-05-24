@@ -1555,7 +1555,7 @@ class DataMixin:
 
         win, _dark = self._themed_toplevel()
         win.title(f"Text View — {filename}")
-        win.geometry("900x600")
+        win.geometry("900x720")
         win.resizable(True, True)
 
         _tv_header = tk.Frame(win)
@@ -2134,7 +2134,7 @@ class DataMixin:
         def _finished(result, returncode):
             self.build_index_button.configure(state="normal", text="Build Index(es)")
             self.cancel_index_button.pack_forget()
-            self.search_button.configure(state="normal", fg_color="#76BA1B", hover_color="#5E9516", text_color="white")
+            self.search_button.configure(state="normal", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             self._update_index_button_color()
             if returncode == 0 and result:
                 fc = result.get("file_count", 0)

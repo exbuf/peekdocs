@@ -3956,7 +3956,7 @@ class ToolsMixin:
         win.protocol("WM_DELETE_WINDOW", lambda: (setattr(self, "_suite_popup", None), win.destroy()))
         win.title("Search Suites")
         win.resizable(True, True)
-        win.geometry("880x520")
+        win.geometry("880x640")
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
@@ -4515,7 +4515,7 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2",
                                      text_color="white", command=self.start_search)
 
         import re as _re_fin
@@ -4653,7 +4653,7 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#76BA1B", hover_color="#5E9516",
+        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2",
                                      text_color="white", command=self.start_search)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 

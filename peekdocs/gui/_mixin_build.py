@@ -293,7 +293,7 @@ class BuildMixin:
 
         self._options_row = ctk.CTkFrame(
             self._input_frame,
-            fg_color="#8FCC3B",
+            fg_color="#90CAF9",
             border_width=2, border_color=("gray40", "gray60"),
             corner_radius=8,
         )
@@ -315,7 +315,7 @@ class BuildMixin:
         self.search_button = ctk.CTkButton(
             btn_frame, text="\U0001f50d Run Standard Search", width=270, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
-            fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
+            fg_color="#2196F3", hover_color="#1976D2", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
         Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Run Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
@@ -582,7 +582,7 @@ class BuildMixin:
         self._suites_btn = ctk.CTkButton(
             self._run_search_frame,
             text="Run Search Suites", width=260, height=44,
-            fg_color="#2196F3", hover_color="#1976D2",
+            fg_color="#76BA1B", hover_color="#5E9516",
             text_color="white",
             command=self._show_search_suites,
             font=ctk.CTkFont(size=24, weight="bold"),
