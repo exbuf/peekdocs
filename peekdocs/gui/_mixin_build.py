@@ -268,6 +268,16 @@ class BuildMixin:
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: options row (AND/OR, Save/Reload, Use Index)
+        # Small "Options" label in column 0, under the Step 2 tag, for visual cue.
+        # Faded color + small font so it doesn't compete with the Step labels.
+        self._options_lbl = ctk.CTkLabel(
+            self._input_frame,
+            text="Options",
+            font=ctk.CTkFont(size=16),
+            text_color=("gray55", "gray55"),
+        )
+        self._options_lbl.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="nw")
+
         self._options_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         self._options_row.grid(row=2, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="w")
         options_row = self._options_row  # local alias for convenience
@@ -290,7 +300,8 @@ class BuildMixin:
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
-        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Configure Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Run Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+
 
 
         # Search options group: AND/OR, Recursive, Whole Word, ?
@@ -447,6 +458,20 @@ class BuildMixin:
         self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
         Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
 
+        # Standard Search Wizard — at the end of the options row
+        self._search_wiz_btn = ctk.CTkButton(
+            options_row,
+            text="Standard Search Wizard", width=0,
+            fg_color="transparent",
+            text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            anchor="w",
+            command=self._open_search_wizard_guide,
+            font=ctk.CTkFont(size=13),
+        )
+        self._search_wiz_btn.pack(side="left", padx=(20, 0))
+        Tooltip(self._search_wiz_btn, "Standard Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
+
 
         Tooltip(self.search_entry, "Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
 
@@ -524,38 +549,22 @@ class BuildMixin:
         Note: the Advanced toggle button itself is created in _build_search_row
         so it appears between the options group and the save group.
         """
-        # Search Wizard — next to Save/Reload group
-        self._search_wiz_btn = ctk.CTkButton(
-            self._options_row,
-            text="\U0001F9D9", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
-            command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=34),
-        )
-        self._search_wiz_btn.pack(side="left", padx=(20, 0))
-        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
-
-        # Suites button — next to Wizard
+        # Run Search Suites button — sits next to Run Standard Search in the run-buttons row
         self._suites_btn = ctk.CTkButton(
-            self._options_row,
-            text="Suites", width=0,
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            anchor="w",
+            self._run_search_frame,
+            text="Run Search Suites", width=260, height=44,
+            fg_color="#2196F3", hover_color="#1976D2",
+            text_color="white",
             command=self._show_search_suites,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=24, weight="bold"),
         )
-        self._suites_btn.pack(side="left", padx=(10, 0))
-        Tooltip(self._suites_btn, "Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="left")
+        self._suites_btn.pack(side="left", padx=(12, 0))
+        Tooltip(self._suites_btn, "Run Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="above")
 
-        # Configure Regex Search button — gray, font matches Run Standard Search
+        # Run Regex Search button — gray, font matches Run Standard Search
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Configure Regex Search", width=320, height=44,
+            text="Run Regex Search", width=240, height=44,
             fg_color="#6B7280", hover_color="#5B6270",
             text_color="white",
             command=self._start_regex_search,
