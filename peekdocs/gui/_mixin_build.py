@@ -590,11 +590,13 @@ class BuildMixin:
         self._suites_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._suites_btn, "Run Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="above")
 
-        # Run Regex Search button — gray, font matches Run Standard Search
+        # Run Regex Search button — orange, third color in the run-buttons
+        # row so the three search modes are visually distinct
+        # (blue=Standard, green=Suites, orange=Regex).
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
             text="Run Regex Search", width=240, height=44,
-            fg_color="#6B7280", hover_color="#5B6270",
+            fg_color="#FF9800", hover_color="#F57C00",
             text_color="white",
             command=self._start_regex_search,
             font=ctk.CTkFont(size=24, weight="bold"),

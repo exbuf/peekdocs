@@ -271,7 +271,7 @@ REGEX_PATTERNS = (
 )
 
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path", "on_match"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS

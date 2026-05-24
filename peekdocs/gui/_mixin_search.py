@@ -36,6 +36,10 @@ class SearchMixin:
             self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             return
 
+        # Reset report-button context to Standard Search; a prior Suite run
+        # may have left this pointed at "peekdocs_suite_results".
+        self._report_file_prefix = "peekdocs_standard_results"
+
         # Wait for any in-progress index build or auto-refresh to finish
         if hasattr(self, '_index_process') and self._index_process is not None:
             self._show_error("Index build in progress — please wait for it to finish, or cancel it in Manage Indexes.")
@@ -1040,12 +1044,18 @@ class SearchMixin:
 
         has_matched = bool(self.matched_files)
 
-        # Check which report formats exist
+        # Check which report formats exist. _report_file_prefix lets the same
+        # report-button row serve both Standard Search and Suite runs without
+        # duplicate widgets — defaults to "peekdocs_standard_results" and is
+        # reassigned by _suite_finished() to point at "peekdocs_suite_results"
+        # so the same DOCX/TXT/etc. buttons open suite reports after a Run
+        # Suite completes.
+        prefix = getattr(self, "_report_file_prefix", "peekdocs_standard_results")
         report_formats = {}
         if self.results_dir:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
             for fmt in ("txt", "docx", "csv", "json", "pdf", "html"):
-                path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.{fmt}")
+                path = os.path.join(self.results_dir, f"{prefix}{suffix}.{fmt}")
                 report_formats[fmt] = os.path.exists(path)
 
         has_any_report = any(report_formats.values())
@@ -1539,8 +1549,9 @@ class SearchMixin:
     def _open_report_format(self, fmt):
         """Open the report file for the given format (txt, docx, csv, json)."""
         from peekdocs.gui._helpers import safe_open_file
+        prefix = getattr(self, "_report_file_prefix", "peekdocs_standard_results")
         suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
-        path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.{fmt}")
+        path = os.path.join(self.results_dir, f"{prefix}{suffix}.{fmt}")
         if not os.path.exists(path):
             self._show_error(f"Report file not found: {os.path.basename(path)}")
             return

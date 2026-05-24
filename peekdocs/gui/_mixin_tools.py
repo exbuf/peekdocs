@@ -2692,7 +2692,7 @@ class ToolsMixin:
         blank()
 
         h("STANDARD SEARCH (GREEN BUTTON) vs REGEX SEARCH")
-        b("The gray Run Regex Search button and the main search bar overlap")
+        b("The orange Run Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
         b("Standard Search (green button, main search bar \u2014 next to Step 2):")
@@ -4219,15 +4219,29 @@ class ToolsMixin:
         # TXT and DOCX are always generated
         tk.Label(output_frame, text="TXT \u2713  DOCX \u2713", font=_sf(10), fg="gray").pack(side="left", padx=(0, 10))
 
-        _suite_html_var = tk.BooleanVar(value=True)
-        _suite_csv_var = tk.BooleanVar(value=False)
-        _suite_json_var = tk.BooleanVar(value=False)
-        _suite_pdf_var = tk.BooleanVar(value=False)
+        # Seed each checkbox from ~/.peekdocsrc so the user's last selection
+        # persists across popup invocations. Saved on every toggle.
+        try:
+            from peekdocs.cli import _load_config as _load_cfg_suite
+            _suite_cfg = _load_cfg_suite()
+        except Exception:
+            _suite_cfg = {}
+        _suite_html_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_html", False)))
+        _suite_csv_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_csv", False)))
+        _suite_json_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_json", False)))
+        _suite_pdf_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_pdf", False)))
 
-        tk.Checkbutton(output_frame, text="HTML", variable=_suite_html_var, font=_sf(10)).pack(side="left", padx=(0, 5))
-        tk.Checkbutton(output_frame, text="CSV", variable=_suite_csv_var, font=_sf(10)).pack(side="left", padx=(0, 5))
-        tk.Checkbutton(output_frame, text="JSON", variable=_suite_json_var, font=_sf(10)).pack(side="left", padx=(0, 5))
-        tk.Checkbutton(output_frame, text="PDF", variable=_suite_pdf_var, font=_sf(10)).pack(side="left", padx=(0, 5))
+        def _save_suite_fmt(key, var):
+            self._save_ui_preference(key, bool(var.get()))
+
+        tk.Checkbutton(output_frame, text="HTML", variable=_suite_html_var, font=_sf(10),
+                       command=lambda: _save_suite_fmt("suite_html", _suite_html_var)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="CSV", variable=_suite_csv_var, font=_sf(10),
+                       command=lambda: _save_suite_fmt("suite_csv", _suite_csv_var)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="JSON", variable=_suite_json_var, font=_sf(10),
+                       command=lambda: _save_suite_fmt("suite_json", _suite_json_var)).pack(side="left", padx=(0, 5))
+        tk.Checkbutton(output_frame, text="PDF", variable=_suite_pdf_var, font=_sf(10),
+                       command=lambda: _save_suite_fmt("suite_pdf", _suite_pdf_var)).pack(side="left", padx=(0, 5))
 
         # ── Bottom: Run Suite + Close ──
         bottom = tk.Frame(win)
@@ -4499,9 +4513,33 @@ class ToolsMixin:
                 except Exception:
                     json_path = ""
 
+            pdf_path = ""
+            if _fmts.get("pdf", False):
+                pdf_path = os.path.join(output_folder, "peekdocs_suite_results.pdf")
+                try:
+                    from peekdocs.reporter import write_pdf_report
+                    # Flatten matches across all suite sections — every match
+                    # gets a row in the PDF, with the suite name as the search
+                    # context. (Per-section delimiters are a polish item.)
+                    flat_matches = []
+                    flat_terms = []
+                    for s in sections:
+                        for fd, fn, ln, text in s["matches"]:
+                            flat_matches.append((fd, fn, ln, text))
+                        for t in s.get("search_terms", []):
+                            if t not in flat_terms:
+                                flat_terms.append(t)
+                    write_pdf_report(
+                        pdf_path, flat_matches,
+                        search_terms=flat_terms or [suite_name],
+                        report_mode="ANY",
+                    )
+                except Exception:
+                    pdf_path = ""
+
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
-            extra_paths = {"html": html_path, "csv": csv_path, "json": json_path}
+            extra_paths = {"html": html_path, "csv": csv_path, "json": json_path, "pdf": pdf_path}
             self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path, extra_paths))
 
         threading.Thread(target=_run, daemon=True).start()
@@ -4575,60 +4613,85 @@ class ToolsMixin:
             self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
-        # Show View Suite Report buttons on the status bar
-        import tkinter as tk
-
-        # Remove any previous suite report buttons
-        if hasattr(self, "_suite_report_frame"):
-            self._suite_report_frame.destroy()
-
-        self._suite_report_frame = tk.Frame(self._input_frame)
-        self._suite_report_frame.grid(row=8, column=0, columnspan=3, padx=(10, 5), pady=(2, 5), sticky="w")
-
-        tk.Label(self._suite_report_frame, text="View Suite Report:",
-                 font=("TkDefaultFont", 11, "bold")).pack(side="left", padx=(0, 5))
-
-        def _open_file(path):
-            from peekdocs.gui._helpers import safe_open_file
-            try:
-                warning = safe_open_file(path)
-                if warning:
-                    self._show_error(warning)
-            except Exception:
-                pass
-
-        if os.path.exists(docx_path):
-            ctk.CTkButton(
-                self._suite_report_frame, text="DOCX", width=60,
-                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
-                command=lambda: _open_file(docx_path),
-            ).pack(side="left", padx=2)
-
-        if os.path.exists(txt_path):
-            ctk.CTkButton(
-                self._suite_report_frame, text="TXT", width=50,
-                font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
-                command=lambda: _open_file(txt_path),
-            ).pack(side="left", padx=2)
-
-        _ep = extra_paths or {}
-        for fmt, label in [("html", "HTML"), ("csv", "CSV"), ("json", "JSON")]:
-            path = _ep.get(fmt, "")
-            if path and os.path.exists(path):
-                ctk.CTkButton(
-                    self._suite_report_frame, text=label, width=60,
-                    font=ctk.CTkFont(size=11), fg_color="green", hover_color="darkgreen",
-                    command=lambda p=path: _open_file(p),
-                ).pack(side="left", padx=2)
+        # Reuse the existing report-button row (DOCX / TXT / CSV / JSON / PDF /
+        # HTML) for suite reports rather than creating a parallel row that
+        # overwrites it. Set the mode marker and the timestamp suffix that the
+        # standard report row already uses, then let _show_action_buttons()
+        # render and color the buttons.
+        import re as _re_ts
+        self.results_dir = folder
+        self._report_file_prefix = "peekdocs_suite_results"
+        _ts_match = _re_ts.search(r"_(\d{8}_\d{6})\.", txt_path)
+        self._last_ts_suffix = _ts_match.group(1) if _ts_match else ""
+        self._show_action_buttons()
 
         # Show results in preview
         if hasattr(self, "preview_frame"):
             self.preview_frame.grid()
         if hasattr(self, "preview_text"):
+            # Build a combined highlight regex from every section's terms so
+            # matched text in the preview gets the same yellow "match" tag the
+            # standard search uses.
+            import re as _re_hl
+            from peekdocs.scanner import _wildcard_to_regex as _wc2re
+            hl_patterns = []
+            for section in sections:
+                params = section.get("params", {}) or {}
+                use_regex = params.get("regex", False)
+                use_wildcard = params.get("wildcard", False)
+                use_whole_word = params.get("whole_word", False)
+                for term in section.get("search_terms", []):
+                    if not term:
+                        continue
+                    if use_wildcard:
+                        hl_patterns.append(_wc2re(term))
+                    elif use_regex:
+                        hl_patterns.append(term)
+                    elif use_whole_word:
+                        pfx = r"\b" if _re_hl.match(r"\w", term) else ""
+                        sfx = r"\b" if _re_hl.search(r"\w$", term) else ""
+                        hl_patterns.append(pfx + _re_hl.escape(term) + sfx)
+                    else:
+                        hl_patterns.append(_re_hl.escape(term))
+            hl_re = None
+            if hl_patterns:
+                try:
+                    hl_re = _re_hl.compile("|".join(hl_patterns), _re_hl.IGNORECASE)
+                except _re_hl.error:
+                    hl_re = None
+
+            def _insert_hl(text):
+                if not hl_re:
+                    self.preview_text.insert("end", text)
+                    return
+                pos = 0
+                for m in hl_re.finditer(text):
+                    if m.start() > pos:
+                        self.preview_text.insert("end", text[pos:m.start()])
+                    self.preview_text.insert("end", m.group(), "match")
+                    pos = m.end()
+                if pos < len(text):
+                    self.preview_text.insert("end", text[pos:])
+
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
             self.preview_text.insert("end", f"Suite Report: {suite_name}\n", "filename")
             self.preview_text.insert("end", f"Searches: {len(sections)}, Found {total_matches} match(es) in {total_matched_files_status} file(s)\n\n")
+
+            # Up-front section summary so the user sees every search and its
+            # match count without having to scroll past the first section.
+            if len(sections) > 1:
+                self.preview_text.insert("end", "Section summary:\n", "filename")
+                name_w = max(len(s["search_name"]) for s in sections)
+                for i, s in enumerate(sections, 1):
+                    stot = s.get("total_match_count", len(s["matches"]))
+                    smfc = s.get("matched_file_count", 0)
+                    self.preview_text.insert(
+                        "end",
+                        f"  {i}. {s['search_name']:<{name_w}}  {stot} match(es) in {smfc} file(s)\n",
+                    )
+                self.preview_text.insert("end", "\n")
+
             for section in sections:
                 name = section["search_name"]
                 mfc = section.get("matched_file_count", 0)
@@ -4639,7 +4702,9 @@ class ToolsMixin:
                 self.preview_text.insert("end", f" — {s_total} match(es) in {mfc} file(s). Files searched: {files_searched}\n")
                 s_matches = section["matches"]
                 for fd, fn, ln, text in s_matches[:20]:  # first 20 per section
-                    self.preview_text.insert("end", f"  {fn}:{ln}: {text[:120]}\n")
+                    self.preview_text.insert("end", f"  {fn}:{ln}: ")
+                    _insert_hl(text[:120])
+                    self.preview_text.insert("end", "\n")
                 if len(s_matches) > 20:
                     self.preview_text.insert("end", f"  ... and {len(s_matches) - 20} more\n")
                 self.preview_text.insert("end", "\n")
@@ -5511,7 +5576,7 @@ class ToolsMixin:
         ctk.CTkButton(
             btn_frame, text="Run Regex Search", width=170,
             font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="green", hover_color="darkgreen",
+            fg_color="#FF9800", hover_color="#F57C00",
             command=_run,
         ).pack(expand=True)
         ctk.CTkButton(

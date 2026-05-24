@@ -811,6 +811,15 @@ def write_suite_txt_report(output_path, suite_name, sections):
         f.write(f"Total time: {total_elapsed:.2f}s\n")
         f.write("\n")
 
+        if len(sections) > 1:
+            f.write("Section summary:\n")
+            name_w = max(len(s["search_name"]) for s in sections)
+            for i, s in enumerate(sections, 1):
+                stot = s.get("total_match_count", len(s["matches"]))
+                smfc = s.get("matched_file_count", 0)
+                f.write(f"  {i}. {s['search_name']:<{name_w}}  {stot} match(es) in {smfc} file(s)\n")
+            f.write("\n")
+
         for i, section in enumerate(sections, 1):
             name = section["search_name"]
             matches = section["matches"]
@@ -901,7 +910,7 @@ def write_suite_docx_report(docx_path, txt_path, sections):
             para = doc.add_paragraph()
 
             # Section headers get bold formatting
-            if line.startswith("Suite Report:") or line.startswith("Search "):
+            if line.startswith("Suite Report:") or line.startswith("Search ") or line.startswith("Section summary:"):
                 run = para.add_run(line)
                 run.bold = True
                 run.font.size = Pt(12)
@@ -986,12 +995,26 @@ def write_suite_html_report(output_path, suite_name, sections):
                 "white-space: pre-wrap; }\n")
         f.write("mark { background: #ffff00; padding: 1px 2px; }\n")
         f.write(".section-meta { color: #888; font-size: 0.85em; }\n")
+        f.write(".toc { background: #f0f7ff; border-left: 4px solid #2196F3; "
+                "padding: 10px 16px; margin: 1em 0; }\n")
+        f.write(".toc ol { margin: 4px 0 0 0; padding-left: 24px; }\n")
+        f.write(".toc a { color: #1565C0; text-decoration: none; }\n")
+        f.write(".toc a:hover { text-decoration: underline; }\n")
         f.write("</style>\n</head>\n<body>\n")
 
         f.write(f"<h1>peekdocs v{html_mod.escape(_ver_sh)} — Suite: {html_mod.escape(suite_name)}</h1>\n")
         f.write(f"<div class='meta'>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br>\n")
         f.write(f"Searches: {len(sections)} | Total matches: {total_matches} in {total_matched_files} file(s)<br>\n")
         f.write(f"Total time: {total_elapsed:.2f}s</div>\n")
+
+        if len(sections) > 1:
+            f.write("<div class='toc'><b>Section summary:</b>\n<ol>\n")
+            for i, s in enumerate(sections, 1):
+                stot = s.get("total_match_count", len(s["matches"]))
+                smfc = s.get("matched_file_count", 0)
+                f.write(f"<li><a href='#sec{i}'>{html_mod.escape(s['search_name'])}</a> "
+                        f"— {stot} match(es) in {smfc} file(s)</li>\n")
+            f.write("</ol></div>\n")
 
         for i, section in enumerate(sections, 1):
             name = section["search_name"]
@@ -1001,7 +1024,7 @@ def write_suite_html_report(output_path, suite_name, sections):
             elapsed = section["elapsed"]
             s_total = section.get("total_match_count", len(matches))
 
-            f.write(f"<h2>Search {i}/{len(sections)}: {html_mod.escape(name)}</h2>\n")
+            f.write(f"<h2 id='sec{i}'>Search {i}/{len(sections)}: {html_mod.escape(name)}</h2>\n")
             f.write(f"<div class='section-meta'>Terms: {html_mod.escape(' '.join(section['search_terms']))} "
                     f"| Mode: {section['report_mode']} | "
                     f"Found {s_total} match(es) in {mfc} file(s) | "
