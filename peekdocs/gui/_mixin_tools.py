@@ -3979,7 +3979,7 @@ class ToolsMixin:
         tk.Label(
             win,
             text="Group saved searches and run them together. Results go into a single combined report. "
-                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main screen, then reopen Search Suites.",
+                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main page, then reopen Search Suites.",
             font=_sf(10), fg="gray", wraplength=850, justify="left", anchor="w",
         ).pack(fill="x", padx=12, pady=(0, 2))
 
@@ -4710,6 +4710,78 @@ class ToolsMixin:
                 self.preview_text.insert("end", "\n")
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
+
+    def _show_search_modes_compare(self):
+        """Show a short side-by-side comparison of the three search modes."""
+        import tkinter as tk
+        win, _dark = self._themed_toplevel()
+        win.title("Search Modes — What’s the Difference?")
+        win.geometry("720x520")
+        win.resizable(True, True)
+        win.transient(self)
+
+        txt = tk.Text(win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=18, pady=12, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("title", font=("TkDefaultFont", 15, "bold"),
+                          spacing1=4, spacing3=8)
+        txt.tag_configure("std", font=("TkDefaultFont", 13, "bold"),
+                          foreground="#1976D2", spacing1=10, spacing3=4)
+        txt.tag_configure("suite", font=("TkDefaultFont", 13, "bold"),
+                          foreground="#5E9516", spacing1=10, spacing3=4)
+        txt.tag_configure("regex", font=("TkDefaultFont", 13, "bold"),
+                          foreground="#F57C00", spacing1=10, spacing3=4)
+        txt.tag_configure("body", font=("TkDefaultFont", 12),
+                          lmargin1=18, lmargin2=18, spacing1=2, spacing3=4)
+        txt.tag_configure("foot", font=("TkDefaultFont", 11, "italic"),
+                          foreground="#666666", spacing1=14)
+
+        txt.insert("end", "Three ways to search\n", "title")
+        txt.insert("end",
+                   "peekdocs has three Run buttons on the main page. "
+                   "They share the same folder and same file types but "
+                   "differ in what they do and what report they produce.\n",
+                   "body")
+
+        txt.insert("end", "Run Standard Search (blue)\n", "std")
+        txt.insert("end",
+                   "Type one or more terms in the search box and click Run. "
+                   "Supports AND/OR, whole-word, fuzzy, wildcard, and a single "
+                   "regex term. Produces one report with every match.\n"
+                   "Click the Advanced link above the run-buttons row to open "
+                   "Advanced Search Options — file types, exclude terms, "
+                   "range filters, proximity, context lines, OCR, and more "
+                   "all live there and apply to the standard search.\n"
+                   "Best for: most everyday searches.\n", "body")
+
+        txt.insert("end", "Run Search Suites (green)\n", "suite")
+        txt.insert("end",
+                   "Group several saved searches into a named suite, then run "
+                   "them all with one click. Produces one combined report with "
+                   "a separate section per saved search.\n"
+                   "Best for: recurring multi-topic reviews where you want all "
+                   "the results in a single document.\n", "body")
+
+        txt.insert("end", "Run Regex Search (orange)\n", "regex")
+        txt.insert("end",
+                   "Open the Regex workflow to build or run a named collection "
+                   "of up to 10 regex patterns. Each pattern runs separately, "
+                   "with per-pattern results.\n"
+                   "Best for: pattern-based work — structured strings, IDs, "
+                   "URLs, code tokens — where regular search terms aren’t "
+                   "expressive enough.\n", "body")
+
+        txt.insert("end",
+                   "Tip: not sure which to use? Start with Run Standard Search. "
+                   "Move up to Suites when you find yourself running the same "
+                   "two or three searches together, or Regex when you need "
+                   "pattern matching.",
+                   "foot")
+        txt.configure(state="disabled")
 
     def _cancel_suite(self):
         """Cancel a running suite search."""

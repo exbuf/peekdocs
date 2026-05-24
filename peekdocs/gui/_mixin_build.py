@@ -307,9 +307,15 @@ class BuildMixin:
         _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
         Tooltip(_step_lbl_3, "Run Standard Search — click to search all files in the folder")
 
-        btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        # Run-buttons row is a vertical stack: top sub-row holds the three
+        # Run buttons; bottom sub-row holds the "What's the difference?" link.
+        _run_outer = ctk.CTkFrame(self._input_frame, fg_color="transparent")
+        _run_outer.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
+
+        btn_frame = ctk.CTkFrame(_run_outer, fg_color="transparent")
+        btn_frame.pack(side="top", fill="x", anchor="w")
         self._run_search_frame = btn_frame
-        btn_frame.grid(row=3, column=1, columnspan=2, padx=(5, 5), pady=(0, 8), sticky="ew")
+        self._run_search_outer = _run_outer
 
         # Run Standard Search button — standalone
         self.search_button = ctk.CTkButton(
@@ -588,7 +594,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._suites_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._suites_btn, "Run Search Suites — group saved searches into a named suite and run them all at once with a single click", anchor="above")
+        Tooltip(self._suites_btn, "Run Search Suites — group saved searches into a named suite and run them all at once with a single click")
 
         # Run Regex Search button — orange, third color in the run-buttons
         # row so the three search modes are visually distinct
@@ -603,6 +609,20 @@ class BuildMixin:
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
         Tooltip(self._regex_search_btn, "Open the Regex Search workflow — create or run a named collection of up to 10 regex patterns, each executed separately with per-pattern results. Results depend on the report checkbox setting in the popup.")
+
+        # "What's the difference?" link below the three Run buttons. Muted
+        # blue + underline matches the Advanced/Wizard hyperlink styling and
+        # gives novices a no-commitment way to learn which mode to pick.
+        self._mode_compare_link = ctk.CTkLabel(
+            self._run_search_outer,
+            text="What’s the difference?",
+            text_color="#1565C0",
+            font=ctk.CTkFont(size=12, underline=True),
+            cursor="hand2",
+        )
+        self._mode_compare_link.pack(side="top", anchor="w", padx=(2, 0), pady=(2, 0))
+        self._mode_compare_link.bind("<Button-1>", lambda _e: self._show_search_modes_compare())
+        Tooltip(self._mode_compare_link, "Quick comparison of Run Standard Search vs. Run Search Suites vs. Run Regex Search")
 
 
 
