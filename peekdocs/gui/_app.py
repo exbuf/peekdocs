@@ -43,7 +43,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.withdraw()  # Hide until setup is complete to prevent flicker
         self.geometry("1280x800")
         self.minsize(1280, 700)
-        self._center_window(1050, 720)
+        self._center_window(1280, 760)
 
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")

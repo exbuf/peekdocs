@@ -293,7 +293,7 @@ class BuildMixin:
 
         self._options_row = ctk.CTkFrame(
             self._input_frame,
-            fg_color=("gray85", "gray20"),
+            fg_color="#8FCC3B",
             border_width=2, border_color=("gray40", "gray60"),
             corner_radius=8,
         )
@@ -387,7 +387,9 @@ class BuildMixin:
 
         self._folder_recursive_cb = ctk.CTkCheckBox(
             options_group, text="Recursive", variable=self.recursive_var,
-            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            onvalue="on", offvalue="off",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=("black", "black"),
         )
         self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
         Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting")
@@ -395,20 +397,24 @@ class BuildMixin:
         self.whole_word_var = ctk.StringVar(value="on")
         self._search_whole_word_cb = ctk.CTkCheckBox(
             options_group, text="Whole Word", variable=self.whole_word_var,
-            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12),
+            onvalue="on", offvalue="off",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=("black", "black"),
         )
         self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
         Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options")
 
-        # ? help for this options group
+        # ? help for this options group — chip styling so the help affordance
+        # reads clearly on the green options-row background.
         options_help_btn = ctk.CTkButton(
-            options_group, text="?", width=0, height=22,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            options_group, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color=("gray80", "gray50"), text_color=("black", "black"),
+            hover_color=("gray70", "gray60"),
+            corner_radius=15,
             command=self._show_search_options_help,
         )
-        options_help_btn.pack(side="left", padx=(0, 4), pady=3)
+        options_help_btn.pack(side="left", padx=(4, 4), pady=3)
         Tooltip(options_help_btn, "Help — explains AND/OR, Recursive, and Whole Word")
 
         # Advanced Search Options toggle — between options group and save group
@@ -416,7 +422,7 @@ class BuildMixin:
             options_row,
             text="Advanced", width=0,
             fg_color="transparent",
-            text_color=("gray30", "gray70"),
+            text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self.toggle_advanced,
@@ -428,7 +434,10 @@ class BuildMixin:
         self.index_search_var = ctk.StringVar(value="off")
         self.cb_index_search = ctk.CTkCheckBox(
             options_row, text="Use Index", variable=self.index_search_var,
-            onvalue="on", offvalue="off", font=ctk.CTkFont(size=12, weight="bold"),
+            onvalue="on", offvalue="off",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=("black", "black"),
+            text_color_disabled=("black", "black"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
@@ -438,11 +447,11 @@ class BuildMixin:
             options_row,
             text="Search Wizard", width=0,
             fg_color="transparent",
-            text_color=("gray30", "gray70"),
+            text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             anchor="w",
             command=self._open_search_wizard_guide,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=13, weight="bold"),
         )
         self._search_wiz_btn.pack(side="left", padx=(20, 0))
         Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
@@ -450,37 +459,38 @@ class BuildMixin:
         # Save, Reload, and ? grouped together
         # Transparent — sits inside the now-tinted options_row.
         save_group = ctk.CTkFrame(options_row, fg_color="transparent")
-        save_group.pack(side="left", padx=(15, 4), pady=4)
+        save_group.pack(side="left", padx=(5, 4), pady=4)
 
         self.save_to_collection_btn = ctk.CTkButton(
             save_group, text="\u25b6 Save", width=120,
             fg_color="transparent",
-            text_color=("gray30", "gray70"),
+            text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             command=self._save_to_collection,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=13, weight="bold"),
         )
-        self.save_to_collection_btn.pack(side="left", padx=(10, 6), pady=3)
+        self.save_to_collection_btn.pack(side="left", padx=(2, 2), pady=3)
         Tooltip(self.save_to_collection_btn, "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
 
         self.load_search_btn = ctk.CTkButton(
             save_group, text="\u25b6 Reload", width=120,
             fg_color="transparent",
-            text_color=("gray30", "gray70"),
+            text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             command=self._open_load_search_popup,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=13, weight="bold"),
         )
-        self.load_search_btn.pack(side="left", padx=(6, 6), pady=3)
+        self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
         Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
         self._load_search_popup = None
 
         self.save_load_help_btn = ctk.CTkButton(
-            save_group, text="?", width=0, height=22,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="transparent",
-            text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            save_group, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color=("gray80", "gray50"),
+            text_color=("black", "black"),
+            hover_color=("gray70", "gray60"),
+            corner_radius=15,
             command=self._show_save_load_help,
         )
         self.save_load_help_btn.pack(side="left", padx=(2, 4), pady=3)
