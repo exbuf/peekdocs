@@ -281,13 +281,14 @@ class BuildMixin:
         Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
 
         # Row 2: options row (AND/OR, Save/Reload, Use Index)
-        # Small "Options" label in column 0, under the Step 2 tag, for visual cue.
+        # Small two-line "Search\nOptions" label in column 0, under the Step 2 tag.
         # Faded color + small font so it doesn't compete with the Step labels.
         self._options_lbl = ctk.CTkLabel(
             self._input_frame,
-            text="Options",
+            text="Search\nOptions",
             font=ctk.CTkFont(size=16),
             text_color=("gray55", "gray55"),
+            justify="left",
         )
         self._options_lbl.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="nw")
 
