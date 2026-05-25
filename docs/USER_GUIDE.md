@@ -560,7 +560,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--dry-run` (dry-run) | Show the scope of a search without running it. Walks file discovery (`-r`, `-t`, `-f`, `-O`, `--max-file-size` all respected) and prints the count, total size, and per-extension breakdown. No content is read, no reports are written, the index is not touched, and the run is not added to `~/.peekdocs_runs.log`. Search terms are accepted but ignored — they don't affect scope. Add `--stdout` for JSON output. Useful as a "what would this do?" preflight on network shares and large folders. **Standard search only in this release** — `--dry-run` with `--suite` or `--regex-collection` exits with an error rather than running silently. |
 | `--no-log` (no-log) | Skip writing this single run to `~/.peekdocs_runs.log`. The run log is enabled by default and captures every search-mode invocation. Persistent opt-out: `--config run_log=false`. See [Automation and IT Use → Per-run structured log](#per-run-structured-log) |
 | `--runs` (runs) | Show the last 20 runs from the log in a readable table. `--runs N` shows the last N. `--runs --json` re-emits the raw JSON Lines for piping. The `--runs` command itself is never logged. See [Per-run structured log](#per-run-structured-log) |
-| `--diff OLD NEW` (diff) | Compare two peekdocs JSON outputs (from `--stdout` or `-o json`) and report what changed: NEW files matching, REMOVED files, CHANGED match counts, MODIFIED file content (when both were produced with `--hash`). Default output is human-readable; add `--json` for a structured payload. Exit codes are diff-flavored: 0 = no actionable change, 1 = new findings detected, 2 = error — so `peekdocs --diff yesterday.json today.json \|\| alert` works. See [Diff between runs](#diff-between-runs) |
+| `--diff OLD NEW` (diff) | Compare two peekdocs JSON outputs (from `--stdout` or `-o json`) and report what changed: NEW files matching, REMOVED files, CHANGED match counts, MODIFIED file content (when both were produced with `--hash`). Default output is human-readable; add `--json` for a structured payload. Exit codes are diff-flavored: 0 = no actionable change, 1 = new findings detected, 2 = error — so `peekdocs --diff yesterday.json today.json \|\| alert` works. Also available in the GUI: `Tools → Diff Snapshots`. See [Diff between runs](#diff-between-runs) |
 | `--on-match CMD` (on-match) | Run an external command (notification hook) when a search finds matches. Fires only on exit 0; skipped for no-match runs, errors, `--dry-run`, and informational commands. The command is invoked without a shell — quoted arguments work, pipes/redirects do not (wrap them in a script). 30-second timeout. Hook receives `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_FILE_COUNT`, `PEEKDOCS_ERROR_COUNT`, `PEEKDOCS_ELAPSED_SECONDS`, `PEEKDOCS_ARGV`, `PEEKDOCS_CWD`, and `PEEKDOCS_REPORT_TXT` / `_DOCX` / `_JSON` / `_HTML` / `_CSV` / `_PDF` (whichever were written). Persistent default: `--config on_match=/path/to/script`. Override per-run with `--on-match ""` (empty string) to disable. See [Notification hook](#notification-hook) |
 | `-w` (wildcard) | Wildcard pattern search — `*` matches any characters, `?` matches one character |
 | `-W` (whole-word) | Whole-word matching — matches complete words only (`bob` matches "bob" but not "bobcat") |
@@ -1388,9 +1388,34 @@ jq 'select(.on_match_fired == false and .match_count > 0) | .timestamp + " " + (
 
 ### Diff between runs
 
-For periodic scheduled scans the question is almost never "what matches?" but "what's *new* since last week?" The `--diff` command compares two peekdocs JSON outputs and reports just the delta — new files matching, files that gained matches, files whose content changed under a steady match count.
+#### Why compare snapshots? (and why JSON?)
 
-**Basic usage:**
+If you do not come from an IT or security background, "diff two scan results" can sound abstract. Here is what it actually solves.
+
+**The pattern is drift detection.** Picture a QA bench. You do not re-inspect every solder joint on every board — you compare today's reject rate against yesterday's and investigate only the delta. Schedule a peekdocs scan to run every night (via cron on Linux/macOS or Task Scheduler on Windows) and the same logic applies: the interesting question is rarely "how many matches?" but **"what's new since last time?"**
+
+It is the difference between a multimeter and a strip-chart recorder. A standard search is the multimeter — "what's the value right now?" The `--diff` workflow is the strip chart — "show me when the reading drifted, and by how much."
+
+**JSON is just structured plain text.** Think of it as a SPICE netlist or a BOM file with labeled columns. Each entry has a `"filename"`, a `"folder"`, a `"matches"` count, optionally a `"sha256"`. Open one in TextEdit or `less` — it is readable. It is the format `--diff` uses because:
+
+1. *A program can parse it without ambiguity.* The cron job that produced the snapshot pipes it into the next stage (alerting, ticketing, an audit log) and that stage needs structure, not prose.
+2. *Humans can still read and grep it.* JSON is not binary; if a script misbehaves, you can open the file and see exactly what was captured.
+
+CSV could carry some of the same data, but JSON handles nested structure (files contain matches contain line numbers) more naturally and is the de facto modern choice for machine-to-machine handoff.
+
+**Typical things IT staff look for** with snapshot-diffing:
+
+- **Credential leaks.** Did anyone commit a hardcoded `password=`, AWS key, or API token to source control this week that wasn't there before? Diff yesterday's snapshot against today's; alert on **NEW** entries only.
+- **Cleanup verification.** A contractor was told to remove every `TODO: fix before ship`. Did they actually do it? Snapshot before and after — the **REMOVED** count should equal the original TODO count.
+- **Policy drift.** A document folder is supposed to contain no personal phone numbers. Did one slip in this quarter? **NEW** entries are the alert.
+- **Content tampering (with `--hash`).** An archived contract should never change between audit cycles. If the SHA-256 differs but the match count is identical, someone edited the file without changing what we were watching for — that lands in the **MODIFIED** bucket.
+- **Trend analysis.** Plot the CHANGED counts week over week to see whether a problem (deprecated API usage, log error volume) is shrinking or growing.
+
+If you use peekdocs interactively — running searches yourself, eyeballing the report — you will likely never need `--diff`. It exists for the unattended, scheduled, machine-monitored use case where the human is asleep when the scan runs and only wants to be paged on real change.
+
+> **GUI surface:** `Tools → Diff Snapshots` opens the same workflow with two file pickers, a Compare button, and a color-coded results pane (green = NEW, red = REMOVED, orange = CHANGED, purple = MODIFIED). It calls the same code as the CLI, so output matches. Use the GUI for ad-hoc inspection; use the CLI for scheduled jobs that need exit codes for alerting.
+
+#### Basic usage
 
 ```bash
 # Snapshot 1 (run weekly via cron, save with --timestamp or a date in the name)
