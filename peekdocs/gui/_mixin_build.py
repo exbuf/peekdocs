@@ -291,6 +291,7 @@ class BuildMixin:
             justify="left",
         )
         self._options_lbl.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="nw")
+        Tooltip(self._options_lbl, "Search options that apply to the Run Standard Search button on the next row: AND vs OR, Recursive (include subfolders), Whole Word, Use Index, plus Save / Reload of the entire current search by name. For everything else — file types, exclude terms, range filters, proximity, OCR, context lines, output formats — click the Advanced link above this row.")
 
         self._options_row = ctk.CTkFrame(
             self._input_frame,
