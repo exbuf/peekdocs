@@ -2875,6 +2875,7 @@ peekdocs/
 | **jq** | Command-line JSON processor — grep/awk/sed for JSON. Useful for filtering peekdocs's `--stdout`, `-o json`, and `~/.peekdocs_runs.log` outputs. Install via `brew install jq` or your distro's package manager |
 | **JSON Lines (JSONL / NDJSON)** | Streaming text format: one self-contained JSON object per line. Universal in log shipping (Filebeat, Splunk, Elastic) because malformed lines don't break later ones. peekdocs's `~/.peekdocs_runs.log` uses it; so does `--runs --json` |
 | **MIT License** | A permissive open-source license that lets anyone use, copy, modify, and share the software for free, with no restrictions |
+| **MSP technician** | Managed Service Provider technician — an IT professional employed by an outside firm that manages computers, networks, and software for client businesses on contract. One MSP typically serves dozens of small clients who do not have their own in-house IT staff |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
