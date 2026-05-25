@@ -4,8 +4,20 @@ import csv
 import json
 import os
 import re
+import sys
 
 import pytest
+
+# Tests that rely on a POSIX-shell hook script (``#!/bin/sh``) can't run
+# on Windows. The peekdocs ``--on-match`` feature itself is cross-platform
+# (the hook is invoked via ``subprocess.run(shlex.split(command))`` — no
+# shell), but the test fixtures below write inline POSIX scripts that
+# Windows can't execute. Marker keeps the contract verified on macOS and
+# Linux without misreporting Windows as broken.
+_posix_only = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Test fixture uses a POSIX shell script; --on-match is cross-platform.",
+)
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from fpdf import FPDF
@@ -3701,6 +3713,7 @@ def test_dry_run_with_regex_collection_errors_cleanly(tmp_path, monkeypatch, cap
 
 # ── --on-match (notification hook) ─────────────────────────────────────
 
+@_posix_only
 def test_on_match_fires_when_matches_found(tmp_path, monkeypatch):
     """--on-match runs the given command when matches are found."""
     (tmp_path / "doc.txt").write_text("TODO: x\n")
@@ -3738,6 +3751,7 @@ def test_on_match_does_not_fire_on_no_match(tmp_path, monkeypatch):
     assert not flag_file.exists()
 
 
+@_posix_only
 def test_on_match_passes_report_paths_for_standard_search(tmp_path, monkeypatch):
     """PEEKDOCS_REPORT_TXT / _DOCX are set when standard reports are written."""
     (tmp_path / "doc.txt").write_text("TODO: x\n")
@@ -3779,6 +3793,7 @@ def test_on_match_unknown_command_warns_but_succeeds(tmp_path, monkeypatch, caps
     assert result == 0
 
 
+@_posix_only
 def test_on_match_logged_in_run_log(tmp_path, monkeypatch):
     """The run log entry includes on_match_fired when --on-match was set."""
     (tmp_path / "doc.txt").write_text("TODO: x\n")
@@ -3803,6 +3818,7 @@ def test_on_match_absent_when_flag_not_used(tmp_path, monkeypatch):
     assert "on_match_fired" not in entries[0]
 
 
+@_posix_only
 def test_on_match_config_default_picked_up(tmp_path, monkeypatch):
     """`--config on_match=...` saves a persistent default that fires without the flag."""
     (tmp_path / "doc.txt").write_text("TODO: x\n")

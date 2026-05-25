@@ -75,12 +75,18 @@ def _create_schema(conn):
 
 
 def _validate_db(directory):
-    """Check if the index database is valid. Returns True if ok, False if corrupt."""
+    """Check if the index database is valid. Returns True if ok, False if corrupt.
+
+    The connection is always closed on the way out, including on the
+    corruption / error paths. Important on Windows: if the connection
+    handle is left open here, the subsequent ``os.remove`` of the
+    corrupt DB in ``_handle_corrupt_db`` fails with PermissionError.
+    """
+    conn = None
     try:
         conn = _connect(directory)
         conn.execute("SELECT COUNT(*) FROM files")
         conn.execute("SELECT COUNT(*) FROM paragraphs")
-        conn.close()
         return True
     except sqlite3.DatabaseError:
         return False
@@ -89,6 +95,12 @@ def _validate_db(directory):
         if "locked" in str(e).lower():
             return True
         return False
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def _handle_corrupt_db(directory):
