@@ -11,7 +11,7 @@ FUZZY_THRESHOLD = 80
 INDEX_FILENAME = ".peekdocs.db"
 
 TESTED_PYTHON_MIN = (3, 10)
-TESTED_PYTHON_MAX = (3, 13)
+TESTED_PYTHON_MAX = (3, 14)
 
 
 def _default_cores():
