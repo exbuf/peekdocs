@@ -64,6 +64,7 @@ for match in results.matches:
 - [Who Is It For?](#who-is-it-for)
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
+- [What peekdocs Is Not](#what-peekdocs-is-not)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
@@ -72,7 +73,6 @@ for match in results.matches:
 - [Why Not Just Use OS Search?](#why-not-just-use-os-search)
 - [Why Not Just Use AI?](#why-not-just-use-ai)
 - [Why Not Just Use Grep?](#why-not-just-use-grep)
-- [What peekdocs Is Not](#what-peekdocs-is-not)
 - [Performance](#performance)
 - [Platform Notes](#platform-notes)
 - [Preparing Documents](#preparing-your-documents-for-searching)
@@ -508,6 +508,20 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 **Note:** Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format. peekdocs extracts whatever readable text exists inside these files, which may be partial. Older iWork files extract fully. Apple Pages (.pages) is fully supported.
 
+## What peekdocs Is Not
+
+peekdocs is a general-purpose local text-search application. To set honest expectations, here are the things it is **not**, alongside the kind of tool you would reach for instead:
+
+- **Not a security or threat-detection product.** peekdocs matches the text patterns you give it. It does not score risk, classify findings, recognize malware, or judge whether a match is good or bad — that's your call. For threat detection, reach for a dedicated security product.
+- **Not a substitute for human review.** peekdocs surfaces matches; it does not decide which matches matter. Treat its output as a starting point for code review, document review, or whatever judgment task brought you here.
+- **Not a forensic or evidence-collection system.** The optional SHA-256 with `--hash` is a content fingerprint for snapshot comparison, not notarized, tamper-evident, or court-admissible evidence handling. For chain-of-custody workflows, reach for a dedicated forensic suite.
+- **Not an AI or summarization tool.** peekdocs does not infer, summarize, paraphrase, answer questions, or reason about what your documents say. It finds matches; that's it. For summarization or question-answering, you want an LLM (and an upload to the cloud and the tradeoffs that come with it).
+- **Not a file manager or backup tool.** peekdocs reads your files; it never moves, modifies, renames, syncs, archives, or version-controls them. It writes its own report files (all prefixed `peekdocs_`) and nothing else.
+- **Not networked.** peekdocs operates only on files mounted as local paths. It does not crawl websites, hit APIs, read SharePoint or Confluence over a network, or talk to a remote search index. A mapped network drive that appears as a regular folder works; everything else does not.
+- **Not a high-assurance or safety-critical tool.** peekdocs is offered under the MIT License "as is" without warranty. It is not designed for environments where an incorrect or missed match could cause significant harm. Users remain solely responsible for how they use and interpret its output.
+
+For what peekdocs *is*, see [Feature Highlights](#feature-highlights) and the [User Guide](docs/USER_GUIDE.md).
+
 ## Installation
 
 [Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: Quick Install with pipx](#option-b-quick-install-with-pipx) · [Option C: Manual Install (with git)](#option-c-manual-install-with-git) · [Option D: Manual Install (no git)](#option-d-manual-install-no-git-no-sign-up) · [Upgrading](#upgrading)
@@ -809,20 +823,6 @@ We're not here to replace grep. We handle the file types grep can't read, and ad
 | GUI | No | Yes |
 
 **The honest summary:** For plain-text search in a terminal, grep is faster — use it. For mixed-format documents, shareable highlighted reports, or non-terminal users, peekdocs does in one command what would take hundreds of lines of bash to approximate.
-
-## What peekdocs Is Not
-
-peekdocs is a general-purpose local text-search application. To set honest expectations, here are the things it is **not**, alongside the kind of tool you would reach for instead:
-
-- **Not a security or threat-detection product.** peekdocs matches the text patterns you give it. It does not score risk, classify findings, recognize malware, or judge whether a match is good or bad — that's your call. For threat detection, reach for a dedicated security product.
-- **Not a substitute for human review.** peekdocs surfaces matches; it does not decide which matches matter. Treat its output as a starting point for code review, document review, or whatever judgment task brought you here.
-- **Not a forensic or evidence-collection system.** The optional SHA-256 with `--hash` is a content fingerprint for snapshot comparison, not notarized, tamper-evident, or court-admissible evidence handling. For chain-of-custody workflows, reach for a dedicated forensic suite.
-- **Not an AI or summarization tool.** peekdocs does not infer, summarize, paraphrase, answer questions, or reason about what your documents say. It finds matches; that's it. For summarization or question-answering, you want an LLM (and an upload to the cloud and the tradeoffs that come with it).
-- **Not a file manager or backup tool.** peekdocs reads your files; it never moves, modifies, renames, syncs, archives, or version-controls them. It writes its own report files (all prefixed `peekdocs_`) and nothing else.
-- **Not networked.** peekdocs operates only on files mounted as local paths. It does not crawl websites, hit APIs, read SharePoint or Confluence over a network, or talk to a remote search index. A mapped network drive that appears as a regular folder works; everything else does not.
-- **Not a high-assurance or safety-critical tool.** peekdocs is offered under the MIT License "as is" without warranty. It is not designed for environments where an incorrect or missed match could cause significant harm. Users remain solely responsible for how they use and interpret its output.
-
-For what peekdocs *is*, see [Feature Highlights](#feature-highlights) and the [User Guide](docs/USER_GUIDE.md).
 
 ## Performance
 
