@@ -23,6 +23,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Search Modes and Their Reports](#search-modes-and-their-reports)
   - [Command Translation](#command-translation)
 - [Automation and IT Use](#automation-and-it-use)
+  - [A worked example: nightly source-tree watch](#a-worked-example-nightly-source-tree-watch)
   - [Exit codes](#exit-codes)
   - [JSON output (--stdout) schema](#json-output---stdout-schema)
   - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
@@ -1130,6 +1131,85 @@ Results ==> /Users/yourname/Documents
 ## Automation and IT Use
 
 peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines. Read this once and you should have everything needed to wrap peekdocs in your own automation.
+
+### A worked example: nightly source-tree watch
+
+Before the reference material, here is how the pieces compose into something an on-call engineer would actually run. The scenario: a source tree is shared by several developers and you want to know about new hardcoded credentials *the morning they appear* rather than the week they cause an incident.
+
+**Setup (done once):**
+
+Build a regex collection through the GUI (Tools → Regex Search → Save Collection As) covering the shapes you care about — `password\s*=\s*['"][^'"]+['"]`, `aws_secret_access_key`, `api_key\s*=`, and whatever else is specific to your stack. Save it as `secrets`.
+
+Capture a baseline so the first nightly diff has something to compare against:
+
+```bash
+mkdir -p /var/log/peekdocs
+peekdocs --regex-collection secrets -r --hash --stdout \
+    > /var/log/peekdocs/peekdocs_snapshot_baseline.json
+```
+
+Drop the wrapper script at `/usr/local/bin/peekdocs-nightly.sh`:
+
+```bash
+#!/bin/bash
+STAMP=$(date +%Y-%m-%d)
+LOGDIR=/var/log/peekdocs
+NEW="$LOGDIR/peekdocs_snapshot_$STAMP.json"
+
+# Newest existing snapshot BEFORE we write today's = yesterday's run.
+PREV=$(ls -t "$LOGDIR"/peekdocs_snapshot_*.json 2>/dev/null | head -1)
+
+# Tonight's scan.
+peekdocs --regex-collection secrets -r --hash --stdout > "$NEW"
+
+# First run ever — nothing to diff against, exit clean.
+[ -z "$PREV" ] && exit 0
+
+# Diff exits 1 when there are actionable changes (NEW / CHANGED / MODIFIED).
+# That's the signal to alert. Use `;` not `&&` because exit 1 is "found stuff",
+# not "failure" — see the exit-code gotcha later in this section.
+peekdocs --diff "$PREV" "$NEW" --json > "$LOGDIR/peekdocs_diff_$STAMP.json"
+if [ $? -eq 1 ]; then
+    mail -s "peekdocs: new findings in source tree" oncall@example.com \
+        < "$LOGDIR/peekdocs_diff_$STAMP.json"
+fi
+```
+
+Schedule it under cron:
+
+```
+0 3 * * * /usr/local/bin/peekdocs-nightly.sh
+```
+
+**What you get every morning:**
+
+- A timestamped JSON snapshot on disk with a SHA-256 of every matched file. That's your chain of custody — if anyone later asks "was this file already like this last Tuesday?", `jq` answers in one command.
+- A diff file showing exactly what changed since yesterday: NEW files matching, files that gained matches (CHANGED), and files whose content changed without affecting the match count (MODIFIED — only catchable because both sides carry `--hash`).
+- An email only on days when something actionable shows up. Cron health checks stay green on quiet days; you do not get spammed with "everything still fine" notifications.
+- A complete audit log if anything ever does need explaining: snapshot files persist on disk under their date-stamped names. Trends over weeks or months are a one-liner with `jq` and your favorite plotter.
+
+**The same loop covers other recurring questions** by swapping the regex collection:
+
+| You want to track... | Patterns to put in the collection |
+|----------------------|-----------------------------------|
+| Deprecated API usage | `OldClass\.legacy_method`, `deprecated_function_name` |
+| TODO / FIXME drift | `\bTODO\b`, `\bFIXME\b`, `XXX:` |
+| Hardcoded paths and ports | `localhost:\d{4}`, `/etc/[a-z_]+\.conf` |
+| Stale references to a renamed service | `old-service-name`, `OLD_SERVICE_URL` |
+| Untracked migrations | `def migration\d+`, `class Migration\d+` |
+| Files quietly edited under a steady match count | (any pattern, with `--hash` on both sides → MODIFIED bucket) |
+
+Each is the same shape: regex collection + nightly diff + conditional alert. The MODIFIED bucket is the subtle one — same file, same match count, different SHA-256 — somebody touched a watched file in a way the search alone would not have noticed.
+
+**Variations worth knowing:**
+
+- If you would rather have peekdocs fire the alert directly instead of branching on `$?`, use `--on-match HOOK` to run an arbitrary command after a successful match-finding run. Env vars `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_REPORT_TXT`, etc. are populated for the hook.
+- `peekdocs --runs --json` reads the per-run structured log (`~/.peekdocs_runs.log`) — useful when something fails at 3 a.m. and you want to know how long the run took, what its exit code was, and where its report landed without digging through email.
+- `peekdocs --dry-run --regex-collection secrets -r` validates the scope (collection exists, folder exists, flags compose correctly) without scanning anything. Run it in your CI before scheduling the real job.
+
+**What this is not:** a security product, a compliance tool, or a substitute for code review. peekdocs gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
+
+The remainder of this section is the reference material the example above depends on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
 
 ### Exit codes
 

@@ -318,7 +318,7 @@ peekdocs is useful for solo IT professionals and small teams who need to search 
 
 The common thread: one person owns the problem end-to-end, needs fast local document discovery with exportable reports, and prefers a privacy-first tool that runs entirely offline. Users can build their own search patterns (including regex) for whatever content matters to them.
 
-See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the User Guide for exit codes, `--stdout` JSON schemas, scheduled-scan patterns, the `--diff` / `--hash` / `--on-match` flags, and where reports and run logs are stored on disk.
+See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the User Guide. It opens with a [worked example](docs/USER_GUIDE.md#a-worked-example-nightly-source-tree-watch) — a full nightly cron script using `--stdout`, `--hash`, `--diff`, and an alert step — so you can see how the pieces compose before reading the reference material on exit codes, JSON schemas, the `--on-match` hook, headless deployment, and where reports and run logs land on disk.
 
 ### Professional and research audiences
 
