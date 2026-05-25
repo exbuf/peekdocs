@@ -191,7 +191,7 @@ class SearchMixin:
                 stale = os.path.join(self.results_dir, "peekdocs_standard_results.html")
                 if os.path.exists(stale):
                     os.remove(stale)
-        self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
+        self.search_button.configure(text="Cancel", fg_color="#D32F2F", hover_color="#B71C1C")
         self.search_entry.configure(state="disabled")
         self._clear_action_buttons()
         self._hide_files_list()
@@ -286,7 +286,7 @@ class SearchMixin:
         self.progress_bar.grid(
             row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew")
         self.progress_bar.start()
-        self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred")
+        self.search_button.configure(text="Cancel", fg_color="#D32F2F", hover_color="#B71C1C")
         self.search_entry.configure(state="disabled")
 
         self._multi_folder_cancelled = False

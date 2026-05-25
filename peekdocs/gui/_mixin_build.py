@@ -1335,7 +1335,7 @@ class BuildMixin:
 
         self.cancel_index_button = ctk.CTkButton(
             btn_frame, text="Cancel Build", width=100,
-            fg_color="red", hover_color="darkred",
+            fg_color="#D32F2F", hover_color="#B71C1C",
             command=self._cancel_index_build, font=ctk.CTkFont(size=12),
         )
         # Hidden by default — shown during build

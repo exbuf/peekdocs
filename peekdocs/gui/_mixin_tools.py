@@ -4305,8 +4305,11 @@ class ToolsMixin:
         self.search_start_time = time.time()
         self._suite_elapsed_active = True
         self._suite_cancelled = False
-        self.search_button.configure(text="Cancel", fg_color="red", hover_color="darkred",
-                                     command=self._cancel_suite)
+        # Repurpose the GREEN suites button as Cancel during the run. The
+        # standard search button stays alone — flipping it would suggest
+        # the standard search is the thing running, which it isn't.
+        self._suites_btn.configure(text="Cancel", fg_color="#D32F2F", hover_color="#B71C1C",
+                                   command=self._cancel_suite)
         self.status_label.configure(text_color=("blue", "#66BBFF"),
             text=f"Suite: {suite_name} ({len(search_names)} searches)...")
         self._update_suite_elapsed(suite_name)
@@ -4549,8 +4552,9 @@ class ToolsMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2",
-                                     text_color="white", command=self.start_search)
+        # Restore the SUITES button (the one we flipped to Cancel at run-start).
+        self._suites_btn.configure(text="Run Search Suites", fg_color="#76BA1B", hover_color="#5E9516",
+                                   text_color="white", command=self._show_search_suites)
 
         import re as _re_fin
 
@@ -4798,8 +4802,9 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2",
-                                     text_color="white", command=self.start_search)
+        # Restore the SUITES button (the one we flipped to Cancel at run-start).
+        self._suites_btn.configure(text="Run Search Suites", fg_color="#76BA1B", hover_color="#5E9516",
+                                   text_color="white", command=self._show_search_suites)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
     def _update_suite_elapsed(self, suite_name):
@@ -5977,7 +5982,7 @@ class ToolsMixin:
         self._regex_search_cancelled = False
         if hasattr(self, "_regex_search_btn"):
             self._regex_search_btn.configure(
-                fg_color="red", hover_color="darkred", text="Cancel",
+                fg_color="#D32F2F", hover_color="#B71C1C", text="Cancel",
                 command=self._cancel_regex_search,
             )
 
