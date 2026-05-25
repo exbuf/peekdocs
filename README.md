@@ -812,6 +812,8 @@ We're not here to replace grep. We handle the file types grep can't read, and ad
 
 ## What peekdocs Is Not
 
+> **In one line:** peekdocs is a search utility — not a judgment engine, not a compliance certifier, not a forensic platform, not a threat-assessment tool.
+
 peekdocs is a general-purpose local text-search application. To set honest expectations, here are the things it is **not**, alongside the kind of tool you would reach for instead:
 
 - **Not a security or threat-detection product.** peekdocs matches the text patterns you give it. It does not score risk, classify findings, recognize malware, or judge whether a match is good or bad — that's your call. For threat detection, reach for a dedicated security product.
