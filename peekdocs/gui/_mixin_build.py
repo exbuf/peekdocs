@@ -615,7 +615,7 @@ class BuildMixin:
         # gives novices a no-commitment way to learn which mode to pick.
         self._mode_compare_link = ctk.CTkLabel(
             self._run_search_outer,
-            text="What’s the difference?",
+            text="3 Run Buttons — what’s the difference?",
             text_color="#1565C0",
             font=ctk.CTkFont(size=12, underline=True),
             cursor="hand2",
