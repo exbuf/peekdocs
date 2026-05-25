@@ -6076,8 +6076,8 @@ class ToolsMixin:
             self.progress_bar.grid_remove()
             if hasattr(self, "_regex_search_btn"):
                 self._regex_search_btn.configure(
-                    state="normal", fg_color="#6B7280", hover_color="#5B6270",
-                    text_color="white", text="Regex Search",
+                    state="normal", fg_color="#FF9800", hover_color="#F57C00",
+                    text_color="white", text="Run Regex Search",
                     command=self._start_regex_search,
                 )
 
@@ -6205,8 +6205,8 @@ class ToolsMixin:
         self.progress_bar.grid_remove()
         if hasattr(self, "_regex_search_btn"):
             self._regex_search_btn.configure(
-                state="normal", fg_color="#6B7280", hover_color="#5B6270",
-                text_color="white", text="Regex Search",
+                state="normal", fg_color="#FF9800", hover_color="#F57C00",
+                text_color="white", text="Run Regex Search",
                 command=self._start_regex_search,
             )
 
