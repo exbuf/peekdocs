@@ -1155,31 +1155,29 @@ class DataMixin:
             self._show_file_text_view(filepath, filename)
 
         btn_frame = tk.Frame(popup)
-        btn_frame.pack(pady=(5, 10))
+        btn_frame.pack(pady=(5, 4))
 
         view_btn = tk.Label(
             btn_frame, text="View Text (with line numbers)",
-            font=("TkDefaultFont", 13, "bold"),
-            bg="#FF6B35", fg="white",
-            relief="raised", borderwidth=2,
-            padx=20, pady=8, cursor="hand2",
-        )
-        view_btn.pack(side="left", padx=5)
-        view_btn.bind("<Button-1>", lambda e: _view_text())
-        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#E55A2B"))
-        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF6B35"))
-
-        close_btn = tk.Label(
-            btn_frame, text="Close",
             font=("TkDefaultFont", 13, "bold"),
             bg="#888888", fg="white",
             relief="raised", borderwidth=2,
             padx=20, pady=8, cursor="hand2",
         )
-        close_btn.pack(side="left", padx=5)
-        close_btn.bind("<Button-1>", lambda e: popup.destroy())
-        close_btn.bind("<Enter>", lambda e: close_btn.configure(bg="#666666"))
-        close_btn.bind("<Leave>", lambda e: close_btn.configure(bg="#888888"))
+        view_btn.pack(padx=5)
+        view_btn.bind("<Button-1>", lambda e: _view_text())
+        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#666666"))
+        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#888888"))
+
+        # Close on its own bottom row, centered, muted style — matches the
+        # standard Close-button look used in every other help / info popup.
+        ctk.CTkButton(
+            popup, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12),
+            command=popup.destroy,
+        ).pack(pady=(0, 10))
         self._apply_dark_theme(popup)
 
 

@@ -1501,14 +1501,14 @@ class ToolsMixin:
         view_btn = tk.Label(
             btn_frame, text="View Text (with line numbers)",
             font=("TkDefaultFont", 13, "bold"),
-            bg="#FF6B35", fg="white",
+            bg="#FF9800", fg="white",
             relief="raised", borderwidth=2,
             padx=20, pady=8, cursor="hand2",
         )
         view_btn.pack(side="left", padx=5)
         view_btn.bind("<Button-1>", lambda e: _view_text())
-        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#E55A2B"))
-        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF6B35"))
+        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#F57C00"))
+        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#FF9800"))
 
         ctk.CTkButton(
             popup, text="Close", width=80, font=ctk.CTkFont(size=12),
