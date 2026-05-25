@@ -376,17 +376,53 @@ def refresh_index(directory, recursive, use_ocr, max_file_size_mb=100):
 
 
 def clear_index(directory):
-    """Delete the index database file. Returns True if deleted, False if not found."""
+    """Delete the index database file. Returns True if deleted, False if not found.
+
+    On Windows under Python 3.11+, ``sqlite3.Connection.close()`` releases
+    the underlying file handle on a deferred / GC-driven schedule rather
+    than synchronously. If we try to ``os.remove`` the DB file immediately
+    after the validating connection was closed, Windows refuses with
+    PermissionError ("The process cannot access the file because it is
+    being used by another process"). Linux and macOS allow deleting files
+    that are still open, so the same code path works there.
+
+    Workaround: force a ``gc.collect()`` and retry the unlink a few times
+    with a short backoff. The handle is typically released within one or
+    two GC cycles.
+    """
+    import gc
+    import time
+
     path = _db_path(directory)
-    if os.path.exists(path):
-        os.remove(path)
-        # Also remove WAL and SHM files if present
-        for suffix in ("-wal", "-shm"):
-            aux = path + suffix
-            if os.path.exists(aux):
+    if not os.path.exists(path):
+        return False
+
+    last_err = None
+    for attempt in range(5):
+        try:
+            os.remove(path)
+            last_err = None
+            break
+        except PermissionError as e:
+            last_err = e
+            gc.collect()
+            time.sleep(0.05 * (attempt + 1))
+    if last_err is not None:
+        raise last_err
+
+    # Also remove WAL and SHM files if present. Same retry policy.
+    for suffix in ("-wal", "-shm"):
+        aux = path + suffix
+        if not os.path.exists(aux):
+            continue
+        for attempt in range(5):
+            try:
                 os.remove(aux)
-        return True
-    return False
+                break
+            except PermissionError:
+                gc.collect()
+                time.sleep(0.05 * (attempt + 1))
+    return True
 
 
 def index_status(directory):
