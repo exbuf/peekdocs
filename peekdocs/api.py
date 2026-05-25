@@ -519,7 +519,13 @@ def run_suite(
 
 # ── Regex collections ──────────────────────────────────────────────
 
-_COLLECTIONS_PATH = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+def _collections_path():
+    """Return the path to the global regex-collections file.
+
+    Resolved fresh on each call rather than cached at import time so test
+    suites that redirect HOME / USERPROFILE see the redirected path.
+    """
+    return os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
 
 
 @dataclass
@@ -553,10 +559,11 @@ def list_regex_collections():
         Sorted list of collection names. Empty list if no collections exist.
     """
     import json as _json
-    if not os.path.exists(_COLLECTIONS_PATH):
+    path = _collections_path()
+    if not os.path.exists(path):
         return []
     try:
-        with open(_COLLECTIONS_PATH, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = _json.load(f)
         return sorted(data.keys())
     except Exception:
@@ -612,12 +619,13 @@ def run_regex_collection(
         directory = os.getcwd()
 
     # Load collection
-    if not os.path.exists(_COLLECTIONS_PATH):
+    path = _collections_path()
+    if not os.path.exists(path):
         raise FileNotFoundError(
             "No saved regex collections found. "
             "Create one in the GUI (Regex Search \u2192 Save Collection As)."
         )
-    with open(_COLLECTIONS_PATH, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         all_collections = _json.load(f)
 
     if name not in all_collections:

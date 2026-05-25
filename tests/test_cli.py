@@ -13,12 +13,6 @@ from fpdf import FPDF
 from peekdocs.cli import BANNER_TOP, FUZZY_THRESHOLD, HIGHLIGHT, OCR_IMAGE_TYPES, RESET, SUPPORTED_TYPES, VERSION, main
 
 
-@pytest.fixture(autouse=True)
-def isolate_home(tmp_path, monkeypatch):
-    """Prevent tests from reading the user's real ~/.peekdocsrc."""
-    monkeypatch.setenv("HOME", str(tmp_path))
-
-
 def test_no_args(capsys):
     result = main([])
     captured = capsys.readouterr()

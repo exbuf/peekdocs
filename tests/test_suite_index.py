@@ -11,14 +11,6 @@ from peekdocs.suite_index import (
 )
 
 
-@pytest.fixture(autouse=True)
-def isolate_home(tmp_path, monkeypatch):
-    home = tmp_path / "_home"
-    home.mkdir()
-    monkeypatch.setenv("HOME", str(home))
-    return home
-
-
 def _docfolder(tmp_path, name="docs"):
     p = tmp_path / name
     p.mkdir(exist_ok=True)

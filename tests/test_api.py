@@ -8,12 +8,6 @@ from docx import Document
 from peekdocs.api import SearchMatch, SearchResult, search
 
 
-@pytest.fixture(autouse=True)
-def isolate_home(tmp_path, monkeypatch):
-    """Prevent tests from reading the user's real ~/.peekdocsrc."""
-    monkeypatch.setenv("HOME", str(tmp_path))
-
-
 def _make_docx(path, paragraphs):
     """Helper: create a .docx with the given paragraph strings."""
     doc = Document()
