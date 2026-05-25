@@ -1492,6 +1492,7 @@ class BuildMixin:
             _dark_sep()
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
+            menu.add_command(label="Diff Snapshots — compare two peekdocs JSON snapshots", command=self._open_diff_snapshots)
             menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
             menu.add_command(label="Schedule Search — generate a cron or Task Scheduler command", command=self._open_schedule_search)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)

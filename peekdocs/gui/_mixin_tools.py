@@ -4927,6 +4927,288 @@ class ToolsMixin:
 
     # ── Schedule Search ───────────────────────────────────────────────
 
+    def _open_diff_snapshots(self):
+        """Open the Diff Snapshots dialog — compares two peekdocs JSON snapshots."""
+        import tkinter as tk
+
+        win, _dark = self._themed_toplevel()
+        win.title("Diff Snapshots")
+        win.resizable(True, True)
+        win.geometry("820x680")
+        win.transient(self)
+        win.bind("<FocusIn>", lambda e: win.lift())
+
+        # ── Header ──
+        header = tk.Frame(win)
+        header.pack(fill="x", padx=15, pady=(10, 0))
+        tk.Label(
+            header, text="Diff Snapshots",
+            font=("TkDefaultFont", 14, "bold"),
+        ).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
+            command=lambda: self._show_diff_snapshots_help(win),
+        ).pack(side="right")
+
+        tk.Label(
+            win,
+            text="Compare two peekdocs JSON snapshots and see what changed: NEW files now "
+                 "matching, REMOVED files no longer matching, CHANGED match counts, and "
+                 "MODIFIED file content (when both snapshots were captured with --hash). "
+                 "Produce a snapshot first with:  peekdocs <terms> --stdout > snap.json",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=780, justify="left",
+        ).pack(fill="x", padx=15, pady=(2, 10))
+
+        # ── Snapshot picker rows ──
+        old_var = tk.StringVar(value="")
+        new_var = tk.StringVar(value="")
+
+        def _picker_row(parent, label_text, var, tooltip):
+            row = tk.Frame(parent)
+            row.pack(fill="x", padx=15, pady=(0, 6))
+            tk.Label(row, text=label_text, font=("TkDefaultFont", 11, "bold"),
+                     width=12, anchor="w").pack(side="left")
+            entry = tk.Entry(row, textvariable=var, font=("TkDefaultFont", 11))
+            entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+            def _browse():
+                p = filedialog.askopenfilename(
+                    parent=win,
+                    title=f"Pick {label_text.rstrip(':')} snapshot",
+                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                )
+                if p:
+                    var.set(p)
+
+            btn = ctk.CTkButton(
+                row, text="Browse", width=80,
+                font=ctk.CTkFont(size=11), command=_browse,
+            )
+            btn.pack(side="left")
+            Tooltip(btn, tooltip)
+            return entry
+
+        _picker_row(win, "Old snapshot:", old_var,
+                    "Earlier snapshot — the baseline you are comparing against")
+        _picker_row(win, "New snapshot:", new_var,
+                    "Later snapshot — the one being checked for changes")
+
+        # ── Action row ──
+        action_row = tk.Frame(win)
+        action_row.pack(fill="x", padx=15, pady=(6, 6))
+
+        status_var = tk.StringVar(value="")
+        status_label = tk.Label(
+            action_row, textvariable=status_var,
+            font=("TkDefaultFont", 11), fg="gray",
+        )
+
+        # Results text widget — created here so _compare() can clear/populate it.
+        results_frame = tk.Frame(win)
+        results_frame.pack(fill="both", expand=True, padx=15, pady=(4, 10))
+        scroll = tk.Scrollbar(results_frame)
+        scroll.pack(side="right", fill="y")
+        results = tk.Text(
+            results_frame, wrap="word",
+            font=("Courier", 11), padx=10, pady=8,
+            yscrollcommand=scroll.set,
+            borderwidth=1, relief="solid", highlightthickness=0,
+        )
+        results.pack(side="left", fill="both", expand=True)
+        scroll.config(command=results.yview)
+
+        if ctk.get_appearance_mode() == "Dark":
+            results.configure(bg="#1e1e1e", fg="#e0e0e0",
+                              insertbackground="#e0e0e0")
+
+        results.tag_configure("hdr", font=("Courier", 11, "bold"))
+        results.tag_configure("new", foreground="#2E7D32",
+                              font=("Courier", 11, "bold"))
+        results.tag_configure("removed", foreground="#C62828",
+                              font=("Courier", 11, "bold"))
+        results.tag_configure("changed", foreground="#EF6C00",
+                              font=("Courier", 11, "bold"))
+        results.tag_configure("modified", foreground="#6A1B9A",
+                              font=("Courier", 11, "bold"))
+        results.tag_configure("muted", foreground="#777777")
+
+        def _compare():
+            from peekdocs.diff import (
+                load_json, compute_diff, format_human, is_actionable,
+            )
+            old_path = old_var.get().strip()
+            new_path = new_var.get().strip()
+            if not old_path or not new_path:
+                messagebox.showerror(
+                    "Diff Snapshots",
+                    "Please pick both an old and a new snapshot file.",
+                    parent=win,
+                )
+                return
+
+            old_data, err = load_json(old_path)
+            if err:
+                messagebox.showerror(
+                    "Diff Snapshots",
+                    f"Could not read old snapshot:\n{err}\n\n"
+                    "Snapshots are JSON files produced by\n"
+                    "  peekdocs <terms> --stdout > snap.json",
+                    parent=win,
+                )
+                return
+            new_data, err = load_json(new_path)
+            if err:
+                messagebox.showerror(
+                    "Diff Snapshots",
+                    f"Could not read new snapshot:\n{err}\n\n"
+                    "Snapshots are JSON files produced by\n"
+                    "  peekdocs <terms> --stdout > snap.json",
+                    parent=win,
+                )
+                return
+
+            diff = compute_diff(old_data, new_data)
+            text = format_human(diff, old_path, new_path)
+
+            results.configure(state="normal")
+            results.delete("1.0", "end")
+            # Render with per-section coloring so the eye can scan the deltas.
+            for line in text.splitlines(True):
+                lstrip = line.lstrip()
+                if lstrip.startswith("NEW:"):
+                    tag = "new"
+                elif lstrip.startswith("REMOVED:"):
+                    tag = "removed"
+                elif lstrip.startswith("CHANGED:"):
+                    tag = "changed"
+                elif lstrip.startswith("MODIFIED:"):
+                    tag = "modified"
+                elif lstrip.startswith("+ "):
+                    tag = "new"
+                elif lstrip.startswith("- "):
+                    tag = "removed"
+                elif lstrip.startswith("~ "):
+                    tag = "changed"
+                elif lstrip.startswith("UNCHANGED:") or lstrip.startswith("Net "):
+                    tag = "muted"
+                elif lstrip.startswith("Diff:") or lstrip.startswith("Old:") or lstrip.startswith("New:"):
+                    tag = "hdr"
+                else:
+                    tag = None
+                if tag:
+                    results.insert("end", line, tag)
+                else:
+                    results.insert("end", line)
+            results.configure(state="disabled")
+
+            actionable = is_actionable(diff)
+            n_new = len(diff.get("new", []))
+            n_chg = len(diff.get("changed", []))
+            n_mod = len(diff.get("modified", []))
+            n_rem = len(diff.get("removed", []))
+            if actionable:
+                status_var.set(
+                    f"Actionable changes: {n_new} new, {n_chg} changed, "
+                    f"{n_mod} modified  (removed: {n_rem})"
+                )
+                status_label.configure(fg="#C62828")
+            else:
+                status_var.set(
+                    f"No actionable changes  (removed: {n_rem})"
+                )
+                status_label.configure(fg="#2E7D32")
+
+        compare_btn = ctk.CTkButton(
+            action_row, text="Compare", width=120, height=34,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#2196F3", hover_color="#1976D2",
+            text_color="white",
+            command=_compare,
+        )
+        compare_btn.pack(side="left")
+        Tooltip(compare_btn, "Run the diff and show what changed between the two snapshots")
+
+        status_label.pack(side="left", padx=(12, 0))
+
+    def _show_diff_snapshots_help(self, parent):
+        """Help popup for Diff Snapshots."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Diff Snapshots — Help")
+        help_win.geometry("680x600")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=18, pady=12, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("h", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=4)
+        txt.tag_configure("b", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("code", font=("Courier", 11),
+                          lmargin1=24, lmargin2=24, spacing1=2)
+
+        def h(t): txt.insert("end", t + "\n", "h")
+        def b(t): txt.insert("end", t + "\n", "b")
+        def c(t): txt.insert("end", t + "\n", "code")
+        def blank(): txt.insert("end", "\n")
+
+        h("What does Diff Snapshots do?")
+        b("It compares two peekdocs JSON snapshots and shows what changed: ")
+        b("new files matching, files that gained or lost matches, and (when")
+        b("both snapshots were captured with --hash) files whose content")
+        b("changed under a steady match count.")
+        b("Typical use: scheduled scans where the question is not “what")
+        b("matches?” but “what is new since last week?”")
+        blank()
+
+        h("What is a snapshot?")
+        b("A snapshot is a JSON file produced by peekdocs --stdout (or by")
+        b("running a search with -o json). It captures the matched files and,")
+        b("with --hash, a sha256 of each file. Example:")
+        c("peekdocs <terms> -r --hash --stdout > snap-2026-05-25.json")
+        blank()
+        b("Capture two snapshots at different points in time, then compare")
+        b("them here.")
+        blank()
+
+        h("Reading the result")
+        b("• NEW       — files matching now that were not matching before")
+        b("• REMOVED   — files that were matching but no longer match")
+        b("• CHANGED   — same file, different match count")
+        b("• MODIFIED  — same path and same match count, but the file content")
+        b("              changed (sha256 differs). Requires --hash on both")
+        b("              snapshots; otherwise this section is silently empty.")
+        b("• UNCHANGED — summarized as a count only")
+        blank()
+
+        h("Same feature on the CLI")
+        b("Diff Snapshots is the GUI front for the peekdocs --diff command.")
+        b("From a terminal:")
+        c("peekdocs --diff old.json new.json")
+        c("peekdocs --diff old.json new.json --json   # structured output")
+        blank()
+        b("The CLI is the right surface for cron and CI pipelines because it")
+        b("returns diff-flavored exit codes (0 = no change, 1 = new findings,")
+        b("2 = error) — see the User Guide → Automation and IT Use for the")
+        b("full pattern.")
+        blank()
+
+        h("What it does not do")
+        b("Diff Snapshots compares scan results, not source documents.")
+        b("To compare two Word or LibreOffice documents directly, use the")
+        b("application's built-in Compare Document feature.")
+
+        txt.configure(state="disabled")
+
     def _open_schedule_search(self):
         """Open the Schedule Search dialog — generates cron or schtasks commands."""
         import tkinter as tk
