@@ -4712,9 +4712,19 @@ class ToolsMixin:
         import tkinter as tk
         win, _dark = self._themed_toplevel()
         win.title("Search Modes — What’s the Difference?")
-        win.geometry("720x520")
+        win.geometry("720x560")
         win.resizable(True, True)
         win.transient(self)
+
+        # Bottom-row Close button. Packed FIRST with side="bottom" so it
+        # reserves its space before the scrollable Text takes the rest.
+        btn_row = tk.Frame(win)
+        btn_row.pack(side="bottom", fill="x", padx=10, pady=(6, 10))
+        ctk.CTkButton(
+            btn_row, text="Close", width=120, height=32,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=win.destroy,
+        ).pack(side="right")
 
         txt = tk.Text(win, wrap="word", font=("TkDefaultFont", 12),
                       padx=18, pady=12, borderwidth=0, highlightthickness=0)
@@ -4745,7 +4755,7 @@ class ToolsMixin:
 
         txt.insert("end", "Run Standard Search (blue)\n", "std")
         txt.insert("end",
-                   "Type one or more terms in the search box and click Run. "
+                   "Type one or more terms in the search bar and click Run. "
                    "Supports AND/OR, whole-word, fuzzy, wildcard, and a single "
                    "regex term. Produces one report with every match.\n"
                    "Click the Advanced link above the run-buttons row to open "
