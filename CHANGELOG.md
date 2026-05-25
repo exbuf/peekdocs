@@ -2,9 +2,9 @@
 
 All notable changes to peekdocs are documented here.
 
-## [1.0.0] — 2026-05-22
+## [1.0.0] — 2026-05-25
 
-First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan to eliminate legal liability, adds Schedule Search, expands the Python API, and rewrites large portions of the README. Not yet published to PyPI.
+First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan to eliminate legal liability, adds Schedule Search, builds out the automation/IT-use CLI surface (`--diff`, `--hash`, `--on-match`, `--dry-run`, run log), expands the Python API, polishes the main-screen UI (color-coded Run buttons, hyperlink-styled Advanced/Wizard, tinted options row), and rewrites large portions of the README and User Guide. Not yet published to PyPI.
 
 ### Added
 
@@ -24,6 +24,30 @@ First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan t
 - **CLI exit codes documented** in README, plus zero-match report behavior and non-recursive search hints
 - **Tooltips** with section titles ("Main Search Bar:", "Search Folder Bar:", "Results Preview:") on Search Suites buttons, Delete Everything Now, Clear Preview, and many others
 - **Tagline reworked** — "Easy to Use", "Free and Open-Source (MIT License)", "yellow-highlighted reports" added; project tagline now synchronized across README, pyproject.toml, CLI banner, GUI, and CLAUDE.md
+- **`--diff OLD NEW` CLI command** — compare two peekdocs JSON snapshots (from `--stdout` or `-o json`) and report what changed across NEW / REMOVED / CHANGED / MODIFIED files. Default human-readable output; `--json` for a structured payload. Diff-flavored exit codes (0 = nothing changed, 1 = actionable findings detected, 2 = error). Works with standard, inverse, and regex-collection JSON shapes
+- **`--hash` flag** — adds SHA-256 of each matched file's raw bytes to `matches_per_file` / `inverse_files` JSON entries for chain-of-custody and content-integrity workflows. Hashed once per file regardless of match count. Field is omitted when the flag is off
+- **`--on-match HOOK` flag** — runs an arbitrary command on exit 0 (matches found) with env vars `PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_REPORT_TXT`, `PEEKDOCS_REPORT_DOCX`, etc. Skipped on exit 1 / exit 2 / `--dry-run` / informational commands. 30 s timeout; hook stdout/stderr captured to `peekdocs_errors.log`; broken hook never overrides the search's exit code
+- **`--dry-run` flag** — preflight that validates flags and resolves suites/collections without scanning anything. Returns 0 if the scope is valid, 2 if not. Explicit error when combined with `--suite` / `--regex-collection` (the user expectation was that dry-run applies, not that the real run silently fires)
+- **Per-run structured log (`~/.peekdocs_runs.log`)** — every CLI invocation appends a JSON Lines record with timestamp, args, exit code, match count, and report paths. Readable via `peekdocs --runs [N] [--json]`
+- **Diff Snapshots GUI** (Tools menu) — two file pickers for old and new snapshot JSONs, a Compare button, and a scrollable color-coded results pane (green NEW, red REMOVED, orange CHANGED, purple MODIFIED). A status line summarizes counts and turns red/green based on `is_actionable`. Calls the same code as `--diff`, so output matches the CLI byte for byte
+- **Global suite index (`~/.peekdocs_suite_index.json`)** — `peekdocs --suite "Name"` now auto-locates the folder a suite lives in. Removes the per-folder `cd` requirement that made the CLI suite path unworkable before. `--list-suites` reads the index; `--list-suites --rescan` walks `~/Documents` and `~/Desktop` to rebuild it
+- **Suite section summary** — TXT, DOCX, and HTML suite reports now include a "Section summary:" block at the top listing each saved search's name and match count. HTML uses anchor links. GUI Results Preview shows the same summary. Fixes the "buried section" UX bug where 7,700 lines of "heart" matches hid 93 matches of "password" at the bottom
+- **Suite preview highlighting** — matched terms in the GUI suite Results Preview now get the yellow "match" tag, same as Standard Search results
+- **"What's the difference?" link** — muted-blue underlined link under the three Run buttons opens a comparison popup with one-paragraph "best for" guidance per mode (Standard / Suite / Regex)
+- **"Diff Snapshots" Tools-menu entry** alongside Bookmarks, Indexes, Schedule Search, etc.
+- **Automation and IT Use section** in User Guide — exit codes, JSON output schemas, scheduled-scan patterns, `--diff` / `--hash` / `--on-match` reference, where reports and logs live on disk, service-account permissions, sharing collections across machines, useful CLI references for IT
+- **Headless servers and containers** subsection in User Guide — explicit guarantee that the CLI imports and runs without `tkinter` or `customtkinter`, with a minimal Dockerfile and the contract for `--check` on headless boxes
+- **"Why compare snapshots? (and why JSON?)" subsection** in User Guide — EE-friendly framing of `--diff` as drift detection (multimeter vs strip-chart recorder), JSON as structured plain text (SPICE-netlist / BOM analogy), and five concrete IT use cases: credential leaks, cleanup verification, policy drift, content tampering, trend analysis
+- **`&&` vs `;` exit-code gotcha callout** in User Guide — explains why `peekdocs --diff ... > diff.txt && open diff.txt` silently fails when the diff finds changes (exit 1 short-circuits `&&`), with corrected patterns for both interactive and cron use
+- **Search Modes overview** in README and User Guide — three-mode summary (Standard / Regex / Suite) with example commands and produced report-file paths
+- **Platform Notes** section in User Guide — macOS Full Disk Access guidance, Windows Defender behavior, Linux Tk install commands
+- **Windows PowerShell examples** in Search Suite Use Cases
+- **Glossary entries** in README and User Guide — cron, Diff, JSON Lines, jq, SIEM, Webhook, Hash, CI pipeline
+- **"Home users and individuals"** subsection at the top of README's Who Is It For audience profiles
+- **Snapshot/diff filename convention** — `peekdocs_snapshot_<label>.json` for snapshots, `peekdocs_diff_<label>.json` for diff outputs, mirroring the existing `peekdocs_*_results.*` report-file convention. Documented in User Guide and applied consistently in CLI help, GUI help, and all worked examples
+- **Python 3.13 and 3.14 in tested range** — `TESTED_PYTHON_MAX` bumped to (3, 14); 3.13 and 3.14 added to the `Programming Language` trove classifiers in `pyproject.toml`
+- **Cross-platform CI matrix** — GitHub Actions Tests workflow now runs `pytest tests/` on ubuntu-latest, macos-latest, and windows-latest across Python 3.10-3.14 (15 matrix cells, `fail-fast: false`). Plus a dedicated `test-headless-install` job that installs peekdocs without `customtkinter` on Linux and runs `tests/test_headless.py` against a genuinely Tk-less environment
+- **tests/test_headless.py** (4 tests) — installs a `MetaPathFinder` blocking every Tk module, then asserts `peekdocs.cli` imports cleanly, `--help` / `--check` run with exit 0, and a real `--stdout` search emits valid JSON. Regression guard against any future CLI code path that grows a quiet Tk dependency
 
 ### Removed
 
@@ -42,6 +66,14 @@ First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan t
 - **Cloud language softened** — "blocks" → "avoids" across all docs for cloud-based applications (Google Docs, Apple Pages)
 - **PII/security definitive claims softened** in remaining mentions before full PII removal — "ensures" → "helps prevent", "finds" → "scans for patterns"
 - **CLI help text reorganized** — `--regex-collection` and related flags grouped with `--suite` in Settings & Info section
+- **Result-file rename** — `peekdocs_results.*` split into three families to disambiguate which mode produced each report: `peekdocs_standard_results.*` for Standard Search, `peekdocs_regex_results.*` for Regex Search, `peekdocs_suite_results.*` for Suite. No backward-compatibility layer (the app has no users yet)
+- **Main-screen run-buttons row** — parallel "Run X" verbs: Run Standard Search, Run Search Suites (moved from Tools menu), Run Regex Search. Search Wizard renamed to Wizard. Buttons color-coded: blue (#2196F3) Standard, green (#76BA1B) Suites, orange (#FF9800) Regex
+- **Options row tinted light blue (#90CAF9)** to visually associate the options (AND/OR, Recursive, Whole Word, Use Index) with the Run Standard Search button — they apply only to that mode. Step labels and the "Main page" header use the same blue. All `?` help-chip buttons unified to a single blue style (`#1565C0`)
+- **Advanced and Wizard styled as hyperlinks** — blue, underlined, matching standard hyperlink affordance to signal "click to open another panel"
+- **"Main page" header** added at the top of the search tab to disambiguate the main screen from the various Tools popups
+- **`--diff` error visibility** — error messages now go to stderr (was stdout), so they remain visible even when stdout is redirected to a file. When the input has a known document extension (`.odt`, `.docx`, `.pdf`, etc.) the error includes a hint explaining `--diff` compares snapshots, not source documents, with a runnable example of producing snapshots first and a pointer to LibreOffice's Compare Document feature for the actual document-vs-document case
+- **`--diff` usage examples** — every snapshot filename in CLI help, GUI help, and User Guide examples now uses the `peekdocs_snapshot_*.json` convention; diff outputs use `peekdocs_diff_*.json`
+- **Final liability audit and language sweep** — README, User Guide, and User Guide footer pass-through to remove regulation names, compliance/forensic/PII framing, and fitness-flavored examples. CHANGELOG retains historical mentions as a project record. MIT-License "as is" disclaimer added to the README Who Is It For section
 
 ### Fixed
 
@@ -57,6 +89,8 @@ First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan t
 - **FAQ correction** — clarify that grep results inside the source tree (XML namespaces, URLs in help text) are not network calls
 - **Three exaggerated claims softened** — removed "air-gapped" (peekdocs runs locally but doesn't enforce air-gap), "milliseconds" (replaced with real benchmarks), and inflated search-mode counts
 - **Pre-publication hardening** — PyPI URL placeholders, path sanitization in error log, `.gitignore` for `SearchTheseDocuments`, PyPI keywords, JSON `directory` field, README example fix
+- **GUI Search Suites hang** — `UnboundLocalError` in the suite worker thread on cloud-folder redirect. Root cause was a closure-and-assignment gotcha: reassigning the `folder` variable inside the inner function made it function-local throughout the closure. Fixed by extracting the output path into a separate `output_folder` variable
+- **`--diff` errors going to the wrong stream** — were printed to stdout, which got swallowed by `> diff.txt`. Now go to stderr so they survive a redirect
 
 ## [0.3.41] — 2026-05-06
 
