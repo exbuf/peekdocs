@@ -60,9 +60,10 @@ def _sha256_of_file(path):
     """Return the SHA-256 hex digest of *path*'s raw bytes, or None on read error.
 
     Reads the file in 64 KiB chunks so multi-GB files don't load into memory.
-    Used by --hash for chain-of-custody / forensic reporting; any OS-level read
-    failure (missing, permission denied, deleted between search and hash) yields
-    None so the search itself isn't aborted.
+    Used by --hash to add a content fingerprint to each matched-file entry in
+    the JSON output. Any OS-level read failure (missing, permission denied,
+    deleted between search and hash) yields None so the search itself isn't
+    aborted.
     """
     import hashlib
     try:

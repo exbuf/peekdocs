@@ -93,7 +93,7 @@ BANNER_BOTTOM = (
     '                       docx, txt, csv, json, pdf, html\n'
     '                       (csv/json/pdf/html are auto-generated if not already enabled)\n'
     '  --stdout           Output JSON results to stdout (for piping). No report files\n'
-    '  --hash             Add SHA-256 of each matched file to JSON output (chain-of-custody)\n'
+    '  --hash             Add SHA-256 of each matched file to JSON output (content fingerprint)\n'
     '  --dry-run          Report what would be searched (file count, size, by extension); no search\n'
     '  --no-log           Skip writing this run to ~/.peekdocs_runs.log (run log is on by default)\n'
     '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'

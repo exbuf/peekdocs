@@ -1134,7 +1134,7 @@ peekdocs is designed for interactive use, but every interactive flow has a match
 
 ### A worked example: nightly source-tree watch
 
-Before the reference material, here is how the pieces compose into something an on-call engineer would actually run. The scenario: a source tree is shared by several developers and you want to know about new hardcoded credentials *the morning they appear* rather than the week they cause an incident.
+Before the reference material, here is how the pieces compose into something an on-call engineer would actually run. The scenario: a source tree is shared by several developers and you want to know about new hardcoded credentials *the morning they appear* rather than days later when someone happens to notice.
 
 **Setup (done once):**
 
@@ -1183,10 +1183,10 @@ Schedule it under cron:
 
 **What you get every morning:**
 
-- A timestamped JSON snapshot on disk with a SHA-256 of every matched file. That's your chain of custody — if anyone later asks "was this file already like this last Tuesday?", `jq` answers in one command.
+- A timestamped JSON snapshot on disk with a SHA-256 fingerprint of every matched file. If anyone later asks "did this file look the same last Tuesday?", `jq` answers in one command.
 - A diff file showing exactly what changed since yesterday: NEW files matching, files that gained matches (CHANGED), and files whose content changed without affecting the match count (MODIFIED — only catchable because both sides carry `--hash`).
 - An email only on days when something actionable shows up. Cron health checks stay green on quiet days; you do not get spammed with "everything still fine" notifications.
-- A complete audit log if anything ever does need explaining: snapshot files persist on disk under their date-stamped names. Trends over weeks or months are a one-liner with `jq` and your favorite plotter.
+- A persistent history on disk for as far back as you keep the snapshot files. Trends over weeks or months are a one-liner with `jq` and your favorite plotter.
 
 **The same loop covers other recurring questions** by swapping the regex collection:
 
@@ -1207,7 +1207,7 @@ Each is the same shape: regex collection + nightly diff + conditional alert. The
 - `peekdocs --runs --json` reads the per-run structured log (`~/.peekdocs_runs.log`) — useful when something fails at 3 a.m. and you want to know how long the run took, what its exit code was, and where its report landed without digging through email.
 - `peekdocs --dry-run --regex-collection secrets -r` validates the scope (collection exists, folder exists, flags compose correctly) without scanning anything. Run it in your CI before scheduling the real job.
 
-**What this is not:** a security product, a compliance tool, or a substitute for code review. peekdocs gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
+**What this is not:** a security product, a compliance tool, a forensic or evidence-collection system, or a substitute for code review. peekdocs gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
 
 The remainder of this section is the reference material the example above depends on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
 
@@ -1479,7 +1479,7 @@ It is the difference between a multimeter and a strip-chart recorder. A standard
 
 **JSON is just structured plain text.** Think of it as a SPICE netlist or a BOM file with labeled columns. Each entry has a `"filename"`, a `"folder"`, a `"matches"` count, optionally a `"sha256"`. Open one in TextEdit or `less` — it is readable. It is the format `--diff` uses because:
 
-1. *A program can parse it without ambiguity.* The cron job that produced the snapshot pipes it into the next stage (alerting, ticketing, an audit log) and that stage needs structure, not prose.
+1. *A program can parse it without ambiguity.* The cron job that produced the snapshot pipes it into the next stage (alerting, ticketing, a log aggregator) and that stage needs structure, not prose.
 2. *Humans can still read and grep it.* JSON is not binary; if a script misbehaves, you can open the file and see exactly what was captured.
 
 CSV could carry some of the same data, but JSON handles nested structure (files contain matches contain line numbers) more naturally and is the de facto modern choice for machine-to-machine handoff.
@@ -1488,8 +1488,8 @@ CSV could carry some of the same data, but JSON handles nested structure (files 
 
 - **Credential leaks.** Did anyone commit a hardcoded `password=`, AWS key, or API token to source control this week that wasn't there before? Diff yesterday's snapshot against today's; alert on **NEW** entries only.
 - **Cleanup verification.** A contractor was told to remove every `TODO: fix before ship`. Did they actually do it? Snapshot before and after — the **REMOVED** count should equal the original TODO count.
-- **Policy drift.** A document folder is supposed to contain no personal phone numbers. Did one slip in this quarter? **NEW** entries are the alert.
-- **Content tampering (with `--hash`).** An archived contract should never change between audit cycles. If the SHA-256 differs but the match count is identical, someone edited the file without changing what we were watching for — that lands in the **MODIFIED** bucket.
+- **Stale references.** A document folder still mentions an old product name, an old service URL, or a renamed team after a rebrand. Did a new occurrence slip in this quarter? **NEW** entries are the alert.
+- **Unexpected file edits (with `--hash`).** A backup or archived document is not supposed to change between snapshots. If the SHA-256 differs but the match count is identical, the file was edited in a way the search alone would not have noticed — that lands in the **MODIFIED** bucket.
 - **Trend analysis.** Plot the CHANGED counts week over week to see whether a problem (deprecated API usage, log error volume) is shrinking or growing.
 
 If you use peekdocs interactively — running searches yourself, eyeballing the report — you will likely never need `--diff`. It exists for the unattended, scheduled, machine-monitored use case where the human is asleep when the scan runs and only wants to be paged on real change.
