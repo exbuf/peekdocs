@@ -30,6 +30,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
   - [Per-run structured log](#per-run-structured-log)
   - [Notification hook](#notification-hook)
   - [Diff between runs](#diff-between-runs)
+  - [Headless servers and containers](#headless-servers-and-containers)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
@@ -1498,6 +1499,28 @@ if ! peekdocs --diff "$LAST" "/var/log/peekdocs/peekdocs_snapshot_$WEEK.json" --
         < "/var/log/peekdocs/peekdocs_diff_$WEEK.json"
 fi
 ```
+
+### Headless servers and containers
+
+The CLI is import-clean: it runs on a machine that has **no display, no `tkinter`, and no `customtkinter` installed**. That covers the usual deployment targets — Linux servers without an X session, slim container images, locked-down VMs, fleet scanners triggered from a configuration-management tool.
+
+What this means in practice:
+
+- `pip install peekdocs --no-deps` followed by installing only the non-GUI dependencies works. The package imports cleanly; `customtkinter` is loaded lazily inside the GUI mixins, not at module load.
+- `peekdocs --check` is the canonical health probe. On a headless box it reports `customtkinter: not installed — install with: pip install customtkinter` and **still returns exit 0** as long as required dependencies are present. That is the correct signal: "the CLI is fully usable; the optional GUI is not."
+- `peekdocs-gui` (the GUI entry point) raises a clear `ImportError` on first invocation if Tk is missing. That is the only behaviour change: do not bind that command in your service unit.
+- Every CLI subcommand we ship — `--check`, `--help`, search, `--stdout`, `--diff`, `--runs`, `--regex-collection`, `--suite`, `--list-suites`, `--list-files`, etc. — has automated test coverage that runs with Tk blocked. See `tests/test_headless.py` if you want to confirm before deploying.
+
+A minimal headless install in a container:
+
+```dockerfile
+FROM python:3.13-slim
+RUN pip install --no-cache-dir peekdocs
+# customtkinter is intentionally not installed; the CLI does not need it
+ENTRYPOINT ["peekdocs"]
+```
+
+If you ever see an `ImportError` involving `tkinter` or `customtkinter` from a CLI command, that is a bug — please file an issue with the exact command and traceback.
 
 ### Service accounts and file permissions
 
