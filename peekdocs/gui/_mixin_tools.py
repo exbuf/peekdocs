@@ -1728,10 +1728,6 @@ class ToolsMixin:
              [("Required terms:", "term", "Authorized Signature")],
              lambda v: self._apply_wizard(search_text=v["term"], inverse=True)),
 
-            ("Find SSNs", "Social Security numbers (XXX-XX-XXXX)",
-             [],
-             lambda v: self._apply_wizard(search_text=r"\d{3}-\d{2}-\d{4}", regex=True)),
-
             ("Find phone numbers", "US phone numbers with formatting (requires dashes, dots, spaces, or parentheses)",
              [],
              lambda v: self._apply_wizard(search_text=r"(?<!\d)(?:\(\d{3}\)\s?\d{3}[-.\s]\d{4}|\d{3}[-.\s]\d{3}[-.\s]\d{4})(?!\d)", regex=True)),
@@ -1791,7 +1787,7 @@ class ToolsMixin:
              [("From:", "lo", "2026-01-01"), ("To:", "hi", "2026-12-31")],
              lambda v: self._apply_wizard(search_text=r"\d{2}/\d{2}/\d{4}", regex=True, range_filters=f"date:{v['lo']}..{v['hi']}")),
 
-            ("Regex pattern builder", "Opens a separate window with categorized regex presets (SSNs, invoices, part numbers, etc.).\n"
+            ("Regex pattern builder", "Opens a separate window with categorized regex presets (dates, invoices, part numbers, etc.).\n"
              "Select a category, check the patterns you need, combine with OR or AND,\n"
              "and optionally add your own custom regex. When you click Apply, the regex is\n"
              "placed in the Search Terms field and Regex is checked in Advanced Search Options.",
@@ -2661,9 +2657,9 @@ class ToolsMixin:
         b("  transcripts, survey responses, field notes, grant proposals,")
         b("  and historical documents (OCR).")
         blank()
-        txt.insert("end", "\u2022 Legal / Compliance", "body_bold_who")
+        txt.insert("end", "\u2022 Legal", "body_bold_who")
         txt.insert("end", " \u2014 search contracts, court filings, NDAs,\n", "body")
-        b("  regulatory documents, and audit reports.")
+        b("  briefs, memos, and other case-related documents.")
         blank()
         b("You don't need to use every feature. Start with a simple")
         b("keyword search and explore from there.")
@@ -3116,7 +3112,7 @@ class ToolsMixin:
 
         s("Regex")
         b("Use regular expression patterns for precise matching.")
-        e("\\d{3}-\\d{2}-\\d{4}     \u2192  SSN pattern (123-45-6789)")
+        e("\\d{3}-\\d{2}-\\d{4}     \u2192  9-digit ID with dashes (123-45-6789)")
         e("\\$[\\d,]+\\.\\d{2}       \u2192  dollar amounts ($1,234.56)")
         e("[A-Z]{2}-\\d{4,}       \u2192  ID codes (AB-12345)")
         e("\\d{2}/\\d{2}/\\d{4}     \u2192  dates (03/15/2026)")
@@ -3255,7 +3251,7 @@ class ToolsMixin:
         b("You can mix multiple options for more powerful searches.")
         blank()
         s("Regex + AND + Recursive")
-        b("Find files with both an SSN and a dollar amount in subfolders:")
+        b("Find files with both a 9-digit ID pattern and a dollar amount in subfolders:")
         e("      Terms:  \\d{3}-\\d{2}-\\d{4}  \\$[\\d,]+\\.\\d{2}")
         e("Checkboxes:  Regex, AND mode, Recursive")
         blank()
@@ -3444,10 +3440,10 @@ class ToolsMixin:
         blank()
         h("WHY PER FOLDER?")
         b("Most people organize documents by topic \u2014 tax returns in one")
-        b("folder, medical records in another, work projects in a third.")
+        b("folder, insurance in another, work projects in a third.")
         b("The searches you need for tax documents (W-2, 1099, deduction)")
-        b("are completely different from the searches you need for medical")
-        b("records (lab results, prescriptions, Dr. Smith). Keeping them")
+        b("are completely different from the searches you need for an")
+        b("insurance folder (policy number, claim, agent). Keeping them")
         b("separate means you only see what's relevant to the folder")
         b("you're working in \u2014 no clutter from unrelated searches.")
         blank()
@@ -4867,8 +4863,8 @@ class ToolsMixin:
 
         b("Use Cases")
         n("\u2022 Pre-publication checklist \u2014 search for outdated terms, placeholder")
-        n("  text, and sensitive data before publishing")
-        n("\u2022 Quarterly audit \u2014 run the same compliance searches every quarter")
+        n("  text, and other items you want to catch before publishing")
+        n("\u2022 Quarterly review \u2014 run the same set of searches every quarter")
         n("\u2022 Onboarding review \u2014 search policy documents for required terms")
         n("\u2022 Any recurring workflow with multiple searches\n")
 
@@ -4890,7 +4886,7 @@ class ToolsMixin:
         n("switch to a different Search Folder, you'll see a different set")
         n("of suites and saved searches. This is by design: the searches")
         n("you need for tax documents are different from the ones you need")
-        n("for medical records, so each folder keeps only what's relevant.")
+        n("for insurance paperwork, so each folder keeps only what's relevant.")
         n("Copy a folder to another computer and the suites come with it")
         n("automatically. They persist across sessions and are never")
         n("affected by upgrades or Clear Files. Use All Collections in the")

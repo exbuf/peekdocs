@@ -36,9 +36,10 @@ def test_all_patterns_compile():
                 pytest.fail(f"Regex for '{label}' in '{category}' failed to compile: {e}")
 
 
-def test_eight_categories():
-    """There should be exactly 8 categories."""
-    assert len(WIZARD_CATEGORY_ORDER) == 8
+def test_category_count():
+    """The category list should match the patterns dict in length."""
+    assert len(WIZARD_CATEGORY_ORDER) == len(WIZARD_PATTERNS)
+    assert len(WIZARD_CATEGORY_ORDER) >= 1
 
 
 # ── _build_wizard_regex tests ───────────────────────────────
@@ -84,25 +85,16 @@ def test_build_wizard_regex_compiles():
     ("Common / General", "Phone Number", "Call (555) 123-4567"),
     ("Common / General", "Email Address", "contact@example.com"),
     ("Common / General", "6-digit Number", "ID: 123456"),
-    ("Common / General", "SSN (XXX-XX-XXXX)", "SSN: 123-45-6789"),
     ("Business / Finance", "Invoice Number", "INV-12345"),
     ("Business / Finance", "Purchase Order", "PO 98765"),
-    ("Business / Finance", "Tax ID / EIN", "EIN: 12-3456789"),
     ("Legal", "Case Number", "Case 23-CV-12345"),
     ("Legal", "Bates Number", "ABC123456"),
-    ("Medical / Healthcare", "ICD-10 Code", "Diagnosis: J18.9"),
-    ("Medical / Healthcare", "NPI Number", "NPI: 1234567890"),
     ("Engineering / Technical", "Part Number", "ABC-12345"),
     ("Engineering / Technical", "Measurement", "Diameter: 25.4 mm"),
     ("Engineering / Technical", "Serial Number", "S/N: ABC-1234"),
     ("Real Estate", "Square Footage", "2,500 sq ft"),
     ("Real Estate", "Lot/Block", "Lot 15"),
     ("HR / Admin", "Employee ID", "Emp #12345"),
-    ("Compliance / Audit", "Policy / Document Number", "See POL-2024 for details"),
-    ("Compliance / Audit", "Classification Marking", "This document is CONFIDENTIAL"),
-    ("Compliance / Audit", "Effective / Expiration Date", "Effective: 01/15/2025"),
-    ("Compliance / Audit", "Retention Code", "Assigned RET-001"),
-    ("Compliance / Audit", "Account Number", "Acct #98765"),
 ])
 def test_pattern_matches_expected(category, label, test_string):
     """Verify representative patterns match their expected strings."""

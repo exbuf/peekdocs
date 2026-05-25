@@ -93,15 +93,15 @@ def main():
 
     print(f"AND search: {len(result.matches)} match(es) in {len(result.files_searched)} file(s)")
 
-    # Regex search — find SSN patterns
+    # Regex search — find invoice numbers like INV-12345
     result = search(
-        [r"\d{3}-\d{2}-\d{4}"],  # SSN pattern
+        [r"INV-\d{4,}"],
         directory=".",
         use_regex=True,
         recursive=True,
     )
 
-    print(f"SSN pattern: {len(result.matches)} match(es) found")
+    print(f"Invoice pattern: {len(result.matches)} match(es) found")
 
     # Access match details
     for match in result.matches:

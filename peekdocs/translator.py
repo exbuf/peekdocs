@@ -252,11 +252,6 @@ _KNOWN_PATTERNS = [
         r'^\\\$' + _D + r'|^\\\$\[\\?d'
     ), "a dollar amount", "$45.99"),
 
-    # SSN: 123-45-6789
-    (re.compile(
-        r'^' + _D + r'\{3\}' + _SEP + _D + r'\{2\}' + _SEP + _D + r'\{4\}$'
-    ), "a Social Security Number (SSN)", "123-45-6789"),
-
     # IP address: 192.168.1.1
     (re.compile(
         _D + r'\{1,3\}\\?\.' + _D + r'\{1,3\}\\?\.' + _D + r'\{1,3\}\\?\.' + _D + r'\{1,3\}'
@@ -451,14 +446,6 @@ def _identify_by_structure(pattern):
             d1, d2, d3 = core[0], core[2], core[4]
             if d1[1:] == (3, 3) and d2[1:] == (3, 3) and d3[1:] == (4, 4):
                 return "a US phone number", "555-123-4567"
-
-    # SSN: D{3} SEP D{2} SEP D{4}
-    if len(core) == 5:
-        if (core[0][0] == 'D' and core[1][0] == 'S' and core[2][0] == 'D'
-                and core[3][0] == 'S' and core[4][0] == 'D'):
-            d1, d2, d3 = core[0], core[2], core[4]
-            if d1[1:] == (3, 3) and d2[1:] == (2, 2) and d3[1:] == (4, 4):
-                return "a Social Security Number (SSN)", "123-45-6789"
 
     # IP address: D{1,3} . D{1,3} . D{1,3} . D{1,3}
     if len(core) == 7:

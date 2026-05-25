@@ -23,15 +23,15 @@ def suite_folder(tmp_path):
     """Create a temp folder with some saved searches."""
     folder = str(tmp_path)
     add_saved_search(folder, "find budget", {"search_text": "budget", "and_mode": False, "recursive": True})
-    add_saved_search(folder, "find SSN", {"search_text": r"\d{3}-\d{2}-\d{4}", "regex": True, "recursive": True})
+    add_saved_search(folder, "find ids", {"search_text": r"\d{3}-\d{2}-\d{4}", "regex": True, "recursive": True})
     add_saved_search(folder, "find TODO", {"search_text": "TODO", "whole_word": True})
     return folder
 
 
 def test_add_suite(suite_folder):
-    add_suite(suite_folder, "My Suite", ["find budget", "find SSN"])
+    add_suite(suite_folder, "My Suite", ["find budget", "find ids"])
     result = get_suite(suite_folder, "My Suite")
-    assert result == ["find budget", "find SSN"]
+    assert result == ["find budget", "find ids"]
 
 
 def test_add_empty_suite(suite_folder):
@@ -57,12 +57,12 @@ def test_get_suite_nonexistent(suite_folder):
 
 def test_list_suites(suite_folder):
     add_suite(suite_folder, "Suite A", ["find budget"])
-    add_suite(suite_folder, "Suite B", ["find SSN", "find TODO"])
+    add_suite(suite_folder, "Suite B", ["find ids", "find TODO"])
     result = list_suites(suite_folder)
     assert "Suite A" in result
     assert "Suite B" in result
     assert result["Suite A"] == ["find budget"]
-    assert result["Suite B"] == ["find SSN", "find TODO"]
+    assert result["Suite B"] == ["find ids", "find TODO"]
 
 
 def test_list_suites_empty(suite_folder):
@@ -78,11 +78,11 @@ def test_rename_suite(suite_folder):
 
 def test_rename_suite_conflict(suite_folder):
     add_suite(suite_folder, "Suite A", ["find budget"])
-    add_suite(suite_folder, "Suite B", ["find SSN"])
+    add_suite(suite_folder, "Suite B", ["find ids"])
     assert rename_suite(suite_folder, "Suite A", "Suite B") is False
     # Both should still exist unchanged
     assert get_suite(suite_folder, "Suite A") == ["find budget"]
-    assert get_suite(suite_folder, "Suite B") == ["find SSN"]
+    assert get_suite(suite_folder, "Suite B") == ["find ids"]
 
 
 def test_rename_nonexistent_suite(suite_folder):
@@ -91,15 +91,15 @@ def test_rename_nonexistent_suite(suite_folder):
 
 def test_update_suite_searches(suite_folder):
     add_suite(suite_folder, "My Suite", ["find budget"])
-    update_suite_searches(suite_folder, "My Suite", ["find TODO", "find SSN", "find budget"])
-    assert get_suite(suite_folder, "My Suite") == ["find TODO", "find SSN", "find budget"]
+    update_suite_searches(suite_folder, "My Suite", ["find TODO", "find ids", "find budget"])
+    assert get_suite(suite_folder, "My Suite") == ["find TODO", "find ids", "find budget"]
 
 
 def test_update_suite_reorder(suite_folder):
-    add_suite(suite_folder, "Ordered", ["find budget", "find SSN", "find TODO"])
+    add_suite(suite_folder, "Ordered", ["find budget", "find ids", "find TODO"])
     # Move "find TODO" to the top
-    update_suite_searches(suite_folder, "Ordered", ["find TODO", "find budget", "find SSN"])
-    assert get_suite(suite_folder, "Ordered") == ["find TODO", "find budget", "find SSN"]
+    update_suite_searches(suite_folder, "Ordered", ["find TODO", "find budget", "find ids"])
+    assert get_suite(suite_folder, "Ordered") == ["find TODO", "find budget", "find ids"]
 
 
 def test_update_nonexistent_suite(suite_folder):

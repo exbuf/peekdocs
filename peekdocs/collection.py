@@ -29,9 +29,8 @@ def load_collection(folder):
     """Load and return the collection dict.  Returns empty structure if missing or corrupt.
 
     Collection files created by older versions may contain a ``test_suites``
-    key from the removed compliance/suites feature. That key is silently
-    dropped on load so the file is treated as if it only ever had
-    ``saved_searches``.
+    key from a removed feature. That key is silently dropped on load so the
+    file is treated as if it only ever had ``saved_searches``.
     """
     path = collection_path(folder)
     if not os.path.exists(path):
@@ -43,7 +42,7 @@ def load_collection(folder):
         data.setdefault("version", COLLECTION_VERSION)
         data.setdefault("saved_searches", {})
         data.setdefault("suites", {})
-        # Drop legacy test_suites key from old compliance feature
+        # Drop legacy test_suites key from a removed feature
         data.pop("test_suites", None)
         # Migrate: rename "query" key to "search_text" in saved searches
         for params in data["saved_searches"].values():

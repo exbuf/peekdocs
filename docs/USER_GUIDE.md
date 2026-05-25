@@ -106,7 +106,7 @@ No migration, no export/import, no reconfiguration. Everything just works with t
 
 peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
 
-But because peekdocs works with sensitive documents (financial records, legal files, medical records), here are some practices to keep your data safe:
+Because the documents you search and the reports peekdocs writes may contain text you would rather not share, here are some practices to keep your data safe:
 
 - **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
 - **Be careful with report files.** The `peekdocs_standard_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Clear Results** on the bottom toolbar to delete them when you're done.
@@ -294,7 +294,7 @@ peekdocs -r budget
 peekdocs -t pdf,docx budget
 ```
 
-**Search for a pattern (like Social Security numbers):**
+**Search for a regex pattern (e.g., a 9-digit ID with dashes):**
 ```bash
 peekdocs -x "\d{3}-\d{2}-\d{4}"
 ```
@@ -401,13 +401,12 @@ Click the **Wizard** button in the Search Bar to open the Search Wizard — a po
 
 | Category | Example patterns |
 |----------|-----------------|
-| **Common / General** | Dates, dollar amounts, phone numbers, email addresses, SSNs |
-| **Business / Finance** | Invoice numbers, purchase orders, tax IDs, account numbers |
+| **Common / General** | Dates, dollar amounts, phone numbers, email addresses |
+| **Business / Finance** | Invoice numbers, purchase orders, account numbers |
 | **Legal** | Case numbers, statute references, Bates numbers, court dockets |
-| **Medical / Healthcare** | ICD-10 codes, CPT codes, NPI numbers, patient IDs |
 | **Engineering / Technical** | Part numbers, serial numbers, measurements, tolerances |
 | **Real Estate** | Parcel/APN numbers, square footage, lot/block, MLS numbers |
-| **HR / Admin** | SSNs, employee IDs, phone numbers, email addresses |
+| **HR / Admin** | Employee IDs, phone numbers, email addresses |
 
 Use the **Match mode** radio buttons to choose **OR** (match any selected pattern) or **AND** (all selected patterns must appear). You can also type a custom regex in the **Custom regex** field. A live preview shows the combined regex before you apply it.
 
@@ -523,7 +522,7 @@ Below is a list of common regex patterns you can copy and paste into your search
 | `\d{1,2}/\d{1,2}/\d{2,4}` | Dates (MM/DD/YYYY) | 03/17/2026 | a date |
 | `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 | — |
 | `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 | a dollar amount |
-| `\d{3}-\d{2}-\d{4}` | SSN format | 123-45-6789 | a Social Security Number (SSN) |
+| `\d{3}-\d{2}-\d{4}` | 9-digit ID with dashes | 123-45-6789 | — |
 | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 | an IP address |
 | `https?://\S+` | URLs | https://example.com | a URL |
 | `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI | — |
@@ -970,7 +969,7 @@ for name in list_suites(directory=folder):
 | 123 | Multiple ranges (AND) | `peekdocs -R amount:1000..5000 -R date:2024-01-01..2024-12-31 invoice` |
 | 124 | Open-ended range (minimum only) | `peekdocs -R amount:10000.. contract` |
 | 125 | Percent range | `peekdocs -R percent:10..50 growth` |
-| 126 | Age range | `peekdocs -R age:18..65 patient` |
+| 126 | Age range | `peekdocs -R age:18..65 visit` |
 | 127 | Time range | `peekdocs -R time:09:00..17:00 meeting` |
 | 128 | Range with recursive search | `peekdocs -R amount:1000..5000 -r budget` |
 | 129 | Open-ended range (maximum only) | `peekdocs -R amount:..5000 invoice` |
@@ -995,7 +994,7 @@ for name in list_suites(directory=folder):
 | 143 | Range-only expression | `peekdocs -e "amount:1000..5000"` |
 | 144 | OR between two ranges | `peekdocs -e "amount:1000..5000 OR percent:10..50"` |
 | 145 | Text with percent range | `peekdocs -e "growth AND percent:20..100"` |
-| 146 | Text with age range | `peekdocs -e "patient AND age:18..65"` |
+| 146 | Text with age range | `peekdocs -e "visit AND age:18..65"` |
 | 147 | Text with time range | `peekdocs -e "meeting AND time:09:00..17:00"` |
 | 148 | Complex: text + range + NOT | `peekdocs -e "(contract AND amount:5000..50000) AND NOT draft"` |
 | 149 | Complex: two branches with ranges | `peekdocs -e "(budget AND amount:1000..5000) OR (invoice AND date:2024-01-01..2024-12-31)"` |
@@ -1207,7 +1206,7 @@ Each is the same shape: regex collection + nightly diff + conditional alert. The
 - `peekdocs --runs --json` reads the per-run structured log (`~/.peekdocs_runs.log`) — useful when something fails at 3 a.m. and you want to know how long the run took, what its exit code was, and where its report landed without digging through email.
 - `peekdocs --dry-run --regex-collection secrets -r` validates the scope (collection exists, folder exists, flags compose correctly) without scanning anything. Run it in your CI before scheduling the real job.
 
-**What this is not:** a security product, a compliance tool, a forensic or evidence-collection system, or a substitute for code review. peekdocs gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
+**What this is not:** a substitute for code review or for any decision-grade analysis. peekdocs is a general-purpose local text-search tool. It gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
 
 The remainder of this section is the reference material the example above depends on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
 
@@ -1881,8 +1880,8 @@ peekdocs -R time:09:00..17:00 meeting
 # Find "growth" in lines with percentages between 10% and 50%
 peekdocs -R percent:10..50 growth
 
-# Find "patient" in lines mentioning ages 18 to 65
-peekdocs -R age:18..65 patient
+# Find "visit" in lines mentioning ages 18 to 65
+peekdocs -R age:18..65 visit
 
 # Find lines with any standalone number between 100 and 999
 peekdocs -R number:100..999 report
@@ -1997,8 +1996,8 @@ peekdocs -e "report AND date:2024-01-01..2024-12-31"
 # Lines with "growth" and a percentage above 20%
 peekdocs -e "growth AND percent:20..100"
 
-# Lines with "patient" and an age between 18 and 65
-peekdocs -e "patient AND age:18..65"
+# Lines with "visit" and an age between 18 and 65
+peekdocs -e "visit AND age:18..65"
 
 # Lines with "meeting" and a time between 9 AM and 5 PM
 peekdocs -e "meeting AND time:09:00..17:00"
@@ -2087,8 +2086,8 @@ peekdocs -e "growth AND percent:25.. AND NOT draft"
 # Legal: find settlements over $100,000 or judgments over $500,000
 peekdocs -e "(settlement AND amount:100000..) OR (judgment AND amount:500000..)"
 
-# Healthcare: after-hours patient records for ages 18-30
-peekdocs -e "patient AND age:18..30 AND time:17:00.."
+# Visit records logged after 5pm for a given age range
+peekdocs -e "visit AND age:18..30 AND time:17:00.."
 
 # Small recent PDFs with budget amounts over $5,000
 peekdocs -e "budget AND amount:5000.." -R filesize:..1M -R filedate:2025-01-01.. -t .pdf
@@ -2463,15 +2462,15 @@ The redirect happens silently — the search runs without interruption. The stat
 
 **Delete on Close** and **Delete Everything Now** both clean `~/peekdocs_reports` along with the search folder and any custom output directory — so reports saved there are not forgotten.
 
-### Sensitive search term warning
+### Numeric-pattern search term warning
 
-If you type a search term that looks like a Social Security number, credit card number, or Tax ID / EIN, peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk. You can choose to continue or cancel.
+If you type a search term that matches certain numeric ID patterns (such as a 9-digit ID with dashes, a 13-to-19-digit run with optional dashes/spaces, or a 2-digit-dash-7-digit pattern), peekdocs warns you before running the search. The warning explains that your search term will appear in the report files written to disk. You can choose to continue or cancel.
 
 ### Known limitations (what peekdocs cannot control)
 
-peekdocs takes extensive steps to protect user data (safe app opening, cloud folder detection, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, sensitive search term warnings). The following are outside the application's control:
+peekdocs takes a number of steps to protect user data (safe app opening, cloud folder detection, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, search-term pattern warnings). The following are outside the application's control:
 
-- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
+- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific numeric ID or account number, that term is briefly visible in the process list while the search runs.
 - **Report file permissions.** Check **Restrict File Permissions** in Advanced Search Options to set all report files to owner-only read/write (chmod 600) on Unix/macOS. This prevents other users on shared machines from reading your search results. Off by default — leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently).
 - **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
 - **Process memory.** Sensitive data found during a search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
@@ -2885,7 +2884,7 @@ peekdocs/
 | **Python** | The programming language peekdocs is written in. Users need Python 3.10 or newer installed (unless using the standalone download) |
 | **Range query** | Filtering matches by numeric or date ranges. Example: `amount:1000..5000` finds lines where an amount falls between 1,000 and 5,000 |
 | **Recursive** | Searching not just the selected folder but all subfolders inside it, and their subfolders, and so on |
-| **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches Social Security numbers like 123-45-6789 |
+| **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches a 9-digit ID with dashes, like 123-45-6789 |
 | **Search suite** | A named group of saved searches that run together with one click. Create them in the GUI (Tools → Search Suites) or run from the CLI with `--suite` |
 | **SIEM** | Security Information and Event Management — tools (Splunk, Elastic Security, Datadog, Microsoft Sentinel) that aggregate logs for searching and alerting. peekdocs feeds them via JSON Lines and `--stdout` JSON — no plugin needed |
 | **SQLite** | A lightweight database engine built into Python. peekdocs uses it for the search index — no separate database software needed |

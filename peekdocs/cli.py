@@ -259,7 +259,7 @@ REGEX_PATTERNS = (
     '  [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}    Email addresses (jane@example.com)\n'
     '  \\d{4}-\\d{2}-\\d{2}                              Dates, YYYY-MM-DD (2026-03-17)\n'
     '  \\$\\d+(\\.\\d{2})?                                 Dollar amounts ($45.99)\n'
-    '  \\d{3}-\\d{2}-\\d{4}                              SSN format (123-45-6789)\n'
+    '  \\d{3}-\\d{2}-\\d{4}                              9-digit ID with dashes (123-45-6789)\n'
     '  \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}              IP addresses (192.168.1.1)\n'
     '  https?://\\S+                                    URLs (https://example.com)\n'
     '  \\b[A-Z]{2,}\\b                                   Acronyms, all caps (NASA, FBI)\n'

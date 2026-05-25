@@ -70,7 +70,7 @@ class BuildMixin:
         tk.Label(inner, text="Want to do more?", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 5), **pad)
 
         features = [
-            ("\U0001f9ea  Search Wizard", "Pick a search type (SSN, phone, email, dollar range, etc.) and the wizard configures it for you.", "#8B5CF6"),
+            ("\U0001f9ea  Search Wizard", "Pick a search type (phone, email, dollar range, date, etc.) and the wizard configures it for you.", "#8B5CF6"),
             ("\U0001f50e  Save Search", "Save a configured search by name and load it later to run it again.", "#2196F3"),
             ("\U0001f4c4  Highlighted Reports", "Every search produces a Word report with matches highlighted in yellow.", "#E65100"),
             ("\U0001f30d  Any Language", "Search documents in English, Spanish, Chinese, Arabic, Hindi, Japanese, Greek, or any other language. All text handling is Unicode-based. Documentation and GUI are in English only.", "#6B7280"),
@@ -977,7 +977,7 @@ class BuildMixin:
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_standard_results.pdf) — matches highlighted in yellow, portable format for sharing and printing")
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_standard_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public")
         Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*) and accumulated reports (peekdocs_accumulated_*) are never deleted — those are reports you explicitly chose to keep")
-        Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If you searched for a specific name, SSN, account number, or any sensitive term, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings")
+        Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If a search term you'd rather not leave on disk has been typed, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings")
         Tooltip(cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML")
 
         # Note about saving

@@ -121,7 +121,7 @@ peekdocs runs on macOS, Windows, and Linux — anywhere Python 3.10 or higher is
 Yes — peekdocs searches inside .zip, .7z, .rar, .tar, .gz, .bz2, and .tgz archives. Files inside the archive are extracted to memory and searched like any other file. ZIP archives that would expand to over 500 MB are skipped to protect against archive bombs.
 
 **Does it work offline?**
-Yes — peekdocs runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. This makes it ideal for sensitive files like medical records, financial documents, legal files, and personal correspondence. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
+Yes — peekdocs runs entirely on your local machine with no internet connection needed. Your documents never leave your computer — no cloud uploads, no third-party servers, no risk of data exposure. It also means no rate limits, no usage caps, no subscriptions, and no slowdowns from server traffic. It works the same whether you have fast internet, slow internet, or no internet at all.
 
 **Will upgrading peekdocs delete my saved searches or settings?**
 No. Your saved searches, settings, indexes, and reports are stored in your home directory and document folders — completely separate from the peekdocs code. Upgrading replaces only the application code. Nothing else is touched. This applies to all installation methods (pipx, git, ZIP download). See the [User Guide](USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for the complete list of what is preserved.

@@ -298,7 +298,7 @@ peekdocs is a local, privacy-first search and analysis engine for heterogeneous 
 
 ### Home users and individuals
 
-peekdocs works just as well on personal documents as it does on professional ones. Most people accumulate years of digital files — scanned tax forms, medical records, insurance documents, school papers, family correspondence, financial statements, warranties, e-books, downloaded receipts — spread across folders, drives, and cloud backups. peekdocs searches all of it locally with whatever words come to mind: a vendor name, a policy number, a year, a phrase from an old letter. Nothing is uploaded; nothing is sent anywhere; the search runs on your computer and the results stay there.
+peekdocs works just as well on personal documents as it does on professional ones. Most people accumulate years of digital files — scanned forms, insurance documents, school papers, family correspondence, statements, warranties, e-books, downloaded receipts — spread across folders, drives, and cloud backups. peekdocs searches all of it locally with whatever words come to mind: a vendor name, a policy number, a year, a phrase from an old letter. Nothing is uploaded; nothing is sent anywhere; the search runs on your computer and the results stay there.
 
 No technical knowledge required. The GUI handles everything with a folder picker, a search box, and a Run button — no terminal, no flags, no syntax to learn.
 
@@ -322,7 +322,7 @@ See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the Use
 
 ### Professional and research audiences
 
-Researchers, analysts, consultants, and business users — people who use peekdocs for evidence gathering, literature review, due diligence, or finding information across years of mixed-format files.
+Researchers, analysts, consultants, and business users — people who use peekdocs for literature review, due diligence, fact-checking, or finding information across years of mixed-format files.
 
 | Who | Why they care | What they do with it |
 |-----|--------------|---------------------|
@@ -347,9 +347,9 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 - **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
 - **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. OCR reads scanned engineering drawings and handwritten notes. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
 - **Documentation teams and tech writers** — search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search.
-- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report serves as an annotated bibliography or evidence trail.
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates. (peekdocs is a search tool, not compliance or auditing software — it helps you find what's in your files, not certify regulatory status)
-- **Home users** — tax returns, medical records, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Search, done. No configuration, no manual.
+- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates.
+- **Home users** — tax returns, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Search, done. No configuration, no manual.
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. Most general-purpose search tools can't read email formats — peekdocs can.
 
 </details>
@@ -406,7 +406,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
     - This allows you to search cloud-synced documents without uploading report files
   - **Automatic cleanup:**
     - Enable **Delete on Close** to remove all result files when the app closes
-- **Report security** — peekdocs takes steps to reduce the risk of your search results being exposed. Reports are opened in safe local applications rather than cloud-based viewers like Google Docs or Apple Pages. If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`) — your documents are still searched, but no report files are written to the cloud-synced location. The status line tells you where reports were saved and why. **Delete on Close** automatically removes result files when you close the app. **Clear History on Close** clears your search history and recent searches (important if you searched for sensitive terms). **Clear Preview** wipes the Results Preview pane on demand. **Delete Everything Now** (main screen) immediately deletes result files, clears the preview, and wipes search history in one click — useful if you don't close the app regularly. If you type a search term that looks like an SSN, credit card, or Tax ID, peekdocs warns you before proceeding because that term will appear in report files. See [For IT and Security Teams](#for-it-and-security-teams) for details.
+- **Report security** — peekdocs takes steps to reduce the risk of your search results being exposed. Reports are opened in safe local applications rather than cloud-based viewers like Google Docs or Apple Pages. If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`) — your documents are still searched, but no report files are written to the cloud-synced location. The status line tells you where reports were saved and why. **Delete on Close** automatically removes result files when you close the app. **Clear History on Close** clears your search history and recent searches (useful if a search term you'd rather not leave on disk has been typed). **Clear Preview** wipes the Results Preview pane on demand. **Delete Everything Now** (main screen) immediately deletes result files, clears the preview, and wipes search history in one click — useful if you don't close the app regularly. If your search term matches certain numeric ID patterns, peekdocs warns you before proceeding because that term will appear in report files. See [For IT and Security Teams](#for-it-and-security-teams) for details.
 - **Network folders** — search documents on a shared network drive just like a local folder. Map or mount the network share (e.g., `Z:\` on Windows, `/Volumes/` on macOS) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
 - **Cross-platform** — Windows, macOS, and Linux. Tested on all three.
 - **Performance** — 1,000 mixed-format documents (PDFs, Word, Excel, email) searched in ~1 second. 105 real Word docs (1.9 GB) in 4 seconds (0.24 seconds with index). See [Performance](#performance) for detailed benchmarks.
@@ -435,7 +435,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
 - **Search Suites** — group saved searches into a named suite and run them all at once (Tools → Search Suites)
-- **Search Wizard** — guided search builder with 21 pre-built search types (SSN, phone, email, dollar range, Boolean, fuzzy, and more) plus a regex pattern builder with 8 profession categories — no flags or regex knowledge needed
+- **Search Wizard** — guided search builder with 20 pre-built search types (phone, email, dollar range, date range, Boolean, fuzzy, and more) plus a regex pattern builder with several profession categories — no flags or regex knowledge needed
 - **Inverse search** — find files that are *missing* required content
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, word proximity, line proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
@@ -650,7 +650,7 @@ peekdocs budget revenue              # OR search (any term)
 peekdocs -a budget revenue           # AND search (both terms)
 peekdocs -r budget                   # include subfolders
 peekdocs -t pdf,docx budget          # only PDFs and Word docs
-peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (SSN pattern)
+peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (9-digit ID with dashes)
 peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
 peekdocs -R amount:1000..5000 budget # range query
 peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
@@ -740,7 +740,7 @@ peekdocs isn't a replacement for your OS — it's the tool you reach for when yo
 
 **First, there's a practical problem:** AI tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to ChatGPT — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 100+ file types at once, on your machine, with no file count or size limit.
 
-AI document tools (ChatGPT, Copilot, NotebookLM) require uploading your files to a cloud server. A corporation sees your tax returns, medical records, and passwords. Your data may be used for training. A breach exposes everything you uploaded. And you pay $20+/month for the privilege. To search your own files.
+AI document tools (ChatGPT, Copilot, NotebookLM) require uploading your files to a cloud server. A corporation receives a copy of everything you send up. Your data may be used for training. A breach exposes everything you uploaded. And you pay $20+/month for the privilege. To search your own files.
 
 For finding specific content in your documents — keywords, patterns, phone numbers, dates, account numbers, or anything you can describe with regex — peekdocs gets the same results without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
 
@@ -915,15 +915,15 @@ For more, see the [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md).
 
 Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are already searchable — just point peekdocs at the folder and search. No preparation needed.
 
-**For paper documents** (tax returns, receipts, medical records, old letters), you'll need to scan them first:
+**For paper documents** (tax returns, receipts, old letters), you'll need to scan them first:
 
 1. **Scan at 300 DPI** — this is the sweet spot for text recognition. Lower resolutions produce poor OCR results. Most scanners default to 300 DPI.
 2. **Save as searchable PDF** — modern scanners with built-in OCR (like the Fujitsu ScanSnap) automatically embed a text layer in the PDF. peekdocs reads these directly — no OCR flag needed.
 3. **If your scanner doesn't have OCR** — save as PDF, JPG, or PNG. peekdocs can still search these using its OCR feature (enable the OCR checkbox in the GUI or use the `-O` flag in the CLI). Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed.
-4. **Organize by topic, not by date** — folders like `Tax Returns`, `Medical`, `Insurance`, `Receipts` make it easier to target searches. But peekdocs also works fine with one big folder and recursive search.
+4. **Organize by topic, not by date** — folders like `Tax Returns`, `Insurance`, `Receipts` make it easier to target searches. But peekdocs also works fine with one big folder and recursive search.
 5. **Phone camera works too** — take a photo of a document and save it as JPG or PNG. peekdocs can OCR it. For best results, photograph in good lighting with the document flat and square in the frame.
 
-**Consider going paperless.** Scanned PDFs are generally accepted for tax and financial records — the IRS has accepted digital records since 1997, and banks, brokerages, and the IRS itself deliver documents as PDFs. Scan your paper receipts, tax returns, and medical records, then organize them into folders. Once digitized, peekdocs can search years of documents in seconds — no more digging through shoeboxes. (Consult your tax advisor for your specific situation.)
+**Consider going paperless.** Scanned PDFs are widely accepted for tax and financial records — the IRS has accepted digital records since 1997, and banks, brokerages, and the IRS itself deliver documents as PDFs. Scan your paper receipts and tax returns, then organize them into folders. Once digitized, peekdocs can search years of documents in seconds — no more digging through shoeboxes. (Consult your tax advisor for your specific situation.)
 
 **Tip:** Before selling or donating a computer, search your entire documents folder for sensitive data — passwords, account numbers, and personal information you may have forgotten about.
 
@@ -962,7 +962,7 @@ No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everythi
 peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 681 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
 
 **Can peekdocs search scanned PDFs (image-only, no text layer)?**
-Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks/IRS/patient portals) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
+Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks, the IRS, and most major institutions) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
 
 **Do I need Microsoft Word to view the highlighted report?**
 No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser — every computer has one, and the file is private on your computer, not on the internet. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
@@ -1081,7 +1081,7 @@ Not directly — peekdocs doesn't have a built-in diff or comparison feature. Ho
 | **PyPI** | Python Package Index (pronounced "pie-pee-eye") — the official repository where Python packages are published. Like an app store for Python programs |
 | **Python** | The programming language peekdocs is written in. Python orchestrates the search, but the performance-critical work — PDF decoding, regex matching, fuzzy search, ZIP decompression — is handled by C/C++ libraries under the hood. Users need Python 3.10 or newer installed (unless using the standalone download). Created by Guido van Rossum in 1991, named after Monty Python's Flying Circus (not the snake). Now one of the most popular programming languages in the world, widely used in web development, data science, AI, and automation. |
 | **requests** | The most popular Python library for making HTTP requests. If found imported in source code, it almost certainly means the software makes network calls. peekdocs does not use it |
-| **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches Social Security numbers like 123-45-6789 |
+| **Regex** | Regular Expression — a pattern language for matching text. Example: `\d{3}-\d{2}-\d{4}` matches a 9-digit ID with dashes, like 123-45-6789 |
 | **Sandbox** | An isolated environment for running software safely — if the software does something malicious, it can't affect your real system. Examples: Windows Sandbox (built into Windows Pro), VirtualBox VMs, Docker containers. Useful for testing unfamiliar software before trusting it on your main machine |
 | **smtplib** | A Python library (built into Python) for sending email. If found in source code, it could indicate the software sends data via email. peekdocs does not use it |
 | **socket** | A low-level Python networking library (built into Python) for making direct network connections. The foundation most other networking libraries are built on. If imported in source code, it indicates network capability. peekdocs does not import it — the word "socket" appears only in a comment about skipping Unix sockets during file scanning |
@@ -1113,7 +1113,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **Does it store what it finds?** | Yes — results are written to disk as `.txt` and `.docx` reports (plus optional CSV, JSON, PDF, HTML). These files contain matched text from your documents. Use **Delete on Close** to automatically remove them when you close the app, or **Delete Everything Now** to remove them immediately. Reports are blocked from opening in cloud apps. If your search folder is cloud-synced, peekdocs automatically redirects reports to a safe local folder (`~/peekdocs_reports`) so no report files are uploaded. |
 | **What about the search index?** | The optional search index (`.peekdocs.db`) is a SQLite database that contains the extracted text of every indexed file — this means it holds a searchable copy of your document content, including any sensitive data in those documents. Treat the index file with the same care as the documents themselves. The index is never required (uncheck "Index" to search files directly), and **Delete Everything Now** on the main screen deletes the index along with all result files, preview content, and search history. If you index a folder containing sensitive documents, consider deleting the index when you're done. |
 | **Can it access files the user can't?** | No. peekdocs runs with the user's own file permissions. It cannot read files the user doesn't already have access to. It does not elevate privileges or bypass OS security. |
-| **Is it a compliance tool?** | No. It is a search and discovery aid. It does not certify compliance with any regulation. See [Disclaimer](#disclaimer). |
+| **What kind of tool is it?** | A general-purpose local text search application. It reads documents you point it at, reports what it found, and writes nothing else. See [Disclaimer](#disclaimer). |
 | **What does it install?** | Python packages only — no system services, no drivers, no registry entries, no background processes. It runs when launched and stops when closed. |
 | **Can it modify or delete user files?** | No. peekdocs only reads user files. It creates its own report and index files (all prefixed with "peekdocs" for easy identification) but never modifies, moves, or deletes any user documents. |
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
@@ -1156,7 +1156,7 @@ All peekdocs-created files use the `peekdocs` prefix or `.peekdocs` prefix, maki
 
 peekdocs takes extensive steps to protect user data, but the following are outside the application's control. We document them here so IT teams can make informed decisions:
 
-- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific SSN or account number, that term is briefly visible in the process list while the search runs.
+- **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. A search term you'd rather not expose is briefly visible in the process list while the search runs.
 - **Report file permissions.** Check **Restrict File Permissions** in Advanced Search Options to set all report files to owner-only read/write (chmod 600) on Unix/macOS. This prevents other users on shared machines from reading your search results. Off by default — leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently).
 - **Temp files from archives.** Searching inside `.zip`, `.7z`, and `.rar` files may extract content to temporary directories. If the process is killed mid-search, those temp files could persist. Under normal operation they are cleaned up automatically.
 - **Process memory.** Sensitive data found during a search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
@@ -1199,9 +1199,9 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engi
 
 ## Disclaimer
 
-peekdocs is provided under the [MIT License](LICENSE) and is offered "as is" without warranty of any kind. It is a search and reporting tool and does not provide legal, regulatory, or compliance advice.
+peekdocs is provided under the [MIT License](LICENSE) and is offered "as is" without warranty of any kind. It is a general-purpose local text-search application.
 
-The Regex Search feature is a discovery aid, not a security or compliance tool. It uses regex-based pattern matching and may produce false positives or fail to detect data that does not match the supplied patterns. Results should be reviewed in context before making decisions.
+Regex Search performs pattern matching against text. Results depend entirely on the patterns the user supplies, and may include false positives or miss content that does not match those patterns. Review results in context before making decisions.
 
 The tool is not designed or intended for high-assurance or safety-critical use cases. Users remain solely responsible for how they use and interpret its output.
 

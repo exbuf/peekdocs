@@ -110,10 +110,6 @@ class TestPatternRecognition:
         label, _ = _identify_pattern(r"\d{3}-\d{3}-\d{4}")
         assert label == "a US phone number"
 
-    def test_ssn(self):
-        label, _ = _identify_pattern(r"\d{3}-\d{2}-\d{4}")
-        assert label == "a Social Security Number (SSN)"
-
     def test_email(self):
         label, _ = _identify_pattern(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}")
         assert label == "an email address"
