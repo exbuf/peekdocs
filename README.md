@@ -59,7 +59,29 @@ for match in results.matches:
 
 ## Contents
 
-[CLI at a Glance](#cli-at-a-glance) · [GUI Screenshots](#gui-screenshots) · [Who Is It For?](#who-is-it-for) · [Features](#features) · [Supported File Types](#supported-file-types) · [Installation](#installation) · [Prerequisites](#prerequisites) · [Quick Start](#quick-start) · [Documentation](#documentation) · [Why peekdocs?](#why-peekdocs) · [Why Not Just Use OS Search?](#why-not-just-use-os-search) · [Why Not Just Use AI?](#why-not-just-use-ai) · [Why Not Just Use Grep?](#why-not-just-use-grep) · [What peekdocs Is Not](#what-peekdocs-is-not) · [Performance](#performance) · [Platform Notes](#platform-notes) · [Preparing Documents](#preparing-your-documents-for-searching) · [FAQ](#frequently-asked-questions) · [Glossary](#glossary) · [For IT and Security Teams](#for-it-and-security-teams) · [Contributing](#contributing) · [Author](#author) · [License](#license)
+- [CLI at a Glance](#cli-at-a-glance)
+- [GUI Screenshots](#gui-screenshots)
+- [Who Is It For?](#who-is-it-for)
+- [Features](#features)
+- [Supported File Types](#supported-file-types)
+- [Installation](#installation)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Why peekdocs?](#why-peekdocs)
+- [Why Not Just Use OS Search?](#why-not-just-use-os-search)
+- [Why Not Just Use AI?](#why-not-just-use-ai)
+- [Why Not Just Use Grep?](#why-not-just-use-grep)
+- [What peekdocs Is Not](#what-peekdocs-is-not)
+- [Performance](#performance)
+- [Platform Notes](#platform-notes)
+- [Preparing Documents](#preparing-your-documents-for-searching)
+- [FAQ](#frequently-asked-questions)
+- [Glossary](#glossary)
+- [For IT and Security Teams](#for-it-and-security-teams)
+- [Contributing](#contributing)
+- [Author](#author)
+- [License](#license)
 
 ## CLI at a Glance
 
