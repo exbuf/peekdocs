@@ -7,21 +7,86 @@ on:
     branches: [main]
 
 jobs:
+  # Full pytest run across all supported OS/Python combinations.
+  # fail-fast is off so a single Windows/3.10 failure doesn't mask
+  # a Linux/3.14 success and vice versa — useful when triaging
+  # platform-specific flakiness.
   test:
-    runs-on: ubuntu-latest
+    name: pytest (${{ matrix.os }} / py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+
+      # Ubuntu's setup-python Pythons need the system Tk runtime to
+      # import tkinter at all. macOS and Windows ship Tk by default.
+      - name: Install Tk runtime (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk
+
+      - name: Install peekdocs and test deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]" || pip install -e .
+          pip install -e .
           pip install pytest
-      - name: Run tests
+
+      - name: Run full test suite
         run: pytest tests/ -v
+
+  # Separate Linux job that installs peekdocs WITHOUT customtkinter
+  # (the GUI dep) and runs only the headless regression tests against
+  # that real environment. This upgrades tests/test_headless.py from
+  # "simulated headless via MetaPathFinder" to "actually no GUI dep
+  # on disk" — catching any future code path that pulls customtkinter
+  # at import time on a real headless deployment (containers, slim
+  # service images, scheduled-scan VMs).
+  test-headless-install:
+    name: Headless install (no customtkinter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install peekdocs WITHOUT customtkinter
+        run: |
+          python -m pip install --upgrade pip
+          # --no-deps skips ALL dependencies, then we re-add only the
+          # non-GUI ones explicitly. customtkinter is intentionally absent.
+          pip install --no-deps -e .
+          pip install \
+            python-docx PyMuPDF odfpy openpyxl striprtf python-pptx \
+            EbookLib Pillow pytesseract rapidfuzz olefile xlrd \
+            extract-msg py7zr rarfile fpdf2
+          pip install pytest
+
+      - name: Confirm customtkinter is genuinely unimportable
+        run: |
+          python -c "
+          try:
+              import customtkinter  # noqa: F401
+              raise SystemExit('FAIL: customtkinter should not be installed')
+          except ImportError:
+              print('OK: customtkinter not installed')
+          "
+
+      - name: Run headless tests against the real Tk-less env
+        run: pytest tests/test_headless.py -v
+
+      - name: --check must report 0 (CLI fully usable without GUI dep)
+        run: |
+          python -m peekdocs --check
