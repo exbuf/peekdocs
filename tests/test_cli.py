@@ -4036,9 +4036,11 @@ def test_diff_missing_file_errors_cleanly(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     result = main(["--diff", str(tmp_path / "nope.json"), str(tmp_path / "nope2.json")])
     assert result == 2
-    out = capsys.readouterr().out
-    assert "Error reading old file" in out
-    assert "file not found" in out
+    err = capsys.readouterr().err
+    assert "Error reading old file" in err
+    assert "file not found" in err
+    # Generic hint for non-document extensions
+    assert "--stdout" in err
 
 
 def test_diff_invalid_json_errors_cleanly(tmp_path, monkeypatch, capsys):
@@ -4050,8 +4052,22 @@ def test_diff_invalid_json_errors_cleanly(tmp_path, monkeypatch, capsys):
 
     result = main(["--diff", str(bad), str(good)])
     assert result == 2
-    out = capsys.readouterr().out
-    assert "invalid JSON" in out
+    err = capsys.readouterr().err
+    assert "invalid JSON" in err
+
+
+def test_diff_document_input_gives_document_hint(tmp_path, monkeypatch, capsys):
+    """Passing a .odt/.docx/.pdf to --diff should trigger the document-vs-snapshot hint."""
+    odt = tmp_path / "meeting_notes.odt"
+    odt.write_text("not actually json")
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--diff", str(odt), str(odt)])
+    assert result == 2
+    err = capsys.readouterr().err
+    assert "looks like a document" in err
+    assert "peekdocs JSON snapshot" in err
+    assert "--stdout" in err
 
 
 def test_diff_no_changes_returns_0(tmp_path, monkeypatch, capsys):
@@ -4076,8 +4092,8 @@ def test_diff_too_few_args(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     result = main(["--diff", "only-one.json"])
     assert result == 2
-    out = capsys.readouterr().out
-    assert "requires two" in out
+    err = capsys.readouterr().err
+    assert "requires two" in err
 
 
 def test_diff_not_logged(tmp_path, monkeypatch):

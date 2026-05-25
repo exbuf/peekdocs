@@ -1129,21 +1129,50 @@ def _main_inner(argv=None):
     # ── --diff OLD.json NEW.json [--json]: compare two JSON outputs ──
     if args and args[0] == "--diff":
         if len(args) < 3:
-            print("Error: --diff requires two JSON file paths.")
-            print("Usage: peekdocs --diff old.json new.json [--json]\n")
+            print("Error: --diff requires two JSON file paths.", file=sys.stderr)
+            print("Usage: peekdocs --diff old.json new.json [--json]\n", file=sys.stderr)
             return 2
         old_path = args[1]
         new_path = args[2]
         emit_json = "--json" in args[3:]
 
+        # Friendly hint when the input is obviously a source document
+        # (.odt, .docx, .pdf, etc.) rather than a peekdocs JSON snapshot.
+        # --diff compares two scan results, not two documents.
+        _doc_exts = {".odt", ".ods", ".odp", ".doc", ".docx", ".xls", ".xlsx",
+                     ".ppt", ".pptx", ".pdf", ".rtf", ".pages", ".numbers",
+                     ".key", ".txt", ".md", ".html", ".htm"}
+
+        def _diff_input_hint(path):
+            ext = os.path.splitext(path)[1].lower()
+            if ext in _doc_exts:
+                print(
+                    f"\nHint: '{os.path.basename(path)}' looks like a document, not a peekdocs JSON snapshot.\n"
+                    "      --diff compares two scan results, not two source documents.\n"
+                    "      Produce a snapshot first, e.g.:\n"
+                    "          peekdocs <terms> -f <folder> --stdout > yesterday.json\n"
+                    "          peekdocs <terms> -f <folder> --stdout > today.json\n"
+                    "          peekdocs --diff yesterday.json today.json\n"
+                    "      To compare two documents directly, use a document comparison tool\n"
+                    "      (LibreOffice: Edit → Track Changes → Compare Document).",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "\nHint: --diff expects JSON files produced by peekdocs --stdout or -o json.",
+                    file=sys.stderr,
+                )
+
         from peekdocs.diff import load_json, compute_diff, format_human, is_actionable
         old_data, err = load_json(old_path)
         if err:
-            print(f"Error reading old file: {err}\n")
+            print(f"Error reading old file: {err}", file=sys.stderr)
+            _diff_input_hint(old_path)
             return 2
         new_data, err = load_json(new_path)
         if err:
-            print(f"Error reading new file: {err}\n")
+            print(f"Error reading new file: {err}", file=sys.stderr)
+            _diff_input_hint(new_path)
             return 2
 
         diff = compute_diff(old_data, new_data)
