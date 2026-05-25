@@ -12,7 +12,7 @@ Most search tools handle text files. peekdocs handles everything else too. Use p
 
 ## Feature Highlights
 
-**This is not a grep wrapper.** peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that traditional text-search tools cannot read — then generates highlighted reports you can save, print, or share.
+peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that traditional text-search tools cannot read — then generates highlighted reports you can save, print, or share.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Yellow-highlighted reports** — .docx, .html, and .pdf reports with matches highlighted, plus .csv, .json, and .txt output
