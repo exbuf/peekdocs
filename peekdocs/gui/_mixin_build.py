@@ -471,25 +471,25 @@ class BuildMixin:
         save_group.pack(side="left", padx=(5, 4), pady=4)
 
         self.save_to_collection_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Save", width=120,
+            save_group, text="\u25b6 Save", width=80,
             fg_color="transparent",
             text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             command=self._save_to_collection,
             font=ctk.CTkFont(size=13, weight="bold"),
         )
-        self.save_to_collection_btn.pack(side="left", padx=(2, 2), pady=3)
+        self.save_to_collection_btn.pack(side="left", padx=(2, 0), pady=3)
         Tooltip(self.save_to_collection_btn, "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
 
         self.load_search_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Reload", width=120,
+            save_group, text="\u25b6 Reload", width=90,
             fg_color="transparent",
             text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
             command=self._open_load_search_popup,
             font=ctk.CTkFont(size=13, weight="bold"),
         )
-        self.load_search_btn.pack(side="left", padx=(2, 2), pady=3)
+        self.load_search_btn.pack(side="left", padx=(0, 2), pady=3)
         Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
         self._load_search_popup = None
 
