@@ -1,6 +1,6 @@
 """Compare two peekdocs JSON outputs and report what changed.
 
-Powers ``peekdocs --diff old.json new.json``. Both inputs can be any
+Powers ``peekdocs --diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json``. Both inputs can be any
 peekdocs JSON shape — standard search ``--stdout`` / ``-o json``, inverse
 search, or regex-collection — and either may or may not have been produced
 with ``--hash``. The diff is computed at the file level: a file is keyed by

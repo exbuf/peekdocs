@@ -1130,7 +1130,7 @@ def _main_inner(argv=None):
     if args and args[0] == "--diff":
         if len(args) < 3:
             print("Error: --diff requires two JSON file paths.", file=sys.stderr)
-            print("Usage: peekdocs --diff old.json new.json [--json]\n", file=sys.stderr)
+            print("Usage: peekdocs --diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json [--json]\n", file=sys.stderr)
             return 2
         old_path = args[1]
         new_path = args[2]
@@ -1150,9 +1150,9 @@ def _main_inner(argv=None):
                     f"\nHint: '{os.path.basename(path)}' looks like a document, not a peekdocs JSON snapshot.\n"
                     "      --diff compares two scan results, not two source documents.\n"
                     "      Produce a snapshot first, e.g.:\n"
-                    "          peekdocs <terms> -f <folder> --stdout > yesterday.json\n"
-                    "          peekdocs <terms> -f <folder> --stdout > today.json\n"
-                    "          peekdocs --diff yesterday.json today.json\n"
+                    "          peekdocs <terms> -r --stdout > peekdocs_snapshot_yesterday.json\n"
+                    "          peekdocs <terms> -r --stdout > peekdocs_snapshot_today.json\n"
+                    "          peekdocs --diff peekdocs_snapshot_yesterday.json peekdocs_snapshot_today.json\n"
                     "      To compare two documents directly, use a document comparison tool\n"
                     "      (LibreOffice: Edit → Track Changes → Compare Document).",
                     file=sys.stderr,

@@ -4959,7 +4959,8 @@ class ToolsMixin:
             text="Compare two peekdocs JSON snapshots and see what changed: NEW files now "
                  "matching, REMOVED files no longer matching, CHANGED match counts, and "
                  "MODIFIED file content (when both snapshots were captured with --hash). "
-                 "Produce a snapshot first with:  peekdocs <terms> --stdout > snap.json",
+                 "Produce a snapshot first with:  peekdocs <terms> --stdout > peekdocs_snapshot.json. "
+                 "Name your snapshots peekdocs_snapshot_<label>.json for consistency with other peekdocs output files.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=780, justify="left",
         ).pack(fill="x", padx=15, pady=(2, 10))
 
@@ -5056,7 +5057,7 @@ class ToolsMixin:
                     "Diff Snapshots",
                     f"Could not read old snapshot:\n{err}\n\n"
                     "Snapshots are JSON files produced by\n"
-                    "  peekdocs <terms> --stdout > snap.json",
+                    "  peekdocs <terms> --stdout > peekdocs_snapshot.json",
                     parent=win,
                 )
                 return
@@ -5066,7 +5067,7 @@ class ToolsMixin:
                     "Diff Snapshots",
                     f"Could not read new snapshot:\n{err}\n\n"
                     "Snapshots are JSON files produced by\n"
-                    "  peekdocs <terms> --stdout > snap.json",
+                    "  peekdocs <terms> --stdout > peekdocs_snapshot.json",
                     parent=win,
                 )
                 return
@@ -5174,7 +5175,7 @@ class ToolsMixin:
         b("A snapshot is a JSON file produced by peekdocs --stdout (or by")
         b("running a search with -o json). It captures the matched files and,")
         b("with --hash, a sha256 of each file. Example:")
-        c("peekdocs <terms> -r --hash --stdout > snap-2026-05-25.json")
+        c("peekdocs <terms> -r --hash --stdout > peekdocs_snapshot_2026-05-25.json")
         blank()
         b("Capture two snapshots at different points in time, then compare")
         b("them here.")
@@ -5193,8 +5194,8 @@ class ToolsMixin:
         h("Same feature on the CLI")
         b("Diff Snapshots is the GUI front for the peekdocs --diff command.")
         b("From a terminal:")
-        c("peekdocs --diff old.json new.json")
-        c("peekdocs --diff old.json new.json --json   # structured output")
+        c("peekdocs --diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json")
+        c("peekdocs --diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json --json")
         blank()
         b("The CLI is the right surface for cron and CI pipelines because it")
         b("returns diff-flavored exit codes (0 = no change, 1 = new findings,")
