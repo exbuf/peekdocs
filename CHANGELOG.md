@@ -2,6 +2,43 @@
 
 All notable changes to peekdocs are documented here.
 
+## [1.0.3] — 2026-05-26
+
+Point release fixing the standalone Windows GUI spawning **multiple**
+duplicate windows when the user runs a search with the Index
+checkbox unchecked.
+
+### Fixed
+
+- **Multiple duplicate GUI windows when searching without the
+  index.** Reported on Windows v1.0.2 standalone after 10
+  successful index-backed searches: unchecking "Index" and
+  running another search opened many peekdocs windows at once,
+  scaling with the CPU count.
+
+  Root cause: when the index is bypassed, the search engine
+  parallelizes file scanning with ``multiprocessing.Pool`` across
+  cores. On Windows, ``multiprocessing`` uses the ``spawn`` start
+  method (the only option), which creates each worker process by
+  re-launching ``sys.executable``. In a PyInstaller-bundled exe,
+  ``sys.executable`` IS the GUI exe — each worker re-launches
+  the GUI. With four cores, you got four extra peekdocs windows;
+  with sixteen, sixteen.
+
+  Fix: call ``multiprocessing.freeze_support()`` at the very top
+  of both entry points (``peekdocs/gui/__init__.py`` and the
+  ``__main__`` guard of ``peekdocs/cli.py``). This is the
+  canonical PyInstaller + multiprocessing workaround: when a
+  spawned worker process starts and recognizes (via a special
+  argv that multiprocessing sets) that it is a frozen child, it
+  short-circuits and behaves as a worker only, never re-executing
+  the entry point's main code. No more duplicate GUI windows
+  during multiprocessing-parallelized searches.
+
+  freeze_support() is a no-op on a normal pip / pipx install
+  (sys.frozen is False) — so the existing subprocess and
+  threading paths are unaffected.
+
 ## [1.0.2] — 2026-05-26
 
 Point release fixing two more sites that bypassed the v1.0.1

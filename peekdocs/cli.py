@@ -2092,4 +2092,10 @@ def _main_inner(argv=None):
 
 
 if __name__ == "__main__":
+    # PyInstaller + multiprocessing: must be called before any code that
+    # creates worker processes. Harmless on a normal pip install (becomes
+    # a no-op when sys.frozen is False); essential in a bundled exe so
+    # multiprocessing workers don't re-execute the CLI's main code path.
+    import multiprocessing
+    multiprocessing.freeze_support()
     sys.exit(main())
