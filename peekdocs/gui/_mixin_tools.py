@@ -4128,12 +4128,23 @@ class ToolsMixin:
             px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
             py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
             pick_win.geometry(f"+{px}+{py}")
+            # Linux/X11 fix: let the WM realize the toplevel before child
+            # widgets get sized inside it. Without this tick the Listbox
+            # gets created before pick_win is mapped, ends up with zero
+            # height, and the rows we insert below have nowhere to draw —
+            # the popup opens visibly empty even though the items are in
+            # the data model. macOS Aqua doesn't need this because it
+            # realizes toplevels synchronously.
+            pick_win.update_idletasks()
 
             tk.Label(pick_win, text="Select a saved search:", font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
             pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
-            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+            # Populate BEFORE packing so items are in the data model when
+            # the widget is first laid out — belt-and-suspenders against
+            # any remaining race between insert() and X11 expose events.
             for s in remaining:
                 pick_lb.insert("end", s)
+            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
 
             def _do_add():
                 sel = pick_lb.curselection()
@@ -4149,6 +4160,11 @@ class ToolsMixin:
 
             ctk.CTkButton(pick_win, text="Add", width=80, font=ctk.CTkFont(size=12), command=_do_add).pack(pady=(0, 10))
             self._apply_dark_theme(pick_win)
+            # Linux/X11: transient+grab_set doesn't always raise children
+            # above the parent. Explicitly lift and focus so the picker
+            # ends up visible and keystroke-accepting on first open.
+            pick_win.lift()
+            pick_win.focus_force()
 
         def _remove_search():
             if current_suite[0] is None:
