@@ -2,6 +2,40 @@
 
 All notable changes to peekdocs are documented here.
 
+## [1.0.2] — 2026-05-26
+
+Point release fixing two more sites that bypassed the v1.0.1
+in-process helper and still spawned a duplicate GUI window in
+PyInstaller-bundled standalone exes.
+
+### Fixed
+
+- **Standalone GUI spawned a duplicate window at the end of a
+  search.** v1.0.1 fixed the main search subprocess but missed
+  two related call sites that still used the bare
+  ``subprocess.Popen([sys.executable, "-m", "peekdocs", ...])``
+  pattern: the post-search ``-s save_name`` save step (fires
+  when the user fills in the "Save as" field) and the
+  ``--index-clear`` step in the Manage Indexes tool. In the
+  standalone exe both re-launched the GUI as a subprocess,
+  popping up a duplicate window. User noticed the save case
+  because it fires at the end of every named search.
+
+  Fix: both sites now go through
+  ``peekdocs.gui._helpers._run_peekdocs_cli``, the same helper
+  added in v1.0.1 that picks subprocess vs in-process based on
+  ``sys.frozen``. No more duplicate window in the standalone
+  build's save and index-clear paths.
+
+- The remaining ``sys.executable`` reference in the GUI is the
+  Schedule Search dialog (Tools → Schedule Search), which
+  generates a cron / Task Scheduler command STRING for the user
+  to copy-paste into their scheduler. That string would still
+  point at the standalone exe in a PyInstaller bundle, but it
+  is never executed by the GUI itself — and a user running both
+  the standalone exe AND Schedule Search is an unusual combo. To
+  be addressed in a future release if it surfaces in practice.
+
 ## [1.0.1] — 2026-05-26
 
 Point release fixing one bug introduced by the v1.0.0 standalone

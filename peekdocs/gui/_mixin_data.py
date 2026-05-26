@@ -2164,8 +2164,10 @@ class DataMixin:
 
         cmd = [sys.executable, "-m", "peekdocs", "-q", "--index-clear"]
         try:
-            result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True, encoding="utf-8", errors="replace")
-            msg = result.stdout.strip()
+            # Same in-process-when-frozen helper as the main search.
+            from peekdocs.gui._helpers import _run_peekdocs_cli
+            stdout, _stderr, _rc = _run_peekdocs_cli(cmd, folder)
+            msg = stdout.strip()
         except Exception:
             self._show_error("Failed to delete index.")
             return

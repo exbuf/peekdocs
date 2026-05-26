@@ -615,14 +615,18 @@ class SearchMixin:
                 text=status_text,
                 text_color=("blue", "#66BBFF"),
             )
-            # Post-search save (-s) if user filled in "Save as" field
+            # Post-search save (-s) if user filled in "Save as" field.
+            # Uses the same subprocess-or-in-process helper as the main
+            # search so the standalone bundled exe doesn't spawn a
+            # duplicate GUI window during the save step.
             save_name = self.save_name_entry.get().strip()
             if save_name:
                 save_cmd = [sys.executable, "-m", "peekdocs", "-s", save_name]
                 try:
-                    result = subprocess.run(save_cmd, cwd=self.results_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
-                    if result.returncode != 0:
-                        self._show_error(f"Save failed: {result.stdout.strip() or 'unknown error'}")
+                    from peekdocs.gui._helpers import _run_peekdocs_cli
+                    save_stdout, save_stderr, save_rc = _run_peekdocs_cli(save_cmd, self.results_dir)
+                    if save_rc != 0:
+                        self._show_error(f"Save failed: {save_stdout.strip() or save_stderr.strip() or 'unknown error'}")
                         return
                 except Exception as e:
                     self._show_error(f"Save failed: {e}")
