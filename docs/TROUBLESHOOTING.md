@@ -491,6 +491,83 @@ Regex patterns with special characters (`$`, `(`, `)`, `|`, `{`, `}`) produce un
 
 ---
 
+**PowerShell rejects `--flag` arguments: "A positional parameter cannot be found that accepts argument '--check'"**
+
+PowerShell treats `--` as its own end-of-options marker, so an argument like `--check` confuses the parser before peekdocs ever sees it. The error message is misleading — peekdocs isn't a PowerShell cmdlet, it's an external program; PowerShell is just over-eager. Three ways past it:
+
+- Use the **`--%` stop-parsing token**, which tells PowerShell to pass everything that follows literally:
+  ```powershell
+  .\peekdocs-cli-windows.exe --% --check
+  peekdocs --% --diff old.json new.json
+  ```
+- **Quote the flag**:
+  ```powershell
+  .\peekdocs-cli-windows.exe '--check'
+  ```
+- **Use Command Prompt instead of PowerShell** — `cmd.exe` doesn't have this quirk. Search "cmd" in the Start menu, hit Enter, and `--flag` works normally.
+
+This is a general PowerShell issue, not a peekdocs bug — it affects any external CLI that uses double-dash flags (git, docker, kubectl, etc.).
+
+---
+
+**The standalone CLI exe flashes a terminal and disappears when double-clicked**
+
+Expected behaviour, not a bug. `peekdocs-cli-windows.exe` is a command-line tool, not a GUI app. Double-clicking it:
+
+1. Windows opens a fresh terminal to host the process,
+2. peekdocs runs with no arguments — which prints the cheat-sheet banner,
+3. peekdocs exits (it has nothing else to do),
+4. Windows closes the terminal because the process is done.
+
+To **actually use** the CLI exe, launch it from a Command Prompt or PowerShell window you already have open, passing real arguments:
+
+```powershell
+cd $env:USERPROFILE\Downloads
+.\peekdocs-cli-windows.exe --check
+.\peekdocs-cli-windows.exe budget                          # search current dir
+.\peekdocs-cli-windows.exe budget revenue -a -r            # AND mode, recursive
+.\peekdocs-cli-windows.exe -d C:\Users\me\Documents bowling
+```
+
+If you want the friendlier name `peekdocs`, rename the file once:
+
+```powershell
+Rename-Item $env:USERPROFILE\Downloads\peekdocs-cli-windows.exe peekdocs.exe
+```
+
+For a setup where `peekdocs` works from any folder without the `.\` prefix, copy the exe into a directory that's already on your PATH (e.g., `C:\Users\<you>\AppData\Local\Microsoft\WindowsApps\`).
+
+The standalone GUI exe (`peekdocs-gui-windows.exe`) is a different story — double-clicking it is the *correct* way to launch a GUI.
+
+---
+
+**.rar files can't be searched in the standalone exe — "could not read NAME.rar (cannot find working tool)"**
+
+RAR archive support relies on an external `unrar` binary which the standalone bundle does not include. (The unrar source has licensing restrictions that make it impractical to redistribute.) On Windows, the simplest install is **WinRAR** from [win-rar.com](https://www.win-rar.com/), which puts a working `unrar.exe` on your PATH. Reopen your terminal after install and peekdocs will read .rar files automatically — no peekdocs configuration needed.
+
+If WinRAR isn't an option:
+
+- **Extract the .rar contents first** (any extraction tool — 7-Zip, PeaZip, the Windows 11 built-in archive support for newer .rar versions) into a regular folder, then point peekdocs at that folder.
+- **Use a pip / pipx install of peekdocs instead** and `pip install rarfile` — same root issue (RAR needs a sidecar tool) but with more control over what's bundled.
+
+The error message is non-fatal: peekdocs logs the file to `peekdocs_errors.log` and continues with the rest of the corpus.
+
+---
+
+**.pst files can't be searched in the standalone Windows exe**
+
+`libpff-python` (the library peekdocs uses for Outlook PST archives) is a C extension with no working Windows wheel — it requires a compiler toolchain to build and almost never succeeds on a typical Windows install. The standalone bundle on Windows therefore doesn't include it. peekdocs reports "PST support requires the libpff-python package" and skips the file.
+
+Workarounds, in rough order of effort:
+
+- **Convert the .pst to .mbox first.** Thunderbird's built-in "ImportExportTools NG" extension does this, as does the open-source [readpst](https://github.com/pst-format/libpst) utility. Point peekdocs at the resulting .mbox files — those work out of the box.
+- **Use macOS or Linux for the PST search.** `pip install libpff-python` succeeds there, and the pipx-installed peekdocs reads .pst directly.
+- **If you have the original .msg messages**, scan those — peekdocs reads .msg via the `extract-msg` library, which IS bundled in the standalone exe.
+
+See also the [pre-existing PST troubleshooting entry](#pst-support-requires-the-libpff-python-package) earlier in this file for the pip-install case.
+
+---
+
 **Windows antivirus blocks peekdocs or quarantines report files**
 
 Windows Defender or third-party antivirus may flag peekdocs's rapid file scanning as suspicious, quarantine report files immediately after creation, or block the `.peekdocs.db` index file.

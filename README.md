@@ -427,7 +427,7 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 - **macOS (Gatekeeper).** You'll see "peekdocs-gui.app cannot be opened because it is from an unidentified developer." Right-click (or Control-click) the app → **Open** → click **Open** in the confirmation dialog. From then on a regular double-click works. (Or from a terminal: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` removes the quarantine flag directly.)
 - **Linux.** Mark the file executable before first run: `chmod +x peekdocs-gui-linux` then `./peekdocs-gui-linux`.
 
-**CLI users:** The Releases page also has command-line versions (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`).
+**CLI users:** The Releases page also has command-line versions (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`). Run them from an **already-open** Command Prompt / Terminal — *double-clicking* a CLI exe just flashes a terminal and closes (it ran with no arguments and exited). On Windows you may also rename `peekdocs-cli-windows.exe` to `peekdocs.exe` for a friendlier prompt. Two CLI-on-Windows footnotes worth knowing in advance: (1) PowerShell rejects `--flag` arguments unless you use the `--%` stop-parsing token (e.g., `.\peekdocs-cli-windows.exe --% --check`) or switch to plain `cmd.exe`; (2) `.rar` and `.pst` files in the bundled CLI need extra tools — WinRAR for `.rar`, conversion to `.mbox` for `.pst`. See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for both.
 
 **Upgrading:** Download the new version from the Releases page and replace the old file. Your settings and saved searches are stored in your home directory, not in the executable — nothing is lost.
 
