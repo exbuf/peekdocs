@@ -4118,24 +4118,33 @@ class ToolsMixin:
                 self._show_error("No saved searches available to add.\n\nSave a search first (main screen → Save button).")
                 return
 
-            # Popup to pick a search
+            # Popup to pick a search.
+            #
+            # X11/Linux gotcha: grab_set() raises TclError("grab failed:
+            # window not viewable") if called before the WM has mapped the
+            # toplevel. macOS Aqua maps Toplevels synchronously so this
+            # never fires there. We have to (a) finish positioning, (b)
+            # wait for the window to become visible, and (c) treat the
+            # grab as best-effort. If we let the grab_set exception
+            # propagate, the whole function aborts and the user sees an
+            # empty half-built popup.
             pick_win, _ = self._themed_toplevel(win)
             pick_win.title("Add Search to Suite")
             pick_win.geometry("350x300")
             pick_win.transient(win)
-            pick_win.grab_set()
             self.update_idletasks()
             px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
             py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
             pick_win.geometry(f"+{px}+{py}")
-            # Linux/X11 fix: let the WM realize the toplevel before child
-            # widgets get sized inside it. Without this tick the Listbox
-            # gets created before pick_win is mapped, ends up with zero
-            # height, and the rows we insert below have nowhere to draw —
-            # the popup opens visibly empty even though the items are in
-            # the data model. macOS Aqua doesn't need this because it
-            # realizes toplevels synchronously.
             pick_win.update_idletasks()
+            try:
+                pick_win.wait_visibility()
+            except tk.TclError:
+                pass  # window already destroyed (unlikely here)
+            try:
+                pick_win.grab_set()
+            except tk.TclError:
+                pass  # X11 race; transient + lift below keeps it modal-ish
 
             tk.Label(pick_win, text="Select a saved search:", font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
             pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
@@ -5703,16 +5712,26 @@ class ToolsMixin:
             if not collections:
                 self._show_error("No saved collections found.")
                 return
-            # Show picker popup
+            # Show picker popup. Same X11 pattern as the Suites
+            # "Add Search" picker — wait for the toplevel to be
+            # viewable before grab_set, and treat grab as best-effort.
             pick_win, _ = self._themed_toplevel(win)
             pick_win.title("Restore From Collection")
             pick_win.geometry("350x300")
             pick_win.transient(win)
-            pick_win.grab_set()
             self.update_idletasks()
             px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
             py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
             pick_win.geometry(f"+{px}+{py}")
+            pick_win.update_idletasks()
+            try:
+                pick_win.wait_visibility()
+            except tk.TclError:
+                pass
+            try:
+                pick_win.grab_set()
+            except tk.TclError:
+                pass
 
             tk.Label(pick_win, text="Select a collection:", font=("TkDefaultFont", 11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
             pick_lb = tk.Listbox(pick_win, font=("TkDefaultFont", 11), exportselection=False)
