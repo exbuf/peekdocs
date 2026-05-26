@@ -183,128 +183,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-[Getting Started](#ss-getting-started) · [Example 1: "password"](#ss-ex1) · [1.a HTML report](#ss-ex1a) · [1.b Word report](#ss-ex1b) · [Example 2: "heart"](#ss-ex2) · [2.a HTML report](#ss-ex2a) · [2.b docx report](#ss-ex2b) · [Example 3: Honda/OCR](#ss-ex3) · [3.a Search results](#ss-ex3a) · [3.b Advanced options](#ss-ex3b) · [Example 4: Chinese](#ss-ex4) · [4.a HTML report](#ss-ex4a) · [Example 5: Boolean](#ss-ex5) · [5.a HTML report](#ss-ex5a) · [Example 6: Regex](#ss-ex6) · [Advanced Search Options](#ss-advanced) · [Search Suites](#ss-suites) · [Search Wizard](#ss-wizard) · [Hover text](#ss-hover) · [Help screen](#ss-help) · [Tools menu](#ss-tools)
-
-<a id="ss-getting-started"></a>
-**Getting Started tab — friendly introduction for first-time GUI users (also CLI via terminal/command line and Python API; works on Windows, Mac, Linux):**
-
-![Getting Started tab](docs/images/getting-started-tab.png)
-
-<a id="ss-ex1"></a>
-**Example 1: Search for 'password' — 804 MB searched in 0.56 seconds with index (see status line):**
-
-![Main screen with search results](docs/images/main--screen-password.png)
-
-<a id="ss-ex1a"></a>
-**1.a Resulting highlighted HTML report (clicked on green HTML button) — every match in yellow, with context. (The HTML report opens locally in your browser — it's a file on your computer, not a website. Nothing is uploaded or sent to the internet.)**
-
-![Highlighted HTML report open in browser](docs/images/main-screen-report.png)
-
-<a id="ss-ex1b"></a>
-**1.b Resulting highlighted Word report — every match in yellow, with context:**
-
-![Highlighted .docx report open in Word](docs/images/main-screen-report-docx.png)
-
-**1.c Password-Matched Files (click the orange Matched Files button on the main screen to get here):**
-
-![Matched files list](docs/images/password-matched-files.png)
-
-**1.d Password-Matched Files (after clicking 'View Text (with line numbers)' from the previous screen):**
-
-![Matched file View Text](docs/images/password-matched-files-specific-file.png)
-
-<a id="ss-ex2"></a>
-**Example 2: Search for 'heart' on the main screen:**
-
-![Main screen with heart search results](docs/images/main--screen-heart.png)
-
-<a id="ss-ex2a"></a>
-**2.a Resulting highlighted HTML report (opens privately in browser) — every match highlighted:**
-
-![Highlighted HTML report for heart search](docs/images/main--screen-heart-report-html.png)
-
-<a id="ss-ex2b"></a>
-**2.b Resulting highlighted docx report — every match highlighted:**
-
-![Highlighted .docx report for heart search](docs/images/main--screen-heart-report-docx.png)
-
-<a id="ss-ex3"></a>
-**Example 3: Suppose you had scanned and saved this original insurance document as a png file. But you misplaced the original doc and now you need to find the policy details for your Honda:**
-
-![Original scanned insurance document](docs/images/main-search-honda-original-doc.png)
-
-<a id="ss-ex3a"></a>
-**3.a From the main screen, search on 'honda' with Lines Before and Lines After (under Advanced Search Options) set to 2 to capture the surrounding context:**
-
-![Search for honda with context lines](docs/images/main-search-honda.png)
-
-<a id="ss-ex3b"></a>
-**3.b Lines Before and Lines After are set in the Advanced Search Options page, which pops up when you click 'Advanced' on the main page. Note: searching scanned images (.jpg, .png, .tiff, .bmp) requires the OCR checkbox to be checked in Advanced Search Options and Tesseract to be installed. Scanned PDFs with embedded text do not need OCR — peekdocs reads them directly:**
-
-![Advanced Search Options with context lines set to 2](docs/images/honda-advanced-menu.png)
-
-<a id="ss-ex4"></a>
-**Example 4: Search for '预算' (Chinese for 'budget') — peekdocs searches in any language:**
-
-![Search for Chinese term](docs/images/mandarin-search.png)
-
-<a id="ss-ex4a"></a>
-**4.a Resulting highlighted HTML report (opens privately in browser):**
-
-![Mandarin search HTML report](docs/images/mandarin-results.png)
-
-<a id="ss-ex5"></a>
-**Example 5: Boolean expression search — '(password OR credential) AND NOT test' — (check 'Expression' in Advanced Search Options):**
-
-![Boolean expression search](docs/images/boolean-search.png)
-
-<a id="ss-ex5a"></a>
-**5.a Boolean search results — highlighted HTML report (opens privately in browser):**
-
-![Boolean search HTML report](docs/images/boolean-search-results.png)
-
-<a id="ss-ex6"></a>
-**Example 6: Regex search — find every dollar amount across all file types (check 'Regex' in Advanced Search Options):**
-
-![Regex dollar amount search](docs/images/regex-dollar-search.png)
-
-**6.a Advanced Search Options showing 'Regex' checked:**
-
-![Regex Advanced Search Options](docs/images/regex-dollar-search-advanced.png)
-
-**6.b Resulting highlighted PDF report:**
-
-![Regex dollar amount PDF report](docs/images/regex-dollar-search-pdf.png)
-
-<a id="ss-advanced"></a>
-**Advanced Search Options (click 'Advanced' on main screen):**
-
-![Advanced Search Options](docs/images/advanced-search-options.png)
-
-<a id="ss-suites"></a>
-**Search Suites (click 'Suites' on main screen):**
-
-![Search Suites](docs/images/search-suites.png)
-
-<a id="ss-wizard"></a>
-**Search Wizard (5 of 21 entries shown, click 'Wizard' icon on main screen):**
-
-![Search Wizard](docs/images/search-wizard.png)
-
-<a id="ss-hover"></a>
-**Every screen has explanatory hover text for every button and data field. Hover turns on and off — bottom row.**
-
-![Hover text example](docs/images/main-hover-example.png)
-
-<a id="ss-help"></a>
-**Every screen has a help menu with Table of Contents — ? at upper-right corner.**
-
-![Help screen with Table of Contents](docs/images/main-help-screen.png)
-
-<a id="ss-tools"></a>
-**'Tools' Menu (main screen — lower right corner):**
-
-![Tools Menu](docs/images/main-tools-menu.png)
+*Screenshots are being refreshed for the v1.0 GUI (new color-coded Run buttons, Diff Snapshots tool, the "What's the difference?" link, and other recent additions). They'll land here in a follow-up commit. The CLI examples earlier in this README and the [User Guide](docs/USER_GUIDE.md) cover the same functionality in text.*
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
@@ -573,14 +452,22 @@ pipx ensurepath           # adds pipx to your PATH (all platforms)
 3. Open any terminal or Command Prompt window — it doesn't matter what folder you're in. Run:
 
    ```
-   pipx install C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows (replace YourName)
-   pipx install --python python3.13 ~/Downloads/peekdocs-main              # macOS
-   pipx install ~/Downloads/peekdocs-main                                  # Linux
+   pipx install --force C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows (replace YourName)
+   pipx install --force --python python3.13 ~/Downloads/peekdocs-main              # macOS
+   pipx install --force ~/Downloads/peekdocs-main                                  # Linux
    ```
+
+   **About `--force`:** it overwrites any existing peekdocs install cleanly. On a fresh machine it's harmless; if peekdocs is already installed, it refreshes it without you having to `pipx uninstall` first. The recommended one-liner for both first install and future upgrades.
 
    **macOS notes:** (1) The `--python python3.13` flag tells pipx to use your newer Python instead of the old system Python 3.9. Replace `3.13` with whichever version you installed. (2) Safari auto-extracts ZIP files, so you'll have a `peekdocs-main` folder (not a `.zip` file) in Downloads.
 
-**Have git?** You can skip the download and install directly: `pipx install git+https://github.com/exbuf/peekdocs.git` (on macOS, add `--python python3.13`)
+**Have git? (Recommended — no download / extract step.)** Install directly from GitHub in one line — works the same on every OS:
+
+```bash
+pipx install --force git+https://github.com/exbuf/peekdocs.git
+```
+
+(on macOS, add `--python python3.13`). Future upgrades use the exact same command.
 
 **Windows fallback — if pipx misbehaves.** On some Windows machines pipx reports a successful install but the package files don't actually land in the venv (running `peekdocs` then fails with `ModuleNotFoundError: No module named 'peekdocs'`). If you hit that, install directly with pip instead of pipx — it uses a different code path that bypasses the issue:
 
@@ -598,7 +485,7 @@ The trade-off vs pipx: peekdocs's dependencies live alongside any other `pip --u
 
 After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — even after restarting your computer. It's a one-time install, not something you run daily. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
 
-**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, uninstall the old one first (`pipx uninstall peekdocs`), then install the new ZIP — your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
+**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, run the same `pipx install --force …` command you used originally — `--force` overwrites the existing install cleanly and your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
 
 ### Option C: Manual Install (with git)
 
@@ -655,8 +542,8 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 - `.peekdocs.db` (in each search folder) — your search index
 - `peekdocs_report_*`, `peekdocs_accumulated_*` files — your saved reports
 
-- **pipx (installed from ZIP):** `pipx uninstall peekdocs`, download the new ZIP, then `pipx install` it again (same steps as the original install)
-- **pipx (installed with git):** `pipx upgrade peekdocs`
+- **pipx (installed from ZIP):** download the new ZIP, then `pipx install --force <path-to-new-zip-or-folder>` — the `--force` flag overwrites the old install cleanly (no uninstall step needed).
+- **pipx (installed from git URL):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. (Note: `pipx upgrade peekdocs` doesn't work for git-URL installs the way it does for PyPI; the `--force` reinstall is the documented way to refresh until peekdocs publishes to PyPI.)
 - **Standalone (Option A):** download the new version from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old file
 - **git (Option C):** `cd peekdocs && git pull && pip install -e .`
 - **ZIP (Option D):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`

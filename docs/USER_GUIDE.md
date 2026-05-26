@@ -189,7 +189,7 @@ This matters for how you launch peekdocs:
 
   You'll see `(venv)` appear at the beginning of your command line — that means peekdocs is ready. You need to do this activation step each time you open a new terminal window.
 
-  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install peekdocs`. After restarting your terminal, peekdocs works everywhere without activation.
+  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install --force git+https://github.com/exbuf/peekdocs.git`. After restarting your terminal, peekdocs works everywhere without activation.
 
 ### What is a terminal?
 
