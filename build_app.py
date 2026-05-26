@@ -62,6 +62,10 @@ def build_gui():
         "--windowed",                          # no console window (GUI app)
         "--onedir" if is_mac else "--onefile",  # .app bundle or single .exe
         "--add-data", f"{ctk_path}{sep}customtkinter",  # customtkinter assets
+        # Copy peekdocs's installed package metadata into the bundle
+        # so importlib.metadata.version("peekdocs") works at runtime
+        # (used for the GUI title bar and for diagnostic --check output).
+        "--copy-metadata", "peekdocs",
         "--noconfirm",                         # overwrite without asking
     ]
 
@@ -88,6 +92,7 @@ def build_cli():
         "--name", "peekdocs",
         "--console",                           # console app
         "--onefile",                           # single executable
+        "--copy-metadata", "peekdocs",         # so pkg_version() works in the bundle
         "--noconfirm",                         # overwrite without asking
     ]
 

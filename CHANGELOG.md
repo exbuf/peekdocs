@@ -6,7 +6,8 @@ All notable changes to peekdocs are documented here.
 
 Point release fixing two more sites that bypassed the v1.0.1
 in-process helper and still spawned a duplicate GUI window in
-PyInstaller-bundled standalone exes.
+PyInstaller-bundled standalone exes, and a cosmetic but
+user-visible version-display bug in the standalone GUI title.
 
 ### Fixed
 
@@ -35,6 +36,26 @@ PyInstaller-bundled standalone exes.
   is never executed by the GUI itself — and a user running both
   the standalone exe AND Schedule Search is an unusual combo. To
   be addressed in a future release if it surfaces in practice.
+
+- **Standalone GUI title bar showed "peekdocs" with no version.**
+  The title is built from ``importlib.metadata.version("peekdocs")``,
+  which reads installed-package metadata. PyInstaller doesn't
+  copy that metadata into the bundle by default, so the lookup
+  failed silently and the title fell through to an empty version
+  string. Also, ``peekdocs/__init__.py``'s ``__version__`` was
+  pinned at a stale "1.0.0".
+
+  Fix:
+
+  * ``peekdocs/__init__.py`` now resolves ``__version__`` from
+    installed metadata first and falls back to a hardcoded value
+    that stays in sync with pyproject.toml on every bump.
+  * GUI title (``peekdocs/gui/_app.py``) now imports from
+    ``peekdocs.__version__`` rather than calling pkg_version
+    directly, so it picks up the fallback.
+  * ``build_app.py`` adds ``--copy-metadata peekdocs`` to both
+    the GUI and CLI PyInstaller invocations as defence in depth,
+    so future bundles will have the .dist-info available too.
 
 ## [1.0.1] — 2026-05-26
 

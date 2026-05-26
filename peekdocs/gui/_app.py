@@ -35,11 +35,13 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         """Initialize the main application window, widgets, and saved settings."""
         super().__init__()
 
-        try:
-            version = pkg_version("peekdocs")
-        except Exception:
-            version = ""
-        self.title(f"\U0001F440 peekdocs {version}".strip())
+        # Use peekdocs.__version__ as the single source of truth: it
+        # tries installed-package metadata first, then falls back to a
+        # hardcoded value. Works in normal pip/pipx installs AND in
+        # PyInstaller-bundled standalone exes (which don't ship the
+        # .dist-info that pkg_version needs).
+        from peekdocs import __version__ as _peekdocs_version
+        self.title(f"\U0001F440 peekdocs {_peekdocs_version}".strip())
         self.withdraw()  # Hide until setup is complete to prevent flicker
         self.geometry("1280x800")
         self.minsize(1280, 700)
