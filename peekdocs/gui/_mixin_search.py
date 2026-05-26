@@ -355,14 +355,8 @@ class SearchMixin:
                 continue
 
             try:
-                env = os.environ.copy()
-                env["PYTHONIOENCODING"] = "utf-8"
-                proc = subprocess.Popen(
-                    cmd, cwd=folder,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    text=True, encoding="utf-8", errors="replace", env=env,
-                )
-                stdout, stderr = proc.communicate()
+                from peekdocs.gui._helpers import _run_peekdocs_cli
+                stdout, stderr, _returncode = _run_peekdocs_cli(cmd, folder)
                 if stdout:
                     combined_stdout.append(f"── {folder} ──")
                     combined_stdout.append(stdout)
@@ -510,24 +504,22 @@ class SearchMixin:
 
 
     def _run_search(self, cmd, folder):
-        """Run the peekdocs subprocess in a background thread and post results."""
+        """Run the peekdocs CLI in a background thread and post results.
+
+        Uses subprocess in normal pip / pipx installs and in-process
+        execution in PyInstaller-bundled standalone exes. See
+        peekdocs.gui._helpers._run_peekdocs_cli for the why.
+        """
         import re as _re
+        from peekdocs.gui._helpers import _run_peekdocs_cli
         try:
-            env = os.environ.copy()
-            env["PYTHONIOENCODING"] = "utf-8"
-            env["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
-            self.process = subprocess.Popen(
-                cmd,
-                cwd=folder,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                env=env,
-            )
-            stdout, stderr = self.process.communicate()
-            returncode = self.process.returncode
+            # On a normal install we'd hand the Popen object to
+            # self.process so Cancel can terminate it; the in-process
+            # branch can't be cancelled mid-flight, so we leave
+            # self.process as None and the Cancel button becomes a
+            # best-effort visual reset only.
+            self.process = None
+            stdout, stderr, returncode = _run_peekdocs_cli(cmd, folder)
             # Include stderr in output if stdout is empty
             if not stdout.strip() and stderr.strip():
                 stdout = stderr

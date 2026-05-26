@@ -2,6 +2,41 @@
 
 All notable changes to peekdocs are documented here.
 
+## [1.0.1] — 2026-05-26
+
+Point release fixing one bug introduced by the v1.0.0 standalone
+Windows / macOS executables shipping for the first time.
+
+### Fixed
+
+- **Standalone GUI exe couldn't actually run a search.** Clicking
+  Run Standard Search (or any Run button) on the bundled GUI
+  opened a *second* peekdocs GUI window and returned zero matches.
+  Root cause: the GUI invokes searches via
+  ``subprocess.Popen([sys.executable, "-m", "peekdocs", ...])``,
+  which works in a normal pip / pipx install because
+  ``sys.executable`` is ``python``. In a PyInstaller-bundled exe,
+  ``sys.executable`` is the GUI exe itself — re-launching it
+  ignores the ``-m peekdocs`` argv and just opens another GUI
+  window. Bug was invisible in a Mac dev environment because the
+  pip-installed peekdocs that runs there is not a frozen exe.
+
+  Fix: new helper ``peekdocs.gui._helpers._run_peekdocs_cli`` that
+  detects ``sys.frozen`` and runs the search in-process (calling
+  ``peekdocs.cli.main()`` directly with stdout/stderr redirected
+  to string buffers) instead of spawning a subprocess. Three call
+  sites refactored to use it: the main standard search, the
+  multi-folder search loop, and the suite runner.
+
+  Trade-off in frozen mode: the Cancel button can't actually
+  terminate an in-flight search (no PID to kill). The button is
+  still present and resets the GUI state visually, but the search
+  runs to completion regardless. Acceptable for v1.0.1; a
+  cooperative-cancellation hook can come later.
+
+  Normal pip / pipx installs are unaffected — they still use
+  subprocess and Cancel still works.
+
 ## [1.0.0] — 2026-05-25
 
 First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan to eliminate legal liability, adds Schedule Search, builds out the automation/IT-use CLI surface (`--diff`, `--hash`, `--on-match`, `--dry-run`, run log), expands the Python API, polishes the main-screen UI (color-coded Run buttons, hyperlink-styled Advanced/Wizard, tinted options row), and rewrites large portions of the README and User Guide. Not yet published to PyPI.

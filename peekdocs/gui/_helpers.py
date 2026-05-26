@@ -8,6 +8,82 @@ import subprocess
 import sys
 
 
+def _run_peekdocs_cli(cmd, folder, env=None):
+    """Run a peekdocs CLI command and return ``(stdout, stderr, returncode)``.
+
+    Two paths, chosen by ``sys.frozen``:
+
+    * **Normal pip / pipx install** — spawn a subprocess via the cmd list
+      (typically ``[sys.executable, "-m", "peekdocs", "-q", ...flags...]``).
+      stdout / stderr are captured through pipes, env is the inherited
+      environment with UTF-8 encoding forced.
+
+    * **PyInstaller-bundled standalone exe** — call
+      ``peekdocs.cli.main()`` directly, in-process, with stdout / stderr
+      redirected to string buffers. The first three elements of ``cmd``
+      (``[sys.executable, "-m", "peekdocs"]``) are stripped — they're
+      meaningless inside the bundle because ``sys.executable`` IS the
+      GUI exe. Re-launching it via subprocess just opens another GUI
+      window (which is exactly the bug that prompted this helper); the
+      in-process call sidesteps that entirely.
+
+    Notes:
+
+    * Cancellation only works on the subprocess path. In frozen mode the
+      caller cannot kill an in-flight search; the GUI's Cancel button
+      becomes a no-op for the duration of the search. Acceptable
+      trade-off for the standalone build's first release.
+    * Working directory is restored on the way out even if the CLI
+      raises.
+    * SystemExit from the CLI is caught and converted to a return code.
+    """
+    if getattr(sys, "frozen", False):
+        # PyInstaller bundle: run in-process. The CLI module already
+        # accepts an argv list and returns an exit code.
+        import io
+        import contextlib
+        from peekdocs.cli import main as _cli_main
+
+        cli_argv = list(cmd[3:])  # drop [sys.executable, "-m", "peekdocs"]
+        buf_out = io.StringIO()
+        buf_err = io.StringIO()
+        old_cwd = os.getcwd()
+        rc = 0
+        try:
+            os.chdir(folder)
+            with contextlib.redirect_stdout(buf_out), contextlib.redirect_stderr(buf_err):
+                try:
+                    rc = _cli_main(cli_argv)
+                except SystemExit as e:
+                    rc = e.code if isinstance(e.code, int) else 0
+                except Exception:
+                    # Surface any exception in stderr so the GUI's
+                    # existing "show stderr if stdout is empty" path
+                    # picks it up.
+                    import traceback as _tb
+                    _tb.print_exc()
+                    rc = 2
+        finally:
+            try:
+                os.chdir(old_cwd)
+            except Exception:
+                pass
+        return buf_out.getvalue(), buf_err.getvalue(), int(rc or 0)
+
+    # Normal pip / pipx install: subprocess path.
+    if env is None:
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+    proc = subprocess.Popen(
+        cmd, cwd=folder,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, encoding="utf-8", errors="replace", env=env,
+    )
+    stdout, stderr = proc.communicate()
+    return stdout, stderr, proc.returncode
+
+
 # Report extensions that must only open in known-safe local apps.
 # The system default handler is never used for these — it could route
 # to Google Docs, Apple Pages, or a cloud-syncing browser.

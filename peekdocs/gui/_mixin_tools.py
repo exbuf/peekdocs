@@ -4386,20 +4386,15 @@ class ToolsMixin:
                 if cmd is None or cmd == "FLAGS_IN_SEARCH":
                     continue
 
-                # Run via subprocess (same as regular search)
+                # Run via subprocess or in-process (see
+                # peekdocs.gui._helpers._run_peekdocs_cli for why both
+                # paths exist — short version: PyInstaller-bundled
+                # standalone exes can't relaunch themselves as CLI).
                 import time
                 start = time.time()
-                env = os.environ.copy()
-                env["PYTHONIOENCODING"] = "utf-8"
-                env["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
                 try:
-                    proc = _sp.Popen(
-                        cmd, cwd=folder,
-                        stdout=_sp.PIPE, stderr=_sp.PIPE,
-                        text=True, encoding="utf-8", errors="replace",
-                        env=env,
-                    )
-                    stdout, stderr = proc.communicate()
+                    from peekdocs.gui._helpers import _run_peekdocs_cli
+                    stdout, stderr, _rc = _run_peekdocs_cli(cmd, folder)
                 except Exception:
                     continue
                 elapsed = time.time() - start
