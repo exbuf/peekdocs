@@ -32,7 +32,7 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 
 **Two ways to install:**
 1. Developers with Python: `pip install peekdocs` (below)
-2. Everyone else: [download the standalone app](#option-a-standalone-download-no-python-needed) — no Python needed, just download and run
+2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
 ```bash
 # Install (requires Python 3.10+)
@@ -389,7 +389,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 ## Installation
 
-[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: Quick Install with pipx](#option-b-quick-install-with-pipx) · [Option C: Manual Install (with git)](#option-c-manual-install-with-git) · [Option D: Manual Install (no git)](#option-d-manual-install-no-git-no-sign-up) · [Upgrading](#upgrading)
+[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-recommended-for-most-users) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Advanced: source install for contributors](#advanced-source-install-for-contributors) · [Upgrading](#upgrading)
 
 ### Prerequisites
 
@@ -410,7 +410,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 **Everything else installs automatically.** When you run `pip install peekdocs`, pip downloads and installs all 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, etc.) — about 50 packages, ~244 MB total on disk. You don't have to install any of them yourself. See [Dependencies](docs/USER_GUIDE.md#dependencies) in the User Guide for the full list and what each one does.
 
-### Option A: Standalone Download (no Python needed)
+### Option A: Standalone Download (recommended for most users)
 
 The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
 
@@ -421,7 +421,11 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
    - **Linux:** `peekdocs-gui-linux`
 3. Run it — that's it. No installation needed.
 
-**Windows SmartScreen warning:** When you first run the `.exe`, Windows may show a blue warning: "Windows protected your PC." This is normal for free, open-source software that hasn't purchased a code-signing certificate ($200+/year). It does not mean the software is unsafe. To proceed: click **"More info"**, then click **"Run anyway"**. You'll only see this once.
+**First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe — every OS just wants you to confirm you really meant to open something its certificate authority hasn't seen before. Once you approve it the first time, subsequent launches are silent.
+
+- **Windows (SmartScreen).** You'll see "Windows protected your PC." Click **More info** → **Run anyway**.
+- **macOS (Gatekeeper).** You'll see "peekdocs-gui.app cannot be opened because it is from an unidentified developer." Right-click (or Control-click) the app → **Open** → click **Open** in the confirmation dialog. From then on a regular double-click works. (Or from a terminal: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` removes the quarantine flag directly.)
+- **Linux.** Mark the file executable before first run: `chmod +x peekdocs-gui-linux` then `./peekdocs-gui-linux`.
 
 **CLI users:** The Releases page also has command-line versions (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`).
 
@@ -429,107 +433,74 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 
 **No dependency breakage.** The standalone download bundles Python, all libraries, and peekdocs into a single file — frozen at the versions that were tested and working together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break. The app works the same way today as the day you downloaded it.
 
-**Safe for your computer.** Neither installation option (standalone or pip) modifies your existing Python installation, installs system services, writes to the registry, or interferes with any other programs on your computer. peekdocs runs when you launch it and stops when you close it.
+**Safe for your computer.** No installation option (standalone, pipx, or source) modifies your existing Python, installs system services, writes to the registry, or interferes with any other program. peekdocs runs when you launch it and stops when you close it.
 
 ---
 
-*Options B through D below are alternative installation methods for users who prefer pipx, git, or pip. If you used Option A, you're done — skip ahead to [Quick Start](#quick-start).*
+*If you used Option A, you're done — skip ahead to [Quick Start](#quick-start). The two sections below are for users who want the CLI / Python API alongside the GUI, or who want to modify the source.*
 
-### Option B: Quick Install with pipx
+### Option B: Quick Install with pipx (for Python users)
 
-First, check if pipx is installed by typing `pipx --version`. If it says "not recognized" or "command not found," install it:
+If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
 
-```bash
-pip install pipx          # Windows
-brew install pipx         # macOS (pip won't work — gives "externally-managed-environment" error)
-pipx ensurepath           # adds pipx to your PATH (all platforms)
-```
+**Prerequisites** (one-time setup, skip whatever you already have):
 
-**Close and reopen your terminal** (Command Prompt on Windows) after running `ensurepath` (it only takes effect in a new window). Then install peekdocs:
+- **Python 3.10+** — Windows: [python.org/downloads](https://www.python.org/downloads/) (check "Add Python to PATH" on the first installer screen). macOS: `brew install python` (or [python.org/downloads](https://www.python.org/downloads/)). Linux: usually preinstalled; if not, see the [Prerequisites](#prerequisites) section above.
+- **pipx** — `pip install pipx` (Windows), `brew install pipx` (macOS), `sudo apt install pipx` (Linux). Then `pipx ensurepath` and **close and reopen your terminal** so the new PATH takes effect.
+- **git** — usually preinstalled on macOS and Linux. On Windows install [Git for Windows](https://git-scm.com/download/win) and accept the defaults.
+- **Linux only:** `sudo apt install python3-tk` so the GUI can load Tkinter (the CLI works without it).
 
-1. Go to [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs)
-2. Click the green **Code** button → **Download ZIP**
-3. Open any terminal or Command Prompt window — it doesn't matter what folder you're in. Run:
-
-   ```
-   pipx install --force C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows (replace YourName)
-   pipx install --force --python python3.13 ~/Downloads/peekdocs-main              # macOS
-   pipx install --force ~/Downloads/peekdocs-main                                  # Linux
-   ```
-
-   **About `--force`:** it overwrites any existing peekdocs install cleanly. On a fresh machine it's harmless; if peekdocs is already installed, it refreshes it without you having to `pipx uninstall` first. The recommended one-liner for both first install and future upgrades.
-
-   **macOS notes:** (1) The `--python python3.13` flag tells pipx to use your newer Python instead of the old system Python 3.9. Replace `3.13` with whichever version you installed. (2) Safari auto-extracts ZIP files, so you'll have a `peekdocs-main` folder (not a `.zip` file) in Downloads.
-
-**Have git? (Recommended — no download / extract step.)** Install directly from GitHub in one line — works the same on every OS:
+**Install (and future upgrade) — one line:**
 
 ```bash
 pipx install --force git+https://github.com/exbuf/peekdocs.git
 ```
 
-(on macOS, add `--python python3.13`). Future upgrades use the exact same command.
+`--force` overwrites any existing peekdocs install cleanly. On a fresh machine it's a no-op; on a machine with an older peekdocs already installed it refreshes the install without you needing to `pipx uninstall` first. The same command is your future upgrade too — re-run it whenever you want the latest commit.
 
-**Windows fallback — if pipx misbehaves.** On some Windows machines pipx reports a successful install but the package files don't actually land in the venv (running `peekdocs` then fails with `ModuleNotFoundError: No module named 'peekdocs'`). If you hit that, install directly with pip instead of pipx — it uses a different code path that bypasses the issue:
+**macOS note:** if your system `python3` is still 3.9 and you installed a newer Python alongside it, tell pipx which to use:
 
-```powershell
-python -m pip install --user git+https://github.com/exbuf/peekdocs.git
+```bash
+pipx install --force --python python3.13 git+https://github.com/exbuf/peekdocs.git
 ```
 
-You can upgrade later with the same command plus `--upgrade`:
+Replace `3.13` with the version you installed.
+
+**No git?** Download the ZIP from the green **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of the URL:
+
+```bash
+pipx install --force ~/Downloads/peekdocs-main.zip                              # macOS / Linux
+pipx install --force C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows
+```
+
+**Windows fallback — if pipx reports success but `peekdocs` says `ModuleNotFoundError`.** On some Windows machines pipx creates the venv but the package files silently fail to land in it. Install directly with pip instead — a different code path that bypasses the issue:
 
 ```powershell
 python -m pip install --user --upgrade git+https://github.com/exbuf/peekdocs.git
 ```
 
-The trade-off vs pipx: peekdocs's dependencies live alongside any other `pip --user` packages on your Python (no isolated venv). On a fresh personal Windows install that's typically fine; if you later see dependency conflicts, switch back to pipx after running `pip uninstall peekdocs`.
+`--upgrade` is the pip-side equivalent of pipx's `--force` — overwrites any existing install. Trade-off: no isolated venv (peekdocs's dependencies live alongside any other `pip --user` packages on your Python), which on a personal Windows install is typically fine.
 
-After installation, `peekdocs` and `peekdocs-gui` (on Windows: `peekdocs.exe` and `peekdocs-gui.exe`) work from any terminal or Command Prompt, any folder, every time — even after restarting your computer. It's a one-time install, not something you run daily. This is the easiest way to install. To search your documents, either navigate your terminal to your documents folder first, or pass the folder path with the `-d` flag (e.g., `peekdocs budget -d C:\Users\YourName\Documents`).
+After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you (you'll never see a `(venv)` prefix the way you would with the source install below). To uninstall completely: `pipx uninstall peekdocs`. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
 
-**Fully isolated.** pipx installs peekdocs in its own private virtual environment (venv), completely separate from your system Python and all other programs. Unlike Options C and D below, you won't see `(venv)` in your terminal prompt — pipx manages the environment automatically so you never have to think about it. It will not install, upgrade, downgrade, or conflict with anything else on your computer. The only change to your system is two new commands (`peekdocs` and `peekdocs-gui`). To uninstall completely: `pipx uninstall peekdocs`. To upgrade to a newer version, run the same `pipx install --force …` command you used originally — `--force` overwrites the existing install cleanly and your settings and saved searches are not affected. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for details.
+### Advanced: source install for contributors
 
-### Option C: Manual Install (with git)
+If you want to modify peekdocs and submit changes back, install in editable mode from a local clone of the repo:
 
 ```bash
 git clone https://github.com/exbuf/peekdocs.git
 cd peekdocs
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install --upgrade pip setuptools wheel   # required on some Linux distros — see note below
+pip install --upgrade pip setuptools wheel   # required on some older Linux pip
 pip install -e .
 ```
 
-**Important:** With a manual install, you must activate the virtual environment (`source venv/bin/activate`) every time you open a new terminal. When activated, you'll see `(venv)` at the beginning of your terminal prompt — this means peekdocs commands will work. If you see "command not found" when typing `peekdocs`, you forgot to activate — look for the missing `(venv)` prefix. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details and how to switch to pipx.
+The `-e` (editable) flag means your code edits take effect the next time you run peekdocs — no reinstall step. You must `source venv/bin/activate` (or `venv\Scripts\activate` on Windows) in every new terminal before running peekdocs; the `(venv)` prefix in your prompt confirms the venv is active. If you see "command not found" or `ModuleNotFoundError`, you forgot the activate step.
 
-**"setup.py not found" error on Linux?** Some Linux distributions ship older versions of pip and setuptools that don't support `pyproject.toml`-based builds (which peekdocs uses). The fix is `pip install --upgrade pip setuptools wheel` inside the virtual environment before running `pip install -e .` — this is already included in the commands above. Make sure the `(venv)` prefix is showing in your terminal prompt before running these commands.
+**No git?** Download the ZIP from the green **Code** button on the [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) page, extract it, then follow the same recipe starting at `cd peekdocs-main` (the extracted folder name).
 
-### Option D: Manual Install (no git, no sign-up)
-
-No git? No problem. Download peekdocs as a ZIP file directly from your browser:
-
-1. Go to [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs)
-2. Click the green **Code** button
-3. Click **Download ZIP**
-4. Extract the ZIP file, copy the extracted `peekdocs-main` folder and paste it to where you want it
-5. Open a terminal and navigate to the extracted folder:
-
-   **Windows:**
-   ```cmd
-   cd C:\Users\YourName\Downloads\peekdocs-main
-   python -m venv venv
-   venv\Scripts\activate
-   pip install -e .
-   ```
-
-   **macOS/Linux:**
-   ```bash
-   cd ~/Downloads/peekdocs-main
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install --upgrade pip setuptools wheel
-   pip install -e .
-   ```
-
-**Important:** Same as Option C — you must activate the virtual environment each time you open a new terminal. Look for `(venv)` at the start of your prompt to confirm it's active. See the [User Guide](docs/USER_GUIDE.md#which-installation-method-did-you-use) for details.
+For everyday use without the activate-every-time friction, use Option B (pipx) instead. The source install is only worth the extra steps if you're actually editing the code.
 
 ### Upgrading
 
@@ -542,11 +513,13 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 - `.peekdocs.db` (in each search folder) — your search index
 - `peekdocs_report_*`, `peekdocs_accumulated_*` files — your saved reports
 
-- **pipx (installed from ZIP):** download the new ZIP, then `pipx install --force <path-to-new-zip-or-folder>` — the `--force` flag overwrites the old install cleanly (no uninstall step needed).
-- **pipx (installed from git URL):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. (Note: `pipx upgrade peekdocs` doesn't work for git-URL installs the way it does for PyPI; the `--force` reinstall is the documented way to refresh until peekdocs publishes to PyPI.)
-- **Standalone (Option A):** download the new version from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old file
-- **git (Option C):** `cd peekdocs && git pull && pip install -e .`
-- **ZIP (Option D):** download the new ZIP, replace the folder, activate the venv, run `pip install -e .`
+How to upgrade depends on which install method you used:
+
+- **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one.
+- **pipx (Option B, git URL):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. (`pipx upgrade peekdocs` doesn't work for git-URL installs the way it does for PyPI; the `--force` reinstall is the documented way to refresh until peekdocs publishes to PyPI.)
+- **pipx (Option B, ZIP):** download the new ZIP, then `pipx install --force <path-to-the-new-zip>`.
+- **pip --user (Windows fallback):** `python -m pip install --user --upgrade git+https://github.com/exbuf/peekdocs.git`.
+- **Source install (Advanced):** `cd peekdocs && git pull && pip install -e .` (inside an activated venv).
 
 See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for full details on what is and isn't preserved.
 
@@ -554,7 +527,7 @@ See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-
 
 ### Terminal
 
-If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the manual install (Option C or D), navigate to the folder where `pyproject.toml` is located (the peekdocs project folder) and activate the virtual environment first:
+If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the source install for contributors, navigate to the cloned repo folder and activate the virtual environment first:
 
 ```bash
 cd /path/to/peekdocs                 # the folder containing pyproject.toml
@@ -794,7 +767,7 @@ To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --i
 - **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
 - **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If peekdocs is blocked, add your Python installation or the peekdocs folder to your antivirus allow list
 - **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If peekdocs reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `peekdocs_errors.log`
-- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [ZIP download](#option-c-manual-install-no-git-no-sign-up) installation method instead
+- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-recommended-for-most-users) (no Python, no network needed beyond the initial download) or the ZIP-based pipx install (described under Option B's "No git?" subsection)
 - **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
 - **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
 
