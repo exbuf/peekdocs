@@ -436,10 +436,11 @@ A file could not be read because it's open in another application (common on Win
 
 **"peekdocs: command not found" after installation**
 
-pip installed the `peekdocs` console script to a directory not in your `$PATH`. This commonly happens when installing with `--user` or when the virtual environment is not activated.
+pip (or pipx) installed the `peekdocs` console script to a directory not in your `$PATH`. This commonly happens when installing with `--user` or when the virtual environment is not activated.
 
+- **If you installed with pipx** (Option B in the README), run `pipx ensurepath` once, then **close and reopen the terminal** — the new PATH only takes effect in new shells. This is the most common cause on a fresh Linux install where `~/.local/bin` isn't on PATH yet.
 - Check where it was installed: `pip show -f peekdocs | grep peekdocs`
-- On Linux: scripts go to `~/.local/bin` — add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`
+- On Linux: scripts go to `~/.local/bin` — `pipx ensurepath` adds it for you, or manually add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`
 - On macOS with Homebrew: scripts go to `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel) — add to `~/.zshrc`
 - On Windows: scripts go to `%APPDATA%\Python\Scripts` — add this to your system PATH
 - As a fallback, you can always run `python -m peekdocs` instead
