@@ -457,6 +457,30 @@ After installing peekdocs, running it gives `ModuleNotFoundError` because pip in
 
 ---
 
+**`ModuleNotFoundError: No module named 'peekdocs'` right after `pipx install` succeeded (Windows)**
+
+`pipx list` shows `peekdocs.exe` and `peekdocs-gui.exe` as installed, but running `peekdocs` fails with `ModuleNotFoundError: No module named 'peekdocs'`. Checking inside the pipx venv shows the package directory is empty or missing:
+
+```powershell
+dir $env:USERPROFILE\.local\pipx\venvs\peekdocs\Lib\site-packages\peekdocs
+# "Cannot find path … because it does not exist."
+```
+
+Cause: pipx on certain Windows configurations reports a successful install while the package files silently fail to land in the venv. Not a Defender issue (protection history is empty); the install itself drops files midway. Reinstalling via pipx — including `--force` — produces the same empty state. The failure mode is reproducible.
+
+Workaround: bypass pipx entirely. `python -m pip install --user …` uses a different code path and works on the same machines where pipx fails:
+
+```powershell
+pipx uninstall peekdocs
+python -m pip install --user git+https://github.com/exbuf/peekdocs.git
+peekdocs --version
+peekdocs-gui
+```
+
+Upgrade later with the same command plus `--upgrade`. The trade-off vs pipx: no isolated venv (peekdocs's dependencies live alongside any other `pip --user` packages on your Python), which is typically fine on a personal Windows install.
+
+---
+
 **Regex patterns behave differently in PowerShell vs CMD (Windows)**
 
 Regex patterns with special characters (`$`, `(`, `)`, `|`, `{`, `}`) produce unexpected results or errors in PowerShell because PowerShell interprets these characters before they reach Python.
