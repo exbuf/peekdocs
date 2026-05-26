@@ -4130,11 +4130,11 @@ class ToolsMixin:
             # empty half-built popup.
             pick_win, _ = self._themed_toplevel(win)
             pick_win.title("Add Search to Suite")
-            pick_win.geometry("350x300")
+            pick_win.geometry("350x400")
             pick_win.transient(win)
             self.update_idletasks()
             px = win.winfo_rootx() + (win.winfo_width() - 350) // 2
-            py = win.winfo_rooty() + (win.winfo_height() - 300) // 2
+            py = win.winfo_rooty() + (win.winfo_height() - 400) // 2
             pick_win.geometry(f"+{px}+{py}")
             pick_win.update_idletasks()
             try:
@@ -4147,13 +4147,6 @@ class ToolsMixin:
                 pass  # X11 race; transient + lift below keeps it modal-ish
 
             tk.Label(pick_win, text="Select a saved search:", font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 4))
-            pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
-            # Populate BEFORE packing so items are in the data model when
-            # the widget is first laid out — belt-and-suspenders against
-            # any remaining race between insert() and X11 expose events.
-            for s in remaining:
-                pick_lb.insert("end", s)
-            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
 
             def _do_add():
                 sel = pick_lb.curselection()
@@ -4167,7 +4160,19 @@ class ToolsMixin:
                 pick_win.destroy()
                 _refresh_search_list()
 
-            ctk.CTkButton(pick_win, text="Add", width=80, font=ctk.CTkFont(size=12), command=_do_add).pack(pady=(0, 10))
+            # Pack the Add button BEFORE the listbox so its row is reserved
+            # at the bottom; otherwise the listbox's expand=True grows to
+            # fill the toplevel and pushes the button off the visible area.
+            ctk.CTkButton(pick_win, text="Add", width=80, font=ctk.CTkFont(size=12),
+                          command=_do_add).pack(side="bottom", pady=(0, 10))
+
+            pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
+            # Populate BEFORE packing so items are in the data model when
+            # the widget is first laid out — belt-and-suspenders against
+            # any remaining race between insert() and X11 expose events.
+            for s in remaining:
+                pick_lb.insert("end", s)
+            pick_lb.pack(fill="both", expand=True, padx=10, pady=(0, 5))
             self._apply_dark_theme(pick_win)
             # Linux/X11: transient+grab_set doesn't always raise children
             # above the parent. Explicitly lift and focus so the picker
