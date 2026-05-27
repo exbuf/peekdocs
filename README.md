@@ -193,6 +193,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
+**Same search from Python.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same `0.3`-second result.
+
+![peekdocs Python API in a Jupyter notebook](docs/images/screenshot-python-api.png)
+
 **The same matches as a shareable Word report.** Every search automatically produces `peekdocs_standard_results.docx` alongside the .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Apple Pages, or any word processor — the screenshot below is LibreOffice. Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options).
 
 ![TODO results opened in LibreOffice](docs/images/screenshot-TODO-LibreOffice.png)
