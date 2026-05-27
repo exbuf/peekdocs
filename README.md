@@ -217,7 +217,7 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 
 ![Regex Search results](docs/images/screenshot-regex-search-results.png)
 
-**(c) Drilling in.** Clicking **View Files** on the "Local port" row narrows from millions of matches down to the one file containing `localhost:<port>` — a `Dockerfile`, with 2 matches on lines 19 and 25.
+**(c) Drilling in.** Clicking **View Files** on the "Local port" row (above) narrows from millions of matches down to the one file containing `localhost:<port>` — a `Dockerfile`, with 2 matches on lines 19 and 25.
 
 ![Files containing Local port matches](docs/images/screenshot-regex-localport.png)
 
