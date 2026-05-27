@@ -193,7 +193,27 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
-More screenshots (Regex Search, Diff Snapshots, `--check` output) will be added as they're captured.
+#### Regex Search — full workflow
+
+A four-shot tour through the Regex Search popup using a saved collection of 10 common code patterns (URL, IPv4 address, Local port, ISO date, UPPER_CASE constant, Python decorator, Email, Semver version, UUID, Markdown link).
+
+**(a) Setup.** All 10 patterns enabled, recursive search across the same 452-file folder.
+
+![Regex Search setup](docs/images/screenshot-regex-search.png)
+
+**(b) Results.** 1,402,532 matches across 452 files in 20.7 seconds, broken down per pattern. Each row has a **View Files** button to drill into that pattern's hits.
+
+![Regex Search results](docs/images/screenshot-regex-search-results.png)
+
+**(c) Drilling in.** Clicking **View Files** on the "Local port" row narrows from millions of matches down to the one file containing `localhost:<port>` — a `Dockerfile`, with 2 matches on lines 19 and 25.
+
+![Files containing Local port matches](docs/images/screenshot-regex-localport.png)
+
+**(d) Context view.** Clicking **View Text (with line numbers)** opens the file with matches highlighted in yellow — here, `localhost:5432` and `localhost:8080` show up as hardcoded values that should probably come from environment variables. Reviewable in context, no leaving the GUI.
+
+![Dockerfile text view with highlighted matches](docs/images/screenshot-regex-textview-dockerfile.png)
+
+More screenshots (Diff Snapshots, Search Suites, `--check` output) will be added as they're captured.
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
