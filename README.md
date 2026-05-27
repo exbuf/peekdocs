@@ -252,6 +252,8 @@ For users who want to know not just *what's in my documents* but *what changed s
 
 ![Tools menu](docs/images/screenshot-tools-menu.png)
 
+<p align="center"><b>Tools</b></p>
+
 **(b) Comparing two snapshots.** Picked two snapshots of a `TODO` search captured before and after a small code change: one new file gained a TODO, one existing file went from 1 to 2 TODOs. The result pane shows the three distinct categories in color (green NEW, orange CHANGED, muted UNCHANGED summary) plus a red status line at the top — *"Actionable changes: 1 new, 1 changed, 0 modified."*
 
 ![Diff Snapshots popup with results](docs/images/screenshot-diff-snapshots.png)
