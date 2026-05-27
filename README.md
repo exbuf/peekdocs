@@ -259,7 +259,11 @@ peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.
 
 The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
 
-More screenshots (`--check` output) will be added as they're captured.
+#### `peekdocs --check` — operational health probe
+
+For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script.
+
+![peekdocs --check output](docs/images/screenshot-check-output.png)
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
