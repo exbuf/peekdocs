@@ -4042,8 +4042,8 @@ class ToolsMixin:
 
         # ── Left panel buttons ──
         def _new_suite():
-            from tkinter import simpledialog
-            name = simpledialog.askstring("New Suite", "Suite name:", parent=win)
+            from peekdocs.gui._helpers import themed_ask_string
+            name = themed_ask_string(win, "New Suite", "Suite name:")
             if not name or not name.strip():
                 return
             name = name.strip()
@@ -4064,10 +4064,10 @@ class ToolsMixin:
         def _rename_suite_btn():
             if current_suite[0] is None:
                 return
-            from tkinter import simpledialog
-            new_name = simpledialog.askstring(
-                "Rename Suite", f"New name for '{current_suite[0]}':",
-                parent=win, initialvalue=current_suite[0],
+            from peekdocs.gui._helpers import themed_ask_string
+            new_name = themed_ask_string(
+                win, "Rename Suite", f"New name for '{current_suite[0]}':",
+                initial=current_suite[0],
             )
             if not new_name or not new_name.strip() or new_name.strip() == current_suite[0]:
                 return
@@ -5668,9 +5668,9 @@ class ToolsMixin:
         _collections_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
 
         def _save_collection():
-            from tkinter import simpledialog
             import json as _json_rc
-            name = simpledialog.askstring("Save Collection As", "Collection name:", parent=win)
+            from peekdocs.gui._helpers import themed_ask_string
+            name = themed_ask_string(win, "Save Collection As", "Collection name:")
             if not name or not name.strip():
                 return
             name = name.strip()
@@ -6362,6 +6362,15 @@ class ToolsMixin:
         blank()
         b("Your pattern names, regex strings, folder, and checkbox")
         b("settings are automatically saved between sessions.")
+        blank()
+        b("Do NOT wrap your regex in quotes inside the Regex field.")
+        b("Type the raw regex pattern directly — peekdocs passes it")
+        b("straight to Python's re engine without any shell parsing.")
+        b("Quotes are only needed when typing a regex into the CLI")
+        b("(e.g. peekdocs -x '\\d+\\.\\d+'), where the shell would")
+        b("otherwise interpret special characters before peekdocs sees")
+        b("them. In the GUI Regex field, adding quotes makes peekdocs")
+        b("look for the literal double-quote character.")
         blank()
         b("Clear All erases all 10 pattern rows (checkboxes, names,")
         b("and regex fields). Restore All puts them back \u2014 it undoes")

@@ -84,6 +84,89 @@ def _run_peekdocs_cli(cmd, folder, env=None):
     return stdout, stderr, proc.returncode
 
 
+def themed_ask_string(parent, title, prompt, initial=""):
+    """Modal text-input dialog centered over *parent*.
+
+    Replacement for ``tkinter.simpledialog.askstring`` that uses
+    ``CTkToplevel`` plus manual centering so the popup reliably appears
+    over the parent window. ``simpledialog.askstring`` on macOS can
+    position the dialog far from the parent (or near a screen edge),
+    depending on Tk version and HiDPI scaling — observed in practice
+    with the Save Collection As dialog appearing partly off-screen.
+
+    Returns the entered string (an empty string is a valid result), or
+    ``None`` if the user cancelled / closed the dialog.
+    """
+    import customtkinter as ctk
+    import tkinter as tk
+
+    parent.update_idletasks()
+    w, h = 380, 160
+    result = [None]
+
+    win = ctk.CTkToplevel(parent)
+    win.title(title)
+    win.geometry(f"{w}x{h}")
+    win.resizable(False, False)
+
+    # Center on parent (manually — no reliance on Tk's positioning).
+    px = parent.winfo_rootx() + (parent.winfo_width() - w) // 2
+    py = parent.winfo_rooty() + (parent.winfo_height() - h) // 2
+    win.geometry(f"+{px}+{py}")
+    win.transient(parent)
+
+    # X11 / Linux: grab_set fails on a not-yet-viewable window. Wait
+    # for visibility, then grab as best-effort.
+    win.update_idletasks()
+    try:
+        win.wait_visibility()
+    except tk.TclError:
+        pass
+    try:
+        win.grab_set()
+    except tk.TclError:
+        pass
+
+    ctk.CTkLabel(win, text=prompt, font=ctk.CTkFont(size=12)).pack(
+        padx=15, pady=(15, 5), anchor="w")
+    entry = ctk.CTkEntry(win, font=ctk.CTkFont(size=12))
+    entry.pack(padx=15, fill="x")
+    if initial:
+        entry.insert(0, initial)
+    entry.focus_set()
+
+    def _ok(_event=None):
+        result[0] = entry.get()
+        win.destroy()
+
+    def _cancel(_event=None):
+        result[0] = None
+        win.destroy()
+
+    btn_row = tk.Frame(win)
+    btn_row.pack(side="bottom", pady=(0, 12))
+    ctk.CTkButton(btn_row, text="OK", width=80,
+                  font=ctk.CTkFont(size=12),
+                  command=_ok).pack(side="left", padx=4)
+    ctk.CTkButton(btn_row, text="Cancel", width=80,
+                  font=ctk.CTkFont(size=12),
+                  fg_color="transparent", text_color=("gray30", "gray70"),
+                  hover_color=("gray90", "gray25"),
+                  command=_cancel).pack(side="left", padx=4)
+
+    entry.bind("<Return>", _ok)
+    entry.bind("<Escape>", _cancel)
+    win.protocol("WM_DELETE_WINDOW", _cancel)
+
+    # Bring to front and focus the entry on first render.
+    win.lift()
+    win.focus_force()
+    entry.focus_set()
+
+    parent.wait_window(win)
+    return result[0]
+
+
 # Report extensions that must only open in known-safe local apps.
 # The system default handler is never used for these — it could route
 # to Google Docs, Apple Pages, or a cloud-syncing browser.

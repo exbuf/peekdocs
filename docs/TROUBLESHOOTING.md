@@ -491,6 +491,28 @@ Regex patterns with special characters (`$`, `(`, `)`, `|`, `{`, `}`) produce un
 
 ---
 
+**Regex returns zero matches in the GUI Regex Search popup even though the pattern looks right**
+
+Common mistake: pasting the regex with surrounding quotes. The Regex field on the popup wants the **raw pattern**, with no enclosing quotes. peekdocs passes whatever you type straight to Python's `re` engine — it does no shell-style parsing. If you wrap the pattern in quotes (single or double), peekdocs literally searches for the quote character as part of the pattern, which almost never matches anything.
+
+```
+Correct in the GUI Regex field:    \b\d+\.\d+\.\d+\b
+Wrong (looks for literal quotes):  "\b\d+\.\d+\.\d+\b"
+```
+
+Quotes are only needed when you type a regex on a **CLI**, where the shell would otherwise interpret special characters like `$`, `(`, `)`, `|` before peekdocs sees them:
+
+```bash
+peekdocs -x '\b\d+\.\d+\.\d+\b'      # POSIX shells (single quotes — safest)
+peekdocs -x "\b\d+\.\d+\.\d+\b"      # CMD on Windows (double quotes work)
+peekdocs -x '\b\d+\.\d+\.\d+\b'      # PowerShell (single quotes; see also the
+                                     # PowerShell-vs-CMD entry above)
+```
+
+The shell strips the surrounding quotes; peekdocs receives the raw pattern.
+
+---
+
 **PowerShell rejects `--flag` arguments: "A positional parameter cannot be found that accepts argument '--check'"**
 
 PowerShell treats `--` as its own end-of-options marker, so an argument like `--check` confuses the parser before peekdocs ever sees it. The error message is misleading — peekdocs isn't a PowerShell cmdlet, it's an external program; PowerShell is just over-eager. Three ways past it:
