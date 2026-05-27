@@ -60,7 +60,7 @@ for match in results.matches:
 ## Contents
 
 - [CLI at a Glance](#cli-at-a-glance)
-- [GUI Screenshots](#gui-screenshots)
+- [Screenshots](#screenshots)
 - [Who Is It For?](#who-is-it-for)
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
@@ -181,7 +181,7 @@ Settings: --config KEY=VAL  --config --reset  --check
 
 Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
-### GUI Screenshots
+### Screenshots
 
 **Main page — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
 
@@ -584,7 +584,7 @@ Run `peekdocs -h` for the full flag reference with examples. The complete flag l
 peekdocs-gui
 ```
 
-See [Screenshots](#screenshots) for what the GUI looks like.
+See [Screenshots](#screenshots) for what peekdocs looks like in action — both GUI and CLI.
 
 1. Click **Browse** to select a folder (or **File** to search a single file)
 2. Type your search terms
