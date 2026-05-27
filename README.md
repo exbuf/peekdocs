@@ -183,7 +183,7 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### Screenshots
 
-**Main page — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
+**Main page (GUI) — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
