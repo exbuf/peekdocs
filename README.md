@@ -193,6 +193,10 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
+**The same matches as a shareable Word report.** Every search automatically produces `peekdocs_standard_results.docx` alongside the .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Apple Pages, or any word processor — the screenshot below is LibreOffice. Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options).
+
+![TODO results opened in LibreOffice](docs/images/screenshot-TODO-LibreOffice.png)
+
 #### Regex Search — full workflow
 
 A four-shot tour through the Regex Search popup using a saved collection of 10 common code patterns (URL, IPv4 address, Local port, ISO date, UPPER_CASE constant, Python decorator, Email, Semver version, UUID, Markdown link).
@@ -259,9 +263,15 @@ peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.
 
 The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
 
+#### Schedule Search — generate a ready-to-paste cron / Task Scheduler command
+
+For recurring scans (nightly source-tree audits, weekly code-hygiene runs, monthly project reviews), **Tools → Schedule Search** generates the scheduler command for you. Pick a Search Suite or Regex Collection, choose a folder, set the frequency (hourly, daily, weekly, monthly), and the dialog writes a complete `cd … && peekdocs …` one-liner with the right flags already in place — including `--timestamp` so each run's report is preserved instead of overwritten. Copy to Clipboard, then paste into `crontab -e` (Mac/Linux) or Task Scheduler (Windows). Platform-specific step-by-step instructions are shown right below the command box.
+
+![Schedule Search dialog generating a cron command](docs/images/screenshot-schedule-search.png)
+
 #### `peekdocs --check` — operational health probe
 
-For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script.
+For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script — and at the top of any scheduled command from the dialog above to fail fast on a broken environment.
 
 ![peekdocs --check output](docs/images/screenshot-check-output.png)
 
