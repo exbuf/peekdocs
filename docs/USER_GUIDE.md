@@ -56,7 +56,7 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 
 No. Both installation methods keep peekdocs completely isolated from your existing Python setup, your other Python programs, and your system.
 
-**With pipx** (`pipx install peekdocs`): pipx creates a private workspace for peekdocs behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. peekdocs's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`peekdocs` and `peekdocs-gui`) are added to your PATH so you can type them in any terminal.
+**With pipx** (`pipx install git+https://github.com/exbuf/peekdocs.git`): pipx creates a private workspace for peekdocs behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. peekdocs's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`peekdocs` and `peekdocs-gui`) are added to your PATH so you can type them in any terminal.
 
 **With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything peekdocs installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if peekdocs doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
 
@@ -119,7 +119,7 @@ Because the documents you search and the reports peekdocs writes may contain tex
 
 ## Dependencies
 
-When you install peekdocs (`pip install peekdocs` or `pipx install peekdocs`), pip automatically downloads and installs everything peekdocs needs to read all 100+ file types. You don't have to install these yourself — they come along for the ride.
+When you install peekdocs (`pip install git+https://github.com/exbuf/peekdocs.git` or `pipx install git+https://github.com/exbuf/peekdocs.git`), pip automatically downloads and installs everything peekdocs needs to read all 100+ file types. You don't have to install these yourself — they come along for the ride.
 
 ### What gets installed automatically
 
@@ -165,7 +165,7 @@ If you've never used a terminal before, this section walks you through everythin
 
 This matters for how you launch peekdocs:
 
-- **If you installed with pipx** (`pipx install peekdocs`): you're all set. `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time. Just open a terminal and start searching. Skip to [Step 1: Open your terminal](#step-1-open-your-terminal).
+- **If you installed with pipx** (`pipx install git+https://github.com/exbuf/peekdocs.git`): you're all set. `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time. Just open a terminal and start searching. Skip to [Step 1: Open your terminal](#step-1-open-your-terminal).
 
 - **If you installed manually** (git clone + virtual environment): you need to **activate the virtual environment** every time you open a new terminal before peekdocs will work. If you close your terminal and open a new one, typing `peekdocs` will say "command not found" — this doesn't mean it's broken, it means the virtual environment isn't active. To fix it:
 
@@ -1587,7 +1587,7 @@ The CLI is import-clean: it runs on a machine that has **no display, no `tkinter
 
 What this means in practice:
 
-- `pip install peekdocs --no-deps` followed by installing only the non-GUI dependencies works. The package imports cleanly; `customtkinter` is loaded lazily inside the GUI mixins, not at module load.
+- `pip install git+https://github.com/exbuf/peekdocs.git --no-deps` followed by installing only the non-GUI dependencies works. The package imports cleanly; `customtkinter` is loaded lazily inside the GUI mixins, not at module load.
 - `peekdocs --check` is the canonical health probe. On a headless box it reports `customtkinter: not installed — install with: pip install customtkinter` and **still returns exit 0** as long as required dependencies are present. That is the correct signal: "the CLI is fully usable; the optional GUI is not."
 - `peekdocs-gui` (the GUI entry point) raises a clear `ImportError` on first invocation if Tk is missing. That is the only behaviour change: do not bind that command in your service unit.
 - Every CLI subcommand we ship — `--check`, `--help`, search, `--stdout`, `--diff`, `--runs`, `--regex-collection`, `--suite`, `--list-suites`, `--list-files`, etc. — has automated test coverage that runs with Tk blocked. See `tests/test_headless.py` if you want to confirm before deploying.

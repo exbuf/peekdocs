@@ -451,7 +451,7 @@ pip (or pipx) installed the `peekdocs` console script to a directory not in your
 
 After installing peekdocs, running it gives `ModuleNotFoundError` because pip installed into a different Python than the one running peekdocs. This is common when system Python, Homebrew, pyenv, conda, or WSL Python coexist.
 
-- Always install with `python -m pip install peekdocs` (not just `pip install`) to ensure pip matches your Python
+- Always install with `python -m pip install git+https://github.com/exbuf/peekdocs.git` (not just `pip install`) to ensure pip matches your Python
 - Verify: `python -m pip show peekdocs` and `python -m peekdocs --version`
 - In virtual environments, ensure the venv is activated: `which python` should point to the venv's Python
 
@@ -645,7 +645,7 @@ OCR with `-O` fails with "tesseract cannot be opened because the developer canno
 
 **Apple Silicon (M1/M2/M3) pip install fails with compilation errors**
 
-`pip install peekdocs` fails with build errors for PyMuPDF, rapidfuzz, or other C-extension packages on Apple Silicon Macs.
+`pip install git+https://github.com/exbuf/peekdocs.git` fails with build errors for PyMuPDF, rapidfuzz, or other C-extension packages on Apple Silicon Macs.
 
 - Ensure you are using a native arm64 Python: `python3 -c "import platform; print(platform.machine())"` should print `arm64`
 - Install Xcode Command Line Tools: `xcode-select --install`
@@ -661,7 +661,7 @@ peekdocs is installed but `peekdocs` says "command not found", or it runs with t
 - macOS ships a system Python at `/usr/bin/python3` but Homebrew installs its own at `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
 - Check which Python you are using: `which python3`
 - Ensure Homebrew's bin is in your PATH: add `export PATH="/opt/homebrew/bin:$PATH"` to `~/.zshrc`
-- Install explicitly: `python3 -m pip install peekdocs`
+- Install explicitly: `python3 -m pip install git+https://github.com/exbuf/peekdocs.git`
 
 ---
 
@@ -774,7 +774,7 @@ Building or refreshing the index fails with `sqlite3.OperationalError: database 
 
 **pip install fails with C compiler errors**
 
-`pip install peekdocs` fails with "Microsoft Visual C++ 14.0 or greater is required" (Windows) or `gcc: error` (Linux) during installation of native extensions.
+`pip install git+https://github.com/exbuf/peekdocs.git` fails with "Microsoft Visual C++ 14.0 or greater is required" (Windows) or `gcc: error` (Linux) during installation of native extensions.
 
 - Windows: install [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 - Linux: `sudo apt install build-essential python3-dev` (Ubuntu/Debian) or `sudo dnf install gcc python3-devel` (Fedora)

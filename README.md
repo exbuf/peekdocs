@@ -31,14 +31,14 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 &nbsp;
 
 **Two ways to install:**
-1. Developers with Python: `pip install peekdocs` (below)
+1. Developers with Python: `pipx install git+https://github.com/exbuf/peekdocs.git` (below)
 2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
 ```bash
 # Install (requires Python 3.10+)
-pipx install peekdocs    # recommended (isolated)
+pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated)
 # — or —
-pip install peekdocs     # if you prefer pip
+pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 
 # Search from the terminal
 peekdocs "budget" ~/Documents
@@ -348,7 +348,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 <details>
 <summary><b>Detailed use cases by role (click to expand)</b></summary>
 
-- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. `pip install peekdocs` and you're running in seconds — CLI, GUI, or Python API. **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
+- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)). **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
 - **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once.
 - **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
 - **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
@@ -470,7 +470,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 ### Why Developers Like It
 
-- **Simple setup** — `pip install peekdocs` and you're running. No accounts, no configuration, no Docker containers.
+- **Simple setup** — one pipx command and you're running. No accounts, no configuration, no Docker containers.
 - **Fast results** — 1,000 mixed-format documents in ~1 second. Milliseconds with the search index.
 - **Local-first** — no cloud, no API keys, no internet required. Works on air-gapped machines.
 - **Useful immediately** — solves a real problem on the first run. No learning curve for basic searches.
@@ -514,7 +514,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Tesseract** (optional, for OCR) — OCR (Optical Character Recognition) reads text from scanned PDFs and images (PNG, JPG, TIFF, BMP, GIF). Most users don't need this — it's only for documents that are pictures of text rather than actual text. If you do need it: macOS: `brew install tesseract` | Windows: [download](https://github.com/UB-Mannheim/tesseract/wiki) — during installation, check **"Add to PATH"** so peekdocs can find it. If you missed this step, run `peekdocs --check` to confirm whether Tesseract is detected. | Linux: `sudo apt install tesseract-ocr`
 - **UnRAR** (optional, for .rar archives) — only needed if you want to search inside .rar files. macOS: `brew install unrar` | Windows: comes with [WinRAR](https://www.win-rar.com/) | Linux: `sudo apt install unrar`
 
-**Everything else installs automatically.** When you run `pip install peekdocs`, pip downloads and installs all 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, etc.) — about 50 packages, ~244 MB total on disk. You don't have to install any of them yourself. See [Dependencies](docs/USER_GUIDE.md#dependencies) in the User Guide for the full list and what each one does.
+**Everything else installs automatically.** When you run `pip install git+https://github.com/exbuf/peekdocs.git`, pip downloads and installs all 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, etc.) — about 50 packages, ~244 MB total on disk. You don't have to install any of them yourself. See [Dependencies](docs/USER_GUIDE.md#dependencies) in the User Guide for the full list and what each one does.
 
 ### Option A: Standalone Download (recommended for most users)
 
@@ -756,7 +756,7 @@ We're not here to replace grep. We handle the file types grep can't read, and ad
 
 **Where peekdocs goes beyond grep:**
 
-- **100+ file types in one command** — no bash scripting, no chain of converters to install and maintain. `pip install peekdocs` and you're done.
+- **100+ file types in one command** — no bash scripting, no chain of converters to install and maintain. One pipx command and you're done.
 - **Highlighted reports** — `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context. Save, print, or share. grep piping doesn't produce this.
 - **Boolean, proximity, fuzzy, range queries** — `(budget OR revenue) AND NOT draft`, "A within 5 words of B", typo-tolerant matching, `amount:1000..5000`. Not expressible in grep.
 - **GUI** — for anyone who doesn't live in a terminal.
@@ -1095,7 +1095,7 @@ Not directly — peekdocs doesn't have a built-in diff or comparison feature. Ho
 | **Password-protected archive** | A .zip, .7z, or .rar file that requires a password to open. peekdocs cannot read encrypted archives — it detects them and reports a clear message instead of a confusing error |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
-| **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer. **pipx vs pip:** `pip install peekdocs` installs into your current Python environment — simple and fast, but peekdocs's 50 dependencies mix with your other Python packages and could cause version conflicts. `pipx install peekdocs` creates a private environment just for peekdocs — completely isolated, no conflicts, and the `peekdocs` command works from any terminal without activating a virtual environment. The tradeoff: pipx must be installed first (`pip install pipx` on Windows, `brew install pipx` on macOS, `sudo apt install pipx` on Linux). For developers who manage multiple Python projects, pipx is strongly recommended. For a quick try, `pip install peekdocs` works fine. |
+| **pipx** | A tool that installs Python programs (like peekdocs) in isolated environments so they don't interfere with anything else on your computer. **pipx vs pip:** `pip install git+https://github.com/exbuf/peekdocs.git` installs into your current Python environment — simple and fast, but peekdocs's 50 dependencies mix with your other Python packages and could cause version conflicts. `pipx install git+https://github.com/exbuf/peekdocs.git` creates a private environment just for peekdocs — completely isolated, no conflicts, and the `peekdocs` command works from any terminal without activating a virtual environment. The tradeoff: pipx must be installed first (`pip install pipx` on Windows, `brew install pipx` on macOS, `sudo apt install pipx` on Linux). For developers who manage multiple Python projects, pipx is strongly recommended. For a quick try, the same URL with plain `pip install` works fine. |
 | **pycurl** | A Python wrapper for the curl library, used for making HTTP requests. If found in source code, it could indicate network activity. peekdocs does not use it |
 | **PyInstaller** | A tool that packages Python programs into standalone executables (.exe on Windows, .app on macOS) so users don't need Python installed |
 | **PyPI** | Python Package Index (pronounced "pie-pee-eye") — the official repository where Python packages are published. Like an app store for Python programs |
@@ -1137,7 +1137,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **What does it install?** | Python packages only — no system services, no drivers, no registry entries, no background processes. It runs when launched and stops when closed. |
 | **Can it modify or delete user files?** | No. peekdocs only reads user files. It creates its own report and index files (all prefixed with "peekdocs" for easy identification) but never modifies, moves, or deletes any user documents. |
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
-| **How is it installed?** | Via PyPI (`pipx install peekdocs`) — the standard Python package registry. No unsigned executables required. |
+| **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install git+https://github.com/exbuf/peekdocs.git`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
 
 ### Data architecture
 
