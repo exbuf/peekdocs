@@ -183,7 +183,11 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### GUI Screenshots
 
-*Screenshots are being refreshed for the v1.0 GUI (new color-coded Run buttons, Diff Snapshots tool, the "What's the difference?" link, and other recent additions). They'll land here in a follow-up commit. The CLI examples earlier in this README and the [User Guide](docs/USER_GUIDE.md) cover the same functionality in text.*
+**Main page — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
+
+![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
+
+More screenshots (Regex Search, Diff Snapshots, CLI, `--check` output) will be added as they're captured.
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
