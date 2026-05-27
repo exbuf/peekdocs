@@ -187,7 +187,11 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
-More screenshots (Regex Search, Diff Snapshots, CLI, `--check` output) will be added as they're captured.
+**Same search from the CLI.** Same folder, same Whole Word + indexed mode, same 67 matches in 53 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame.
+
+![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
+
+More screenshots (Regex Search, Diff Snapshots, `--check` output) will be added as they're captured.
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
