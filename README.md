@@ -185,23 +185,27 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 *The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works equally well on personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
-**Main page (GUI) — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
+#### 1. Same search, four ways
+
+One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Python API, and the auto-generated Word report.
+
+**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
-**Same search from the CLI.** Same folder, same Whole Word + indexed mode, same 67 matches in 53 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame.
+**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 67 matches in 53 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame.
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
-**Same search from Python.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same `0.3`-second result.
+**(c) Python API — same search from a script or notebook.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same `0.3`-second result.
 
 ![peekdocs Python API in a Jupyter notebook](docs/images/screenshot-python-api.png)
 
-**The same matches as a shareable Word report.** Every search automatically produces `peekdocs_standard_results.docx` alongside the .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Apple Pages, or any word processor — the screenshot below is LibreOffice. Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options).
+**(d) Word report — the shareable artifact.** Every search automatically produces `peekdocs_standard_results.docx` alongside the .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in Microsoft Word, [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free), Apple Pages, or any word processor — the screenshot below is LibreOffice. Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options).
 
 ![TODO results opened in LibreOffice](docs/images/screenshot-TODO-LibreOffice.png)
 
-#### Regex Search — full workflow
+#### 2. Regex Search — full workflow
 
 A four-shot tour through the Regex Search popup using a saved collection of 10 common code patterns (URL, IPv4 address, Local port, ISO date, UPPER_CASE constant, Python decorator, Email, Semver version, UUID, Markdown link).
 
@@ -221,7 +225,7 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 
 ![Dockerfile text view with highlighted matches](docs/images/screenshot-regex-textview-dockerfile.png)
 
-#### Search Suites — recurring multi-search workflows
+#### 3. Search Suites — recurring multi-search workflows
 
 Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
 
@@ -244,7 +248,7 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 - **Combined report** with sections per saved search, plus the Section summary up front so the smallest result count is as visible as the largest.
 - **Real workflow** — every developer recognizes this as their actual pre-commit / pre-PR sanity check, not a contrived demo.
 
-#### Diff Snapshots — what changed between two scans
+#### 4. Diff Snapshots — what changed between two scans
 
 For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans, weekly compliance reviews, and any "is the situation better or worse than last week?" question.
 
@@ -269,13 +273,13 @@ peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.
 
 The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
 
-#### Schedule Search — generate a ready-to-paste cron / Task Scheduler command
+#### 5. Schedule Search — generate a ready-to-paste cron / Task Scheduler command
 
 For recurring scans (nightly source-tree audits, weekly code-hygiene runs, monthly project reviews), **Tools → Schedule Search** generates the scheduler command for you. Pick a Search Suite or Regex Collection, choose a folder, set the frequency (hourly, daily, weekly, monthly), and the dialog writes a complete `cd … && peekdocs …` one-liner with the right flags already in place — including `--timestamp` so each run's report is preserved instead of overwritten. Copy to Clipboard, then paste into `crontab -e` (Mac/Linux) or Task Scheduler (Windows). Platform-specific step-by-step instructions are shown right below the command box.
 
 ![Schedule Search dialog generating a cron command](docs/images/screenshot-schedule-search.png)
 
-#### `peekdocs --check` — operational health probe
+#### 6. `peekdocs --check` — operational health probe
 
 For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script — and at the top of any scheduled command from the dialog above to fail fast on a broken environment.
 
