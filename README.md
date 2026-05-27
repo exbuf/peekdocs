@@ -291,9 +291,9 @@ For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekd
 
 ![peekdocs --check output](docs/images/screenshot-check-output.png)
 
-**Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
+Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
-Works in any language. Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are not altered or deleted. Free and open-source.
+Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER_GUIDE.md#multilingual-support) for caveats). Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are not altered or deleted. Free and open-source.
 
 **[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
 
@@ -343,7 +343,7 @@ Researchers, analysts, consultants, and business users — people who use peekdo
 
 ### What makes peekdocs distinctive
 
-The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is genuinely unusual. Most tools do one or two of these well. peekdocs does all of them in a single install.
+The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. Most tools do one or two of these well. peekdocs does all of them in a single install.
 
 <details>
 <summary><b>Detailed use cases by role (click to expand)</b></summary>
@@ -468,12 +468,12 @@ All three share the same engine, flags, and 100+ file-type support. The matching
   - **Bookmarks** — pin files from search results for quick access later
   - **Schedule Search** — generates a ready-to-paste cron (Mac/Linux) or Task Scheduler (Windows) command to run any saved search suite or regex collection on a schedule. Step-by-step instructions are included — no terminal experience required
 
-### Why Developers Like It
+### For Developers
 
 - **Simple setup** — one pipx command and you're running. No accounts, no configuration, no Docker containers.
 - **Fast results** — 1,000 mixed-format documents in ~1 second. Milliseconds with the search index.
 - **Local-first** — no cloud, no API keys, no internet required. Works on air-gapped machines.
-- **Useful immediately** — solves a real problem on the first run. No learning curve for basic searches.
+- **Useful immediately** — basic searches need no learning curve; advanced modes (Boolean, regex, ranges) are there when you want them.
 - **No restrictions** — no seat licenses, no sales calls, no feature gating, no telemetry. MIT license. Use it, modify it, share it.
 
 ### Supported File Types
@@ -761,7 +761,7 @@ We're not here to replace grep. We handle the file types grep can't read, and ad
 - **Boolean, proximity, fuzzy, range queries** — `(budget OR revenue) AND NOT draft`, "A within 5 words of B", typo-tolerant matching, `amount:1000..5000`. Not expressible in grep.
 - **GUI** — for anyone who doesn't live in a terminal.
 - **Saved searches, suites, bookmarks, history, index with auto-refresh** — application features that don't exist in grep's world.
-- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters). peekdocs works identically everywhere.
+- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters). peekdocs uses the same flags and produces the same output on all three platforms.
 
 **Side-by-side comparison:**
 
@@ -854,7 +854,7 @@ For most users, direct search is fast enough — just click Run Search. An index
 
 | Situation | Index helps? | Why |
 |-----------|:-----------:|-----|
-| Large files (PDFs, Word, Excel) | **Yes** | Skips expensive parsing — 18× faster in real-world test |
+| Large files (PDFs, Word, Excel) | **Yes** | Skips expensive parsing — about 18× faster on the 105-Word-doc test in the Performance section |
 | Same folder searched repeatedly | **Yes** | Pre-pays parsing cost once |
 | Files on a network drive | **Yes** | Reads local index instead of files over the network |
 | Small files, small folder | **No** | Direct search is already fast enough |
@@ -864,7 +864,7 @@ To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --i
 
 **Network folders:** If your files are on a network drive, searches will be slower because every file must be read over the network. Building an index is strongly recommended — the first build is slow, but all subsequent searches query the local index instead.
 
-**Why Python?** Python was chosen because it has mature, battle-tested libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
+**Why Python?** Python was chosen because it has mature, well-established libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
 
 ## Platform Notes
 
@@ -978,7 +978,7 @@ Never. peekdocs only reads your files. It creates its own output files (reports,
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 
 **Is peekdocs actively maintained? What if the developer stops?**
-peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 681 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
+peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 627 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
 
 **Can peekdocs search scanned PDFs (image-only, no text layer)?**
 Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks, the IRS, and most major institutions) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
@@ -1190,7 +1190,7 @@ peekdocs takes extensive steps to protect user data, but the following are outsi
 
 ## Testing
 
-**Unit tests** — 681 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
+**Unit tests** — 627 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
 
 ```bash
 pytest tests/ -v

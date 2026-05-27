@@ -1129,7 +1129,7 @@ Results ==> /Users/yourname/Documents
 
 ## Automation and IT Use
 
-peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines. Read this once and you should have everything needed to wrap peekdocs in your own automation.
+peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines.
 
 ### A worked example: nightly source-tree watch
 
@@ -1590,7 +1590,7 @@ What this means in practice:
 - `pip install git+https://github.com/exbuf/peekdocs.git --no-deps` followed by installing only the non-GUI dependencies works. The package imports cleanly; `customtkinter` is loaded lazily inside the GUI mixins, not at module load.
 - `peekdocs --check` is the canonical health probe. On a headless box it reports `customtkinter: not installed — install with: pip install customtkinter` and **still returns exit 0** as long as required dependencies are present. That is the correct signal: "the CLI is fully usable; the optional GUI is not."
 - `peekdocs-gui` (the GUI entry point) raises a clear `ImportError` on first invocation if Tk is missing. That is the only behaviour change: do not bind that command in your service unit.
-- Every CLI subcommand we ship — `--check`, `--help`, search, `--stdout`, `--diff`, `--runs`, `--regex-collection`, `--suite`, `--list-suites`, `--list-files`, etc. — has automated test coverage that runs with Tk blocked. See `tests/test_headless.py` if you want to confirm before deploying.
+- The core CLI commands — `--check`, `--help`, plain search, `--stdout` — have explicit automated test coverage that runs with Tk blocked. See `tests/test_headless.py` for the current set. Other subcommands (`--diff`, `--runs`, `--regex-collection`, `--suite`, `--list-suites`, `--list-files`) share the same import-time code path and should run headlessly as well, but they don't yet have dedicated headless tests.
 
 A minimal headless install in a container:
 
@@ -1680,7 +1680,7 @@ The index covers the folder and all subfolders. It's stored as `.peekdocs.db` in
 
 **Subfolders:** One index in your top folder covers everything underneath. You can build separate indexes in subfolders too — they're independent and don't interfere with each other.
 
-**Safe and reliable:** The index uses SQLite WAL mode with atomic transactions, busy timeouts, and graceful lock handling. Multiple searches, auto-refresh, and external tools can access the same index safely. If the process crashes mid-refresh, uncommitted changes are rolled back automatically.
+**Concurrent access:** The index uses SQLite WAL mode with atomic transactions, busy timeouts, and graceful lock handling. Multiple searches, auto-refresh, and external tools can access the same index without blocking each other. If the process crashes mid-refresh, uncommitted changes are rolled back automatically.
 
 ## Inverse Search
 
@@ -2486,7 +2486,7 @@ peekdocs takes a number of steps to protect user data (safe app opening, cloud f
 
 ## Limits and Constraints
 
-**peekdocs itself has no upper limits.** It will search as many files as you have, of any size, with as many search terms as you need. There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. The only constraints are your computer's available memory, disk space, and processing power.
+**peekdocs imposes no hard limits in code.** There is no cap on file count, file size, PDF page count, spreadsheet rows, search terms, saved searches, or index size. Practical limits come from your hardware (memory, disk, CPU) and the operating system (file-descriptor limits, path-length limits).
 
 **Optional safeguards (all configurable, all removable):**
 
