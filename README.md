@@ -54,7 +54,7 @@ peekdocs-gui
 from peekdocs import search
 results = search(["budget"], directory="~/Documents")
 for match in results.matches:
-    print(f"{match.filename}:{match.line_number} {match.text}")
+    print(f"{match.filename}:{match.line_num} {match.text}")
 ```
 
 ## Contents
