@@ -213,7 +213,30 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 
 ![Dockerfile text view with highlighted matches](docs/images/screenshot-regex-textview-dockerfile.png)
 
-More screenshots (Diff Snapshots, Search Suites, `--check` output) will be added as they're captured.
+#### Search Suites — recurring multi-search workflows
+
+Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
+
+**(a) Setup.** Five saved searches (`TODO`, `FIXME`, `HACK` with Whole Word on; `print(` and `console.log(` with Whole Word off — same kit, different option per search). Run order is top-to-bottom; the Up/Down buttons reorder. HTML output added to the always-on TXT and DOCX defaults.
+
+![Search Suites setup](docs/images/screenshot-searchsuite-setup.png)
+
+**(b) Results on the main page.** 235 total matches across 176 files in 7.0 seconds. The Section summary at the top of the combined report lists every search's match count up front — no scrolling through 67 TODO matches to discover there were 7 `console.log` hits at the bottom.
+
+![Suite results in the main-page preview](docs/images/screenshot-searchsuite-result-mainpage.png)
+
+**(c) HTML report opened in the browser.** Same Section summary at the top, but each entry is a clickable anchor link that jumps to that section. Yellow match highlighting throughout. The report is a single self-contained file on disk — nothing uploaded, nothing requires the GUI to view.
+
+![Suite HTML report](docs/images/screenshot-searchsuite-result-html.png)
+
+**What this demo proves**, in three shots:
+
+- Same source tree, **five distinct questions** answered in one click.
+- **Per-search settings** — three searches with Whole Word on, two with it off. A regex collection couldn't express that mix as cleanly.
+- **Combined report** with sections per saved search, plus the Section summary up front so the smallest result count is as visible as the largest.
+- **Real workflow** — every developer recognizes this as their actual pre-commit / pre-PR sanity check, not a contrived demo.
+
+More screenshots (Diff Snapshots, `--check` output) will be added as they're captured.
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
