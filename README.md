@@ -740,9 +740,9 @@ peekdocs isn't a replacement for your OS — it's the tool you reach for when yo
 
 ## Why Not Just Use AI?
 
-**First, there's a practical problem:** AI tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to ChatGPT — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 100+ file types at once, on your machine, with no file count or size limit.
+**First, there's a practical problem:** AI document tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to a cloud AI chat — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 100+ file types at once, on your machine, with no file count or size limit.
 
-AI document tools (ChatGPT, Copilot, NotebookLM) require uploading your files to a cloud server. A corporation receives a copy of everything you send up. Your data may be used for training. A breach exposes everything you uploaded. And you pay $20+/month for the privilege. To search your own files.
+Cloud-based AI document tools also require uploading your files to a server, where a third party receives a copy and may use it for training. Subscription fees and breach exposure are real ongoing concerns. You pay every month to search files you already own.
 
 For finding specific content in your documents — keywords, patterns, phone numbers, dates, account numbers, or anything you can describe with regex — peekdocs gets the same results without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
 
