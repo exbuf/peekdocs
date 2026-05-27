@@ -1291,6 +1291,8 @@ Every payload starts with a `generator` field that includes the peekdocs version
 
 `mode` is `"ALL"` (AND) or `"ANY"` (OR). `matched_text` has the highlight markers stripped — pipe into your own indexer or SIEM without post-processing.
 
+**Field naming note.** The JSON output (and CSV output) uses `line_number`. The Python API's `SearchMatch` dataclass uses `line_num` for the same field. Code that round-trips between the API and JSON/CSV must translate the name; reading `match.line_number` on a `SearchMatch` raises `AttributeError`.
+
 **File hashes (`--hash`).** For file-identity and integrity-verification workflows, add `--hash` to any of the above. Each entry in `matches_per_file` / `inverse_files` then carries a `"sha256"` field with the hex digest of the file's *raw bytes* (not the extracted text). For `--regex-collection`, `--hash` adds a top-level `matches_per_file` array of unique matched files with their hashes. Hashing happens once per matched file (not per match) so a file with 100 matches is only read for hashing once. If a file can't be read for hashing — deleted between search and hash, permission revoked — the field is `null` and an entry is appended to `peekdocs_errors.log`; the search itself is not aborted. The field is omitted entirely when `--hash` is not set, so existing consumers see no schema change.
 
 ```json
@@ -2798,6 +2800,8 @@ For full documentation, parameters, return types, and examples, see the [peekdoc
 A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
 
 **Important:** All scripts that use the peekdocs API must include the `if __name__ == "__main__":` guard because peekdocs uses multiprocessing. Without it, macOS and Windows will crash with a `RuntimeError`. See the API Reference for details.
+
+**Field naming note.** `SearchMatch.line_num` is the field on the Python dataclass. The JSON output (`--stdout`, `-o json`) and CSV output (`-o csv`) name the same field `line_number`. See the [JSON output schema](#json-output---stdout-schema) section for the full output field list.
 
 ## Running Tests
 
