@@ -205,7 +205,13 @@ One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Pyth
 
 ![TODO results opened in LibreOffice](docs/images/screenshot-TODO-LibreOffice.png)
 
-#### 2. Regex Search — full workflow
+#### 2. Advanced Search Options — every option in one GUI panel
+
+The CLI flags this README mentions — `--regex`, `--fuzzy`, `--whole-word`, `--ocr`, `--exclude`, `-t` (file types), `--range`, `--max-file-size`, `--output-dir`, `--timestamp`, CSV/JSON/PDF/HTML output, and so on — every one of them has a checkbox or field in the **Advanced Search Options** panel under the main search bar. Click the panel header on the main page to expand it. As the note at the top says: *"All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next search."* **Save As Defaults** persists the current configuration to `~/.peekdocsrc` for the next session; **Restore Factory Settings** clears it. Hover any control for a tooltip describing what it does.
+
+![Advanced Search Options panel](docs/images/screenshot-advanced-screen.png)
+
+#### 3. Regex Search — full workflow
 
 A four-shot tour through the Regex Search popup using a saved collection of 10 common code patterns (URL, IPv4 address, Local port, ISO date, UPPER_CASE constant, Python decorator, Email, Semver version, UUID, Markdown link).
 
@@ -225,7 +231,7 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 
 ![Dockerfile text view with highlighted matches](docs/images/screenshot-regex-textview-dockerfile.png)
 
-#### 3. Search Suites — recurring multi-search workflows
+#### 4. Search Suites — recurring multi-search workflows
 
 Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
 
@@ -248,7 +254,7 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 - **Combined report** with sections per saved search, plus the Section summary up front so the smallest result count is as visible as the largest.
 - **Real workflow** — every developer recognizes this as their actual pre-commit / pre-PR sanity check, not a contrived demo.
 
-#### 4. Diff Snapshots — what changed between two scans
+#### 5. Diff Snapshots — what changed between two scans
 
 For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans, weekly compliance reviews, and any "is the situation better or worse than last week?" question.
 
@@ -273,13 +279,13 @@ peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.
 
 The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
 
-#### 5. Schedule Search — generate a ready-to-paste cron / Task Scheduler command
+#### 6. Schedule Search — generate a ready-to-paste cron / Task Scheduler command
 
 For recurring scans (nightly source-tree audits, weekly code-hygiene runs, monthly project reviews), **Tools → Schedule Search** generates the scheduler command for you. Pick a Search Suite or Regex Collection, choose a folder, set the frequency (hourly, daily, weekly, monthly), and the dialog writes a complete `cd … && peekdocs …` one-liner with the right flags already in place — including `--timestamp` so each run's report is preserved instead of overwritten. Copy to Clipboard, then paste into `crontab -e` (Mac/Linux) or Task Scheduler (Windows). Platform-specific step-by-step instructions are shown right below the command box.
 
 ![Schedule Search dialog generating a cron command](docs/images/screenshot-schedule-search.png)
 
-#### 6. `peekdocs --check` — operational health probe
+#### 7. `peekdocs --check` — operational health probe
 
 For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script — and at the top of any scheduled command from the dialog above to fail fast on a broken environment.
 
