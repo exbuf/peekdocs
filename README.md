@@ -978,7 +978,7 @@ Never. peekdocs only reads your files. It creates its own output files (reports,
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 
 **Is peekdocs actively maintained? What if the developer stops?**
-peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 627 unit tests and 56 integration tests across all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
+peekdocs is actively developed and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 627 unit tests plus an integration script that exercises every search mode and flag combination on all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
 
 **Can peekdocs search scanned PDFs (image-only, no text layer)?**
 Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks, the IRS, and most major institutions) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
@@ -1196,7 +1196,7 @@ peekdocs takes extensive steps to protect user data, but the following are outsi
 pytest tests/ -v
 ```
 
-**Integration test** — 56 end-to-end searches that verify operation: every flag and combination runs without crashing, all output formats are generated, file type coverage across 100+ sample files is reported, and match counts are confirmed stable. Results are saved to `peekdocs_global_test_results.txt`. Both scripts are tested on macOS, Linux, and Windows before each release. See the script headers for details.
+**Integration test** — end-to-end runs of every search mode and flag combination. Verifies that flag combinations run without crashing, all output formats are generated, file type coverage across 100+ sample files is reported, and match counts are confirmed stable. Results are saved to `peekdocs_global_test_results.txt`. The bash script is run on macOS and Linux, the PowerShell script on Windows, before each release. See the script headers for details.
 
 ```bash
 cd samples/test-files
