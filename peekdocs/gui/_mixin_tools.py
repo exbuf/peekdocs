@@ -5173,6 +5173,16 @@ class ToolsMixin:
 
         status_label.pack(side="left", padx=(12, 0))
 
+        # Bottom Close button — matches the standard muted style used by
+        # every other peekdocs help / info popup.
+        ctk.CTkButton(
+            win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12),
+            command=win.destroy,
+        ).pack(side="bottom", pady=(5, 10))
+
     def _show_diff_snapshots_help(self, parent):
         """Help popup for Diff Snapshots."""
         import tkinter as tk
