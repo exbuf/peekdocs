@@ -183,6 +183,8 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 ### Screenshots
 
+*The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works equally well on personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
+
 **Main page (GUI) — searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
