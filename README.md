@@ -236,7 +236,30 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 - **Combined report** with sections per saved search, plus the Section summary up front so the smallest result count is as visible as the largest.
 - **Real workflow** — every developer recognizes this as their actual pre-commit / pre-PR sanity check, not a contrived demo.
 
-More screenshots (Diff Snapshots, `--check` output) will be added as they're captured.
+#### Diff Snapshots — what changed between two scans
+
+For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans, weekly compliance reviews, and any "is the situation better or worse than last week?" question.
+
+**(a) Finding it.** Tools menu in the lower-right corner of the main page. Lists every available power-user feature in plain English; **Diff Snapshots** is between **Bookmarks** and **Indexes**.
+
+![Tools menu](docs/images/screenshot-tools-menu.png)
+
+**(b) Comparing two snapshots.** Picked two snapshots of a `TODO` search captured before and after a small code change: one new file gained a TODO, one existing file went from 1 to 2 TODOs. The result pane shows the three distinct categories in color (green NEW, orange CHANGED, muted UNCHANGED summary) plus a red status line at the top — *"Actionable changes: 1 new, 1 changed, 0 modified."*
+
+![Diff Snapshots popup with results](docs/images/screenshot-diff-snapshots.png)
+
+Both snapshot JSON files used in this demo are checked into `docs/images/` (`peekdocs-snapshot-todo-before.json` and `peekdocs-snapshot-todo-after.json`) so a reader can download them and try the diff themselves. Snapshots were generated with:
+
+```bash
+peekdocs TODO -W -r --hash --stdout > peekdocs-snapshot-todo-before.json
+# ... time passes, files change ...
+peekdocs TODO -W -r --hash --stdout > peekdocs-snapshot-todo-after.json
+peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.json
+```
+
+The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
+
+More screenshots (`--check` output) will be added as they're captured.
 
 **Simple for everyone, powerful when you need it.** Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 

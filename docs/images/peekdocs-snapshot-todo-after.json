@@ -1,0 +1,754 @@
+{
+  "generator": "peekdocs v1.0.3",
+  "directory": "/Users/bob/Documents/SearchTheseDocuments",
+  "search_terms": [
+    "TODO"
+  ],
+  "mode": "ANY+WORD",
+  "timestamp": "2026-05-27 12:53:35",
+  "files_searched": 453,
+  "matches_found": 69,
+  "elapsed_seconds": 0.41,
+  "matches_per_file": [
+    {
+      "filename": "analysis.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "matches": 4,
+      "sha256": "6c755097bcf4feb84ab24d9a11e35d618a5cd8aa8bb2d10d25037beab4c518a8"
+    },
+    {
+      "filename": "preprocessing.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "matches": 1,
+      "sha256": "a976ae2cfce95e1c16c2b62b66eb97dba18e0508586001a1c241da4834edbfd6"
+    },
+    {
+      "filename": "staff_training_hipaa.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
+      "matches": 3,
+      "sha256": "49f53313389986cc636b5b8bfa0c805d4f2992593e449e1106e3a9345cbcce1a"
+    },
+    {
+      "filename": "employee_handbook_update.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/human_resources",
+      "matches": 2,
+      "sha256": "520e0f79b0a72a075bfe7dfde5a592f1c26b5398636492a74604744246c097c4"
+    },
+    {
+      "filename": ".env",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "8b064123914e302622f9b2dc4e50bcffe99f94477b94622905467e8da01a33ff"
+    },
+    {
+      "filename": "CMakeLists.cmake",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "131f735a2eb1ec29a6adecf7c6f875e3420cba8b11e4ffc7b7ffd6579a277bdb"
+    },
+    {
+      "filename": "DataPipeline.scala",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "d434caa7f647dec37b57da5e37834a7280e0db3fb3194219760633465011e553"
+    },
+    {
+      "filename": "Dockerfile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "266ce660faba5076b0ba088c0804717540680c0e9140cb1c770d9cb827348428"
+    },
+    {
+      "filename": "build.gradle",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "f59025465bc8f0e7c916d46689870adaaa5c3177d89e330df2fd2339115f2f5f"
+    },
+    {
+      "filename": "build.makefile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "f3793bd20687ed451db4f3d4cccc7e772ff049c366c69747ae81f269f9e915cc"
+    },
+    {
+      "filename": "changes.log",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "38b3b1f28673b36a40c11c8e8efac734ed597660f92e4a7bfd4afe043f5ac7e8"
+    },
+    {
+      "filename": "config.cfg",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "196ea42f850cac2987907662dd8368eaace37bf909cd21b2a5a9f805dd8d0ccc"
+    },
+    {
+      "filename": "config.ini",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "dc0232eb76011ae7c03a694e91850f850618aadcae71c35cdcea87027fd1efd1"
+    },
+    {
+      "filename": "config.json",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "cb2732ff86c079fc222f8aa3db2d4b0f58a25c9f2d6fcb208e383938bbce4163"
+    },
+    {
+      "filename": "config.toml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "265ac3ce319d85818a82423f6192a64e35dd418437502dcd27d80ab8a3a46052"
+    },
+    {
+      "filename": "config.yaml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "79a8c7a980f43d50c56b0988f885f02dd9c5d52a4cbdc6918b3de655b2c6719a"
+    },
+    {
+      "filename": "database.properties",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "77e31d78874bedcd47c75a98cbbb92bf8480861b0cbf8571c785430ac69add9e"
+    },
+    {
+      "filename": "demo_diff.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "b2e73cb834476f6bfa6863b3f8d37de3f271ed934959267c6a78cd03254e590f"
+    },
+    {
+      "filename": "game_config.lua",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "c855102c679418a5a41b2a3ff74cbdeb40b842d1502206a696124f5e8aa7135c"
+    },
+    {
+      "filename": "infrastructure.tf",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "97c2e524051164a2a2a6f946f6bef26a8f4fc44d2e691126f9ab299bab4dbcdf"
+    },
+    {
+      "filename": "nginx.conf",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "8214701941cc136665e6e5349b6f28870f3322c5b9542d1772258f60cc14dee1"
+    },
+    {
+      "filename": "notes.md",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 3,
+      "sha256": "0c631b31d8ab37e9efbaa690d3a90d2f225da2ffb65596a5e2192445cbfb1d9a"
+    },
+    {
+      "filename": "sample.asm",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "933091b13c77177d7d081abbf1ce185ffabd13aecb556d1b6e81d84c6f57144b"
+    },
+    {
+      "filename": "sample.bat",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "aa373e3b6e85295c899f354ad95181de04dbb37a00a76c7690ed39af26b42dd2"
+    },
+    {
+      "filename": "sample.c",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "49ac37b40592592c519c5eaadb7d7dfa77f2de959497374596840c6c08b2341a"
+    },
+    {
+      "filename": "sample.cpp",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "de28f7f9cd9bc59f32538f20fa59f45660075067f0d63268d3119d5cef4c46b3"
+    },
+    {
+      "filename": "sample.cs",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "44e1a232bc6f53a26a1366e09f5db097d520b4627f876c2af0d335ff05237c81"
+    },
+    {
+      "filename": "sample.f",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "22e19c370f9f19ce001e540ebde5cc228421cd651f6ec3e5ef1f2a46502bdc25"
+    },
+    {
+      "filename": "sample.f90",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "a5d680637d0a419e9022d2baea96cdc61fc8d60611348e2575adb5a8aa89e1ea"
+    },
+    {
+      "filename": "sample.go",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "15c682b9d6329b0443347050c3efcc89b040352c970ea08f629f7402c1ff05c1"
+    },
+    {
+      "filename": "sample.h",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "d504f82b0688d02e4defc614741bd1e4a33a560348e54bcede8e1bf463efe37e"
+    },
+    {
+      "filename": "sample.hpp",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "71a34d668855494ed2d5a127894476918b5182125a4cd4202cb3ff99af580eed"
+    },
+    {
+      "filename": "sample.java",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "357f753c86714dc926645ba254d1beefe38317a0e3ab8077389026d84303541a"
+    },
+    {
+      "filename": "sample.js",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "c7c06bef7ea09df5c45169057bf70d47300e2a0d9bd59d2261d256ceab77ef55"
+    },
+    {
+      "filename": "sample.kt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "b9fd370d20db7f294e54aeb6d6697476046578befde74de35533443d54e3a0e7"
+    },
+    {
+      "filename": "sample.makefile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "edb7a9a2d39b1c69793c9195c9121d2d364a468e62860644a2509e7e5957e6a8"
+    },
+    {
+      "filename": "sample.pl",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "bf18b8e13f71ff9ef1b43102a4d2876fde777d9f9762447384dba520e01983ea"
+    },
+    {
+      "filename": "sample.ps1",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "98750d1f273604f9fce8b43e4d4cd3d7ef9fba095371e655f2d96068a0ffcbca"
+    },
+    {
+      "filename": "sample.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "5810b3c6dcb83f3c336d79976e5431230624982af6892872e7be5c3cfbd8c7db"
+    },
+    {
+      "filename": "sample.r",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "4604efe3fa9736b57ca390d13d34f2d3f21863db5b059eb000f949583bd6cecf"
+    },
+    {
+      "filename": "sample.rb",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "eb470c8099ee309314e4c5105d172b162e8be1d9a658b1c04786526d83ed1b7b"
+    },
+    {
+      "filename": "sample.rs",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "7c3deb00df9f43c6992f11ad08bfd95a7990887dd7e88efde2936eda762c4a6d"
+    },
+    {
+      "filename": "sample.s",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "79371bf0691fadfb2a8fd8f44882bc33dae2bcb286855b49aed8b97c8d3b0a29"
+    },
+    {
+      "filename": "sample.sh",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "d09c3168c6a1559741d91b7d7ab3a99b35e6e6180d101677a4a801f7c7d9c601"
+    },
+    {
+      "filename": "sample.swift",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "823de7dc633626ebb5ce2f6c63e7a050a77eac470358c3c98de3581c3dd759c7"
+    },
+    {
+      "filename": "sample.tcl",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "b6a3d0aa3d8e6c7035dce74016f7942c2defd8e793156de86c6859dde0b139c6"
+    },
+    {
+      "filename": "sample.ts",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "bc23bbbf47e9b9489f17e9b789c714e4b97ed8c25d45771005b13e0374ad577a"
+    },
+    {
+      "filename": "sample.vb",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "2b0befc912b925b5aca29ffda94cc6e44d2db71c5fcd5df5d3cc12a630a37c25"
+    },
+    {
+      "filename": "schema.graphql",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "1998c120e77c528097d81f617fae6b353d6f80319db9b6af79d2581926d653c9"
+    },
+    {
+      "filename": "schema.proto",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "940aae3f02f3d5297076b5a74843de587931eb74a98443afd6655f8fa2f6b76a"
+    },
+    {
+      "filename": "schema.xml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "f1737994212e34396abc400888625eaaf4d913aada416b4062225c948974b528"
+    },
+    {
+      "filename": "setup.sql",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 2,
+      "sha256": "26def67d5d8c1eede79c441ebc7001e02298b488f1a9efc248372d3a53cf1ca9"
+    },
+    {
+      "filename": "styles.css",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "da7f5847b64cdda00425a2fa006b68ebb274d31d15890b935ea0194abf55ab27"
+    },
+    {
+      "filename": "styles.scss",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "matches": 1,
+      "sha256": "cb68554271dedd0ea0425fdc1716c28cf1d634e0d1134e8452cd32d97de7eef4"
+    }
+  ],
+  "matches": [
+    {
+      "filename": "analysis.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "line_number": 15,
+      "matched_text": "# TODO: Move these paths to a config file"
+    },
+    {
+      "filename": "analysis.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "line_number": 24,
+      "matched_text": "    # TODO: Handle outliers in monthly_spend column (values > $10,000 look suspicious)"
+    },
+    {
+      "filename": "analysis.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "line_number": 34,
+      "matched_text": "    # TODO: Add recency features (days since last login, last purchase)"
+    },
+    {
+      "filename": "analysis.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "line_number": 35,
+      "matched_text": "    # TODO: Add customer lifetime value calculation"
+    },
+    {
+      "filename": "preprocessing.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/data-science",
+      "line_number": 23,
+      "matched_text": "# TODO: Move credentials to environment variables or secrets manager"
+    },
+    {
+      "filename": "staff_training_hipaa.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
+      "line_number": 67,
+      "matched_text": "[TODO: Insert 10-question multiple choice quiz]"
+    },
+    {
+      "filename": "staff_training_hipaa.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
+      "line_number": 68,
+      "matched_text": "[TODO: Define passing score - recommend 80%]"
+    },
+    {
+      "filename": "staff_training_hipaa.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
+      "line_number": 69,
+      "matched_text": "[TODO: Add electronic signature capture for completion attestation]"
+    },
+    {
+      "filename": "employee_handbook_update.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/human_resources",
+      "line_number": 56,
+      "matched_text": "* TODO: Legal review of Section 7.4 carryover language *"
+    },
+    {
+      "filename": "employee_handbook_update.txt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/human_resources",
+      "line_number": 57,
+      "matched_text": "* TODO: Confirm ACA implications for part-time employee threshold *"
+    },
+    {
+      "filename": ".env",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 10,
+      "matched_text": "# API Keys — TODO: rotate these quarterly"
+    },
+    {
+      "filename": "CMakeLists.cmake",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 7,
+      "matched_text": "# TODO: Add sanitizer options for debug builds"
+    },
+    {
+      "filename": "DataPipeline.scala",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 6,
+      "matched_text": "// TODO: Add schema validation before ingestion"
+    },
+    {
+      "filename": "Dockerfile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 8,
+      "matched_text": "# TODO: Pin base image to specific digest for reproducibility"
+    },
+    {
+      "filename": "build.gradle",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 16,
+      "matched_text": "    // TODO: Update to latest PostgreSQL driver"
+    },
+    {
+      "filename": "build.makefile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Add Docker multi-stage build targets"
+    },
+    {
+      "filename": "changes.log",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 12,
+      "matched_text": "2025-04-01 09:20:01 [WARN]  TODO: Add integration tests for the new caching layer"
+    },
+    {
+      "filename": "config.cfg",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 3,
+      "matched_text": "# TODO: Add redundant PLC failover configuration"
+    },
+    {
+      "filename": "config.cfg",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 41,
+      "matched_text": "# TODO: Add dark mode for night shift operators"
+    },
+    {
+      "filename": "config.ini",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 8,
+      "matched_text": "; TODO: Enable TLS by default in next release"
+    },
+    {
+      "filename": "config.ini",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 38,
+      "matched_text": "; TODO: Add incremental backup support"
+    },
+    {
+      "filename": "config.json",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 34,
+      "matched_text": "    \"TODO\": \"Migrate from MongoDB 4.4 to 7.0 before EOL\","
+    },
+    {
+      "filename": "config.toml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Add hot-reload support for config changes"
+    },
+    {
+      "filename": "config.toml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 38,
+      "matched_text": "# TODO: Switch to OpenTelemetry collector"
+    },
+    {
+      "filename": "config.yaml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Add staging environment overrides"
+    },
+    {
+      "filename": "config.yaml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 27,
+      "matched_text": "  # TODO: Rotate this key quarterly"
+    },
+    {
+      "filename": "database.properties",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Move credentials to vault"
+    },
+    {
+      "filename": "demo_diff.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 1,
+      "matched_text": "# TODO: brand-new file for the diff screenshot"
+    },
+    {
+      "filename": "game_config.lua",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "-- TODO: Move secrets to environment variables"
+    },
+    {
+      "filename": "infrastructure.tf",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Move state to remote backend (S3 + DynamoDB)"
+    },
+    {
+      "filename": "infrastructure.tf",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 41,
+      "matched_text": "  password       = \"TempPassword123!\"  # TODO: Use AWS Secrets Manager"
+    },
+    {
+      "filename": "nginx.conf",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "# TODO: Add rate limiting"
+    },
+    {
+      "filename": "notes.md",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 18,
+      "matched_text": "- TODO: Revoke all v1 API keys after migration"
+    },
+    {
+      "filename": "notes.md",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 37,
+      "matched_text": "1. TODO: Set up automated database backups with point-in-time recovery"
+    },
+    {
+      "filename": "notes.md",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 38,
+      "matched_text": "2. TODO: Implement circuit breaker pattern for external API calls"
+    },
+    {
+      "filename": "sample.asm",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 3,
+      "matched_text": "; TODO: Add parity bit configuration support"
+    },
+    {
+      "filename": "sample.bat",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 14,
+      "matched_text": "REM TODO: Add email notification on backup failure"
+    },
+    {
+      "filename": "sample.c",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 14,
+      "matched_text": "/* TODO: Add support for thermocouple type K sensors */"
+    },
+    {
+      "filename": "sample.cpp",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 13,
+      "matched_text": "// TODO: Migrate to the new MotorDriver v3 API"
+    },
+    {
+      "filename": "sample.cs",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 18,
+      "matched_text": "        // TODO: Add support for Apple Pay and Google Pay tokens"
+    },
+    {
+      "filename": "sample.f",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 3,
+      "matched_text": "C     TODO: Add Timoshenko beam model for thick beams"
+    },
+    {
+      "filename": "sample.f90",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 10,
+      "matched_text": "    ! TODO: Add command-line argument parsing for grid size"
+    },
+    {
+      "filename": "sample.go",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 17,
+      "matched_text": "// TODO: Add support for gRPC health check protocol"
+    },
+    {
+      "filename": "sample.h",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 15,
+      "matched_text": "/* TODO: Add support for proportional valves */"
+    },
+    {
+      "filename": "sample.hpp",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 18,
+      "matched_text": "// TODO: Support binary log format for faster writes"
+    },
+    {
+      "filename": "sample.java",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 16,
+      "matched_text": "    // TODO: Load credentials from secure vault instead of hardcoding"
+    },
+    {
+      "filename": "sample.js",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 14,
+      "matched_text": "// TODO: Add rate limiting per user to prevent abuse"
+    },
+    {
+      "filename": "sample.kt",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 11,
+      "matched_text": "// TODO: Implement dead-letter queue for failed message delivery"
+    },
+    {
+      "filename": "sample.makefile",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 4,
+      "matched_text": "# TODO: Add flash programming target using OpenOCD"
+    },
+    {
+      "filename": "sample.pl",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 15,
+      "matched_text": "# TODO: Add support for JSON-formatted log lines (nginx)"
+    },
+    {
+      "filename": "sample.ps1",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 12,
+      "matched_text": "# TODO: Add Slack or Teams webhook integration for alerts"
+    },
+    {
+      "filename": "sample.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 8,
+      "matched_text": "# TODO: Replace with environment variable lookup"
+    },
+    {
+      "filename": "sample.py",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 54,
+      "matched_text": "# TODO: demo entry for the diff snapshots screenshot"
+    },
+    {
+      "filename": "sample.r",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 12,
+      "matched_text": "# TODO: Add support for Western Electric rules for out-of-control detection"
+    },
+    {
+      "filename": "sample.rb",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 13,
+      "matched_text": "# TODO: Add webhook notifications when ticket status changes"
+    },
+    {
+      "filename": "sample.rs",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 10,
+      "matched_text": "// TODO: Add TLS support for collector connections"
+    },
+    {
+      "filename": "sample.s",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 6,
+      "matched_text": "# TODO: Add PWM output support for motor control"
+    },
+    {
+      "filename": "sample.sh",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 16,
+      "matched_text": "# TODO: Add rollback support if health check fails after deploy"
+    },
+    {
+      "filename": "sample.swift",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 8,
+      "matched_text": "// TODO: Add support for Bluetooth 5.3 extended advertising"
+    },
+    {
+      "filename": "sample.tcl",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 11,
+      "matched_text": "# TODO: Add support for JTAG boundary scan tests"
+    },
+    {
+      "filename": "sample.ts",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 16,
+      "matched_text": "// TODO: Implement batched event uploads to reduce network calls"
+    },
+    {
+      "filename": "sample.vb",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 15,
+      "matched_text": "' TODO: Add Excel export format alongside PDF"
+    },
+    {
+      "filename": "schema.graphql",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 5,
+      "matched_text": "  # TODO: Add search query with full-text filtering"
+    },
+    {
+      "filename": "schema.proto",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 5,
+      "matched_text": "// TODO: Add field validation constraints"
+    },
+    {
+      "filename": "schema.xml",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 3,
+      "matched_text": "<!-- TODO: Add schema versioning and migration support -->"
+    },
+    {
+      "filename": "setup.sql",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 3,
+      "matched_text": "-- TODO: Add partitioning for the events table by month"
+    },
+    {
+      "filename": "setup.sql",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 48,
+      "matched_text": "-- TODO: Add triggers for audit logging on UPDATE and DELETE"
+    },
+    {
+      "filename": "styles.css",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "/* TODO: Add dark mode support */"
+    },
+    {
+      "filename": "styles.scss",
+      "folder": "/Users/bob/Documents/SearchTheseDocuments/source-code",
+      "line_number": 2,
+      "matched_text": "// TODO: Move colors to design tokens"
+    }
+  ]
+}
