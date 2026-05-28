@@ -1083,7 +1083,7 @@ class SearchMixin:
                     text_color="white",
                 )
         self.report_delete_cb.pack(side="left", padx=(10, 0))
-        self._delete_everything_btn.pack(side="left", padx=(60, 0))
+        self._delete_everything_btn.pack(side="left", padx=(30, 0))
         self.report_frame.grid(
             row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
