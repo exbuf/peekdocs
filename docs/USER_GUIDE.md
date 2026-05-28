@@ -2132,9 +2132,9 @@ peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"
 - **Filename ranges** (`fn:` prefix) extract values from the filename string and filter entire files — files whose names don't contain matching values are skipped entirely. All 6 content fields work with `fn:`
 - **Metadata fields** (filesize, filedate) filter entire files by their properties before text scanning — files that don't match metadata ranges are skipped entirely
 - **Multiple values in one line** — if a line contains multiple values of the same type (e.g., two dates or three dollar amounts), the line matches if **any one** of those values falls within the range. All ranges must still be satisfied (AND logic across different ranges)
-- Metadata fields (`filesize`, `filedate`) can only be used with the `-R` flag, not inside `-e` expressions. Use `-R` alongside `-e` for metadata filtering
-- When using `-R` alongside `-e`, the `-R` filters apply as an additional AND layer on top of the expression result
-- Multiple `-R` flags combine with AND logic — all ranges must be satisfied
+- **Metadata in expressions** — metadata fields (`filesize`, `filedate`) can only be used with the `-R` flag, not inside `-e` expressions. Use `-R` alongside `-e` for metadata filtering
+- **`-R` + `-e` together** — when using `-R` alongside `-e`, the `-R` filters apply as an additional AND layer on top of the expression result
+- **Multiple `-R` flags** — combine with AND logic; all ranges must be satisfied
 - **Bound string flexibility** — amounts accept `$` and `,` (e.g., `amount:$1,000..$5,000`), percents accept `%` (e.g., `percent:10%..50%`), dates accept ISO (`YYYY-MM-DD`) and US (`MM/DD/YYYY`, `MM-DD-YYYY`) formats, times accept `HH:MM`, `HH:MM:SS`, and `HH:MM AM/PM` formats
 - **Long form** — `--range` is the long form of `-R` (e.g., `--range amount:1000..5000`)
 - **Reports** — when range filters are active, they appear in the report header as modifiers (e.g., "range filter amount: 1000 .. 5000"). For range-only searches (no text terms), the report describes the search as "with range filters only"
