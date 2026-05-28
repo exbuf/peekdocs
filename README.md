@@ -358,7 +358,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 
 **What makes peekdocs different:**
 
-- **[100+ file types at once](#supported-file-types)** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously in a single pass.
+- **[100+ file types at once](#supported-file-types)** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously in a single pass. **Note:** `.pst` requires `libpff-python` (no Windows wheel) and `.rar` requires the `unrar` tool — both covered in [Prerequisites](#prerequisites).
 - **Highlighted Results**
   Matches are highlighted in two ways:
   - **1) Results Preview (in-app):**
@@ -431,7 +431,7 @@ peekdocs has **three search modes**, each writing its own self-described report 
 All three share the same engine, flags, and 100+ file-type support. The matching `peekdocs_<mode>_results.*` naming means a Regex run never overwrites a Standard run (and vice versa), and `peekdocs --clear` / **Clear Files** can find them by prefix. Within a mode, each run overwrites the previous report — add `--timestamp` (CLI) or check **Timestamp** in Advanced Search Options (GUI) to append `_YYYYMMDD_HHMMSS` so every run is preserved. The **Schedule Search** dialog enables timestamping by default for cron / Task Scheduler use.
 
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
-- **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more
+- **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more. **Note:** `.pst` requires `libpff-python` (no Windows wheel) and `.rar` requires the `unrar` tool — see [Prerequisites](#prerequisites)
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
 - **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy. **To locate all matches in a specific file:** click the orange **Matched Files** button on the status line, single-click a file, then click **View Text** — peekdocs displays the file's full extracted text with line numbers and every match highlighted in yellow. This is the fastest way to see exactly where your search terms appear in each file, without opening external software. You can also double-click any file to open it in its native application (Word, Adobe Reader, etc.), or click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report with all matches across all files
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
@@ -482,8 +482,8 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 |----------|---------|
 | **Documents** | .doc .docx .epub .html .key .md .odp .odt .pages .pdf .ppt .pptx .rst .rtf .tex |
 | **Spreadsheets** | .csv .numbers .ods .tsv .xls .xlsx |
-| **Email** | .eml .mbox .msg .pst |
-| **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip |
+| **Email** | .eml .mbox .msg .pst (`.pst` requires `libpff-python` — no Windows wheel; see [Troubleshooting](docs/TROUBLESHOOTING.md)) |
+| **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip (`.rar` requires the `unrar` tool — see [Prerequisites](#prerequisites)) |
 | **Calendar/Contacts** | .ics .vcf |
 | **Source Code** | .asm .bat .c .cmake .cpp .cs .css .f .f90 .go .gradle .h .hpp .java .js .kt .lua .pl .ps1 .py .r .rb .rs .s .scala .scss .sh .swift .tcl .ts .vb |
 | **Engineering** | .cir .dxf .m .sp .spice .sv .v .vhd .vhdl .vsdx |
