@@ -4,8 +4,37 @@ Common questions and solutions for peekdocs issues. For general usage, see the [
 
 ## Table of Contents
 
+- [Where to Start](#where-to-start)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Troubleshooting](#troubleshooting)
+
+## Where to Start
+
+**First, run `peekdocs --check`.** It verifies your Python version, dependencies, Tesseract availability, SQLite, and free disk space — and tells you exactly what's missing. Many "peekdocs isn't working" problems resolve at this step before you need to read any further.
+
+**Then search this page.** Use **Ctrl-F** (Windows/Linux) or **Cmd-F** (macOS) to find a phrase from your error message. With ~90 entries on this page, in-page search is faster than scrolling.
+
+### Jump to your problem area
+
+Use Ctrl-F / Cmd-F to land on the relevant entry — exact entry titles to search for are shown in **bold**:
+
+- **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, or **"ModuleNotFoundError"**.
+- **GUI doesn't launch or doesn't behave correctly** — Linux: **"No module named '_tkinter'"**, **"Tools menu requires holding"**, **"Browse button requires double-click"**. Windows/macOS: **"DOCX report won't open"**, **"File picker"**.
+- **Search returns nothing or fewer matches than expected** — **"isn't finding matches I know are there"**, **"Search misses files I recently added"**.
+- **OCR not working** — **"OCR requires the pytesseract"**, **"OCR is enabled but"**.
+- **Specific file format errors** — **"PST support requires"**, or scan for **`.rar`** / **`libpff`** entries.
+- **PowerShell or shell-quoting issues (Windows)** — **"PowerShell rejects"**, **"Regex patterns behave differently in PowerShell"**.
+- **Index issues** — **"Index database was corrupted"**, **"Search misses files I recently added"**.
+- **Permission errors ("can't read this folder")** — **"Why can't peekdocs read files"**, **"Permission denied"**.
+
+### Still stuck?
+
+If `peekdocs --check` is clean and nothing on this page matches your symptom, open an issue at [github.com/exbuf/peekdocs/issues](https://github.com/exbuf/peekdocs/issues). Include:
+
+1. The exact command you ran (or the GUI action you took).
+2. The exact error message — copy-paste, don't paraphrase.
+3. The output of `peekdocs --check`.
+4. Your OS and how you installed peekdocs (standalone download, pipx, or source).
 
 ## FAQ (Frequently Asked Questions)
 
