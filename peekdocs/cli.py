@@ -955,6 +955,7 @@ def _main_inner(argv=None):
         else:
             print("\nPreserved (not deleted): saved searches (.peekdocs_collection.json),")
             print("settings (~/.peekdocsrc), and bookmarks. Remove manually if needed.")
+            print()
         return 0
 
     if args and args[0] == "--index":
