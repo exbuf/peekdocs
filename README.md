@@ -67,9 +67,7 @@ for match in results.matches:
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Why peekdocs?](#why-peekdocs)
-- [Why Not Just Use OS Search?](#why-not-just-use-os-search)
-- [Why Not Just Use AI?](#why-not-just-use-ai)
-- [Why Not Just Use Grep?](#why-not-just-use-grep)
+- [How peekdocs Compares](#how-peekdocs-compares)
 - [What peekdocs Is Not](#what-peekdocs-is-not)
 - [Performance](#performance)
 - [Platform Notes](#platform-notes)
@@ -728,45 +726,15 @@ peekdocs reads 100+ file formats that most tools can't touch — Word, PDF, Exce
 
 If all you need is to find a word in a document, any search tool works. If you want to *see inside your own files* — what's there, what's sensitive, and what you might have forgotten about — that's what peekdocs was built for.
 
-## Why Not Just Use OS Search?
+## How peekdocs Compares
 
-Windows Search, macOS Spotlight, and Linux file managers can search file contents — but they have real limitations:
+Every search tool — `grep`, OS file search, cloud AI assistants — matches text. The differences are in what each one can read, how it presents results, what stays private, and what you can do with the output.
 
-- **Format gaps** — OS search often can't read inside `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, or scanned PDFs. peekdocs reads 100+ file types.
-- **No highlighting** — OS search tells you *which file* matched, but not *where* in the file. peekdocs shows the matched text with surrounding context, highlighted in yellow.
-- **No saved searches or suites** — you can't name a search, save it, and run it again next month. peekdocs can.
-- **No regex, Boolean, fuzzy, proximity, or range queries** — OS search is keyword-only.
-- **Inconsistent indexing** — Spotlight and Windows Search depend on background indexing services that may be disabled, incomplete, or slow to update. peekdocs searches files directly (or with its own optional index).
-- **No reports** — OS search can't produce a highlighted Word document or CSV of all matches that you can save, print, or share.
+**vs. OS search (Windows Search, macOS Spotlight, Linux file managers).** OS search can't read inside `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, or scanned PDFs. It tells you *which* file matched, not *where*. No saved searches, no Boolean/fuzzy/regex/proximity/range, no reports — and its indexing depends on background services that may be disabled, incomplete, or slow to update. peekdocs reads 100+ file types, highlights matches in context, and produces a `.docx` you can save or share.
 
-peekdocs isn't a replacement for your OS — it's the tool you reach for when your OS can't find what you need.
+**vs. cloud AI document tools.** AI document tools have upload limits and format restrictions — most can't read `.msg`, `.pst`, `.7z`, `.rar`, `.odt`, `.xls`, `.doc`, or scanned images. They also require uploading your files to a server, where a third party receives a copy and may use it for training. peekdocs runs entirely on your computer. For keyword, pattern, or range searches, you get the same results without uploading anything. What AI adds beyond search (summarization, question answering, semantic understanding) requires giving up that privacy.
 
-## Why Not Just Use AI?
-
-**First, there's a practical problem:** AI document tools have upload limits and format restrictions. You can't upload 500 tax PDFs, 2,000 emails, and 10 years of contracts to a cloud AI chat — and even if you could, most AI tools can't read .msg, .pst, .7z, .rar, .odt, .xls, .doc, or scanned images. By the time you've uploaded your first few files to an AI tool, peekdocs would already be done searching hundreds. It reads 100+ file types at once, on your machine, with no file count or size limit.
-
-Cloud-based AI document tools also require uploading your files to a server, where a third party receives a copy and may use it for training. Subscription fees and breach exposure are real ongoing concerns. You pay every month to search files you already own.
-
-For finding specific content in your documents — keywords, patterns, phone numbers, dates, account numbers, or anything you can describe with regex — peekdocs gets the same results without uploading anything. Your files stay on your computer. No account, no internet connection, no subscription, no third party.
-
-What AI adds beyond search — summarization, question answering, semantic understanding — requires giving up your privacy. Most people searching for "where's my insurance policy number" or "do any of my files contain passwords" don't need that. They need to find something. peekdocs finds it.
-
-## Why Not Just Use Grep?
-
-**Credit where it's due:** grep is excellent for plain text. With piping you can extend it: `pdftotext file.pdf - | grep term` for PDFs, `unzip -p file.docx word/document.xml | grep term` for Word, `tesseract image.png stdout | grep term` for OCR. A determined developer could write a bash script that detects file types and pipes each through the right converter.
-
-We're not here to replace grep. We handle the file types grep can't read, and add what grep was never designed to do.
-
-**Where peekdocs goes beyond grep:**
-
-- **100+ file types in one command** — no bash scripting, no chain of converters to install and maintain. One pipx command and you're done.
-- **Highlighted reports** — `.docx`, `.pdf`, or `.html` with yellow-highlighted matches, organized by file with surrounding context. Save, print, or share. grep piping doesn't produce this.
-- **Boolean, proximity, fuzzy, range queries** — `(budget OR revenue) AND NOT draft`, "A within 5 words of B", typo-tolerant matching, `amount:1000..5000`. Not expressible in grep.
-- **GUI** — for anyone who doesn't live in a terminal.
-- **Saved searches, suites, bookmarks, history, index with auto-refresh** — application features that don't exist in grep's world.
-- **Cross-platform consistency** — a grep pipeline that works on Linux may break on macOS (different grep versions, missing converters). peekdocs uses the same flags and produces the same output on all three platforms.
-
-**Side-by-side comparison:**
+**vs. `grep`.** For plain-text search in a terminal, `grep` is excellent — use it. For mixed-format documents, shareable highlighted reports, or non-terminal users, peekdocs does in one command what would take hundreds of lines of bash to approximate.
 
 | Capability | grep | peekdocs |
 |---|---|---|
@@ -788,10 +756,8 @@ We're not here to replace grep. We handle the file types grep can't read, and ad
 | Saved searches and suites | No | Yes |
 | Regex collections (batch patterns) | Manual scripting | Built in (`--regex-collection`) |
 | Search index with auto-refresh | No (needs separate tool) | Built in (`--index`) |
-| Cross-platform consistency | Varies (GNU vs BSD grep) | Identical on all platforms |
+| Cross-platform consistency | Varies (GNU vs BSD grep) | Same flags on all three platforms |
 | GUI | No | Yes |
-
-**The honest summary:** For plain-text search in a terminal, grep is faster — use it. For mixed-format documents, shareable highlighted reports, or non-terminal users, peekdocs does in one command what would take hundreds of lines of bash to approximate.
 
 ## What peekdocs Is Not
 
@@ -1008,7 +974,7 @@ The PDF output uses a built-in font (Helvetica) that only supports Latin-1 chara
 Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases (`peekdocs "budget report"`), regex patterns (`peekdocs -x "\d{3}-\d{4}"`), Boolean expressions (`peekdocs -e "(budget OR revenue) AND NOT draft"`), and anything containing special characters (`$`, `*`, `(`, `)`, `|`, `=`, `<`, `>`). The shell interprets these characters before peekdocs sees them, so without quotes your search may not work as expected. When in doubt, use quotes — they never hurt.
 
 **How is peekdocs different from grep?**
-grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, and has a GUI. See [Why Not Just Use Grep?](#why-not-just-use-grep) for a detailed comparison.
+grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, and has a GUI. See [How peekdocs Compares](#how-peekdocs-compares) for a detailed comparison.
 
 <a id="faq-dependencies"></a>
 **What dependencies does peekdocs install? Can I audit them?**
