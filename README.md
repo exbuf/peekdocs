@@ -634,6 +634,8 @@ See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-
 
 ## Quick Start
 
+**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs TODO -r` returns hits across 35 source-code and engineering file types. No setup beyond installing peekdocs.
+
 ### Terminal
 
 If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the source install for contributors, navigate to the cloned repo folder and activate the virtual environment first:
@@ -671,6 +673,8 @@ peekdocs --clear                    # delete peekdocs_*_results* files in curren
 peekdocs --clear-all                # delete all peekdocs output files (results, saved reports, index)
 ```
 
+**No matches?** First search not turning anything up is common. Try `-r` to include subfolders, `-z` for typo-tolerance, drop `-W` if you had whole-word on (it excludes partial matches like "logger" when searching "log"), or check whether your search terms actually appear in those files by opening one manually. Run `peekdocs --list-files` to confirm peekdocs sees the files you expect.
+
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
 Results are saved to `peekdocs_standard_results.txt` and `peekdocs_standard_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too. **All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data. The .txt report works on any computer with no extra software.
@@ -703,14 +707,19 @@ Most users won't need anything beyond the search bar — type your keywords and 
 ```python
 from peekdocs import search
 
-result = search(["budget", "revenue"], directory="/path/to/docs")
+if __name__ == "__main__":
+    result = search(["budget", "revenue"], directory="/path/to/docs")
 
-print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
-for match in result.matches:
-    print(f"  {match.filename}:{match.line_num}: {match.text}")
+    print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
+    for match in result.matches:
+        print(f"  {match.filename}:{match.line_num}: {match.text}")
 ```
 
-See the [API Reference](docs/API.md) for all parameters and options.
+The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multiprocessing` internally, and on macOS and Windows child processes re-import the calling script. Without the guard, the script will crash with `RuntimeError` on those platforms. See the [API Reference](docs/API.md) for all parameters and options.
+
+---
+
+**Stuck?** Run `peekdocs --check` first — it verifies Python, dependencies, Tesseract, SQLite, and free disk space in one shot, and exits 0 only if the installation is healthy. If `--check` looks good but you're still hitting issues, see [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
 ## Documentation
 
