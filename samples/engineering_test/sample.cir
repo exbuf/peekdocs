@@ -1,0 +1,26 @@
+* sample.cir -- SPICE netlist: Inverting op-amp amplifier
+* PEEKDOCS_TEST_MARKER
+*
+* Circuit: Inverting amplifier with gain = -Rf/Ri = -10
+*
+Vin  1 0 AC 1 SIN(0 0.1 1K)
+Ri   1 2 1K
+Rf   2 3 10K
+*
+* Ideal op-amp subcircuit instance
+XU1 0 2 3 opamp_ideal
+*
+* Load resistor
+Rload 3 0 10K
+*
+.subckt opamp_ideal inp inn out
+Rin  inp inn 1MEG
+E1   out 0 inp inn 100K
+Rout out 0 100
+.ends opamp_ideal
+*
+.AC DEC 20 10 100K
+.TRAN 10U 5M
+.PRINT AC VM(3) VP(3)
+.PRINT TRAN V(1) V(3)
+.END

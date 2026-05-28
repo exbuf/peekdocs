@@ -1,0 +1,42 @@
+* sample.spice -- SPICE subcircuit: Voltage regulator with current limit
+* PEEKDOCS_TEST_MARKER
+*
+.subckt vreg_5v vin gnd vout
+*
+* Internal reference
+Vref ref gnd 1.25
+*
+* Error amplifier
+XU1 fb ref amp opamp_simple
+*
+* Pass transistor (PNP model)
+Q1 vin amp vout QPASS
+.model QPASS PNP(BF=100 IS=1E-14 VAF=100)
+*
+* Output voltage divider: Vout = Vref * (1 + R1/R2) = 5.0V
+R1 vout fb 30K
+R2 fb gnd 10K
+*
+* Output capacitor for stability
+Cout vout gnd 10U IC=0
+*
+* Current sense resistor (0.5 ohm)
+Rsense vin vcc_int 0.5
+*
+* Simple opamp model
+.subckt opamp_simple inp inn out
+Ein out 0 inp inn 10000
+Rout out 0 1K
+.ends opamp_simple
+*
+.ends vreg_5v
+*
+* Test circuit
+Vsupply vdd 0 DC 12
+
+
+Rload vout 0 50
+*
+.DC Vsupply 6 15 0.1
+.PRINT DC V(vout)
+.END
