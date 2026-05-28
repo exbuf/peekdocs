@@ -10,7 +10,7 @@ Common questions and solutions for peekdocs issues. For general usage, see the [
 
 ## Where to Start
 
-**First, run `peekdocs --check`.** It verifies your Python version, dependencies, Tesseract availability, SQLite, and free disk space — and tells you exactly what's missing. Many "peekdocs isn't working" problems resolve at this step before you need to read any further.
+**First, run `peekdocs --check`** (CLI) **or open Tools → System Check in the GUI**. Both run the same diagnostic — they verify your Python version, dependencies, Tesseract availability, SQLite, and free disk space, and tell you exactly what's missing. Many "peekdocs isn't working" problems resolve at this step before you need to read any further.
 
 **Then search this page.** Use **Ctrl-F** (Windows/Linux) or **Cmd-F** (macOS) to find a phrase from your error message. With ~90 entries on this page, in-page search is faster than scrolling.
 

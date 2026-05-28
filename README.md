@@ -719,7 +719,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 ---
 
-**Stuck?** Run `peekdocs --check` first — it verifies Python, dependencies, Tesseract, SQLite, and free disk space in one shot, and exits 0 only if the installation is healthy. If `--check` looks good but you're still hitting issues, see [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
+**Stuck?** Run `peekdocs --check` first — or, if you're using the GUI, open **Tools → System Check** for the same diagnostic in a window. Either way verifies Python, dependencies, Tesseract, SQLite, and free disk space and tells you what's missing. If the check looks clean but you're still hitting issues, see [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
 ## Documentation
 

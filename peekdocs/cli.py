@@ -436,6 +436,48 @@ def _dep_versions_str():
     return "\n".join(lines)
 
 
+def run_system_check():
+    """Gather installation health data for the --check CLI command and the GUI System Check.
+
+    Returns a dict with structured results suitable for either text or UI display.
+    """
+    import sqlite3
+    v = sys.version_info[:2]
+    if v < TESTED_PYTHON_MIN:
+        py_status = "below_min"
+    elif v > TESTED_PYTHON_MAX:
+        py_status = "above_max"
+    else:
+        py_status = "ok"
+
+    required = _check_dependencies()
+    optional = _check_optional_dependencies()
+    all_required_ok = all(status == "ok" for _, _, status, _ in required)
+
+    cwd = os.getcwd()
+    free = shutil.disk_usage(cwd).free
+
+    return {
+        "peekdocs_version": VERSION,
+        "python_version_tuple": v,
+        "python_version_full": sys.version,
+        "python_status": py_status,
+        "tested_python_min": TESTED_PYTHON_MIN,
+        "tested_python_max": TESTED_PYTHON_MAX,
+        "os_system": platform.system(),
+        "os_release": platform.release(),
+        "required_deps": required,
+        "optional_deps": optional,
+        "tesseract_installed": shutil.which("tesseract") is not None,
+        "sqlite_version": sqlite3.sqlite_version,
+        "disk_free_bytes": free,
+        "disk_free_human": fmt_size(free),
+        "disk_low": free < 10_000_000,
+        "cwd": cwd,
+        "all_ok": all_required_ok,
+    }
+
+
 def _check_python_version():
     """Return a warning string if Python version is outside tested range, or None."""
     v = sys.version_info[:2]
@@ -833,66 +875,57 @@ def _main_inner(argv=None):
         print('-------------------------------------------------------------------------')
 
     if args and args[0] == "--check":
-        import sqlite3
-        print(f"peekdocs {VERSION}")
-        print(f"Python {sys.version}")
-        print(f"OS: {platform.system()} {platform.release()}")
+        info = run_system_check()
+        print(f"peekdocs {info['peekdocs_version']}")
+        print(f"Python {info['python_version_full']}")
+        print(f"OS: {info['os_system']} {info['os_release']}")
         print()
 
-        # Python version
-        v = sys.version_info[:2]
-        if v < TESTED_PYTHON_MIN:
-            print(f"Python version:  {v[0]}.{v[1]} (BELOW minimum {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]}) — upgrade Python to {TESTED_PYTHON_MIN[0]}.{TESTED_PYTHON_MIN[1]} or later")
-        elif v > TESTED_PYTHON_MAX:
-            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {TESTED_PYTHON_MAX[0]}.{TESTED_PYTHON_MAX[1]}) — should work, but not yet verified")
+        v = info['python_version_tuple']
+        py_min = info['tested_python_min']
+        py_max = info['tested_python_max']
+        if info['python_status'] == "below_min":
+            print(f"Python version:  {v[0]}.{v[1]} (BELOW minimum {py_min[0]}.{py_min[1]}) — upgrade Python to {py_min[0]}.{py_min[1]} or later")
+        elif info['python_status'] == "above_max":
+            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {py_max[0]}.{py_max[1]}) — should work, but not yet verified")
         else:
             print(f"Python version:  {v[0]}.{v[1]} (ok)")
         print()
 
-        # Required dependencies
         print("Required dependencies:")
-        all_ok = True
-        for desc, pkg, status, ver in dep_results:
+        for desc, pkg, status, ver in info['required_deps']:
             if status == "ok":
                 print(f"  {desc} ({pkg}): ok ({ver})")
             else:
                 print(f"  {desc} ({pkg}): MISSING — install with: pip install {pkg}")
-                all_ok = False
         print()
 
-        # Optional dependencies
         print("Optional dependencies:")
-        opt_results = _check_optional_dependencies()
-        for desc, pkg, status, ver in opt_results:
+        for desc, pkg, status, ver in info['optional_deps']:
             if status == "ok":
                 print(f"  {desc} ({pkg}): ok ({ver})")
             else:
                 print(f"  {desc} ({pkg}): not installed — install with: pip install {pkg}")
         print()
 
-        # Tesseract binary (separate from Python package)
-        if shutil.which("tesseract"):
+        if info['tesseract_installed']:
             print("Tesseract OCR:   installed (OCR available with -O flag)")
         else:
             print("Tesseract OCR:   not installed (optional — needed only for -O flag)")
 
-        # SQLite
-        print(f"SQLite version:  {sqlite3.sqlite_version}")
+        print(f"SQLite version:  {info['sqlite_version']}")
         print()
 
-        # Disk space
-        cwd = os.getcwd()
-        free = shutil.disk_usage(cwd).free
-        print(f"Disk space:      {fmt_size(free)} free")
-        if free < 10_000_000:
+        print(f"Disk space:      {info['disk_free_human']} free")
+        if info['disk_low']:
             print("  Warning: Low disk space. Reports may fail to write.")
         print()
 
-        if not all_ok:
+        if not info['all_ok']:
             print("Fix missing dependencies with: pip install --upgrade peekdocs")
             print()
 
-        return 0 if all_ok else 2
+        return 0 if info['all_ok'] else 2
 
     if args and args[0] == "--list-files":
         cwd = os.getcwd()

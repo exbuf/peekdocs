@@ -1504,6 +1504,7 @@ class BuildMixin:
             menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)
             menu.add_command(label="View All peekdocs Files — list every peekdocs-created file in the Search Folder", command=self._show_app_files)
             menu.add_command(label="Error Log — open peekdocs_errors.log", command=self.open_error_log)
+            menu.add_command(label="System Check — verify Python, dependencies, and disk space", command=self._run_system_check)
             _dark_sep()
             # Cleanup
             menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)

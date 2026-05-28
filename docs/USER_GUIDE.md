@@ -63,7 +63,7 @@ This is a long reference document. Skip directly to what you need:
 - **Integrating from Python?** Read [Python API Reference](#python-api-reference) and the full [API Reference](API.md).
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
-- **Hit an error?** First run `peekdocs --check`. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
+- **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
 ## Will peekdocs affect my existing Python installation?
 

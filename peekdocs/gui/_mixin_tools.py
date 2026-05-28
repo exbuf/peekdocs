@@ -4963,6 +4963,148 @@ class ToolsMixin:
         self._apply_dark_theme(help_win)
 
 
+    # ── System Check ──────────────────────────────────────────────────
+
+    def _run_system_check(self):
+        """Show the GUI equivalent of CLI `peekdocs --check` — installation health probe."""
+        import tkinter as tk
+        from peekdocs.cli import run_system_check
+
+        try:
+            info = run_system_check()
+        except Exception as e:
+            self._show_error(f"System check failed: {e}")
+            return
+
+        popup, _dark = self._themed_toplevel()
+        popup.title("System Check")
+        popup.resizable(True, True)
+        popup.geometry("740x600")
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 740) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 600) // 2
+        popup.geometry(f"+{x}+{y}")
+
+        # Header — overall status
+        if info["all_ok"]:
+            header_text = "✓  Everything looks healthy."
+            header_color = "#2E7D32"
+        else:
+            header_text = "⚠  Issues found — see below."
+            header_color = "#C62828"
+        tk.Label(
+            popup, text=header_text, font=self._scaled_font(14, "bold"),
+            fg=header_color, bg=("white" if not _dark else "#2B2B2B"),
+        ).pack(anchor="w", padx=12, pady=(12, 4))
+
+        # Scrollable text widget with color tags
+        text_frame = tk.Frame(popup, bg=("white" if not _dark else "#2B2B2B"))
+        text_frame.pack(fill="both", expand=True, padx=12, pady=(4, 8))
+        scrollbar = tk.Scrollbar(text_frame)
+        scrollbar.pack(side="right", fill="y")
+        text = tk.Text(
+            text_frame, wrap="word", yscrollcommand=scrollbar.set,
+            font=("Courier", 11),
+            bg=("#F9F9F9" if not _dark else "#1E1E1E"),
+            fg=("#222" if not _dark else "#DDD"),
+            relief="flat", borderwidth=1,
+        )
+        text.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=text.yview)
+
+        # Color tags
+        text.tag_configure("ok", foreground=("#2E7D32" if not _dark else "#81C784"))
+        text.tag_configure("bad", foreground=("#C62828" if not _dark else "#EF5350"))
+        text.tag_configure("warn", foreground=("#E65100" if not _dark else "#FFB74D"))
+        text.tag_configure("section", font=("Courier", 11, "bold"))
+        text.tag_configure("dim", foreground=("#777" if not _dark else "#999"))
+
+        # Build the report — also accumulate plain-text version for Copy to Clipboard
+        plain_lines = []
+        def add(line, tag=None):
+            text.insert("end", line + "\n", tag if tag else ())
+            plain_lines.append(line)
+
+        add(f"peekdocs {info['peekdocs_version']}")
+        add(f"Python {info['python_version_full']}")
+        add(f"OS: {info['os_system']} {info['os_release']}")
+        add("")
+
+        v = info["python_version_tuple"]
+        py_min = info["tested_python_min"]
+        py_max = info["tested_python_max"]
+        if info["python_status"] == "below_min":
+            add(f"Python version:  {v[0]}.{v[1]} (BELOW minimum {py_min[0]}.{py_min[1]}) — upgrade Python to {py_min[0]}.{py_min[1]} or later", "bad")
+        elif info["python_status"] == "above_max":
+            add(f"Python version:  {v[0]}.{v[1]} (above maximum tested {py_max[0]}.{py_max[1]}) — should work, but not yet verified", "warn")
+        else:
+            add(f"Python version:  {v[0]}.{v[1]} (ok)", "ok")
+        add("")
+
+        add("Required dependencies:", "section")
+        for desc, pkg, status, ver in info["required_deps"]:
+            if status == "ok":
+                add(f"  {desc} ({pkg}): ok ({ver})", "ok")
+            else:
+                add(f"  {desc} ({pkg}): MISSING — install with: pip install {pkg}", "bad")
+        add("")
+
+        add("Optional dependencies:", "section")
+        for desc, pkg, status, ver in info["optional_deps"]:
+            if status == "ok":
+                add(f"  {desc} ({pkg}): ok ({ver})", "ok")
+            else:
+                add(f"  {desc} ({pkg}): not installed — install with: pip install {pkg}", "dim")
+        add("")
+
+        if info["tesseract_installed"]:
+            add("Tesseract OCR:   installed (OCR available with -O flag)", "ok")
+        else:
+            add("Tesseract OCR:   not installed (optional — needed only for OCR)", "dim")
+
+        add(f"SQLite version:  {info['sqlite_version']}")
+        add("")
+
+        if info["disk_low"]:
+            add(f"Disk space:      {info['disk_free_human']} free — LOW; reports may fail to write", "bad")
+        else:
+            add(f"Disk space:      {info['disk_free_human']} free", "ok")
+        add("")
+
+        if not info["all_ok"]:
+            add("Fix missing dependencies with: pip install --upgrade peekdocs", "warn")
+
+        text.config(state="disabled")
+
+        # Buttons row
+        btn_row = tk.Frame(popup, bg=("white" if not _dark else "#2B2B2B"))
+        btn_row.pack(fill="x", padx=12, pady=(4, 12))
+
+        def _copy_to_clipboard():
+            popup.clipboard_clear()
+            popup.clipboard_append("\n".join(plain_lines))
+            popup.update()
+            copy_btn.configure(text="Copied!")
+            popup.after(1500, lambda: copy_btn.configure(text="Copy to Clipboard"))
+
+        copy_btn = ctk.CTkButton(
+            btn_row, text="Copy to Clipboard", width=160,
+            font=ctk.CTkFont(size=12),
+            command=_copy_to_clipboard,
+        )
+        copy_btn.pack(side="left")
+
+        ctk.CTkButton(
+            btn_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12),
+            command=popup.destroy,
+        ).pack(side="right")
+
+        self._apply_dark_theme(popup)
+
+
     # ── Schedule Search ───────────────────────────────────────────────
 
     def _open_diff_snapshots(self):
