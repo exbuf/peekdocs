@@ -913,7 +913,7 @@ class SearchMixin:
         """Immediately delete all result files, clear preview, and clear search history."""
         from tkinter import messagebox
         if not messagebox.askyesno(
-            "Delete Everything Now",
+            "Delete Now",
             "This will immediately:\n\n"
             "\u2022 Delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*)\n"
             "\u2022 Delete the search index (.peekdocs.db) — contains extracted text of indexed files\n"

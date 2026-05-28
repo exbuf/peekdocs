@@ -891,7 +891,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
         )
         cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
-        Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Delete Everything Now to clean up")
+        Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Delete Now to clean up")
         self.delete_reports_var = ctk.StringVar(value="off")
         cb_delete_adv = ctk.CTkCheckBox(
             output_frame, text="Delete on Close", variable=self.delete_reports_var,
@@ -1266,7 +1266,7 @@ class BuildMixin:
         Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted", anchor="above")
 
         self._delete_everything_btn = ctk.CTkButton(
-            self.report_frame, text="Delete Everything Now", width=170,
+            self.report_frame, text="Delete Now", width=170,
             font=ctk.CTkFont(size=12),
             fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
             command=self._delete_everything_now,

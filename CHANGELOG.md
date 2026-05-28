@@ -12,7 +12,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-*Changes pending the next release will appear here. Anyone running from `git+https://...` is already getting them.*
+### Added
+
+- **Tools → System Check** — GUI equivalent of `peekdocs --check`. Opens a color-coded popup showing Python version, required and optional dependency status, Tesseract availability, SQLite version, and free disk space. Includes a Copy to Clipboard button for pasting the diagnostic into GitHub issues. Both the CLI and GUI now share a single `run_system_check()` function under the hood, so output stays consistent.
+
+### Changed
+
+- **Renamed GUI button "Delete Everything Now" → "Delete Now".** The previous name implied it deleted everything peekdocs-related (saved searches, settings, bookmarks, documents); in fact it only deletes recent result files and the search index, plus clears UI state. The new name pairs naturally with the adjacent **Delete on Close** checkbox and doesn't overpromise. Tooltip and confirmation dialog still explain the exact scope.
 
 ## [1.0.3] — 2026-05-26
 

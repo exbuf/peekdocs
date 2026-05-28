@@ -2321,7 +2321,7 @@ peekdocs creates several types of files during normal operation. Understanding w
 
 ### Search reports
 
-These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_standard_results_20260331_103425.docx`) — useful for keeping a history, but files accumulate over time. **Delete on Close**, **Delete Everything Now**, and **Clear Files** all clean up timestamped files — they match any file starting with `peekdocs_standard_results`, `peekdocs_regex_results`, or `peekdocs_suite_results`, regardless of the timestamp suffix.
+These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF, and HTML — are overwritten each time you run a new search.** If you enable the Timestamp checkbox in Advanced Search Options, each search creates uniquely named files (e.g., `peekdocs_standard_results_20260331_103425.docx`) — useful for keeping a history, but files accumulate over time. **Delete on Close**, **Delete Now**, and **Clear Files** all clean up timestamped files — they match any file starting with `peekdocs_standard_results`, `peekdocs_regex_results`, or `peekdocs_suite_results`, regardless of the timestamp suffix.
 
 | File | Purpose | Location |
 |------|---------|----------|
@@ -2471,17 +2471,17 @@ peekdocs provides several ways to clean up after a search session:
 | **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
-| **Delete Everything Now** | Main screen (report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
+| **Delete Now** | Main screen (report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All methods except **Delete Everything Now** leave the search index untouched. **Delete Everything Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Everything Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+All methods except **Delete Now** leave the search index untouched. **Delete Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
 
 ### CLI cleanup scope (`--clear`, `--clear-all`)
 
-The CLI also has two cleanup commands. Their scope differs slightly from the GUI's **Delete Everything Now** button — by design. The CLI cares about on-disk files; the GUI also cares about live UI state (preview, history, fields). Here is the exact scope of each:
+The CLI also has two cleanup commands. Their scope differs slightly from the GUI's **Delete Now** button — by design. The CLI cares about on-disk files; the GUI also cares about live UI state (preview, history, fields). Here is the exact scope of each:
 
-| What gets deleted | CLI `--clear` | CLI `--clear-all` | GUI **Delete Everything Now** |
+| What gets deleted | CLI `--clear` | CLI `--clear-all` | GUI **Delete Now** |
 |---|:---:|:---:|:---:|
 | Result files (`peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`) | ✓ | ✓ | ✓ |
 | Search index (`.peekdocs.db`, `.peekdocs.db-wal`, `.peekdocs.db-shm`) | — | ✓ | ✓ |
@@ -2514,7 +2514,7 @@ If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox
 
 The redirect happens silently — the search runs without interruption. The status line tells you where reports were saved and why. The output directory setting is saved to `~/.peekdocsrc` and persists between sessions.
 
-**Delete on Close** and **Delete Everything Now** both clean `~/peekdocs_reports` along with the search folder and any custom output directory — so reports saved there are not forgotten.
+**Delete on Close** and **Delete Now** both clean `~/peekdocs_reports` along with the search folder and any custom output directory — so reports saved there are not forgotten.
 
 ### Numeric-pattern search term warning
 
@@ -2522,7 +2522,7 @@ If you type a search term that matches certain numeric ID patterns (such as a 9-
 
 ### Known limitations (what peekdocs cannot control)
 
-peekdocs takes a number of steps to protect user data (safe app opening, cloud folder detection, Delete on Close, Clear History on Close, Clear Preview, Delete Everything Now, search-term pattern warnings). The following are outside the application's control:
+peekdocs takes a number of steps to protect user data (safe app opening, cloud folder detection, Delete on Close, Clear History on Close, Clear Preview, Delete Now, search-term pattern warnings). The following are outside the application's control:
 
 - **CLI process arguments.** When the GUI runs a search, it launches `peekdocs` as a subprocess with search terms in the command line. On Unix/macOS, other users on the same machine can see process arguments via `ps aux`. If someone searches for a specific numeric ID or account number, that term is briefly visible in the process list while the search runs.
 - **Report file permissions.** Check **Restrict File Permissions** in Advanced Search Options to set all report files to owner-only read/write (chmod 600) on Unix/macOS. This prevents other users on shared machines from reading your search results. Off by default — leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently).
@@ -2530,11 +2530,11 @@ peekdocs takes a number of steps to protect user data (safe app opening, cloud f
 - **Process memory.** Sensitive data found during a search sits in Python process memory until garbage collected. The operating system may write process memory to swap/page files on disk. This is standard behavior for all desktop applications and is not practically exploitable on a single-user machine, but it means sensitive data could theoretically persist in swap space after the application closes.
 - **Error log file paths.** The error log (`peekdocs_errors.log`) contains file paths of documents that could not be read. This reveals which folders and files were being searched, though not the content of those files.
 - **Microsoft 365 desktop apps.** peekdocs launches the local Word desktop application (`WINWORD.EXE` / `Microsoft Word.app`) — never Word Online or any browser-based editor. However, if the user is signed into a Microsoft 365 account, the desktop Word app may show the file in their "Recent" list on office.com, prompt to upload to OneDrive, or auto-save if the file is in a OneDrive-synced folder. peekdocs cannot control the internal cloud features of local applications after launching them. If this is a concern, use LibreOffice (which has no cloud integration) or the HTML report (which opens in your browser directly from local disk).
-- **Forced process termination.** Delete on Close and Clear History on Close run during normal app shutdown. If the process is force-killed (kill -9, Task Manager End Process, or a system crash), cleanup does not run and report files, search history, and indexes remain on disk. Use Delete Everything Now before closing if immediate cleanup is critical.
+- **Forced process termination.** Delete on Close and Clear History on Close run during normal app shutdown. If the process is force-killed (kill -9, Task Manager End Process, or a system crash), cleanup does not run and report files, search history, and indexes remain on disk. Use Delete Now before closing if immediate cleanup is critical.
 - **Custom regex patterns.** User-supplied regex patterns (in the search bar, Regex Search, or the Search Wizard) have no execution timeout. A pathological pattern (e.g., catastrophic backtracking) could cause the search to hang indefinitely. peekdocs validates regex syntax but does not limit pattern complexity.
 - **Cloud folder detection is path-based.** peekdocs detects cloud-synced folders by looking for keywords like "OneDrive," "Dropbox," "Google Drive," and "iCloud" in the folder path. A folder with a cloud keyword in its name (e.g., `MyDropboxAnalysis`) would be falsely detected as cloud-synced and reports would be redirected to `~/peekdocs_reports`. Rename the folder to avoid the false trigger.
 - **Safe output folder fallback.** If `~/peekdocs_reports` is itself inside a cloud-synced directory (e.g., the entire home directory is synced to OneDrive), peekdocs falls back to the system temp directory (`/tmp` on Unix/macOS, `%TEMP%` on Windows). This is automatic and requires no user action.
-- **Backup software.** Report files written to disk may be picked up by backup software (Time Machine, Windows Backup, Backblaze, Carbonite, etc.) and uploaded to cloud storage. peekdocs avoids cloud-synced *folders* but cannot detect or prevent background backup services that copy files after they are written. Use **Delete on Close** or **Delete Everything Now** to remove report files before backups run.
+- **Backup software.** Report files written to disk may be picked up by backup software (Time Machine, Windows Backup, Backblaze, Carbonite, etc.) and uploaded to cloud storage. peekdocs avoids cloud-synced *folders* but cannot detect or prevent background backup services that copy files after they are written. Use **Delete on Close** or **Delete Now** to remove report files before backups run.
 
 ## Limits and Constraints
 

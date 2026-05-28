@@ -6664,7 +6664,7 @@ class ToolsMixin:
         b("you can achieve a similar effect by checking Delete on Close")
         b("in Advanced Search Options \u2014 report files are created during")
         b("the search but automatically deleted when you close the app.")
-        b("For immediate cleanup, click Delete Everything Now on the")
+        b("For immediate cleanup, click Delete Now on the")
         b("main screen. You can also review results in the Results")
         b("Preview and Matched Files \u2192 View Text without opening any")
         b("report files.")
