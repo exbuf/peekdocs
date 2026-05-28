@@ -921,7 +921,7 @@ class SearchMixin:
             "\u2022 Clear your search history and recent searches\n"
             "\u2022 Clear the search terms and folder fields\n\n"
             "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
-            "and settings are not affected.\n\n"
+            "settings, and bookmarks are not affected.\n\n"
             "Continue?",
         ):
             return
@@ -1268,8 +1268,8 @@ class SearchMixin:
             "Clean Folder",
             f"Delete {len(peekdocs_files)} peekdocs file(s) from:\n{folder}\n\n"
             f"{file_list}\n\n"
-            "Saved searches (.peekdocs_collection.json) and settings (~/.peekdocsrc) "
-            "are not affected.\n\n"
+            "Saved searches (.peekdocs_collection.json), settings (~/.peekdocsrc), "
+            "and bookmarks (~/.peekdocs_bookmarks.json) are not affected.\n\n"
             "Review the list carefully \u2014 only files created by peekdocs should be listed.\n\n"
             "Continue?",
         ):
@@ -1365,7 +1365,7 @@ class SearchMixin:
         ).pack(anchor="w", padx=12, pady=(10, 2))
         tk.Label(
             win, text="Check the files you want to delete. Your original documents, saved searches, "
-                      "and settings are never shown here and cannot be deleted.",
+                      "settings, and bookmarks are never shown here and cannot be deleted.",
             font=_sf(10), fg="gray", wraplength=660, justify="left",
         ).pack(anchor="w", padx=12, pady=(0, 8))
 
