@@ -4,14 +4,14 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 
 ## Table of Contents
 
+- [Where to Start](#where-to-start)
 - [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
 - [Security Best Practices](#security-best-practices)
 - [Dependencies](#dependencies)
   - [What gets installed automatically](#what-gets-installed-automatically)
   - [What you must install yourself](#what-you-must-install-yourself)
-- [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
-- [Python API Reference](#python-api-reference)
+- [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
 - [Why peekdocs Instead of grep?](#why-peekdocs-instead-of-grep)
 - [Usage](#usage)
   - [Regex search](#regex-search)
@@ -48,9 +48,22 @@ This is the complete reference guide for peekdocs. For a quick overview, see the
 - [Platform Notes](#platform-notes)
 - [Multilingual Support](#multilingual-support)
 - [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
+- [Python API Reference](#python-api-reference)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [Glossary](#glossary)
+
+## Where to Start
+
+This is a long reference document. Skip directly to what you need:
+
+- **First time using peekdocs from the terminal?** Start with [Getting Started with the Terminal](#getting-started-with-the-terminal).
+- **First time using the GUI?** Start with [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface).
+- **Want a hands-on walkthrough of advanced features?** See [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step).
+- **Integrating from Python?** Read [Python API Reference](#python-api-reference) and the full [API Reference](API.md).
+- **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
+- **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
+- **Hit an error?** First run `peekdocs --check`. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
 ## Will peekdocs affect my existing Python installation?
 
@@ -160,6 +173,8 @@ Most of these are covered in the [Prerequisites](../README.md#prerequisites) sec
 If you've never used a terminal before, this section walks you through everything from opening it to running your first search. If you're already comfortable with the command line, skip ahead to [GUI Mode](#gui-mode) or [Usage](#usage).
 
 **Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
+
+**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs TODO -r` returns hits across 35 source-code and engineering file types — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
 
 ### Which installation method did you use?
 
@@ -709,10 +724,13 @@ foreach ($c in "code patterns","log analysis","invoice extraction") {
 ```python
 from peekdocs.api import list_regex_collections, run_regex_collection
 
-for name in list_regex_collections():
-    result = run_regex_collection(name, directory="/path", recursive=True)
-    print(f"{name}: {result.total_matches} matches in {result.elapsed:.1f}s")
+if __name__ == "__main__":
+    for name in list_regex_collections():
+        result = run_regex_collection(name, directory="/path", recursive=True)
+        print(f"{name}: {result.total_matches} matches in {result.elapsed:.1f}s")
 ```
+
+The `if __name__ == "__main__":` guard is **required** when scripting the peekdocs API on macOS or Windows — `multiprocessing` spawned children re-import the calling script. Without the guard, the script crashes with `RuntimeError`.
 
 The Python API is the most reliable way to enumerate and run every saved collection in one pass — `list_regex_collections()` returns a clean list of names you can iterate over, and the API returns results in memory rather than writing report files. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs. Note: Search Suites group *saved searches*, not regex collections — they don't replace this pattern.
 
@@ -782,11 +800,14 @@ Reports stay in each folder (`acme/peekdocs_suite_results.txt`, etc.) with no ov
 ```python
 from peekdocs.api import list_suites, run_suite
 
-folder = "/path/to/folder"
-for name in list_suites(directory=folder):
-    result = run_suite(name, directory=folder)
-    print(f"{name}: {result.total_matches} matches across {len(result.search_results)} searches ({result.elapsed:.2f}s)")
+if __name__ == "__main__":
+    folder = "/path/to/folder"
+    for name in list_suites(directory=folder):
+        result = run_suite(name, directory=folder)
+        print(f"{name}: {result.total_matches} matches across {len(result.search_results)} searches ({result.elapsed:.2f}s)")
 ```
+
+The `if __name__ == "__main__":` guard is **required** on macOS and Windows — see the earlier note in [Regex Collection Use Cases](#regex-collection-use-cases) or the [API Reference](API.md).
 
 `list_suites()` returns a dict of suite names to their member search lists. `run_suite()` returns a `SuiteResult` with `total_matches`, `search_results` (a list of per-search results), `elapsed`, and `skipped_searches`. The API returns results in memory without writing reports, so you can collect everything and build a custom combined report. Pair any of these with cron (macOS/Linux) or Task Scheduler (Windows) for recurring runs.
 
