@@ -2,6 +2,8 @@
 
 Use peekdocs programmatically from Python code. For CLI and GUI usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
 
+**Prerequisites.** Python 3.10+ with peekdocs installed via pipx or pip — see [Installation](../README.md#installation). Run `peekdocs --check` to verify your install is healthy before scripting against the API.
+
 ## API at a Glance
 
 Every search workflow available in the CLI and GUI is also available in the Python API:
@@ -47,6 +49,8 @@ See the sections below for full parameter details, return values, and error hand
 
 ## Table of Contents
 
+- [API at a Glance](#api-at-a-glance)
+  - [Quick examples](#quick-examples)
 - [Complete Working Example](#complete-working-example)
 - [Basic Usage](#basic-usage)
 - [With Options](#with-options)
@@ -56,6 +60,7 @@ See the sections below for full parameter details, return values, and error hand
 - [Regex Collections](#regex-collections)
 - [Notes](#notes)
 - [Error Handling](#error-handling)
+- [Next Steps](#next-steps)
 
 ## Complete Working Example
 
@@ -201,7 +206,7 @@ def main():
         range_filters=["fn:date:2024-01-01..2024-12-31"],
     )
 
-    # Search emails for SSNs
+    # Search emails for a 9-digit ID pattern (xxx-xx-xxxx)
     result = search(
         [r"\d{3}-\d{2}-\d{4}"],
         directory="/path/to/exported-emails",
@@ -476,3 +481,9 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+**Stuck on something `try/except` won't catch?** If your script crashes with `ModuleNotFoundError`, hangs without finishing, or behaves differently than the CLI, first run `peekdocs --check` from your terminal — it verifies your Python version, dependencies, Tesseract availability, SQLite, and free disk space, and tells you exactly what's missing. If that's clean, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common Python-API and install pitfalls (especially the `multiprocessing` / `__main__` guard issue if your script crashes on Mac or Windows).
+
+## Next Steps
+
+For richer end-to-end automation patterns, see the User Guide's [worked nightly source-tree watch example](USER_GUIDE.md#a-worked-example-nightly-source-tree-watch) (a complete cron pipeline using `--stdout`, `--hash`, `--diff`, and an alert step) and the [Search Suite Use Cases](USER_GUIDE.md#search-suite-use-cases) section (driving suites and regex collections in Python loops). The complete CLI flag reference lives in the [Flag Use Summary](USER_GUIDE.md#flag-use-summary).
