@@ -687,6 +687,8 @@ peekdocs-gui
 
 See [Screenshots](#screenshots) for what peekdocs looks like in action — both GUI and CLI.
 
+On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
+
 1. Click **Browse** to select a folder (or **File** to search a single file)
 2. Type your search terms
 3. Click **Run Search**
