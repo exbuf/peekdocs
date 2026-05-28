@@ -2456,6 +2456,37 @@ peekdocs provides several ways to clean up after a search session:
 
 All methods except **Delete Everything Now** leave the search index untouched. **Delete Everything Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Everything Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
 
+### CLI cleanup scope (`--clear`, `--clear-all`)
+
+The CLI also has two cleanup commands. Their scope differs slightly from the GUI's **Delete Everything Now** button — by design. The CLI cares about on-disk files; the GUI also cares about live UI state (preview, history, fields). Here is the exact scope of each:
+
+| What gets deleted | CLI `--clear` | CLI `--clear-all` | GUI **Delete Everything Now** |
+|---|:---:|:---:|:---:|
+| Result files (`peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`) | ✓ | ✓ | ✓ |
+| Search index (`.peekdocs.db`, `.peekdocs.db-wal`, `.peekdocs.db-shm`) | — | ✓ | ✓ |
+| Error log (`peekdocs_errors.log`) | — | ✓ | — |
+| Saved reports (`peekdocs_report_*`) | — | ✓ | — *(preserved)* |
+| Accumulated reports (`peekdocs_accumulated_*`) | — | ✓ | — *(preserved)* |
+| `.peekdocs_collection.json` (saved searches and suites) | — *(preserved)* | — *(preserved)* | — *(preserved)* |
+| `~/.peekdocsrc` settings | — *(preserved)* | — *(preserved)* | — *(preserved)* |
+| Bookmarks | — *(preserved)* | — *(preserved)* | — *(preserved)* |
+| Search history | — | — | ✓ |
+| Results Preview, search terms, folder fields (UI state) | n/a | n/a | ✓ |
+
+**Why `.peekdocs_collection.json`, `~/.peekdocsrc`, and bookmarks are always preserved.** They represent *user work*, not search output. Building a useful search suite or curating a bookmark list takes time, and a single typo on the command line shouldn't wipe that out. None of the cleanup commands — CLI or GUI — will touch them.
+
+**If you actually do want to delete `.peekdocs_collection.json`**, remove it by hand from the search folder:
+
+```bash
+rm .peekdocs_collection.json                    # macOS / Linux
+```
+
+```powershell
+Remove-Item .peekdocs_collection.json           # Windows PowerShell
+```
+
+Or just delete the file from Finder / File Explorer / your file manager. The next time you open the folder in peekdocs, the saved-searches list will be empty and a fresh `.peekdocs_collection.json` will be created when you save your first search there.
+
 ### Cloud-synced folders
 
 If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`). Your documents are still searched in the original cloud-synced location — only the report output changes. This helps prevent report files from being written to a location that automatically uploads to the cloud.
