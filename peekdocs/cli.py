@@ -130,6 +130,8 @@ BANNER_BOTTOM = (
     '  --list-files       List all peekdocs-created files in the current directory\n'
     '  --clear            Delete peekdocs_*_results* files in the current directory\n'
     '  --clear-all        Delete all peekdocs output files (results, saved reports, error log, index)\n'
+    '                       Saved searches (.peekdocs_collection.json), settings (~/.peekdocsrc),\n'
+    '                       and bookmarks are never deleted — remove manually if needed.\n'
     '  -c 4               Number of CPU cores to use\n'
     '  -q                 Suppress the output banner\n'
     '  -qq                Minimal output — show only Found/Elapsed lines (no file list, warnings, or report paths)\n'
@@ -191,6 +193,10 @@ BANNER_BOTTOM = (
     '  peekdocs --clear-all           Delete all peekdocs output files (results, saved reports,\n'
     '                                   accumulated reports, error log, and search index)\n'
     '\n'
+    '  Neither command deletes .peekdocs_collection.json (saved searches and suites),\n'
+    '  ~/.peekdocsrc (settings), or bookmarks. These are user work, not output — delete\n'
+    '  manually if needed (rm .peekdocs_collection.json, etc.).\n'
+    '\n'
     '  See Advanced Search Options in the GUI for the full list of search settings.'
 )
 
@@ -247,6 +253,7 @@ BANNER_QUICK = (
     '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_*_results* files\n'
     '  peekdocs --clear-all           Delete all peekdocs output files\n'
+    '                                   (Saved searches, settings, and bookmarks preserved — see -h.)\n'
     '\n'
     'Exit codes: 0 = matches found, 1 = no matches, 2 = error.\n'
     '\n'
@@ -945,6 +952,9 @@ def _main_inner(argv=None):
             print("No peekdocs output files found in the current directory.")
         if not clear_all:
             print("\nTo also delete saved reports, error log, and index: peekdocs --clear-all")
+        else:
+            print("\nPreserved (not deleted): saved searches (.peekdocs_collection.json),")
+            print("settings (~/.peekdocsrc), and bookmarks. Remove manually if needed.")
         return 0
 
     if args and args[0] == "--index":
