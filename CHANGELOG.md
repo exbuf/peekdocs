@@ -2,6 +2,18 @@
 
 All notable changes to peekdocs are documented here.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Versions are listed in reverse chronological order (newest first). Each release groups its changes under **Added** (new features), **Changed** (modifications to existing behavior), **Removed** (features taken out), and **Fixed** (bug fixes).
+
+**To upgrade to the latest version:**
+
+- **pipx** (recommended, Mac / Linux / Windows): `pipx install --force git+https://github.com/exbuf/peekdocs.git`
+- **pip** (advanced): `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`
+- **Standalone download**: grab the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace your existing copy. Your settings and saved searches live in your home directory, not in the executable — nothing is lost on upgrade.
+
+## [Unreleased]
+
+*Changes pending the next release will appear here. Anyone running from `git+https://...` is already getting them.*
+
 ## [1.0.3] — 2026-05-26
 
 Point release fixing the standalone Windows GUI spawning **multiple**
