@@ -483,7 +483,7 @@ peekdocs handles all of this in a single command. Here is what each tool can do:
 
 **When to use peekdocs:** For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, running saved pattern collections, or giving a non-terminal user a search tool with a GUI.
 
-For a more detailed comparison, see [How peekdocs Compares](../README.md#how-peekdocs-compares) in the README.
+For a more detailed comparison, see [Why peekdocs?](../README.md#why-peekdocs) in the README.
 
 ## Usage
 
