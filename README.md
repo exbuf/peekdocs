@@ -1208,7 +1208,7 @@ Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engi
 
 ## Disclaimer
 
-peekdocs is provided under the [MIT License](LICENSE) and is offered "as is" without warranty of any kind. It is a general-purpose local text-search application.
+peekdocs is provided as a general-purpose local text-search tool under the [MIT License](LICENSE), offered "as is" without warranty of any kind.
 
 Regex Search performs pattern matching against text. Results depend entirely on the patterns the user supplies, and may include false positives or miss content that does not match those patterns. Review results in context before making decisions.
 
