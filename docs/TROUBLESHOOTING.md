@@ -1,6 +1,6 @@
 # peekdocs FAQ and Troubleshooting
 
-Common questions and solutions for peekdocs issues. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
+Common questions and solutions for peekdocs issues. If you're stuck, start with **[Where to Start](#where-to-start)** below — it tells you what to run first. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
 
 ## Table of Contents
 
