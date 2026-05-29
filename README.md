@@ -464,7 +464,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
   - **Indexes** — build, refresh, or delete the optional search index that makes repeated searches dramatically faster
   - **Search History** — automatic diary of every search you run: date, terms, match count, file count, elapsed time
   - **Bookmarks** — pin files from search results for quick access later
-  - **Diff Snapshots** — compare two peekdocs JSON snapshots to see what files are new, changed, removed, or unchanged between scans
+  - **Diff Snapshots** — compare two saved scans to see what files are new, changed, removed, or unchanged between them
   - **Schedule Search** — generates a ready-to-paste cron (Mac/Linux) or Task Scheduler (Windows) command to run any saved search suite or regex collection on a schedule. Step-by-step instructions are included — no terminal experience required
   - **Error Log** — opens `peekdocs_errors.log` to see any files that couldn't be read and why (corrupt, locked, password-protected, etc.)
   - **Clear Files** — selectively delete peekdocs's output files (reports, error log, saved searches, index) from the current folder
