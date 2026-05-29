@@ -1040,6 +1040,8 @@ The `if __name__ == "__main__":` guard is **required** on macOS and Windows — 
 
 ## Output
 
+This section covers the report files peekdocs writes — what each search mode produces, what's in each format, and how to read what's on screen during a run.
+
 <a id="search-modes-and-their-reports"></a>
 ### Search Modes and Their Reports
 
@@ -2865,6 +2867,8 @@ pytest tests/ -v
 ```
 
 ## Project Structure
+
+The peekdocs codebase is organized as follows. The package itself lives in `peekdocs/`; tests, docs, and sample files live alongside it.
 
 ```
 peekdocs/
