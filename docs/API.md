@@ -123,6 +123,8 @@ if __name__ == "__main__":
 
 ## Basic Usage
 
+The simplest way to use the API is to call `search()` with a list of terms and a directory:
+
 ```python
 from peekdocs import search
 
@@ -141,6 +143,8 @@ if __name__ == "__main__":
 > **Note:** The `if __name__ == "__main__":` guard is required because peekdocs uses multiprocessing to search files in parallel. Without it, macOS and Windows will crash with a `RuntimeError`. See [`samples/api_example.py`](../samples/api_example.py) for a complete working example.
 
 ## With Options
+
+`search()` accepts many keyword arguments for fine-grained control. The example below shows several common patterns:
 
 ```python
 from peekdocs import search
