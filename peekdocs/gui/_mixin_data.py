@@ -263,7 +263,7 @@ class DataMixin:
         Tooltip.enabled = bool(hover)
         if hasattr(self, "_hover_toggle_btn"):
             self._hover_toggle_btn.configure(
-                text="Hover: ON" if Tooltip.enabled else "Hover: OFF"
+                text="Tooltips: ON" if Tooltip.enabled else "Tooltips: OFF"
             )
 
 

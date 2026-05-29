@@ -1443,7 +1443,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.help_button.pack(side="left")
-        Tooltip(self.help_button, "The USER_GUIDE.md, TROUBLESHOOTING.md, and API.md are under 'docs' on GitHub", anchor="above")
+        Tooltip(self.help_button, "Open the peekdocs User Guide on GitHub — also includes Troubleshooting and Python API documentation", anchor="above")
 
         # Center: Close button
         close_main_btn = ctk.CTkButton(
@@ -1545,7 +1545,7 @@ class BuildMixin:
         self._tools_btn.pack(side="right", padx=5)
         Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more. Linux: hold mouse button and drag to select — click-to-open is a known Linux/tkinter limitation", anchor="above-left")
 
-        hover_label = "Hover: ON" if Tooltip.enabled else "Hover: OFF"
+        hover_label = "Tooltips: ON" if Tooltip.enabled else "Tooltips: OFF"
         self._hover_toggle_btn = ctk.CTkButton(
             right_frame,
             text=hover_label,
@@ -2080,7 +2080,7 @@ class BuildMixin:
         self._save_ui_preference("hover_text", Tooltip.enabled)
         if hasattr(self, "_hover_toggle_btn"):
             self._hover_toggle_btn.configure(
-                text="Hover: ON" if Tooltip.enabled else "Hover: OFF"
+                text="Tooltips: ON" if Tooltip.enabled else "Tooltips: OFF"
             )
 
 
