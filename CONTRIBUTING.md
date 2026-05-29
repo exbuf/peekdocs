@@ -88,7 +88,7 @@ docs/                 — User Guide, API Reference, FAQ & Troubleshooting
 samples/              — Test corpus and integration test scripts
 ```
 
-## Project Model
+## No Paid Tier
 
 peekdocs is MIT-licensed and free. Every feature is included — no paid tier, no feature gating, no upsell.
 
