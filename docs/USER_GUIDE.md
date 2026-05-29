@@ -1,6 +1,6 @@
 # peekdocs User Guide
 
-This is the complete reference guide for peekdocs. For a quick overview, see the [README](../README.md).
+This is the complete reference guide for peekdocs — a privacy-first local document search and analysis tool for Windows, macOS, and Linux, available as a GUI, CLI, and Python API. For a quick overview, see the [README](../README.md). For installation, see [Installation](../README.md#installation).
 
 ## Table of Contents
 
