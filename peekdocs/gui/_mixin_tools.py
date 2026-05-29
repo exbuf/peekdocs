@@ -3048,11 +3048,24 @@ class ToolsMixin:
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
+            "What Is This Panel?",
             "Search Mode Checkboxes", "Text Fields",
             "Combining Modes", "Settings Buttons", "Troubleshooting",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
         txt.insert("end", "\n")
+
+        h("WHAT IS THIS PANEL?")
+        b("Advanced Search Options is where you configure every search setting")
+        b("that isn't on the main page \u2014 the additional search modes (AND, fuzzy,")
+        b("wildcard, regex, OCR, expression, inverse), text filters (excluded")
+        b("terms, file type list, range filters), output controls (CSV, JSON,")
+        b("PDF, HTML, timestamped filenames, output directory), and session")
+        b("options (Delete on Close, Restrict File Permissions). Every CLI flag")
+        b("peekdocs supports has a matching control on this panel. Selections")
+        b("take effect on the next search; use Save Defaults to make them")
+        b("persistent. Hover any control for a brief tooltip.")
+        blank()
 
         h("SEARCH MODE CHECKBOXES")
         blank()
@@ -3851,6 +3864,7 @@ class ToolsMixin:
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
+            "What Is an Index?",
             "Quick Start",
             "Buttons on This Panel",
             "Use Index Checkbox (Main Screen)",
@@ -3859,6 +3873,16 @@ class ToolsMixin:
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
         txt.insert("end", "\n")
+
+        h("WHAT IS AN INDEX?")
+        b("An index is a pre-built database of every word in every file in")
+        b("the search folder. Instead of re-reading each file on every search,")
+        b("peekdocs looks up matches in the index \u2014 much faster, especially")
+        b("for large folders. The index is optional: leave Use Index unchecked")
+        b("to search files directly each time. The index lives in a hidden")
+        b("file called .peekdocs.db inside the search folder; you can delete")
+        b("it any time without losing your documents.")
+        blank()
 
         h("QUICK START")
         b("Click Build Index(es) and you're done. peekdocs reads")
