@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-peekdocs is a privacy-first local document search and analysis application for Windows, macOS, and Linux, available as a GUI, CLI, and Python API. Search across 100+ file types—including PDFs, Office documents, email archives, ZIP/7z files, source code, and scanned documents via OCR—using keyword, fuzzy, Boolean, proximity, and advanced regex searches. Generate highlighted reports, automate recurring searches, perform batch analysis, and save reusable search profiles. Free and open-source under the MIT License.
+peekdocs is a privacy-first local document search and analysis tool for Windows, macOS, and Linux, available as a GUI, CLI, and Python API. Search across 100+ file types—including PDFs, Office documents, email archives, ZIP/7z files, source code, and scanned documents via OCR—using keyword, fuzzy, Boolean, proximity, and advanced regex searches. Generate highlighted reports, automate recurring searches, perform batch analysis, and save reusable search profiles. Free and open-source under the MIT License.
 
 Built for people who prefer local, transparent, deterministic tools over cloud services, subscriptions, and black-box AI workflows.
 
