@@ -1,6 +1,6 @@
 # Contributing to peekdocs
 
-Thanks for your interest in peekdocs!
+Thanks for your interest in peekdocs — a privacy-first local document search and analysis tool for Windows, macOS, and Linux. There are several ways to help.
 
 ## Bug Reports and Feature Requests
 
