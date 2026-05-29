@@ -56,6 +56,8 @@ After install, verify with `peekdocs --check` and optionally launch the GUI with
 
 ## Project Structure
 
+The peekdocs codebase is organized as follows. The core package lives in `peekdocs/`; the GUI is in `peekdocs/gui/`; tests, docs, and sample files live alongside.
+
 ```
 peekdocs/
   __init__.py        — Package init, re-exports library API
