@@ -18,8 +18,8 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 - **Yellow-highlighted reports** — .docx, .html, and .pdf reports with matches highlighted, plus .csv, .json, and .txt output
 - **OCR** — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **11 search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
-- **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction")
 - **Search Wizard** — 21 pre-built search types, no syntax to memorize
+- **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction")
 - **Search Suites** — group saved searches and run them all with one click
 - **Scriptable** — Python API, JSON output, and exit codes for cron jobs, CI pipelines, and other automation
 - **Read-only** — peekdocs runs locally and never modifies, moves, or deletes your files
