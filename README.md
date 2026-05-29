@@ -60,6 +60,7 @@ for match in results.matches:
 
 ## Contents
 
+- [Feature Highlights](#feature-highlights)
 - [CLI at a Glance](#cli-at-a-glance)
 - [Screenshots](#screenshots)
 - [Who Is It For?](#who-is-it-for)
@@ -77,8 +78,10 @@ for match in results.matches:
 - [FAQ](#frequently-asked-questions)
 - [Glossary](#glossary)
 - [For IT and Security Teams](#for-it-and-security-teams)
+- [Testing](#testing)
 - [Contributing](#contributing)
 - [Author](#author)
+- [Disclaimer](#disclaimer)
 - [License](#license)
 
 ## CLI at a Glance
