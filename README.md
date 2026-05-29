@@ -299,7 +299,7 @@ Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER
 
 **You have files. You need to find something in them.**
 
-peekdocs is a local, privacy-first search and analysis engine for heterogeneous document collections. It combines the power of grep with OCR, regex workflows, reporting, and automation — across 100+ file types that grep can't read.
+peekdocs is built to do exactly that across many kinds of files at once — Word, PDF, Excel, email, scanned documents, archives, and 100+ more — entirely on your own computer. The sections below describe who finds it most useful and why.
 
 ### Home users and individuals
 
