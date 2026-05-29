@@ -15,7 +15,7 @@ Built for people who prefer local, transparent, deterministic tools over cloud s
 peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that traditional text-search tools cannot read — then generates highlighted reports you can save, print, or share.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
-- **Yellow-highlighted reports** — .docx, .html, and .pdf reports with matches highlighted, plus .csv, .json, and .txt output
+- **Yellow-highlighted reports with surrounding context** — .docx, .html, and .pdf reports with matches highlighted alongside their surrounding paragraphs or lines, plus .csv, .json, and .txt output
 - **OCR** — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **11 search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
 - **Search Wizard** — 21 pre-built search types, no syntax to memorize
