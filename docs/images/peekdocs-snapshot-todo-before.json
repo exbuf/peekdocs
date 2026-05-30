@@ -23,7 +23,7 @@
       "sha256": "a976ae2cfce95e1c16c2b62b66eb97dba18e0508586001a1c241da4834edbfd6"
     },
     {
-      "filename": "staff_training_hipaa.txt",
+      "filename": "staff_training_policy.txt",
       "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
       "matches": 3,
       "sha256": "49f53313389986cc636b5b8bfa0c805d4f2992593e449e1106e3a9345cbcce1a"
@@ -361,19 +361,19 @@
       "matched_text": "# TODO: Move credentials to environment variables or secrets manager"
     },
     {
-      "filename": "staff_training_hipaa.txt",
+      "filename": "staff_training_policy.txt",
       "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
       "line_number": 67,
       "matched_text": "[TODO: Insert 10-question multiple choice quiz]"
     },
     {
-      "filename": "staff_training_hipaa.txt",
+      "filename": "staff_training_policy.txt",
       "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
       "line_number": 68,
       "matched_text": "[TODO: Define passing score - recommend 80%]"
     },
     {
-      "filename": "staff_training_hipaa.txt",
+      "filename": "staff_training_policy.txt",
       "folder": "/Users/bob/Documents/SearchTheseDocuments/healthcare",
       "line_number": 69,
       "matched_text": "[TODO: Add electronic signature capture for completion attestation]"
