@@ -240,7 +240,7 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 
 ![Search Suites setup](docs/images/screenshot-searchsuite-setup.png)
 
-**(b) Results on the main page.** 235 total matches across 176 files in 7.0 seconds. The Section summary at the top of the combined report lists every search's match count up front — no scrolling through 67 TODO matches to discover there were 7 `console.log` hits at the bottom.
+**(b) Results on the main page.** 237 total matches across 177 files in 6.9 seconds. The Section summary at the top of the combined report lists every search's match count up front — no scrolling through 69 TODO matches to discover there were 7 `console.log` hits at the bottom.
 
 ![Suite results in the main-page preview](docs/images/screenshot-searchsuite-result-mainpage.png)
 
