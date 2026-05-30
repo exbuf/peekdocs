@@ -367,12 +367,14 @@ class BuildMixin:
             if hasattr(self, "search_entry"):
                 self.search_entry.configure(placeholder_text="Enter search terms...")
             _sync_and_or_colors()
+            self._save_ui_preference("match_all", True)
 
         def _on_or_click():
             self.and_mode_var.set("off")
             if hasattr(self, "search_entry"):
                 self.search_entry.configure(placeholder_text="Enter search terms...")
             _sync_and_or_colors()
+            self._save_ui_preference("match_all", False)
 
         self._and_btn = ctk.CTkButton(
             options_group, text="AND", width=40,
@@ -405,6 +407,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
+            command=lambda: self._save_ui_preference("recursive", self.recursive_var.get() == "on"),
         )
         self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
         Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting")
@@ -415,6 +418,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
+            command=lambda: self._save_ui_preference("whole_word", self.whole_word_var.get() == "on"),
         )
         self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
         Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options")
@@ -454,6 +458,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
             text_color_disabled=("black", "black"),
+            command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
         Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
@@ -692,6 +697,7 @@ class BuildMixin:
         cb_rec = ctk.CTkCheckBox(
             cb_frame, text="Recursive", variable=self.recursive_var,
             onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("recursive", self.recursive_var.get() == "on"),
         )
         cb_rec.grid(row=0, column=1, padx=(0, 15), pady=(0, 5), sticky="w")
         cb_fuz = ctk.CTkCheckBox(
@@ -724,6 +730,7 @@ class BuildMixin:
         cb_whole_word = ctk.CTkCheckBox(
             cb_frame, text="Whole Word", variable=self.whole_word_var,
             onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("whole_word", self.whole_word_var.get() == "on"),
         )
         cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
         Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with the Whole Word checkbox on the search row")
@@ -2137,6 +2144,7 @@ class BuildMixin:
             self.search_entry.configure(placeholder_text="Enter search terms...")
         if hasattr(self, "_sync_and_or_colors"):
             self._sync_and_or_colors()
+        self._save_ui_preference("match_all", self.and_mode_var.get() == "on")
 
 
 
