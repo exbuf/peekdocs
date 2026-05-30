@@ -41,7 +41,10 @@ pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolate
 # — or —
 pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 
-# Reinstall or upgrade: re-run with --force (pipx) or --upgrade (pip)
+# Reinstall or upgrade (same commands, with --force / --upgrade added)
+pipx install --force git+https://github.com/exbuf/peekdocs.git
+# — or —
+pip install --upgrade git+https://github.com/exbuf/peekdocs.git
 
 # Search from the terminal
 peekdocs "budget" ~/Documents
