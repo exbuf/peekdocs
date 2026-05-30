@@ -12,13 +12,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.4] — 2026-05-30
+
+Polish release focused on first-run experience and onboarding clarity:
+new System Check tool, a conditional CLI banner notice that explains
+the first-index-build delay, an expanded sample corpus, persistence
+fixes for the main-screen search-option toggles, and a sweeping
+documentation pass across README, USER_GUIDE, TROUBLESHOOTING,
+CONTRIBUTING, and API_REFERENCE.
+
 ### Added
 
 - **Tools → System Check** — GUI equivalent of `peekdocs --check`. Opens a color-coded popup showing Python version, required and optional dependency status, Tesseract availability, SQLite version, and free disk space. Includes a Copy to Clipboard button for pasting the diagnostic into GitHub issues. Both the CLI and GUI now share a single `run_system_check()` function under the hood, so output stays consistent.
 
+- **Conditional first-run index banner notice (CLI).** When running a search in a folder that doesn't yet have a `.peekdocs.db` index, the banner prints a one-time note: "no search index for this folder yet — the first search builds one (may take longer); subsequent searches are much faster." The check is folder-aware (parses `-d`/`--directory` from argv, defaulting to cwd) and respects the `-qq` / `-q` / `--stdout` quiet contracts so it never leaks into piped output. Eliminates the "is it stuck?" reaction when an initial scan of a large corpus takes 30–60 seconds while subsequent searches finish in under a second.
+
+- **`engineering_test` sample corpus** — 35 source-code and engineering file types (`sample.asm`, `sample.cpp`, `sample.f90`, `sample.dxf`, `sample.sv`, `sample.vhdl`, etc.) added under `samples/engineering_test/`. Pairs with the existing `test-files/` corpus for integration testing and gives users a concrete starting point for searching their own engineering source trees.
+
 ### Changed
 
 - **Renamed GUI button "Delete Everything Now" → "Delete Now".** The previous name implied it deleted everything peekdocs-related (saved searches, settings, bookmarks, documents); in fact it only deletes recent result files and the search index, plus clears UI state. The new name pairs naturally with the adjacent **Delete on Close** checkbox and doesn't overpromise. Tooltip and confirmation dialog still explain the exact scope.
+
+- **Renamed GUI bottom-row button "Hover" → "Tooltips"** — clearer label for the toggle that enables or disables tooltip popups across the app.
+
+- **Tools menu jargon scrub** — three Tools menu entries rephrased for home users so they don't read like internal dev tooling.
+
+- **CI workflow actions bumped to current majors** — `actions/checkout@v4 → v6` and `actions/setup-python@v5 → v6`. Clears the Node 20 deprecation warning ahead of the June 2026 cutoff when GitHub forces all actions to Node 24 by default.
+
+### Fixed
+
+- **Main-screen search-option toggles weren't persisting across launches.** Whole Word, Recursive, AND/OR mode, and Use Index all updated their in-memory StringVars when clicked but never wrote to `~/.peekdocsrc` — the settings file was only written when the user explicitly invoked "Save Settings as Default." Each toggle now writes its single key via the existing `_save_ui_preference()` primitive (narrow blast radius, no transient session state dragged along). Use Index continues to auto-check when the folder has a `.peekdocs.db` — that's intentional smart-default behavior and was preserved across this fix.
+
+- **Step 3 label alignment on the main page.** The Step 3 cell's content is the 44px-tall Run button, much taller than the Step 1 / Step 2 rows. The label was using `sticky="w"`, which vertically centers in the cell — visually dropping it below the other Step labels. Switched to `sticky="nw"` with a small top pad so it tracks the top of the cell instead.
+
+- **Diff-snapshot demo JSON files contained a sensitive-sounding filename string.** `staff_training_hipaa.txt` was visible inside the downloadable `peekdocs-snapshot-todo-before.json` and `peekdocs-snapshot-todo-after.json` demos. Renamed to `staff_training_policy.txt` to match the corresponding test-corpus rename. Snapshots still parse cleanly and the diff demo still works.
+
+### Docs
+
+- **README** — major onboarding pass: opening lines (positioning sentence, format list, plainer naming for GUI/CLI), Quick Start gap-close, Feature Highlights reordering, "with surrounding context" and "Scriptable" bullets surfaced, three TOC entries added (Feature Highlights, Testing, Disclaimer), Disclaimer paragraph tightened into a single cohesive sentence, "Who Is It For" connector softened, four unbolded bullets fixed, Performance section gained a "First-run timing and the banner notice" subsection with a conditional-behavior table, suite-result and TODO screenshots refreshed with current numbers and matching captions.
+
+- **USER_GUIDE** — TOC expanded from ~45 to ~104 lines with comprehensive subsection coverage; one-line intros added to Output and Project Structure sections; 11 glossary entries added plus a "CI pipeline" entry; three range-query bullets bolded; Search Suites help points at the CLI docs; opening line includes a brief category statement and install pointer.
+
+- **TROUBLESHOOTING** — opening surfaces a new "Where to Start" navigation section; FAQ entry added: "Why is my first search slow but later searches are fast?" covering `--no-index` and `2>/dev/null` guidance; 10 glossary entries added plus 4 covering TROUBLESHOOTING-specific jargon.
+
+- **CONTRIBUTING** — 8 onboarding gaps closed; opening gains category statement and section preview; "Project Model" section renamed to "No Paid Tier" for clarity; Project Structure section gets an intro line.
+
+- **API_REFERENCE** — opening gains category statement; one-line intros added to Basic Usage and With Options sections; sensitive-data reference replaced with neutral language; 4 onboarding gaps closed.
+
+- **Getting Started tab** — added a Tip about tooltips and the `?` help buttons; the Quick Start GUI section now mentions the Getting Started tab so users know it's there.
+
+- **Help windows** — "What is this?" intros added to Advanced Search Options and Indexes help popups.
+
+- **CLI** — `--clear-all` output gained a trailing blank line for readability; `-h` help text documents cleanup scope explicitly; `--check` Prerequisites list adds `libpff-python` for parity with Tesseract and `unrar`.
 
 ## [1.0.3] — 2026-05-26
 
