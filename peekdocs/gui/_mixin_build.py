@@ -313,7 +313,7 @@ class BuildMixin:
         import tkinter as _tk_step3
         _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
-        _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(0, 8), sticky="w")
+        _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(6, 8), sticky="nw")
         Tooltip(_step_lbl_3, "Run Standard Search — click to search all files in the folder")
 
         # Run-buttons row is a vertical stack: top sub-row holds the three
