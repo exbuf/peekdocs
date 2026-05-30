@@ -41,6 +41,8 @@ pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolate
 # — or —
 pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 
+# Reinstall or upgrade: re-run with --force (pipx) or --upgrade (pip)
+
 # Search from the terminal
 peekdocs "budget" ~/Documents
 # Found 47 match(es) in 12 file(s). Files searched: 238 (142.50 MB).
