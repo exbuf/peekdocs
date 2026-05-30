@@ -844,6 +844,34 @@ For most users, direct search is fast enough — just click Run Search. An index
 
 To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --index`.
 
+### First-run timing and the banner notice
+
+The first time peekdocs searches a folder, it builds the search index by reading every file once. This can take from a few seconds (small folders) to a few minutes (thousands of files, large PDFs, or scanned documents). Every search after that uses the index and runs in milliseconds.
+
+To make this expectation clear up front, peekdocs prints a short notice in the CLI banner when the search folder has no index yet:
+
+```
+Note: no search index for this folder yet — the first search builds
+  one (may take longer); subsequent searches are much faster.
+  Use --no-index to skip indexing entirely.
+```
+
+The notice is shown only when it's relevant — peekdocs respects every existing CLI contract:
+
+| Scenario | Notice shown? |
+|---|:---:|
+| Cold folder (no `.peekdocs.db`) — interactive search | ✓ shown |
+| Warm folder (index exists) | — not shown |
+| `--no-index` flag passed | — not shown |
+| Non-search command (`--check`, `--runs`, `--diff`, `--list-files`, `--clear*`, `--index*`, `--config`) | — not shown |
+| Quiet mode (`-q` or `-qq`) — banner suppressed entirely | — not shown |
+| `--stdout` JSON output mode — JSON pipeline stays clean | — not shown |
+| `--runs --json` / `--diff --json` — machine-parsed output stays clean | — not shown |
+
+Folder detection is `-d`/`--directory`-aware, so running `peekdocs -d /some/other/folder TODO` checks that folder, not the current directory.
+
+If you'd rather avoid indexing entirely, add `--no-index` to your CLI command or uncheck **Use Index** in the GUI. Searches will then read files directly each time — fine for one-off searches, slower for repeated searches in the same folder. See the [Why is my first search slow but later searches are fast?](docs/TROUBLESHOOTING.md) FAQ entry for additional notes including the `2>/dev/null` idiom for absolutely silent automation.
+
 **Network folders:** If your files are on a network drive, searches will be slower because every file must be read over the network. Building an index is strongly recommended — the first build is slow, but all subsequent searches query the local index instead.
 
 **Why Python?** Python was chosen because it has mature, well-established libraries for every file format peekdocs supports — PyMuPDF for PDFs, python-docx for Word, openpyxl for Excel, python-pptx for PowerPoint, and dozens more. In C++ or Rust, equivalent libraries either don't exist or would require years of integration work. Python also runs on Windows, macOS, and Linux without recompilation, installs with a single `pip` command (no compiling from source), and produces readable open-source code that anyone can inspect or extend. The Python API means any Python programmer can call peekdocs directly from their own scripts. As for speed: the performance-critical work — PDF decoding, ZIP decompression, regex matching — is handled by C-backed libraries under the hood. Python orchestrates; C does the heavy lifting. Multiprocessing (separate OS processes, not threads) means Python's GIL (Global Interpreter Lock — a concurrency limitation) is not a factor.
