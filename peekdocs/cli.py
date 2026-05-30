@@ -872,6 +872,25 @@ def _main_inner(argv=None):
         # Normal search: show short banner before search runs
         print(f'\npeekdocs v{VERSION}')
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
+        # Conditional first-run index notice: only when the search folder
+        # has no .peekdocs.db yet, on commands that will actually search.
+        _non_search_commands = {
+            "--check", "--list-files", "--clear", "--clear-all",
+            "--runs", "--diff", "--index", "--index-status",
+            "--index-refresh", "--index-clear", "--config",
+        }
+        _is_search_command = not (args and args[0] in _non_search_commands)
+        if _is_search_command and "--no-index" not in args:
+            _search_folder = os.getcwd()
+            for _i, _arg in enumerate(args):
+                if _arg in ("-d", "--directory") and _i + 1 < len(args):
+                    if os.path.isdir(args[_i + 1]):
+                        _search_folder = args[_i + 1]
+                    break
+            if not os.path.exists(os.path.join(_search_folder, ".peekdocs.db")):
+                print('Note: no search index for this folder yet — the first search builds')
+                print('  one (may take longer); subsequent searches are much faster.')
+                print('  Use --no-index to skip indexing entirely.')
         print('-------------------------------------------------------------------------')
 
     if args and args[0] == "--check":
