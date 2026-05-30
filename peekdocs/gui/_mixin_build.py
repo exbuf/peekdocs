@@ -65,12 +65,24 @@ class BuildMixin:
         _step(3, "Click Run Standard Search", "The blue options bar just above (AND/OR, Recursive, Whole Word, Use Index) applies to this blue Run Standard Search button — Run Search Suites (green) and Run Regex Search (orange) have their own settings. peekdocs scans every supported file and shows results with matches highlighted in yellow.")
         _step(4, "View your results", "Scan matches in the Results Preview pane, or click DOCX / TXT next to View Report for a highlighted report. No Microsoft Word? The DOCX opens in any word processor — LibreOffice (free) is recommended. Prefer your browser? Enable HTML in Advanced Search Options and click the HTML button. All reports stay on your computer — peekdocs avoids opening them in Google Docs, Apple Pages, or any cloud-based application that may upload your data. Check Delete on Close to automatically remove result files when you close the app.")
 
-        # Tip about tooltips — safety-net hint so users know how to discover button behavior
+        # Tip about tooltips — safety-net hint so users know how to discover button behavior.
+        # Body uses tk.Text (not tk.Label) so the "?" can be colored blue inline to match
+        # the actual help-button color — tk.Label is single-color-only.
         tip_frame = tk.Frame(inner)
         tip_frame.pack(fill="x", padx=30, pady=(15, 0))
         tk.Label(tip_frame, text="\U0001f4a1  Tip:", font=("TkDefaultFont", 13, "bold"), fg="#E65100").pack(side="left", anchor="n", padx=(0, 8))
-        tk.Label(tip_frame, text="Hover over any button, checkbox, or field on the main page or any popup to see a tooltip explaining what it does. Most screens also have a ❓ (question-mark) button that opens a detailed help page. If tooltips feel noisy, use the Tooltips: ON/OFF button at the bottom-right to switch them off; turn them back on anytime.",
-                 font=("TkDefaultFont", 12), fg="gray", anchor="w", justify="left", wraplength=780).pack(side="left", fill="x")
+        tip_body = tk.Text(
+            tip_frame, font=("TkDefaultFont", 12), wrap="word",
+            borderwidth=0, highlightthickness=0, height=5, width=80,
+            cursor="arrow", bg=tip_frame.cget("bg"),
+        )
+        tip_body.tag_configure("gray", foreground="gray")
+        tip_body.tag_configure("blue", foreground="#1565C0", font=("TkDefaultFont", 12, "bold"))
+        tip_body.insert("end", "Hover over any button, checkbox, or field on the main page or any popup to see a tooltip explaining what it does. Most screens also have a ", "gray")
+        tip_body.insert("end", "?", "blue")
+        tip_body.insert("end", " button that opens a detailed help page. If tooltips feel noisy, use the Tooltips: ON/OFF button at the bottom-right to switch them off; turn them back on anytime.", "gray")
+        tip_body.configure(state="disabled")
+        tip_body.pack(side="left", fill="both", expand=True)
 
         tk.Label(inner, text="", font=("TkDefaultFont", 6)).pack()  # spacer
 
