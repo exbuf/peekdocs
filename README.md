@@ -51,6 +51,11 @@ pipx install --force git+https://github.com/exbuf/peekdocs.git
 # — or —
 pip install --upgrade git+https://github.com/exbuf/peekdocs.git
 
+# Uninstall (your settings in ~/.peekdocsrc and folder indexes are preserved)
+pipx uninstall peekdocs
+# — or —
+pip uninstall peekdocs
+
 # Search from the terminal
 peekdocs "budget" ~/Documents
 # Found 47 match(es) in 12 file(s). Files searched: 238 (142.50 MB).
