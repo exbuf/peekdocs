@@ -190,11 +190,11 @@ Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
 
 One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Python API, and the auto-generated Word report.
 
-**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 67 matches in 53 files (out of 452 files / 807 MB scanned) in 0.53 seconds. Every match is highlighted in yellow with surrounding context.
+**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 69 matches in 54 files (out of 453 files / 808 MB scanned) in 0.54 seconds. Every match is highlighted in yellow with surrounding context.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
-**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 67 matches in 53 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame.
+**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 69 matches in 54 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame.
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
