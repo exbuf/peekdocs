@@ -62,7 +62,7 @@ class BuildMixin:
 
         _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
         _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
-        _step(3, "Click Run Standard Search", "peekdocs scans every supported file and shows results with matches highlighted in yellow.")
+        _step(3, "Click Run Standard Search", "The blue options bar just above (AND/OR, Recursive, Whole Word, Use Index) applies to this blue Run Standard Search button — Run Search Suites (green) and Run Regex Search (orange) have their own settings. peekdocs scans every supported file and shows results with matches highlighted in yellow.")
         _step(4, "View your results", "Scan matches in the Results Preview pane, or click DOCX / TXT next to View Report for a highlighted report. No Microsoft Word? The DOCX opens in any word processor — LibreOffice (free) is recommended. Prefer your browser? Enable HTML in Advanced Search Options and click the HTML button. All reports stay on your computer — peekdocs avoids opening them in Google Docs, Apple Pages, or any cloud-based application that may upload your data. Check Delete on Close to automatically remove result files when you close the app.")
 
         # Tip about tooltips — safety-net hint so users know how to discover button behavior
@@ -160,6 +160,11 @@ class BuildMixin:
         e("budget revenue")
         blank()
         st("Step 3: Click Run Standard Search")
+        b("The blue options bar just above (AND/OR, Recursive,")
+        b("Whole Word, Use Index) applies to this blue Run Standard")
+        b("Search button — Run Search Suites (green) and Run Regex")
+        b("Search (orange) have their own settings.")
+        blank()
         b("peekdocs scans every supported file in the folder and")
         b("shows a summary when finished. Your results appear in")
         b("a preview below, and are saved to two report files:")
