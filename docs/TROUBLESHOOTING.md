@@ -19,7 +19,7 @@ Common questions and solutions for peekdocs issues. If you're stuck, start with 
 Use Ctrl-F / Cmd-F to land on the relevant entry — exact entry titles to search for are shown in **bold**:
 
 - **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, or **"ModuleNotFoundError"**.
-- **GUI doesn't launch or doesn't behave correctly** — Linux: **"No module named '_tkinter'"**, **"Tools menu requires holding"**, **"Browse button requires double-click"**. Windows/macOS: **"DOCX report won't open"**, **"File picker"**.
+- **GUI doesn't launch or doesn't behave correctly** — Linux / macOS Homebrew Python: **"No module named '_tkinter'"**. Linux only: **"Tools menu requires holding"**, **"Browse button requires double-click"**. Windows/macOS: **"DOCX report won't open"**, **"File picker"**.
 - **Search returns nothing or fewer matches than expected** — **"isn't finding matches I know are there"**, **"Search misses files I recently added"**.
 - **OCR not working** — **"OCR requires the pytesseract"**, **"OCR is enabled but"**.
 - **Specific file format errors** — **"PST support requires"**, or scan for **`.rar`** / **`libpff`** entries.
@@ -255,11 +255,11 @@ Your operating system may be blocking peekdocs (or your terminal) from accessing
 
 ---
 
-**"No module named '_tkinter'" or "ModuleNotFoundError: No module named 'tkinter'" (Linux)**
+**"No module named '_tkinter'" or "ModuleNotFoundError: No module named 'tkinter'" (Linux / macOS Homebrew Python)**
 
-The CLI (`peekdocs`) works but the GUI (`peekdocs-gui`) fails to launch. This happens because `python3-tk` is not included in the base Python installation on Linux — it must be installed separately as a system package.
+The CLI (`peekdocs`) works but the GUI (`peekdocs-gui`) fails to launch. This happens because the Tkinter C extension is not bundled with the base Python install — it must be added separately as a system or Homebrew package.
 
-**Fix:**
+**Fix on Linux:**
 
 ```bash
 sudo apt install python3-tk
@@ -267,7 +267,15 @@ sudo apt install python3-tk
 
 On Fedora/RHEL: `sudo dnf install python3-tkinter`. On Arch: `sudo pacman -S tk`.
 
-After installing, `peekdocs-gui` will launch normally. This is a one-time setup. Note: `python3-tk` is a system package — it cannot be installed via `pip`.
+**Fix on macOS (Homebrew Python only):**
+
+```bash
+brew install python-tk@3.14   # match the version you installed via brew install python@<version>
+```
+
+If you installed Python from [python.org](https://www.python.org/downloads/) instead, Tkinter is already included — there's nothing extra to install.
+
+After installing, `peekdocs-gui` will launch normally. This is a one-time setup. Note: these are system / Homebrew packages — they cannot be installed via `pip`.
 
 ---
 
@@ -707,15 +715,17 @@ Running `peekdocs-gui` on a Linux server or SSH session produces `TclError: no d
 
 ---
 
-**Missing Tkinter on Linux**
+**Missing Tkinter on Linux or macOS Homebrew Python**
 
 `peekdocs-gui` fails with `ModuleNotFoundError: No module named '_tkinter'` even though customtkinter is installed.
 
-Tkinter's C binding is a system-level dependency not included with pip:
+Tkinter's C binding is a system / Homebrew dependency not included with pip:
 
 - Ubuntu/Debian: `sudo apt install python3-tk`
 - Fedora: `sudo dnf install python3-tkinter`
 - Arch: `sudo pacman -S tk`
+- macOS (Homebrew Python): `brew install python-tk@3.14` (match the version of your Homebrew `python@<version>`)
+- macOS (python.org installer): Tkinter is already included — nothing to do
 - If using pyenv: install `tk-dev` first, then rebuild Python: `sudo apt install tk-dev && pyenv install 3.12`
 
 ---

@@ -41,6 +41,11 @@ pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolate
 # — or —
 pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 
+# GUI prerequisite (only if you'll use peekdocs-gui):
+# macOS Homebrew Python: brew install python-tk@3.14   # match your python@<version>
+# Linux:                 sudo apt install python3-tk
+# Windows / python.org Mac installer: already included — nothing to do
+
 # Reinstall or upgrade (same commands, with --force / --upgrade added)
 pipx install --force git+https://github.com/exbuf/peekdocs.git
 # — or —
