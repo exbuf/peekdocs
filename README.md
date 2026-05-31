@@ -12,7 +12,7 @@ Built for people who prefer local, transparent, deterministic tools over cloud s
 
 ## Feature Highlights
 
-peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats — then generates highlighted reports you can save, print, or share. File-analysis tools (duplicates, inventories, change tracking) come built in.
+peekdocs is a workbench for document collections. It searches PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats; characterizes a folder via built-in analysis tools (duplicates, inventories, age distribution, change tracking); produces highlighted reports you can save, print, or share; and exposes the same engine through GUI, CLI, and Python API.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
@@ -23,7 +23,8 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
 - **File analysis built in** — Collection Summary, Duplicate Finder, Empty Files, File Age Distribution, File Inventory, Large Files, Protected Files, Recent Changes, and Unsearchable Files. Plus Bookmarks and Search History for recurring workflows.
-- **Scriptable** — Python API, JSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, and automation
+- **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, report formats, and exit codes are byte-identical regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
+- **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce byte-identical outputs every time — the search you build today still works tomorrow.
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
 &nbsp;
