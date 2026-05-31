@@ -759,7 +759,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 Every search tool — `grep`, OS file search, cloud AI assistants, enterprise search software — matches text at its core. The differences are in what each one can read, how it presents results, what stays private, and what you can do with the output.
 
-If all you need is to find a word in a plain text file, any search tool works. If you want to *see inside your own files* — across 100+ formats, with context, in a report you can share, without uploading anything — that's what peekdocs was built for.
+If all you need is to find a word in a plain text file, many search tools work well. If you want to *see inside your own files* — across 100+ file formats, with context, in a report you can share, without uploading anything — that's what peekdocs was built for.
 
 **Compared with built-in OS search (Windows Search, macOS Spotlight, Linux file managers).** OS search is convenient for everyday file discovery. peekdocs focuses on deeper document-search workflows across mixed-format collections — including `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, and scanned PDFs. Results show *where* each match occurs (filename, line number, surrounding context), and you can run them in Boolean, fuzzy, regex, proximity, or range mode, save them by name, group them into suites, and produce highlighted `.docx`, `.pdf`, and `.html` reports you can save or share. The index is yours to build and refresh on demand, and the same searches work across the GUI, CLI, and Python API.
 
