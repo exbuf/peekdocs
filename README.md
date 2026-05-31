@@ -340,7 +340,7 @@ The sections below describe who finds it most useful and why.
 
 peekdocs works just as well on personal documents as it does on professional ones. Most people accumulate years of digital files — scanned forms, insurance documents, school papers, family correspondence, statements, warranties, e-books, downloaded receipts — spread across folders, drives, and cloud backups. peekdocs searches all of it locally with whatever words come to mind: a vendor name, a policy number, a year, a phrase from an old letter. Nothing is uploaded; nothing is sent anywhere; the search runs on your computer and the results stay there.
 
-No technical knowledge required. The GUI handles everything with a folder picker, a search box, and a Run button — no terminal, no flags, no syntax to learn.
+No command-line experience required. The GUI handles everything with a folder picker, a search box, and a Run button — no terminal, no flags, no syntax to learn.
 
 ### Core technical users
 
