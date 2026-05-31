@@ -22,7 +22,8 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 - **Search Wizard** — 21 pre-built search types, no syntax to memorize
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
-- **Scriptable** — Python API, JSON output, meaningful exit codes, and a stable CLI surface for cron jobs, CI pipelines, and other automation
+- **File analysis built in** — Duplicate Finder, Empty Files, Large Files, Recent Changes, Protected Files, File Inventory, plus Bookmarks and Search History for productivity
+- **Scriptable** — Python API, JSON output, meaningful exit codes, Diff Snapshots and Schedule Search for cron jobs and CI pipelines, and a stable CLI surface
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
 &nbsp;
