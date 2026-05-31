@@ -970,6 +970,12 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
                       }
     _EXCLUDE_PREFIXES = RESULT_FILE_PREFIXES + (
         "peekdocs_report_", "peekdocs_accumulated_",
+        # Integration test output written by samples/test-files/
+        # peekdocs_global_test_{unix,windows}.{sh,ps1}. Scoped to search
+        # exclusion only — NOT added to RESULT_FILE_PREFIXES because the
+        # cleanup paths (Delete on Close, Delete Now) shouldn't sweep
+        # test artifacts the developer may want to inspect after a run.
+        "peekdocs_global_test_",
     )
 
     # Filenames that are searchable despite having no standard extension
