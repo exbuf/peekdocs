@@ -529,9 +529,9 @@ The Tools menu also includes: **All Collections** (finds saved searches across f
 
 ## Why peekdocs Instead of grep?
 
-grep is an excellent tool for searching plain text files. However, most real-world document folders contain a mix of PDFs, Word documents, spreadsheets, emails, and other binary formats that grep cannot read. To search those with grep, you would need to install separate converters for each format, write a script to detect file types and pipe each through the right converter, and glue the results together — a fragile pipeline that can be hundreds of lines long.
+grep is an excellent tool for searching plain text files. peekdocs is built for the mixed-format reality of most real-world document folders — PDFs, Word documents, spreadsheets, emails, and 100+ other formats handled in a single command, with extraction and search wired together out of the box. The two are complementary: reach for grep for plain text in source trees; reach for peekdocs for mixed-format document collections.
 
-peekdocs handles all of this in a single command. Here is what each tool can do:
+Here is what each tool can do:
 
 | Capability | grep | peekdocs |
 |---|---|---|
@@ -2988,7 +2988,7 @@ peekdocs/
 | **Flag** | A command-line option that modifies how a search works. Example: `-r` for recursive, `-a` for AND mode. In the GUI, each flag has a corresponding checkbox |
 | **FTS5** | Full-Text Search 5 — a fast search technology built into SQLite that peekdocs uses for its search index |
 | **Fuzzy matching** | Finding approximate matches — catches typos like "budgt" when searching for "budget" |
-| **grep** | A classic Unix command-line tool for searching text in files. Very fast for plain text, but can't read Word, PDF, Excel, or email files |
+| **grep** | A classic Unix command-line tool for searching text in files. Designed for plain text — extremely fast and the go-to tool for searching source code |
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
 | **Hash (SHA-256)** | A fixed-length fingerprint (64 hexadecimal characters) computed from a file's raw bytes — any change to the file produces a completely different hash. peekdocs's `--hash` flag adds a `sha256` field to JSON output (`--stdout` or `-o json`) so a reviewer can verify later that "this is the exact file I found" — file-identity and integrity verification. Same algorithm used by Git, Bitcoin, and most modern security tools |
 | **Headless** | A computer with no display, keyboard, or mouse — typically a server, virtual machine, or container running unattended. peekdocs's CLI runs headlessly without the GUI dependency installed; `peekdocs --check` reports the GUI as missing and still exits 0 because the CLI is fully usable. See [Headless and server deployments](#headless-and-server-deployments) |
