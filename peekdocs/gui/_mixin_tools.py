@@ -3972,15 +3972,12 @@ class ToolsMixin:
             return
 
         win, _dark = self._themed_toplevel()
+        win.withdraw()  # invisible during widget setup; repositioned + shown at end
         self._suite_popup = win
         win.protocol("WM_DELETE_WINDOW", lambda: (setattr(self, "_suite_popup", None), win.destroy()))
         win.title("Search Suites")
         win.resizable(True, True)
         win.geometry("880x640")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
-        win.geometry(f"+{x}+{y}")
 
         _sf = self._scaled_font
 
@@ -4341,6 +4338,16 @@ class ToolsMixin:
 
         _refresh_suite_list()
         self._apply_dark_theme(win)
+
+        # Center on the main window and show. Withdraw + final geometry +
+        # deiconify avoids the visible flicker of the popup briefly opening
+        # on the system primary monitor before jumping to the main window's
+        # monitor in multi-monitor setups.
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 640) // 2
+        win.geometry(f"880x640+{x}+{y}")
+        win.deiconify()
 
     def _run_suite_searches(self, suite_name, search_names, folder, suite_formats=None):
         """Execute all searches in a suite sequentially using subprocess."""
@@ -5812,6 +5819,7 @@ class ToolsMixin:
             return
 
         win, _dark = self._themed_toplevel()
+        win.withdraw()  # invisible during widget setup; repositioned + shown at end
         win.title("Regex Search")
         win.resizable(True, True)
         # NOTE: do NOT call win.transient(self) here. _themed_toplevel already
@@ -6171,6 +6179,17 @@ class ToolsMixin:
         ).pack()
 
         self._apply_dark_theme(win)
+
+        # Center on the main window and show. Withdraw + final geometry +
+        # deiconify ensures the popup opens on the same monitor as the main
+        # page in multi-monitor setups, with no visible jump.
+        self.update_idletasks()
+        w = win.winfo_reqwidth()
+        h = win.winfo_reqheight()
+        x = self.winfo_rootx() + (self.winfo_width() - w) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - h) // 2
+        win.geometry(f"{w}x{h}+{x}+{y}")
+        win.deiconify()
 
 
     def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True):
