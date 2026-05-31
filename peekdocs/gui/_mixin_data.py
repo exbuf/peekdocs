@@ -500,24 +500,27 @@ class DataMixin:
                     terms = terms[:37] + "..."
                 listbox.insert("end", f"{ts}  {matches:>8}  {files:>6}  {elapsed_str:>6}  {terms}")
 
-        btn_frame = tk.Frame(popup)
-        btn_frame.pack(pady=(5, 10))
-
+        # Clear History — anchored to the far left in its own row.
         if history:
+            clear_row = tk.Frame(popup)
+            clear_row.pack(fill="x", padx=10, pady=(5, 0))
             clear_btn = ctk.CTkButton(
-                btn_frame, text="Clear History", width=100,
+                clear_row, text="Clear History", width=100,
                 fg_color="#CC3333", hover_color="#AA2222",
                 command=lambda: self._clear_search_history(popup),
                 font=ctk.CTkFont(size=12),
             )
-            clear_btn.pack(side="left", padx=5)
+            clear_btn.pack(side="left")
 
+        # Close — centered, on its own row below Clear History.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
         ctk.CTkButton(
-            btn_frame, text="Close", width=80,
+            close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
-        ).pack(side="left", padx=5)
+        ).pack()
         self._apply_dark_theme(popup)
 
 

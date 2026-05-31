@@ -1624,7 +1624,9 @@ class BuildMixin:
         if self.index_visible:
             self._close_index_window()
         else:
-            self.index_window.deiconify()
+            # Center on main window before showing so the popup opens on the
+            # same monitor as the main page in multi-monitor setups.
+            self._center_popup_on_main(self.index_window, 580, 310)
             self.index_window.lift()
             if hasattr(self, "index_toggle_btn"):
                 self.index_toggle_btn.configure(text="\u25bc Indexes")

@@ -5449,13 +5449,19 @@ class ToolsMixin:
         # <FocusIn> -> win.lift() — both cause the popup to disappear when
         # dragged across monitors on macOS. See Run Regex Search for fix.
 
+        # Wrap content in a scrollable frame so long content (radio buttons,
+        # entry fields, schedule presets, generated-command preview) doesn't
+        # require an oversize window. Replaces direct packing onto `win`.
+        body = ctk.CTkScrollableFrame(win, fg_color="transparent")
+        body.pack(fill="both", expand=True)
+
         # ── Title & subtitle ──
         tk.Label(
-            win, text="Schedule Search",
+            body, text="Schedule Search",
             font=("TkDefaultFont", 13, "bold"),
         ).pack(anchor="w", padx=15, pady=(10, 0))
         tk.Label(
-            win,
+            body,
             text="Generate a command to run a peekdocs search automatically on a schedule. "
                  "This dialog creates the command for you \u2014 you paste it into your "
                  "system's scheduler. Step-by-step instructions are shown below.",
@@ -5464,12 +5470,12 @@ class ToolsMixin:
 
         # ── What to run ──
         tk.Label(
-            win, text="What to run:",
+            body, text="What to run:",
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", padx=15, pady=(4, 2))
 
         search_type_var = tk.StringVar(value="regex_collection")
-        choice_frame = tk.Frame(win)
+        choice_frame = tk.Frame(body)
         choice_frame.pack(fill="x", padx=15, pady=(0, 4))
         tk.Radiobutton(
             choice_frame, text="Search Suite", variable=search_type_var,
@@ -5484,7 +5490,7 @@ class ToolsMixin:
 
         name_var = tk.StringVar(value="")
         name_dropdown = ctk.CTkOptionMenu(
-            win, variable=name_var, values=["(none found)"],
+            body, variable=name_var, values=["(none found)"],
             width=400, font=ctk.CTkFont(size=11),
             command=lambda _: _regenerate(),
         )
@@ -5492,10 +5498,10 @@ class ToolsMixin:
 
         # ── Folder ──
         tk.Label(
-            win, text="Search folder:",
+            body, text="Search folder:",
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", padx=15, pady=(4, 2))
-        folder_frame = tk.Frame(win)
+        folder_frame = tk.Frame(body)
         folder_frame.pack(fill="x", padx=15, pady=(0, 2))
         folder_var = tk.StringVar(value=self.folder_entry.get().strip() or os.path.expanduser("~"))
         folder_entry = tk.Entry(folder_frame, textvariable=folder_var, font=("TkDefaultFont", 11))
@@ -5815,7 +5821,7 @@ class ToolsMixin:
         _refresh_names()
         self._apply_dark_theme(win)
 
-        self._center_popup_on_main(win, 680, 780)
+        self._center_popup_on_main(win, 680, 650)
 
     # ── Regex Search ─────────────────────────────────────────────────
 
