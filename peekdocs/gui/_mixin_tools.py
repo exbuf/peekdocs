@@ -5814,8 +5814,12 @@ class ToolsMixin:
         win, _dark = self._themed_toplevel()
         win.title("Regex Search")
         win.resizable(True, True)
-        win.transient(self)
-        win.bind("<FocusIn>", lambda e: win.lift())
+        # NOTE: do NOT call win.transient(self) here. _themed_toplevel already
+        # applies transient() on Windows (where it's needed to keep popups
+        # above the main window) and intentionally skips it on macOS, where
+        # transient() ties the popup to the parent's monitor and causes it
+        # to disappear when dragged across displays in a multi-monitor setup.
+        # The Search Suites popup also relies on the helper's default.
 
         tk.Label(
             win,
