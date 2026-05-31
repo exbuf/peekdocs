@@ -530,7 +530,7 @@ The Tools menu also includes: **All Collections** (finds saved searches across f
 
 The dialog composes the right `peekdocs` CLI command for your choices and puts it on your clipboard; you paste it into `crontab -e` (Mac/Linux) or Task Scheduler (Windows) yourself. peekdocs deliberately does not write to your system scheduler. The rationale:
 
-- **No privilege escalation, no system-write.** peekdocs runs as a normal user app. Apps that silently install scheduled tasks read as suspicious to antivirus tools and to security-conscious users; generating a string and putting it on the clipboard is unmistakably benign.
+- **No privilege escalation, no system-write.** peekdocs runs as a normal user app and doesn't take system-write permissions. Generating a command for the clipboard is a transparent, no-modification operation that doesn't trigger antivirus warnings or require any security-sensitive privilege the user hasn't already granted.
 - **No background daemon, no internal task registry.** peekdocs has nothing to track and nothing to clean up on uninstall. The OS's scheduler holds the truth.
 - **Auditable with standard tools.** Users `crontab -l` or open Task Scheduler to see exactly what's running — no hidden peekdocs-managed state to discover later.
 - **Survives peekdocs upgrades and uninstalls.** The scheduled command keeps running until the user removes it from the OS scheduler.
