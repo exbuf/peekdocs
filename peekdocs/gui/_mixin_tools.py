@@ -1823,7 +1823,7 @@ class ToolsMixin:
         lines.append(f"Folder:        {r['folder']}")
         recursive_str = "yes (including subfolders)" if r["recursive"] else "no"
         lines.append(f"Recursive:     {recursive_str}")
-        lines.append(f"Max File Size: {r['max_file_size_mb']} MB (0 = no limit)")
+        lines.append(f"Max File Size: {r['max_file_size_mb']} MB (set in Advanced Search Options; 0 = no limit)")
         lines.append(f"OCR enabled:   {r['use_ocr']}")
         lines.append(f"Scanned at:    {r['scan_time']}")
         lines.append("")
