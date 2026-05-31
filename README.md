@@ -757,38 +757,39 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 ## Why peekdocs?
 
-Every search tool — `grep`, OS file search, cloud AI assistants, expensive enterprise software — matches text at its core. The differences are in what each one can read, how it presents results, what stays private, and what you can do with the output.
+Every search tool — `grep`, OS file search, cloud AI assistants, enterprise search software — matches text at its core. The differences are in what each one can read, how it presents results, what stays private, and what you can do with the output.
 
 If all you need is to find a word in a plain text file, any search tool works. If you want to *see inside your own files* — across 100+ formats, with context, in a report you can share, without uploading anything — that's what peekdocs was built for.
 
-**vs. OS search (Windows Search, macOS Spotlight, Linux file managers).** peekdocs reads 100+ file types — including `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, and scanned PDFs. Results show *where* each match occurs (filename, line number, surrounding context), and you can run them in Boolean, fuzzy, regex, proximity, or range mode, save them by name, and produce highlighted `.docx`, `.pdf`, and `.html` reports you can save or share. The index is yours to build and refresh on demand.
+**Compared with built-in OS search (Windows Search, macOS Spotlight, Linux file managers).** OS search is convenient for everyday file discovery. peekdocs focuses on deeper document-search workflows across mixed-format collections — including `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, and scanned PDFs. Results show *where* each match occurs (filename, line number, surrounding context), and you can run them in Boolean, fuzzy, regex, proximity, or range mode, save them by name, group them into suites, and produce highlighted `.docx`, `.pdf`, and `.html` reports you can save or share. The index is yours to build and refresh on demand, and the same searches work across the GUI, CLI, and Python API.
 
-**vs. cloud AI document tools.** peekdocs runs entirely on your computer — no uploads, no third-party copy of your files, no per-search cost, no upload size cap. For keyword, pattern, or range searches across mixed-format folders, you get useful results without giving anything up. AI tools cover a different category of capability (summarization, question answering, semantic understanding) and are the right reach for those jobs.
+**Compared with cloud AI document tools.** Cloud AI tools excel at summarization, question answering, semantic search, and extracting meaning from large document collections — often the right reach for those tasks. peekdocs serves a different purpose: it runs entirely on your computer — no uploads, no third-party copy of your files, no per-search cost, no upload size cap. For keyword, pattern, date, amount, regex, fuzzy, and proximity searches across mixed-format folders, peekdocs delivers deterministic and repeatable results while keeping your documents local.
 
-**vs. `grep`.** For plain-text search in a terminal, `grep` is excellent — use it. peekdocs is built for mixed-format documents (PDF, Word, Excel, email, OCR), shareable highlighted reports, and users who prefer a GUI or a Python API. Both can live in your toolkit; they're designed for different jobs.
+**Compared with `grep`.** For plain-text search in a terminal, `grep` is excellent — use it. peekdocs is built for mixed-format document collections (PDF, Word, Excel, PowerPoint, email, OCR-able scans), with highlighted reports, saved searches, search suites, regex collections, indexing, a GUI, and a Python API. Both can live in your toolkit; they're designed for different jobs.
 
 | Capability | grep | peekdocs |
 |---|---|---|
 | Plain text files (.txt, .log, .csv) | Yes | Yes |
-| PDF text extraction | Manual (`pdftotext \| grep`) | Built in |
-| Word documents (.docx) | Manual (`unzip -p \| grep`) | Built in |
-| Excel spreadsheets (.xlsx) | Manual (`xlsx2csv \| grep`) | Built in |
-| PowerPoint (.pptx) | No practical method | Built in |
-| Email archives (.eml, .msg) | No practical method | Built in |
-| OCR (scanned PDFs, images) | Manual (`tesseract \| grep`) | Built in (`-O`) |
-| RTF, EPUB, ODT, ODS, ODP | Each needs a different converter | Built in |
+| PDF text extraction | Requires external conversion (`pdftotext`) | Built in |
+| Word documents (.docx) | Requires external conversion | Built in |
+| Excel spreadsheets (.xlsx) | Requires external conversion | Built in |
+| PowerPoint presentations (.pptx) | Requires external conversion | Built in |
+| Email files and archives (.eml, .msg, .mbox, .pst) | Requires external conversion | Built in |
+| OCR (scanned PDFs and images) | Requires external OCR pipeline | Built in (`-O`) |
+| EPUB, RTF, ODT, ODS, ODP, archives | Format-specific tools required | Built in |
 | Source code (46 languages) | Yes | Yes |
-| Highlighted .docx/.pdf/.html reports | No | Yes |
-| CSV and JSON export | Manual scripting | Built in (`-o csv,json`) |
-| Boolean expressions | No | Yes (`-e "A AND (B OR C)"`) |
-| Proximity search | No | Yes (`-p 5`) |
-| Fuzzy / typo-tolerant matching | No | Yes (`-z`) |
-| Range queries (amounts, dates) | No | Yes (`-R amount:1000..5000`) |
+| Highlighted .docx / .pdf / .html reports | No | Yes |
+| CSV and JSON export | Requires scripting | Built in (`-o csv,json`) |
+| Boolean expressions | Requires shell composition | Yes (`-e "A AND (B OR C)"`) |
+| Proximity search | Requires custom scripting | Yes (`-p 5`) |
+| Fuzzy / typo-tolerant matching | Requires specialized tools | Yes (`-z`) |
+| Range queries (amounts, dates) | Requires custom scripting | Yes (`-R amount:1000..5000`) |
 | Saved searches and suites | No | Yes |
-| Regex collections (batch patterns) | Manual scripting | Built in (`--regex-collection`) |
-| Search index with auto-refresh | No (needs separate tool) | Built in (`--index`) |
-| Cross-platform consistency | Varies (GNU vs BSD grep) | Same flags on all three platforms |
+| Regex collections (batch pattern sets) | Requires scripting | Built in (`--regex-collection`) |
+| Search index with on-demand refresh | Requires separate indexing tool | Built in (`--index`) |
+| Consistent behavior across Windows, macOS, and Linux | Varies (GNU vs BSD grep) | Same flags on all three platforms |
 | GUI | No | Yes |
+| Python API | No | Yes |
 
 ## What peekdocs Is Not
 
