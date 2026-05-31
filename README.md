@@ -321,7 +321,20 @@ Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER
 
 **You have files. You need to find something in them.**
 
-peekdocs is built to do exactly that across many kinds of files at once — Word, PDF, Excel, email, scanned documents, archives, and 100+ more — entirely on your own computer. The sections below describe who finds it most useful and why.
+peekdocs is built to do exactly that across many kinds of files at once — Word, PDF, Excel, email, scanned documents, archives, and 100+ more — entirely on your own computer.
+
+**A few examples of what people do with it:**
+
+- **Home user** — Find a tax document from any of the last seven years across mixed folders.
+- **Office worker** — Find all invoices over $10,000 from 2024.
+- **IT consultant** — Search 50,000 client documents for a set of terms.
+- **Sysadmin** — Search 20 GB of log files for a request ID across mixed archives.
+- **Developer** — Run a regex collection against a source tree and generate JSON.
+- **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
+- **Researcher** — Search 3,000 PDFs and export highlighted results.
+- **Small business owner** — Find vendor contracts expiring in the next 90 days.
+
+The sections below describe who finds it most useful and why.
 
 ### Home users and individuals
 
