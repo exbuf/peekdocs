@@ -1516,6 +1516,7 @@ class BuildMixin:
                                  font=("TkDefaultFont", 2),
                                  foreground="#999999" if ctk.get_appearance_mode() == "Dark" else "gray40")
             # Folder analysis (alphabetical)
+            menu.add_command(label="Collection Summary — one-page overview combining all file-analysis insights", command=self._run_collection_summary)
             menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
             menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
             menu.add_command(label="File Age Distribution — histogram of files by modification age", command=self._run_file_age_distribution)

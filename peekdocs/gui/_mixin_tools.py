@@ -1623,6 +1623,381 @@ class ToolsMixin:
         except OSError as exc:
             self._show_error(f"Could not write report: {exc}")
 
+    # ── Collection Summary ───────────────────────────────────
+
+    def _run_collection_summary(self):
+        """Generate a one-page summary combining the lightweight file-analysis
+        insights (overview, searchability, file types, age distribution,
+        large files, recent activity, empty files) in a single pass."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a search folder first.")
+            return
+        recursive = self.recursive_var.get() == "on"
+        mfs_str = self.max_file_size_entry.get().strip() if hasattr(self, "max_file_size_entry") else ""
+        try:
+            max_file_size_mb = int(mfs_str) if mfs_str else 100
+        except ValueError:
+            max_file_size_mb = 100
+        use_ocr = self.ocr_var.get() == "on" if hasattr(self, "ocr_var") else False
+        self.status_label.configure(
+            text="Building Collection Summary...", text_color=("blue", "#66BBFF"))
+
+        import threading
+        t = threading.Thread(
+            target=self._collection_summary_thread,
+            args=(folder, recursive, max_file_size_mb, use_ocr),
+            daemon=True)
+        t.start()
+
+    def _collection_summary_thread(self, folder, recursive, max_file_size_mb, use_ocr):
+        """Worker thread: walk the folder once and aggregate every lightweight
+        metric. Duplicate detection and password-protected detection are
+        deliberately skipped — those need full file reads / hash computation
+        and have dedicated tools."""
+        from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+        from peekdocs.scanner import RESULT_FILE_PREFIXES
+        from collections import Counter, defaultdict
+        import time
+
+        now = time.time()
+
+        searchable_exts = set(SUPPORTED_TYPES)
+        if use_ocr:
+            searchable_exts |= set(OCR_IMAGE_TYPES)
+
+        peekdocs_prefixes = tuple(RESULT_FILE_PREFIXES) + (
+            "peekdocs_report_", "peekdocs_accumulated_", "peekdocs_global_test_",
+        )
+        peekdocs_exact = {
+            ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
+            ".peekdocs_collection.json", "peekdocs_errors.log",
+        }
+        special_searchable = {".env", "dockerfile", ".dockerfile"}
+        OS_META = self._UNSEARCHABLE_OS_METADATA
+        max_bytes = max_file_size_mb * 1024 * 1024 if max_file_size_mb > 0 else None
+
+        total_files = 0
+        total_size = 0
+        subfolders = set()
+        oldest_mtime = None
+        newest_mtime = None
+        oldest_path = None
+        newest_path = None
+        ext_counts = Counter()
+        ext_sizes = Counter()
+        age_buckets = {label: 0 for label, _ in self._AGE_BUCKETS}
+        unsearch_categories = defaultdict(int)
+        large_files = []  # list of (size, relative_path) — kept sorted, capped at 10
+        recent_30d = 0
+        recent_90d = 0
+        empty_count = 0
+
+        try:
+            if recursive:
+                walker = os.walk(folder)
+            else:
+                try:
+                    entries = os.listdir(folder)
+                except PermissionError:
+                    entries = []
+                walker = [(folder, [], entries)]
+
+            for root, dirs, files in walker:
+                if recursive and root != folder:
+                    subfolders.add(root)
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    total_files += 1
+                    lower = fname.lower()
+
+                    try:
+                        fsize = os.path.getsize(filepath)
+                        mtime = os.path.getmtime(filepath)
+                    except (OSError, PermissionError):
+                        unsearch_categories["Read permission denied"] += 1
+                        continue
+
+                    total_size += fsize
+                    if oldest_mtime is None or mtime < oldest_mtime:
+                        oldest_mtime = mtime
+                        oldest_path = filepath
+                    if newest_mtime is None or mtime > newest_mtime:
+                        newest_mtime = mtime
+                        newest_path = filepath
+
+                    age_days = (now - mtime) / 86400
+                    placed = False
+                    for label, max_days in self._AGE_BUCKETS:
+                        if max_days is not None and age_days <= max_days:
+                            age_buckets[label] += 1
+                            placed = True
+                            break
+                    if not placed:
+                        age_buckets[self._AGE_BUCKETS[-1][0]] += 1
+
+                    if age_days <= 30:
+                        recent_30d += 1
+                    if age_days <= 90:
+                        recent_90d += 1
+
+                    ext = os.path.splitext(fname)[1].lower()
+
+                    # Categorize using the same logic as Unsearchable Files.
+                    if (lower in peekdocs_exact or
+                            fname.startswith(peekdocs_prefixes) or
+                            fname.startswith("~$") or
+                            (fname.startswith(".") and lower == ".peekdocsrc")):
+                        unsearch_categories["peekdocs-created"] += 1
+                    elif lower in OS_META or fname.startswith("._"):
+                        unsearch_categories["Hidden / OS metadata"] += 1
+                    elif fname.startswith(".") and lower not in special_searchable:
+                        unsearch_categories["Hidden / OS metadata"] += 1
+                    elif ext not in searchable_exts and lower not in special_searchable:
+                        unsearch_categories["Unsupported file type"] += 1
+                    elif fsize == 0:
+                        unsearch_categories["Empty (0 bytes)"] += 1
+                        empty_count += 1
+                    elif max_bytes is not None and fsize > max_bytes:
+                        unsearch_categories["Oversized"] += 1
+                    else:
+                        # Searchable! Track its extension distribution.
+                        ext_label = ext or "(no extension)"
+                        ext_counts[ext_label] += 1
+                        ext_sizes[ext_label] += fsize
+
+                    # Track top-10 largest files (any file, regardless of category).
+                    if len(large_files) < 10 or fsize > large_files[-1][0]:
+                        large_files.append((fsize, filepath))
+                        large_files.sort(key=lambda x: -x[0])
+                        large_files = large_files[:10]
+        except Exception:
+            pass
+
+        searchable_count = total_files - sum(unsearch_categories.values())
+        results = {
+            "folder": folder,
+            "recursive": recursive,
+            "max_file_size_mb": max_file_size_mb,
+            "use_ocr": use_ocr,
+            "scan_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "total_files": total_files,
+            "total_size": total_size,
+            "subfolders": len(subfolders),
+            "oldest_mtime": oldest_mtime,
+            "newest_mtime": newest_mtime,
+            "oldest_path": oldest_path,
+            "newest_path": newest_path,
+            "searchable_count": searchable_count,
+            "unsearch_categories": dict(unsearch_categories),
+            "ext_top": ext_counts.most_common(10),
+            "ext_sizes": dict(ext_sizes),
+            "age_buckets": age_buckets,
+            "large_files": large_files,
+            "recent_30d": recent_30d,
+            "recent_90d": recent_90d,
+            "empty_count": empty_count,
+        }
+        self.after(0, self._collection_summary_finished, results)
+
+    def _collection_summary_finished(self, results):
+        """Handle Collection Summary completion."""
+        self.status_label.configure(
+            text=(
+                f"Collection Summary: {results['total_files']} file(s) in "
+                f"{self._format_file_size(results['total_size'])}."
+            ),
+            text_color=("blue", "#66BBFF"))
+        self._show_collection_summary_popup(results)
+
+    def _build_collection_summary_text(self, results):
+        """Render the Collection Summary as a single plain-text block.
+        Used both by the popup (for the read-only display) and the
+        Save Report path so what the user sees on screen is byte-
+        identical to what gets saved."""
+        from datetime import datetime
+        fmt = self._format_file_size
+        r = results
+        lines = []
+        lines.append("peekdocs Collection Summary")
+        lines.append(f"Folder:        {r['folder']}")
+        recursive_str = "yes (including subfolders)" if r["recursive"] else "no"
+        lines.append(f"Recursive:     {recursive_str}")
+        lines.append(f"Max File Size: {r['max_file_size_mb']} MB (0 = no limit)")
+        lines.append(f"OCR enabled:   {r['use_ocr']}")
+        lines.append(f"Scanned at:    {r['scan_time']}")
+        lines.append("")
+
+        # ── Overview ──
+        lines.append("OVERVIEW")
+        lines.append(f"  Total files:    {r['total_files']:,}")
+        lines.append(f"  Total size:     {fmt(r['total_size'])}")
+        lines.append(f"  Subfolders:     {r['subfolders']:,}")
+        if r["oldest_mtime"] is not None:
+            old_d = datetime.fromtimestamp(r["oldest_mtime"]).strftime("%Y-%m-%d")
+            rel = os.path.relpath(r["oldest_path"], r["folder"])
+            lines.append(f"  Oldest file:    {old_d}  {rel}")
+        if r["newest_mtime"] is not None:
+            new_d = datetime.fromtimestamp(r["newest_mtime"]).strftime("%Y-%m-%d")
+            rel = os.path.relpath(r["newest_path"], r["folder"])
+            lines.append(f"  Newest file:    {new_d}  {rel}")
+        lines.append("")
+
+        # ── Searchability ──
+        total = r["total_files"]
+        s_pct = (r["searchable_count"] / total * 100) if total else 0
+        u_pct = 100 - s_pct
+        lines.append("SEARCHABILITY")
+        lines.append(f"  Searchable:     {r['searchable_count']:,} ({s_pct:.1f}%)")
+        lines.append(f"  Unsearchable:   {total - r['searchable_count']:,} ({u_pct:.1f}%)")
+        for cat in self._UNSEARCHABLE_CATEGORIES:
+            n = r["unsearch_categories"].get(cat, 0)
+            if n > 0:
+                lines.append(f"    {cat:<24} {n:,}")
+        lines.append("")
+
+        # ── File Types (top 10 by count, searchable only) ──
+        if r["ext_top"]:
+            lines.append("TOP FILE TYPES (searchable, by count)")
+            label_width = max(len(ext) for ext, _ in r["ext_top"])
+            for ext, count in r["ext_top"]:
+                size = fmt(r["ext_sizes"].get(ext, 0))
+                lines.append(f"  {ext:<{label_width}}  {count:>6}  {size:>10}")
+            lines.append("")
+
+        # ── Age Distribution histogram ──
+        max_count = max(r["age_buckets"].values(), default=0)
+        bar_width = 30
+        age_label_width = max(len(lbl) for lbl, _ in self._AGE_BUCKETS)
+        lines.append("AGE DISTRIBUTION (by modification date)")
+        for label, _max_days in self._AGE_BUCKETS:
+            count = r["age_buckets"][label]
+            pct = (count / total * 100) if total else 0
+            fill = int(round(bar_width * count / max_count)) if max_count else 0
+            bar = "█" * fill + " " * (bar_width - fill)
+            lines.append(
+                f"  {label:<{age_label_width}}  {bar} {count:>6} ({pct:>4.1f}%)")
+        lines.append("")
+
+        # ── Recent Activity ──
+        lines.append("RECENT ACTIVITY")
+        lines.append(f"  Modified in last 30 days:  {r['recent_30d']:,}")
+        lines.append(f"  Modified in last 90 days:  {r['recent_90d']:,}")
+        lines.append("")
+
+        # ── Large Files (top 10) ──
+        if r["large_files"]:
+            lines.append("LARGEST FILES (top 10)")
+            for fsize, filepath in r["large_files"]:
+                rel = os.path.relpath(filepath, r["folder"])
+                lines.append(f"  {fmt(fsize):>10}  {rel}")
+            lines.append("")
+
+        # ── Empty Files ──
+        if r["empty_count"]:
+            lines.append(f"EMPTY FILES: {r['empty_count']:,}")
+            lines.append("")
+
+        # ── Note about heavier scans not included ──
+        lines.append(
+            "Note: duplicate detection and password-protected detection are\n"
+            "  not included in this fast-path summary — they require full\n"
+            "  file reads / hash computation. Use the dedicated Tools menu\n"
+            "  entries (Duplicate Finder, Protected Files) for those.")
+        return "\n".join(lines)
+
+    def _show_collection_summary_popup(self, results):
+        """Display the Collection Summary in a scrollable read-only Text widget."""
+        import tkinter as tk
+
+        popup, _dark = self._themed_toplevel()
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
+        popup.title("Collection Summary")
+        popup.resizable(True, True)
+
+        tk.Label(
+            popup,
+            text=f"Collection Summary — {results['total_files']:,} file(s)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        recursive_str = " (including subfolders)" if results["recursive"] else ""
+        tk.Label(
+            popup,
+            text=f"{results['folder']}{recursive_str}",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 2))
+        tk.Label(
+            popup,
+            text="To analyze a different folder, use Browse on the main page to select it, then reopen this tool.",
+            font=("TkDefaultFont", 10, "italic"), fg="gray",
+        ).pack(pady=(0, 5))
+
+        text_frame = tk.Frame(popup)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+        vbar = tk.Scrollbar(text_frame, orient="vertical")
+        vbar.pack(side="right", fill="y")
+        txt = tk.Text(
+            text_frame, font=("Courier", 11), wrap="none",
+            yscrollcommand=vbar.set,
+            bg="#2b2b2b" if _dark else "white",
+            fg="white" if _dark else "black",
+            borderwidth=1, relief="sunken", highlightthickness=0,
+        )
+        vbar.config(command=txt.yview)
+        txt.pack(side="left", fill="both", expand=True)
+        txt.insert("1.0", self._build_collection_summary_text(results))
+        txt.configure(state="disabled")
+
+        # Save Report — anchored to the far left in its own row.
+        save_row = tk.Frame(popup)
+        save_row.pack(fill="x", padx=10, pady=(5, 0))
+        save_btn = ctk.CTkButton(
+            save_row, text="Save Report", width=100,
+            command=lambda: self._save_collection_summary_report(results),
+            font=ctk.CTkFont(size=12),
+        )
+        save_btn.pack(side="left")
+        Tooltip(save_btn, "Save this summary as a plain text file")
+
+        # Close — centered, on its own row below Save Report.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
+        ctk.CTkButton(
+            close_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack()
+        self._apply_dark_theme(popup)
+        self._center_popup_on_main(popup, 920, 640)
+
+    def _save_collection_summary_report(self, results):
+        """Save the Collection Summary as a plain-text report."""
+        from tkinter import filedialog
+
+        default = os.path.join(
+            results["folder"],
+            "peekdocs_collection_summary.txt",
+        )
+        path = filedialog.asksaveasfilename(
+            title="Save Collection Summary Report",
+            initialfile=os.path.basename(default),
+            initialdir=os.path.dirname(default),
+            defaultextension=".txt",
+            filetypes=[("Text", "*.txt"), ("All Files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(self._build_collection_summary_text(results))
+            self.status_label.configure(
+                text=f"Report saved: {os.path.basename(path)}",
+                text_color="green",
+            )
+        except OSError as exc:
+            self._show_error(f"Could not write report: {exc}")
+
     # ── Unsearchable Files ───────────────────────────────────
 
     # Hidden / OS metadata names — case-insensitive match. Mirrors
