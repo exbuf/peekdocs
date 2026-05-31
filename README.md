@@ -22,7 +22,7 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 - **Search Wizard** — 35 pre-built search types, no syntax to memorize
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
-- **File analysis built in** — Duplicate Finder, Empty Files, Large Files, Recent Changes, Protected Files, and File Inventory. Plus Bookmarks and Search History for recurring workflows.
+- **File analysis built in** — Duplicate Finder, Empty Files, File Age Distribution, File Inventory, Large Files, Protected Files, and Recent Changes. Plus Bookmarks and Search History for recurring workflows.
 - **Scriptable** — Python API, JSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, and automation
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
@@ -433,7 +433,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly audits, onboarding reviews, or any workflow that involves the same set of searches. Suites are stored per folder, but the CLI finds them by name from anywhere: `peekdocs --suite "My Suite"` auto-locates the folder it was saved in, and `peekdocs --list-suites` shows every suite and where it lives. Available from the GUI (Tools → Search Suites) and CLI.
 - **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in sub-second time. Auto-refresh keeps the index current when files change.
-- **Built-in file analysis tools** — the Tools menu includes File Inventory (summary by type/size/date), Duplicate Finder (identical files by content hash), Large Files, Empty Files, Recent Changes, Protected Files (password-encrypted detection), Search History (automatic log of past searches), Bookmarks (pin files for quick access), and App Files (lists every file peekdocs has created in the folder — results, reports, indexes, saved searches — so you always know what's yours and what's peekdocs').
+- **Built-in file analysis tools** — the Tools menu includes File Inventory (summary by type/size/date), File Age Distribution (histogram of files by modification age — useful for archives, records management, and personal document collections), Duplicate Finder (identical files by content hash), Large Files, Empty Files, Recent Changes, Protected Files (password-encrypted detection), Search History (automatic log of past searches), Bookmarks (pin files for quick access), and App Files (lists every file peekdocs has created in the folder — results, reports, indexes, saved searches — so you always know what's yours and what's peekdocs').
 - **Offline and private** — your documents never leave your computer.
   - peekdocs never uploads, transmits, alters, moves, or deletes your files
   - No cloud, no accounts, no subscriptions, no internet connection required
@@ -495,6 +495,9 @@ All three share the same engine, flags, and 100+ file-type support. The matching
   - **Duplicate Finder** — finds identical files by content (not just name), shows how much space is wasted by extra copies
   - **Large Files** — shows the 50 biggest files so you can reclaim disk space
   - **Empty Files** — finds zero-byte files: failed downloads, placeholders, junk
+  - **File Age Distribution** — histogram of how recently files were modified, in six buckets from 0–6 months out to 10+ years. Useful for archives, records management, and personal document collections — surfaces stale folders at a glance and shows what fraction of a collection is recent activity vs. long-untouched material
+
+    ![File Age Distribution popup](docs/images/screenshot-file-age-distribution.png)
   - **Recent Changes** — which files were modified in the last 7, 30, or 90 days
   - **Protected Files** — detects password-protected PDFs, Word/Excel/PowerPoint, ZIP/7z/RAR archives that peekdocs can't search
   - **Indexes** — build, refresh, or delete the optional search index that makes repeated searches dramatically faster
