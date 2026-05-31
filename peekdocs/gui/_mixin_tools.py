@@ -6321,14 +6321,20 @@ class ToolsMixin:
                 )
 
             total = sum(r["match_count"] for r in scan_results)
+            # Match the Wizard-regex bypass-note phrasing in the standard-search
+            # status so users see the same "index bypassed" hint regardless of
+            # which Run button they pressed. Run Regex Search always uses
+            # direct scan (use_index=False is hardcoded in the api.search call
+            # above) because regex queries can't be accelerated by FTS5.
+            _bypass_note = " \u2014 index bypassed (regex search uses direct scan)"
             if total == 0:
                 self.status_label.configure(
-                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 no matches.",
+                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 no matches.{_bypass_note}",
                     text_color="green",
                 )
             else:
                 self.status_label.configure(
-                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 {total} match(es).",
+                    text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 {total} match(es).{_bypass_note}",
                     text_color=("black", "#e0e0e0"),
                 )
 
