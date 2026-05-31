@@ -1518,6 +1518,7 @@ class BuildMixin:
             # Folder analysis (alphabetical)
             menu.add_command(label="Duplicate Finder — find identical files in the folder", command=self._run_duplicate_scan)
             menu.add_command(label="Empty Files — find zero-length or blank files", command=self._run_empty_file_scan)
+            menu.add_command(label="File Age Distribution — histogram of files by modification age", command=self._run_file_age_distribution)
             menu.add_command(label="File Inventory — summary of all files by type, size, and date", command=self._run_file_inventory)
             menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
             menu.add_command(label="Protected Files — find password-protected or encrypted files", command=self._run_protected_scan)

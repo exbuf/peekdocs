@@ -1373,6 +1373,251 @@ class ToolsMixin:
         ).pack()
         self._apply_dark_theme(popup)
 
+    # ── File Age Distribution ────────────────────────────────
+
+    _AGE_BUCKETS = [
+        # (label, max_days)  — files younger than max_days fall into this bucket
+        ("0–6 months", 180),
+        ("6 months – 1 year", 365),
+        ("1–3 years", 365 * 3),
+        ("3–5 years", 365 * 5),
+        ("5–10 years", 365 * 10),
+        ("10+ years", None),  # catchall
+    ]
+
+    def _run_file_age_distribution(self):
+        """Show files grouped by modification age in a histogram view."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a search folder first.")
+            return
+        recursive = self.recursive_var.get() == "on"
+        self.status_label.configure(
+            text="Scanning for file ages...", text_color=("blue", "#66BBFF"))
+
+        import threading
+        t = threading.Thread(
+            target=self._file_age_distribution_thread,
+            args=(folder, recursive), daemon=True)
+        t.start()
+
+    def _file_age_distribution_thread(self, folder, recursive):
+        """Worker thread: collect files and bucket them by mtime age."""
+        import time
+
+        now = time.time()
+        buckets = {label: [] for label, _ in self._AGE_BUCKETS}
+        total_files = 0
+
+        try:
+            if recursive:
+                walker = os.walk(folder)
+            else:
+                try:
+                    entries = os.listdir(folder)
+                except PermissionError:
+                    entries = []
+                walker = [(folder, [], entries)]
+
+            for root, dirs, files in walker:
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    try:
+                        mtime = os.path.getmtime(filepath)
+                        fsize = os.path.getsize(filepath)
+                    except (OSError, PermissionError):
+                        continue
+                    total_files += 1
+                    age_days = (now - mtime) / 86400
+                    entry = (filepath, mtime, fsize)
+                    # Place into the first matching bucket (smallest threshold wins).
+                    placed = False
+                    for label, max_days in self._AGE_BUCKETS:
+                        if max_days is not None and age_days <= max_days:
+                            buckets[label].append(entry)
+                            placed = True
+                            break
+                    if not placed:
+                        # Catchall — "10+ years"
+                        buckets[self._AGE_BUCKETS[-1][0]].append(entry)
+        except Exception:
+            pass
+
+        # Sort each bucket by mtime descending (most recent first).
+        for key in buckets:
+            buckets[key].sort(key=lambda x: x[1], reverse=True)
+
+        results = {
+            "folder": folder,
+            "recursive": recursive,
+            "total_files": total_files,
+            "buckets": buckets,
+        }
+        self.after(0, self._file_age_distribution_finished, results)
+
+    def _file_age_distribution_finished(self, results):
+        """Handle file age distribution completion."""
+        self.status_label.configure(
+            text=f"Scanned {results['total_files']} file(s) — see File Age Distribution.",
+            text_color=("blue", "#66BBFF"))
+        self._show_file_age_distribution_popup(results)
+
+    def _show_file_age_distribution_popup(self, results):
+        """Display the age histogram + per-bucket file lists."""
+        import tkinter as tk
+        from datetime import datetime
+        fmt = self._format_file_size
+        buckets = results["buckets"]
+        total = results["total_files"]
+
+        popup, _dark = self._themed_toplevel()
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
+        popup.title("File Age Distribution")
+        popup.resizable(True, True)
+
+        # Header
+        tk.Label(
+            popup,
+            text=f"File Age Distribution — {total} file(s)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        recursive_str = " (including subfolders)" if results["recursive"] else ""
+        tk.Label(
+            popup,
+            text=f"{results['folder']}{recursive_str}",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 5))
+
+        # Histogram + per-bucket file lists in a single scrollable Text widget
+        text_frame = tk.Frame(popup)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+        vbar = tk.Scrollbar(text_frame, orient="vertical")
+        vbar.pack(side="right", fill="y")
+        txt = tk.Text(
+            text_frame, font=("Courier", 11), wrap="none",
+            yscrollcommand=vbar.set,
+            bg="#2b2b2b" if _dark else "white",
+            fg="white" if _dark else "black",
+            borderwidth=1, relief="sunken", highlightthickness=0,
+        )
+        vbar.config(command=txt.yview)
+        txt.pack(side="left", fill="both", expand=True)
+
+        # ASCII histogram across the top.
+        max_count = max((len(buckets[lbl]) for lbl, _ in self._AGE_BUCKETS), default=0)
+        bar_width = 40
+        label_width = max(len(lbl) for lbl, _ in self._AGE_BUCKETS)
+        txt.insert("end", "Histogram (by modification date)\n")
+        txt.insert("end", "─" * (label_width + bar_width + 22) + "\n")
+        for label, _max_days in self._AGE_BUCKETS:
+            count = len(buckets[label])
+            pct = (count / total * 100) if total else 0
+            if max_count > 0:
+                fill = int(round(bar_width * count / max_count))
+            else:
+                fill = 0
+            bar = "█" * fill + " " * (bar_width - fill)
+            txt.insert("end",
+                f"{label:<{label_width}}  {bar} {count:>6} file(s) ({pct:>4.1f}%)\n")
+        txt.insert("end", "\n")
+
+        # Per-bucket file lists.
+        for label, _max_days in self._AGE_BUCKETS:
+            files = buckets[label]
+            txt.insert("end", f"── {label} ({len(files)} file(s)) ──\n")
+            if not files:
+                txt.insert("end", "    (none)\n")
+            else:
+                for filepath, mtime, fsize in files:
+                    date_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d")
+                    rel = os.path.relpath(filepath, results["folder"])
+                    txt.insert("end", f"    {date_str}  {fmt(fsize):>10}  {rel}\n")
+            txt.insert("end", "\n")
+        txt.configure(state="disabled")
+
+        # Save Report — anchored to the far left in its own row.
+        save_row = tk.Frame(popup)
+        save_row.pack(fill="x", padx=10, pady=(5, 0))
+        save_btn = ctk.CTkButton(
+            save_row, text="Save Report", width=100,
+            command=lambda: self._save_file_age_distribution_report(results),
+            font=ctk.CTkFont(size=12),
+        )
+        save_btn.pack(side="left")
+        Tooltip(save_btn, "Save this histogram as a plain text file")
+
+        # Close — centered, on its own row below Save Report.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
+        ctk.CTkButton(
+            close_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack()
+        self._apply_dark_theme(popup)
+        self._center_popup_on_main(popup, 880, 600)
+
+    def _save_file_age_distribution_report(self, results):
+        """Save the file age distribution as a plain-text report."""
+        from datetime import datetime
+        from tkinter import filedialog
+        fmt = self._format_file_size
+        buckets = results["buckets"]
+        total = results["total_files"]
+        default = os.path.join(
+            results["folder"],
+            "peekdocs_file_age_distribution.txt",
+        )
+        path = filedialog.asksaveasfilename(
+            title="Save File Age Distribution Report",
+            initialfile=os.path.basename(default),
+            initialdir=os.path.dirname(default),
+            defaultextension=".txt",
+            filetypes=[("Text", "*.txt"), ("All Files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            lines = []
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            lines.append(f"File Age Distribution — {now_str}")
+            lines.append(f"Folder: {results['folder']}")
+            lines.append(f"Recursive: {results['recursive']}")
+            lines.append(f"Total files: {total}")
+            lines.append("")
+            max_count = max((len(buckets[lbl]) for lbl, _ in self._AGE_BUCKETS), default=0)
+            bar_width = 40
+            label_width = max(len(lbl) for lbl, _ in self._AGE_BUCKETS)
+            lines.append("Histogram")
+            lines.append("─" * (label_width + bar_width + 22))
+            for label, _max_days in self._AGE_BUCKETS:
+                count = len(buckets[label])
+                pct = (count / total * 100) if total else 0
+                fill = int(round(bar_width * count / max_count)) if max_count else 0
+                bar = "█" * fill + " " * (bar_width - fill)
+                lines.append(f"{label:<{label_width}}  {bar} {count:>6} file(s) ({pct:>4.1f}%)")
+            lines.append("")
+            for label, _max_days in self._AGE_BUCKETS:
+                files = buckets[label]
+                lines.append(f"── {label} ({len(files)} file(s)) ──")
+                if not files:
+                    lines.append("    (none)")
+                else:
+                    for filepath, mtime, fsize in files:
+                        date_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d")
+                        rel = os.path.relpath(filepath, results["folder"])
+                        lines.append(f"    {date_str}  {fmt(fsize):>10}  {rel}")
+                lines.append("")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines))
+            self.status_label.configure(
+                text=f"Report saved: {os.path.basename(path)}",
+                text_color="green",
+            )
+        except OSError as exc:
+            self._show_error(f"Could not write report: {exc}")
+
     # ── Search History ───────────────────────────────────────
 
 
