@@ -779,24 +779,27 @@ class DataMixin:
             if sys.platform == "darwin":
                 listbox.bind("<Button-2>", _show_ctx)
 
-        btn_frame = tk.Frame(popup)
-        btn_frame.pack(pady=(5, 10))
-
+        # Remove Selected — anchored to the far left in its own row.
         if bookmarks:
+            remove_row = tk.Frame(popup)
+            remove_row.pack(fill="x", padx=10, pady=(5, 0))
             remove_btn = ctk.CTkButton(
-                btn_frame, text="Remove Selected", width=120,
+                remove_row, text="Remove Selected", width=120,
                 fg_color="#CC3333", hover_color="#AA2222",
                 command=lambda: _remove_selected() if bookmarks else None,
                 font=ctk.CTkFont(size=12),
             )
-            remove_btn.pack(side="left", padx=5)
+            remove_btn.pack(side="left")
 
+        # Close — centered, on its own row below Remove Selected.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
         ctk.CTkButton(
-            btn_frame, text="Close", width=80,
+            close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
-        ).pack(side="left", padx=5)
+        ).pack()
         self._apply_dark_theme(popup)
 
     def _show_bookmarks_help(self, parent):
