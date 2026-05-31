@@ -496,8 +496,6 @@ All three share the same engine, flags, and 100+ file-type support. The matching
   - **Large Files** — shows the 50 biggest files so you can reclaim disk space
   - **Empty Files** — finds zero-byte files: failed downloads, placeholders, junk
   - **File Age Distribution** — histogram of how recently files were modified, in six buckets from 0–6 months out to 10+ years. Useful for archives, records management, and personal document collections — surfaces stale folders at a glance and shows what fraction of a collection is recent activity vs. long-untouched material
-
-    ![File Age Distribution popup](docs/images/screenshot-file-age-distribution.png)
   - **Recent Changes** — which files were modified in the last 7, 30, or 90 days
   - **Protected Files** — detects password-protected PDFs, Word/Excel/PowerPoint, ZIP/7z/RAR archives that peekdocs can't search
   - **Indexes** — build, refresh, or delete the optional search index that makes repeated searches dramatically faster
