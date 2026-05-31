@@ -15,13 +15,14 @@ Built for people who prefer local, transparent, deterministic tools over cloud s
 peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats that traditional text-search tools cannot read — then generates highlighted reports you can save, print, or share.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
-- **Yellow-highlighted reports with surrounding context** — .docx, .html, and .pdf reports with matches highlighted alongside their surrounding paragraphs or lines, plus .csv, .json, and .txt output
+- **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
 - **OCR** — search scanned PDFs and images that most tools can't handle. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **11 search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
 - **Search Wizard** — 21 pre-built search types, no syntax to memorize
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
-- **Scriptable** — Python API, JSON output, and exit codes for cron jobs, CI pipelines, and other automation
+- **Scriptable** — Python API, JSON output, meaningful exit codes, and a stable CLI surface for cron jobs, CI pipelines, and other automation
+- **Cross-platform** — same features on macOS, Windows, and Linux
 - **Read-only** — peekdocs runs locally and never modifies, moves, or deletes your files
 
 &nbsp;
