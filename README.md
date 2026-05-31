@@ -323,7 +323,7 @@ Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER
 
 peekdocs is built to do exactly that across many kinds of files at once — Word, PDF, Excel, email, scanned documents, archives, and 100+ more — entirely on your own computer.
 
-**A few examples of what people do with it:**
+**A few examples of what people could do with it:**
 
 - **Home user** — Find a tax document from any of the last seven years across mixed folders.
 - **Office worker** — Find all invoices over $10,000 from 2024.
