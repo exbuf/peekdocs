@@ -56,6 +56,9 @@ Run `peekdocs --check`. This verifies your Python version, checks that all requi
 **How do I save my preferred settings?**
 Use the `--config` flag. For example, `peekdocs --config recursive=true` saves that setting so it applies automatically every time. See [Saved Settings](USER_GUIDE.md#saved-settings-optional) in the User Guide for details.
 
+**Why doesn't peekdocs install the scheduled task for me?**
+By design. **Tools → Schedule Search** generates the right `peekdocs` CLI command for your choices and puts it on your clipboard; you paste it into `crontab -e` (Mac/Linux) or Task Scheduler (Windows). peekdocs deliberately does not write to your system scheduler. The short version: apps that silently install scheduled tasks read as suspicious; cross-platform scheduler-write code (cron syntax, launchd plists, Task Scheduler XML, COM bindings, permission dialogs) is a large maintenance surface for a solo project; and keeping peekdocs's role to "compose the command, you paste it" means no privilege escalation, no in-app task registry to keep in sync with the OS, the schedule is auditable with standard tools (`crontab -l`, Task Scheduler GUI), and the scheduled command survives peekdocs upgrades or uninstall. The trade-off you accept: an extra paste step, no in-app schedule list, and changes mean editing the OS scheduler directly. Full rationale: [Why Schedule Search generates a command instead of installing the task](USER_GUIDE.md#why-schedule-search-generates-a-command-instead-of-installing-the-task) in the User Guide.
+
 **Can I search all subfolders?**
 Yes — use the `-r` flag.<br>
 Example: `peekdocs -r budget`

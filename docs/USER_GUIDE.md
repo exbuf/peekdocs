@@ -526,6 +526,19 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 
 The Tools menu also includes: **All Collections** (finds saved searches across folders), **Error Log**, **Appearance** (Dark, Light, or System — follows your OS setting), **Text Size**, and cleanup options (Clear Files, Clean Up Practice Files). **Tooltips** is toggled from the **Tooltips: ON/OFF** button on the bottom row of the main screen (not in the Tools menu). Your **Appearance**, **Text Size**, and **Tooltips** choices are all saved automatically when changed — no need to click Save Defaults. They persist between sessions in `~/.peekdocsrc`.
 
+### Why Schedule Search generates a command instead of installing the task
+
+The dialog composes the right `peekdocs` CLI command for your choices and puts it on your clipboard; you paste it into `crontab -e` (Mac/Linux) or Task Scheduler (Windows) yourself. peekdocs deliberately does not write to your system scheduler. The rationale:
+
+- **No privilege escalation, no system-write.** peekdocs runs as a normal user app. Apps that silently install scheduled tasks read as suspicious to antivirus tools and to security-conscious users; generating a string and putting it on the clipboard is unmistakably benign.
+- **No background daemon, no internal task registry.** peekdocs has nothing to track and nothing to clean up on uninstall. The OS's scheduler holds the truth.
+- **Auditable with standard tools.** Users `crontab -l` or open Task Scheduler to see exactly what's running — no hidden peekdocs-managed state to discover later.
+- **Survives peekdocs upgrades and uninstalls.** The scheduled command keeps running until the user removes it from the OS scheduler.
+- **One implementation, three platforms.** peekdocs doesn't have to handle cron syntax quirks, launchd plist generation, Task Scheduler XML, COM bindings, or permission dialogs per OS.
+- **User reviews before committing.** They see the exact command and can tweak it (different folder, extra flags, redirect output) before pasting.
+- **Matches peekdocs's overall posture.** Privacy-first, transparent, MIT "as is", no surprise system modifications.
+
+The trade-offs you accept in return: an extra paste step, no in-app schedule list ("you have 3 scheduled searches"), no in-app edit/disable (changes mean editing the OS scheduler directly), and paste-time errors aren't caught. For a solo-maintained project with a clear no-surprise-system-modifications stance, the trade-off favors keeping peekdocs's surface small and the user firmly in control of what runs on their machine.
 
 ## Why peekdocs Instead of grep?
 
