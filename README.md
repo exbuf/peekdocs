@@ -761,9 +761,9 @@ Every search tool — `grep`, OS file search, cloud AI assistants, enterprise se
 
 If all you need is to find a word in a plain text file, many search tools work well. If you want to *see inside your own files* — across 100+ file formats, with context, in a report you can share, without uploading anything — that's what peekdocs was built for.
 
-**Compared with built-in OS search (Windows Search, macOS Spotlight, Linux file managers).** OS search is convenient for everyday file discovery. peekdocs focuses on deeper document-search workflows across mixed-format collections — including `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, and scanned PDFs. Results show *where* each match occurs (filename, line number, surrounding context), and you can run them in Boolean, fuzzy, regex, proximity, or range mode, save them by name, group them into suites, and produce highlighted `.docx`, `.pdf`, and `.html` reports you can save or share. The index is yours to build and refresh on demand, and the same searches work across the GUI, CLI, and Python API.
+**Compared with built-in OS search (Windows Search, macOS Spotlight, Linux file managers).** OS search is convenient for everyday file discovery. peekdocs is purpose-built for document-search workflows across mixed-format collections — including `.pst`, `.msg`, `.7z`, `.rar`, `.odt`, `.eml`, `.mbox`, Jupyter notebooks, and scanned PDFs. Results show *where* each match occurs (filename, line number, surrounding context), and you can run them in Boolean, fuzzy, regex, proximity, or range mode, save them by name, group them into suites, and produce highlighted `.docx`, `.pdf`, and `.html` reports you can save or share. The index is yours to build and refresh on demand, and the same searches work across the GUI, CLI, and Python API.
 
-**Compared with cloud AI document tools.** Cloud AI tools excel at summarization, question answering, semantic search, and extracting meaning from large document collections — often the right reach for those tasks. peekdocs serves a different purpose: it runs entirely on your computer — no uploads, no third-party copy of your files, no per-search cost, no upload size cap. For keyword, pattern, date, amount, regex, fuzzy, and proximity searches across mixed-format folders, peekdocs delivers deterministic and repeatable results while keeping your documents local.
+**Compared with cloud AI document tools.** Cloud AI tools excel at summarization, question answering, semantic search, and extracting meaning from large document collections — often the right reach for those tasks. peekdocs serves a different purpose: it runs entirely on your computer. For keyword, pattern, date, amount, regex, fuzzy, and proximity searches across mixed-format folders, peekdocs delivers deterministic and repeatable results while keeping your documents local.
 
 **Compared with `grep`.** For plain-text search in a terminal, `grep` is excellent — use it. peekdocs is built for mixed-format document collections (PDF, Word, Excel, PowerPoint, email, OCR-able scans), with highlighted reports, saved searches, search suites, regex collections, indexing, a GUI, and a Python API. Both can live in your toolkit; they're designed for different jobs.
 
@@ -777,7 +777,7 @@ If all you need is to find a word in a plain text file, many search tools work w
 | Email files and archives (.eml, .msg, .mbox, .pst) | Requires external conversion | Built in |
 | OCR (scanned PDFs and images) | Requires external OCR pipeline | Built in (`-O`) |
 | EPUB, RTF, ODT, ODS, ODP, archives | Format-specific tools required | Built in |
-| Source code (46 languages) | Yes | Yes |
+| Source code (48 languages) | Yes | Yes |
 | Highlighted .docx / .pdf / .html reports | No | Yes |
 | CSV and JSON export | Requires scripting | Built in (`-o csv,json`) |
 | Boolean expressions | Requires shell composition | Yes (`-e "A AND (B OR C)"`) |
