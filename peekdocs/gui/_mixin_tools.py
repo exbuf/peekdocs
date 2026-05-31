@@ -1486,6 +1486,11 @@ class ToolsMixin:
             popup,
             text=f"{results['folder']}{recursive_str}",
             font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 2))
+        tk.Label(
+            popup,
+            text="To analyze a different folder, use Browse on the main page to select it, then reopen this tool.",
+            font=("TkDefaultFont", 10, "italic"), fg="gray",
         ).pack(pady=(0, 5))
 
         # Histogram + per-bucket file lists in a single scrollable Text widget
