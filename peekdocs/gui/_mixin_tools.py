@@ -5457,38 +5457,23 @@ class ToolsMixin:
         # <FocusIn> -> win.lift() — both cause the popup to disappear when
         # dragged across monitors on macOS. See Run Regex Search for fix.
 
-        # Scrollable content area — Canvas + Scrollbar + Frame pattern so
-        # long content (radio buttons, entry fields, schedule presets,
-        # generated-command preview) doesn't require an oversize window.
-        # Replaces an earlier CTkScrollableFrame attempt that only scrolled
-        # the first inch or two — its scrollregion was set before widgets
-        # were added, so the canvas didn't know how tall the content really
-        # got. This explicit pattern binds <Configure> on the inner frame
-        # to recompute scrollregion every time content size changes.
-        _bg = "white" if not _dark else "#2B2B2B"
-        _outer = tk.Frame(win, bg=_bg)
-        _outer.pack(fill="both", expand=True)
-        _canvas = tk.Canvas(_outer, bg=_bg, highlightthickness=0)
-        _vbar = tk.Scrollbar(_outer, orient="vertical", command=_canvas.yview)
-        _canvas.configure(yscrollcommand=_vbar.set)
-        _vbar.pack(side="right", fill="y")
-        _canvas.pack(side="left", fill="both", expand=True)
-        body = tk.Frame(_canvas, bg=_bg)
-        _canvas_window = _canvas.create_window((0, 0), window=body, anchor="nw")
-        body.bind(
-            "<Configure>",
-            lambda e: _canvas.configure(scrollregion=_canvas.bbox("all")),
-        )
-        _canvas.bind(
-            "<Configure>",
-            lambda e: _canvas.itemconfig(_canvas_window, width=e.width),
-        )
-        # Mouse-wheel scrolling, scoped to the canvas (bind/unbind on
-        # enter/leave so wheel events elsewhere in the app are not stolen).
-        def _on_mwheel(event):
-            _canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        _canvas.bind("<Enter>", lambda e: _canvas.bind_all("<MouseWheel>", _on_mwheel))
-        _canvas.bind("<Leave>", lambda e: _canvas.unbind_all("<MouseWheel>"))
+        # No outer scrollable wrapper — earlier attempts (CTkScrollableFrame
+        # and a manual Canvas+Scrollbar) both produced layouts that hid
+        # widgets or scrolled only the first inch. Packing widgets directly
+        # to `win` is simpler and works on every platform; long content
+        # (the instructions Text widget) gets its own scrollbar below.
+        # `body` is just an alias for `win` so the earlier sweep's
+        # `body`-parented widgets keep working without further edits.
+        body = win
+
+        # Close button packed FIRST with side="bottom" so it's always
+        # anchored at the bottom of the popup regardless of content height.
+        ctk.CTkButton(
+            win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(side="bottom", pady=(0, 10))
 
         # ── Title & subtitle ──
         tk.Label(
@@ -5567,7 +5552,7 @@ class ToolsMixin:
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", padx=15, pady=(4, 2))
 
-        sched_frame = tk.Frame(win)
+        sched_frame = tk.Frame(body)
         sched_frame.pack(fill="x", padx=15, pady=(0, 2))
 
         freq_var = tk.StringVar(value="Weekly")
@@ -5606,7 +5591,7 @@ class ToolsMixin:
                 day_of_month_menu.pack(side="left", padx=(0, 10), after=freq_menu)
 
         # Time row
-        time_frame = tk.Frame(win)
+        time_frame = tk.Frame(body)
         time_frame.pack(fill="x", padx=15, pady=(2, 6))
         tk.Label(time_frame, text="At:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 5))
         hour_var = tk.StringVar(value="08")
@@ -5654,7 +5639,7 @@ class ToolsMixin:
         )
         cmd_text.pack(fill="x", padx=15, pady=(0, 4))
 
-        cmd_btn_frame = tk.Frame(win)
+        cmd_btn_frame = tk.Frame(body)
         cmd_btn_frame.pack(fill="x", padx=15, pady=(0, 6))
         ctk.CTkButton(
             cmd_btn_frame, text="Copy to Clipboard", width=140,
@@ -5665,22 +5650,23 @@ class ToolsMixin:
 
         # ── Instructions ──
         tk.Label(
-            win, text="Step-by-step instructions:",
+            body, text="Step-by-step instructions:",
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", padx=15, pady=(4, 2))
+        # Text widget with its own scrollbar so both Mac/Linux and Windows
+        # instruction blocks fit in a fixed-height window. Close is already
+        # packed with side="bottom" above, anchored at the bottom of `win`.
+        instr_frame = tk.Frame(body)
+        instr_frame.pack(fill="both", expand=True, padx=15, pady=(0, 6))
+        instr_vbar = tk.Scrollbar(instr_frame, orient="vertical")
+        instr_vbar.pack(side="right", fill="y")
         instr_text = tk.Text(
-            win, height=12, wrap="word", font=("TkDefaultFont", 11),
+            instr_frame, height=4, wrap="word", font=("TkDefaultFont", 11),
             relief="solid", borderwidth=1,
+            yscrollcommand=instr_vbar.set,
         )
-        instr_text.pack(fill="both", expand=True, padx=15, pady=(0, 6))
-
-        # ── Close ──
-        ctk.CTkButton(
-            win, text="Close", width=80,
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=win.destroy, font=ctk.CTkFont(size=12),
-        ).pack(pady=(0, 10))
+        instr_vbar.config(command=instr_text.yview)
+        instr_text.pack(side="left", fill="both", expand=True)
 
         # ── Helper functions ──
 
@@ -5785,13 +5771,19 @@ class ToolsMixin:
             cmd_text.insert("1.0", full_cmd)
             cmd_text.configure(state="disabled")
 
-            # Update instructions
+            # Update instructions — always show both platforms so cross-
+            # platform users see the full picture. The user's current OS
+            # is shown first.
             instr_text.configure(state="normal")
             instr_text.delete("1.0", "end")
             if is_win:
                 instr_text.insert("end", _windows_instructions(folder))
+                instr_text.insert("end", "\n\n")
+                instr_text.insert("end", _mac_linux_instructions(folder))
             else:
                 instr_text.insert("end", _mac_linux_instructions(folder))
+                instr_text.insert("end", "\n\n")
+                instr_text.insert("end", _windows_instructions(folder))
             instr_text.configure(state="disabled")
 
         def _mac_linux_instructions(folder):
