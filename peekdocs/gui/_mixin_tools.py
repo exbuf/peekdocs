@@ -5590,21 +5590,21 @@ class ToolsMixin:
             elif freq == "Monthly":
                 day_of_month_menu.pack(side="left", padx=(0, 10), after=freq_menu)
 
-        # Time row
-        time_frame = tk.Frame(body)
-        time_frame.pack(fill="x", padx=15, pady=(2, 6))
-        tk.Label(time_frame, text="At:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 5))
+        # Time widgets packed into the same row as the How often dropdowns
+        # so the popup is one row shorter. Left-padding on "At:" separates
+        # the time picker from the day-of-week / day-of-month pickers.
+        tk.Label(sched_frame, text="At:", font=("TkDefaultFont", 11)).pack(side="left", padx=(15, 5))
         hour_var = tk.StringVar(value="08")
         ctk.CTkOptionMenu(
-            time_frame, variable=hour_var,
+            sched_frame, variable=hour_var,
             values=[f"{h:02d}" for h in range(24)],
             width=70, font=ctk.CTkFont(size=11),
             command=lambda _: _regenerate(),
         ).pack(side="left", padx=(0, 3))
-        tk.Label(time_frame, text=":", font=("TkDefaultFont", 11)).pack(side="left")
+        tk.Label(sched_frame, text=":", font=("TkDefaultFont", 11)).pack(side="left")
         minute_var = tk.StringVar(value="00")
         ctk.CTkOptionMenu(
-            time_frame, variable=minute_var,
+            sched_frame, variable=minute_var,
             values=["00", "15", "30", "45"],
             width=70, font=ctk.CTkFont(size=11),
             command=lambda _: _regenerate(),
