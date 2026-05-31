@@ -12,7 +12,7 @@ Built for people who prefer local, transparent, deterministic tools over cloud s
 
 ## Feature Highlights
 
-peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats — then generates highlighted reports you can save, print, or share.
+peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats — then generates highlighted reports you can save, print, or share. File-analysis tools (duplicates, inventories, change tracking) come built in.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
