@@ -1690,6 +1690,10 @@ class ToolsMixin:
             ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
             ".peekdocs_collection.json", "peekdocs_errors.log",
         }
+        # Special filenames the scanner treats as searchable despite their
+        # unusual shape (no real extension, or leading dot). Must stay
+        # OUT of the Hidden bucket below — mirrors scanner._SPECIAL_FILENAMES.
+        special_searchable = {".env", "dockerfile", ".dockerfile"}
 
         max_bytes = max_file_size_mb * 1024 * 1024 if max_file_size_mb > 0 else None
 
@@ -1722,13 +1726,25 @@ class ToolsMixin:
                     if lower in self._UNSEARCHABLE_OS_METADATA or fname.startswith("._"):
                         buckets["Hidden / OS metadata"].append((filepath, 0, "OS metadata file"))
                         continue
+                    # Any other dotfile is treated as hidden — matches the
+                    # post-search Excluded Files popup ("hidden file (starts
+                    # with .)"). Special filenames the scanner explicitly
+                    # treats as searchable (.env, .dockerfile, dockerfile)
+                    # are NOT swept into Hidden.
+                    if fname.startswith(".") and lower not in special_searchable:
+                        buckets["Hidden / OS metadata"].append(
+                            (filepath, 0, "hidden file (starts with .)"))
+                        continue
                     try:
                         fsize = os.path.getsize(filepath)
                     except (OSError, PermissionError) as exc:
                         buckets["Read permission denied"].append((filepath, 0, str(exc)))
                         continue
                     ext = os.path.splitext(fname)[1].lower()
-                    if ext not in searchable_exts:
+                    # Exempt the scanner's special-case filenames — they're
+                    # searchable despite an empty/missing extension. Without
+                    # this exemption they would land in Unsupported.
+                    if ext not in searchable_exts and lower not in special_searchable:
                         buckets["Unsupported file type"].append(
                             (filepath, fsize, ext or "(no extension)"))
                         continue
