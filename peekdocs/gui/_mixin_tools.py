@@ -1623,6 +1623,329 @@ class ToolsMixin:
         except OSError as exc:
             self._show_error(f"Could not write report: {exc}")
 
+    # ── Unsearchable Files ───────────────────────────────────
+
+    # Hidden / OS metadata names — case-insensitive match. Mirrors
+    # scanner.py's _EXCLUDE_NAMES set so the categorization here matches
+    # what discover_files would actually skip during a real search.
+    _UNSEARCHABLE_OS_METADATA = {
+        ".ds_store", ".ds_store?", "thumbs.db", "desktop.ini",
+        ".spotlight-v100", ".trashes", ".fseventsd",
+    }
+
+    # Categories in display + categorization-priority order. First-match wins
+    # when a file qualifies for multiple categories (e.g. a peekdocs-created
+    # .docx is reported as peekdocs-created, not as a searchable .docx).
+    _UNSEARCHABLE_CATEGORIES = [
+        "peekdocs-created",
+        "Hidden / OS metadata",
+        "Read permission denied",
+        "Unsupported file type",
+        "Empty (0 bytes)",
+        "Oversized",
+    ]
+
+    def _run_unsearchable_files(self):
+        """Scan the folder and group files peekdocs cannot search by reason."""
+        folder = self.folder_entry.get().strip()
+        if not folder or not os.path.isdir(folder):
+            self._show_error("Please select a search folder first.")
+            return
+        recursive = self.recursive_var.get() == "on"
+        # Honor the same Max File Size the user has set in Advanced Search
+        # Options so the Oversized bucket matches what a real search would skip.
+        mfs_str = self.max_file_size_entry.get().strip() if hasattr(self, "max_file_size_entry") else ""
+        try:
+            max_file_size_mb = int(mfs_str) if mfs_str else 100
+        except ValueError:
+            max_file_size_mb = 100
+        use_ocr = self.ocr_var.get() == "on" if hasattr(self, "ocr_var") else False
+        self.status_label.configure(
+            text="Scanning for unsearchable files...", text_color=("blue", "#66BBFF"))
+
+        import threading
+        t = threading.Thread(
+            target=self._unsearchable_files_thread,
+            args=(folder, recursive, max_file_size_mb, use_ocr),
+            daemon=True)
+        t.start()
+
+    def _unsearchable_files_thread(self, folder, recursive, max_file_size_mb, use_ocr):
+        """Worker thread: walk the folder and categorize unsearchable files."""
+        from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES
+        from peekdocs.scanner import RESULT_FILE_PREFIXES
+
+        # The full set of extensions peekdocs would try to search.
+        searchable_exts = set(SUPPORTED_TYPES)
+        if use_ocr:
+            searchable_exts |= set(OCR_IMAGE_TYPES)
+
+        # Prefixes that mark peekdocs-created files (mirrors scanner's
+        # _EXCLUDE_PREFIXES + the explicit names below).
+        peekdocs_prefixes = tuple(RESULT_FILE_PREFIXES) + (
+            "peekdocs_report_", "peekdocs_accumulated_",
+            "peekdocs_global_test_",
+        )
+        peekdocs_exact = {
+            ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm",
+            ".peekdocs_collection.json", "peekdocs_errors.log",
+        }
+
+        max_bytes = max_file_size_mb * 1024 * 1024 if max_file_size_mb > 0 else None
+
+        buckets = {cat: [] for cat in self._UNSEARCHABLE_CATEGORIES}
+        total_files = 0
+        searchable_count = 0
+
+        try:
+            if recursive:
+                walker = os.walk(folder)
+            else:
+                try:
+                    entries = os.listdir(folder)
+                except PermissionError:
+                    entries = []
+                walker = [(folder, [], entries)]
+
+            for root, dirs, files in walker:
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    total_files += 1
+                    lower = fname.lower()
+                    # Categorize in priority order. First match wins.
+                    if (lower in peekdocs_exact or
+                            fname.startswith(peekdocs_prefixes) or
+                            fname.startswith("~$") or
+                            (fname.startswith(".") and lower == ".peekdocsrc")):
+                        buckets["peekdocs-created"].append((filepath, 0, "peekdocs-created"))
+                        continue
+                    if lower in self._UNSEARCHABLE_OS_METADATA or fname.startswith("._"):
+                        buckets["Hidden / OS metadata"].append((filepath, 0, "OS metadata file"))
+                        continue
+                    try:
+                        fsize = os.path.getsize(filepath)
+                    except (OSError, PermissionError) as exc:
+                        buckets["Read permission denied"].append((filepath, 0, str(exc)))
+                        continue
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext not in searchable_exts:
+                        buckets["Unsupported file type"].append(
+                            (filepath, fsize, ext or "(no extension)"))
+                        continue
+                    if fsize == 0:
+                        buckets["Empty (0 bytes)"].append((filepath, 0, "zero bytes"))
+                        continue
+                    if max_bytes is not None and fsize > max_bytes:
+                        buckets["Oversized"].append(
+                            (filepath, fsize, f"{fsize / (1024*1024):.1f} MB"))
+                        continue
+                    # File passed every check — searchable.
+                    searchable_count += 1
+        except Exception:
+            pass
+
+        # Sort each bucket by filename ascending (case-insensitive).
+        for cat in buckets:
+            buckets[cat].sort(key=lambda x: os.path.basename(x[0]).lower())
+
+        unsearchable_count = sum(len(buckets[cat]) for cat in buckets)
+
+        results = {
+            "folder": folder,
+            "recursive": recursive,
+            "max_file_size_mb": max_file_size_mb,
+            "use_ocr": use_ocr,
+            "total_files": total_files,
+            "searchable_count": searchable_count,
+            "unsearchable_count": unsearchable_count,
+            "buckets": buckets,
+        }
+        self.after(0, self._unsearchable_files_finished, results)
+
+    def _unsearchable_files_finished(self, results):
+        """Handle Unsearchable Files scan completion."""
+        self.status_label.configure(
+            text=(
+                f"Scanned {results['total_files']} file(s): "
+                f"{results['searchable_count']} searchable, "
+                f"{results['unsearchable_count']} unsearchable."
+            ),
+            text_color=("blue", "#66BBFF"))
+        self._show_unsearchable_files_popup(results)
+
+    def _show_unsearchable_files_popup(self, results):
+        """Display the unsearchable-files categorization with per-bucket lists."""
+        import tkinter as tk
+        fmt = self._format_file_size
+        buckets = results["buckets"]
+        total = results["total_files"]
+        searchable = results["searchable_count"]
+        unsearchable = results["unsearchable_count"]
+        pct = (unsearchable / total * 100) if total else 0
+
+        popup, _dark = self._themed_toplevel()
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
+        popup.title("Unsearchable Files")
+        popup.resizable(True, True)
+
+        # Header
+        tk.Label(
+            popup,
+            text=(
+                f"Unsearchable Files — {unsearchable} of {total} "
+                f"({pct:.1f}%); {searchable} searchable"
+            ),
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(pady=(10, 2))
+        recursive_str = " (including subfolders)" if results["recursive"] else ""
+        tk.Label(
+            popup,
+            text=f"{results['folder']}{recursive_str}",
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(pady=(0, 2))
+        tk.Label(
+            popup,
+            text="To analyze a different folder, use Browse on the main page to select it, then reopen this tool.",
+            font=("TkDefaultFont", 10, "italic"), fg="gray",
+        ).pack(pady=(0, 5))
+
+        # Scrollable text area showing summary + per-category file lists.
+        text_frame = tk.Frame(popup)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+        vbar = tk.Scrollbar(text_frame, orient="vertical")
+        vbar.pack(side="right", fill="y")
+        txt = tk.Text(
+            text_frame, font=("Courier", 11), wrap="none",
+            yscrollcommand=vbar.set,
+            bg="#2b2b2b" if _dark else "white",
+            fg="white" if _dark else "black",
+            borderwidth=1, relief="sunken", highlightthickness=0,
+        )
+        vbar.config(command=txt.yview)
+        txt.pack(side="left", fill="both", expand=True)
+
+        # Summary table.
+        label_width = max(len(c) for c in self._UNSEARCHABLE_CATEGORIES)
+        txt.insert("end", "Summary (by reason)\n")
+        txt.insert("end", "─" * (label_width + 30) + "\n")
+        for cat in self._UNSEARCHABLE_CATEGORIES:
+            count = len(buckets[cat])
+            cat_pct = (count / total * 100) if total else 0
+            txt.insert("end",
+                f"{cat:<{label_width}}  {count:>6} file(s) ({cat_pct:>4.1f}%)\n")
+        txt.insert("end", "\n")
+        txt.insert("end",
+            "Tip: 'Empty (0 bytes)' and the password-protected files reported by\n"
+            "the Protected Files tool also count as unsearchable. They are listed\n"
+            "here for completeness; use the dedicated tools for focused views.\n\n")
+
+        # Per-category file lists.
+        for cat in self._UNSEARCHABLE_CATEGORIES:
+            files = buckets[cat]
+            txt.insert("end", f"── {cat} ({len(files)} file(s)) ──\n")
+            if not files:
+                txt.insert("end", "    (none)\n")
+            else:
+                for filepath, fsize, reason in files:
+                    rel = os.path.relpath(filepath, results["folder"])
+                    size_str = fmt(fsize) if fsize else ""
+                    if size_str:
+                        txt.insert("end", f"    {size_str:>10}  {reason:<20}  {rel}\n")
+                    else:
+                        txt.insert("end", f"    {'':>10}  {reason:<20}  {rel}\n")
+            txt.insert("end", "\n")
+        txt.configure(state="disabled")
+
+        # Save Report — anchored to the far left in its own row.
+        save_row = tk.Frame(popup)
+        save_row.pack(fill="x", padx=10, pady=(5, 0))
+        save_btn = ctk.CTkButton(
+            save_row, text="Save Report", width=100,
+            command=lambda: self._save_unsearchable_files_report(results),
+            font=ctk.CTkFont(size=12),
+        )
+        save_btn.pack(side="left")
+        Tooltip(save_btn, "Save this categorization as a plain text file")
+
+        # Close — centered, on its own row below Save Report.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
+        ctk.CTkButton(
+            close_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack()
+        self._apply_dark_theme(popup)
+        self._center_popup_on_main(popup, 920, 600)
+
+    def _save_unsearchable_files_report(self, results):
+        """Save the unsearchable-files categorization as a plain-text report."""
+        from datetime import datetime
+        from tkinter import filedialog
+        fmt = self._format_file_size
+        buckets = results["buckets"]
+        total = results["total_files"]
+        searchable = results["searchable_count"]
+        unsearchable = results["unsearchable_count"]
+        pct = (unsearchable / total * 100) if total else 0
+
+        default = os.path.join(
+            results["folder"],
+            "peekdocs_unsearchable_files.txt",
+        )
+        path = filedialog.asksaveasfilename(
+            title="Save Unsearchable Files Report",
+            initialfile=os.path.basename(default),
+            initialdir=os.path.dirname(default),
+            defaultextension=".txt",
+            filetypes=[("Text", "*.txt"), ("All Files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            lines = []
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            lines.append(f"Unsearchable Files — {now_str}")
+            lines.append(f"Folder: {results['folder']}")
+            lines.append(f"Recursive: {results['recursive']}")
+            lines.append(f"Max File Size: {results['max_file_size_mb']} MB (0 = no limit)")
+            lines.append(f"OCR: {results['use_ocr']}")
+            lines.append(f"Total files: {total}")
+            lines.append(f"Searchable: {searchable}")
+            lines.append(f"Unsearchable: {unsearchable} ({pct:.1f}%)")
+            lines.append("")
+            label_width = max(len(c) for c in self._UNSEARCHABLE_CATEGORIES)
+            lines.append("Summary (by reason)")
+            lines.append("─" * (label_width + 30))
+            for cat in self._UNSEARCHABLE_CATEGORIES:
+                count = len(buckets[cat])
+                cat_pct = (count / total * 100) if total else 0
+                lines.append(f"{cat:<{label_width}}  {count:>6} file(s) ({cat_pct:>4.1f}%)")
+            lines.append("")
+            for cat in self._UNSEARCHABLE_CATEGORIES:
+                files = buckets[cat]
+                lines.append(f"── {cat} ({len(files)} file(s)) ──")
+                if not files:
+                    lines.append("    (none)")
+                else:
+                    for filepath, fsize, reason in files:
+                        rel = os.path.relpath(filepath, results["folder"])
+                        size_str = fmt(fsize) if fsize else ""
+                        if size_str:
+                            lines.append(f"    {size_str:>10}  {reason:<20}  {rel}")
+                        else:
+                            lines.append(f"    {'':>10}  {reason:<20}  {rel}")
+                lines.append("")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines))
+            self.status_label.configure(
+                text=f"Report saved: {os.path.basename(path)}",
+                text_color="green",
+            )
+        except OSError as exc:
+            self._show_error(f"Could not write report: {exc}")
+
     # ── Search History ───────────────────────────────────────
 
 

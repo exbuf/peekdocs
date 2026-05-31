@@ -1523,6 +1523,7 @@ class BuildMixin:
             menu.add_command(label="Large Files — find the biggest files in the folder", command=self._run_large_file_scan)
             menu.add_command(label="Protected Files — find password-protected or encrypted files", command=self._run_protected_scan)
             menu.add_command(label="Recent Changes — files modified in the last 7 / 30 / 90 days", command=self._run_recent_changes)
+            menu.add_command(label="Unsearchable Files — files peekdocs cannot search and why", command=self._run_unsearchable_files)
             _dark_sep()
             # User tools (alphabetical)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
