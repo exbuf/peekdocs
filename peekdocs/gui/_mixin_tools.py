@@ -235,26 +235,28 @@ class ToolsMixin:
         listbox.insert("end", f"{'─' * 20}{'─' * 8}{'─' * 14}")
         listbox.insert("end", f"{'TOTAL':<20}{results['total_files']:>8}{fmt(results['total_size']):>14}")
 
-        # Buttons
-        btn_frame = tk.Frame(popup)
-        btn_frame.pack(pady=(5, 10))
-
+        # Save Report — anchored to the far left in its own row.
+        save_row = tk.Frame(popup)
+        save_row.pack(fill="x", padx=10, pady=(5, 0))
         save_btn = ctk.CTkButton(
-            btn_frame, text="Save Report", width=100,
+            save_row, text="Save Report", width=100,
             command=lambda: self._save_inventory_report(results),
             font=ctk.CTkFont(size=12),
         )
-        save_btn.pack(side="left", padx=5)
+        save_btn.pack(side="left")
         Tooltip(save_btn, "Save this inventory as a plain text file")
 
+        # Close — centered, on its own row below Save Report.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
         close_btn = ctk.CTkButton(
-            btn_frame, text="Close", width=80,
+            close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy,
             font=ctk.CTkFont(size=12),
         )
-        close_btn.pack(side="left", padx=5)
+        close_btn.pack()
 
         self._apply_dark_theme(popup)
 
@@ -862,23 +864,26 @@ class ToolsMixin:
                     listbox.insert("end", f"    {rel}")
                 listbox.insert("end", "")
 
-        btn_frame = tk.Frame(popup)
-        btn_frame.pack(pady=(5, 10))
-
+        # Save Report — anchored to the far left in its own row.
         if groups:
+            save_row = tk.Frame(popup)
+            save_row.pack(fill="x", padx=10, pady=(5, 0))
             save_btn = ctk.CTkButton(
-                btn_frame, text="Save Report", width=100,
+                save_row, text="Save Report", width=100,
                 command=lambda: self._save_duplicate_report(results),
                 font=ctk.CTkFont(size=12),
             )
-            save_btn.pack(side="left", padx=5)
+            save_btn.pack(side="left")
 
+        # Close — centered, on its own row below Save Report.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 10))
         ctk.CTkButton(
-            btn_frame, text="Close", width=80,
+            close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
-        ).pack(side="left", padx=5)
+        ).pack()
         self._apply_dark_theme(popup)
 
 
@@ -5452,11 +5457,38 @@ class ToolsMixin:
         # <FocusIn> -> win.lift() — both cause the popup to disappear when
         # dragged across monitors on macOS. See Run Regex Search for fix.
 
-        # Wrap content in a scrollable frame so long content (radio buttons,
-        # entry fields, schedule presets, generated-command preview) doesn't
-        # require an oversize window. Replaces direct packing onto `win`.
-        body = ctk.CTkScrollableFrame(win, fg_color="transparent")
-        body.pack(fill="both", expand=True)
+        # Scrollable content area — Canvas + Scrollbar + Frame pattern so
+        # long content (radio buttons, entry fields, schedule presets,
+        # generated-command preview) doesn't require an oversize window.
+        # Replaces an earlier CTkScrollableFrame attempt that only scrolled
+        # the first inch or two — its scrollregion was set before widgets
+        # were added, so the canvas didn't know how tall the content really
+        # got. This explicit pattern binds <Configure> on the inner frame
+        # to recompute scrollregion every time content size changes.
+        _bg = "white" if not _dark else "#2B2B2B"
+        _outer = tk.Frame(win, bg=_bg)
+        _outer.pack(fill="both", expand=True)
+        _canvas = tk.Canvas(_outer, bg=_bg, highlightthickness=0)
+        _vbar = tk.Scrollbar(_outer, orient="vertical", command=_canvas.yview)
+        _canvas.configure(yscrollcommand=_vbar.set)
+        _vbar.pack(side="right", fill="y")
+        _canvas.pack(side="left", fill="both", expand=True)
+        body = tk.Frame(_canvas, bg=_bg)
+        _canvas_window = _canvas.create_window((0, 0), window=body, anchor="nw")
+        body.bind(
+            "<Configure>",
+            lambda e: _canvas.configure(scrollregion=_canvas.bbox("all")),
+        )
+        _canvas.bind(
+            "<Configure>",
+            lambda e: _canvas.itemconfig(_canvas_window, width=e.width),
+        )
+        # Mouse-wheel scrolling, scoped to the canvas (bind/unbind on
+        # enter/leave so wheel events elsewhere in the app are not stolen).
+        def _on_mwheel(event):
+            _canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        _canvas.bind("<Enter>", lambda e: _canvas.bind_all("<MouseWheel>", _on_mwheel))
+        _canvas.bind("<Leave>", lambda e: _canvas.unbind_all("<MouseWheel>"))
 
         # ── Title & subtitle ──
         tk.Label(

@@ -1143,7 +1143,16 @@ class SearchMixin:
 
 
     def open_error_log(self):
-        """Open the peekdocs error log file in the default text editor."""
+        """Open the peekdocs error log file in an in-app viewer.
+
+        Replaces an earlier safe_open_file() call that handed the log off
+        to TextEdit (or the system default text editor). TextEdit has no
+        peekdocs Close button at the bottom and opens its own subsequent
+        windows (e.g. Reveal in Finder) on whichever monitor the OS
+        chooses — both behaviors users found confusing. The in-app viewer
+        gives a centered Close button and stays on the main window's
+        monitor.
+        """
         # Check results dir first (output dir if set), then search folder
         candidates = []
         if self.results_dir:
@@ -1176,8 +1185,57 @@ class SearchMixin:
                 text_color="green",
             )
             return
-        from peekdocs.gui._helpers import safe_open_file
-        safe_open_file(error_log_path)
+        self._show_error_log_viewer(error_log_path)
+
+    def _show_error_log_viewer(self, log_path):
+        """Show the error log content in an in-app popup with a Close button."""
+        import tkinter as tk
+        try:
+            with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+        except OSError as exc:
+            self._show_error(f"Could not read {log_path}: {exc}")
+            return
+
+        popup, _dark = self._themed_toplevel()
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
+        popup.title("Error Log")
+        popup.resizable(True, True)
+
+        # Path label so users can find the file on disk if they want.
+        tk.Label(
+            popup, text=log_path,
+            font=("TkDefaultFont", 10), fg="gray",
+        ).pack(anchor="w", padx=12, pady=(10, 4))
+
+        # Log text — scrollable, read-only, monospace.
+        text_frame = tk.Frame(popup)
+        text_frame.pack(fill="both", expand=True, padx=12, pady=(0, 4))
+        vbar = tk.Scrollbar(text_frame, orient="vertical")
+        vbar.pack(side="right", fill="y")
+        txt = tk.Text(
+            text_frame, wrap="word",
+            font=("Courier", 11),
+            yscrollcommand=vbar.set,
+            borderwidth=0, highlightthickness=0,
+        )
+        vbar.config(command=txt.yview)
+        txt.pack(side="left", fill="both", expand=True)
+        txt.insert("1.0", content or "(error log is empty)")
+        txt.configure(state="disabled")
+
+        # Close — centered, on its own row at the bottom.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(5, 12))
+        ctk.CTkButton(
+            close_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy, font=ctk.CTkFont(size=12),
+        ).pack()
+
+        self._apply_dark_theme(popup)
+        self._center_popup_on_main(popup, 760, 500)
 
 
 
