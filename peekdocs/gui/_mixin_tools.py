@@ -140,13 +140,12 @@ class ToolsMixin:
         fmt = self._format_file_size
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("File Inventory")
         popup.resizable(True, True)
-        popup.geometry("780x580")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 780) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 580) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 780, 580)
 
         # Header
         header_frame = tk.Frame(popup)
@@ -504,13 +503,12 @@ class ToolsMixin:
         count = len(results["protected"])
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Password-Protected Files")
         popup.resizable(True, True)
-        popup.geometry("800x500")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 800, 500)
 
         # Header
         header_frame = tk.Frame(popup)
@@ -799,13 +797,12 @@ class ToolsMixin:
         total_dupes = sum(len(g[0]) - 1 for g in groups)
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Duplicate Files")
         popup.resizable(True, True)
-        popup.geometry("820x550")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 820) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 820, 550)
 
         header_frame = tk.Frame(popup)
         header_frame.pack(fill="x", padx=10, pady=(10, 2))
@@ -1019,13 +1016,12 @@ class ToolsMixin:
         fmt = self._format_file_size
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Largest Files")
         popup.resizable(True, True)
-        popup.geometry("800x500")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 800, 500)
 
         tk.Label(
             popup,
@@ -1148,13 +1144,12 @@ class ToolsMixin:
         count = len(results["empty"])
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Empty Files")
         popup.resizable(True, True)
-        popup.geometry("750x450")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 750) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 450) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 750, 450)
 
         tk.Label(
             popup,
@@ -1312,13 +1307,12 @@ class ToolsMixin:
         b = results["buckets"]
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Recent Changes")
         popup.resizable(True, True)
-        popup.geometry("820x550")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 820) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 820, 550)
 
         recent = len(b["7 days"]) + len(b["30 days"]) + len(b["90 days"])
         tk.Label(
@@ -1619,6 +1613,7 @@ class ToolsMixin:
         import tkinter as tk
 
         win = ctk.CTkToplevel(self)
+        win.withdraw()  # invisible during widget setup; repositioned + shown at end
         win.title("Search Wizard")
         win.geometry("920x750")
         win.resizable(True, True)
@@ -1913,6 +1908,16 @@ class ToolsMixin:
         # Apply dark theme to the plain tk widgets inside this CTkToplevel
         self._apply_dark_theme(win)
 
+        # Center on the main window and show. Withdraw + final geometry +
+        # deiconify ensures the popup opens on the same monitor as the main
+        # page in multi-monitor setups, with no visible jump. Matches the
+        # pattern used by Run Search Suites and Run Regex Search popups.
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 920) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 750) // 2
+        win.geometry(f"920x750+{x}+{y}")
+        win.deiconify()
+
     def _apply_wizard(self, search_text="", regex=False, fuzzy=False,
                       wildcard=False, inverse=False, whole_word=False,
                       expression=False, and_mode=False, recursive=False,
@@ -2166,13 +2171,12 @@ class ToolsMixin:
             }
 
         wiz, _dark = self._themed_toplevel()
+
+
+        wiz.withdraw()  # hidden during widget setup; centered + shown at end
         wiz.title("Search Wizard")
         wiz.resizable(True, True)
-        wiz.geometry("560x640")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 560) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 640) // 2
-        wiz.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(wiz, 560, 640)
 
         tk.Label(
             wiz, text="Search Wizard",
@@ -5008,13 +5012,12 @@ class ToolsMixin:
             return
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("System Check")
         popup.resizable(True, True)
-        popup.geometry("740x600")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 740) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 600) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 740, 600)
 
         # Header — overall status
         if info["all_ok"]:
@@ -5143,11 +5146,12 @@ class ToolsMixin:
         import tkinter as tk
 
         win, _dark = self._themed_toplevel()
+        win.withdraw()  # hidden during widget setup; centered + shown at end
         win.title("Diff Snapshots")
         win.resizable(True, True)
-        win.geometry("820x680")
-        win.transient(self)
-        win.bind("<FocusIn>", lambda e: win.lift())
+        # NOTE: deliberately NOT calling win.transient(self) or binding
+        # <FocusIn> -> win.lift() — both cause the popup to disappear when
+        # dragged across monitors on macOS. See Run Regex Search for fix.
 
         # ── Header ──
         header = tk.Frame(win)
@@ -5356,6 +5360,8 @@ class ToolsMixin:
             command=win.destroy,
         ).pack(side="bottom", pady=(5, 10))
 
+        self._center_popup_on_main(win, 820, 680)
+
     def _show_diff_snapshots_help(self, parent):
         """Help popup for Diff Snapshots."""
         import tkinter as tk
@@ -5436,11 +5442,12 @@ class ToolsMixin:
         import tkinter as tk
 
         win, _dark = self._themed_toplevel()
+        win.withdraw()  # hidden during widget setup; centered + shown at end
         win.title("Schedule Search")
         win.resizable(True, True)
-        win.geometry("680x780")
-        win.transient(self)
-        win.bind("<FocusIn>", lambda e: win.lift())
+        # NOTE: deliberately NOT calling win.transient(self) or binding
+        # <FocusIn> -> win.lift() — both cause the popup to disappear when
+        # dragged across monitors on macOS. See Run Regex Search for fix.
 
         # ── Title & subtitle ──
         tk.Label(
@@ -5807,6 +5814,8 @@ class ToolsMixin:
         _toggle_day_pickers()
         _refresh_names()
         self._apply_dark_theme(win)
+
+        self._center_popup_on_main(win, 680, 780)
 
     # ── Regex Search ─────────────────────────────────────────────────
 
@@ -6343,13 +6352,11 @@ class ToolsMixin:
 
             # Show results popup
             popup, _dark = self._themed_toplevel()
+
+            popup.withdraw()  # hidden during widget setup; centered + shown at end
             popup.title("Regex Search Results")
             popup.resizable(True, True)
-            popup.geometry("800x520")
-            self.update_idletasks()
-            x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
-            y = self.winfo_rooty() + (self.winfo_height() - 520) // 2
-            popup.geometry(f"+{x}+{y}")
+            self._center_popup_on_main(popup, 800, 520)
 
             header_frame = tk.Frame(popup)
             header_frame.pack(fill="x", padx=15, pady=(10, 2))

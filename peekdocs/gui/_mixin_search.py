@@ -1109,13 +1109,11 @@ class SearchMixin:
         """Show a simple informational popup with a consistent look and Close button."""
         import tkinter as tk
         popup, _dark = self._themed_toplevel()
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title(title)
         popup.resizable(False, False)
-        popup.geometry("520x280")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 520) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 280) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 520, 280)
         try:
             popup.transient(self)
         except Exception:
@@ -1350,13 +1348,12 @@ class SearchMixin:
             return
 
         win, _dark = self._themed_toplevel()
+
+
+        win.withdraw()  # hidden during widget setup; centered + shown at end
         win.title("Clear Files")
         win.resizable(True, True)
-        win.geometry("700x500")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 700) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
-        win.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(win, 700, 500)
 
         _sf = self._scaled_font
 

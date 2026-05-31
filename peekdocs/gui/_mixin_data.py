@@ -434,13 +434,12 @@ class DataMixin:
                 pass
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Search History")
         popup.resizable(True, True)
-        popup.geometry("850x500")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 850) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 850, 500)
 
         hist_header = tk.Frame(popup)
         hist_header.pack(fill="x", padx=10, pady=(10, 2))
@@ -668,13 +667,12 @@ class DataMixin:
         bookmarks = self._load_bookmarks()
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title("Bookmarks")
         popup.resizable(True, True)
-        popup.geometry("800x480")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 480) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 800, 480)
 
         bm_header = tk.Frame(popup)
         bm_header.pack(fill="x", padx=10, pady=(10, 2))
@@ -1033,6 +1031,9 @@ class DataMixin:
         import tkinter as tk
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         count = len(self.matched_files)
         if self._inverse_results:
             heading = f"Files Without Matches ({count})"
@@ -1188,6 +1189,8 @@ class DataMixin:
         if not self._excluded_files:
             return
         popup, _dark = self._themed_toplevel()
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title(f"Excluded Files ({len(self._excluded_files)})")
         popup.resizable(True, True)
         popup.geometry("800x500")
@@ -1306,13 +1309,12 @@ class DataMixin:
             return
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title(f"peekdocs App Files ({len(app_files)})")
         popup.resizable(True, True)
-        popup.geometry("1000x500")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 1000) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 1000, 500)
 
         tk.Label(
             popup, text=f"peekdocs Files ({len(app_files)} file(s) in {folder})",
@@ -1446,13 +1448,12 @@ class DataMixin:
         )
 
         popup, _dark = self._themed_toplevel()
+
+
+        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title(f"All Saved Collections ({len(collections)} folder(s))")
         popup.resizable(True, True)
-        popup.geometry("1050x550")
-        self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 1050) // 2
-        y = self.winfo_rooty() + (self.winfo_height() - 550) // 2
-        popup.geometry(f"+{x}+{y}")
+        self._center_popup_on_main(popup, 1050, 550)
 
         total_searches = sum(c[1] for c in collections)
         tk.Label(

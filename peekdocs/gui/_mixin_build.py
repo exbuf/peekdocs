@@ -1938,6 +1938,27 @@ class BuildMixin:
             except Exception:
                 pass
 
+    def _center_popup_on_main(self, win, width, height):
+        """Center a popup on the main window's monitor and deiconify it.
+
+        Use after all widgets in the popup have been packed/gridded.
+        The popup must have been win.withdraw()'n immediately after
+        creation so widget setup happened invisibly — otherwise the
+        user sees the popup briefly open at the system primary monitor
+        and jump to the main window's monitor.
+
+        Centering math uses self.winfo_rootx/y, which return the main
+        window's screen coordinates — so the popup lands on whichever
+        monitor the main window currently lives on. Fixes the recurring
+        multi-monitor bug where popups opened on the laptop screen even
+        when the main window was on an external display.
+        """
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - width) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - height) // 2
+        win.geometry(f"{width}x{height}+{x}+{y}")
+        win.deiconify()
+
     def _themed_toplevel(self, parent=None):
         """Create a themed Toplevel window.
 
