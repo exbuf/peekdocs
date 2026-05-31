@@ -35,6 +35,8 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 1. Developers with Python: `pipx install git+https://github.com/exbuf/peekdocs.git` (below)
 2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
+A single install gets you both the CLI (`peekdocs`) and the GUI (`peekdocs-gui`). Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
+
 ```bash
 # Install (requires Python 3.10+)
 pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated)
