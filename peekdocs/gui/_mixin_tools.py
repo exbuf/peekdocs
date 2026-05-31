@@ -1829,8 +1829,14 @@ class ToolsMixin:
         lines.append("")
 
         # ── Overview ──
+        total = r["total_files"]
+        s_pct_overview = (r["searchable_count"] / total * 100) if total else 0
         lines.append("OVERVIEW")
         lines.append(f"  Total files:    {r['total_files']:,}")
+        lines.append(
+            f"  Searchable:     {r['searchable_count']:,} / {r['total_files']:,} "
+            f"({s_pct_overview:.1f}%)"
+        )
         lines.append(f"  Total size:     {fmt(r['total_size'])}")
         lines.append(f"  Subfolders:     {r['subfolders']:,}")
         if r["oldest_mtime"] is not None:
@@ -1844,8 +1850,9 @@ class ToolsMixin:
         lines.append("")
 
         # ── Searchability ──
-        total = r["total_files"]
-        s_pct = (r["searchable_count"] / total * 100) if total else 0
+        # `total` and `s_pct_overview` already computed above for the
+        # OVERVIEW section's Searchable summary line — reuse them here.
+        s_pct = s_pct_overview
         u_pct = 100 - s_pct
         lines.append("SEARCHABILITY")
         lines.append(f"  Searchable:     {r['searchable_count']:,} ({s_pct:.1f}%)")
