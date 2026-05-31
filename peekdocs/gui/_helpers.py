@@ -791,6 +791,14 @@ def _parse_summary_text(stdout):
         err_count = errors_match.group(1)
         parts.append(f"— {err_count} file(s) could not be read")
 
+    # Surface the "Note: index bypassed — …" line emitted by the CLI when
+    # the user asked for the index but the engine fell through to direct
+    # scan (regex / fuzzy / wildcard / proximity queries). The bypass is
+    # silent on disk; here we keep the user informed about what happened.
+    bypass_match = re.search(r"Note: index bypassed — ([^\n.]+)", clean)
+    if bypass_match:
+        parts.append(f"— index bypassed ({bypass_match.group(1).strip()})")
+
     return " ".join(parts) if parts else ""
 
 

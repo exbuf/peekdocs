@@ -2069,6 +2069,8 @@ def _main_inner(argv=None):
     else:
         print(f"Found {HIGHLIGHT}{len(matches)}{RESET} match(es) in {matched_file_count} file(s). Files searched: {len(all_files)} ({size_str}).")
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
+    if search_result.index_bypass_reason:
+        print(f"Note: index bypassed — {search_result.index_bypass_reason}.")
     if len(all_files) == 0 and not minimal:
         print()
         print("  Tip: No files were found to search.")

@@ -53,6 +53,7 @@ class SearchResult:
     skipped_files: list    # List[Tuple[str, str]] — (filename, error_msg)
     elapsed: float         # seconds
     used_index: bool       # whether the indexed path was used
+    index_bypass_reason: str = ""  # non-empty when user requested index but it was bypassed
 
 
 def search(
@@ -233,6 +234,29 @@ def search(
     elif use_index:
         use_index = index_exists(directory)
 
+    # Performance bypass: regex / fuzzy / wildcard / proximity queries
+    # can't be accelerated by FTS5 (the token-based index can't filter
+    # pattern matches), and the indexed parse-cache path scans paragraphs
+    # serially while the direct-scan path uses multiprocessing.Pool. On
+    # multi-core machines the direct path is several times faster for
+    # these modes — observed 23s vs 3s on a phone-number wizard search
+    # on a 14-core Mac. Silently fall through to the direct path so the
+    # user gets the faster behavior; the index is still used the moment
+    # they run a literal / Boolean / whole-word query. The reason is
+    # surfaced via SearchResult.index_bypass_reason so the CLI / GUI
+    # can show a one-line note explaining what happened.
+    index_bypass_reason = ""
+    if use_index and (use_regex or use_fuzzy or use_wildcard or use_proximity):
+        use_index = False
+        if use_regex:
+            index_bypass_reason = "regex query — direct scan is faster than the index"
+        elif use_fuzzy:
+            index_bypass_reason = "fuzzy query — direct scan is faster than the index"
+        elif use_wildcard:
+            index_bypass_reason = "wildcard query — direct scan is faster than the index"
+        elif use_proximity:
+            index_bypass_reason = "proximity query — direct scan is faster than the index"
+
     if use_index:
         indexed = True
         # If the index was built with a different max_file_size_mb, rebuild it
@@ -332,6 +356,7 @@ def search(
         skipped_files=skipped_files,
         elapsed=elapsed,
         used_index=indexed,
+        index_bypass_reason=index_bypass_reason,
     )
 
 
