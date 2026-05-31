@@ -16,14 +16,14 @@ peekdocs extracts and searches text from PDFs, Word documents, Excel spreadsheet
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
-- **Read-only** — peekdocs runs locally and never modifies, moves, or deletes your files
+- **Read-only and transparent** — peekdocs runs locally and never modifies, moves, or deletes your files. The Tools menu lists every file peekdocs has written (results, reports, indexes, saved searches) and lets you delete them in one click.
 - **OCR** — search scanned PDFs and images. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **11 search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
 - **Search Wizard** — 21 pre-built search types, no syntax to memorize
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
 - **File analysis built in** — Duplicate Finder, Empty Files, Large Files, Recent Changes, Protected Files, File Inventory, plus Bookmarks and Search History for productivity
-- **Scriptable** — Python API, JSON output, meaningful exit codes, Diff Snapshots and Schedule Search for cron jobs and CI pipelines, and a stable CLI surface
+- **Scriptable** — Python API, JSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, and automation
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
 &nbsp;
