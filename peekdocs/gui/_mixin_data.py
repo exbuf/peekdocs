@@ -1037,9 +1037,6 @@ class DataMixin:
         import tkinter as tk
 
         popup, _dark = self._themed_toplevel()
-
-
-        popup.withdraw()  # hidden during widget setup; centered + shown at end
         count = len(self.matched_files)
         if self._inverse_results:
             heading = f"Files Without Matches ({count})"
@@ -1195,8 +1192,6 @@ class DataMixin:
         if not self._excluded_files:
             return
         popup, _dark = self._themed_toplevel()
-
-        popup.withdraw()  # hidden during widget setup; centered + shown at end
         popup.title(f"Excluded Files ({len(self._excluded_files)})")
         popup.resizable(True, True)
         popup.geometry("800x500")
