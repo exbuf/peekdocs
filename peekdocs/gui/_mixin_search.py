@@ -1224,6 +1224,24 @@ class SearchMixin:
         txt.insert("1.0", content or "(error log is empty)")
         txt.configure(state="disabled")
 
+        # Clear Log row — left-anchored, sits one row above Close.
+        # The file might be deleted by _clear_error_log(); if so, close the
+        # viewer since the content it's showing is now stale.
+        def _clear_and_close():
+            self._clear_error_log()
+            if not os.path.exists(log_path):
+                popup.destroy()
+
+        clear_row = tk.Frame(popup)
+        clear_row.pack(fill="x", padx=12, pady=(5, 0))
+        ctk.CTkButton(
+            clear_row, text="Clear Log", width=100,
+            fg_color="#CC3333", hover_color="#AA2222",
+            text_color="white",
+            command=_clear_and_close,
+            font=ctk.CTkFont(size=12, weight="bold"),
+        ).pack(side="left")
+
         # Close — centered, on its own row at the bottom.
         close_row = tk.Frame(popup)
         close_row.pack(pady=(5, 12))

@@ -6819,7 +6819,7 @@ class ToolsMixin:
         _refresh_names()
         self._apply_dark_theme(win)
 
-        self._center_popup_on_main(win, 680, 650)
+        self._center_popup_on_main(win, 680, 720)
 
     # ── Regex Search ─────────────────────────────────────────────────
 
