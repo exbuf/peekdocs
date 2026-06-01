@@ -259,6 +259,24 @@ than swallowing them silently.
   instead of just saying "settings reset to factory defaults."
   Added "This cannot be undone." `default=NO`.
 
+- **`api.search` no longer silently fails a doomed rebuild on every
+  search when the index's stored `max_file_size_mb` doesn't match
+  the current parameter.** Previous behavior: the rebuild check
+  fired `build_index()` inside `try: ... except Exception: pass`,
+  the rebuild silently failed (on a 449-file/806 MB folder it was
+  burning 30-60s every search without surfacing why), and the meta
+  was never updated so it kept failing. New behavior: detect the
+  mismatch, set `SearchResult.index_stale_notice` with a
+  human-readable explanation, and let the user run `peekdocs
+  --index` explicitly when they're ready. CLI prints the notice
+  after Found/Elapsed; GUI status line condenses it to
+  `— index settings out of sync (run --index to refresh)`. The bare
+  `except Exception: pass` is gone — any future regression in
+  `index_status()` now surfaces its error in the same field.
+  Added `SearchResult.index_stale_notice: str = ""` field;
+  documented in API Reference, USER_GUIDE Search Index section,
+  and TROUBLESHOOTING.
+
 ## [1.0.4] — 2026-05-30
 
 Polish release focused on first-run experience and onboarding clarity:

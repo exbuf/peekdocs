@@ -280,6 +280,8 @@ if __name__ == "__main__":
 | `skipped_files` | `list[tuple]` | Files that couldn't be read: `(filename, error_msg)` |
 | `elapsed` | `float` | Search time in seconds |
 | `used_index` | `bool` | Whether the indexed search path was used |
+| `index_bypass_reason` | `str` | Non-empty when the index was requested but bypassed (e.g., regex / fuzzy / wildcard / proximity queries fall through to direct scan because FTS5 can't accelerate them). Empty string otherwise |
+| `index_stale_notice` | `str` | Non-empty when the index's stored parameters don't match the current `max_file_size_mb` (e.g., the index was built with a 100 MB limit but the call passes 0 / no limit). The notice text names the mismatch and points the user at `peekdocs --index` to rebuild. The search still runs against the existing index; this is informational, not a failure. Empty string otherwise |
 
 Each `SearchMatch` has fields: `file_dir`, `filename`, `line_num`, `text`.
 

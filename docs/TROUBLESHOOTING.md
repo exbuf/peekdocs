@@ -175,6 +175,9 @@ The index is typically 10–20% the size of the original files. Text-heavy docum
 **Does the index stay up to date?**
 Yes — each search automatically detects new, changed, or deleted files and refreshes the index incrementally before searching. You only need to rebuild manually (`peekdocs --index`) if you want a full rebuild, such as after changing OCR or recursive settings.
 
+**What does "Note: index built with max-file-size=N MB; current setting is M MB" mean?**
+peekdocs prints this when your current Max File Size setting doesn't match the value the index was built with — for example, the index was built with the default 100 MB limit but Advanced Search Options has Max File Size set to 0 (no limit). Files larger than the index's limit aren't in the index, even though your current setting would otherwise include them. The search still runs against the existing index; results are correct *for the files that were indexed*. To bring them back in sync: rebuild with `peekdocs --index` (terminal) or **Build Index(es)** (GUI) using the current limit, or change Max File Size back to what the index was built with. The GUI status line condenses the same notice to `— index settings out of sync (run --index to refresh)`.
+
 **Does it modify my files?**
 No — peekdocs only reads your files. It never changes, moves, or deletes them.
 
