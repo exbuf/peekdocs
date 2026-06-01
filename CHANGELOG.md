@@ -12,6 +12,144 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Documentation right-sizing pass: README trimmed from ~1,240 lines to
+~920 (-26%) by moving deep-reference material into /docs companion
+files, while keeping every selling point inline. Added a privacy-first
+justification callout, a typical-workflow GUI-path clarifier, and
+honest fixes to a few claims that had drifted out of sync with the
+source.
+
+### Added
+
+- **`docs/GLOSSARY.md`** — 70 peekdocs terms (FTS5, regex modes,
+  deterministic, exit codes, Tesseract, jq, SIEM, MSP technician,
+  and more — including a list of Python networking libraries
+  peekdocs deliberately does *not* use). Migrated from the README's
+  inline Glossary section.
+
+- **`docs/SECURITY.md`** — IT/Security deep dive: data architecture
+  tables with per-file sensitivity notes (per-folder files, home
+  directory, in-memory-only data) and documented limitations
+  outside the application's control (CLI process arguments, swap
+  space, force-kill behavior, backup software, etc.). Migrated
+  from the README's "For IT and Security Teams" section, whose
+  at-a-glance Q&A table stays in the README.
+
+- **`docs/INSTALLATION.md`** — per-platform Python prerequisites
+  (macOS / Windows / Linux deep prose), optional tool installation
+  (Tesseract, UnRAR, libpff-python), less-common install paths
+  (macOS Python version selection for pipx, no-git ZIP install,
+  Windows pipx fallback), and CLI-on-Windows footnotes. Migrated
+  from the README's Installation section, whose quick-path code
+  blocks (Standalone, Option B pipx, Upgrading) stay inline.
+
+- **"Local-only by design" README callout** — concentrates the
+  privacy assertions (no network, no telemetry, no cloud, no
+  account, no admin required, works air-gapped) in one prominent
+  block at the top, paired with the existing "Transparency over
+  magic" callout. Replaces the scattered privacy claims that the
+  FAQ migration left dilute.
+
+- **"Why local?" README callout** — short paragraph between the
+  Local-only and Transparency-over-magic callouts that justifies
+  the design choice (some documents you don't want to hand over)
+  and acknowledges the tradeoff (peekdocs doesn't summarize, infer
+  meaning, or do anything cloud AI tools do well). The three
+  callouts now form a coherent trio: the *what*, the *why*, and
+  the *honesty principle*.
+
+- **Typical-workflow GUI-path clarifier (README)** — one-line italic
+  note under the workflow sentence naming where each step lives in
+  the GUI (first four on the main screen, suites under the green
+  Run Search Suites button, schedules under Tools → Schedule Search
+  generating a cron / Task Scheduler command you paste yourself).
+  Eliminates the friction of a first-time user looking for a
+  "Manage Suites" or "Schedule" button that doesn't exist.
+
+- **README Documentation table now catalogs all `/docs` files** —
+  added INSTALLATION, GLOSSARY, and SECURITY entries so the central
+  catalog matches what's actually in `/docs`.
+
+### Changed
+
+- **FAQ section migrated from README to `docs/TROUBLESHOOTING.md`**
+  — 10 unique-value entries (privacy/data-sending, admin
+  permissions, Microsoft Word not needed, network drives, search
+  entire computer, PDF Latin-1 caveat, full uninstall, Gmail /
+  Outlook export, dependencies audit, default search folder)
+  migrated; the rest of the 25-entry FAQ section was either
+  duplicated elsewhere or moved to the IT/Security deep dive.
+  README replaced with an 8-line "Questions and troubleshooting"
+  pointer block. -113 README lines.
+
+- **Platform Notes per-platform prose moved to USER_GUIDE.md.** The
+  File Handling cross-platform table — a real sell ("peekdocs
+  handles every weird OS edge case automatically") — stays in the
+  README. The "Details by platform" prose explaining the *why*
+  behind each table row moved to USER_GUIDE's Platform Notes
+  section as a new "File-handling details by platform" sub-section.
+
+- **Features section tightened.** Dropped the "For Developers"
+  sub-section entirely (every bullet duplicated content in Feature
+  Highlights, Why peekdocs?, or the new Local-only callout).
+  Tightened five long bullets (Results preview, HTML export, Delete
+  on Close, Safe defaults, Excluded Files view, Collection Summary,
+  Unsearchable Files) by cutting step-by-step GUI button paths that
+  belong in the User Guide and keeping the *what* and *why*.
+
+- **README Feature Highlights intro paragraph tightened** to drop
+  the file-type list that was already in the lede sentence above
+  it. The four pillars (search, characterize, report, drive via any
+  interface) carry the workbench framing without restating the file
+  mix.
+
+- **USER_GUIDE Glossary cross-references `docs/GLOSSARY.md`.** The
+  two glossaries overlap on common terms but each is curated for a
+  different scope — USER_GUIDE's covers operational/in-tool terms
+  (flags, error names, packaging quirks); `docs/GLOSSARY.md` covers
+  broader vocabulary including industry context and the
+  networking-libraries-not-used list. A short paragraph at the top
+  of the USER_GUIDE Glossary names both scopes.
+
+- **`.gitignore` covers current peekdocs output filename patterns**
+  — added `peekdocs_standard_results.*`, `peekdocs_regex_results.*`,
+  `peekdocs_snapshot_*`, and `peekdocs_diff_*`. The old
+  `peekdocs_results.*` pattern is retained for backwards
+  compatibility with any reports left over from older versions.
+
+### Fixed
+
+- **Search Wizard count corrected throughout the README** —
+  previously claimed "35 pre-built search types" in four places.
+  The source has two separate counts: 20 search-type forms in the
+  main wizard (`peekdocs/gui/_mixin_tools.py` `patterns` list) and
+  35 regex patterns across 6 categories in the separate regex
+  pattern builder (`peekdocs/wizard_patterns.py`). The 35 figure
+  belonged to the regex builder, not the search types. All four
+  README mentions now describe both pieces honestly. Also fixed
+  "6 profession-themed tabs" — five are profession-themed; one
+  (Common / General) isn't.
+
+- **USER_GUIDE button-color descriptions corrected.** The Search
+  Bar table row called the Standard Search button "green" and the
+  Regex Search button "purple". Actual colors from
+  `peekdocs/gui/_mixin_build.py`: Standard `#2196F3` (Material
+  blue), Suites `#76BA1B` (green), Regex `#FF9800` (orange).
+
+- **Stale README anchor refs in `/docs` updated to current
+  install-option labels.** Five references in USER_GUIDE.md and
+  TROUBLESHOOTING.md pointed at install-option anchors that had
+  been renamed in earlier sessions (e.g., `option-b-manual-install-with-git`,
+  `option-c-manual-install-no-git-no-sign-up`); fixed to point at
+  current anchors or at `CONTRIBUTING.md#development-setup` /
+  `docs/INSTALLATION.md` as appropriate.
+
+- **Stale Diff Snapshots disclaimer removed.** The migrated FAQ
+  contained a stale claim that peekdocs lacked a built-in diff or
+  comparison feature; Diff Snapshots has shipped and is documented.
+  Dropped during the FAQ migration rather than carrying the
+  outdated statement forward.
+
 ## [1.0.4] — 2026-05-30
 
 Polish release focused on first-run experience and onboarding clarity:
