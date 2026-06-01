@@ -5752,7 +5752,7 @@ class ToolsMixin:
         import tkinter as tk
         win, _dark = self._themed_toplevel()
         win.title("Search Modes — What’s the Difference?")
-        win.geometry("720x560")
+        win.geometry("820x560")
         win.resizable(True, True)
         win.transient(self)
 

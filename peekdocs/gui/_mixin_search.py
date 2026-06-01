@@ -691,20 +691,36 @@ class SearchMixin:
         self.preview_text.configure(state="normal")
         self.preview_text.delete("1.0", "end")
 
-        # If inverse search, show the list of files missing the term
-        if self._inverse_results and self.matched_files:
+        # If inverse search, always show inverse-style output \u2014 never fall
+        # through to highlighted-match rendering even when matched_files is
+        # empty. Previously the condition was `if self._inverse_results and
+        # self.matched_files:` which meant an inverse run with zero
+        # results-file entries (whatever the cause \u2014 CLI didn't write the
+        # "Files WITHOUT matches:" header, parse failure, etc.) would fall
+        # through to the normal block below and show yellow-highlighted
+        # matches parsed from stdout \u2014 exactly the inconsistent state users
+        # have reported. Render inverse-style output unconditionally when
+        # _inverse_results is set.
+        if self._inverse_results:
             self.preview_text.tag_configure("inverse_header",
                 font=("TkDefaultFont", 12, "bold"), foreground="#FF6B35")
             self.preview_text.tag_configure("inverse_file",
                 font=("TkDefaultFont", 11))
-            self.preview_text.insert("end",
-                f"Files WITHOUT your search term ({len(self.matched_files)} file(s)) \u2014 Inverse box checked:\n\n",
-                "inverse_header")
-            for item in self.matched_files:
-                filepath, filename = item[0], item[1]
-                dirname = os.path.dirname(filepath)
-                self.preview_text.insert("end", f"  {filename}\n", "inverse_file")
-                self.preview_text.insert("end", f"  ({dirname})\n\n", "inverse_file")
+            if self.matched_files:
+                self.preview_text.insert("end",
+                    f"Files WITHOUT your search term ({len(self.matched_files)} file(s)) \u2014 Inverse box checked:\n\n",
+                    "inverse_header")
+                for item in self.matched_files:
+                    filepath, filename = item[0], item[1]
+                    dirname = os.path.dirname(filepath)
+                    self.preview_text.insert("end", f"  {filename}\n", "inverse_file")
+                    self.preview_text.insert("end", f"  ({dirname})\n\n", "inverse_file")
+            else:
+                self.preview_text.insert("end",
+                    "No files without your search term \u2014 every file in the search "
+                    "contains a match. (Inverse box is checked; uncheck it to see "
+                    "the matches.)\n",
+                    "inverse_header")
             self.preview_text.configure(state="disabled")
             self.preview_text.see("1.0")
             self.preview_frame.grid(
@@ -868,8 +884,23 @@ class SearchMixin:
 
 
     def _hide_preview(self):
-        """Hide the results preview pane."""
+        """Hide the results preview pane and clear its text.
+
+        Previously this only grid-removed the frame, which left whatever was
+        last rendered (e.g., yellow-highlighted matches from a prior search)
+        in the Text widget. Branches that re-showed the frame without first
+        calling _show_preview (notably the `returncode == 1` "no matches"
+        path) then displayed stale match content alongside a "no matches"
+        status — the inconsistent state users have reported. Clearing the
+        text here guarantees the preview is empty whenever it's been hidden.
+        """
         self.preview_frame.grid_remove()
+        try:
+            self.preview_text.configure(state="normal")
+            self.preview_text.delete("1.0", "end")
+            self.preview_text.configure(state="disabled")
+        except Exception:
+            pass
 
     def _clear_preview(self):
         """Clear all text from the Results Preview pane."""
