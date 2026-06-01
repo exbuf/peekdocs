@@ -288,6 +288,37 @@ rather than swallowing them silently.
   documented in API Reference, USER_GUIDE Search Index section,
   and TROUBLESHOOTING.
 
+- **Context-line searches with the index are ~67x faster.** Setting
+  Lines Before > 0 or Lines After > 0 used to trip
+  `_can_use_fts5_fast_path` into returning False, sending the
+  search through `_parse_cache_search` — which iterates every
+  indexed file and reads every paragraph of every file from the
+  DB. On the same 449-file / 749K-paragraph workload, the reported
+  search went from ~27 seconds (context = 5) to 0.40 seconds; the
+  context-0 baseline is unchanged at 0.33 seconds. New behavior:
+  FTS5 still finds the matching paragraphs, then a single targeted
+  range query per matched file (`WHERE file_id = ? AND line_num
+  BETWEEN ? AND ?`) fetches the surrounding lines, and
+  `scanner.apply_context` does the same grouping the non-indexed
+  path uses — output shape (file_dir, filename, first_match_line,
+  joined text) is identical. Added a `(file_id, line_num)` index on
+  the paragraphs table to the schema; older indexes built before
+  this change get it created idempotently on the first context
+  search without needing a rebuild.
+
+- **GUI status no longer shows "Rebuilding index with new Max File
+  Size, then searching..." when no rebuild fires and Max File Size
+  wasn't touched.** Since the `api.search` stale-notice fix above,
+  no rebuild actually happens during a search; meanwhile the GUI's
+  separate pre-search probe was still labelling the wait as caused
+  by Max File Size — even when the user had only changed context
+  lines or hadn't touched anything in Advanced Search Options at
+  all. The probe is gone. The post-search `index_stale_notice`
+  surfaces the real condition (config-vs-meta mismatch) in the
+  status-line suffix where it belongs. The now-dead
+  `current.startswith("Rebuilding index")` branch in
+  `_update_elapsed` was removed as well.
+
 - **CLI `-qq` now honors "minimal output" as the help text claims.**
   The help string says `-qq` shows "only Found/Elapsed lines (no
   file list, warnings, or report paths)," but four call sites in
