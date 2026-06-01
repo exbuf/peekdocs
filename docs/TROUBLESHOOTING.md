@@ -450,6 +450,7 @@ Several possible causes:
 
 ---
 
+<a id="pst-support-requires-the-libpff-python-package"></a>
 **"PST support requires the libpff-python package"**
 
 Searching `.pst` files (Outlook mailbox archives) requires `libpff-python`, which is a C extension that must be compiled from source:

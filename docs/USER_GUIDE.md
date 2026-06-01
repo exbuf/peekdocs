@@ -229,9 +229,9 @@ Most of these are covered in the [Prerequisites](../README.md#prerequisites) sec
 
 ## Getting Started with the Terminal
 
-If you've never used a terminal before, this section walks you through everything from opening it to running your first search. If you're already comfortable with the command line, skip ahead to [GUI Mode](#gui-mode) or [Usage](#usage).
+If you've never used a terminal before, this section walks you through everything from opening it to running your first search. If you're already comfortable with the command line, skip ahead to [GUI Mode](#gui-mode-graphical-user-interface) or [Usage](#usage).
 
-**Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode).
+**Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode-graphical-user-interface).
 
 **Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs TODO -r` returns hits across 35 source-code and engineering file types — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
 
@@ -636,7 +636,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--max-file-size N` | Skip files larger than N MB (default 100, 0 = no limit) |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Additional output formats — `csv`, `json`, `pdf`, `html`, or any combination (`csv,json,pdf,html`). The `.txt` and `.docx` reports are always created; `-o` adds extra formats |
-| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](#prerequisites)) |
+| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#prerequisites)) |
 | `-p N` (word-proximity) | Word proximity — find terms within N words of each other (same line) |
 | `-P N` (line-proximity) | Line proximity — a genuinely useful feature, especially for programmers searching code. Find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx), a line is a paragraph; for Excel, a line is a row; for PDF, a line is a text block (variable). Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
@@ -3045,7 +3045,7 @@ This glossary focuses on terms users encounter while operating peekdocs — flag
 | **grep** | A classic Unix command-line tool for searching text in files. Designed for plain text — extremely fast and the go-to tool for searching source code |
 | **GUI** | Graphical User Interface — the point-and-click window version of peekdocs (launched with `peekdocs-gui`) |
 | **Hash (SHA-256)** | A fixed-length fingerprint (64 hexadecimal characters) computed from a file's raw bytes — any change to the file produces a completely different hash. peekdocs's `--hash` flag adds a `sha256` field to JSON output (`--stdout` or `-o json`) so a reviewer can verify later that "this is the exact file I found" — file-identity and integrity verification. Same algorithm used by Git, Bitcoin, and most modern security tools |
-| **Headless** | A computer with no display, keyboard, or mouse — typically a server, virtual machine, or container running unattended. peekdocs's CLI runs headlessly without the GUI dependency installed; `peekdocs --check` reports the GUI as missing and still exits 0 because the CLI is fully usable. See [Headless and server deployments](#headless-and-server-deployments) |
+| **Headless** | A computer with no display, keyboard, or mouse — typically a server, virtual machine, or container running unattended. peekdocs's CLI runs headlessly without the GUI dependency installed; `peekdocs --check` reports the GUI as missing and still exits 0 because the CLI is fully usable. See [Headless servers and containers](#headless-servers-and-containers) |
 | **Homebrew** | A popular package manager for macOS. Used to install Python, pipx, and other tools. Website: [brew.sh](https://brew.sh) |
 | **Index** | A pre-built database of your files' contents that makes repeated searches much faster. Like a book's index — instead of reading every page, you look up the word and go straight to the right page |
 | **ImportError** | A Python exception raised when an `import` statement fails — usually because the named module isn't installed. peekdocs's CLI avoids this by lazy-loading the GUI dependency (`customtkinter`) inside the GUI mixins, so the CLI runs cleanly on machines where Tk isn't installed. The `peekdocs-gui` entry point raises a clear ImportError on first invocation if Tk is missing — by design, so a missing GUI dep fails early instead of silently |
