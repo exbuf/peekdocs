@@ -2446,7 +2446,7 @@ An optional SQLite database that stores extracted text for faster repeated searc
 | `.peekdocs.db-shm` | Shared memory file (temporary, for concurrent access) | Search folder |
 
 **Protected from searching:** Yes — excluded by filename.
-**How to delete:** Use `peekdocs --index-clear` or the **Delete Index(es)** button in the GUI. This removes all three files. The index can be rebuilt at any time with `peekdocs --index`. The `-wal` and `-shm` files are created and removed automatically by SQLite — if they persist after a crash, they are safe to delete manually.
+**How to delete:** Use `peekdocs --index-clear` or the **Delete Index(es)** button in the GUI. The GUI prompts for confirmation before deleting (the cost is rebuild time on the next search — seconds for small folders, minutes for large or PDF-heavy ones; searches stay correct regardless). This removes all three files. The index can be rebuilt at any time with `peekdocs --index`. The `-wal` and `-shm` files are created and removed automatically by SQLite — if they persist after a crash, they are safe to delete manually.
 **How to recover:** If the index becomes corrupted, peekdocs detects it automatically, deletes it, and falls back to direct file scanning. Rebuild with `peekdocs --index`.
 
 ### Collection file
@@ -2494,7 +2494,7 @@ Your saved default settings.
 **What does "rc" mean?** The "rc" in `.peekdocsrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.peekdocsrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
 
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
-**How to delete:** Delete it to reset all settings to defaults. You can also click **Reset** in Advanced Search Options and then **Save Defaults** to overwrite it with defaults. Use **Inspect .peekdocsrc** in Advanced Search Options to view its current contents.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Restore Factory Settings** in Advanced Search Options — this does the same thing with a confirmation dialog that enumerates the nine categories of settings about to be reset (search mode, regex/fuzzy/wildcard/OCR flags, file types, output formats, max matches and file size, CPU cores, proximity and context lines, recent searches and last folder, and appearance). Use **Inspect .peekdocsrc** in Advanced Search Options to view its current contents.
 **What happens if it's deleted?** peekdocs runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
 **How to recover:**
 1. Open the GUI (`peekdocs-gui`)
@@ -2548,11 +2548,12 @@ peekdocs provides several ways to clean up after a search session:
 | **Delete on Close** | Checkbox on main screen or Advanced Search Options | Deletes `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`, and the search index (`.peekdocs.db`) in every folder searched during the session | Automatically when you close peekdocs |
 | **Clear History on Close** | Checkbox in Advanced Search Options | Clears search history (`~/.peekdocs_history.json`) and recent searches from `~/.peekdocsrc` | Automatically when you close peekdocs |
 | **Clear Preview** | Button on Results Preview header | Wipes all visible match data from the Results Preview pane | Immediately on click |
-| **Delete Now** | Main screen (report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation |
+| **Delete Now** | Main screen (red button on report row) | Deletes result files and search indexes in every folder searched during the session, clears preview, wipes search history, and blanks search terms and folder — all at once | Immediately, after confirmation. The confirm dialog lists every folder peekdocs has files in so you can see the scope before agreeing |
 | **Clear Files** | Tools menu | You choose — checkboxes for each file | Immediately, after confirmation |
+| **Clean Folder** | Tools menu | Browse to any folder and delete the peekdocs-generated files in it (non-recursive) | Two-stage confirmation: auto-generated files first, then user-named saved reports (default No) |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All methods except **Delete Now** leave the search index untouched. **Delete Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by any of these methods. Only **Clear Files** gives you the option to delete those as well, and only if you explicitly check them.
+All methods except **Delete Now** leave the search index untouched. **Delete Now** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Delete Now** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by **Delete Now** or **Delete on Close**. **Clear Files** lets you opt in to deleting those as well via per-category checkboxes; **Clean Folder** asks separately about saved reports in a second confirmation that defaults to No.
 
 ### CLI cleanup scope (`--clear`, `--clear-all`)
 

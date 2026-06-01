@@ -12,12 +12,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Documentation right-sizing pass: README trimmed from ~1,240 lines to
-~920 (-26%) by moving deep-reference material into /docs companion
-files, while keeping every selling point inline. Added a privacy-first
+Documentation right-sizing pass plus a round of GUI polish and
+safety hardening for destructive actions.
+
+Documentation: README trimmed from ~1,240 lines to ~920 (-26%) by
+moving deep-reference material into /docs companion files, while
+keeping every selling point inline. Added a privacy-first
 justification callout, a typical-workflow GUI-path clarifier, and
 honest fixes to a few claims that had drifted out of sync with the
 source.
+
+GUI: layout fixes (Advanced Search Options auto-fits to content,
+Schedule Search popup slightly taller, Error Log viewer gains a
+Clear Log button, white bar around System Check Copy to Clipboard
+removed, About dialog aligned with workbench framing), and safety
+hardening on the four destructive actions (Clean Folder, Delete
+Now, Delete Index, Restore Factory Settings) — each now spells out
+scope, says "this cannot be undone", and reports failures rather
+than swallowing them silently.
 
 ### Added
 
@@ -149,6 +161,79 @@ source.
   comparison feature; Diff Snapshots has shipped and is documented.
   Dropped during the FAQ migration rather than carrying the
   outdated statement forward.
+
+- **Advanced Search Options window auto-fits to content.** The popup
+  had a fixed 900x760 geometry while its content only filled ~560px,
+  leaving ~200px of empty space between Reset All Fields and the
+  bottom action row (because `advanced_frame` was packed with
+  `expand=True`). Now sums the children's requested heights directly
+  at the end of `_build_advanced_panel` and resizes the window to
+  that plus 8px of breathing room. Robust against future content
+  additions and font / DPI variations.
+
+- **Schedule Search popup geometry bumped from 680x650 to 680x720.**
+  The previous height crowded the step-by-step instruction text
+  against the Close button.
+
+- **Error Log viewer now has a Clear Log button.** Previously the
+  only way to clear the error log from the GUI was Tools -> Clear
+  Files -> check the `peekdocs_errors.log` row. The viewer popup
+  now has a red Clear Log button (left-anchored, one row above
+  Close) wired to the existing `_clear_error_log()` method. The
+  viewer auto-closes after a successful deletion since its content
+  is then stale.
+
+- **White bar around System Check Copy to Clipboard button removed.**
+  The button sat inside a `tk.Frame` with explicit `bg="white"` packed
+  with `fill="x"`, rendering as a visible full-width bar across the
+  popup. Replaced with packing the button directly on the popup with
+  `anchor="w"` — same visual position, no white bar, dark theme still
+  handled by CTk button styling.
+
+- **About dialog tagline aligned with workbench framing.** Was still
+  calling peekdocs a "platform"; updated to "workbench" to match the
+  README rebrand.
+
+### Hardened (destructive actions)
+
+- **Clean Folder.** Highest-risk destructive Tools entry (operates on
+  any folder the user picks, not just the current Search Folder).
+  Refactored to:
+  - Two-stage confirm. Auto-generated files (results, index, error
+    log) prompted first; user-saved reports (`peekdocs_report_*` /
+    `peekdocs_accumulated_*`) prompted separately with `default=NO`.
+    Skipping either stage doesn't delete its files.
+  - "This cannot be undone." in both dialogs.
+  - IMPORTANT clause in both dialogs naming the exact prefixes so
+    users with manually-named files matching them know they'll be
+    caught by the pattern match.
+  - Deletion failures surfaced (up to 5 filenames + reasons) in a
+    warning dialog and an orange `Cleaned N; M failed.` status bar.
+    Previously `except OSError: pass` swallowed them silently.
+
+- **Delete Now (main-screen button).** Color changed from teal
+  `#0D9488` to red `#CC3333` to match other destructive actions
+  (Reset All Fields, Restore Factory Settings). The confirm dialog
+  now computes the folder set BEFORE prompting and lists every
+  folder where peekdocs has files — previously the multi-folder
+  scope (every folder searched this session + current Search
+  Folder + `~/peekdocs_reports` + folders saved in config) was
+  hidden. Added "This cannot be undone." Tracks deletion failures
+  and surfaces them like Clean Folder does.
+
+- **Delete Index (Tools -> Indexes).** Previously had no confirmation
+  at all — single click destroyed the index. Now confirms with an
+  honest description of the rebuild cost ("seconds for small folders,
+  minutes for large or PDF-heavy ones; searches stay correct
+  regardless") and "you can rebuild later." `default=NO`.
+
+- **Restore Factory Settings (Advanced Search Options).** Confirm
+  dialog now enumerates the nine setting categories about to be
+  reset (search mode, regex/fuzzy/wildcard/OCR flags, file types,
+  output formats, max matches and file size, CPU cores, proximity
+  and context lines, recent searches and last folder, appearance)
+  instead of just saying "settings reset to factory defaults."
+  Added "This cannot be undone." `default=NO`.
 
 ## [1.0.4] — 2026-05-30
 
