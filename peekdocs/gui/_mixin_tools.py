@@ -5790,17 +5790,17 @@ class ToolsMixin:
 
         txt.insert("end", "Three ways to search\n", "title")
         txt.insert("end",
-                   "peekdocs has three Run buttons on the main page. "
-                   "They share the same folder and same file types but "
+                   "peekdocs has three Search buttons on the main page. "
+                   "They share the same folder (Step 1) and same file types but "
                    "differ in what they do and what report they produce.\n",
                    "body")
 
         txt.insert("end", "Run Standard Search (blue)\n", "std")
         txt.insert("end",
                    "Type one or more terms in the search bar and click Run. "
-                   "Supports AND/OR, whole-word, fuzzy, wildcard, and a single "
-                   "regex term. Produces one report with every match.\n"
-                   "Click the Advanced link above the run-buttons row to open "
+                   "Supports AND/OR, whole-word, fuzzy, wildcard, and regex "
+                   "(one or more patterns). Produces one report with every match.\n"
+                   "Click the Advanced link above the search-buttons row to open "
                    "Advanced Search Options — file types, exclude terms, "
                    "range filters, proximity, context lines, OCR, and more "
                    "all live there and apply to the standard search.\n"
