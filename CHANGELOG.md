@@ -369,6 +369,19 @@ rather than swallowing them silently.
   "Three interfaces, one engine" framing in Feature Highlights.
   Sub-block labels (a)/(b)/(c)/(d) and their content unchanged.
 
+- **`-B N` / `-A N` and GUI Lines Before / Lines After now spell out
+  what "line" means across file formats.** AND mode (`-a`) and line
+  proximity (`-P N`) docs already explained that "line" varies by
+  format — paragraph for Word/PDF, row for Excel, literal line for
+  plain text and source code — but the Lines Before / Lines After
+  flag had inherited the same ambiguity without the explanation.
+  Updated in USER_GUIDE flag table, CLI `-h` help text, both GUI
+  tooltips on the Advanced Search Options entry fields, and the
+  API Reference `context_before` / `context_after` parameter rows.
+  No behavior change — just disclosure that on paragraph-heavy
+  formats a small `-B` / `-A` value can pull in several sentences
+  or pages of surrounding text.
+
 - **"Why I built this" in the Author section rewritten.** The
   previous one-line three-clause version ("I needed it, I wanted an
   AI learning project, and sharing it cost nothing") understated

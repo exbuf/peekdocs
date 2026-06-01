@@ -260,8 +260,8 @@ if __name__ == "__main__":
 | `exclude_terms` | `list[str]` | `None` | Exclude lines matching these terms |
 | `file_types` | `list[str]` | `None` | Limit to these extensions (e.g. `[".pdf", ".docx"]`) |
 | `file_names` | `list[str]` | `None` | Search only these specific files |
-| `context_before` | `int` | `0` | Lines to include before each match |
-| `context_after` | `int` | `0` | Lines to include after each match |
+| `context_before` | `int` | `0` | Lines to include before each match. What counts as a "line" follows the unit peekdocs indexes per file format: a literal line for plain text and source code, a paragraph for Word (.docx) and PDF, a row for Excel. Paragraph-heavy formats can include several sentences per "line." |
+| `context_after` | `int` | `0` | Lines to include after each match. Same per-format meaning as `context_before` — see above. |
 | `proximity` | `int` | `0` | Require terms within N words of each other |
 | `cores` | `int` | Auto | CPU cores for parallel processing |
 | `use_index` | `bool` | Auto | Use search index if available |
