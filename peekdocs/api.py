@@ -54,6 +54,7 @@ class SearchResult:
     elapsed: float         # seconds
     used_index: bool       # whether the indexed path was used
     index_bypass_reason: str = ""  # non-empty when user requested index but it was bypassed
+    index_stale_notice: str = ""   # non-empty when index metadata doesn't match current params
 
 
 def search(
@@ -257,31 +258,45 @@ def search(
         elif use_proximity:
             index_bypass_reason = "proximity query — direct scan is faster than the index"
 
+    index_stale_notice = ""
     if use_index:
         indexed = True
-        # If the index was built with a different max_file_size_mb, rebuild it
-        # so search results match the current setting
+        # Detect parameter mismatch with stored index metadata and surface a
+        # notice rather than auto-rebuilding silently. Previous behavior was
+        # to fire a full rebuild every time max_file_size_mb didn't match the
+        # stored value; on large folders (or folders with filename quirks
+        # that interact badly with build_index), that rebuild could fail
+        # silently inside `except Exception: pass`, wasting time on every
+        # search without any visible signal. The user can rebuild
+        # explicitly with `peekdocs --index` when they're ready.
         try:
-            from peekdocs.indexer import index_status as _status, build_index as _rebuild
+            from peekdocs.indexer import index_status as _status
             status = _status(directory)
-            # Rebuild if the DB is valid and the stored limit differs from current,
-            # OR if the metadata is missing (old index from before this feature)
             if status is not None:
                 stored_mfs = status.get("max_file_size_mb")
-                needs_rebuild = False
                 if stored_mfs is None:
-                    needs_rebuild = True  # old index, rebuild to add metadata
+                    index_stale_notice = (
+                        "index lacks max-file-size metadata (built by an older peekdocs); "
+                        "run `peekdocs --index` to rebuild with metadata"
+                    )
                 else:
                     try:
-                        if int(stored_mfs) != max_file_size_mb:
-                            needs_rebuild = True
+                        stored_int = int(stored_mfs)
+                        if stored_int != max_file_size_mb:
+                            index_stale_notice = (
+                                f"index built with max-file-size={stored_int} MB; current "
+                                f"setting is {max_file_size_mb} MB. Files outside the indexed "
+                                f"range are not in the index. Run `peekdocs --index` to rebuild"
+                            )
                     except (ValueError, TypeError):
-                        needs_rebuild = True
-                if needs_rebuild:
-                    _rebuild(directory, recursive=True, use_ocr=use_ocr,
-                             max_file_size_mb=max_file_size_mb)
-        except Exception:
-            pass
+                        index_stale_notice = (
+                            f"index has unparseable max-file-size metadata "
+                            f"({stored_mfs!r}); run `peekdocs --index` to rebuild"
+                        )
+        except Exception as exc:
+            # Surface the actual error rather than swallowing it. Useful for
+            # debugging future regressions in index_status.
+            index_stale_notice = f"could not inspect index metadata: {exc}"
         try:
             refresh_index(directory, recursive=True, use_ocr=use_ocr, max_file_size_mb=max_file_size_mb)
         except Exception:
@@ -357,6 +372,7 @@ def search(
         elapsed=elapsed,
         used_index=indexed,
         index_bypass_reason=index_bypass_reason,
+        index_stale_notice=index_stale_notice,
     )
 
 

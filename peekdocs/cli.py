@@ -2071,6 +2071,8 @@ def _main_inner(argv=None):
     print(f"Elapsed time: {elapsed:.2f} seconds, Cores used: {cores} of {cpu_count}")
     if search_result.index_bypass_reason:
         print(f"Note: index bypassed — {search_result.index_bypass_reason}.")
+    if search_result.index_stale_notice:
+        print(f"Note: {search_result.index_stale_notice}.")
     if len(all_files) == 0 and not minimal:
         print()
         print("  Tip: No files were found to search.")

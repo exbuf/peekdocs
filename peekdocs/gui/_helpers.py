@@ -799,6 +799,14 @@ def _parse_summary_text(stdout):
     if bypass_match:
         parts.append(f"— index bypassed ({bypass_match.group(1).strip()})")
 
+    # Surface the "Note: index built with max-file-size=N MB; …" stale-index
+    # notice emitted when the saved index parameters don't match the current
+    # search settings. The condensed status-line version just calls it out
+    # as "stale" — the user can re-run `peekdocs --index` for the full text.
+    stale_match = re.search(r"Note: index (built with max-file-size|lacks max-file-size|has unparseable)", clean)
+    if stale_match:
+        parts.append("— index settings out of sync (run --index to refresh)")
+
     return " ".join(parts) if parts else ""
 
 
