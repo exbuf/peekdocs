@@ -663,7 +663,8 @@ class BuildMixin:
         self.advanced_window = ctk.CTkToplevel(self)
         self.advanced_window.title("Advanced Search Options")
         self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
-        self.advanced_window.geometry("900x760")
+        # Width fixed; height set after all widgets are placed (see end of function)
+        self.advanced_window.geometry("900x100")
         self.advanced_window.resizable(True, True)
         self.advanced_window.protocol("WM_DELETE_WINDOW", self._close_advanced_window)
         # Withdraw after event loop starts to avoid flash
@@ -1063,15 +1064,20 @@ class BuildMixin:
         adv_inspect_btn.pack(side="right", padx=(0, 5))
         Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
 
-        # Auto-fit window to actual content height — the old fixed 760px geometry
-        # left ~200px of empty space between the last advanced_frame widget
-        # (Reset All Fields, row 12) and the bottom action row, because
-        # advanced_frame was packed with expand=True. Compute the natural
-        # requested height after all widgets are placed and resize once, plus
-        # a small breathing-room margin below Reset All Fields.
+        # Auto-fit window to actual content height. Compute from children
+        # directly rather than winfo_reqheight() on the window itself, because
+        # the window's reqheight is influenced by whatever geometry was set
+        # earlier — it doesn't shrink to natural content size on its own.
+        # Children: advanced_frame (top) + adv_bottom_frame (bottom);
+        # vertical padding budget = 30 (advanced_frame pady=10 + 10, bottom pady=0 + 10).
         self.advanced_window.update_idletasks()
-        req_h = self.advanced_window.winfo_reqheight() + 24
-        self.advanced_window.geometry(f"900x{req_h}")
+        content_h = (
+            self.advanced_frame.winfo_reqheight()
+            + adv_bottom_frame.winfo_reqheight()
+            + 30
+            + 8  # breathing room below Reset All Fields
+        )
+        self.advanced_window.geometry(f"900x{content_h}")
 
     def _build_progress_area(self):
         """Build the progress bar, status label, and results preview pane."""
