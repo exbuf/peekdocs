@@ -148,7 +148,7 @@ One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Pyth
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
-**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 69 matches in 54 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame. The 0.41-second elapsed time is the *second* run — the first search took about 44 seconds while peekdocs built the index for this folder. Every subsequent search uses the warm index and runs in milliseconds (see [First-run timing](#first-run-timing-and-the-banner-notice) for details).
+**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 69 matches in 54 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame. The 0.40-second elapsed time is the *second* run — the first search took about 44 seconds while peekdocs built the index for this folder. Every subsequent search uses the warm index and runs in milliseconds (see [First-run timing](#first-run-timing-and-the-banner-notice) for details).
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
