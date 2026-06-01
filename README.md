@@ -144,7 +144,7 @@ peekdocs --suite "Code hygiene"
 
 One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Python API, and the auto-generated Word report.
 
-**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 69 matches in 54 files (out of 453 files / 808 MB scanned) in 0.59 seconds. Every match is highlighted in yellow with surrounding context.
+**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 69 matches in 54 files (out of 449 files / 806 MB scanned) in 0.59 seconds. Every match is highlighted in yellow with surrounding context.
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
