@@ -12,8 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Documentation right-sizing pass plus a round of GUI polish and
-safety hardening for destructive actions.
+Documentation right-sizing pass, a round of GUI polish and safety
+hardening for destructive actions, a main-screen button rename for
+honest labeling, and two performance-relevant bug fixes
+(`api.search` no longer wastes 30+ seconds per call on a silently
+failing index rebuild when index metadata and current params don't
+match; CLI `-qq` now actually honors "minimal output" by suppressing
+the Searching announcement, spinner thread, progress bar, and final
+completion line in addition to the banner).
 
 Documentation: README trimmed from ~1,240 lines to ~920 (-26%) by
 moving deep-reference material into /docs companion files, while
@@ -25,11 +31,14 @@ source.
 GUI: layout fixes (Advanced Search Options auto-fits to content,
 Schedule Search popup slightly taller, Error Log viewer gains a
 Clear Log button, white bar around System Check Copy to Clipboard
-removed, About dialog aligned with workbench framing), and safety
-hardening on the four destructive actions (Clean Folder, Delete
-Now, Delete Index, Restore Factory Settings) — each now spells out
-scope, says "this cannot be undone", and reports failures rather
-than swallowing them silently.
+removed, About dialog aligned with workbench framing); main-screen
+button rename so labels match behavior ("Run Search Suites" ->
+**Search Suites**, "Run Regex Search" -> **Regex Search** because
+both open management popups rather than executing immediately); and
+safety hardening on the four destructive actions (Clean Folder,
+Delete Now, Delete Index, Restore Factory Settings) — each now
+spells out scope, says "this cannot be undone", and reports failures
+rather than swallowing them silently.
 
 ### Added
 
@@ -141,17 +150,19 @@ than swallowing them silently.
 
   Side effects: the main-screen hyperlink "3 Run Buttons — what's
   the difference?" became "3 Search Buttons — what's the
-  difference?"; button widths shrank slightly to fit the new labels
-  (260 -> 200, 240 -> 180); the in-popup execute buttons are
-  unchanged (they really do run); the Getting Started Step 3 text
-  and the Standard Search button tooltip were updated to use the
-  new names. README's typical-workflow clarifier was rewritten
-  to match. CHANGELOG entries referencing the old labels in
-  historical release notes are deliberately left untouched.
-
-  Two screenshots (the main-page Standard-search shot and the
-  Getting-Started step explanation, both in docs/images/) show
-  the old labels and need re-capture.
+  difference?"; button widths shrank to 200 each (was 260 for Suites
+  and 240 for Regex Search — both now visually identical); the
+  in-popup execute buttons are unchanged (they really do run); the
+  Getting Started Step 3 text and the Standard Search button
+  tooltip were updated to use the new names; both buttons' hover
+  colors were set equal to their fg colors so they no longer darken
+  on hover (the in-popup execute buttons keep their darker hover
+  feedback). README's typical-workflow clarifier was rewritten to
+  match. The main-page and CLI screenshots in docs/images/ were
+  recaptured and committed (b8ee5fd, 7d42b9c) along with caption
+  updates for the new file count and elapsed times. CHANGELOG
+  entries referencing the old labels in historical release notes
+  are deliberately left untouched.
 
 ### Fixed
 
@@ -276,6 +287,56 @@ than swallowing them silently.
   Added `SearchResult.index_stale_notice: str = ""` field;
   documented in API Reference, USER_GUIDE Search Index section,
   and TROUBLESHOOTING.
+
+- **CLI `-qq` now honors "minimal output" as the help text claims.**
+  The help string says `-qq` shows "only Found/Elapsed lines (no
+  file list, warnings, or report paths)," but four call sites in
+  `cli.py` gated their output on `not stdout_json` alone, so `-qq`
+  still printed the `Searching ({mode}) on [...] ...` announcement,
+  started the spinner thread, ran `_cli_progress` with its rolling
+  progress bar, and printed the final `[done]` render. With the
+  fix, all four sites also gate on `not minimal`. Terminal output
+  under `-qq` now actually matches the screenshot in the README
+  (just Found / Elapsed).
+
+- **Delete Now tooltip flicker loop with tooltips enabled.** A long
+  `anchor="above"` tooltip on the Delete Now button could overlap
+  the button after Tk's `winfo_height()` returned a partial value
+  during measurement, causing the cursor to "fall under" the
+  tooltip, fire `<Leave>` on the button, schedule a hide, then
+  re-fire `<Enter>` 150 ms later when the tooltip disappeared —
+  an endless Enter/Leave loop. Two defenses: the Delete Now
+  tooltip was shortened from ~600 to ~310 characters (the
+  confirmation dialog already lists everything; the tooltip just
+  needs a hover hint), and `peekdocs/gui/_tooltip.py` now clamps
+  `tip_h` to at least 60 px and widens the safety gap above the
+  widget from 6 px to 24 px so even a partial height measurement
+  can't put the tooltip on top of the widget.
+
+### Docs
+
+- **TROUBLESHOOTING "Why is my first search slow but later searches
+  are fast?" FAQ distinguishes two causes.** The existing entry
+  only covered first-time index build cost. Users who already have
+  an index built reported a second kind of first-search slowness
+  (~2.5 s first, ~0.5 s subsequent) with no rebuild in between.
+  Expanded to cover both: (1) first index build for a brand-new
+  folder; (2) cold OS filesystem cache on the first invocation in
+  a session, plus Python interpreter startup paid by each fresh
+  invocation, plus `refresh_index`'s `os.stat()` pass hitting disk
+  before the directory cache warms. Steady-state performance is
+  the sub-second figure; the first-search penalty is the price of
+  being absent from the OS cache. Mitigation: pre-warm via a
+  scheduled `peekdocs --index-refresh` at login. README's
+  First-run timing section gets a matching cold-cache paragraph
+  with a pointer to the FAQ.
+
+- **Screenshots section reframed from "Same search, four ways" to
+  "Same search, three interfaces — plus the report."** The auto-
+  generated Word report is the *output* of a search, not a fourth
+  way to perform one. Heading and lead now match the existing
+  "Three interfaces, one engine" framing in Feature Highlights.
+  Sub-block labels (a)/(b)/(c)/(d) and their content unchanged.
 
 ## [1.0.4] — 2026-05-30
 
