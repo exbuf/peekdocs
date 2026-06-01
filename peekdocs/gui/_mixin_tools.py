@@ -6086,10 +6086,9 @@ class ToolsMixin:
 
         text.config(state="disabled")
 
-        # Copy to Clipboard — anchored to the left in its own row.
-        copy_row = tk.Frame(popup, bg=("white" if not _dark else "#2B2B2B"))
-        copy_row.pack(fill="x", padx=12, pady=(4, 0))
-
+        # Copy to Clipboard — packed directly on popup, left-anchored.
+        # (Previous intermediate tk.Frame had an explicit white background
+        # that rendered as a visible full-width bar in light mode.)
         def _copy_to_clipboard():
             popup.clipboard_clear()
             popup.clipboard_append("\n".join(plain_lines))
@@ -6098,11 +6097,11 @@ class ToolsMixin:
             popup.after(1500, lambda: copy_btn.configure(text="Copy to Clipboard"))
 
         copy_btn = ctk.CTkButton(
-            copy_row, text="Copy to Clipboard", width=160,
+            popup, text="Copy to Clipboard", width=160,
             font=ctk.CTkFont(size=12),
             command=_copy_to_clipboard,
         )
-        copy_btn.pack(side="left")
+        copy_btn.pack(anchor="w", padx=12, pady=(4, 0))
 
         # Close — centered, on its own row below Copy to Clipboard.
         close_row = tk.Frame(popup, bg=("white" if not _dark else "#2B2B2B"))
