@@ -12,7 +12,7 @@ Built for people who prefer local, transparent, deterministic tools over cloud s
 
 ## Feature Highlights
 
-peekdocs is a workbench for document collections. It searches PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats; characterizes a folder via built-in analysis tools (duplicates, inventories, age distribution, change tracking); produces highlighted reports you can save, print, or share; and exposes the same engine through GUI, CLI, and Python API.
+peekdocs is a workbench for document collections. It searches PDFs, Word documents, Excel spreadsheets, email archives, ZIP files, scanned images (OCR), and 100+ other formats; characterizes document collections through built-in analysis tools (duplicates, inventories, age distribution, change tracking); produces highlighted reports you can save, print, or share; and exposes the same engine through GUI, CLI, and Python API.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
@@ -26,6 +26,10 @@ peekdocs is a workbench for document collections. It searches PDFs, Word documen
 - **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, report formats, and exit codes are byte-identical regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
 - **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce byte-identical outputs every time — the search you build today still works tomorrow.
 - **Cross-platform** — same features on macOS, Windows, and Linux
+
+&nbsp;
+
+> **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR failed, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
 
 &nbsp;
 
