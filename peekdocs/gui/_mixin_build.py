@@ -1063,7 +1063,15 @@ class BuildMixin:
         adv_inspect_btn.pack(side="right", padx=(0, 5))
         Tooltip(adv_inspect_btn, "View the current saved settings in ~/.peekdocsrc (read-only). These settings are saved by 'Save As Defaults' and apply to: search mode (AND/OR), recursive, regex, fuzzy, wildcard, whole word, OCR, inverse, file types, exclude terms, word proximity, context lines, max matches, max file size, CPU cores, output formats, output directory, timestamp, quiet mode, and appearance. They persist across sessions and are used as defaults when the app starts", anchor="above")
 
-
+        # Auto-fit window to actual content height — the old fixed 760px geometry
+        # left ~200px of empty space between the last advanced_frame widget
+        # (Reset All Fields, row 12) and the bottom action row, because
+        # advanced_frame was packed with expand=True. Compute the natural
+        # requested height after all widgets are placed and resize once, plus
+        # a small breathing-room margin below Reset All Fields.
+        self.advanced_window.update_idletasks()
+        req_h = self.advanced_window.winfo_reqheight() + 24
+        self.advanced_window.geometry(f"900x{req_h}")
 
     def _build_progress_area(self):
         """Build the progress bar, status label, and results preview pane."""
