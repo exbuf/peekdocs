@@ -338,6 +338,21 @@ rather than swallowing them silently.
   "Three interfaces, one engine" framing in Feature Highlights.
   Sub-block labels (a)/(b)/(c)/(d) and their content unchanged.
 
+- **"Why I built this" in the Author section rewritten.** The
+  previous one-line three-clause version ("I needed it, I wanted an
+  AI learning project, and sharing it cost nothing") understated
+  every part of the story. Replaced with a three-sentence narrative
+  that names the concrete problem (searching large collections of
+  mixed-format documents locally, privately, and efficiently), the
+  real ambition (exploring what a single developer can build with
+  today's AI-assisted tools), the dogfooding step ("After relying
+  on it in my own workflow"), and the share decision under MIT.
+
+- **`docs/images/screenshot-advanced-screen.png` recaptured** after
+  the Advanced Search Options auto-fit fix in 433a5ec. The panel
+  now sizes to its actual content without the ~200 px of empty
+  space below Reset All Fields that earlier captures showed.
+
 ## [1.0.4] — 2026-05-30
 
 Polish release focused on first-run experience and onboarding clarity:
