@@ -113,103 +113,20 @@ for match in results.matches:
 
 ## CLI at a Glance
 
-Type `peekdocs` with no arguments to see a quick command reference:
+```bash
+# Recursive search for "budget"
+peekdocs -r budget
 
-```
-$ peekdocs
+# Regex pattern, piped through jq for the match count
+peekdocs --stdout -x "\d{3}-\d{4}" | jq '.matches_found'
 
-By default, only the current folder is searched. Use -r to include subfolders.
-
-── Search Modes (examples — flags can be combined freely) ────────
-  peekdocs term1 term2           OR search (any term matches)
-  peekdocs -a term1 term2        AND search (all terms required in same line)
-  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens
-  peekdocs -x "\d{3}-\d{4}"      Regex pattern matching
-  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)
-  peekdocs -z budgt              Fuzzy matching (typo-tolerant)
-  peekdocs -W bob                Whole-word only (not "bobcat")
-  peekdocs -p 5 budget revenue   Word proximity (terms within 5 words of each other)
-  peekdocs -P 3 budget acme      Line proximity (terms within 3 lines of each other)
-  peekdocs --inverse budget      Find files that do NOT contain "budget"
-  peekdocs -n draft budget       Find "budget" but exclude lines containing "draft"
-  peekdocs -s quarterly budget   Save a named copy of the report
-  peekdocs --open docx budget    Search and auto-open the highlighted Word report
-  peekdocs --open html budget    Search, generate HTML, and open in browser
-
-── Common Options ───────────────────────────────────────────────
-  peekdocs -r budget               Search all subfolders recursively
-  peekdocs -t pdf,docx budget      Search only PDF and Word files
-  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match
-  peekdocs -R amount:1000..5000 "" Filter by dollar range
-  peekdocs -O budget               Enable OCR for scanned PDFs and images
-  peekdocs -o csv,json,pdf,html budget  Additional output formats (any combination)
-  peekdocs -m 5000 budget          Max matches in reports (0 = no limit, default: 1000)
-  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)
-  peekdocs --index                 Build search index for faster repeated searches
-  peekdocs --suite "My Suite"      Run a saved search suite by name (auto-locates folder)
-  peekdocs --suite ~/Documents/MyDocs/"Example 1"  Run a suite by full path (explicit folder)
-  peekdocs --list-suites           List every known suite and its folder
-  peekdocs --config max_matches=5000  Save a default setting permanently
-
-── Piping and automation ─────────────────────────────────────────
-
-  # Output structured JSON to stdout (no report files created)
-  peekdocs --stdout -r "budget"
-
-  # Use jq to extract match statistics
-  peekdocs --stdout -r "budget" | jq '.matches_found'
-
-  # Run a saved regex workflow
-  peekdocs --regex-collection "code patterns"
-
-  # Run recursively across subdirectories
-  peekdocs --regex-collection "code patterns" -r
-
-  # Emit regex workflow results as JSON
-  peekdocs --regex-collection "code patterns" --stdout
-
-  # List available regex collections
-  peekdocs --regex-collection --list
-
-  # Workflow: run overnight recursive analysis and save JSON results
-  peekdocs --regex-collection "research review" -d ~/Documents -r --stdout > results.json
-
-  GUI users: Tools → Schedule Search can generate these commands
-  with step-by-step instructions — no terminal experience needed.
-
-── Cleanup ──────────────────────────────────────────────────────
-  peekdocs --list-files          List all peekdocs-created files
-  peekdocs --clear               Delete peekdocs_*_results* files
-  peekdocs --clear-all           Delete all peekdocs output files
-
-Exit codes: 0 = matches found, 1 = no matches, 2 = error.
-
-Type peekdocs -h for full help (all flags, file types, regex patterns).
+# Run a saved Search Suite by name
+peekdocs --suite "Code hygiene"
 ```
 
-**When to use quotes around search terms:** Single words don't need quotes (`peekdocs budget`). Use quotes for phrases (`peekdocs "budget report"`), regex (`peekdocs -x "\d{3}-\d{4}"`), and anything with special characters like `$`, `*`, `(`, `)`, `|`, or `=` — the shell will interpret them before peekdocs sees them. When in doubt, use quotes — they never hurt.
+`peekdocs -h` shows every flag, file type, and regex pattern. The [User Guide](docs/USER_GUIDE.md) covers the CLI in full.
 
-Condensed version of `peekdocs -h` (all flags and options):
-
-```
-Search modes:
-  (default)          OR    -a AND    -e "EXPR" Boolean    -x Regex
-  -w Wildcard    -z Fuzzy    -W Whole-word    -p Word proximity
-  -P Line proximity    --inverse
-
-Filters:  -t pdf,docx  -r (recursive)  -n draft (exclude)  -O (OCR)
-          -R amount:1000..5000  --max-file-size 500  -f report.pdf
-Output:   -o csv,json,pdf,html  -s name (save)  --timestamp
-          --open docx  --open html  -sa archive (append)
-          --stdout (JSON to stdout for piping, no report files)
-Index:    --index (build)  --index-refresh  --index-clear
-Cleanup:  --clear  --clear-all  --list-files
-Settings: --config KEY=VAL  --config --reset  --check
-```
-
-Run `peekdocs -h` for the full list of flags, file types, and regex patterns.
-
-### Screenshots
+## Screenshots
 
 *The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works equally well on personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
