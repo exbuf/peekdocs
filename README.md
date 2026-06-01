@@ -36,6 +36,10 @@ A workbench for document collections: search them, characterize them through bui
 
 &nbsp;
 
+> **Why local?** Most people have at least some documents they would rather not hand to a third party — drafts, work-in-progress, personal correspondence, financial paperwork. peekdocs is local-only because that's the only way the answer to "where does this go?" stays "nowhere — it stayed on my machine." The tradeoff is real: peekdocs doesn't summarize, doesn't answer questions about your documents, doesn't infer meaning. Those are jobs cloud AI tools do well; peekdocs is for finding exact text in a lot of files, repeatably, on your own machine.
+
+&nbsp;
+
 > **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR couldn't extract text, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
 
 &nbsp;
