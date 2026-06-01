@@ -1900,7 +1900,7 @@ class DataMixin:
         except Exception:
             ver = "unknown"
         tk.Label(about_win, text="peekdocs", font=("TkDefaultFont", 16, "bold")).pack(pady=(15, 2))
-        tk.Label(about_win, text="Privacy-first local document search\nand analysis platform\nwith yellow-highlighted reports",
+        tk.Label(about_win, text="Privacy-first local document search\nand analysis workbench\nwith yellow-highlighted reports",
                  font=("TkDefaultFont", 10), fg="gray", justify="center").pack(pady=(0, 4))
         tk.Label(about_win, text=f"Version {ver}", font=("TkDefaultFont", 12)).pack()
         tk.Label(about_win, text="by Robert D. Schoening", font=("TkDefaultFont", 12)).pack(pady=(2, 2))
