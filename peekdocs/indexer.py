@@ -59,6 +59,9 @@ def _create_schema(conn):
             FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
         );
 
+        CREATE INDEX IF NOT EXISTS idx_paragraphs_file_line
+            ON paragraphs(file_id, line_num);
+
         CREATE VIRTUAL TABLE IF NOT EXISTS paragraphs_fts USING fts5(
             text, content='paragraphs', content_rowid='id'
         );
@@ -469,8 +472,6 @@ def _can_use_fts5_fast_path(config):
         return False
     if config.get("use_proximity", False):
         return False
-    if config.get("use_context", False):
-        return False
     if config.get("use_wildcard", False):
         return False
     if config.get("expression_ast") is not None:
@@ -675,11 +676,31 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
     FTS5 returns candidates; Python post-filters for exact semantics.
     For expression mode with whole-word, uses FTS5 OR as pre-filter
     and evaluates the expression AST as post-filter.
+
+    When use_context is True (Lines Before / Lines After > 0), the
+    function still uses FTS5 to find matches but then does a small
+    range query per matched file to fetch the surrounding lines —
+    rather than scanning every paragraph of every file the way the
+    parse-cache path does. This keeps an indexed context search
+    near-FTS5-fast on large folders.
     """
     search_terms = config["search_terms"]
     match_all = config["match_all"]
     exclude_terms = config.get("exclude_terms", [])
     expression_ast = config.get("expression_ast")
+    use_context = config.get("use_context", False)
+    context_before = config.get("context_before", 0)
+    context_after = config.get("context_after", 0)
+
+    # Ensure the (file_id, line_num) index exists. Newly built indexes get
+    # it from _create_schema; older indexes built before this index was
+    # introduced pay a one-time creation cost on the first context search.
+    # Idempotent and fast if the index already exists.
+    if use_context:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_paragraphs_file_line "
+            "ON paragraphs(file_id, line_num)"
+        )
 
     # For expression mode, use OR pre-filter to get all candidate rows
     if expression_ast is not None:
@@ -689,9 +710,10 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
     if not fts_query:
         return [], []
 
-    # Query FTS5 for candidates, joined with files table
+    # Query FTS5 for candidates, joined with files table. f.id (file_id) is
+    # included so context lookups can use it directly without a second join.
     sql = f"""
-        SELECT f.file_dir, f.filename, p.line_num, p.text
+        SELECT f.id, f.file_dir, f.filename, p.line_num, p.text
         FROM paragraphs p
         JOIN paragraphs_fts fts ON p.id = fts.rowid
         JOIN files f ON p.file_id = f.id
@@ -707,8 +729,9 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
         # FTS5 query syntax error — fall back to parse-cache path
         return _parse_cache_search(conn, config, file_filter_sql, file_filter_params)
 
-    # Post-filter
-    matches = []
+    # Post-filter — carry file_id alongside the existing match data so it's
+    # available for context lookups below.
+    filtered = []  # list of (file_id, file_dir, filename, line_num, text)
 
     if expression_ast is not None:
         from peekdocs.expr_parser import evaluate_expression
@@ -719,26 +742,70 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
                 return bool(re.search(r'\b' + re.escape(term) + r'\b', text, re.IGNORECASE))
             return term.lower() in text.lower()
 
-        for file_dir, filename, line_num, text in rows:
+        for file_id, file_dir, filename, line_num, text in rows:
             if evaluate_expression(expression_ast, text, _term_matches, filename=filename):
-                matches.append((file_dir, filename, line_num, text))
+                filtered.append((file_id, file_dir, filename, line_num, text))
     else:
         use_whole_word = config.get("use_whole_word", False)
         check = all if match_all else any
-        for file_dir, filename, line_num, text in rows:
+        for file_id, file_dir, filename, line_num, text in rows:
             if use_whole_word:
                 if check(bool(re.search(r'\b' + re.escape(t) + r'\b', text, re.IGNORECASE)) for t in search_terms):
                     if exclude_terms:
                         if any(bool(re.search(r'\b' + re.escape(e) + r'\b', text, re.IGNORECASE)) for e in exclude_terms):
                             continue
-                    matches.append((file_dir, filename, line_num, text))
+                    filtered.append((file_id, file_dir, filename, line_num, text))
             else:
                 text_lower = text.lower()
                 if check(t.lower() in text_lower for t in search_terms):
                     if exclude_terms:
                         if any(e.lower() in text_lower for e in exclude_terms):
                             continue
-                    matches.append((file_dir, filename, line_num, text))
+                    filtered.append((file_id, file_dir, filename, line_num, text))
+
+    if not use_context:
+        # No context window requested — strip file_id and return as before.
+        return [(fd, fn, ln, txt) for (_, fd, fn, ln, txt) in filtered], []
+
+    # Context fetch: for each file that had matches, run a single range query
+    # for paragraphs in [min_match - before, max_match + after], then reuse
+    # scanner.apply_context to merge overlapping windows and tag which rows
+    # are actual matches. The output match shape (file_dir, filename,
+    # first_match_line_num, "\n".join(group_lines)) is identical to what
+    # _search_file_lines + context_group_to_match produces in the
+    # non-indexed path, so reports and previews render the same.
+    from collections import defaultdict
+    from peekdocs.scanner import apply_context
+
+    by_file = defaultdict(list)
+    for file_id, file_dir, filename, line_num, text in filtered:
+        by_file[(file_id, file_dir, filename)].append(line_num)
+
+    matches = []
+    for (file_id, file_dir, filename), match_lines in by_file.items():
+        match_lines = sorted(set(match_lines))
+        if not match_lines:
+            continue
+        lo = max(0, match_lines[0] - context_before)
+        hi = match_lines[-1] + context_after
+
+        line_rows = conn.execute(
+            "SELECT line_num, text FROM paragraphs "
+            "WHERE file_id = ? AND line_num BETWEEN ? AND ? ORDER BY line_num",
+            (file_id, lo, hi),
+        ).fetchall()
+        all_lines = [(ln, txt) for ln, txt in line_rows]
+        if not all_lines:
+            continue
+
+        match_set = set(match_lines)
+        match_indices = {i for i, (ln, _) in enumerate(all_lines) if ln in match_set}
+
+        groups = apply_context(all_lines, match_indices, context_before, context_after)
+        for group in groups:
+            first_match_num = next(ln for ln, _, is_match in group if is_match)
+            joined_text = "\n".join(text for _, text, _ in group)
+            matches.append((file_dir, filename, first_match_num, joined_text))
 
     return matches, []
 

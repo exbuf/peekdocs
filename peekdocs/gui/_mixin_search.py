@@ -231,38 +231,19 @@ class SearchMixin:
         _mode_str = f", {'+'.join(_modes)}" if _modes else ""
         _term_label += _mode_str
 
-        # If Use Index is on and the index was built with a different max file
-        # size, warn the user that the index will be rebuilt during this search
-        _will_rebuild = False
-        if self.index_search_var.get() == "on":
-            try:
-                from peekdocs.indexer import index_status as _istatus
-                status = _istatus(folder)
-                if status:
-                    stored = status.get("max_file_size_mb")
-                    try:
-                        current_mfs = int(self.max_file_size_entry.get().strip() or "100")
-                    except ValueError:
-                        current_mfs = 100
-                    if stored is None:
-                        # Old index from before this feature — will rebuild
-                        _will_rebuild = True
-                    else:
-                        try:
-                            if int(stored) != current_mfs:
-                                _will_rebuild = True
-                        except (ValueError, TypeError):
-                            _will_rebuild = True
-            except Exception:
-                pass
-
-        if _will_rebuild:
-            self.status_label.configure(
-                text=f"Rebuilding index with new Max File Size, then searching ({_term_label})...",
-                text_color=("blue", "#66BBFF"),
-            )
-        else:
-            self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("blue", "#66BBFF"))
+        # Pre-search status. Earlier code here probed the index meta for a
+        # max_file_size_mb mismatch and showed "Rebuilding index with new
+        # Max File Size, then searching..." — but since api.py was changed
+        # to surface index_stale_notice instead of attempting a rebuild
+        # (commit 6101c07), that pre-search message was a lie: nothing
+        # rebuilds, and the mismatch usually has nothing to do with the
+        # current session's settings (it's typically a long-standing
+        # config-vs-meta delta the user never touched). The post-search
+        # status line picks up the actual stale-notice condensed by
+        # _parse_summary_text in _helpers.py, so the user still gets a
+        # one-line notice in the right place without the false "Rebuilding"
+        # claim.
+        self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("blue", "#66BBFF"))
         self.search_start_time = time.time()
         self._start_elapsed_timer()
 
@@ -487,18 +468,10 @@ class SearchMixin:
         if self.search_start_time is not None:
             elapsed = time.time() - self.search_start_time
             dots = "." * (int(elapsed) % 4)
-            # Preserve a "Rebuilding index..." prefix if set, append elapsed time
-            current = self.status_label.cget("text") or ""
-            if current.startswith("Rebuilding index"):
-                import re as _re
-                new_text = _re.sub(r"\s*\(\d+s\)\s*$", "", current)
-                new_text = f"{new_text} ({elapsed:.0f}s)"
-                self.status_label.configure(text=new_text, text_color=("blue", "#66BBFF"))
-            else:
-                self.status_label.configure(
-                    text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
-                    text_color=("blue", "#66BBFF"),
-                )
+            self.status_label.configure(
+                text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
+                text_color=("blue", "#66BBFF"),
+            )
         self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
 
