@@ -23,13 +23,13 @@ peekdocs is a workbench for document collections. It searches PDFs, Word documen
 - **Regex Search** — run up to 10 named regex patterns per collection, with unlimited saved collections. Switch between collections for different tasks (e.g., "code patterns", "log analysis", "invoice extraction") — or run any collection from Python via `run_regex_collection()`
 - **Search Suites** — group saved searches and run them all with one click — or from Python via `run_suite()`
 - **File analysis built in** — Collection Summary, Duplicate Finder, Empty Files, File Age Distribution, File Inventory, Large Files, Protected Files, Recent Changes, and Unsearchable Files. Plus Bookmarks and Search History for recurring workflows.
-- **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, report formats, and exit codes are byte-identical regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
-- **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce byte-identical outputs every time — the search you build today still works tomorrow.
+- **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, and report formats are byte-identical regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
+- **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce byte-identical outputs every time — the same search produces the same results today, tomorrow, and a year from now.
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
 &nbsp;
 
-> **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR failed, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
+> **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR couldn't extract text, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
 
 &nbsp;
 
