@@ -912,23 +912,11 @@ class SearchMixin:
     def _delete_everything_now(self):
         """Immediately delete all result files, clear preview, and clear search history."""
         from tkinter import messagebox
-        if not messagebox.askyesno(
-            "Delete Now",
-            "This will immediately:\n\n"
-            "\u2022 Delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*)\n"
-            "\u2022 Delete the search index (.peekdocs.db) — contains extracted text of indexed files\n"
-            "\u2022 Clear the Results Preview\n"
-            "\u2022 Clear your search history and recent searches\n"
-            "\u2022 Clear the search terms and folder fields\n\n"
-            "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
-            "settings, and bookmarks are not affected.\n\n"
-            "Continue?",
-        ):
-            return
 
-        deleted = 0
-        # Collect all folders that may contain peekdocs files:
-        # every folder searched this session, plus current state and safe dir.
+        # Collect folder set FIRST so the confirm dialog can disclose the
+        # multi-folder scope. Previous dialog hid that this operation touches
+        # every folder searched this session plus the saved-config folders,
+        # not just the current Search Folder.
         folders_to_clean = set(getattr(self, "_searched_folders", set()))
         search_folder = self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
         if search_folder and os.path.isdir(search_folder):
@@ -939,39 +927,88 @@ class SearchMixin:
         safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
         if os.path.isdir(safe_dir):
             folders_to_clean.add(safe_dir)
-        # Also check the last-used folder from saved config
         try:
             from peekdocs.cli import _load_config
             _cfg = _load_config()
             _cfg_folder = _cfg.get("folder", "")
             if _cfg_folder and os.path.isdir(_cfg_folder):
                 folders_to_clean.add(_cfg_folder)
-            # Include last-used regex search folder
             _rs_folder = _cfg.get("regex_search_folder", "")
             if _rs_folder and os.path.isdir(_rs_folder):
                 folders_to_clean.add(_rs_folder)
         except Exception:
             pass
 
+        # Narrow to folders that actually contain peekdocs result files or
+        # indexes so the dialog only lists folders where something will
+        # actually be deleted.
+        folders_with_files = []
+        for folder in folders_to_clean:
+            if not os.path.isdir(folder):
+                continue
+            try:
+                for fname in os.listdir(folder):
+                    if (fname.startswith(RESULT_FILE_PREFIXES)
+                            or fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm")):
+                        folders_with_files.append(folder)
+                        break
+            except OSError:
+                pass
+
+        if folders_with_files:
+            folder_list = "\n".join(f"  \u2022 {f}" for f in sorted(folders_with_files))
+            scope_msg = (
+                f"This will operate on {len(folders_with_files)} folder(s) where "
+                f"peekdocs has created files \u2014 every folder searched this session, "
+                f"the current Search Folder, the safe-output folder "
+                f"(~/peekdocs_reports), and folders saved in your config:\n\n"
+                f"{folder_list}\n\n"
+            )
+        else:
+            scope_msg = "No peekdocs result files or indexes were found to delete.\n\n"
+
+        if not messagebox.askyesno(
+            "Delete Now",
+            "This will immediately:\n\n"
+            "\u2022 Delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*)\n"
+            "\u2022 Delete the search index (.peekdocs.db) \u2014 contains extracted text of indexed files\n"
+            "\u2022 Clear the Results Preview\n"
+            "\u2022 Clear your search history and recent searches\n"
+            "\u2022 Clear the search terms and folder fields\n\n"
+            + scope_msg +
+            "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
+            "settings, and bookmarks are not affected.\n\n"
+            "This cannot be undone.\n\n"
+            "Continue?",
+        ):
+            return
+
+        deleted = []
+        failed = []  # list of (path, reason)
+
         # Delete result files and search indexes from all folders
         for folder in folders_to_clean:
             if not os.path.isdir(folder):
                 continue
-            for fname in os.listdir(folder):
-                if fname.startswith(RESULT_FILE_PREFIXES):
-                    try:
-                        os.remove(os.path.join(folder, fname))
-                        deleted += 1
-                    except OSError:
-                        pass
+            try:
+                for fname in os.listdir(folder):
+                    if fname.startswith(RESULT_FILE_PREFIXES):
+                        p = os.path.join(folder, fname)
+                        try:
+                            os.remove(p)
+                            deleted.append(p)
+                        except OSError as exc:
+                            failed.append((p, str(exc)))
+            except OSError as exc:
+                failed.append((folder, str(exc)))
             for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
                 idx_path = os.path.join(folder, idx_file)
-                try:
-                    if os.path.exists(idx_path):
+                if os.path.exists(idx_path):
+                    try:
                         os.remove(idx_path)
-                        deleted += 1
-                except OSError:
-                    pass
+                        deleted.append(idx_path)
+                    except OSError as exc:
+                        failed.append((idx_path, str(exc)))
 
         # Clear preview
         self._clear_preview()
@@ -1013,10 +1050,28 @@ class SearchMixin:
         # Clear action buttons
         self._clear_action_buttons()
 
-        self.status_label.configure(
-            text=f"Deleted {deleted} file(s), cleared preview and search history.",
-            text_color="green",
-        )
+        # Report results. Surface deletion failures explicitly rather than
+        # swallowing them (previous behavior: except OSError: pass).
+        if failed:
+            preview = "\n".join(f"  • {p}: {r}" for p, r in failed[:5])
+            if len(failed) > 5:
+                preview += f"\n  ... and {len(failed) - 5} more"
+            messagebox.showwarning(
+                "Delete Now — Some Deletions Failed",
+                f"Deleted {len(deleted)} file(s); cleared preview and search history.\n"
+                f"Could not delete {len(failed)} file(s):\n\n{preview}\n\n"
+                "Common causes: file is locked by another program, "
+                "insufficient permissions, or the file was already removed.",
+            )
+            self.status_label.configure(
+                text=f"Deleted {len(deleted)} file(s); {len(failed)} failed.",
+                text_color="orange",
+            )
+        else:
+            self.status_label.configure(
+                text=f"Deleted {len(deleted)} file(s) across {len(folders_with_files)} folder(s); cleared preview and search history.",
+                text_color="green",
+            )
 
 
 

@@ -273,10 +273,23 @@ class DataMixin:
         import tkinter.messagebox as mb
         confirm = mb.askyesno(
             "Restore Factory Settings",
-            "This will delete ~/.peekdocsrc and return all settings to factory defaults.\n\n"
-            "Your documents, search history, and personal files are not affected.\n\n"
+            "This will delete ~/.peekdocsrc and return all of the following to "
+            "factory defaults:\n\n"
+            "  • Search mode (AND / OR), Recursive, Whole Word, Use Index\n"
+            "  • Regex, Fuzzy, Wildcard, OCR, Inverse, Expression mode\n"
+            "  • File types and Exclude terms\n"
+            "  • Output formats (TXT, DOCX, CSV, JSON, PDF, HTML)\n"
+            "  • Output directory and Timestamp setting\n"
+            "  • Max Matches, Max File Size, CPU Cores\n"
+            "  • Word Proximity, Lines Before, Lines After\n"
+            "  • Recent searches and last-used Search Folder\n"
+            "  • Quiet mode and appearance (dark / light theme, text size)\n\n"
+            "Your documents, search history, saved searches, bookmarks, and any "
+            "personal files are not affected.\n\n"
+            "This cannot be undone.\n\n"
             "Continue?",
             parent=self.advanced_window if hasattr(self, "advanced_window") else self,
+            default=mb.NO,
         )
         if not confirm:
             return
@@ -2162,6 +2175,24 @@ class DataMixin:
         folder = self.folder_entry.get().strip()
         if not folder or not os.path.isdir(folder):
             self._show_error("Please select a valid folder.")
+            return
+
+        # Confirm before destroying the index. The cost is rebuild time on
+        # the next search (seconds for small folders, minutes for large or
+        # PDF-heavy ones); searches stay correct regardless.
+        from tkinter import messagebox
+        if not messagebox.askyesno(
+            "Delete Index",
+            f"Delete the search index for:\n{folder}\n\n"
+            "The next search in this folder will rebuild the index by reading every "
+            "file once — this can take seconds for small folders or minutes for "
+            "large or PDF-heavy ones. Searches stay correct either way; only the "
+            "speed of repeated searches is affected until the index is rebuilt.\n\n"
+            "This cannot be undone (but you can rebuild the index later by running "
+            "another search or clicking Build Index).\n\n"
+            "Continue?",
+            default=messagebox.NO,
+        ):
             return
 
         cmd = [sys.executable, "-m", "peekdocs", "-q", "--index-clear"]

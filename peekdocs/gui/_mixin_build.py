@@ -1313,7 +1313,7 @@ class BuildMixin:
         self._delete_everything_btn = ctk.CTkButton(
             self.report_frame, text="Delete Now", width=100,
             font=ctk.CTkFont(size=12),
-            fg_color="#0D9488", hover_color="#0B7A70", text_color="white",
+            fg_color="#CC3333", hover_color="#AA2222", text_color="white",
             command=self._delete_everything_now,
         )
         Tooltip(self._delete_everything_btn, "Immediately delete all peekdocs result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields. Deletes report files from the most recent search and clears displayed results to reduce leftover local artifacts. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, settings, and bookmarks are not affected. Your documents and personal files are never touched", anchor="above")
