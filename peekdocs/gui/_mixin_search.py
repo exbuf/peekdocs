@@ -1314,7 +1314,15 @@ class SearchMixin:
 
 
     def _clean_folder(self):
-        """Browse to any folder and delete all peekdocs-generated files in it."""
+        """Browse to any folder and delete peekdocs-generated files in it.
+
+        Two-stage confirmation: auto-generated files (results / index /
+        error log) first, then user-saved reports (peekdocs_report_* /
+        peekdocs_accumulated_*) as a separate opt-in. Both dialogs warn
+        that any file the user manually named with a peekdocs_ prefix
+        gets caught by the pattern match. Deletion failures are
+        reported explicitly rather than silently swallowed.
+        """
         import tkinter as tk
         from tkinter import filedialog, messagebox
 
@@ -1322,45 +1330,96 @@ class SearchMixin:
         if not folder or not os.path.isdir(folder):
             return
 
-        # Find all peekdocs files in the selected folder (non-recursive)
-        peekdocs_files = []
+        # Split into two categories: auto-generated vs user-saved
+        auto_files = []
+        user_saved_files = []
         for fname in os.listdir(folder):
             if (fname.startswith(RESULT_FILE_PREFIXES) or
-                    fname.startswith("peekdocs_report_") or
-                    fname.startswith("peekdocs_accumulated_") or
                     fname == "peekdocs_errors.log" or
                     fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm")):
-                peekdocs_files.append(fname)
+                auto_files.append(fname)
+            elif (fname.startswith("peekdocs_report_") or
+                  fname.startswith("peekdocs_accumulated_")):
+                user_saved_files.append(fname)
 
-        if not peekdocs_files:
+        if not auto_files and not user_saved_files:
             messagebox.showinfo("Clean Folder", f"No peekdocs files found in:\n{folder}")
             return
 
-        # Show confirmation with file list
-        file_list = "\n".join(f"  \u2022 {f}" for f in sorted(peekdocs_files))
-        if not messagebox.askyesno(
-            "Clean Folder",
-            f"Delete {len(peekdocs_files)} peekdocs file(s) from:\n{folder}\n\n"
-            f"{file_list}\n\n"
-            "Saved searches (.peekdocs_collection.json), settings (~/.peekdocsrc), "
-            "and bookmarks (~/.peekdocs_bookmarks.json) are not affected.\n\n"
-            "Review the list carefully \u2014 only files created by peekdocs should be listed.\n\n"
-            "Continue?",
-        ):
+        deleted = []
+        failed = []  # list of (fname, reason)
+
+        def _delete_each(files):
+            for fname in files:
+                try:
+                    os.remove(os.path.join(folder, fname))
+                    deleted.append(fname)
+                except OSError as exc:
+                    failed.append((fname, str(exc)))
+
+        # Stage 1 \u2014 auto-generated files (results, index, error log).
+        if auto_files:
+            file_list = "\n".join(f"  \u2022 {f}" for f in sorted(auto_files))
+            if messagebox.askyesno(
+                "Clean Folder \u2014 Auto-Generated Files",
+                f"Delete {len(auto_files)} auto-generated peekdocs file(s) from:\n{folder}\n\n"
+                f"{file_list}\n\n"
+                "Saved searches (.peekdocs_collection.json), settings (~/.peekdocsrc), "
+                "and bookmarks (~/.peekdocs_bookmarks.json) are not affected.\n\n"
+                "IMPORTANT: this deletes any file in this folder whose name starts "
+                "with 'peekdocs_standard_results', 'peekdocs_regex_results', or "
+                "'peekdocs_suite_results', plus the search index (.peekdocs.db*) "
+                "and error log. If you have manually named other files with these "
+                "prefixes, they will be deleted too.\n\n"
+                "This cannot be undone.\n\n"
+                "Continue?",
+            ):
+                _delete_each(auto_files)
+
+        # Stage 2 \u2014 user-saved reports (opt-in, default No).
+        if user_saved_files:
+            file_list = "\n".join(f"  \u2022 {f}" for f in sorted(user_saved_files))
+            if messagebox.askyesno(
+                "Clean Folder \u2014 Saved Reports",
+                f"The following files in:\n{folder}\n\n"
+                f"look like saved reports you named yourself "
+                f"(peekdocs_report_* / peekdocs_accumulated_*) \u2014 these may be "
+                f"intentional and are NOT removed by Clear Files unless you "
+                f"explicitly check them.\n\n"
+                f"{file_list}\n\n"
+                "IMPORTANT: if you have manually named other files with the prefix "
+                "'peekdocs_report_' or 'peekdocs_accumulated_', they will be deleted too.\n\n"
+                "This cannot be undone.\n\n"
+                f"Delete these {len(user_saved_files)} file(s) too?",
+                default=messagebox.NO,
+            ):
+                _delete_each(user_saved_files)
+
+        # Report results.
+        if not deleted and not failed:
+            self.status_label.configure(text="No files deleted.")
             return
 
-        deleted = 0
-        for fname in peekdocs_files:
-            try:
-                os.remove(os.path.join(folder, fname))
-                deleted += 1
-            except OSError:
-                pass
-
-        self.status_label.configure(
-            text=f"Cleaned {deleted} file(s) from {os.path.basename(folder)}.",
-            text_color="green",
-        )
+        if failed:
+            preview = "\n".join(f"  \u2022 {f}: {r}" for f, r in failed[:5])
+            if len(failed) > 5:
+                preview += f"\n  ... and {len(failed) - 5} more"
+            messagebox.showwarning(
+                "Clean Folder \u2014 Some Deletions Failed",
+                f"Deleted {len(deleted)} file(s).\n"
+                f"Could not delete {len(failed)} file(s):\n\n{preview}\n\n"
+                "Common causes: file is locked by another program, "
+                "insufficient permissions, or the file was already removed.",
+            )
+            self.status_label.configure(
+                text=f"Cleaned {len(deleted)} file(s); {len(failed)} failed.",
+                text_color="orange",
+            )
+        else:
+            self.status_label.configure(
+                text=f"Cleaned {len(deleted)} file(s) from {os.path.basename(folder)}.",
+                text_color="green",
+            )
 
     def _clear_files(self):
         """Show a popup with checkboxes for every peekdocs-created file so the user can choose which to delete."""
