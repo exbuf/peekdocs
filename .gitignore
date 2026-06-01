@@ -28,9 +28,13 @@ desktop.ini
 
 # peekdocs output files
 peekdocs_results.*
+peekdocs_standard_results.*
+peekdocs_regex_results.*
+peekdocs_suite_results.*
 peekdocs_report_*
 peekdocs_accumulated_*
-peekdocs_suite_results.*
+peekdocs_snapshot_*
+peekdocs_diff_*
 peekdocs_errors.log
 .peekdocs.db
 .peekdocs.db-wal
