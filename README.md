@@ -12,6 +12,8 @@ Built for people who prefer local, transparent, deterministic tools.
 
 **Typical workflow:** Search 50,000 mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
 
+*All steps are GUI-accessible: the first four sit on the main screen; suites open from the green **Run Search Suites** button; **Tools → Schedule Search** generates a cron / Task Scheduler command for you to paste.*
+
 ## Feature Highlights
 
 A workbench for document collections: search them, characterize them through built-in analysis tools (duplicates, inventories, age distribution, change tracking), produce highlighted reports you can save or share, and drive it all through whichever interface fits — GUI, CLI, or Python API.
