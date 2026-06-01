@@ -1744,7 +1744,7 @@ def _main_inner(argv=None):
         from peekdocs.range_query import parse_range
         for spec_str in range_specs_raw:
             parsed_range_specs.append(parse_range(spec_str))
-    if not stdout_json:
+    if not stdout_json and not minimal:
         if _will_use_index:
             print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
         else:
@@ -1806,7 +1806,7 @@ def _main_inner(argv=None):
         _render_progress(done, total_count, filename)
 
     spinner_t = threading.Thread(target=_spinner_thread_func, daemon=True)
-    if not stdout_json:
+    if not stdout_json and not minimal:
         spinner_t.start()
 
     try:
@@ -1830,7 +1830,7 @@ def _main_inner(argv=None):
             line_proximity=line_proximity,
             cores=cores,
             use_index=None if not no_index else False,
-            progress=None if stdout_json else _cli_progress,
+            progress=None if (stdout_json or minimal) else _cli_progress,
             expression=expression,
             range_filters=range_specs_raw or None,
             max_file_size_mb=parsed.get("max_file_size_mb", 100),
@@ -1853,7 +1853,7 @@ def _main_inner(argv=None):
     if spinner_t.is_alive():
         spinner_t.join()
 
-    if not stdout_json and spinner_state["total"] > 0:
+    if not stdout_json and not minimal and spinner_state["total"] > 0:
         _render_progress(spinner_state["total"], spinner_state["total"], "done")
         sys.stdout.write("\n")
         sys.stdout.flush()

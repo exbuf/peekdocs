@@ -62,7 +62,7 @@ class BuildMixin:
 
         _step(1, "Choose a folder", "On the main page, click Browse next to '1. Search Folder' to select the folder containing your documents.")
         _step(2, "Type what you're looking for", "Enter your search terms in the '2. Search Terms' field. Example: budget revenue. Then choose OR if any terms are matched, or AND if all terms must be matched.")
-        _step(3, "Click Run Standard Search", "The blue options bar just above (AND/OR, Recursive, Whole Word, Use Index) applies to this blue Run Standard Search button — Run Search Suites (green) and Run Regex Search (orange) have their own settings. peekdocs scans every supported file and shows results with matches highlighted in yellow.")
+        _step(3, "Click Run Standard Search", "The blue options bar just above (AND/OR, Recursive, Whole Word, Use Index) applies to this blue Run Standard Search button — Search Suites (green) and Regex Search (orange) have their own settings and open management popups. peekdocs scans every supported file and shows results with matches highlighted in yellow.")
         _step(4, "View your results", "Scan matches in the Results Preview pane, or click DOCX / TXT next to View Report for a highlighted report. No Microsoft Word? The DOCX opens in any word processor — LibreOffice (free) is recommended. Prefer your browser? Enable HTML in Advanced Search Options and click the HTML button. All reports stay on your computer — peekdocs avoids opening them in Google Docs, Apple Pages, or any cloud-based application that may upload your data. Check Delete on Close to automatically remove result files when you close the app.")
 
         # Tip about tooltips — safety-net hint so users know how to discover button behavior.
@@ -174,7 +174,7 @@ class BuildMixin:
         st("Step 3: Click Run Standard Search")
         b("The blue options bar just above (AND/OR, Recursive,")
         b("Whole Word, Use Index) applies to this blue Run Standard")
-        b("Search button — Run Search Suites (green) and Run Regex")
+        b("Search button — Search Suites (green) and Regex Search")
         b("Search (orange) have their own settings.")
         blank()
         b("peekdocs scans every supported file in the folder and")
@@ -350,7 +350,7 @@ class BuildMixin:
             fg_color="#2196F3", hover_color="#1976D2", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
-        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use Run Regex Search instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use the Regex Search button instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
 
 
 
@@ -615,45 +615,45 @@ class BuildMixin:
         Note: the Advanced toggle button itself is created in _build_search_row
         so it appears between the options group and the save group.
         """
-        # Run Search Suites button — sits next to Run Standard Search in the run-buttons row
+        # Search Suites button — sits next to Run Standard Search in the run-buttons row
         self._suites_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Run Search Suites", width=260, height=44,
-            fg_color="#76BA1B", hover_color="#5E9516",
+            text="Search Suites", width=200, height=44,
+            fg_color="#76BA1B", hover_color="#76BA1B",
             text_color="white",
             command=self._show_search_suites,
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._suites_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._suites_btn, "Run Search Suites — group saved searches into a named suite and run them all at once with a single click")
+        Tooltip(self._suites_btn, "Search Suites — open the management popup to create, edit, reorder, or run a named group of saved searches. The popup's own Run Search Suite button executes the selected suite.")
 
-        # Run Regex Search button — orange, third color in the run-buttons
+        # Regex Search button — orange, third color in the run-buttons
         # row so the three search modes are visually distinct
         # (blue=Standard, green=Suites, orange=Regex).
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Run Regex Search", width=240, height=44,
-            fg_color="#FF9800", hover_color="#F57C00",
+            text="Regex Search", width=200, height=44,
+            fg_color="#FF9800", hover_color="#FF9800",
             text_color="white",
             command=self._start_regex_search,
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._regex_search_btn, "Open the Regex Search workflow — create or run a named collection of up to 10 regex patterns, each executed separately with per-pattern results. Results depend on the report checkbox setting in the popup.")
+        Tooltip(self._regex_search_btn, "Regex Search — open the management popup to create, edit, or run a named collection of up to 10 regex patterns, each executed separately with per-pattern results. The popup's own Run Regex Search button executes the selected collection. Results depend on the report checkbox setting in the popup.")
 
         # "What's the difference?" link below the three Run buttons. Muted
         # blue + underline matches the Advanced/Wizard hyperlink styling and
         # gives novices a no-commitment way to learn which mode to pick.
         self._mode_compare_link = ctk.CTkLabel(
             self._run_search_outer,
-            text="3 Run Buttons — what’s the difference?",
+            text="3 Search Buttons — what’s the difference?",
             text_color="#1565C0",
             font=ctk.CTkFont(size=12, underline=True),
             cursor="hand2",
         )
         self._mode_compare_link.pack(side="top", anchor="w", padx=(2, 0), pady=(2, 0))
         self._mode_compare_link.bind("<Button-1>", lambda _e: self._show_search_modes_compare())
-        Tooltip(self._mode_compare_link, "Quick comparison of Run Standard Search vs. Run Search Suites vs. Run Regex Search")
+        Tooltip(self._mode_compare_link, "Quick comparison of Run Standard Search vs. Search Suites vs. Regex Search")
 
 
 
@@ -1316,7 +1316,7 @@ class BuildMixin:
             fg_color="#CC3333", hover_color="#AA2222", text_color="white",
             command=self._delete_everything_now,
         )
-        Tooltip(self._delete_everything_btn, "Immediately delete all peekdocs result files and search indexes in every folder searched during the session, clear the Results Preview, clear search history, and blank out search terms and folder fields. Deletes report files from the most recent search and clears displayed results to reduce leftover local artifacts. The search index (.peekdocs.db) is included because it contains extracted text from every indexed file. Saved reports, accumulated reports, saved searches, settings, and bookmarks are not affected. Your documents and personal files are never touched", anchor="above")
+        Tooltip(self._delete_everything_btn, "Immediately delete result files, search indexes, search history, and clear the Results Preview across every folder searched this session. A confirmation dialog lists exactly what will be deleted before doing anything. Saved reports, saved searches, settings, bookmarks, and your documents are never affected.", anchor="above")
 
 
 

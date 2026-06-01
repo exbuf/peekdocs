@@ -2887,7 +2887,7 @@ class ToolsMixin:
         # Center on the main window and show. Withdraw + final geometry +
         # deiconify ensures the popup opens on the same monitor as the main
         # page in multi-monitor setups, with no visible jump. Matches the
-        # pattern used by Run Search Suites and Run Regex Search popups.
+        # pattern used by Search Suites and Regex Search popups.
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 920) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 750) // 2
@@ -3668,7 +3668,7 @@ class ToolsMixin:
         blank()
 
         h("STANDARD SEARCH (GREEN BUTTON) vs REGEX SEARCH")
-        b("The orange Run Regex Search button and the main search bar overlap")
+        b("The orange Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
         b("Standard Search (green button, main search bar \u2014 next to Step 2):")
@@ -5270,7 +5270,7 @@ class ToolsMixin:
         tk.Checkbutton(output_frame, text="PDF", variable=_suite_pdf_var, font=_sf(10),
                        command=lambda: _save_suite_fmt("suite_pdf", _suite_pdf_var)).pack(side="left", padx=(0, 5))
 
-        # ── Bottom: Run Suite + Close ──
+        # ── Bottom: Run Search Suite + Close ──
         bottom = tk.Frame(win)
         bottom.pack(pady=(8, 2))
 
@@ -5299,7 +5299,7 @@ class ToolsMixin:
             self._run_suite_searches(suite_name, searches, folder, suite_formats=suite_formats)
 
         _btn_run = ctk.CTkButton(
-            bottom, text="Run Suite", width=120,
+            bottom, text="Run Search Suite", width=160,
             font=ctk.CTkFont(size=14, weight="bold"),
             fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
             command=_run_suite,
@@ -5589,7 +5589,7 @@ class ToolsMixin:
             pass
         self.progress_bar.grid_remove()
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text="Run Search Suites", fg_color="#76BA1B", hover_color="#5E9516",
+        self._suites_btn.configure(text="Search Suites", fg_color="#76BA1B", hover_color="#76BA1B",
                                    text_color="white", command=self._show_search_suites)
 
         import re as _re_fin
@@ -5806,7 +5806,7 @@ class ToolsMixin:
                    "all live there and apply to the standard search.\n"
                    "Best for: most everyday searches.\n", "body")
 
-        txt.insert("end", "Run Search Suites (green)\n", "suite")
+        txt.insert("end", "Search Suites (green)\n", "suite")
         txt.insert("end",
                    "Group several saved searches into a named suite, then run "
                    "them all with one click. Produces one combined report with "
@@ -5814,7 +5814,7 @@ class ToolsMixin:
                    "Best for: recurring multi-topic reviews where you want all "
                    "the results in a single document.\n", "body")
 
-        txt.insert("end", "Run Regex Search (orange)\n", "regex")
+        txt.insert("end", "Regex Search (orange)\n", "regex")
         txt.insert("end",
                    "Open the Regex workflow to build or run a named collection "
                    "of up to 10 regex patterns. Each pattern runs separately, "
@@ -5839,7 +5839,7 @@ class ToolsMixin:
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text="Run Search Suites", fg_color="#76BA1B", hover_color="#5E9516",
+        self._suites_btn.configure(text="Search Suites", fg_color="#76BA1B", hover_color="#76BA1B",
                                    text_color="white", command=self._show_search_suites)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
@@ -5897,7 +5897,7 @@ class ToolsMixin:
         n("3. Click New to create a named suite")
         n("4. Click Add Search to add saved searches to the suite")
         n("5. Use \u25b2 Up and \u25bc Down to set the run order")
-        n("6. Click Run Suite to execute all searches\n")
+        n("6. Click Run Search Suite to execute all searches\n")
 
         b("Managing Suites")
         n("\u2022 Rename \u2014 change a suite's name")
@@ -6129,7 +6129,7 @@ class ToolsMixin:
         win.resizable(True, True)
         # NOTE: deliberately NOT calling win.transient(self) or binding
         # <FocusIn> -> win.lift() — both cause the popup to disappear when
-        # dragged across monitors on macOS. See Run Regex Search for fix.
+        # dragged across monitors on macOS. See Regex Search popup for fix.
 
         # ── Header ──
         header = tk.Frame(win)
@@ -6425,7 +6425,7 @@ class ToolsMixin:
         win.resizable(True, True)
         # NOTE: deliberately NOT calling win.transient(self) or binding
         # <FocusIn> -> win.lift() — both cause the popup to disappear when
-        # dragged across monitors on macOS. See Run Regex Search for fix.
+        # dragged across monitors on macOS. See Regex Search popup for fix.
 
         # No outer scrollable wrapper — earlier attempts (CTkScrollableFrame
         # and a manual Canvas+Scrollbar) both produced layouts that hid
@@ -7327,7 +7327,7 @@ class ToolsMixin:
             self.progress_bar.grid_remove()
             if hasattr(self, "_regex_search_btn"):
                 self._regex_search_btn.configure(
-                    state="normal", fg_color="#FF9800", hover_color="#F57C00",
+                    state="normal", fg_color="#FF9800", hover_color="#FF9800",
                     text_color="white", text="Run Regex Search",
                     command=self._start_regex_search,
                 )
@@ -7335,7 +7335,7 @@ class ToolsMixin:
             total = sum(r["match_count"] for r in scan_results)
             # Match the Wizard-regex bypass-note phrasing in the standard-search
             # status so users see the same "index bypassed" hint regardless of
-            # which Run button they pressed. Run Regex Search always uses
+            # which Run button they pressed. Regex Search always uses
             # direct scan (use_index=False is hardcoded in the api.search call
             # above) because regex queries can't be accelerated by FTS5.
             _bypass_note = " \u2014 index bypassed (regex search uses direct scan)"
@@ -7460,7 +7460,7 @@ class ToolsMixin:
         self.progress_bar.grid_remove()
         if hasattr(self, "_regex_search_btn"):
             self._regex_search_btn.configure(
-                state="normal", fg_color="#FF9800", hover_color="#F57C00",
+                state="normal", fg_color="#FF9800", hover_color="#FF9800",
                 text_color="white", text="Run Regex Search",
                 command=self._start_regex_search,
             )

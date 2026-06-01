@@ -12,7 +12,7 @@ Built for people who prefer local, transparent, deterministic tools.
 
 **Typical workflow:** Search 50,000 mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
 
-*All steps are GUI-accessible: the first four sit on the main screen; suites open from the green **Run Search Suites** button; **Tools → Schedule Search** generates a cron / Task Scheduler command for you to paste.*
+*All steps are GUI-accessible from the main screen, the **Search Suites** popup (opened by the green button next to Run Standard Search), and **Tools → Schedule Search** — the last one generates a cron / Task Scheduler command for you to paste rather than installing the schedule for you.*
 
 ## Feature Highlights
 
@@ -395,9 +395,9 @@ peekdocs has **three search modes**, each writing its own self-described report 
 
 | Mode | How to run | Reports |
 |------|-----------|---------|
-| **Standard Search** | GUI button, or `peekdocs <terms>` | `peekdocs_standard_results.{txt,docx,csv,json,pdf,html}` |
-| **Regex Search** | GUI button, or `peekdocs --regex-collection NAME` | `peekdocs_regex_results.{txt,docx}` |
-| **Suite** (group of saved searches) | GUI **Run Suite**, or `peekdocs --suite NAME` | `peekdocs_suite_results.{txt,docx,html,csv,json}` |
+| **Standard Search** | Blue **Run Standard Search** button on the main screen, or `peekdocs <terms>` | `peekdocs_standard_results.{txt,docx,csv,json,pdf,html}` |
+| **Regex Search** | Orange **Regex Search** button on the main screen (opens the regex popup; its own Run Regex Search button executes the collection), or `peekdocs --regex-collection NAME` | `peekdocs_regex_results.{txt,docx}` |
+| **Suite** (group of saved searches) | Green **Search Suites** button on the main screen (opens the suite popup; its own Run Search Suite button executes the selected suite), or `peekdocs --suite NAME` | `peekdocs_suite_results.{txt,docx,html,csv,json}` |
 
 > *The "mode" is the workflow, not the flag set. A one-off `peekdocs -x "pattern"` (or `-z`, `-w`, `-W`) is a Standard Search with a regex/fuzzy/wildcard flag and writes `peekdocs_standard_results.*`. Only the dedicated Regex Search workflow — the GUI popup or `--regex-collection` — produces `peekdocs_regex_results.*`.*
 

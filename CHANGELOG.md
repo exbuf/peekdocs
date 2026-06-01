@@ -129,6 +129,30 @@ than swallowing them silently.
   `peekdocs_results.*` pattern is retained for backwards
   compatibility with any reports left over from older versions.
 
+- **Main-screen button rename: "Run X" -> "X" for the popup-openers.**
+  "Run Search Suites" -> **Search Suites**, "Run Regex Search" ->
+  **Regex Search**. Only Run Standard Search keeps the "Run" prefix
+  because it's the only main-screen button that actually executes
+  on click — the other two open management popups. Reinforced by
+  the recent in-popup rename to **Run Search Suite** (singular,
+  the actual immediate-run action inside the suites popup): having
+  a "Run Search Suites" button that opens a popup containing "Run
+  Search Suite" read as "click Run to open Run".
+
+  Side effects: the main-screen hyperlink "3 Run Buttons — what's
+  the difference?" became "3 Search Buttons — what's the
+  difference?"; button widths shrank slightly to fit the new labels
+  (260 -> 200, 240 -> 180); the in-popup execute buttons are
+  unchanged (they really do run); the Getting Started Step 3 text
+  and the Standard Search button tooltip were updated to use the
+  new names. README's typical-workflow clarifier was rewritten
+  to match. CHANGELOG entries referencing the old labels in
+  historical release notes are deliberately left untouched.
+
+  Two screenshots (the main-page Standard-search shot and the
+  Getting-Started step explanation, both in docs/images/) show
+  the old labels and need re-capture.
+
 ### Fixed
 
 - **Search Wizard count corrected throughout the README** —

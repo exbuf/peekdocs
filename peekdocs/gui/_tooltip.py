@@ -61,10 +61,18 @@ class Tooltip:
             # and place it so its bottom edge sits just above the widget.
             # This guarantees the tooltip never covers the widget itself,
             # regardless of how much text it contains.
+            #
+            # Two defenses against the Enter/Leave flicker loop that
+            # long "above" tooltips trigger if they overlap the widget:
+            # (1) clamp tip_h to at least 60px in case winfo_height()
+            # returns a partial value during measurement (Tk on macOS
+            # occasionally does this); (2) widen the safety gap from
+            # 6px to 24px so even a small height-measurement error
+            # still keeps the tooltip clear of the widget.
             if self.anchor in ("above", "above-left", "above-mid", "above-high"):
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
-                y = self.widget.winfo_rooty() - tip_h - 6
+                y = self.widget.winfo_rooty() - max(tip_h, 60) - 24
                 tw.wm_geometry(f"+{x}+{y}")
         except Exception:
             self.tip_window = None
