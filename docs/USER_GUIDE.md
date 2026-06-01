@@ -671,8 +671,8 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
 | `--open FMT` (open) | Automatically open the report when the search finishes. Specify the format: `docx`, `txt`, `csv`, `json`, `pdf`, or `html`. For csv/json/pdf/html, the output format is auto-generated if not already enabled — no need to also specify `-o`. Opens in a safe local application (cloud apps are blocked) |
 | `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON, PDF) to the specified directory instead of the search folder |
-| `-A N` (after) | Show N lines after each match |
-| `-B N` (before) | Show N lines before each match |
+| `-A N` (after) | Show N lines after each match. What counts as a "line" matches the unit peekdocs indexes per format: a literal line for plain text and source code, a paragraph for Word (.docx) and PDF, a row for Excel. On paragraph-heavy formats, `-A 3` can include several sentences or even pages of surrounding text. |
+| `-B N` (before) | Show N lines before each match. Same per-format meaning as `-A N` — see above. |
 
 ### Notes
 - Flag order doesn't matter — `-a -r -t` works the same as `-r -t -a`
