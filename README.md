@@ -405,7 +405,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **OCR** — search scanned PDFs and images (requires Tesseract)
 - **Multi-folder search** — search across multiple folders at once, with optional recursive searching into subfolders. Click **+Folder** to add folders, or type semicolon-separated paths. Results are combined from all folders
 - **Inverse search** — find files that are *missing* required content
-- **Search Wizard** — guided search builder with 20 pre-built search types (phone, email, dollar range, date range, Boolean, fuzzy, and more) plus a regex pattern builder with several profession categories — no flags or regex knowledge needed
+- **Search Wizard** — guided search builder with 35 pre-built search types (phone, email, dollar range, date range, Boolean, fuzzy, and more) plus a regex pattern builder with profession categories — no flags or regex knowledge needed
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
 - **Recent searches** — dropdown next to the search bar remembers your last 10 searches
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
@@ -414,12 +414,12 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 #### Reporting
 
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
-- **Results preview** — see matches inline in the GUI with highlighted terms; right-click to copy. **To locate all matches in a specific file:** click the orange **Matched Files** button on the status line, single-click a file, then click **View Text** — peekdocs displays the file's full extracted text with line numbers and every match highlighted in yellow. This is the fastest way to see exactly where your search terms appear in each file, without opening external software. You can also double-click any file to open it in its native application (Word, Adobe Reader, etc.), or click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report with all matches across all files
-- **HTML export** — don't have Word or LibreOffice? Enable HTML in Advanced Search Options and click the HTML button — your highlighted report opens instantly in your web browser. Every computer has a browser, so no extra software is needed. The HTML file is stored locally on your computer — nothing is uploaded or made public. Also easy to share via email — the recipient just opens the file in their browser
+- **Results preview** — see matches inline in the GUI with highlighted terms. **View Text** on any matched file shows the file's full extracted text with every match highlighted, without opening external software. Double-click any file to open in its native application; click **DOCX**, **HTML**, or **PDF** to open the highlighted multi-file report
+- **HTML export** — no Word or LibreOffice? Enable HTML output and the highlighted report opens in any browser. The file is stored locally — nothing is uploaded, and it's easy to share by email
 
 #### Analysis
 
-- **Collection Summary** — one-page consolidated overview of the search folder. A single fast pass produces total file count + total size, oldest and newest file, subfolder count, top 10 file types by count, an Unsearchable-categories breakdown, the same 0-6mo / 1-3y / etc. age histogram as File Age Distribution, top 10 largest files, recent activity counts (last 30 / 90 days), and the empty-file count. Honors the Max File Size you set in Advanced Search Options. Plain-text report
+- **Collection Summary** — one-page consolidated overview of the search folder: total file count and size, oldest/newest file, top file types, age histogram, top 10 largest files, recent-activity counts, unsearchable breakdown, and empty-file count — all in a single fast pass
 - **File Inventory** — instant summary of every file in a folder: total count, size breakdown by type, oldest and newest files
 - **Duplicate Finder** — finds identical files by content (not just name), shows how much space is wasted by extra copies
 - **Large Files** — shows the 50 biggest files so you can reclaim disk space
@@ -427,7 +427,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **File Age Distribution** — histogram of how recently files were modified, in six buckets from 0–6 months out to 10+ years. Useful for archives, document collections, and personal files — surfaces stale folders at a glance and shows what fraction of a collection is recent activity vs. long-untouched material
 - **Recent Changes** — which files were modified in the last 7, 30, or 90 days
 - **Protected Files** — detects password-protected PDFs, Word/Excel/PowerPoint, ZIP/7z/RAR archives that peekdocs can't search
-- **Unsearchable Files** — scans the folder and categorizes every file peekdocs cannot search (unsupported file types, oversized, empty, hidden / OS metadata, peekdocs-created) with counts and per-category file lists. The Oversized bucket reflects the Max File Size threshold you set in Advanced Search Options. Answers "what fraction of this folder is even searchable?" before you run a search
+- **Unsearchable Files** — categorizes every file peekdocs cannot search (unsupported types, oversized, empty, hidden / OS metadata, peekdocs-created) with counts and per-category file lists. Answers "what fraction of this folder is even searchable?" before you run a search
 - **Bookmarks** — pin files from search results for quick access later
 
 #### Automation & integration
@@ -445,20 +445,12 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
 - **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
-- **Delete on Close** — check the **Delete on Close** checkbox (on the main screen next to the report buttons, or in Advanced Search Options) to automatically delete all search result files and the search index when you close peekdocs. Applies to every folder searched during the session — not just the last one. The index is included because it contains extracted text from every indexed file. You can check or uncheck it at any time — it only matters at the moment you close the app. Review your results first, then check the box and close. Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches (`.peekdocs_collection.json`), settings (`~/.peekdocsrc`), and bookmarks are never deleted.
-- **Safe defaults** — files over 100 MB are automatically skipped to prevent slow searches and memory issues. Very large files (huge PDFs, massive spreadsheets, database exports) can take minutes to parse and may exhaust available memory. Skipped files appear in the **Excluded Files** list after each search, so you always know what was missed. To change the limit, set **Max File Size (MB)** in Advanced Search Options — or set it to 0 for no limit. Changing the limit automatically rebuilds the index on the next search. ZIP archives that would expand to over 500 MB are also skipped to prevent archive bombs. **Note:** raising Max File Size can sometimes result in *fewer* matched files, not more — a very large file with thousands of matches can consume most of the Max Matches budget (default 1,000), leaving fewer slots for matches from other files. If you see this, raise Max Matches too (or set it to 0 for unlimited)
-- **Excluded Files view** — after each search, click the **View N excluded file(s)** button to see exactly which files were skipped and why (unsupported type, prior output, oversized, hidden, etc.) — no more guessing why a `find` count differs from peekdocs's file count
+- **Delete on Close** — one checkbox automatically deletes every result file and the search index across the session when you close peekdocs. Saved reports, saved searches, settings, and bookmarks are preserved
+- **Safe defaults** — files over 100 MB are skipped automatically to prevent slow searches and memory issues; archives that would expand past 500 MB are skipped to prevent archive bombs. Adjust **Max File Size** in Advanced Search Options or set it to 0 for no limit
+- **Excluded Files view** — after each search, see exactly which files were skipped and why (unsupported type, oversized, hidden, etc.) — no guessing what was missed
 - **Error Log** — opens `peekdocs_errors.log` to see any files that couldn't be read and why (corrupt, locked, password-protected, etc.)
 - **Clear Files** — selectively delete peekdocs's output files (reports, error log, saved searches, index) from the current folder
 - **Clean Folder** — same idea for any other folder, in case peekdocs files were generated elsewhere
-
-### For Developers
-
-- **Simple setup** — one pipx command and you're running. No accounts, no configuration, no Docker containers.
-- **Fast results** — 1,000 mixed-format documents in ~1 second. Milliseconds with the search index.
-- **Local-first** — no cloud, no API keys, no internet required. Works on air-gapped machines.
-- **Useful immediately** — basic searches need no learning curve; advanced modes (Boolean, regex, ranges) are there when you want them.
-- **No restrictions** — no seat licenses, no sales calls, no feature gating, no telemetry. MIT license. Use it, modify it, share it.
 
 ### Supported File Types
 
