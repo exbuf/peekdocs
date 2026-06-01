@@ -878,7 +878,7 @@ You activated the virtual environment but `peekdocs` still isn't recognized. Thi
 - After activating, reinstall: `pip install -e .`
 - Verify: `which peekdocs` (Mac/Linux) or `where peekdocs` (Windows) should show a path inside the venv folder
 
-If you don't want to activate a virtual environment every time, consider switching to [pipx installation](../README.md#option-a-quick-install-with-pipx-recommended) — it makes `peekdocs` available globally with no activation step.
+If you don't want to activate a virtual environment every time, consider switching to [pipx installation](../README.md#option-b-quick-install-with-pipx-for-python-users) — it makes `peekdocs` available globally with no activation step.
 
 ---
 
@@ -899,5 +899,5 @@ Installation fails with connection timeouts, SSL certificate errors, or "Could n
 
 - **Behind a proxy:** Set the proxy for pip: `pip install --proxy http://proxy.company.com:8080 peekdocs`
 - **SSL certificate issues:** If your company uses a custom SSL certificate, tell pip to trust it: `pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org peekdocs`
-- **No internet access at all:** Use the [ZIP download](../README.md#option-c-manual-install-no-git-no-sign-up) method — download the ZIP on a machine with internet, transfer it to the target machine, and install from the local folder with `pip install -e .`
+- **No internet access at all:** Use the [ZIP download](INSTALLATION.md#no-git-install-from-a-downloaded-zip) method — download the ZIP on a machine with internet, transfer it to the target machine, and install from the local folder with `pip install -e .`
 - **pipx behind a proxy:** pipx uses pip internally, so set the `HTTP_PROXY` and `HTTPS_PROXY` environment variables before running `pipx install`

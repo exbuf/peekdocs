@@ -415,7 +415,7 @@ If you prefer pointing and clicking over typing commands, peekdocs has a graphic
 
 **How to open it:**
 
-You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the virtual environment first (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git) for details). Then type:
+You still need to open a terminal once to launch the GUI. If you used the manual install (Option B), activate the virtual environment first (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see [CONTRIBUTING.md](../CONTRIBUTING.md#development-setup)). Then type:
 
 ```bash
 peekdocs-gui
@@ -577,7 +577,7 @@ For a more detailed comparison, see [Why peekdocs?](../README.md#why-peekdocs) i
 
 ## Usage
 
-If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see the [README](../README.md#option-b-manual-install-with-git)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run peekdocs with your search terms. See the [Command Examples](#command-examples) table for usage.
+If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see [CONTRIBUTING.md](../CONTRIBUTING.md#development-setup)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run peekdocs with your search terms. See the [Command Examples](#command-examples) table for usage.
 
 ### Phrase search (quoted terms)
 
@@ -2969,7 +2969,7 @@ A complete working example is available at [`samples/api_example.py`](../samples
 
 ## Running Tests
 
-Running tests requires the cloned repository (see [Option B](../README.md#option-b-manual-install-with-git) in the README). From the project folder:
+Running tests requires the cloned repository (see [Development Setup](../CONTRIBUTING.md#development-setup) in CONTRIBUTING.md). From the project folder:
 
 ```bash
 source venv/bin/activate
