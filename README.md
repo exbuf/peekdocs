@@ -910,7 +910,7 @@ If peekdocs saves you time, star the repo and share feedback — it helps others
 
 Built by [Robert D. Schoening](https://robertdschoening.com) — electrical engineer, U.S. software patent holder, and independent developer. Developed with assistance from [Claude Code](https://claude.ai/code) by Anthropic. All architecture, review, testing, and maintenance performed by the author.
 
-**Why I built this.** I needed it, I wanted an AI learning project, and sharing it cost nothing.
+**Why I built it.** I built peekdocs to solve a problem I had myself: searching large collections of mixed-format documents locally, privately, and efficiently. It also became an opportunity to learn AI-assisted software development and explore what a single developer can build with today's tools. After relying on it in my own workflow, I decided to share it as free and open-source software under the MIT License.
 
 
 ## Disclaimer
