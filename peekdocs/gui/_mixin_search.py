@@ -193,6 +193,12 @@ class SearchMixin:
                     os.remove(stale)
         self.search_button.configure(text="Cancel", fg_color="#D32F2F", hover_color="#B71C1C")
         self.search_entry.configure(state="disabled")
+        # Reset stateful fields that influence later rendering — if we don't,
+        # a returncode == 1 branch (which never updated these before the
+        # corresponding fix in _search_finished) could carry stale inverse
+        # state and stale matched_files from a previous search.
+        self._inverse_results = self.inverse_var.get() == "on"
+        self.matched_files = []
         self._clear_action_buttons()
         self._hide_files_list()
         self._hide_preview()
@@ -624,6 +630,12 @@ class SearchMixin:
                     self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
                 self._matched_files_link.pack(side="left", padx=(5, 0))
         elif returncode == 1:
+            # Refresh state from the current checkbox AND clear matched_files
+            # so stale values from a previous search can't leak into this
+            # branch's status, link, or any later code that reads them.
+            self._inverse_results = self.inverse_var.get() == "on"
+            self.matched_files = []
+
             no_match_text = summary or "Search complete. No matches found."
             specific = self.specific_files_entry.get().strip()
             if specific:
@@ -634,12 +646,21 @@ class SearchMixin:
                 text=no_match_text,
                 text_color=("blue", "#66BBFF"),
             )
+            # Link color differs by inverse state: red is reserved for the
+            # "files without matches" inverse style, orange is the normal
+            # "matched files" style. Using red for non-inverse zero-match
+            # runs made it look like Inverse was still on.
+            if self._inverse_results:
+                link_text = "0 File(s) Without Matches"
+                link_fg, link_hover = "#CC3333", "#AA2222"
+            else:
+                link_text = "0 Matched File(s)"
+                link_fg, link_hover = "#FF6B35", "#E55A2B"
             self._matched_files_link.configure(
-                text="0 Matched File(s)",
-                fg_color="#CC3333", hover_color="#AA2222",
+                text=link_text, fg_color=link_fg, hover_color=link_hover,
             )
             self._matched_files_link.pack(side="left", padx=(5, 0))
-            self._show_action_buttons()
+            self._show_action_buttons(inverse=self._inverse_results)
         elif returncode == 2:
             # Check if results were produced despite the error (e.g., .docx generation failed)
             ts = getattr(self, '_last_ts_suffix', '')
