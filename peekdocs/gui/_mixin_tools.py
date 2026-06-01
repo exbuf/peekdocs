@@ -5824,6 +5824,12 @@ class ToolsMixin:
                    "expressive enough.\n", "body")
 
         txt.insert("end",
+                   "Both Search Suites and Regex Search collections can be run "
+                   "automatically on a schedule — open Tools → Schedule Search "
+                   "to generate a ready-to-paste cron (Mac / Linux) or Task "
+                   "Scheduler (Windows) command for your OS.\n", "body")
+
+        txt.insert("end",
                    "Tip: not sure which to use? Start with Run Standard Search. "
                    "Move up to Suites when you find yourself running the same "
                    "two or three searches together, or Regex when you need "
