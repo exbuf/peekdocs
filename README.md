@@ -32,6 +32,10 @@ peekdocs is a workbench for document collections. It searches PDFs, Word documen
 
 &nbsp;
 
+> **Local-only by design.** No network calls, no telemetry, no cloud, no account. peekdocs runs entirely on your machine with your normal user permissions — no admin or root required, and it works fine on air-gapped systems with no internet connection.
+
+&nbsp;
+
 > **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR couldn't extract text, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
 
 &nbsp;
@@ -102,7 +106,7 @@ for match in results.matches:
 - [Performance](#performance)
 - [Platform Notes](#platform-notes)
 - [Preparing Documents](#preparing-your-documents-for-searching)
-- [FAQ](#frequently-asked-questions)
+- [Questions and troubleshooting](#questions-and-troubleshooting)
 - [Glossary](#glossary)
 - [For IT and Security Teams](#for-it-and-security-teams)
 - [Testing](#testing)
@@ -935,118 +939,13 @@ Most digital files (PDFs from banks, Word docs, emails, spreadsheets) are alread
 
 **Tip:** Before selling or donating a computer, search your entire documents folder for sensitive data — passwords, account numbers, and personal information you may have forgotten about.
 
-## Frequently Asked Questions
+## Questions and troubleshooting
 
-**How can I verify peekdocs is safe?**
+Common questions, installation gotchas, and platform-specific issues are collected in **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** — ~90 entries covering search behavior, indexes, OCR, scheduling, email archives, network drives, uninstall steps, PDF report caveats, and more.
 
-- **Why this matters:** "Safe" means more than just no viruses. For any tool that handles sensitive information, you should verify: Does it send data anywhere (telemetry)? Does it modify or delete my files? Does it install background services or change system settings? Does it require admin/root privileges? Does it persist after closing? peekdocs does none of these — it's read-only, fully offline, installs no services, requires no elevated privileges, and runs only when launched. Below is how to verify the telemetry claim yourself. For the other concerns, see the FAQ entries on [file safety](#faq-file-safety), [data sending](#faq-data-sending), [permissions](#faq-permissions), and [dependencies](#faq-dependencies). Software that phones home can transmit your search terms, filenames, file contents, or usage patterns to a remote server — often without your knowledge or consent.
-- **General advice for checking any open-source software for telemetry (pick any that apply — you don't need to do all of them):**
-  - `grep -r "http\|socket\|urllib\|requests\|httpx\|aiohttp\|httplib2\|pycurl\|paramiko\|ftplib\|smtplib\|xmlrpc" <source_folder>/` checks for common networking libraries — if it returns nothing, no obvious network calls are present. This list is not exhaustive (e.g., it won't catch subprocess calls to `curl` or `wget`) but covers most real-world cases. This is a quick first-pass check, not a full security audit — it won't detect dynamic imports, subprocess-based network calls, or network activity in third-party dependencies.
-  - For deeper assurance, read the source code directly or run the software in a sandbox with network monitoring (e.g., Windows Sandbox with [Wireshark](https://www.wireshark.org), a VirtualBox VM with tcpdump, or Docker with `--network=none` to block all network access).
-  - Another quick check: turn off your Wi-Fi and verify the software works normally — this confirms it doesn't require a network connection, though it won't detect software that silently retries when connectivity returns.
-  - **Runtime test**: while the software is running, check for active network connections. macOS/Linux: `sudo lsof -i -n -P | grep -i python`. Windows (run Command Prompt as Administrator): `netstat -b | findstr python`. If nothing appears, the software is making zero outbound connections — unlike the grep check (which examines source code), this checks actual behavior and catches dynamic imports, subprocess calls, and dependency-level networking.
-  - Tip: run the grep command, then paste the results into Claude or ChatGPT and ask it to analyze whether any of the matches are actual network calls. AI is good at distinguishing XML namespaces and help text from real telemetry.
-  - **For closed-source software where you can't inspect the code,** use network monitoring tools like [Wireshark](https://www.wireshark.org) or [Little Snitch](https://www.obdev.at/products/littlesnitch), or run the software in a sandbox with a firewall to observe whether it makes outbound connections. These tools work for open-source software too.
-- **For peekdocs specifically:**
-  - **Read the source code** — it's fully open on [GitHub](https://github.com/exbuf/peekdocs). All Python files are readable. `grep -r "http\|socket\|urllib\|requests\|httpx\|aiohttp\|httplib2\|pycurl\|paramiko\|ftplib\|smtplib\|xmlrpc" peekdocs/` returns some results, but none are actual network calls — they are XML namespace strings for file parsing, URLs in help text and comments, and compiled `.pyc` cache files (auto-generated binary copies of the source). No networking libraries (`requests`, `urllib`, `socket`) are imported anywhere in the codebase. Tip: run the grep command, then paste the results into Claude or ChatGPT and ask it to analyze whether any of the matches are actual network calls. AI is good at distinguishing XML namespaces and help text from real telemetry.
-  - **Check dependencies** — `pip download peekdocs` downloads without installing so you can inspect the code; all 17 dependencies are well-known PyPI packages with thousands of users.
-  - **Build from source** — clone the repo, read the code, `pip install -e .` — you know exactly what you're running.
-  - **Scan the standalone exe** — upload it to [VirusTotal](https://www.virustotal.com), which scans with 70+ antivirus engines (note: PyInstaller executables often trigger 1-2 false positives because the bundling technique resembles malware packers — this is normal for legitimate open-source tools).
-  - **Run in a sandbox** — Windows Sandbox, a VM, or a Docker container. peekdocs has no network calls, no telemetry, and no background processes.
-  - For a deeper dive into peekdocs's security architecture, data storage, and known limitations, see [For IT and Security Teams](#for-it-and-security-teams).
+Quick diagnostic: run `peekdocs --check` (CLI) or open **Tools → System Check** (GUI). Both report your Python version, dependency status, Tesseract availability, SQLite version, and free disk space — most install-time issues resolve there.
 
-**How does peekdocs protect my privacy?**
-Multiple layers: Search reports are blocked from opening in cloud-based apps (Google Docs, Apple Pages) that could upload your data. If your search folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud, Dropbox), peekdocs automatically redirects report output to a safe local folder. HTML reports open locally in your browser — nothing goes online. **Delete on Close** automatically removes all result files when you close the app. **Clear History on Close** erases your search history. **Delete Now** instantly removes all peekdocs output files, search history, and the preview in one click. The search index can be deleted at any time. See [For IT and Security Teams](#for-it-and-security-teams) for the complete data architecture.
-
-<a id="faq-file-safety"></a>
-**Does peekdocs modify, move, or delete my files?**
-Never. peekdocs only reads your files. It creates its own output files (reports, indexes, settings) but never touches yours.
-
-<a id="faq-data-sending"></a>
-**Does peekdocs send my data anywhere?**
-No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
-
-**Is peekdocs actively maintained? What if the developer stops?**
-As of v1.0.3 (May 2026), peekdocs is in active development and tested on Windows, macOS, and Linux. It's open-source under the MIT License — anyone can fork, modify, and continue it. The codebase has 627 unit tests plus an integration script that exercises every search mode and flag combination on all three platforms. All dependencies are mainstream, actively maintained packages. Bug fixes and updates are provided on a best-effort basis — there are no guaranteed response times or support commitments. This is a solo project, not a commercial product.
-
-**Can peekdocs search scanned PDFs (image-only, no text layer)?**
-Yes — enable OCR (checkbox in the GUI or `-O` flag in the CLI). peekdocs detects pages with no text layer and automatically runs Tesseract to extract text from the image. Requires [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) to be installed separately. PDFs with an embedded text layer (from modern scanners or downloaded from banks, the IRS, and most major institutions) are searched directly — no OCR needed. peekdocs extracts text in memory without modifying your PDF files (unlike ocrmypdf, which permanently adds a text layer to PDFs).
-
-**Do I need Microsoft Word to view the highlighted report?**
-No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser — every computer has one, and the file is private on your computer, not on the internet. You can also use the built-in Results Preview and View Text features to see matches without any external software at all.
-
-**Can peekdocs search files on a network drive?**
-Yes. Map or mount the network share so it appears as a regular folder, then point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is slow.
-
-**Can peekdocs search my entire computer?**
-Yes. Set your folder to the root directory (`/` on macOS/Linux, `C:\` on Windows), enable Recursive, and search. System files that can't be read are logged and skipped. Large collections may take longer — consider building a search index for repeated searches.
-
-**Will peekdocs slow down my computer?**
-By default, peekdocs uses half your CPU cores so your computer stays responsive. You can adjust this in Advanced Search Options or with the `-c` flag.
-
-**What happens if a file can't be read?**
-peekdocs logs the error to `peekdocs_errors.log` and continues with the remaining files. Password-protected archives, corrupted files, and cloud-only placeholders are reported with clear messages. After each search, click the Excluded Files button to see what was skipped and why.
-
-**Why do Chinese/Japanese/Arabic characters show as `?` in my PDF report?**
-The PDF output uses a built-in font (Helvetica) that only supports Latin-1 characters — Western European languages like English, French, Spanish, and German. Non-Latin scripts are replaced with `?` in the PDF report only. This does not affect searching — peekdocs finds matches in all languages correctly. Use the `.docx`, `.html`, or `.txt` report formats instead — they support every language.
-
-**When do I need quotes around search terms?**
-Single words don't need quotes: `peekdocs budget`. Use quotes for exact phrases (`peekdocs "budget report"`), regex patterns (`peekdocs -x "\d{3}-\d{4}"`), Boolean expressions (`peekdocs -e "(budget OR revenue) AND NOT draft"`), and anything containing special characters (`$`, `*`, `(`, `)`, `|`, `=`, `<`, `>`). The shell interprets these characters before peekdocs sees them, so without quotes your search may not work as expected. When in doubt, use quotes — they never hurt.
-
-**How is peekdocs different from grep?**
-grep searches plain text files. peekdocs searches 100+ file types (PDF, Word, Excel, email, archives, and more), produces highlighted reports, and has a GUI. See [Why peekdocs?](#why-peekdocs) for a detailed comparison.
-
-<a id="faq-dependencies"></a>
-**What dependencies does peekdocs install? Can I audit them?**
-17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known, open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](docs/USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
-
-**How do I uninstall peekdocs completely?**
-`pipx uninstall peekdocs` or `pip uninstall peekdocs` removes the code. Your settings (`~/.peekdocsrc`), search history (`~/.peekdocs_history.json`), and bookmarks (`~/.peekdocs_bookmarks.json`) remain in your home directory — delete them manually for a clean slate. Saved searches (`.peekdocs_collection.json`) and indexes (`.peekdocs.db`) are in each folder you searched — delete those too if desired. peekdocs never writes to the registry, system directories, or startup folders.
-
-<a id="faq-permissions"></a>
-**Does peekdocs need admin or root permissions?**
-No. It runs entirely with your normal user permissions. It can only read files you already have access to. It does not elevate privileges or require sudo/administrator.
-
-**Can I use peekdocs in scripts, CI pipelines, or automation?**
-Yes. The `--stdout` flag outputs clean JSON to stdout for piping — no report files written, no banners, no progress bars. Combine with `jq` or any JSON processor:
-
-```bash
-peekdocs --stdout -r "password" | jq '.matches_found'
-peekdocs --stdout -r "TODO" | jq '[.matches_per_file[] | .filename]'
-peekdocs --stdout -r "API_KEY" | jq -r '.matches[] | "\(.filename):\(.line_number): \(.matched_text)"'
-
-# Run saved regex collections from the CLI (created in GUI → Regex Search → Save Collection As)
-peekdocs --regex-collection "code patterns" -r     # run with reports
-peekdocs --regex-collection "code patterns" --stdout  # JSON output for piping
-peekdocs --regex-collection --list                  # list all saved collections
-
-# Schedule with cron (macOS/Linux) or Task Scheduler (Windows)
-# Example: run a regex collection every Monday at 8am
-# 0 8 * * 1 cd /path/to/docs && peekdocs --regex-collection "weekly scan" -r -qq
-```
-
-Also: `peekdocs -qq` suppresses all output except the match summary, `-o csv,json` generates machine-readable files, and the exit code indicates success (0) or no matches (1). The Python API (`from peekdocs import search`) returns structured results you can process programmatically. See the [API Reference](docs/API.md) for details. **GUI users:** if you're not comfortable with the terminal, go to Tools → Schedule Search — it generates the cron or Task Scheduler command for you and shows step-by-step instructions with screenshots-style detail. Just copy, paste, and done.
-
-**How does peekdocs handle 100,000+ files?**
-It scales. peekdocs uses multiprocessing (separate OS processes across multiple CPU cores) for parallel file processing. In stress testing: 10,000 files in ~5 seconds, 50,000 in ~22 seconds, 1,000,000 small text files in ~90 seconds. For very large collections, build a search index — subsequent searches run in milliseconds. See [Performance](#performance) for detailed benchmarks.
-
-**Can peekdocs search password-protected or encrypted files?**
-No. Password-protected PDFs, Word/Excel/PowerPoint files, and encrypted archives (.zip, .7z, .rar) cannot be read without the password. peekdocs detects them and reports a clear message ("appears to be password-protected") instead of a confusing error. The Protected Files tool (Tools menu) lists all encrypted files in a folder so you know what's locked.
-
-**Can peekdocs search my Gmail or Outlook email?**
-Yes, but you need to export your email first — peekdocs searches local files, not email servers. **Gmail:** Go to [Google Takeout](https://takeout.google.com), select "Mail", and download. You'll get an `.mbox` file that peekdocs can search directly. **Outlook (desktop app):** File → Open & Export → Import/Export → Export to a file → Outlook Data File (.pst). Point peekdocs at the exported `.pst` file. **Outlook on the web:** Unfortunately, Microsoft's web-based Outlook does not offer a bulk export to `.pst` or `.mbox`. You can save individual emails as `.eml` files (open the email → three dots → "Save as" or drag to your desktop), but there is no built-in way to export an entire mailbox. Consider using the Outlook desktop app (included with Microsoft 365) for full `.pst` export. **Thunderbird:** Tools → Export (or copy the profile folder). Thunderbird stores mail as `.mbox` files. **Apple Mail:** Select messages → File → Save As. peekdocs reads `.eml`, `.msg`, `.pst`, and `.mbox` formats.
-
-**I found what I was looking for — now what?**
-peekdocs is read-only — it finds matches but doesn't modify your files. After finding a match: (1) **Double-click** any filename in the Matched Files list to open it in its native application (Word, Adobe Reader, etc.) for editing or redaction. (2) Click **View Text** to see the full extracted text with line numbers and highlighted matches — useful for locating the exact position. (3) Right-click in the Results Preview to **copy text**. (4) Click the **DOCX**, **HTML**, or **PDF** button to open the highlighted report — you can save, print, or email it to someone.
-
-**Can I share my search results with someone?**
-Yes. The highlighted `.docx` report is a standalone Word document — email it, print it, or drop it in a shared folder. The recipient doesn't need peekdocs installed. For web-friendly sharing, enable HTML output in Advanced Search Options — the `.html` report opens in any browser. For machine-readable data, use `-o csv,json` to generate CSV and JSON exports. For CLI users, `--stdout` outputs JSON that can be piped or redirected to a file.
-
-**Can I set a default search folder?**
-Yes. Use `peekdocs --config search_folder=/path/to/your/docs` to save a default folder. The GUI also remembers your last-used folder between sessions. To search multiple folders regularly, use the **+Folder** button to add folders, or save different searches pointing at different folders and reload them with one click.
-
-**Can I compare two searches to see what changed?**
-Not directly — peekdocs doesn't have a built-in diff or comparison feature. However, you can approximate it: (1) Use `--timestamp` so each search run creates uniquely named reports instead of overwriting. (2) Use `--stdout` to save JSON results from different dates, then compare with `diff` or `jq`. (3) Use `-o csv` to generate spreadsheets you can compare in Excel. This is a good candidate for a future enhancement.
+Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com/exbuf/peekdocs/issues).
 
 ## Glossary
 

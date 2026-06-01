@@ -187,6 +187,36 @@ No — all searches are case-insensitive by default.
 **Why are my reports capped at 1,000 matches?**
 By default, peekdocs caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Search Options panel.
 
+**Does peekdocs send my data anywhere?**
+No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
+
+**Does peekdocs need admin or root permissions?**
+No. It runs entirely with your normal user permissions. It can only read files you already have access to. It does not elevate privileges or require sudo/administrator.
+
+**Do I need Microsoft Word to view the highlighted report?**
+No. The `.docx` report opens in any word processor — [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free, runs on Windows, macOS, and Linux) works great. Or enable HTML output and open the report in your web browser. You can also use the built-in Results Preview and View Text features to see matches without any external software.
+
+**Can peekdocs search files on a network drive?**
+Yes. Map or mount the network share so it appears as a regular folder, then point peekdocs at it. Build a search index on the first search — subsequent searches query the local index instead of re-reading files over the network, which is slow.
+
+**Can peekdocs search my entire computer?**
+Yes. Set your folder to the root directory (`/` on macOS/Linux, `C:\` on Windows), enable Recursive, and search. System files that can't be read are logged and skipped. For large collections, build a search index for repeated searches.
+
+**Why do Chinese/Japanese/Arabic characters show as `?` in my PDF report?**
+The PDF output uses a built-in Helvetica font that only supports Latin-1 characters (Western European languages). Non-Latin scripts are replaced with `?` in the PDF report only. This does not affect searching — peekdocs finds matches in all languages correctly. Use the `.docx`, `.html`, or `.txt` report formats instead — they support every language.
+
+**How do I uninstall peekdocs completely?**
+`pipx uninstall peekdocs` or `pip uninstall peekdocs` removes the code. Your settings (`~/.peekdocsrc`), search history (`~/.peekdocs_history.json`), and bookmarks (`~/.peekdocs_bookmarks.json`) remain in your home directory — delete them manually for a clean slate. Saved searches (`.peekdocs_collection.json`) and indexes (`.peekdocs.db`) are in each folder you searched. peekdocs never writes to the registry, system directories, or startup folders.
+
+**Can peekdocs search my Gmail or Outlook email?**
+Yes, but you need to export your email first — peekdocs searches local files, not email servers. **Gmail:** Go to [Google Takeout](https://takeout.google.com), select "Mail", and download an `.mbox` file. **Outlook (desktop app):** File → Open & Export → Import/Export → Export to Outlook Data File (`.pst`). **Outlook on the web:** does not offer bulk export — use the desktop app. **Thunderbird:** Tools → Export (stores mail as `.mbox`). **Apple Mail:** File → Save As. peekdocs reads `.eml`, `.msg`, `.pst`, and `.mbox` formats.
+
+**What dependencies does peekdocs install? Can I audit them?**
+17 direct Python dependencies (PyMuPDF, python-docx, openpyxl, etc.) totaling about 50 packages, ~244 MB on disk. All are well-known open-source packages from PyPI. The full list with descriptions is in the [User Guide Dependencies section](USER_GUIDE.md#dependencies). The peekdocs source code is fully open for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs).
+
+**Can I set a default search folder?**
+Yes. Use `peekdocs --config search_folder=/path/to/your/docs` to save a default folder. The GUI also remembers your last-used folder between sessions. To search multiple folders regularly, use the **+Folder** button to add folders, or save different searches pointing at different folders and reload them with one click.
+
 Every feature in peekdocs serves the core mission of finding content in documents:
 
 - **Search flags** (`-a`, `-e`, `-x`, `-p`, `-O`, `-z`, `-w`, `-W`) — control *how* to match
