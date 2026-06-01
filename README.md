@@ -140,9 +140,9 @@ peekdocs --suite "Code hygiene"
 
 *The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works equally well on personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
-#### 1. Same search, four ways
+#### 1. Same search, three interfaces — plus the report
 
-One `TODO` search, shown across the four surfaces peekdocs ships: GUI, CLI, Python API, and the auto-generated Word report.
+One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
 
 **(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 69 matches in 54 files (out of 449 files / 806 MB scanned) in 0.59 seconds. Every match is highlighted in yellow with surrounding context.
 
