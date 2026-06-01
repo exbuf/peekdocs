@@ -1340,7 +1340,7 @@ Every payload starts with a `generator` field that includes the peekdocs version
 
 ```json
 {
-  "generator": "peekdocs v1.0.0",
+  "generator": "peekdocs v1.0.4",
   "directory": "/abs/path/to/search/folder",
   "search_terms": ["budget", "revenue"],
   "mode": "ANY",
@@ -1372,7 +1372,7 @@ Every payload starts with a `generator` field that includes the peekdocs version
 
 ```json
 {
-  "generator": "peekdocs v1.0.0",
+  "generator": "peekdocs v1.0.4",
   "collection": "my-patterns",
   "directory": "/abs/.../docs",
   "timestamp": "2026-05-23 09:08:31",
