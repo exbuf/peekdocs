@@ -3019,6 +3019,8 @@ peekdocs/
 
 ## Glossary
 
+This glossary focuses on terms users encounter while operating peekdocs — flags, search modes, error names, file-handling internals, Python packaging quirks. For broader peekdocs vocabulary including industry context (CI pipelines, SIEM, MSP), the list of Python networking libraries peekdocs deliberately does *not* use, and longer-form term backgrounds, see [docs/GLOSSARY.md](GLOSSARY.md). The two glossaries overlap on common terms but each is curated for a different scope.
+
 | Term | What it means |
 |------|--------------|
 | **AND mode** | A search setting where all terms must appear on the same line to count as a match. Without AND mode, any single term matching counts |
