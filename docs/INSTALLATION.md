@@ -81,6 +81,51 @@ Only needed if you want to search inside Outlook `.pst` mailbox archives.
 
 ## Niche install paths
 
+<a id="macos-gatekeeper"></a>
+### macOS first-launch — Gatekeeper "could not be verified"
+
+peekdocs is free, open-source, and not signed with an Apple Developer ID (the kind that costs $99/year). When you download the standalone GUI from the Releases page, macOS attaches a quarantine flag to it and refuses to open it on the first double-click. The exact warning depends on your macOS version:
+
+- **Sequoia (macOS 15) and Sonoma (macOS 14):** dialog says "Apple could not verify..." and offers only **Done** and **Move to Trash** — *no* **Open** button.
+- **Earlier macOS versions:** dialog says "...cannot be opened because the developer cannot be verified" and offers **Cancel** and **Move to Trash**, but right-clicking the app and choosing **Open** from the context menu still works.
+
+#### Path 1 — System Settings (no terminal)
+
+This is the recommended path on Sequoia and Sonoma since the right-click trick no longer reliably shows an Open option.
+
+1. Click **Done** to dismiss the warning.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll down to the *Security* section. You'll see a line like *"peekdocs-gui.app was blocked because it is not from an identified developer."* with an **Open Anyway** button.
+4. Click **Open Anyway**. (macOS may prompt you for your password to confirm.)
+5. macOS will show one more confirmation dialog — this one *does* have an **Open** button. Click it.
+6. From then on, a regular double-click works normally.
+
+#### Path 2 — Terminal one-liner
+
+If you'd rather skip the System Settings detour:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app
+```
+
+This strips the quarantine flag macOS attaches to anything downloaded from the internet. After running it, double-click works on the first try. (Adjust the path if you moved the app out of `~/Downloads`. Tip: type `xattr -dr com.apple.quarantine ` with a trailing space, then drag the app onto the Terminal window to auto-fill its path.)
+
+#### Path 3 — Right-click → Open (older macOS only)
+
+On Ventura (macOS 13) and earlier, this is the canonical bypass:
+
+1. Right-click (or Control-click) `peekdocs-gui.app` → **Open**.
+2. The warning dialog now has an **Open** button. Click it.
+3. From then on, a regular double-click works.
+
+If you're on Sequoia or Sonoma and the right-click menu doesn't show **Open** in the warning dialog, fall back to Path 1 or Path 2.
+
+#### Notes
+
+- **Safari auto-unzips downloads.** If you downloaded `peekdocs-gui-macos.zip` with Safari and see `peekdocs-gui.app` directly in `~/Downloads` instead of the `.zip`, that's expected. Safari's "Open safe files after downloading" preference (on by default) auto-extracts `.zip` archives. The `.app` is ready to launch — no double-click on the zip needed.
+- **The Gatekeeper bypass is one-time per app.** Once you've taught macOS to trust this specific copy of `peekdocs-gui.app`, every subsequent double-click works without prompts. Replacing the app on upgrade (downloading a new `.app` and overwriting the old one) does *not* re-trigger Gatekeeper as long as the bundle ID stays the same — but a fresh download to a different folder would.
+- **No installation, no system changes.** The `.app` is a fully self-contained bundle. Drag it to `/Applications` if you want it in Launchpad, or leave it in Downloads. There's nothing to uninstall later — just delete the `.app` and (if you want a clean wipe) `~/.peekdocsrc`.
+
 ### macOS — choosing a Python version for pipx
 
 If your system `python3` is still 3.9 and you installed a newer Python alongside it, tell pipx which to use:

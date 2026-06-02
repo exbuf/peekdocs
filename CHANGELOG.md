@@ -12,6 +12,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **macOS first-launch Gatekeeper walkthrough rewritten for Sequoia
+  / Sonoma.** A user testing the v1.0.5 standalone `.app` reported
+  that the warning dialog on a recent macOS only offered **Done**
+  and **Move to Trash** — no **Open** button — so the README's
+  "right-click → Open" instruction left them stuck. Three changes:
+  - README `Option A` Gatekeeper bullet rewritten to describe the
+    modern System Settings → Privacy & Security → Open Anyway path
+    as the primary route, with the `xattr -dr com.apple.quarantine`
+    one-liner as the no-terminal-detour alternative. Also notes
+    that Safari auto-unzips downloads, so users see
+    `peekdocs-gui.app` directly in Downloads rather than the
+    `.zip` they clicked.
+  - New `docs/INSTALLATION.md` section (anchor `macos-gatekeeper`,
+    placed at the top of "Niche install paths") with three paths
+    (System Settings, Terminal one-liner, right-click → Open for
+    older macOS), per-macOS-version notes, the Safari auto-unzip
+    explanation, and the "one-time per app" follow-up note.
+  - README's Gatekeeper bullet links through to the new
+    INSTALLATION.md section for the full walkthrough.
+
 ## [1.0.5] — 2026-06-02
 
 Documentation right-sizing pass, a round of GUI polish and safety
