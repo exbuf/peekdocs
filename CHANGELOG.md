@@ -12,6 +12,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.7] — 2026-06-02
+
+### Docs
+
+- **README intro corrected: "single install gets you everything" is
+  pipx-only.** The intro line claimed a single install gives you the
+  GUI, CLI, and Python API — true for `pipx install`, but the
+  standalone download path bundles GUI and CLI as separate binaries.
+  A user testing v1.0.6 hit this when they downloaded the GUI `.app`
+  and found no CLI bundled in. Reworded as: "A single pipx / pip
+  install gets you everything — the GUI, the CLI, and the Python
+  API all from one command. (The standalone download path bundles
+  them as separate binaries — pick the GUI, the CLI, or both as
+  needed; see Option A below.)"
+
+- **Option A split into separate GUI + CLI download tables.**
+  Previously: one "Direct downloads" table for the GUI plus a
+  paragraph cramming the three CLI binaries inline. Now: a
+  "Direct GUI downloads" table (existing content) and a parallel
+  "Direct CLI downloads" table with the same Platform | Download
+  | After-download structure. Each CLI row includes the platform-
+  specific invocation (`cd`, `chmod`, `xattr -dr com.apple.quarantine`,
+  PowerShell quirks via cross-link), and an "optionally rename and
+  put on PATH" tip so users get the same `peekdocs "query" /path`
+  UX from any terminal that pipx-install users get. Short intro
+  above the tables explains who needs the CLI separately ("script
+  peekdocs from the terminal, run it from cron / Task Scheduler,
+  or pipe its JSON output into other tools") so most readers
+  correctly skip the CLI table.
+
+- **"Why two standalone binaries instead of one?" rationale added
+  to Option A.** Inline paragraph right after the "separate
+  downloads" sentence covers: PyInstaller bundle has one entry
+  point; combining would force the CLI to carry tkinter /
+  customtkinter or the GUI to carry CLI-only argument-parsing
+  surface; the pipx / pip path doesn't have this constraint
+  because it drops both `peekdocs` and `peekdocs-gui` console
+  scripts into one shared venv. Anchor link to Option B for
+  readers who realize "single command for both" is what they
+  actually want.
+
 ## [1.0.6] — 2026-06-02
 
 ### Fixed
