@@ -196,6 +196,7 @@ No — all searches are case-insensitive by default.
 **Why are my reports capped at 1,000 matches?**
 By default, peekdocs caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Search Options panel.
 
+<a id="cant-find-expected-file"></a>
 **I searched for a term I know is in a file, but the file doesn't appear in my results. What happened?**
 Almost always, the file IS in the matched set — it's just not visible in the slice you're looking at. Two things to check.
 
