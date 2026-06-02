@@ -173,8 +173,22 @@ class SearchMixin:
         # Track all folders used this session for Delete on Close
         self._searched_folders.add(self.results_dir)
         self._searched_folders.add(folder)
-        # Remove stale output files for formats not requested (skip when timestamps are on)
+        # Remove stale output files at search start so a search that errors
+        # before writing fresh ones can't leave the previous good run's
+        # results in place — which would let `_search_finished`'s
+        # returncode == 2 recovery path parse last time's `.txt`/`.docx`
+        # and display it as if it were this run's, causing the "Inverse
+        # persists" and "no files without your search term" reports.
+        # Skip when timestamping is on so each historical report is
+        # preserved.
         if not self._last_ts_suffix:
+            for fmt in ("txt", "docx"):
+                stale = os.path.join(self.results_dir, f"peekdocs_standard_results.{fmt}")
+                if os.path.exists(stale):
+                    try:
+                        os.remove(stale)
+                    except OSError:
+                        pass
             if self.output_csv_var.get() != "on":
                 stale = os.path.join(self.results_dir, "peekdocs_standard_results.csv")
                 if os.path.exists(stale):
