@@ -501,12 +501,15 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
 
-1. Go to the [Releases page](https://github.com/exbuf/peekdocs/releases/latest)
-2. Download the file for your platform:
-   - **Windows:** `peekdocs-gui-windows.exe`
-   - **macOS:** `peekdocs-gui-macos.zip` (unzip it, then open `peekdocs-gui.app`)
-   - **Linux:** `peekdocs-gui-linux`
-3. Run it — that's it. No installation needed.
+**Direct downloads** (always the latest release):
+
+| Platform | Download | After download |
+|---|---|---|
+| Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run |
+| macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app` |
+| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux` |
+
+Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (GUI + CLI for each platform), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
 **First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
 
@@ -514,7 +517,7 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 - **macOS (Gatekeeper):** Right-click the app → **Open** → confirm. From then on a regular double-click works. (Or from a terminal: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`.)
 - **Linux:** `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`.
 
-**CLI standalones** (`peekdocs-cli-*`) are also on the Releases page. Run them from an already-open terminal — Windows-specific quirks (PowerShell `--%` token, `.rar`/`.pst` limitations) are in [docs/INSTALLATION.md#cli-on-windows-footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes).
+**CLI standalones** for terminal use — direct downloads: [peekdocs-cli-windows.exe](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe), [peekdocs-cli-macos.zip](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip), [peekdocs-cli-linux](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux). Run them from an already-open terminal — Windows-specific quirks (PowerShell `--%` token, `.rar`/`.pst` limitations) are in [docs/INSTALLATION.md#cli-on-windows-footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes).
 
 **Upgrading.** Download the new version and replace the old file. Your settings and saved searches live in your home directory — nothing is lost.
 
