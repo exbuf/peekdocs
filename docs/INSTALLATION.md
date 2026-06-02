@@ -100,6 +100,39 @@ pipx install --force ~/Downloads/peekdocs-main.zip                              
 pipx install --force C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows
 ```
 
+<a id="windows-cmd-ssl"></a>
+### Windows — cmd.exe SSL / SNI / certificate errors
+
+If `pipx install` or `pip install <git-url>` fails in **Command Prompt** (`cmd.exe`) with an SSL, SNI, or certificate-validation error, but the same command works in **PowerShell**, the two terminals are routing through different Python installs. Common cause: `cmd.exe` is picking up the Microsoft Store Python stub or an older system Python with a stale `certifi` / CA bundle, while PowerShell finds your real install.
+
+Quick check — compare the Python path between the two terminals:
+
+```cmd
+:: Command Prompt
+where python
+set | findstr /i "proxy cert ssl"
+```
+
+```powershell
+# PowerShell
+Get-Command python
+Get-ChildItem env: | Where-Object Name -match 'PROXY|CERT|SSL'
+```
+
+If the two `python` paths differ: simplest fix is to **use PowerShell**. If you must install from `cmd.exe`, refresh the failing Python's pip and CA bundle:
+
+```cmd
+python -m pip install --upgrade pip certifi
+```
+
+Emergency override (only to confirm cert validation is the cause — don't leave it in your install habit, since it disables a real security check):
+
+```cmd
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host github.com --trusted-host codeload.github.com git+https://github.com/exbuf/peekdocs.git
+```
+
+`--trusted-host` skips certificate validation for the listed hosts only. If the install succeeds with `--trusted-host` but fails without it, the root cause is certifi / CA bundle, not network reachability — fix pip + certifi as above.
+
 ### Windows pipx fallback — pipx reports success but `peekdocs` says `ModuleNotFoundError`
 
 On some Windows machines pipx creates the venv but the package files silently fail to land in it. Install directly with pip instead — a different code path that bypasses the issue:

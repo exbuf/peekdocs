@@ -460,6 +460,24 @@ rather than swallowing them silently.
 
 ### Docs
 
+- **Windows cmd.exe SSL / SNI / certificate-error gotcha documented.**
+  A Windows user reported that `pipx install --force git+...` and
+  `pip install ...` both fail in **Command Prompt** with an SSL /
+  SNI / certificate-validation error, but succeed in **PowerShell**.
+  Root cause is environmental: the two terminals can route through
+  different Python installs (cmd.exe often finds the Microsoft Store
+  Python stub or an older system Python with a stale `certifi` / CA
+  bundle, while PowerShell finds the real install). Added a new
+  section in `docs/INSTALLATION.md` (anchor `windows-cmd-ssl`)
+  covering the diagnosis (`where python` in cmd vs `Get-Command
+  python` in PowerShell, env-var comparison), the simplest fix (use
+  PowerShell), the pip+certifi refresh path, and an emergency
+  `--trusted-host` override with a clear "don't leave this in your
+  habit" caveat. The README's "Two ways to install" bullet list
+  also picks up a one-line Windows tip linking through to the new
+  section, since that's where a Windows user lands when the install
+  fails the first time.
+
 - **README pipx install commands now uniformly include `--force`.**
   A Windows user followed the README's bare `pipx install
   git+https://github.com/exbuf/peekdocs.git` command and got
