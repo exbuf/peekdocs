@@ -114,7 +114,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
         self.report_delete_cb.pack(side="left", padx=(10, 0))
-        self._delete_everything_btn.pack(side="left", padx=(250, 0))
+        self._delete_everything_btn.pack(side="left", padx=(400, 0))
         self.report_frame.grid(
             row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )

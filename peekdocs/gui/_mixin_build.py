@@ -1888,7 +1888,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             command=help_win.destroy, font=ctk.CTkFont(size=12),
         )
-        _close_btn_recent.pack(side="bottom", pady=(5, 10))
+        _close_btn_recent.pack(side="bottom", anchor="w", padx=(20, 0), pady=(5, 10))
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True)

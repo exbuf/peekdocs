@@ -1177,7 +1177,7 @@ class SearchMixin:
                     text_color="white",
                 )
         self.report_delete_cb.pack(side="left", padx=(10, 0))
-        self._delete_everything_btn.pack(side="left", padx=(250, 0))
+        self._delete_everything_btn.pack(side="left", padx=(400, 0))
         self.report_frame.grid(
             row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
@@ -1220,7 +1220,7 @@ class SearchMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy,
             font=ctk.CTkFont(size=12),
-        ).pack(side="bottom", pady=(5, 15))
+        ).pack(side="bottom", anchor="w", padx=(20, 0), pady=(5, 15))
 
         tk.Label(
             popup, text=heading,
@@ -1338,7 +1338,7 @@ class SearchMixin:
 
         # Close — centered, on its own row at the bottom.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 12))
+        close_row.pack(pady=(5, 12), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),

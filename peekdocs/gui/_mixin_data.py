@@ -944,7 +944,7 @@ class DataMixin:
         ctk.CTkButton(btn_frame, text="Cancel", width=70, font=ctk.CTkFont(size=12),
                       command=dialog.destroy).pack(side="left", padx=5)
         close_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        close_frame.pack(pady=(0, 10))
+        close_frame.pack(pady=(0, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(close_frame, text="Close", width=80,
                       fg_color="transparent", text_color=("gray30", "gray70"),
                       hover_color=("gray90", "gray25"),
@@ -1816,7 +1816,7 @@ class DataMixin:
         txt.configure(state="disabled")
 
         close_frame = tk.Frame(help_win)
-        close_frame.pack(pady=(5, 10))
+        close_frame.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             font=ctk.CTkFont(size=12),

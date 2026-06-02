@@ -248,7 +248,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 10))
+        close_row.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         close_btn = ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -877,7 +877,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 10))
+        close_row.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -1553,7 +1553,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 10))
+        close_row.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -1968,7 +1968,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 10))
+        close_row.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -2267,7 +2267,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 10))
+        close_row.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -2485,7 +2485,7 @@ class ToolsMixin:
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy,
-        ).pack(pady=(0, 10))
+        ).pack(anchor="w", padx=(20, 0), pady=(0, 10))
 
         self._apply_dark_theme(popup)
 
@@ -2580,7 +2580,7 @@ class ToolsMixin:
             help_win, text="Close", width=80, font=ctk.CTkFont(size=12),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"), command=help_win.destroy,
-        ).pack(pady=(5, 10))
+        ).pack(anchor="w", padx=(20, 0), pady=(5, 10))
         self._apply_dark_theme(help_win)
 
 
@@ -3312,7 +3312,7 @@ class ToolsMixin:
         btn_frame = tk.Frame(wiz)
         btn_frame.pack(fill="x", padx=15, pady=(0, 2))
         close_frame = tk.Frame(wiz)
-        close_frame.pack(pady=(0, 12))
+        close_frame.pack(pady=(0, 12), anchor="w", padx=(20, 0))
 
         def _select_all():
             for var, _, _ in check_vars:
@@ -5308,7 +5308,7 @@ class ToolsMixin:
         Tooltip(_btn_run, "Run all searches in this suite — results are combined into a single highlighted report")
 
         close_frame = tk.Frame(win)
-        close_frame.pack(pady=(0, 10))
+        close_frame.pack(pady=(0, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -5984,7 +5984,7 @@ class ToolsMixin:
         txt.configure(state="disabled")
 
         close_frame = tk.Frame(help_win)
-        close_frame.pack(pady=(5, 10))
+        close_frame.pack(pady=(5, 10), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_frame, text="Close", width=80,
             font=ctk.CTkFont(size=12),
@@ -6132,7 +6132,7 @@ class ToolsMixin:
 
         # Close — centered, on its own row below Copy to Clipboard.
         close_row = tk.Frame(popup, bg=("white" if not _dark else "#2B2B2B"))
-        close_row.pack(pady=(5, 12))
+        close_row.pack(pady=(5, 12), anchor="w", padx=(20, 0))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -7109,7 +7109,7 @@ class ToolsMixin:
         btn_frame = tk.Frame(win)
         btn_frame.pack(fill="x", pady=(8, 2), padx=15)
         close_frame = tk.Frame(win)
-        close_frame.pack(pady=(0, 12))
+        close_frame.pack(pady=(0, 12), anchor="w", padx=(20, 0))
 
         _saved_before_clear = []  # stores snapshot for Restore All
 
