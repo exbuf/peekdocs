@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **Searches re-discovered legacy `peekdocs_results.*` report files
+  as user documents.** Commit `492583a` (2026-05-23) renamed report
+  files from `peekdocs_results.*` to `peekdocs_{standard,regex,suite}_results.*`
+  to stop the three search modes from silently overwriting each
+  other's reports. That rename also dropped `"peekdocs_results"`
+  from the scanner's `_EXCLUDE_PREFIXES` set, replacing it with
+  the three new prefixes via `RESULT_FILE_PREFIXES`. Folders that
+  had been searched by any pre-rename peekdocs version still
+  contain files like `peekdocs_results.html`, `.json`, `.pdf` —
+  and v1.0.4 / v1.0.5 picked them up as user documents and
+  searched their contents. A user running `peekdocs budget` saw
+  three "matches" that were just words from earlier search reports.
+  Added `"peekdocs_results"` back to `_EXCLUDE_PREFIXES` in
+  `peekdocs/scanner.py:971` as a legacy-compatibility prefix.
+  Scoped to **search exclusion only** — not added to
+  `RESULT_FILE_PREFIXES` because the cleanup paths
+  (Delete on Close, Wipe Session, etc.) shouldn't silently sweep
+  files a user may have intentionally kept from a pre-rename
+  install. The comment explains the legacy rationale so the
+  prefix doesn't get garbage-collected by a future cleanup.
+
 ### Docs
 
 - **macOS Gatekeeper bypass clarified as per-download, not per-app.**

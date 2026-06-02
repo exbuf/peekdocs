@@ -970,11 +970,23 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
                       }
     _EXCLUDE_PREFIXES = RESULT_FILE_PREFIXES + (
         "peekdocs_report_", "peekdocs_accumulated_",
+        # Legacy report-file naming. Commit 492583a (2026-05-23)
+        # renamed report files from peekdocs_results.* to
+        # peekdocs_{standard,regex,suite}_results.* to stop the three
+        # search modes from overwriting each other's reports. Folders
+        # touched by pre-rename peekdocs versions still contain files
+        # like peekdocs_results.html / .json / .pdf — without this
+        # entry, the scanner re-discovers them as user documents and
+        # searches them as if they were fresh content. Scoped to search
+        # exclusion only — NOT added to RESULT_FILE_PREFIXES because
+        # the cleanup paths shouldn't silently sweep files the user may
+        # have intentionally kept from a pre-rename install.
+        "peekdocs_results",
         # Integration test output written by samples/test-files/
         # peekdocs_global_test_{unix,windows}.{sh,ps1}. Scoped to search
         # exclusion only — NOT added to RESULT_FILE_PREFIXES because the
-        # cleanup paths (Delete on Close, Delete Now) shouldn't sweep
-        # test artifacts the developer may want to inspect after a run.
+        # cleanup paths shouldn't sweep test artifacts the developer
+        # may want to inspect after a run.
         "peekdocs_global_test_",
     )
 
