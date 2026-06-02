@@ -5634,13 +5634,34 @@ class ToolsMixin:
             except Exception:
                 pass
 
-        # Build matched files list from the last search's peekdocs_standard_results.txt
-        # (each subprocess overwrites it, so the last one is current)
-        from peekdocs.gui._helpers import _parse_matched_files
-        if folder:
-            self.matched_files = _parse_matched_files(folder, "peekdocs_standard_results.txt")
-        else:
-            self.matched_files = []
+        # Build matched files list by aggregating each section's
+        # parsed_files (captured in _run_suite_searches before the next
+        # sub-search overwrote peekdocs_standard_results.txt). Re-reading
+        # the file here would only see the last sub-search's results —
+        # and if that was an inverse search, _parse_matched_files would
+        # return the "Files WITHOUT matches:" entries with count=0, which
+        # is what was showing up when the Matched Files button was
+        # clicked after a mixed normal+inverse suite. Filter to count>0
+        # so inverse sections don't contribute zero-match files; the
+        # status label already only counts non-inverse sub-search hits
+        # (matched_file_count is parsed from stdout's "match(es) in N
+        # file(s)" line, which an inverse run never prints).
+        _seen = {}
+        _order = []
+        for _sec in sections:
+            for fp, fname, cnt, lines in _sec.get("parsed_files", []):
+                if cnt <= 0:
+                    continue
+                if fp in _seen:
+                    _seen[fp]["count"] += cnt
+                    _seen[fp]["lines"].extend(lines)
+                else:
+                    _seen[fp] = {"filename": fname, "count": cnt, "lines": list(lines)}
+                    _order.append(fp)
+        self.matched_files = [
+            (fp, _seen[fp]["filename"], _seen[fp]["count"], _seen[fp]["lines"])
+            for fp in _order
+        ]
         self._inverse_results = False
 
         # Show matched files button — use stdout-parsed count for display

@@ -166,6 +166,58 @@ rather than swallowing them silently.
 
 ### Fixed
 
+- **Suite Matched File(s) button showed inverse zero-match files
+  after a mixed normal+inverse suite.** A suite with two sub-searches
+  (e.g. "bowling" normal + "bowling" inverse) correctly showed
+  `9 Matched File(s)` on the main page and a correct Results Preview
+  and .docx report, but clicking the Matched Files button opened a
+  popup listing only the zero-match files from the inverse sub-search.
+  Root cause: `_suite_finished` rebuilt `self.matched_files` by
+  re-reading `peekdocs_standard_results.txt` from the search folder
+  after the run — but each sub-search subprocess overwrites that file,
+  so the re-read only ever saw the last sub-search's output. When the
+  last sub-search was inverse, the file's "Files WITHOUT matches:"
+  section parsed (correctly, by design) into count=0 entries, and
+  those populated the popup. Fix: aggregate `parsed_files` across all
+  `sections` (each section's `parsed_files` was already captured in
+  `_run_suite_searches` before the next subprocess overwrote the
+  file), filtering to count>0 so inverse sub-searches contribute
+  nothing. The status label was already right because it sums each
+  section's `matched_file_count`, parsed from stdout's "match(es)
+  in N file(s)" line — a line an inverse run never prints.
+
+- **macOS popups stayed dark after switching the app to light mode.**
+  Regex Search, Search Suites, Wizard, and other popups that go
+  through `_themed_toplevel` were destroyed by `_set_appearance_mode`
+  when the user switched modes — but when re-opened in light mode,
+  their plain tk widgets (tk.Text, tk.Listbox, tk.Canvas) still used
+  dark colors. Root cause: `_themed_toplevel` called `win.option_add`
+  for two dozen tk widget defaults, but only inside an
+  `if _is_dark and platform != "win32":` block. tk's `option add`
+  writes to Tcl's *application-wide* option database (not per-window),
+  so values set during a dark-mode popup persisted in the option DB
+  after that popup was destroyed. The next popup opened in light mode
+  ran no option_add calls and inherited the stale dark values. Windows
+  was unaffected because the entire block was gated behind the
+  platform check. Fix: always set mode-appropriate option_add values
+  on Mac/Linux (introduced an explicit light-mode color set:
+  `#f0f0f0` bg, black fg, white entry/text bg, `#e1e1e1` button bg).
+  Dark-mode startup white-flash mitigation (`win.geometry("+99999+99999")`
+  + `_ensure_onscreen` safety net) still runs only in dark mode.
+
+- **Delete Now button moved further right to avoid accidental clicks
+  through popup close buttons.** The Delete Now button on the main
+  page (red, in the report-button row) sat at screen coordinates
+  close to the bottom-right Close button of typical popups (Regex
+  Search, Search Suites, Wizard, etc.) when those popups were
+  centered over the main window. Moving the cursor down after
+  clicking a popup's Close button could land on Delete Now —
+  destructive enough (drops indexes, deletes session reports) that
+  the confirmation dialog wasn't a sufficient guard against the
+  reflex misclick. Bumped its left padding from `padx=(30, 0)` to
+  `padx=(120, 0)` in `_mixin_search.py:1180`, shifting it ~90px
+  further right inside the report frame.
+
 - **Advanced Search Options popup opened at 100px tall on Windows.**
   `_build_advanced_panel` sets the popup's initial geometry to
   `900x100`, then computes the actual content height after laying

@@ -2021,28 +2021,49 @@ class BuildMixin:
             win.after(50, win.lift)
             win.after(100, win.focus_force)
         _is_dark = ctk.get_appearance_mode() == "Dark"
-        if _is_dark and _sys_tt.platform != "win32":
-            # macOS/Linux: place offscreen while building widgets to
-            # reduce white flash.  The popup's own geometry() call
-            # moves it onscreen after setup is complete.
-            win.geometry("+99999+99999")
-            _bg = "#2b2b2b"
-            _fg = "#e0e0e0"
-            _entry_bg = "#3a3a3a"
-            _btn_bg = "#555555"
+        if _sys_tt.platform != "win32":
+            # macOS/Linux: tk's `option add` writes to the application-wide
+            # option database, not per-window — so option_add values set
+            # during a dark-mode popup persist after that popup is
+            # destroyed. If we only set them in dark mode and skip light
+            # mode, a subsequent light-mode popup inherits the stale dark
+            # values for its plain tk widgets (Text, Listbox, Canvas,
+            # etc.) and visually stays dark. Always set mode-appropriate
+            # values so each popup overwrites whatever the previous one
+            # left in the option DB.
+            if _is_dark:
+                _bg = "#2b2b2b"
+                _fg = "#e0e0e0"
+                _entry_bg = "#3a3a3a"
+                _btn_bg = "#555555"
+                _btn_fg = "white"
+                _listbox_bg = "#2b2b2b"
+                _listbox_fg = "white"
+                # Place offscreen while building widgets to reduce the
+                # white flash on macOS dark mode startup. The popup's
+                # own geometry() call moves it onscreen after setup.
+                win.geometry("+99999+99999")
+            else:
+                _bg = "#f0f0f0"
+                _fg = "black"
+                _entry_bg = "white"
+                _btn_bg = "#e1e1e1"
+                _btn_fg = "black"
+                _listbox_bg = "white"
+                _listbox_fg = "black"
             win.configure(bg=_bg)
             win.option_add("*Background", _bg)
             win.option_add("*Foreground", _fg)
             win.option_add("*Entry.Background", _entry_bg)
             win.option_add("*Entry.Foreground", _fg)
             win.option_add("*Entry.insertBackground", _fg)
-            win.option_add("*Listbox.Background", "#2b2b2b")
-            win.option_add("*Listbox.Foreground", "white")
+            win.option_add("*Listbox.Background", _listbox_bg)
+            win.option_add("*Listbox.Foreground", _listbox_fg)
             win.option_add("*Text.Background", _entry_bg)
             win.option_add("*Text.Foreground", _fg)
             win.option_add("*Text.insertBackground", _fg)
             win.option_add("*Button.Background", _btn_bg)
-            win.option_add("*Button.Foreground", "white")
+            win.option_add("*Button.Foreground", _btn_fg)
             win.option_add("*Checkbutton.Background", _bg)
             win.option_add("*Checkbutton.Foreground", _fg)
             win.option_add("*Checkbutton.selectColor", _entry_bg)
@@ -2055,6 +2076,7 @@ class BuildMixin:
             win.option_add("*Scrollbar.troughColor", _bg)
             win.option_add("*Canvas.Background", _bg)
 
+        if _is_dark and _sys_tt.platform != "win32":
             def _ensure_onscreen(_w=win, _self=self):
                 """If the popup is still offscreen, center it over the main window."""
                 try:
