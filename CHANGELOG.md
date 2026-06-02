@@ -344,6 +344,42 @@ rather than swallowing them silently.
   widget from 6 px to 24 px so even a partial height measurement
   can't put the tooltip on top of the widget.
 
+- **Inverse-mode state persisting across searches.** Three related
+  defects produced the reported "Inverse persists even after being
+  unchecked" symptom (commits 1552123, 7ee7acf, fe1c491):
+  (1) `_hide_preview` only grid-removed the frame, leaving
+  highlighted-match content from the previous search in the Text
+  widget for any later code path to display; (2) `_show_preview`
+  guarded the inverse-render block on
+  `self._inverse_results AND self.matched_files`, falling through
+  to highlighted-match rendering when `matched_files` was empty —
+  including the exact "Inverse on, status says no matches, preview
+  shows highlighted matches" inconsistency the user observed; and
+  (3) the `returncode == 1` "no matches" path never refreshed
+  `_inverse_results` or `matched_files` from the current checkbox
+  state, and hardcoded the matched-files link to red (the
+  inverse-mode color). Now `_hide_preview` clears the Text widget,
+  `_show_preview` always uses inverse layout when
+  `_inverse_results` is True (with an empty-state message when no
+  inverse files are returned), the `returncode == 1` branch
+  refreshes both fields and uses inverse-state-appropriate link
+  colors, and `.txt` / `.docx` result files are unconditionally
+  deleted at search start so a returncode-2 recovery branch can't
+  parse the *previous* search's report and display it as the
+  current one's. Together these close every path through the
+  inverse-toggle plumbing that could carry stale state forward.
+
+- **Advanced Search Options popup opened on the wrong monitor.**
+  Every other Tools popup uses `_center_popup_on_main` to
+  re-center on the main window's screen each time it opens. The
+  Advanced popup just called `deiconify()` + `lift()`, leaving it
+  wherever Tk first placed it — typically the laptop's primary
+  monitor even when the main window had been dragged to a second
+  display. `toggle_advanced` now reads the popup's already-fit
+  width and height and computes centered coordinates relative to
+  the main window's `winfo_rootx/y` before deiconifying. Last
+  popup that wasn't in the multi-monitor sweep.
+
 ### Docs
 
 - **TROUBLESHOOTING "Why is my first search slow but later searches
@@ -396,6 +432,35 @@ rather than swallowing them silently.
   the Advanced Search Options auto-fit fix in 433a5ec. The panel
   now sizes to its actual content without the ~200 px of empty
   space below Reset All Fields that earlier captures showed.
+
+- **"3 Search Buttons — what's the difference?" popup tightened
+  for accuracy and reach.** Opening sentence updated from
+  "three Run buttons" to "three Search buttons" to match the
+  post-rename main-screen labels and "(Step 1)" added to the
+  folder reference for clarity. Two accuracy fixes: Standard
+  Search regex was described as "a single regex term" but the
+  code supports multiple patterns (replaced with "regex (one or
+  more patterns)"), and "above the run-buttons row" was stale
+  vocabulary (changed to "above the search-buttons row"). New
+  paragraph between the Regex Search section and the closing Tip
+  notes that Search Suites and Regex Search collections can both
+  be run on a schedule via Tools → Schedule Search. Popup width
+  bumped from 720 → 820 px so the tightened body has room to
+  breathe.
+
+- **"Can't find a file you expected?" tip relocated to three
+  discoverable places.** Previously buried five layers deep
+  inside README's "Who Is It For?" section (Highlighted Results →
+  Results Preview → sub-bullet), where the user who hit the
+  problem couldn't find it. Now lives in: README's Screenshots
+  section as a blockquote under the GUI screenshot caption; a new
+  TROUBLESHOOTING.md FAQ entry "I searched for a term I know is
+  in a file, but the file doesn't appear in my results — what
+  happened?" adjacent to the report-cap entry, with a three-part
+  answer covering scroll position, overly broad query (with
+  AND / proximity / expression remedies), and excluded files; and
+  USER_GUIDE.md "Results Preview vs. Reports" section with a
+  back-link to the FAQ entry.
 
 ## [1.0.4] — 2026-05-30
 
