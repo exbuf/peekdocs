@@ -1151,6 +1151,14 @@ When a search completes, you see results in two places:
 
 **Both show the same matches.** Every result that appears in the Results Preview also appears in the reports, and vice versa (subject to the max-matches limit, which applies equally to both). The difference is presentation: the preview is for instant review inside the app; the reports are polished documents for keeping or sharing.
 
+**The preview is a scrollable window.** Matches are ordered alphabetically by file path. A broad query — OR mode with a common short word like `dr` or `id` — can return hundreds of matched files, and the file you were looking for may be lower in the list than what's first visible. If you can't immediately spot the file you expected:
+
+- Click the **Matched File(s)** link on the status line for the complete sorted list of matched files (independent of the preview's scroll position).
+- Open the `.docx` or `.html` report for every match across every file in one document.
+- Narrow the search — **AND mode** requires both words on the same line, **proximity** (`-p N`) requires terms within N words of each other, and **expression mode** (`-e "(dr OR Dr.) AND bowling"`) lets you spell out the exact logic. Any of these typically drops a noisy 100-file match down to a handful of files that actually contain the phrase you meant.
+
+If you've confirmed the file isn't in any of those views, check the **Excluded Files** link on the status line — your file may have been skipped because it exceeded Max File Size, was password-protected, or was in a format peekdocs doesn't support. See also the [matching FAQ entry](TROUBLESHOOTING.md#i-searched-for-a-term-i-know-is-in-a-file-but-the-file-doesnt-appear-in-my-results-what-happened).
+
 ### Report Files
 
 Search results are always written to two files in the current directory:

@@ -196,6 +196,15 @@ No — all searches are case-insensitive by default.
 **Why are my reports capped at 1,000 matches?**
 By default, peekdocs caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Search Options panel.
 
+**I searched for a term I know is in a file, but the file doesn't appear in my results. What happened?**
+Almost always, the file IS in the matched set — it's just not visible in the slice you're looking at. Two things to check.
+
+*First, where you're looking.* The GUI's Results Preview is a scrollable window into the matched set, ordered alphabetically by file path. A broad search — OR mode with a common short word like `dr` (which matches not only `Dr.` but also `draft`, `drink`, `drop`, `dramatic`, every code identifier with `dr` in it, etc.) — can return hundreds of files. The specific file you were looking for may be lower in the list. Two ways to see the complete set: click the **Matched File(s)** link on the status line, or open the `.docx` / `.html` report file for every match across every file.
+
+*Second, the search itself.* If you wanted "dr" *near* "bowling" rather than "files containing either word," OR mode is the wrong tool. Use **AND mode** (Advanced Search Options → AND, or `-a`) to require both words on the same line, **proximity** (`-p 5`) to require both within 5 words of each other, or **expression mode** (`-e "(dr OR Dr.) AND bowling"`) for explicit logic. Narrowing the query in any of these ways drops a 167-file noisy match down to the handful of files that actually contain the phrase you meant.
+
+If after both checks the file genuinely isn't in the results, two real causes worth ruling out: (1) the file may be excluded from the search — open the **Excluded Files** link on the status line to see which files were skipped (oversized, unsupported format, password-protected, etc.); or (2) if you're using the index, the file may have been added after the last index refresh — run `peekdocs --index-refresh` (or **Manage Indexes → Refresh** in the GUI) and search again.
+
 **Does peekdocs send my data anywhere?**
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
 

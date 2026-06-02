@@ -148,6 +148,8 @@ One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Py
 
 ![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
 
+> **Tip — can't find a file you expected?** The Results Preview is a scrollable window into the matched set, ordered alphabetically by file path. Broad searches (OR mode with a short common word like `dr` or `id`) can return hundreds of files, so the specific one you were looking for may be lower in the list. Click the **Matched File(s)** link on the status line for the complete list, or open the `.docx` / `.html` report for every match across every file. Narrowing the query (AND mode, proximity, or a more specific phrase) reduces the noise. See [the FAQ](docs/TROUBLESHOOTING.md) for more.
+
 **(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 69 matches in 54 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame. The 0.40-second elapsed time is the *second* run — the first search took about 44 seconds while peekdocs built the index for this folder. Every subsequent search uses the warm index and runs in milliseconds (see [First-run timing](#first-run-timing-and-the-banner-notice) for details).
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
@@ -338,7 +340,6 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
     - See matches instantly inside peekdocs
     - Right-click to copy text
     - Double-click a filename to open the file
-    - **Don't see a file you expected?** The preview is a scrollable window into the result set, ordered alphabetically by file path. A broad search — OR mode with a common short word like `dr` or `id` — can return hundreds of matched files, and the specific file you were looking for may be lower in the list. Click the **Matched File(s)** link on the status line to see the complete list, or open the `.docx` / `.html` report for every match. Narrowing the search (AND mode, proximity, or a more specific phrase) reduces the noise.
   - **2) Word Report (.docx):**
     - Standalone document with all matches highlighted in yellow
     - Organized by file with surrounding context, search metadata, and match counts
