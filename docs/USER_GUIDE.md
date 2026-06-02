@@ -1155,7 +1155,12 @@ When a search completes, you see results in two places:
 
 - Click the **Matched File(s)** link on the status line for the complete sorted list of matched files (independent of the preview's scroll position).
 - Open the `.docx` or `.html` report for every match across every file in one document.
-- Narrow the search — **AND mode** requires both words on the same line, **proximity** (`-p N`) requires terms within N words of each other, and **expression mode** (`-e "(dr OR Dr.) AND bowling"`) lets you spell out the exact logic. Any of these typically drops a noisy 100-file match down to a handful of files that actually contain the phrase you meant.
+- Narrow the search:
+  - **Quoted phrase search** is the simplest fix when you wanted a contiguous phrase rather than either word. Type `"Dr. Bowling"` (with double quotes) directly in the Search Terms field and peekdocs looks for that exact sequence as a single unit — see [Phrase search (quoted terms)](#phrase-search-quoted-terms) for the syntax.
+  - **AND mode** requires both words on the same line but not necessarily adjacent.
+  - **Proximity** (`-p N`) requires terms within N words of each other.
+  - **Expression mode** (`-e "(dr OR Dr.) AND bowling"`) lets you spell out the exact logic.
+  - Any of these typically drops a noisy 100-file match down to a handful of files that actually contain the phrase you meant.
 
 If you've confirmed the file isn't in any of those views, check the **Excluded Files** link on the status line — your file may have been skipped because it exceeded Max File Size, was password-protected, or was in a format peekdocs doesn't support. See also the [matching FAQ entry](TROUBLESHOOTING.md#cant-find-expected-file).
 
