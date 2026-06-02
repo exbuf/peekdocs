@@ -503,6 +503,8 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 
 The GUI and CLI standalones are **separate downloads**. Most users only need the GUI. Download the CLI as well if you want to script peekdocs from the terminal, run it from cron / Task Scheduler, or pipe its JSON output into other tools.
 
+*Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
+
 **Direct GUI downloads** (always the latest release):
 
 | Platform | Download | After download |
