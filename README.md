@@ -507,7 +507,7 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 |---|---|---|
 | Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run |
 | macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app` |
-| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux` |
+| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux` |
 
 Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (GUI + CLI for each platform), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
@@ -515,7 +515,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 
 - **Windows (SmartScreen):** Click **More info** → **Run anyway**.
 - **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. Click **Done**, then go **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**. Re-launch the app and click **Open** in the final confirm dialog. From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app — so plan on running through this once each release. The one-line terminal alternative `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` is the fastest path if you upgrade often. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
-- **Linux:** `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`.
+- **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`).
 
 **CLI standalones** for terminal use — direct downloads: [peekdocs-cli-windows.exe](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe), [peekdocs-cli-macos.zip](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip), [peekdocs-cli-linux](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux). Run them from an already-open terminal — Windows-specific quirks (PowerShell `--%` token, `.rar`/`.pst` limitations) are in [docs/INSTALLATION.md#cli-on-windows-footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes).
 
