@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.6] — 2026-06-02
+
 ### Fixed
 
 - **Searches re-discovered legacy `peekdocs_results.*` report files
