@@ -1078,6 +1078,12 @@ class BuildMixin:
             + 8  # breathing room below Reset All Fields
         )
         self.advanced_window.geometry(f"900x{content_h}")
+        # Cache size so toggle_advanced can reposition without re-reading
+        # geometry(): on Windows, geometry changes against a withdrawn
+        # window may not commit until deiconify(), so a later geometry()
+        # call there returns the initial "900x100" instead of the resized
+        # value — the popup then opens at 100px tall.
+        self._advanced_size = (900, content_h)
 
     def _build_progress_area(self):
         """Build the progress bar, status label, and results preview pane."""
@@ -1631,13 +1637,7 @@ class BuildMixin:
             # primary monitor on first open), even when the user has
             # dragged the main window to a second monitor.
             self.update_idletasks()
-            try:
-                geom = self.advanced_window.geometry()
-                wxh = geom.split("+", 1)[0]
-                w_str, h_str = wxh.split("x")
-                w, h = int(w_str), int(h_str)
-            except Exception:
-                w, h = 900, 700
+            w, h = getattr(self, "_advanced_size", (900, 700))
             x = self.winfo_rootx() + (self.winfo_width() - w) // 2
             y = self.winfo_rooty() + (self.winfo_height() - h) // 2
             self.advanced_window.geometry(f"{w}x{h}+{x}+{y}")

@@ -166,6 +166,22 @@ rather than swallowing them silently.
 
 ### Fixed
 
+- **Advanced Search Options popup opened at 100px tall on Windows.**
+  `_build_advanced_panel` sets the popup's initial geometry to
+  `900x100`, then computes the actual content height after laying
+  out its widgets and re-applies it with
+  `advanced_window.geometry(f"900x{content_h}")`. Both calls happen
+  while the window is withdrawn. On Windows, geometry changes
+  against a withdrawn Toplevel may not commit until `deiconify()`,
+  so when `toggle_advanced` later read `advanced_window.geometry()`
+  to compute the popup's centered position, Windows returned the
+  initial `"900x100"` instead of the resized value — the popup
+  opened at 100px tall. macOS Aqua commits the change immediately,
+  so the same code worked there. Fix: cache the computed height as
+  `self._advanced_size = (900, content_h)` in `_build_advanced_panel`
+  and use that directly in `toggle_advanced`, instead of parsing the
+  withdrawn window's `geometry()` string.
+
 - **Search Wizard count corrected throughout the README** —
   previously claimed "35 pre-built search types" in four places.
   The source has two separate counts: 20 search-type forms in the
