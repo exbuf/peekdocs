@@ -1220,7 +1220,7 @@ class SearchMixin:
             hover_color=("gray90", "gray25"),
             command=popup.destroy,
             font=ctk.CTkFont(size=12),
-        ).pack(side="bottom", anchor="w", padx=(20, 0), pady=(5, 15))
+        ).pack(side="bottom", pady=(5, 15))
 
         tk.Label(
             popup, text=heading,
@@ -1338,7 +1338,7 @@ class SearchMixin:
 
         # Close — centered, on its own row at the bottom.
         close_row = tk.Frame(popup)
-        close_row.pack(pady=(5, 12), anchor="w", padx=(20, 0))
+        close_row.pack(pady=(5, 12))
         ctk.CTkButton(
             close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),

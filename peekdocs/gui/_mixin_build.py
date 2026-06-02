@@ -1496,9 +1496,14 @@ class BuildMixin:
         self.help_button.pack(side="left")
         Tooltip(self.help_button, "Open the peekdocs User Guide on GitHub — also includes Troubleshooting and Python API documentation", anchor="above")
 
-        # Center: Close button
+        # Close button packed into the left group (after README and User
+        # Guide). Previously gridded at column=1 of bottom_frame, which
+        # placed it at the visual horizontal center of the main page —
+        # exactly where popup Close buttons sit when popups are centered,
+        # making it easy to misclick when dismissing a popup. Now it lives
+        # with the other navigation buttons on the left.
         close_main_btn = ctk.CTkButton(
-            self.bottom_frame,
+            left_frame,
             text="Close",
             width=70,
             fg_color="transparent",
@@ -1507,7 +1512,7 @@ class BuildMixin:
             command=self.destroy,
             font=ctk.CTkFont(size=13),
         )
-        close_main_btn.grid(row=0, column=1)
+        close_main_btn.pack(side="left")
         Tooltip(close_main_btn, "Close peekdocs", anchor="above")
 
         # Right group
@@ -1888,7 +1893,7 @@ class BuildMixin:
             hover_color=("gray90", "gray25"),
             command=help_win.destroy, font=ctk.CTkFont(size=12),
         )
-        _close_btn_recent.pack(side="bottom", anchor="w", padx=(20, 0), pady=(5, 10))
+        _close_btn_recent.pack(side="bottom", pady=(5, 10))
 
         txt_frame = tk.Frame(help_win)
         txt_frame.pack(fill="both", expand=True)

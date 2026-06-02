@@ -205,18 +205,28 @@ rather than swallowing them silently.
   Dark-mode startup white-flash mitigation (`win.geometry("+99999+99999")`
   + `_ensure_onscreen` safety net) still runs only in dark mode.
 
-- **Delete Now button moved further right to avoid accidental clicks
-  through popup close buttons.** The Delete Now button on the main
-  page (red, in the report-button row) sat at screen coordinates
-  close to the bottom-right Close button of typical popups (Regex
-  Search, Search Suites, Wizard, etc.) when those popups were
-  centered over the main window. Moving the cursor down after
-  clicking a popup's Close button could land on Delete Now —
-  destructive enough (drops indexes, deletes session reports) that
-  the confirmation dialog wasn't a sufficient guard against the
-  reflex misclick. Bumped its left padding from `padx=(30, 0)` to
-  `padx=(250, 0)` in `_mixin_search.py:1180`, shifting it ~220px
-  further right inside the report frame.
+- **Delete Now and main-page Close button spaced apart to prevent
+  misclicks.** The main page had two single-click destructive (or
+  app-ending) buttons sitting near the horizontal center of the
+  bottom area: **Delete Now** in the report-button row (red, drops
+  indexes and deletes session reports) and the main-page **Close**
+  button at the bottom row (exits peekdocs). Popup Close buttons,
+  when popups were centered, also fell near that same center
+  column — so dismissing a popup and quickly clicking again could
+  land on either main-page button. Two coordinated moves:
+  - Delete Now's left padding bumped from `padx=(30, 0)` to
+    `padx=(400, 0)` in both pack call sites (`_app.py:117` startup
+    placement and `_mixin_search.py:1180` post-search re-pack),
+    shifting it to the right end of the report row.
+  - Main-page Close button (`close_main_btn` in `_mixin_build.py`)
+    moved out of `bottom_frame` column 1 (centered) and into the
+    existing `left_frame` group, packed `side="left"` after the
+    README and User Guide buttons. It now sits with the other
+    navigation buttons at the left of the bottom row.
+
+  The two main-page buttons are now at opposite horizontal ends,
+  with popup Close buttons (still centered) in between but separated
+  from both.
 
 - **Advanced Search Options popup opened at 100px tall on Windows.**
   `_build_advanced_panel` sets the popup's initial geometry to
