@@ -382,6 +382,23 @@ rather than swallowing them silently.
 
 ### Docs
 
+- **README pipx install commands now uniformly include `--force`.**
+  A Windows user followed the README's bare `pipx install
+  git+https://github.com/exbuf/peekdocs.git` command and got
+  `ModuleNotFoundError` because `pipx install` is a no-op when the
+  package name is already present — it does not re-fetch the git URL
+  or re-resolve dependencies, so the user kept running an old commit
+  that lacked newer modules (`peekdocs.diff`, mixin files, etc.).
+  All `pipx install <git-url>` examples in the README now use
+  `--force` (developer-install bullet at line 55, install code block
+  at line 62, FAQ "How is it installed?" at line 885), and the
+  install code block consolidates the previously-separate "Reinstall
+  or upgrade" subsection — the same `--force` / `--upgrade`-flavored
+  command serves both purposes, with an inline note explaining why
+  the flag matters. The canonical Option B install (line 533) and
+  the Upgrading section (line 556) already used `--force`. INSTALLATION.md
+  unchanged — it already used `--force` throughout.
+
 - **TROUBLESHOOTING "Why is my first search slow but later searches
   are fast?" FAQ distinguishes two causes.** The existing entry
   only covered first-time index build cost. Users who already have

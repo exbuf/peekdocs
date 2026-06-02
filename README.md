@@ -52,26 +52,26 @@ A workbench for document collections: search them, characterize them through bui
 &nbsp;
 
 **Two ways to install:**
-1. Developers with Python: `pipx install git+https://github.com/exbuf/peekdocs.git` (below)
+1. Developers with Python: `pipx install --force git+https://github.com/exbuf/peekdocs.git` (below)
 2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
 A single install gets you everything — the GUI, the CLI, and the Python API. Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
 
 ```bash
-# Install (requires Python 3.10+)
-pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated)
+# Install or upgrade (requires Python 3.10+)
+pipx install --force git+https://github.com/exbuf/peekdocs.git    # recommended (isolated)
 # — or —
-pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
+pip install --upgrade git+https://github.com/exbuf/peekdocs.git   # if you prefer pip
+
+# The same command works for first install AND for upgrade — re-run it
+# whenever you want the latest commit. The --force / --upgrade flag is
+# important: without it, pipx silently skips re-install if peekdocs is
+# already present and pip leaves the existing version in place.
 
 # GUI prerequisite (only if you'll use peekdocs-gui):
 # macOS Homebrew Python: brew install python-tk@3.14   # match your python@<version>
 # Linux:                 sudo apt install python3-tk
 # Windows / python.org Mac installer: already included — nothing to do
-
-# Reinstall or upgrade (same commands, with --force / --upgrade added)
-pipx install --force git+https://github.com/exbuf/peekdocs.git
-# — or —
-pip install --upgrade git+https://github.com/exbuf/peekdocs.git
 
 # Uninstall (your settings in ~/.peekdocsrc and folder indexes are preserved)
 pipx uninstall peekdocs
@@ -882,7 +882,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **What does it install?** | Python packages only — no system services, no drivers, no registry entries, no background processes. It runs when launched and stops when closed. |
 | **Can it modify or delete user files?** | No. peekdocs only reads user files. It creates its own report and index files (all prefixed with "peekdocs" for easy identification) but never modifies, moves, or deletes any user documents. |
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
-| **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install git+https://github.com/exbuf/peekdocs.git`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
+| **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install --force git+https://github.com/exbuf/peekdocs.git`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
 
 *For the deep dive — every file peekdocs writes (path, contents, sensitivity rating, cleanup), plus a documented list of risks that are outside the application's control (process arguments, swap space, force-kill, backup software, etc.) — see **[docs/SECURITY.md](docs/SECURITY.md)**.*
 
