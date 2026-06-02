@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.5] — 2026-06-02
+
 Documentation right-sizing pass, a round of GUI polish and safety
 hardening for destructive actions, a main-screen button rename for
 honest labeling, and two performance-relevant bug fixes
