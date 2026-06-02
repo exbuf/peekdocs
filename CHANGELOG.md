@@ -215,7 +215,7 @@ rather than swallowing them silently.
   destructive enough (drops indexes, deletes session reports) that
   the confirmation dialog wasn't a sufficient guard against the
   reflex misclick. Bumped its left padding from `padx=(30, 0)` to
-  `padx=(120, 0)` in `_mixin_search.py:1180`, shifting it ~90px
+  `padx=(250, 0)` in `_mixin_search.py:1180`, shifting it ~220px
   further right inside the report frame.
 
 - **Advanced Search Options popup opened at 100px tall on Windows.**
