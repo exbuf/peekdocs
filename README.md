@@ -56,7 +56,7 @@ A workbench for document collections: search them, characterize them through bui
    - **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead — the two terminals can route through different Python installs. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
 2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
-A single install gets you everything — the GUI, the CLI, and the Python API. Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
+A single **pipx / pip** install gets you everything — the GUI, the CLI, and the Python API all from one command. (The **standalone download** path bundles them as separate binaries — pick the GUI, the CLI, or both as needed; see Option A below.) Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
 
 ```bash
 # Install or upgrade (requires Python 3.10+)
@@ -501,7 +501,9 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
 
-**Direct downloads** (always the latest release):
+The GUI and CLI standalones are **separate downloads**. Most users only need the GUI. Download the CLI as well if you want to script peekdocs from the terminal, run it from cron / Task Scheduler, or pipe its JSON output into other tools.
+
+**Direct GUI downloads** (always the latest release):
 
 | Platform | Download | After download |
 |---|---|---|
@@ -509,7 +511,15 @@ The simplest way to get peekdocs. No Python, no terminal commands, no installati
 | macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app` |
 | Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux` |
 
-Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (GUI + CLI for each platform), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
+**Direct CLI downloads** (always the latest release):
+
+| Platform | Download | After download |
+|---|---|---|
+| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | Open Command Prompt / PowerShell, `cd` to the download folder, then `peekdocs-cli-windows.exe --version`. Optionally rename to `peekdocs.exe` and put it on `PATH` for global use. PowerShell quirks (the `--%` stop-parsing token, `.rar`/`.pst` limitations) are documented in [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
+| macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Unzip, then `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs-cli && ./peekdocs-cli --version`. Optionally `sudo mv peekdocs-cli /usr/local/bin/peekdocs` so `peekdocs "query" /path` works from any terminal session. |
+| Linux | [**peekdocs-cli-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux) | In the download folder: `cd ~/Downloads && chmod +x peekdocs-cli-linux && ./peekdocs-cli-linux --version`. Optionally `sudo mv peekdocs-cli-linux /usr/local/bin/peekdocs` for global access. |
+
+Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
 **First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
 
@@ -517,9 +527,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 - **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. Click **Done**, then go **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**. Re-launch the app and click **Open** in the final confirm dialog. From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app — so plan on running through this once each release. The one-line terminal alternative `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` is the fastest path if you upgrade often. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
 - **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`).
 
-**CLI standalones** for terminal use — direct downloads: [peekdocs-cli-windows.exe](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe), [peekdocs-cli-macos.zip](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip), [peekdocs-cli-linux](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux). Run them from an already-open terminal — Windows-specific quirks (PowerShell `--%` token, `.rar`/`.pst` limitations) are in [docs/INSTALLATION.md#cli-on-windows-footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes).
-
-**Upgrading.** Download the new version and replace the old file. Your settings and saved searches live in your home directory — nothing is lost.
+**Upgrading.** Download the new version and replace the old file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory — nothing is lost.
 
 **No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break.
 
