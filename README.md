@@ -338,6 +338,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
     - See matches instantly inside peekdocs
     - Right-click to copy text
     - Double-click a filename to open the file
+    - **Don't see a file you expected?** The preview is a scrollable window into the result set, ordered alphabetically by file path. A broad search — OR mode with a common short word like `dr` or `id` — can return hundreds of matched files, and the specific file you were looking for may be lower in the list. Click the **Matched File(s)** link on the status line to see the complete list, or open the `.docx` / `.html` report for every match. Narrowing the search (AND mode, proximity, or a more specific phrase) reduces the noise.
   - **2) Word Report (.docx):**
     - Standalone document with all matches highlighted in yellow
     - Organized by file with surrounding context, search metadata, and match counts
