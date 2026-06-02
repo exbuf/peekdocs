@@ -205,6 +205,44 @@ rather than swallowing them silently.
   Dark-mode startup white-flash mitigation (`win.geometry("+99999+99999")`
   + `_ensure_onscreen` safety net) still runs only in dark mode.
 
+- **Delete Now button removed from the main page; its function moved
+  into Tools → Clear Files as a "Wipe Session" tab.** The main page
+  previously had three "delete files" entry points (Delete Now button,
+  Delete on Close checkbox, and Tools → Clear Files), which were each
+  individually justified but together created a "too many options"
+  feeling. The Delete Now button is gone; the popup formerly known as
+  "Clear Files" is now a two-tab CTkTabview:
+  - **Wipe Session** tab (default on open when there's anything to
+    wipe) replicates the old Delete Now behavior exactly — deletes
+    all peekdocs result files and search indexes across every folder
+    searched this session plus saved-config folders and
+    `~/peekdocs_reports`, clears the Results Preview, deletes
+    `~/.peekdocs_history.json`, clears recent searches, and blanks
+    the Search Terms + Folder fields. The tab body lists the affected
+    folders and what gets deleted vs. what's preserved before the
+    user clicks the red Wipe Session button. One Yes/No confirm
+    follows.
+  - **Choose Files** tab is the existing per-file picker for the
+    current Search Folder, unchanged.
+  - The default tab on open is Wipe Session when there are session
+    folders to wipe, otherwise Choose Files.
+
+  Files touched: removed `_delete_everything_now` from
+  `_mixin_search.py`, removed `_delete_everything_btn` creation in
+  `_mixin_build.py` and its pack/pack_forget call sites in
+  `_app.py:117`, `_mixin_search.py:1014` (post-search) and
+  `_mixin_search.py:1032` (`_clear_action_buttons`), refactored
+  `_clear_files` into the tabbed structure, updated the Tools menu
+  label from "Clear Files — choose which peekdocs files to delete"
+  to "Clear Files — wipe session files or choose specific files to
+  delete", and updated the Delete on Close tooltip to point at the
+  new Wipe Session path for mid-session cleanup. README.md,
+  docs/USER_GUIDE.md, and docs/SECURITY.md mentions of "Delete Now"
+  renamed to "Wipe Session" with the Tools → Clear Files path
+  appended where the location was previously "main screen". Older
+  CHANGELOG entries describing the historical Delete Now button
+  are left as-is — they're a point-in-time record.
+
 - **Delete Now and main-page Close button spaced apart to prevent
   misclicks.** The main page had two single-click destructive (or
   app-ending) buttons sitting near the horizontal center of the

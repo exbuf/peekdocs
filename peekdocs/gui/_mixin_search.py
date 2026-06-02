@@ -948,172 +948,6 @@ class SearchMixin:
             text_color=("blue", "#66BBFF"),
         )
 
-    def _delete_everything_now(self):
-        """Immediately delete all result files, clear preview, and clear search history."""
-        from tkinter import messagebox
-
-        # Collect folder set FIRST so the confirm dialog can disclose the
-        # multi-folder scope. Previous dialog hid that this operation touches
-        # every folder searched this session plus the saved-config folders,
-        # not just the current Search Folder.
-        folders_to_clean = set(getattr(self, "_searched_folders", set()))
-        search_folder = self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
-        if search_folder and os.path.isdir(search_folder):
-            folders_to_clean.add(search_folder)
-        results_dir = getattr(self, "results_dir", None)
-        if results_dir and os.path.isdir(results_dir):
-            folders_to_clean.add(results_dir)
-        safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
-        if os.path.isdir(safe_dir):
-            folders_to_clean.add(safe_dir)
-        try:
-            from peekdocs.cli import _load_config
-            _cfg = _load_config()
-            _cfg_folder = _cfg.get("folder", "")
-            if _cfg_folder and os.path.isdir(_cfg_folder):
-                folders_to_clean.add(_cfg_folder)
-            _rs_folder = _cfg.get("regex_search_folder", "")
-            if _rs_folder and os.path.isdir(_rs_folder):
-                folders_to_clean.add(_rs_folder)
-        except Exception:
-            pass
-
-        # Narrow to folders that actually contain peekdocs result files or
-        # indexes so the dialog only lists folders where something will
-        # actually be deleted.
-        folders_with_files = []
-        for folder in folders_to_clean:
-            if not os.path.isdir(folder):
-                continue
-            try:
-                for fname in os.listdir(folder):
-                    if (fname.startswith(RESULT_FILE_PREFIXES)
-                            or fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm")):
-                        folders_with_files.append(folder)
-                        break
-            except OSError:
-                pass
-
-        if folders_with_files:
-            folder_list = "\n".join(f"  \u2022 {f}" for f in sorted(folders_with_files))
-            scope_msg = (
-                f"This will operate on {len(folders_with_files)} folder(s) where "
-                f"peekdocs has created files \u2014 every folder searched this session, "
-                f"the current Search Folder, the safe-output folder "
-                f"(~/peekdocs_reports), and folders saved in your config:\n\n"
-                f"{folder_list}\n\n"
-            )
-        else:
-            scope_msg = "No peekdocs result files or indexes were found to delete.\n\n"
-
-        if not messagebox.askyesno(
-            "Delete Now",
-            "This will immediately:\n\n"
-            "\u2022 Delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*)\n"
-            "\u2022 Delete the search index (.peekdocs.db) \u2014 contains extracted text of indexed files\n"
-            "\u2022 Clear the Results Preview\n"
-            "\u2022 Clear your search history and recent searches\n"
-            "\u2022 Clear the search terms and folder fields\n\n"
-            + scope_msg +
-            "Saved reports (peekdocs_report_*), accumulated reports, saved searches, "
-            "settings, and bookmarks are not affected.\n\n"
-            "This cannot be undone.\n\n"
-            "Continue?",
-        ):
-            return
-
-        deleted = []
-        failed = []  # list of (path, reason)
-
-        # Delete result files and search indexes from all folders
-        for folder in folders_to_clean:
-            if not os.path.isdir(folder):
-                continue
-            try:
-                for fname in os.listdir(folder):
-                    if fname.startswith(RESULT_FILE_PREFIXES):
-                        p = os.path.join(folder, fname)
-                        try:
-                            os.remove(p)
-                            deleted.append(p)
-                        except OSError as exc:
-                            failed.append((p, str(exc)))
-            except OSError as exc:
-                failed.append((folder, str(exc)))
-            for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
-                idx_path = os.path.join(folder, idx_file)
-                if os.path.exists(idx_path):
-                    try:
-                        os.remove(idx_path)
-                        deleted.append(idx_path)
-                    except OSError as exc:
-                        failed.append((idx_path, str(exc)))
-
-        # Clear preview
-        self._clear_preview()
-
-        # Clear search history file
-        history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
-        try:
-            if os.path.exists(history_path):
-                os.remove(history_path)
-        except OSError:
-            pass
-
-        # Clear recent searches and search terms from config
-        try:
-            from peekdocs.cli import _load_config, _save_config
-            cfg = _load_config()
-            cfg["recent_searches"] = []
-            cfg["search_terms"] = ""
-            _save_config(cfg)
-            self._recent_searches = []
-        except Exception:
-            pass
-
-        # Uncheck the index checkbox since the index was deleted
-        self.index_search_var.set("off")
-
-        # Clear search terms and folder fields
-        self.search_entry.delete(0, "end")
-        self.folder_entry.delete(0, "end")
-
-        # Also clear folder from saved config
-        try:
-            cfg = _load_config()
-            cfg["folder"] = ""
-            _save_config(cfg)
-        except Exception:
-            pass
-
-        # Clear action buttons
-        self._clear_action_buttons()
-
-        # Report results. Surface deletion failures explicitly rather than
-        # swallowing them (previous behavior: except OSError: pass).
-        if failed:
-            preview = "\n".join(f"  • {p}: {r}" for p, r in failed[:5])
-            if len(failed) > 5:
-                preview += f"\n  ... and {len(failed) - 5} more"
-            messagebox.showwarning(
-                "Delete Now — Some Deletions Failed",
-                f"Deleted {len(deleted)} file(s); cleared preview and search history.\n"
-                f"Could not delete {len(failed)} file(s):\n\n{preview}\n\n"
-                "Common causes: file is locked by another program, "
-                "insufficient permissions, or the file was already removed.",
-            )
-            self.status_label.configure(
-                text=f"Deleted {len(deleted)} file(s); {len(failed)} failed.",
-                text_color="orange",
-            )
-        else:
-            self.status_label.configure(
-                text=f"Deleted {len(deleted)} file(s) across {len(folders_with_files)} folder(s); cleared preview and search history.",
-                text_color="green",
-            )
-
-
-
     def _update_search_progress(self, done, total):
         """Update the determinate progress bar during search."""
         pct = done / total if total > 0 else 0
@@ -1177,7 +1011,6 @@ class SearchMixin:
                     text_color="white",
                 )
         self.report_delete_cb.pack(side="left", padx=(10, 0))
-        self._delete_everything_btn.pack(side="left", padx=(400, 0))
         self.report_frame.grid(
             row=8, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
@@ -1195,7 +1028,6 @@ class SearchMixin:
         self.report_btn_pdf.pack_forget()
         self.report_btn_html.pack_forget()
         self.report_delete_cb.pack_forget()
-        self._delete_everything_btn.pack_forget()
 
 
 
@@ -1516,165 +1348,336 @@ class SearchMixin:
             )
 
     def _clear_files(self):
-        """Show a popup with checkboxes for every peekdocs-created file so the user can choose which to delete."""
+        """Tabbed popup: Wipe Session (bulk session wipe) and Choose Files
+        (per-file picker in the current Search Folder).
+
+        Wipe Session replaces the standalone Delete Now button that used
+        to live in the main page report row. Centralizing both bulk and
+        granular cleanup paths in one Tools-menu popup keeps the
+        delete-files mental model in one place.
+        """
         import tkinter as tk
+        from tkinter import messagebox
 
-        folder = self.folder_entry.get().strip()
-        if not folder or not os.path.isdir(folder):
-            self._show_error("Please select a folder first.")
-            return
+        # ── Wipe Session scope ──
+        # Every folder peekdocs has touched this session, plus the safe
+        # output dir and saved-config folders. Matches the scope the old
+        # Delete Now button used.
+        folders_to_clean = set(getattr(self, "_searched_folders", set()))
+        search_folder = self.folder_entry.get().strip() if hasattr(self, "folder_entry") else ""
+        if search_folder and os.path.isdir(search_folder):
+            folders_to_clean.add(search_folder)
+        results_dir = getattr(self, "results_dir", None)
+        if results_dir and os.path.isdir(results_dir):
+            folders_to_clean.add(results_dir)
+        safe_dir = os.path.join(os.path.expanduser("~"), "peekdocs_reports")
+        if os.path.isdir(safe_dir):
+            folders_to_clean.add(safe_dir)
+        try:
+            from peekdocs.cli import _load_config
+            _cfg = _load_config()
+            _cfg_folder = _cfg.get("folder", "")
+            if _cfg_folder and os.path.isdir(_cfg_folder):
+                folders_to_clean.add(_cfg_folder)
+            _rs_folder = _cfg.get("regex_search_folder", "")
+            if _rs_folder and os.path.isdir(_rs_folder):
+                folders_to_clean.add(_rs_folder)
+        except Exception:
+            pass
 
-        # Categorize all peekdocs-created files
-        # Each category: (label, description, files_list)
+        folders_with_files = []
+        for folder in folders_to_clean:
+            if not os.path.isdir(folder):
+                continue
+            try:
+                for fname in os.listdir(folder):
+                    if (fname.startswith(RESULT_FILE_PREFIXES)
+                            or fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm")):
+                        folders_with_files.append(folder)
+                        break
+            except OSError:
+                pass
+
+        # ── Choose Files scope (current Search Folder only) ──
         categories = [
             ("Standard search results",
-             "Overwritten after each Standard Search. Safe to delete.",
-             []),
+             "Overwritten after each Standard Search. Safe to delete.", []),
             ("Regex search results",
-             "Overwritten after each Regex Search. Safe to delete.",
-             []),
+             "Overwritten after each Regex Search. Safe to delete.", []),
             ("Suite results",
-             "Overwritten after each suite run. Safe to delete.",
-             []),
+             "Overwritten after each suite run. Safe to delete.", []),
             ("Saved reports (from 'Save report as:')",
-             "Named copies you saved. Only delete if you no longer need them.",
-             []),
+             "Named copies you saved. Only delete if you no longer need them.", []),
             ("Accumulated reports (from 'Append to:')",
-             "Results appended across multiple searches. Only delete if you no longer need them.",
-             []),
+             "Results appended across multiple searches. Only delete if you no longer need them.", []),
             ("Error log",
-             "Log of files that couldn't be read. Safe to delete.",
-             []),
+             "Log of files that couldn't be read. Safe to delete.", []),
             ("Search index",
-             "Built for faster searches. Can be rebuilt any time with Manage Indexes.",
-             []),
+             "Built for faster searches. Can be rebuilt any time with Manage Indexes.", []),
         ]
+        if search_folder and os.path.isdir(search_folder):
+            for root, dirs, files in os.walk(search_folder):
+                for fname in files:
+                    filepath = os.path.join(root, fname)
+                    if fname.startswith("peekdocs_standard_results"):
+                        categories[0][2].append(filepath)
+                    elif fname.startswith("peekdocs_regex_results"):
+                        categories[1][2].append(filepath)
+                    elif fname.startswith("peekdocs_suite_results"):
+                        categories[2][2].append(filepath)
+                    elif fname.startswith("peekdocs_report_"):
+                        categories[3][2].append(filepath)
+                    elif fname.startswith("peekdocs_accumulated_"):
+                        categories[4][2].append(filepath)
+                    elif fname == "peekdocs_errors.log":
+                        categories[5][2].append(filepath)
+                    elif fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                        categories[6][2].append(filepath)
 
-        for root, dirs, files in os.walk(folder):
-            for fname in files:
-                filepath = os.path.join(root, fname)
-                if fname.startswith("peekdocs_standard_results"):
-                    categories[0][2].append(filepath)
-                elif fname.startswith("peekdocs_regex_results"):
-                    categories[1][2].append(filepath)
-                elif fname.startswith("peekdocs_suite_results"):
-                    categories[2][2].append(filepath)
-                elif fname.startswith("peekdocs_report_"):
-                    categories[3][2].append(filepath)
-                elif fname.startswith("peekdocs_accumulated_"):
-                    categories[4][2].append(filepath)
-                elif fname == "peekdocs_errors.log":
-                    categories[5][2].append(filepath)
-                elif fname in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
-                    categories[6][2].append(filepath)
-
-        all_files = []
+        all_choose_files = []
         for _, _, cat_files in categories:
-            all_files.extend(cat_files)
+            all_choose_files.extend(cat_files)
 
-        if not all_files:
+        if not folders_with_files and not all_choose_files:
             self.status_label.configure(text="No peekdocs files found to clear.")
             return
 
+        # ── Popup ──
         win, _dark = self._themed_toplevel()
-
-
-        win.withdraw()  # hidden during widget setup; centered + shown at end
+        win.withdraw()
         win.title("Clear Files")
         win.resizable(True, True)
-        self._center_popup_on_main(win, 700, 500)
+        self._center_popup_on_main(win, 720, 580)
 
         _sf = self._scaled_font
 
-        tk.Label(
-            win, text="Clear peekdocs Files", font=_sf(14, "bold"),
-        ).pack(anchor="w", padx=12, pady=(10, 2))
-        tk.Label(
-            win, text="Check the files you want to delete. Your original documents, saved searches, "
-                      "settings, and bookmarks are never shown here and cannot be deleted.",
-            font=_sf(10), fg="gray", wraplength=660, justify="left",
-        ).pack(anchor="w", padx=12, pady=(0, 8))
+        tabview = ctk.CTkTabview(win)
+        tabview.pack(fill="both", expand=True, padx=10, pady=(10, 5))
 
-        # Scrollable frame for checkboxes
-        list_frame = tk.Frame(win)
-        list_frame.pack(fill="both", expand=True, padx=12, pady=(0, 5))
+        # ── Tab 1: Wipe Session ──
+        tab_wipe = tabview.add("Wipe Session")
 
-        canvas = tk.Canvas(list_frame, highlightthickness=0)
-        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
-        inner = tk.Frame(canvas)
-        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
-        canvas.pack(side="left", fill="both", expand=True)
+        if folders_with_files:
+            tk.Label(tab_wipe, text="Wipe everything peekdocs created this session",
+                     font=_sf(13, "bold")).pack(anchor="w", padx=10, pady=(8, 4))
 
-        check_vars = []  # list of (BooleanVar, filepath)
+            tk.Label(tab_wipe, text=f"Affected folders ({len(folders_with_files)}):",
+                     font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(6, 2))
+            for f in sorted(folders_with_files):
+                tk.Label(tab_wipe, text=f"  • {f}", font=_sf(10),
+                         justify="left", wraplength=640, anchor="w").pack(anchor="w", padx=(20, 10))
 
-        for cat_name, cat_desc, cat_files in categories:
-            if not cat_files:
-                continue
-            tk.Label(inner, text=cat_name, font=_sf(11, "bold")).pack(anchor="w", pady=(8, 0))
-            tk.Label(inner, text=cat_desc, font=_sf(9), fg="gray").pack(anchor="w", padx=(4, 0), pady=(0, 2))
-            for filepath in sorted(cat_files):
-                var = tk.BooleanVar(value=False)
-                rel = os.path.relpath(filepath, folder)
-                try:
-                    size = os.path.getsize(filepath)
-                    size_str = f" ({size:,} bytes)" if size < 1_000_000 else f" ({size / 1_000_000:.1f} MB)"
-                except OSError:
-                    size_str = ""
-                cb = tk.Checkbutton(
-                    inner, variable=var,
-                    text=f"{rel}{size_str}",
-                    font=_sf(10), anchor="w",
-                )
-                cb.pack(anchor="w", padx=(16, 0))
-                check_vars.append((var, filepath))
-
-        # Select All / Deselect All / Delete / Close
-        btn_frame = tk.Frame(win)
-        btn_frame.pack(fill="x", padx=12, pady=(5, 10))
-
-        def _select_all():
-            for var, _ in check_vars:
-                var.set(True)
-
-        def _deselect_all():
-            for var, _ in check_vars:
-                var.set(False)
-
-        def _delete_selected():
-            selected = [(var, path) for var, path in check_vars if var.get()]
-            if not selected:
-                self._show_error("No files selected.")
-                return
-            from tkinter import messagebox
-            if not messagebox.askyesno(
-                "Confirm Delete",
-                f"Permanently delete {len(selected)} file(s)?\n\nThis cannot be undone.",
-                parent=win,
+            tk.Label(tab_wipe, text="What gets deleted:",
+                     font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 2))
+            for line in (
+                "Standard / Regex / Suite search result files",
+                "Search index (.peekdocs.db, -wal, -shm)",
+                "Search history (~/.peekdocs_history.json)",
+                "Recent searches",
+                "Search terms + Folder field (cleared on screen)",
             ):
-                return
-            deleted = 0
-            for var, path in selected:
+                tk.Label(tab_wipe, text=f"  • {line}", font=_sf(10)).pack(anchor="w", padx=(20, 10))
+
+            tk.Label(tab_wipe, text="What's preserved:",
+                     font=_sf(11, "bold")).pack(anchor="w", padx=10, pady=(10, 2))
+            for line in (
+                "Saved reports (peekdocs_report_*)",
+                "Accumulated reports (peekdocs_accumulated_*)",
+                "Saved searches, settings, bookmarks",
+            ):
+                tk.Label(tab_wipe, text=f"  • {line}", font=_sf(10)).pack(anchor="w", padx=(20, 10))
+
+            def _do_wipe():
+                if not messagebox.askyesno(
+                    "Wipe Session",
+                    f"Wipe peekdocs files across {len(folders_with_files)} folder(s) "
+                    f"plus your search history and recent searches?\n\nThis cannot be undone.",
+                    parent=win,
+                ):
+                    return
+
+                deleted, failed = [], []
+                for folder in folders_to_clean:
+                    if not os.path.isdir(folder):
+                        continue
+                    try:
+                        for fname in os.listdir(folder):
+                            if fname.startswith(RESULT_FILE_PREFIXES):
+                                p = os.path.join(folder, fname)
+                                try:
+                                    os.remove(p)
+                                    deleted.append(p)
+                                except OSError as exc:
+                                    failed.append((p, str(exc)))
+                    except OSError as exc:
+                        failed.append((folder, str(exc)))
+                    for idx_file in (".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
+                        idx_path = os.path.join(folder, idx_file)
+                        if os.path.exists(idx_path):
+                            try:
+                                os.remove(idx_path)
+                                deleted.append(idx_path)
+                            except OSError as exc:
+                                failed.append((idx_path, str(exc)))
+
+                self._clear_preview()
+
+                history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
                 try:
-                    os.remove(path)
-                    deleted += 1
+                    if os.path.exists(history_path):
+                        os.remove(history_path)
                 except OSError:
                     pass
-            win.destroy()
-            self.status_label.configure(text=f"Deleted {deleted} file(s).")
-            self._hide_preview()
-            self._clear_action_buttons()
 
-        ctk.CTkButton(btn_frame, text="Select All", width=80, font=ctk.CTkFont(size=12), command=_select_all).pack(side="left", padx=2)
-        ctk.CTkButton(btn_frame, text="Deselect All", width=90, font=ctk.CTkFont(size=12), command=_deselect_all).pack(side="left", padx=2)
-        ctk.CTkButton(
-            btn_frame, text="Delete Selected", width=120,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="#CC3333", hover_color="#AA2222",
-            command=_delete_selected,
-        ).pack(side="left", padx=(20, 2))
+                try:
+                    from peekdocs.cli import _load_config, _save_config
+                    cfg = _load_config()
+                    cfg["recent_searches"] = []
+                    cfg["search_terms"] = ""
+                    cfg["folder"] = ""
+                    _save_config(cfg)
+                    self._recent_searches = []
+                except Exception:
+                    pass
+
+                self.index_search_var.set("off")
+                self.search_entry.delete(0, "end")
+                self.folder_entry.delete(0, "end")
+                self._clear_action_buttons()
+
+                win.destroy()
+
+                if failed:
+                    preview = "\n".join(f"  • {p}: {r}" for p, r in failed[:5])
+                    if len(failed) > 5:
+                        preview += f"\n  ... and {len(failed) - 5} more"
+                    messagebox.showwarning(
+                        "Wipe Session — Some Deletions Failed",
+                        f"Deleted {len(deleted)} file(s); cleared preview, history, and recent searches.\n"
+                        f"Could not delete {len(failed)} file(s):\n\n{preview}\n\n"
+                        "Common causes: file is locked by another program, "
+                        "insufficient permissions, or the file was already removed.",
+                    )
+                    self.status_label.configure(
+                        text=f"Wiped {len(deleted)} file(s); {len(failed)} failed.",
+                        text_color="orange",
+                    )
+                else:
+                    self.status_label.configure(
+                        text=f"Wiped {len(deleted)} file(s) across {len(folders_with_files)} folder(s); cleared preview, history, and recent searches.",
+                        text_color="green",
+                    )
+
+            ctk.CTkButton(
+                tab_wipe, text="Wipe Session", width=140,
+                fg_color="#CC3333", hover_color="#AA2222", text_color="white",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                command=_do_wipe,
+            ).pack(pady=(16, 10))
+        else:
+            tk.Label(
+                tab_wipe,
+                text="No peekdocs files found across any session folder.\nNothing to wipe.",
+                font=_sf(11), justify="center",
+            ).pack(expand=True, pady=40)
+
+        # ── Tab 2: Choose Files ──
+        tab_choose = tabview.add("Choose Files")
+
+        if all_choose_files and search_folder:
+            tk.Label(
+                tab_choose, text=f"Search folder: {search_folder}",
+                font=_sf(11, "bold"), wraplength=640, justify="left", anchor="w",
+            ).pack(anchor="w", padx=10, pady=(8, 2))
+            tk.Label(
+                tab_choose,
+                text="Check the files you want to delete. Your original documents, saved searches, "
+                     "settings, and bookmarks are never shown here and cannot be deleted.",
+                font=_sf(10), fg="gray", wraplength=640, justify="left",
+            ).pack(anchor="w", padx=10, pady=(0, 6))
+
+            list_frame = tk.Frame(tab_choose)
+            list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+            canvas = tk.Canvas(list_frame, highlightthickness=0)
+            scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
+            inner = tk.Frame(canvas)
+            inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=inner, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+
+            check_vars = []
+            for cat_name, cat_desc, cat_files in categories:
+                if not cat_files:
+                    continue
+                tk.Label(inner, text=cat_name, font=_sf(11, "bold")).pack(anchor="w", pady=(8, 0))
+                tk.Label(inner, text=cat_desc, font=_sf(9), fg="gray").pack(anchor="w", padx=(4, 0), pady=(0, 2))
+                for filepath in sorted(cat_files):
+                    var = tk.BooleanVar(value=False)
+                    rel = os.path.relpath(filepath, search_folder)
+                    try:
+                        size = os.path.getsize(filepath)
+                        size_str = f" ({size:,} bytes)" if size < 1_000_000 else f" ({size / 1_000_000:.1f} MB)"
+                    except OSError:
+                        size_str = ""
+                    tk.Checkbutton(
+                        inner, variable=var,
+                        text=f"{rel}{size_str}",
+                        font=_sf(10), anchor="w",
+                    ).pack(anchor="w", padx=(16, 0))
+                    check_vars.append((var, filepath))
+
+            def _select_all():
+                for var, _ in check_vars:
+                    var.set(True)
+
+            def _deselect_all():
+                for var, _ in check_vars:
+                    var.set(False)
+
+            def _delete_selected():
+                selected = [(var, path) for var, path in check_vars if var.get()]
+                if not selected:
+                    self._show_error("No files selected.")
+                    return
+                if not messagebox.askyesno(
+                    "Confirm Delete",
+                    f"Permanently delete {len(selected)} file(s)?\n\nThis cannot be undone.",
+                    parent=win,
+                ):
+                    return
+                deleted = 0
+                for var, path in selected:
+                    try:
+                        os.remove(path)
+                        deleted += 1
+                    except OSError:
+                        pass
+                win.destroy()
+                self.status_label.configure(text=f"Deleted {deleted} file(s).")
+                self._hide_preview()
+                self._clear_action_buttons()
+
+            btn_frame = tk.Frame(tab_choose)
+            btn_frame.pack(fill="x", padx=10, pady=(5, 8))
+            ctk.CTkButton(btn_frame, text="Select All", width=80, font=ctk.CTkFont(size=12), command=_select_all).pack(side="left", padx=2)
+            ctk.CTkButton(btn_frame, text="Deselect All", width=90, font=ctk.CTkFont(size=12), command=_deselect_all).pack(side="left", padx=2)
+            ctk.CTkButton(
+                btn_frame, text="Delete Selected", width=120,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#CC3333", hover_color="#AA2222",
+                command=_delete_selected,
+            ).pack(side="left", padx=(20, 2))
+        else:
+            if not search_folder:
+                msg = "Set a Search Folder on the main page to use Choose Files."
+            else:
+                msg = f"No peekdocs files found in:\n{search_folder}"
+            tk.Label(tab_choose, text=msg, font=_sf(11), justify="center").pack(expand=True, pady=40)
+
+        # ── Close button at popup level ──
         ctk.CTkButton(
             win, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
@@ -1682,7 +1685,11 @@ class SearchMixin:
             font=ctk.CTkFont(size=12), command=win.destroy,
         ).pack(pady=(0, 10))
 
+        # Default to Wipe Session if it has content; otherwise Choose Files
+        tabview.set("Wipe Session" if folders_with_files else "Choose Files")
+
         self._apply_dark_theme(win)
+        win.deiconify()
 
     def _clean_up_practice_files(self):
         """Delete all peekdocs-generated artifacts from the search folder

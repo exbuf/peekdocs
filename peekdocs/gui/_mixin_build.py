@@ -1314,15 +1314,7 @@ class BuildMixin:
             command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
             font=ctk.CTkFont(size=12),
         )
-        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted", anchor="above")
-
-        self._delete_everything_btn = ctk.CTkButton(
-            self.report_frame, text="Delete Now", width=100,
-            font=ctk.CTkFont(size=12),
-            fg_color="#CC3333", hover_color="#AA2222", text_color="white",
-            command=self._delete_everything_now,
-        )
-        Tooltip(self._delete_everything_btn, "Immediately delete result files, search indexes, search history, and clear the Results Preview across every folder searched this session. A confirmation dialog lists exactly what will be deleted before doing anything. Saved reports, saved searches, settings, bookmarks, and your documents are never affected.", anchor="above")
+        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted. For immediate cleanup mid-session, use Tools → Clear Files → Wipe Session.", anchor="above")
 
 
 
@@ -1566,7 +1558,7 @@ class BuildMixin:
             menu.add_command(label="System Check — verify Python, dependencies, and disk space", command=self._run_system_check)
             _dark_sep()
             # Cleanup
-            menu.add_command(label="Clear Files — choose which peekdocs files to delete", command=self._clear_files)
+            menu.add_command(label="Clear Files — wipe session files or choose specific files to delete", command=self._clear_files)
             menu.add_command(label="Clean Folder — delete peekdocs files in any folder", command=self._clean_folder)
             _dark_sep()
             # Text Size — direct items instead of a cascade submenu
