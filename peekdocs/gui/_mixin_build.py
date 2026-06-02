@@ -1621,6 +1621,26 @@ class BuildMixin:
         if self.advanced_visible:
             self._close_advanced_window()
         else:
+            # Re-center on the main window's monitor each time we open.
+            # Other popups use _center_popup_on_main for this; Advanced
+            # has its own auto-fit geometry logic at the end of
+            # _build_advanced_panel, so we don't call that helper —
+            # we just reposition using the popup's already-fit width
+            # and height. Without this, the popup keeps whatever
+            # screen coordinates it last had (typically the laptop's
+            # primary monitor on first open), even when the user has
+            # dragged the main window to a second monitor.
+            self.update_idletasks()
+            try:
+                geom = self.advanced_window.geometry()
+                wxh = geom.split("+", 1)[0]
+                w_str, h_str = wxh.split("x")
+                w, h = int(w_str), int(h_str)
+            except Exception:
+                w, h = 900, 700
+            x = self.winfo_rootx() + (self.winfo_width() - w) // 2
+            y = self.winfo_rooty() + (self.winfo_height() - h) // 2
+            self.advanced_window.geometry(f"{w}x{h}+{x}+{y}")
             self.advanced_window.deiconify()
             self.advanced_window.lift()
             self.advanced_toggle.configure(text="Advanced")
