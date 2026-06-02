@@ -14,6 +14,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Docs
 
+- **macOS Gatekeeper bypass clarified as per-download, not per-app.**
+  Original phrasing claimed the bypass was "one-time per app" with
+  upgrades not re-triggering Gatekeeper "as long as the bundle ID
+  stays the same." That's the rule for *signed* apps with an Apple
+  Developer ID — peekdocs is unsigned, so macOS attaches a fresh
+  `com.apple.quarantine` xattr to every downloaded copy regardless
+  of bundle ID. Every upgrade re-triggers the same warning. README
+  and `docs/INSTALLATION.md#macos-gatekeeper` now explicitly say
+  the bypass is per downloaded file, the warning fires again on
+  each new download (including upgrades), and recommend the
+  Terminal `xattr -dr com.apple.quarantine` one-liner for users
+  who upgrade often.
+
 - **macOS first-launch Gatekeeper walkthrough rewritten for Sequoia
   / Sonoma.** A user testing the v1.0.5 standalone `.app` reported
   that the warning dialog on a recent macOS only offered **Done**
@@ -30,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
     placed at the top of "Niche install paths") with three paths
     (System Settings, Terminal one-liner, right-click → Open for
     older macOS), per-macOS-version notes, the Safari auto-unzip
-    explanation, and the "one-time per app" follow-up note.
+    explanation, and a per-download (re-triggers on upgrade) note.
   - README's Gatekeeper bullet links through to the new
     INSTALLATION.md section for the full walkthrough.
 
