@@ -78,6 +78,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Summary](#summary)
   - [Delete on Close](#delete-on-close)
   - [Privacy cleanup options](#privacy-cleanup-options)
+  - [The Clear Files popup (Tools → Clear Files)](#the-clear-files-popup)
   - [CLI cleanup scope (`--clear`, `--clear-all`)](#cli-cleanup-scope---clear---clear-all)
   - [Cloud-synced folders](#cloud-synced-folders)
   - [Numeric-pattern search term warning](#numeric-pattern-search-term-warning)
@@ -2570,7 +2571,37 @@ peekdocs provides several ways to clean up after a search session:
 | **Clean Folder** | Tools menu | Browse to any folder and delete the peekdocs-generated files in it (non-recursive) | Two-stage confirmation: auto-generated files first, then user-named saved reports (default No) |
 | **Manually** | Finder (macOS), File Explorer (Windows), or file manager (Linux) | Whatever you select | Anytime |
 
-All methods except **Wipe Session** leave the search index untouched. **Wipe Session** includes the index because it contains extracted text from every indexed file — effectively a searchable copy of your document content, including any sensitive data. **Delete on Close** and **Wipe Session** both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by **Wipe Session** or **Delete on Close**. **Clear Files** lets you opt in to deleting those as well via per-category checkboxes; **Clean Folder** asks separately about saved reports in a second confirmation that defaults to No.
+**Delete on Close** and **Wipe Session** both delete the search index along with the result files — the index contains extracted text from every indexed file, effectively a searchable copy of your document content (including any sensitive data). They also both clean all possible report locations: the search folder, any custom output directory, and `~/peekdocs_reports` (the safe redirect folder for cloud-synced searches). Saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, and settings are never deleted by **Wipe Session** or **Delete on Close**. **Clear Files** (Choose Files tab) lets you opt in to deleting those as well via per-file checkboxes; **Clean Folder** asks separately about saved reports in a second confirmation that defaults to No.
+
+<a id="the-clear-files-popup"></a>
+### The Clear Files popup (Tools → Clear Files)
+
+The Clear Files popup is the single home for active mid-session cleanup. It opens as a tabbed window with two tabs:
+
+**Wipe Session tab** (default on open when there's anything to wipe).
+
+The tab body lists, *before* you commit to the destructive action:
+
+- The affected folders — every folder peekdocs has created files in this session, including the current Search Folder, the safe-output folder (`~/peekdocs_reports`), and folders saved in `~/.peekdocsrc` (`folder`, `regex_search_folder`).
+- What gets deleted — Standard / Regex / Suite search result files, the search index (`.peekdocs.db`, `-wal`, `-shm`), `~/.peekdocs_history.json`, recent searches, and the Search Terms + Folder fields on the main screen.
+- What's preserved — saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), saved searches, settings, bookmarks.
+
+Click the red **Wipe Session** button to commit. A single Yes/No confirm follows, and the status line reports `Wiped N file(s) across M folder(s); cleared preview, history, and recent searches.` on success. If any deletions fail (file locked, permission denied), a warning dialog lists up to five failed paths plus a count of any more.
+
+This tab replaces the standalone **Delete Now** button that used to live in the main page's report row. The behavior is identical; only the location and the disclosure point (now in the tab body rather than in the confirm dialog) have changed.
+
+**Choose Files tab.**
+
+Use this tab when you want to keep some files and delete others — for example, when a saved report from earlier in the session should stay but the search index should go. The tab shows every peekdocs-created file in the *current Search Folder* (and its subfolders), grouped into seven categories:
+
+- Standard search results, Regex search results, Suite results — overwritten after each run; safe to delete
+- Saved reports (`peekdocs_report_*`), Accumulated reports (`peekdocs_accumulated_*`) — named copies you saved; only delete if you no longer need them
+- Error log (`peekdocs_errors.log`) — log of files that couldn't be read; safe to delete
+- Search index (`.peekdocs.db`, `-wal`, `-shm`) — can be rebuilt any time with Manage Indexes
+
+Each file appears with its size next to a checkbox. **Select All** / **Deselect All** at the bottom let you batch-pick. The red **Delete Selected** button asks for a single Yes/No confirm and deletes only the checked files. Saved searches (`.peekdocs_collection.json`) and settings (`~/.peekdocsrc`) are not shown — they cannot be deleted from this popup.
+
+The default tab on open is Wipe Session if there are session folders with peekdocs files to wipe; otherwise Choose Files. If both are empty (a fresh session with nothing in the current folder), the popup doesn't open at all and the status line reports `No peekdocs files found to clear.`.
 
 ### CLI cleanup scope (`--clear`, `--clear-all`)
 
