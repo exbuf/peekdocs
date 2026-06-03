@@ -12,6 +12,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **CLI standalone startup time docs corrected and broadened to all
+  platforms.** A user testing v1.0.10 on macOS reported `peekdocs
+  --version` taking 6.56 seconds (timed via `time`) — well beyond
+  the "1–3 seconds" the original INSTALLATION.md section claimed.
+  The 1–3s estimate was based on PyInstaller unpack alone and
+  missed macOS XProtect / AMFI / Notarization overhead, which adds
+  3–4 seconds on every execution of an unsigned binary. Updated
+  `docs/INSTALLATION.md#macos-cli-startup-slowness` (now renamed
+  more honestly to "CLI standalone startup time — what to expect
+  per platform (especially macOS)") with:
+  - A per-platform expectations table: macOS 5–7s, Windows 2–4s,
+    Linux 0.5–1.5s, with what contributes to each.
+  - Explicit explanation of why macOS is so much slower (XProtect
+    + AMFI + Notarization on every execution of an unsigned binary;
+    Linux has no equivalent layers; Windows Defender is similar
+    but faster and better-cached).
+  - New "Why the GUI standalone has no equivalent delay" subsection
+    explaining the PyInstaller `--onedir` vs `--onefile` build
+    asymmetry visible in `build_app.py:63` (GUI is `--onedir`,
+    files already unpacked inside the `.app` bundle) vs `build_app.py:94`
+    (CLI is `--onefile`, extracts on every invocation). Same user
+    noted no GUI delay on macOS — this explains why.
+  - Diagnostic guidance now reads zsh's `time` output honestly
+    (zsh drops the `s` suffix on the `total` column, which threw
+    the user off) and explains the user-vs-system-vs-wall-clock
+    interpretation (low CPU % + high total = waiting on macOS
+    security, not slow peekdocs).
+  - pipx startup-time claim revised from "0.2–0.4s" to "0.2–0.5s
+    on any OS regardless of macOS's security overhead" because
+    the pipx path bypasses XProtect/AMFI entirely (no unpacked
+    binary for macOS to inspect).
+
 ## [1.0.10] — 2026-06-03
 
 ### Fixed
