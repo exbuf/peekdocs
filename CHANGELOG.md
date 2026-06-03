@@ -12,6 +12,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **README top-of-file install instructions consolidated.** The top
+  had drifted from "copy-paste-and-try" into a mini-Installation
+  section: install command + Windows tip + a 40-line code block
+  combining install / upgrade explanation / GUI prereqs / uninstall
+  commands / usage examples, plus the "Two ways to install" framing
+  with its bullets and follow-on standalone callout. All of that
+  reference material was already documented in the dedicated
+  Installation section (Option B), creating the awkward two-place
+  spread a user flagged. Restructured the top to a focused
+  copy-paste-and-try block:
+  - **Quick install (Python users):** one-line `pipx install` command
+    + a one-sentence "what it gets you" caption + a link to the
+    dedicated Installation section for the standalone download,
+    pip alternative, per-platform notes, upgrade, and uninstall.
+  - **Windows tip** kept as an inline blockquote callout — moving
+    it down would mean the user has to scroll to figure out why
+    the very first command failed.
+  - **What running peekdocs looks like:** the three-interface
+    usage code block (search from terminal / GUI / Python API)
+    split out from the install block so it scans as "demo" rather
+    than "install command."
+  - **No Python?** one-line pointer to the standalone download.
+
+  All install/upgrade/uninstall reference material now lives in
+  exactly one place — the dedicated Installation section's Option B,
+  which gained the `pip install --upgrade` alternative, the
+  `--force` / `--upgrade` semantics explanation, and the **GUI
+  prerequisite** sub-bullets (`brew install python-tk@3.14`,
+  `sudo apt install python3-tk`) that previously only appeared in
+  the now-removed top install code block.
+
+  Net: top of README dropped from ~50 lines of install content to
+  ~25 lines, with no information loss — duplication eliminated.
+
 ## [1.0.18] — 2026-06-03
 
 ### Fixed

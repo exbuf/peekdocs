@@ -51,34 +51,19 @@ A workbench for document collections: search them, characterize them through bui
 
 &nbsp;
 
-**Two ways to install:**
-1. Developers with Python: `pipx install --force git+https://github.com/exbuf/peekdocs.git` (below)
-   - A single **pipx / pip** install gets you everything — the GUI, the CLI, and the Python API all from one command.
-   - **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead — the two terminals can route through different Python installs. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
-
-Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
+**Quick install (Python users):**
 
 ```bash
-# Install or upgrade (requires Python 3.10+)
-pipx install --force git+https://github.com/exbuf/peekdocs.git    # recommended (isolated)
-# — or —
-pip install --upgrade git+https://github.com/exbuf/peekdocs.git   # if you prefer pip
+pipx install --force git+https://github.com/exbuf/peekdocs.git
+```
 
-# The same command works for first install AND for upgrade — re-run it
-# whenever you want the latest commit. The --force / --upgrade flag is
-# important: without it, pipx silently skips re-install if peekdocs is
-# already present and pip leaves the existing version in place.
+A single command installs everything — the GUI, the CLI, and the Python API. See [Installation](#installation) below for the standalone download (no Python required), `pip` alternative, per-platform notes, upgrade, and uninstall.
 
-# GUI prerequisite (only if you'll use peekdocs-gui):
-# macOS Homebrew Python: brew install python-tk@3.14   # match your python@<version>
-# Linux:                 sudo apt install python3-tk
-# Windows / python.org Mac installer: already included — nothing to do
+> **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
 
-# Uninstall (your settings in ~/.peekdocsrc and folder indexes are preserved)
-pipx uninstall peekdocs
-# — or —
-pip uninstall peekdocs
+**What running peekdocs looks like:**
 
+```bash
 # Search from the terminal
 peekdocs "budget" ~/Documents
 # Found 47 match(es) in 12 file(s). Files searched: 238 (142.50 MB).
@@ -89,16 +74,14 @@ peekdocs "budget" ~/Documents
 # Search with the GUI
 peekdocs-gui
 
-# Search from Python API
+# Search from the Python API
 from peekdocs import search
 results = search(["budget"], directory="~/Documents")
 for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
 
-2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
-
-The **standalone download** path bundles them as separate binaries — pick the GUI, the CLI, or both as needed; see Option A below.
+**No Python?** [Download the standalone app](#option-a-standalone-download-recommended-for-most-users) — the GUI and CLI binaries are separate downloads; pick what you need.
 
 ## Contents
 
@@ -560,12 +543,20 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
 
 ```bash
-pipx install --force git+https://github.com/exbuf/peekdocs.git
+pipx install --force git+https://github.com/exbuf/peekdocs.git    # recommended (isolated venv)
+# — or —
+pip install --upgrade git+https://github.com/exbuf/peekdocs.git   # if you prefer pip
 ```
 
-`--force` overwrites any existing peekdocs install cleanly. The same command is your future upgrade — re-run it whenever you want the latest commit.
+`--force` (pipx) and `--upgrade` (pip) play the same role: they overwrite any existing install cleanly. Without them, pipx silently skips re-install if peekdocs is already present, and pip leaves the existing version in place. The same command is your future upgrade — re-run it whenever you want the latest commit.
 
-After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you. To uninstall completely: `pipx uninstall peekdocs`. See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
+After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you (pip drops the package into whichever Python environment you used). To uninstall completely: `pipx uninstall peekdocs` (or `pip uninstall peekdocs`). See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
+
+**GUI prerequisite** — only if you'll use `peekdocs-gui`:
+
+- **macOS Homebrew Python:** `brew install python-tk@3.14` (match your `python@<version>`)
+- **Linux:** `sudo apt install python3-tk`
+- **Windows / python.org macOS installer:** already included — nothing to do
 
 **Niche cases** (macOS python3.13 selection, no-git ZIP install, Windows pipx fallback, source install for contributors) are documented in [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
