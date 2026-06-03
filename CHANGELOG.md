@@ -12,6 +12,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **README Option A: explicit `./` / `.\` prefix rule + concrete
+  Windows global-install commands.** Two related additions a user
+  asked for:
+  1. A blockquote callout under the Direct CLI downloads table
+     explaining the prefix rule across the three OSes — macOS /
+     Linux need `./peekdocs ...`, Windows PowerShell needs
+     `.\peekdocs-cli-windows.exe ...`, Windows cmd.exe accepts
+     the bare name. Reason given: shells search `$PATH` (`$env:Path`
+     on Windows) for executables, and current directory isn't on
+     PATH by default on macOS / Linux / PowerShell as a security
+     measure.
+  2. The Windows CLI table row now includes the concrete
+     PowerShell one-liner for global install (Rename-Item to
+     `peekdocs.exe`, create `$HOME\bin`, move there, append to
+     user PATH via `[Environment]::SetEnvironmentVariable`), so
+     a Windows user gets the same `peekdocs "query" /path` UX
+     from any terminal that the macOS row already documented via
+     `sudo mv /usr/local/bin/peekdocs`.
+
 ## [1.0.12] — 2026-06-03
 
 ### Docs
