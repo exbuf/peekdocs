@@ -22,7 +22,7 @@ Your Mac may come with an older Python (3.9.x) pre-installed. If `python3 --vers
 
 Installing a newer Python does **not** replace or affect the old version. Each version installs to its own folder (e.g., system Python lives at `/usr/bin/python3`, Homebrew Python at `/opt/homebrew/bin/python3.13`). They live side by side, and any programs that use the older version continue to work. After installing, the plain `python3` command may still point to the old 3.9 — use `python3.13` (or whichever version you installed) instead.
 
-You also need tkinter for the GUI: `brew install python-tk@3.13` (replace 3.13 with your version if different).
+You also need tkinter for the GUI: `brew install python-tk@3.14` (replace 3.14 with your version if different).
 
 ### Windows
 
@@ -47,7 +47,7 @@ Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with 
 ### Tkinter (required for GUI)
 
 - **Windows:** included automatically by the Python installer — no action needed.
-- **macOS (Homebrew Python):** `brew install python-tk@3.13` (replace 3.13 with your version).
+- **macOS (Homebrew Python):** `brew install python-tk@3.14` (replace 3.14 with your version).
 - **macOS (python.org installer):** already included.
 - **Linux:** `sudo apt install python3-tk` (already in the Linux command above).
 

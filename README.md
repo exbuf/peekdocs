@@ -829,7 +829,7 @@ For most users, direct search is fast enough — just click Run Search. An index
 | Small files, small folder | **No** | Direct search is already fast enough |
 | One-time search you won't repeat | **No** | Build time won't be recouped |
 
-To try it: click Build Index in Manage Indexes (Tools menu) or run `peekdocs --index`.
+To try it: open **Tools → Indexes**, click **Build Index(es)**, or run `peekdocs --index`.
 
 ### First-run timing and the banner notice
 
@@ -947,7 +947,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 
 ## Testing
 
-**Unit tests** — 627 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
+**Unit tests** — 630 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
 
 ```bash
 pytest tests/ -v

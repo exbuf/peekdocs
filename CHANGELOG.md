@@ -12,6 +12,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **Documentation currency audit and cleanup pass.** A post-v1.0.15
+  audit caught residual stale UI references after the rapid v1.0.5–
+  v1.0.15 iteration. All user-facing accuracy gaps resolved:
+  - **"Manage Indexes" everywhere → "Indexes"**. The Manage Indexes
+    collapsible toggle below Advanced Search Options was removed
+    when the controls were moved to a Tools menu popup labeled just
+    **Indexes** (see `_mixin_build.py:1549`). Renamed across
+    `README.md` (1 occurrence), `docs/USER_GUIDE.md` (5),
+    `docs/TROUBLESHOOTING.md` (4), and in-app help text in
+    `_mixin_tools.py:3952`.
+  - **`docs/USER_GUIDE.md` main-screen region table** had a
+    "Manage Indexes" row describing a collapsible toggle that no
+    longer exists (removed). The "Toolbar" row listed buttons that
+    are now Tools-menu items (View All peekdocs Files, All
+    Collections, Error Log, Maintenance, Text Size) — rewritten as
+    "Bottom row" with the actual buttons (README / User Guide /
+    Close / Tools ▲ / Tooltips / About) and a note that
+    everything else moved into the Tools menu.
+  - **`docs/USER_GUIDE.md` "Manage Indexes:" subsection** rewritten
+    to describe the Tools → Indexes popup instead of a collapsible
+    panel below Advanced Search Options.
+  - **`docs/USER_GUIDE.md:2454`** "Clear Error Log on the bottom
+    toolbar" — no such button exists; replaced with the
+    Tools → Clear Files path.
+  - **In-app Tools-menu help (`peekdocs/gui/_mixin_tools.py`)**:
+    three stale references to UI labels ("Clear Results",
+    "Delete Index" singular, "Clear Error Log", "Click Manage
+    Indexes below Advanced Search Options") updated to point at
+    current Tools-menu paths.
+  - **Test count claims**: `README.md:950` "627 pytest tests" →
+    630 (actual count after v1.0.10's `test_version_flag_double_dash`
+    + `test_save_flag_double_dash` and v1.0.14's
+    `test_check_success_footer`). `CLAUDE.md:50` "559 tests" → 630.
+  - **`python-tk@<version>` consistency**: README and TROUBLESHOOTING
+    used `@3.14`; INSTALLATION and USER_GUIDE used `@3.13`.
+    Standardized on `@3.14` across all four files; INSTALLATION's
+    "replace 3.13 with your version" parentheticals updated to
+    match.
+
 ## [1.0.15] — 2026-06-03
 
 ### Fixed

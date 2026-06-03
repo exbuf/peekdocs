@@ -218,7 +218,7 @@ Most of these are covered in the [Prerequisites](../README.md#prerequisites) sec
 | Dependency | Required? | What it's for | How to install |
 |-----------|-----------|--------------|----------------|
 | **Python 3.10+** | Yes | Runs peekdocs | [python.org/downloads](https://www.python.org/downloads/) or your package manager |
-| **tkinter** | For GUI only | The GUI framework (`peekdocs-gui`) | Included with Python on Windows. macOS: `brew install python-tk@3.13`. Linux: `sudo apt install python3-tk` |
+| **tkinter** | For GUI only | The GUI framework (`peekdocs-gui`) | Included with Python on Windows. macOS: `brew install python-tk@3.14` (match the version of your Homebrew `python@<version>`). Linux: `sudo apt install python3-tk` |
 | **Tesseract** | Optional | OCR — reading text from scanned PDFs and images (`-O` flag) | macOS: `brew install tesseract`. Linux: `sudo apt install tesseract-ocr`. Windows: [download installer](https://github.com/UB-Mannheim/tesseract/wiki) |
 | **UnRAR** | Optional | Searching inside .rar archives | macOS: `brew install unrar`. Linux: `sudo apt install unrar`. Windows: comes with [WinRAR](https://www.win-rar.com/) or install standalone unrar |
 
@@ -431,9 +431,8 @@ The GUI window is organized into these regions, from top to bottom:
 | **Search Bar** | Search entry field with **▼ Recent Searches** dropdown (shows your last 10 search terms — stored in memory only, not saved to disk, lost when you close the app; different from Search History in the Tools menu which persists across sessions), **🔍 Standard Search** button (the main blue action button — runs a keyword/regex/Boolean search using whatever is set in Advanced Search Options), **Regex Search** button (orange — opens the multi-pattern regex popup), **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), **Single File** button (select a single file to search — click the ✕ to clear), and **+Folder** button (add another folder for multi-folder search — folders are separated by semicolons) |
 | **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
-| **Manage Indexes** | Collapsible toggle — **Auto-Refresh Index** interval selector, **Build Index(es)**, **Delete Index(es)**, **Index Status**, and **?** help |
 | **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
-| **Toolbar** | **User Guide**, **View All peekdocs Files**, **All Collections** (global view of saved searches across all folders), **Error Log**, **Maintenance**, **Text Size**, **Tooltips: ON/OFF** (toggle tooltips on or off — saved automatically), and **About** buttons |
+| **Bottom row** | **README**, **User Guide**, **Close** (exits peekdocs), **Tools ▲** (menu — File analysis, Bookmarks, Diff Snapshots, **Indexes**, Schedule Search, Search History, All Collections, View All peekdocs Files, Error Log, System Check, Clear Files, Clean Folder, Appearance, Text Size), **Tooltips: ON/OFF** (toggle tooltips — saved automatically), and **About**. Everything that used to live on the toolbar as separate buttons (View All peekdocs Files, All Collections, Error Log, Text Size, etc.) is now inside the Tools menu. |
 
 **Your first GUI search:**
 
@@ -464,9 +463,9 @@ These two buttons do different things:
 
 Your selections in Advanced Search Options take effect immediately on the next Run Search — you do not need to press Save Defaults first. Save Defaults is only for making your choices persist across sessions.
 
-**Manage Indexes:**
+**Indexes (Tools menu):**
 
-Click "Manage Indexes" below Advanced Search Options to expand index controls. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly. Note: because the index always includes all subfolders, checking Use Index will return subfolder results even if Recursive is unchecked. To search only the top folder, uncheck both Use Index and Recursive.
+Open **Tools → Indexes** to bring up the index-control popup. Use the **Auto-Refresh Index** dropdown to keep the index updated automatically. Click **Build Index(es)** to create the index (all subfolders are included automatically). Use **Delete Index(es)** to remove the index, **Index Status** to view index info, or **?** for help on how indexes work. The **Search Using Index(es)** checkbox is inside Advanced Search Options — check it to use the index for your next search, or uncheck it to search files directly. Note: because the index always includes all subfolders, checking Use Index will return subfolder results even if Recursive is unchecked. To search only the top folder, uncheck both Use Index and Recursive.
 
 Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for search terms. Each checkbox and input field in **Advanced Search Options** handles the corresponding flag behind the scenes.
 
@@ -524,7 +523,7 @@ The **Tools** button (top-right of the Search tab) opens a menu of built-in util
 | **Search History** | Every search you run is automatically logged with the date, search terms, number of matches, number of files searched, and elapsed time. Open Search History to review past searches — most recent first. Click **Clear History** to delete the log. History is stored in `~/.peekdocs_history.json` and persists across sessions. |
 | **Bookmarks** | Pin files for quick access. After a search, right-click any file in the **Matched Files** popup and choose **Add Bookmark**. Open Bookmarks from the Tools menu to see all pinned files. Double-click to open a file; right-click to remove it. Bookmarks are stored in `~/.peekdocs_bookmarks.json` and persist across sessions. |
 | **Search Suites** | Group multiple saved searches into a named suite and run them all at once. Create a suite, add saved searches to it, reorder them with Move Up / Move Down, select your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional checkboxes in the popup), and click **Run Search Suite**. Each search runs independently with its own settings (AND/OR, regex, recursive, etc.), and results are organized by search in a single combined highlighted report. Every suite report (TXT, DOCX, HTML) opens with a **Section summary** listing each saved search's name with its match count and file count, so a search that finds 50 matches is not buried under a previous section that found 5000 — and the HTML version turns each summary line into an anchor link that jumps to that section. The GUI Results Preview shows the same summary plus the first 20 matches per section with the standard yellow match-highlighting. Output format selection is independent from Advanced Search Options. Suites are stored in the folder's `.peekdocs_collection.json` file alongside saved searches. The suite popup always uses the Search Folder from the main page — if you change the folder while the popup is open, it closes automatically because suites and saved searches belong to a specific folder. Reopen it to see the new folder's suites. Use cases: pre-publication checklists, quarterly audits, onboarding reviews, or any recurring workflow. Also available from the CLI: `peekdocs --suite "My Suite"` auto-locates the folder a suite was saved in, and `peekdocs --list-suites` shows every suite peekdocs knows about. See [Suite Use Cases](#search-suite-use-cases). |
-| **Manage Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
+| **Indexes** | Build, delete, and refresh search indexes for faster repeated searches. See [Search Index](#search-index) for details. |
 | **Schedule Search** | Generates a ready-to-paste scheduling command so peekdocs runs automatically on a timer — no terminal experience required. Pick a saved search suite or regex collection, choose a folder, set the frequency (daily, weekly, or monthly) and time, and the dialog builds the correct command for your operating system: a crontab entry for Mac/Linux or a schtasks command for Windows. Step-by-step instructions walk you through pasting the command into your system's scheduler. Options include `--timestamp` (each run produces uniquely named reports instead of overwriting) and `--stdout` (also saves JSON output to a file). Click **Copy to Clipboard** to copy the generated command. Reports are saved automatically in the search folder each time the scheduled search runs. |
 | **View All peekdocs Files** | Wondering what files peekdocs created in your folder? Lists every peekdocs-created file in the Search Folder and subfolders: standard-search reports (`peekdocs_standard_results.*`), regex-search reports (`peekdocs_regex_results.*`), suite reports (`peekdocs_suite_results.*`), saved reports (`peekdocs_report_*`), accumulated reports (`peekdocs_accumulated_*`), the search index (`.peekdocs.db`), saved searches (`.peekdocs_collection.json`), the error log (`peekdocs_errors.log`), and your settings (`~/.peekdocsrc`). Each file is shown with its size and last-modified date. Files only appear if they exist — if you haven't saved any searches yet, `.peekdocs_collection.json` won't be listed. To delete peekdocs files, use **Clear Files** in the Tools menu — it lets you choose exactly which files to remove. Your saved searches and settings are protected and never appear in Clear Files. |
 
@@ -1759,7 +1758,7 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 
 ## Search Index (Optional)
 
-Indexing is a one-time setup that makes all future searches on a folder faster. Click **Manage Indexes** → **Build Index(es)** and you're done — Use Index is enabled and Auto-Refresh is set to 1 hour automatically. From that point on, searches use the index behind the scenes and the index stays current on its own.
+Indexing is a one-time setup that makes all future searches on a folder faster. Click **Indexes** → **Build Index(es)** and you're done — Use Index is enabled and Auto-Refresh is set to 1 hour automatically. From that point on, searches use the index behind the scenes and the index stays current on its own.
 
 Under the hood, the index reads your files once, stores the extracted text in a small database, and searches that database instead of re-reading files each time. Results are identical — the index just skips the file-parsing step.
 
@@ -1769,7 +1768,7 @@ You don't need an index for small folders or one-off searches. If you search a l
 
 | Method | Command |
 |--------|---------|
-| **GUI** | Click **Manage Indexes** → **Build Index(es)**. Use Index is enabled and Auto-Refresh is set to 1 hour automatically |
+| **GUI** | Click **Indexes** → **Build Index(es)**. Use Index is enabled and Auto-Refresh is set to 1 hour automatically |
 | **Terminal** | `peekdocs --index` (add `-O` to include OCR for scanned PDFs) |
 
 The index covers the folder and all subfolders. It's stored as `.peekdocs.db` in the search folder — one file, typically 10–20% the size of your documents.
@@ -2451,7 +2450,7 @@ An append-only log of file processing errors and crash reports.
 | `peekdocs_errors.log` | Records files that couldn't be read (permission denied, corrupted, locked) and crash diagnostics | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — this filename is explicitly excluded.
-**How to delete:** Click **Clear Error Log** on the bottom toolbar, or delete manually. The file is automatically recreated the next time a file error occurs. If peekdocs runs cleanly with no errors, no error log is created.
+**How to delete:** Use **Tools → Clear Files** to remove the error log (it shows up in the Choose Files tab under the "Error log" category), or delete `peekdocs_errors.log` manually. The file is automatically recreated the next time a file error occurs. If peekdocs runs cleanly with no errors, no error log is created.
 
 ### Search index
 
@@ -2597,7 +2596,7 @@ Use this tab when you want to keep some files and delete others — for example,
 - Standard search results, Regex search results, Suite results — overwritten after each run; safe to delete
 - Saved reports (`peekdocs_report_*`), Accumulated reports (`peekdocs_accumulated_*`) — named copies you saved; only delete if you no longer need them
 - Error log (`peekdocs_errors.log`) — log of files that couldn't be read; safe to delete
-- Search index (`.peekdocs.db`, `-wal`, `-shm`) — can be rebuilt any time with Manage Indexes
+- Search index (`.peekdocs.db`, `-wal`, `-shm`) — can be rebuilt any time with Indexes
 
 Each file appears with its size next to a checkbox. **Select All** / **Deselect All** at the bottom let you batch-pick. The red **Delete Selected** button asks for a single Yes/No confirm and deletes only the checked files. Saved searches (`.peekdocs_collection.json`) and settings (`~/.peekdocsrc`) are not shown — they cannot be deleted from this popup.
 

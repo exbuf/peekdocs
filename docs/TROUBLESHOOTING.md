@@ -204,7 +204,7 @@ Almost always, the file IS in the matched set — it's just not visible in the s
 
 *Second, the search itself.* If you wanted "dr bowling" as a contiguous phrase rather than "files containing either word," OR mode is the wrong tool. The simplest narrowing is **quoted phrase search**: type `"Dr. Bowling"` (with double quotes) in the search bar and peekdocs looks for that exact sequence as a single unit — your 167-file noisy result drops to the four files that actually contain it. For more flexible variants of the same idea: **AND mode** (Advanced Search Options → AND, or `-a`) requires both words on the same line but not adjacent; **proximity** (`-p 5`) requires both within 5 words of each other; **expression mode** (`-e "(dr OR Dr.) AND bowling"`) lets you spell out explicit logic. See [Phrase search (quoted terms)](USER_GUIDE.md#phrase-search-quoted-terms) in the User Guide for details on the phrase syntax.
 
-If after both checks the file genuinely isn't in the results, two real causes worth ruling out: (1) the file may be excluded from the search — open the **Excluded Files** link on the status line to see which files were skipped (oversized, unsupported format, password-protected, etc.); or (2) if you're using the index, the file may have been added after the last index refresh — run `peekdocs --index-refresh` (or **Manage Indexes → Refresh** in the GUI) and search again.
+If after both checks the file genuinely isn't in the results, two real causes worth ruling out: (1) the file may be excluded from the search — open the **Excluded Files** link on the status line to see which files were skipped (oversized, unsupported format, password-protected, etc.); or (2) if you're using the index, the file may have been added after the last index refresh — run `peekdocs --index-refresh` (or **Indexes → Refresh** in the GUI) and search again.
 
 **Does peekdocs send my data anywhere?**
 No. peekdocs has no network calls, no telemetry, no tracking, no cloud. Everything runs locally. It works on air-gapped machines with no internet connection.
@@ -251,7 +251,7 @@ Every feature in peekdocs serves the core mission of finding content in document
 
 If you're using the search index and peekdocs doesn't find matches in files you recently added, moved, or modified, the index is stale — it doesn't know about the new files yet. Rebuild the index:
 
-- **GUI:** Tools → Manage Indexes → Build Index (or use Index Refresh for an incremental update)
+- **GUI:** Tools → Indexes → Build Index (or use Index Refresh for an incremental update)
 - **CLI:** `peekdocs --index` (full rebuild) or `peekdocs --index-refresh` (incremental)
 
 Alternatively, uncheck the Index checkbox or use `--no-index` to bypass the index and search files directly. Direct search always reads the current files on disk.
@@ -286,7 +286,7 @@ If a search returns no results (or fewer than expected) for terms you know exist
 
 To clear everything at once, open **Advanced Search Options** and click **Reset All Fields** (the red button). This restores all fields to their defaults for the current session without affecting your saved settings in `~/.peekdocsrc`.
 
-If **Use Index** is checked on the main screen, try unchecking it and searching directly. A stale index may not contain recently added or changed files. To keep the index current, open **Manage Indexes** and set **Auto-Refresh** to an appropriate interval:
+If **Use Index** is checked on the main screen, try unchecking it and searching directly. A stale index may not contain recently added or changed files. To keep the index current, open **Indexes** and set **Auto-Refresh** to an appropriate interval:
 
 - **5–15 min** — folders where files change frequently
 - **30 min–1 hour** — folders that change occasionally
@@ -459,7 +459,7 @@ Run `peekdocs --check` to verify Tesseract is detected.
 Several possible causes:
 
 1. **OCR not enabled** — check the OCR checkbox in Advanced Search Options (GUI) or add the `-O` flag (CLI). Without it, peekdocs only reads the text layer — image-only files will have no matches.
-2. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Manage Indexes → Build Index) or uncheck the Index checkbox to search directly.
+2. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Indexes → Build Index) or uncheck the Index checkbox to search directly.
 2. **Tesseract not installed** — run `peekdocs --check` to verify. See the entry above for installation instructions.
 3. **Low scan quality** — scans below 200 DPI produce poor OCR results. 300 DPI is recommended. Re-scan the document at a higher resolution if possible.
 4. **Skewed or rotated text** — Tesseract struggles with text that isn't level. Re-scan with the document flat and straight.
