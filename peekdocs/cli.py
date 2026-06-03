@@ -847,7 +847,7 @@ def _main_inner(argv=None):
     cpu_count = os.cpu_count() or 1
     is_help = args and args[0] in ("-h", "-help", "--help")
 
-    if args and args[0] in ("-v", "-version"):
+    if args and args[0] in ("-v", "-version", "--version"):
         print(f"peekdocs {VERSION}\n")
         return 0
 

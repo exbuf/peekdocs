@@ -395,6 +395,21 @@ def test_version_flag_long(capsys):
     assert f"peekdocs {VERSION}" in captured.out
 
 
+def test_version_flag_double_dash(capsys):
+    """`--version` is the GNU/POSIX convention. Prior to v1.0.10 the CLI
+    only matched `-v` and `-version` and silently treated `--version` as
+    a literal search term — printing a startup banner and then running a
+    full directory scan against `--version` as if it were a search query.
+    """
+    result = main(["--version"])
+    captured = capsys.readouterr()
+    assert result == 0
+    assert f"peekdocs {VERSION}" in captured.out
+    # The bug symptom was that the search code path printed "Searching"
+    # after the version banner. The fix has to short-circuit before that.
+    assert "Searching" not in captured.out
+
+
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()

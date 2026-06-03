@@ -12,6 +12,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **`peekdocs --version` ran a full directory search instead of
+  printing the version and exiting.** The CLI's version-flag check
+  at `peekdocs/cli.py:850` only matched `-v` and `-version` (single
+  dash). When the user typed the GNU/POSIX-conventional double-dash
+  form `peekdocs --version`, the check fell through and the search
+  code path treated `--version` as a literal search term: it
+  printed its own startup banner (which a user could easily
+  mistake for the `--version` output), then ran a recursive scan
+  of the current working directory looking for files containing
+  `--version` — and wrote `peekdocs_standard_results.txt` and
+  `.docx` reports to disk as a side effect. A user testing the
+  v1.0.8 macOS CLI standalone in their Documents folder reported
+  a 442-file / 806 MB scan in 3.6 seconds when they expected a
+  one-line version print.
+
+  Fix: added `--version` to the matched options at `cli.py:850`,
+  matching the same `-h` / `-help` / `--help` triple already
+  used for `is_help` two lines above. Now `-v`, `-version`, and
+  `--version` all print `peekdocs {VERSION}` and exit 0 without
+  touching the filesystem.
+
+  Test: added `test_version_flag_double_dash` in `tests/test_cli.py`
+  to lock in the fix — explicitly asserts the output contains the
+  version string AND does *not* contain "Searching" (the search
+  code path's startup signature).
+
 ## [1.0.9] — 2026-06-03
 
 ### Docs
