@@ -12,6 +12,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **macOS CLI standalone startup slowness documented.** A user
+  installed the macOS CLI to `/usr/local/bin/peekdocs` via
+  `sudo mv` and found every invocation took 1–3 seconds. Root
+  cause is two stacking issues: (1) PyInstaller single-file
+  bundles unpack their bundled Python interpreter + dependencies
+  on each invocation, which is inherent to the format and
+  unavoidable for the standalone CLI; (2) `sudo mv` preserves
+  the `com.apple.quarantine` xattr, so macOS Gatekeeper re-
+  verifies the binary at the new path on every launch, adding
+  cost on top of the unpack. New
+  `docs/INSTALLATION.md#macos-cli-startup-slowness` section
+  covers both, with: `sudo xattr -dr com.apple.quarantine
+  /usr/local/bin/peekdocs` as the one-shot fix for the avoidable
+  half; a `time peekdocs --version` diagnostic to distinguish
+  cold-cache slowness from inherent unpack cost; and pipx as
+  the faster alternative (~0.2–0.4s startup vs 1–3s for
+  standalone) for users who care about per-command latency.
+
+- **macOS CLI binary filename corrected in the README CLI table.**
+  The macOS CLI zip (`peekdocs-cli-macos.zip`) contains a binary
+  named just `peekdocs`, not `peekdocs-cli` as the README
+  previously stated. The workflow at `.github/workflows/build-release.yml:59`
+  packages it as `zip peekdocs-cli-macos.zip peekdocs`, so the
+  README's `cd ~/Downloads && ... peekdocs-cli` line silently
+  failed for any user following the literal instructions.
+  README CLI table macOS row updated to use the correct
+  filename, plus added the post-`sudo mv` `sudo xattr -dr
+  com.apple.quarantine` step (with a "this matters for startup
+  speed" callout) and a link to the new slowness section.
+
 ## [1.0.8] — 2026-06-03
 
 ### Docs

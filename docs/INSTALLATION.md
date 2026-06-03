@@ -126,6 +126,44 @@ If you're on Sequoia or Sonoma and the right-click menu doesn't show **Open** in
 - **The Gatekeeper bypass is per-download, not per-app.** Once you've taught macOS to trust the copy of `peekdocs-gui.app` you have right now, every subsequent double-click on *that file* works without prompts. But **every fresh download triggers Gatekeeper again** — including upgrading to a new release. The quarantine flag (`com.apple.quarantine` xattr) is attached by your browser to each downloaded file, regardless of whether you previously approved a different copy of the same app, because peekdocs isn't signed with an Apple Developer ID (which would let macOS auto-trust approved bundle IDs across downloads). So plan on running through Path 1 or Path 2 once each time you upgrade. The Terminal one-liner is the fastest path if you upgrade often.
 - **No installation, no system changes.** The `.app` is a fully self-contained bundle. Drag it to `/Applications` if you want it in Launchpad, or leave it in Downloads. There's nothing to uninstall later — just delete the `.app` and (if you want a clean wipe) `~/.peekdocsrc`.
 
+<a id="macos-cli-startup-slowness"></a>
+### macOS CLI standalone — slow startup (PyInstaller unpack tax, and the `sudo mv` quarantine gotcha)
+
+After installing the macOS CLI standalone — especially after moving it to `/usr/local/bin/peekdocs` for global access — you may notice every invocation takes 1–3 seconds to even start printing output. Two distinct causes can stack:
+
+**1. PyInstaller "single-file" unpack tax (inherent).** The standalone CLI is a single-file PyInstaller bundle containing its own Python interpreter plus every library peekdocs uses. On *each* invocation, the bundle extracts itself to a temp directory under `/var/folders/...` before any peekdocs code runs. This adds a fixed 1–3 seconds per command on both Apple Silicon and Intel Macs — it's inherent to single-file PyInstaller bundles, not a peekdocs bug. The single-file format is what makes the binary self-contained and portable; the unpack cost is the tradeoff.
+
+**2. Quarantine xattr preserved by `sudo mv` (fixable).** `sudo mv ~/Downloads/peekdocs /usr/local/bin/peekdocs` preserves *extended attributes* on the moved file — including `com.apple.quarantine`, the flag your browser attached when you first downloaded the zip. macOS Gatekeeper sees the quarantine flag at the new path and re-verifies the binary on each launch, adding noticeable overhead on top of the unpack tax above. Even if you Gatekeeper-allowed the file at the *download* location, the move to a new path can re-trigger checks because Gatekeeper's "approved" memory keys off path + code-signature, not file content.
+
+**Fix the avoidable half (xattr):**
+
+```bash
+sudo xattr -dr com.apple.quarantine /usr/local/bin/peekdocs
+```
+
+One-time, immediate. Subsequent invocations skip the Gatekeeper re-verify.
+
+**Diagnose what kind of slowness you have:**
+
+```bash
+time peekdocs --version
+time peekdocs --version    # run twice
+```
+
+- **First run slow (~2–3s), second run fast (<0.5s):** cold filesystem cache + macOS first-launch checks. Normal — won't repeat in the same terminal session.
+- **Both runs slow (~1–3s each):** that's the PyInstaller unpack tax. There's no way to eliminate it for the standalone CLI without rebuilding as a `--onedir` bundle, which would distribute as a folder of files rather than a single binary.
+
+**The faster alternative: pipx.** If startup time matters and you have Python installed (or are willing to install it), the pipx path skips the PyInstaller unpack entirely — pipx drops peekdocs into a real Python venv and the `peekdocs` shim invokes Python directly. Typical startup: 0.2–0.4s vs 1–3s for the standalone. To switch:
+
+```bash
+brew install pipx                                                  # if you don't have it
+pipx install --force git+https://github.com/exbuf/peekdocs.git
+sudo rm /usr/local/bin/peekdocs                                    # remove standalone CLI
+which peekdocs                                                     # now points at the pipx shim
+```
+
+After the switch, `peekdocs` from any terminal runs the pipx version directly — no unpack involved. Same code, same features, same exit codes; just no per-invocation extract step.
+
 ### macOS — choosing a Python version for pipx
 
 If your system `python3` is still 3.9 and you installed a newer Python alongside it, tell pipx which to use:
