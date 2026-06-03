@@ -20,20 +20,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   kicked off — status line correctly switched to
   `Suite: <name> (N searches)...` and the progress bar started — but
   the Results Preview pane kept showing the prior standard search's
-  matches, including its Matched Files link and Excluded Files button.
+  matches, including its Matched Files link, Excluded Files button,
+  and the *"N match(es) in M file(s)"* count label above the preview.
   The contradiction (status says "suite running," preview shows
-  unrelated keyword results) confused users about which search they
-  were looking at. Root cause: `_run_suite_searches` didn't clear
-  stale state at start — it only set the new suite-progress text on
-  the status line. The standard-search start path already does the
-  full state-reset block (matched_files, inverse_results,
-  action_buttons, files_list, preview, matched_files_link,
-  excluded_files_btn) at `_mixin_search.py:215-220`. Fix: added the
-  same six-line reset block to the top of `_run_suite_searches` in
-  `_mixin_tools.py`, just before the progress bar configure. The
-  Preview now goes blank the moment the suite starts and only the
-  suite's own combined results fill it back in when the suite
-  finishes.
+  unrelated keyword results from earlier) confused users about which
+  search they were looking at. Two stacking causes:
+  - `_run_suite_searches` didn't clear stale state at start — it
+    only set the new suite-progress text on the status line. The
+    standard-search start path does a state-reset block at
+    `_mixin_search.py:215-220` (matched_files, inverse_results,
+    action_buttons, files_list, preview, matched_files_link,
+    excluded_files_btn). The suite path was missing all of it.
+  - The `_preview_count_label` (the *"N match(es) in M file(s)"*
+    header above the preview pane) is **not** touched by
+    `_hide_preview()` — only `_clear_preview()` resets it, and the
+    standard-search start uses `_hide_preview`. The reason it's
+    not user-visible after a standard search is that the next
+    `_show_preview()` call updates the count within a fraction of
+    a second; the user never sees the stale count flash. But the
+    suite takes seconds to run before its `_suite_finished` writes
+    new content, so the previous standard search's count stays
+    on screen for the whole suite duration.
+
+  Fix: added a state-reset block to the top of `_run_suite_searches`
+  in `_mixin_tools.py` mirroring the standard-search reset, plus an
+  explicit `self._preview_count_label.configure(text="")` to close
+  the count-label gap that `_hide_preview` leaves open. The Preview
+  now goes fully blank (text + count) the moment the suite starts;
+  only the suite's own combined results fill it back in when the
+  suite finishes.
 
 ## [1.0.17] — 2026-06-03
 

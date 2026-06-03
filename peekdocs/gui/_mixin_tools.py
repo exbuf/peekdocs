@@ -5343,11 +5343,18 @@ class ToolsMixin:
         # while the suite runs — directly contradicting the suite-
         # progress text on the status line ("Suite: X (Y searches)...").
         # Mirrors the start_search() reset block in _mixin_search.py.
+        # Note: _hide_preview() clears the Text widget but intentionally
+        # leaves _preview_count_label alone. The count label is what
+        # renders "N match(es) in M file(s)" above the preview; without
+        # an explicit reset, the previous standard search's count
+        # survives into the suite run and re-contradicts the
+        # suite-progress status.
         self.matched_files = []
         self._inverse_results = False
         self._clear_action_buttons()
         self._hide_files_list()
         self._hide_preview()
+        self._preview_count_label.configure(text="")
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
 
