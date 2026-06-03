@@ -1104,7 +1104,7 @@ def _main_inner(argv=None):
         print(f"Elapsed: {result['elapsed']:.2f} seconds\n")
         return 0
 
-    if args and args[0] in ("-s", "-save"):
+    if args and args[0] in ("-s", "-save", "--save"):
         if len(args) < 2:
             print("Error: No filename provided. Usage: peekdocs -s name_of_your_file\n")
             return 2

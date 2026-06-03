@@ -410,6 +410,27 @@ def test_version_flag_double_dash(capsys):
     assert "Searching" not in captured.out
 
 
+def test_save_flag_double_dash(capsys):
+    """`--save` follows the same GNU/POSIX convention as `--version` and
+    `--help`. Prior to v1.0.10 the CLI only matched `-s` and `-save`, so
+    `peekdocs --save my_report` fell through to the search code path and
+    was treated as a literal search for the string "--save" — producing
+    a destructive recursive scan of the current directory instead of
+    saving the previous run's results.
+
+    The test passes `--save` with no filename argument; the save handler
+    returns 2 with a "No filename provided" error. If the bug regressed,
+    the search code path would print "Searching" and return 0 after
+    scanning, so we assert both: the save error message IS present, and
+    "Searching" is NOT.
+    """
+    result = main(["--save"])
+    captured = capsys.readouterr()
+    assert result == 2
+    assert "No filename provided" in captured.out
+    assert "Searching" not in captured.out
+
+
 def test_banner_always_printed(capsys):
     main(["anything"])
     captured = capsys.readouterr()

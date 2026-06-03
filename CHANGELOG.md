@@ -14,6 +14,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **`peekdocs --save my_report` had the same bug pattern as
+  `--version`: it ran a search for the literal string "--save"
+  instead of saving the previous run's results.** The CLI's
+  save-flag check at `peekdocs/cli.py:1107` matched only `-s` and
+  `-save` (single dash). When a user typed the GNU/POSIX-conventional
+  double-dash form `peekdocs --save my_report`, the check fell
+  through to the search code and treated `--save` as a literal
+  search term — wiping the existing results files and replacing
+  them with a search for `--save`. Fix: added `--save` to the
+  matched options at `cli.py:1107`, matching the same pattern
+  the `--version` fix used. Test: added `test_save_flag_double_dash`
+  in `tests/test_cli.py` that calls `main(["--save"])` (no filename
+  argument), asserts exit code 2 with the "No filename provided"
+  error, AND asserts "Searching" is *not* in the output. Audit
+  of every other manual `args[0]` flag check in `cli.py` confirms
+  this was the only remaining parallel — `-h`/`-help`/`--help`
+  was already covered, and every other flag (`--check`, `--clear`,
+  `--diff`, `--runs`, `--suite`, `--regex-collection`, etc.) uses
+  only the GNU `--<flag>` convention, which is what users type
+  anyway.
+
 - **`peekdocs --version` ran a full directory search instead of
   printing the version and exiting.** The CLI's version-flag check
   at `peekdocs/cli.py:850` only matched `-v` and `-version` (single
