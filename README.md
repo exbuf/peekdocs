@@ -494,7 +494,7 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 
 **Direct GUI downloads** (always the latest release):
 
-| Platform | Download | After download |
+| Platform | Download | After download [\*](#first-launch-security) |
 |---|---|---|
 | Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run |
 | macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app` |
@@ -502,7 +502,7 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 
 **Direct CLI downloads** (always the latest release):
 
-| Platform | Download | After download |
+| Platform | Download | After download [\*](#first-launch-security) |
 |---|---|---|
 | Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | **Run from the download folder:** `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell — the `.\` prefix is required because PowerShell doesn't put the current directory on `$env:Path` by default). **For global access from any terminal:** rename to `peekdocs.exe`, move to a folder on your user `PATH`, and add it to `PATH`. PowerShell one-liner: `Rename-Item peekdocs-cli-windows.exe peekdocs.exe; New-Item -ItemType Directory -Force -Path "$HOME\bin" \| Out-Null; Move-Item peekdocs.exe "$HOME\bin\"; [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$HOME\bin", "User")`. Open a fresh PowerShell window afterward; `peekdocs --version` then works from any directory. PowerShell-specific `--%` token and `.rar`/`.pst` limitations are documented in [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
 | macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Safari auto-unzips → the binary inside is named just `peekdocs` (no `-cli` suffix). `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs && ./peekdocs --version`. Optionally `sudo mv peekdocs /usr/local/bin/peekdocs && sudo xattr -dr com.apple.quarantine /usr/local/bin/peekdocs` so `peekdocs "query" /path` works from any terminal session. **The post-move `xattr` is important** — without it the binary is slow to start on every invocation. See [docs/INSTALLATION.md → macOS CLI startup slowness](docs/INSTALLATION.md#macos-cli-startup-slowness) for the full explanation. |
@@ -517,7 +517,7 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 
 Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
-**First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
+<a id="first-launch-security"></a>**\* First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
 
 - **Windows (SmartScreen):** Click **More info** → **Run anyway**.
 - **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. The bypass:
