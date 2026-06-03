@@ -12,6 +12,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **GLOSSARY: added "Binaries" entry.** Inserted between API and BOM
+  (alphabetical: Bi precedes Bo). Covers what binaries are (compiled
+  executables that don't need Python), how many peekdocs ships (six —
+  GUI and CLI for Windows / macOS / Linux), the PyInstaller bundling
+  rationale, and the pipx alternative.
+
+- **Documentation audit cleanup pass.** A readability + accuracy
+  audit caught residual references to the removed Delete Now button
+  and a couple of stale UI claims:
+  - USER_GUIDE "How to delete" line replaced "Click Clear Results on
+    the bottom toolbar" (no such button) with the current
+    Tools → Clear Files → Choose Files / Wipe Session paths.
+  - Tools menu sub-list in USER_GUIDE corrected "Clean Up Practice
+    Files" to "Clean Folder".
+  - In-app Tools-menu help (`_mixin_tools.py:7757`) updated from
+    "click Delete Now on the main screen" to
+    "use Tools → Clear Files → Wipe Session".
+  - Timestamp checkbox tooltip (`_mixin_build.py:926`) updated from
+    "use Delete on Close or Delete Now to clean up" to the Tools →
+    Clear Files → Wipe Session path.
+  - README intro bullet line 23 now says "offers a one-click Wipe
+    Session (under Clear Files)" rather than the vague "lets you
+    delete them in one click".
+  - README line 317 "delivers all of them in a single install" was
+    a stale claim equivalent to the line 59 one fixed in 1.0.7;
+    softened to "delivers all of them in one tool".
+  - README macOS Gatekeeper bullet (line 529) was a 110-word
+    single-sentence wall; reformatted into a numbered list for the
+    three System Settings steps, then a single follow-up paragraph
+    for the per-download caveat and terminal alternative.
+
 ## [1.0.7] — 2026-06-02
 
 ### Docs

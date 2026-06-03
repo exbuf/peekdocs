@@ -20,7 +20,7 @@ A workbench for document collections: search them, characterize them through bui
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, and more — searched simultaneously
 - **Reports for humans, output for machines** — .docx, .html, and .pdf reports with matches highlighted in yellow alongside their surrounding paragraphs or lines; .csv, .json, and .txt output for downstream tooling
-- **Read-only and transparent** — peekdocs runs locally and never modifies, moves, or deletes your files. The Tools menu lists every file peekdocs has written (results, reports, indexes, saved searches) and lets you delete them in one click.
+- **Read-only and transparent** — peekdocs runs locally and never modifies, moves, or deletes your files. The Tools menu lists every file peekdocs has written (results, reports, indexes, saved searches) and offers a one-click **Wipe Session** (under **Clear Files**) to delete them.
 - **OCR** — search scanned PDFs and images. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **Flexible search modes** — Boolean, fuzzy, wildcard, regex, proximity, inverse, whole-word, range, AND/OR, and more
 - **Search Wizard** — 20 pre-built search-type forms (keywords, Boolean, fuzzy, proximity, dollar range, date range, phone, email, and more) plus a regex pattern builder with 35 named patterns across 6 categories — no syntax to memorize
@@ -314,7 +314,7 @@ Researchers, analysts, consultants, and business users — people who use peekdo
 
 ### What makes peekdocs distinctive
 
-The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. peekdocs delivers all of them in a single install.
+The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool.
 
 <details>
 <summary><b>Detailed use cases by role (click to expand)</b></summary>
@@ -453,7 +453,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 #### Privacy & transparency
 
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
-- **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Clear Results, Delete Index)
+- **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Tools → Clear Files, Delete Index)
 - **Delete on Close** — one checkbox automatically deletes every result file and the search index across the session when you close peekdocs. Saved reports, saved searches, settings, and bookmarks are preserved
 - **Safe defaults** — files over 100 MB are skipped automatically to prevent slow searches and memory issues; archives that would expand past 500 MB are skipped to prevent archive bombs. Adjust **Max File Size** in Advanced Search Options or set it to 0 for no limit
 - **Excluded Files view** — after each search, see exactly which files were skipped and why (unsupported type, oversized, hidden, etc.) — no guessing what was missed
@@ -526,7 +526,12 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 **First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
 
 - **Windows (SmartScreen):** Click **More info** → **Run anyway**.
-- **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. Click **Done**, then go **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**. Re-launch the app and click **Open** in the final confirm dialog. From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app — so plan on running through this once each release. The one-line terminal alternative `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` is the fastest path if you upgrade often. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
+- **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. The bypass:
+  1. Click **Done** to dismiss the warning.
+  2. Open **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**.
+  3. Re-launch the app and click **Open** in the final confirm dialog.
+
+  From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app. The one-line terminal alternative is faster if you upgrade often: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
 - **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`).
 
 **Upgrading.** Download the new version and replace the old file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory — nothing is lost.
