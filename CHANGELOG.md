@@ -12,6 +12,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **`peekdocs --check` showed `(v?)` for every dependency in the
+  standalone bundles.** v1.0.14 added a `v` prefix to make the
+  parenthesized version unambiguous (`ok (v1.27.2.3)` instead of
+  `ok (1.27.2.3)`). A user testing the v1.0.14 macOS CLI standalone
+  reported the output was literally `ok (v?)` — a question mark
+  where the version number should be. Root cause: PyInstaller does
+  *not* ship `.dist-info` directories into bundles by default, so
+  `importlib.metadata.version(pkg)` fails at runtime, and the
+  `_get_pkg_version` fallback returns `"?"` (`peekdocs/cli.py:392`).
+  This is the same problem peekdocs's own version already worked
+  around at `peekdocs/__init__.py:13` via a hardcoded fallback —
+  and `build_app.py:95` already did `--copy-metadata peekdocs` to
+  ship peekdocs's metadata. The dep metadata was never copied.
+  Fix: added a `COPY_METADATA` list to `build_app.py` covering all
+  12 packages (peekdocs + 7 required deps + 4 optional deps) and
+  threaded it into both `build_gui` and `build_cli` so each
+  produces `--copy-metadata <pkg>` flags for the PyInstaller
+  invocation. The list is documented as the single source of truth
+  with a comment pointing at `peekdocs/cli.py:_REQUIRED_MODULES`
+  / `_OPTIONAL_MODULES` to keep in sync. After this fix the
+  v1.0.15 standalone CLI's `--check` output will read
+  `ok (v1.27.2.3)` for every dep on every platform, matching what
+  the pipx-installed CLI already shows.
+
 ## [1.0.14] — 2026-06-03
 
 ### Changed

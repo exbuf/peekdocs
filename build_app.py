@@ -37,6 +37,33 @@ HIDDEN_IMPORTS = [
     "sqlite3",
 ]
 
+# Package metadata to copy into the bundle. PyInstaller does NOT ship
+# .dist-info directories by default, which means importlib.metadata.version()
+# fails inside the bundle and `peekdocs --check` reports every dep version as
+# "?". Listing each package here tells PyInstaller to copy that package's
+# .dist-info into the bundle so version lookups work at runtime.
+#
+# Keep in sync with peekdocs/cli.py:_REQUIRED_MODULES and _OPTIONAL_MODULES —
+# every "package" string (the second element of each tuple) listed there
+# must also appear here, or its version will show as "?" in the standalone
+# `peekdocs --check` output.
+COPY_METADATA = [
+    "peekdocs",
+    # Required deps (peekdocs/cli.py:_REQUIRED_MODULES)
+    "pymupdf",
+    "python-docx",
+    "openpyxl",
+    "python-pptx",
+    "ebooklib",
+    "striprtf",
+    "odfpy",
+    # Optional deps (peekdocs/cli.py:_OPTIONAL_MODULES)
+    "rapidfuzz",
+    "pytesseract",
+    "Pillow",
+    "customtkinter",
+]
+
 
 def find_package_path(package_name):
     """Find the installed location of a package."""
@@ -62,12 +89,16 @@ def build_gui():
         "--windowed",                          # no console window (GUI app)
         "--onedir" if is_mac else "--onefile",  # .app bundle or single .exe
         "--add-data", f"{ctk_path}{sep}customtkinter",  # customtkinter assets
-        # Copy peekdocs's installed package metadata into the bundle
-        # so importlib.metadata.version("peekdocs") works at runtime
-        # (used for the GUI title bar and for diagnostic --check output).
-        "--copy-metadata", "peekdocs",
         "--noconfirm",                         # overwrite without asking
     ]
+
+    # Copy installed package metadata into the bundle so
+    # importlib.metadata.version() works at runtime — needed for
+    # the GUI title bar (peekdocs's own version) and for the
+    # dependency version numbers reported by Tools → System Check.
+    # See COPY_METADATA comment at the top of this file.
+    for pkg in COPY_METADATA:
+        cmd.extend(["--copy-metadata", pkg])
 
     for imp in HIDDEN_IMPORTS:
         cmd.extend(["--hidden-import", imp])
@@ -92,9 +123,22 @@ def build_cli():
         "--name", "peekdocs",
         "--console",                           # console app
         "--onefile",                           # single executable
-        "--copy-metadata", "peekdocs",         # so pkg_version() works in the bundle
         "--noconfirm",                         # overwrite without asking
     ]
+
+    # Copy installed package metadata into the bundle so
+    # importlib.metadata.version() works at runtime — used by
+    # `peekdocs --version` (peekdocs itself) AND by `peekdocs --check`
+    # for every dependency version number. Without this, every dep
+    # line in --check output reads "ok (v?)" because the bundle
+    # lacks .dist-info directories. See COPY_METADATA comment at the
+    # top of this file.
+    for pkg in COPY_METADATA:
+        # customtkinter isn't a runtime dep of the CLI, but keeping
+        # it in COPY_METADATA means GUI/CLI share one source of truth.
+        # The CLI skips it because the GUI hidden-import filter does
+        # the same below; keeping --copy-metadata for it is harmless.
+        cmd.extend(["--copy-metadata", pkg])
 
     for imp in HIDDEN_IMPORTS:
         if imp not in ("customtkinter", "PIL._tkinter_finder"):
