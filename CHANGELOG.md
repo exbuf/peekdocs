@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.13] — 2026-06-03
+
 ### Docs
 
 - **README Option A: explicit `./` / `.\` prefix rule + concrete
