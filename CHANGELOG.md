@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.18] — 2026-06-03
+
 ### Fixed
 
 - **Suite search left stale standard-search results in the Results
