@@ -249,7 +249,7 @@ For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekd
 
 ![peekdocs --check output](docs/images/screenshot-check-output.png)
 
-Most users never leave the search bar. Power users can go deeper with regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
+The search bar covers the common case; for more, peekdocs has regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
 
 Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER_GUIDE.md#multilingual-support) for caveats). Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are not altered or deleted. Free and open-source.
 
@@ -501,7 +501,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
 
-The GUI and CLI standalones are **separate downloads**. Most users only need the GUI. Download the CLI as well if you want to script peekdocs from the terminal, run it from cron / Task Scheduler, or pipe its JSON output into other tools.
+The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
 
 *Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
 
@@ -683,7 +683,7 @@ On first launch, the GUI opens with a **Getting Started** tab that walks you thr
 3. Click **Run Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-Most users won't need anything beyond the search bar — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 20 pre-built forms, fill in your values, and click Apply. (The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories.) The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **Search Suites** (run a group of saved searches together).
+The search bar covers the common case — type your keywords and click Run Search. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you — pick a search type from 20 pre-built forms, fill in your values, and click Apply. (The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories.) The wizard configures Advanced Search Options automatically. Both are in the **Tools** menu, along with **Search Suites** (run a group of saved searches together).
 
 **If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 

@@ -12,6 +12,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **README voice: softened three "Most users / Power users" claims
+  that conflicted with the actual audience.** The project's audience
+  is developers landing on GitHub (per the user-audience memory; no
+  advertising planned to general public), but three README passages
+  defaulted to "Most users only need the GUI" / "Most users never
+  leave the search bar. Power users can go deeper..." / "Most users
+  won't need anything beyond the search bar" — modeling a GUI-only
+  casual user as the default, which doesn't match the
+  CLI-curious technical visitors who actually arrive here. Three
+  edits:
+  - `README.md:504` (Option A intro for GUI vs CLI standalones):
+    "Most users only need the GUI. Download the CLI as well if..."
+    → "Grab whichever fits how you'll use peekdocs — or both. The
+    GUI is the click-driven interface for interactive search and
+    report viewing; the CLI is for scripting from the terminal,
+    running on a schedule (cron / Task Scheduler), and piping JSON
+    output into other tools. They're independent — installing one
+    doesn't require the other."
+  - `README.md:252` (lead-in to the advanced-modes paragraph):
+    "Most users never leave the search bar. Power users can go
+    deeper with..." → "The search bar covers the common case; for
+    more, peekdocs has..."
+  - `README.md:686` (Wizard / Advanced Search section lead):
+    "Most users won't need anything beyond the search bar — type
+    your keywords..." → "The search bar covers the common case —
+    type your keywords..."
+
+  Other "Most users / Most people" mentions in README and INSTALLATION
+  were audited and left as-is — they model real majorities about
+  general human behavior or genuinely niche features (privacy
+  intuition, accumulated digital files, OCR being niche, standalone
+  vs pipx for users without Python, indexing for users who can
+  search large folders fast enough without it).
+
 ## [1.0.16] — 2026-06-03
 
 ### Docs
