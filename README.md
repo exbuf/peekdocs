@@ -534,7 +534,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
   From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app. The one-line terminal alternative is faster if you upgrade often: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
 - **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`).
 
-**Upgrading.** Download the new version and replace the old file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory — nothing is lost.
+**Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#uninstalling) below for full removal instructions.
 
 **No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break.
 
@@ -571,10 +571,43 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 
 How to upgrade depends on which install method you used:
 
-- **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one.
-- **pipx (Option B):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install.
+- **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one. **No need to uninstall first.**
+- **pipx (Option B):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. `--force` overwrites cleanly; no separate uninstall step.
 - **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
 - **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+### Uninstalling
+
+peekdocs doesn't use a system installer — no registry entries, no system services, no kernel extensions. "Uninstalling" just means deleting the executable (standalone) or the Python package (pipx / pip). Your settings, history, bookmarks, saved searches, and indexes are stored in your home directory and search folders — **they persist after uninstall** so you can reinstall later and pick up where you left off. To wipe those too, see the *factory reset* paragraph at the end of this section.
+
+How to uninstall depends on which install method you used:
+
+- **Standalone (Option A):**
+  - **Windows:** delete `peekdocs-gui-windows.exe` and/or `peekdocs-cli-windows.exe` from wherever you saved them (Downloads, Desktop, a folder on `PATH`, etc.).
+  - **macOS:** drag `peekdocs-gui.app` from Finder to the Trash. If you put `peekdocs-cli` on `PATH` (e.g., `/usr/local/bin/peekdocs`), `sudo rm /usr/local/bin/peekdocs`.
+  - **Linux:** delete `peekdocs-gui-linux` and/or `peekdocs-cli-linux` from wherever you put them. If either is on `PATH`, e.g. `sudo rm /usr/local/bin/peekdocs`.
+- **pipx (Option B):** `pipx uninstall peekdocs` — removes the isolated venv cleanly.
+- **pip:** `pip uninstall peekdocs` — removes the package from whichever Python environment you installed into.
+- **Source install:** `pip uninstall peekdocs` from inside the venv you used. Then `rm -rf` the cloned repo folder if you no longer need it.
+
+**Factory reset (complete wipe).** The files listed under [Upgrading](#upgrading) above are intentionally preserved by uninstall. If you also want those gone — settings, search history, bookmarks, saved searches, indexes, saved reports — delete them manually:
+
+```bash
+# macOS / Linux
+rm -f ~/.peekdocsrc ~/.peekdocs_history.json ~/.peekdocs_bookmarks.json
+rm -rf ~/peekdocs_reports
+# Plus, in each folder you ever searched:
+# rm -f .peekdocs_collection.json .peekdocs.db .peekdocs.db-wal .peekdocs.db-shm
+```
+
+```powershell
+# Windows PowerShell
+Remove-Item $HOME\.peekdocsrc, $HOME\.peekdocs_history.json, $HOME\.peekdocs_bookmarks.json -ErrorAction SilentlyContinue
+Remove-Item $HOME\peekdocs_reports -Recurse -ErrorAction SilentlyContinue
+# Plus, in each folder you ever searched, remove .peekdocs_collection.json and .peekdocs.db*
+```
+
+After that combination, no trace of peekdocs remains on your machine.
 
 
 ## Quick Start

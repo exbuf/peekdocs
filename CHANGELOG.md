@@ -14,6 +14,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Docs
 
+- **README "Uninstalling" section added; upgrade-without-uninstall
+  made explicit.** A user asked whether they need to uninstall an
+  earlier version before installing a new one and how to uninstall
+  generally. The README's existing `### Upgrading` section covered
+  what's preserved but had no parallel `### Uninstalling` section
+  and didn't say "no uninstall needed before upgrade." Three
+  updates:
+  - Option A's inline "Upgrading." paragraph now leads with
+    "No need to uninstall the old version first — just download
+    the new version ... and overwrite the existing file" and
+    links to the new Uninstalling section for full removal
+    instructions.
+  - The `### Upgrading` section's per-method bullets each add
+    a short clarifying clause ("No need to uninstall first" for
+    standalone; "`--force` overwrites cleanly; no separate
+    uninstall step" for pipx).
+  - New `### Uninstalling` section right after Upgrading covers
+    all four install paths (standalone GUI/CLI per-OS commands,
+    pipx, pip, source install) and a "Factory reset (complete
+    wipe)" subsection with copy-pasteable bash and PowerShell
+    one-liners to remove every persisted user-data file
+    (`~/.peekdocsrc`, history, bookmarks, `~/peekdocs_reports`,
+    per-folder `.peekdocs_collection.json` / `.peekdocs.db*`).
+
 - **GLOSSARY: added "Binaries" entry.** Inserted between API and BOM
   (alphabetical: Bi precedes Bo). Covers what binaries are (compiled
   executables that don't need Python), how many peekdocs ships (six —
