@@ -5337,6 +5337,20 @@ class ToolsMixin:
         from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report, write_suite_html_report
 
+        # Clear stale state from any previous standard search before
+        # showing the suite's own progress. Without this, the Results
+        # Preview pane keeps the previous standard search's matches
+        # while the suite runs — directly contradicting the suite-
+        # progress text on the status line ("Suite: X (Y searches)...").
+        # Mirrors the start_search() reset block in _mixin_search.py.
+        self.matched_files = []
+        self._inverse_results = False
+        self._clear_action_buttons()
+        self._hide_files_list()
+        self._hide_preview()
+        self._matched_files_link.pack_forget()
+        self._excluded_files_btn.pack_forget()
+
         # Show progress bar and start elapsed timer — same as regular search
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()

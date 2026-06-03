@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **Suite search left stale standard-search results in the Results
+  Preview pane.** When the user clicked **Run Search Suite** with a
+  previous standard search's matches still on screen, the suite
+  kicked off — status line correctly switched to
+  `Suite: <name> (N searches)...` and the progress bar started — but
+  the Results Preview pane kept showing the prior standard search's
+  matches, including its Matched Files link and Excluded Files button.
+  The contradiction (status says "suite running," preview shows
+  unrelated keyword results) confused users about which search they
+  were looking at. Root cause: `_run_suite_searches` didn't clear
+  stale state at start — it only set the new suite-progress text on
+  the status line. The standard-search start path already does the
+  full state-reset block (matched_files, inverse_results,
+  action_buttons, files_list, preview, matched_files_link,
+  excluded_files_btn) at `_mixin_search.py:215-220`. Fix: added the
+  same six-line reset block to the top of `_run_suite_searches` in
+  `_mixin_tools.py`, just before the progress bar configure. The
+  Preview now goes blank the moment the suite starts and only the
+  suite's own combined results fill it back in when the suite
+  finishes.
+
 ## [1.0.17] — 2026-06-03
 
 ### Docs
