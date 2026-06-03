@@ -14,6 +14,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Docs
 
+- **GLOSSARY: added six Linux command entries.** Inserted in
+  alphabetical order to cover every Unix command that appears in
+  peekdocs's installation, troubleshooting, and uninstall paths.
+  Each entry follows the existing single-row format with a brief
+  definition, peekdocs-specific usage examples, and a note about
+  the Windows equivalent where applicable:
+  - **apt** (between API and Binaries) — Debian/Ubuntu package
+    manager used for `sudo apt install python3-venv python3-pip
+    python3-tk` etc. Includes pointers to dnf / pacman / zypper
+    for other distros.
+  - **chmod** (between Boolean expression and CI pipeline) —
+    used to mark the Linux standalone binaries executable
+    (`chmod +x peekdocs-gui-linux`).
+  - **chown** (between chmod and CI pipeline) — used in Linux
+    permission-troubleshooting (`sudo chown -R $USER /path`).
+  - **mv** (between MSP technician and OCR) — used by the
+    `sudo mv ... /usr/local/bin/peekdocs` global-install step
+    on macOS and Linux.
+  - **rm** (between requests and Sandbox) — used by the
+    Uninstalling section's `sudo rm /usr/local/bin/peekdocs`
+    and factory-reset `rm -rf ~/peekdocs_reports`.
+  - **sudo** (between Stemming and Symlink) — used everywhere
+    install instructions touch system directories or install
+    packages.
+
 - **Documentation currency audit and cleanup pass.** A post-v1.0.15
   audit caught residual stale UI references after the rapid v1.0.5–
   v1.0.15 iteration. All user-facing accuracy gaps resolved:
