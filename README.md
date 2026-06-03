@@ -55,9 +55,8 @@ A workbench for document collections: search them, characterize them through bui
 1. Developers with Python: `pipx install --force git+https://github.com/exbuf/peekdocs.git` (below)
    - A single **pipx / pip** install gets you everything — the GUI, the CLI, and the Python API all from one command.
    - **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead — the two terminals can route through different Python installs. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
-2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
 
-The **standalone download** path bundles them as separate binaries — pick the GUI, the CLI, or both as needed; see Option A below. Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
+Run the commands below in a terminal (macOS / Linux) or Command Prompt / PowerShell (Windows):
 
 ```bash
 # Install or upgrade (requires Python 3.10+)
@@ -96,6 +95,10 @@ results = search(["budget"], directory="~/Documents")
 for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
+
+2. Everyone else: [download the standalone app](#option-a-standalone-download-recommended-for-most-users) — no Python needed, just download and run
+
+The **standalone download** path bundles them as separate binaries — pick the GUI, the CLI, or both as needed; see Option A below.
 
 ## Contents
 
