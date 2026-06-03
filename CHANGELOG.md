@@ -12,6 +12,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.12] — 2026-06-03
+
+### Docs
+
+- **GLOSSARY: added "Shim" entry.** Inserted between Search suite
+  and SIEM (alphabetical: Search → Shim → SIEM). Covers what a
+  shim is (a small wrapper executable forwarding calls to a real
+  program), how pipx uses shims for peekdocs
+  (`~/.local/bin/peekdocs` invoking `python -m peekdocs.cli:main`
+  in the isolated venv), and why this matters in context — the
+  pipx shim's near-zero startup (~0.2–0.5s) versus the PyInstaller
+  standalone's 5–7s on macOS, because there's no bundled Python
+  to unpack. The standalone has no shim layer; you run the bundled
+  executable directly.
+
 ## [1.0.11] — 2026-06-03
 
 ### Docs
