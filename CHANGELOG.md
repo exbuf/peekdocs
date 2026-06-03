@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **`peekdocs --check` output: `v` prefix on version numbers and an
+  `All checks passed.` success footer.** A user testing the CLI on
+  all three platforms observed that each dependency line read
+  `ok (1.27.2.3)` — the parenthetical value with no label was
+  ambiguous (could be mistaken for a question mark or unknown
+  value). And when every check passed, the output ended silently
+  after the disk-space line, forcing the reader to scan every
+  individual line to confirm nothing said MISSING. Two fixes in
+  `peekdocs/cli.py`:
+  - Dep lines now read `ok (v1.27.2.3)` — the `v` makes the
+    parenthetical unambiguously a version number.
+  - Success path now ends with `All checks passed.`, mirroring the
+    failure path's existing `Fix missing dependencies with: pip
+    install --upgrade peekdocs` footer so the output has a closing
+    message either way.
+  Regression-guard tests in `tests/test_cli.py`: existing
+  `test_check_shows_versions` now asserts `"ok (v"` (was `"ok ("`),
+  and a new `test_check_success_footer` asserts exit code 0 +
+  `"All checks passed."` is present + the failure-path footer is
+  NOT present.
+
 ## [1.0.13] — 2026-06-03
 
 ### Docs

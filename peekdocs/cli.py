@@ -917,7 +917,7 @@ def _main_inner(argv=None):
         print("Required dependencies:")
         for desc, pkg, status, ver in info['required_deps']:
             if status == "ok":
-                print(f"  {desc} ({pkg}): ok ({ver})")
+                print(f"  {desc} ({pkg}): ok (v{ver})")
             else:
                 print(f"  {desc} ({pkg}): MISSING — install with: pip install {pkg}")
         print()
@@ -925,7 +925,7 @@ def _main_inner(argv=None):
         print("Optional dependencies:")
         for desc, pkg, status, ver in info['optional_deps']:
             if status == "ok":
-                print(f"  {desc} ({pkg}): ok ({ver})")
+                print(f"  {desc} ({pkg}): ok (v{ver})")
             else:
                 print(f"  {desc} ({pkg}): not installed — install with: pip install {pkg}")
         print()
@@ -945,6 +945,9 @@ def _main_inner(argv=None):
 
         if not info['all_ok']:
             print("Fix missing dependencies with: pip install --upgrade peekdocs")
+            print()
+        else:
+            print("All checks passed.")
             print()
 
         return 0 if info['all_ok'] else 2

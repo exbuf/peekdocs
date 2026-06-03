@@ -2688,15 +2688,21 @@ def test_indexed_search_report_shows_last_updated(tmp_path, monkeypatch, capsys)
 
 
 def test_check_shows_versions(tmp_path, monkeypatch, capsys):
-    """--check output includes dependency version numbers."""
+    """--check output includes dependency version numbers with `v` prefix.
+
+    The `v` prefix was added in v1.0.14 — previously the output was
+    `pymupdf: ok (1.27.2.3)` which read ambiguously (parenthetical
+    value with no label, could be mistaken for a question mark or
+    unknown value). The `v` makes it unambiguous as a version.
+    """
     monkeypatch.chdir(tmp_path)
     result = main(["--check"])
     captured = capsys.readouterr()
 
-    # Should show version numbers for required deps
+    # Should show version numbers for required deps with `v` prefix
     assert "pymupdf" in captured.out
     assert "python-docx" in captured.out
-    assert "ok (" in captured.out  # version in parens
+    assert "ok (v" in captured.out  # version in parens with v prefix
     # Should show optional deps section
     assert "Optional dependencies:" in captured.out
     assert "SQLite version:" in captured.out
@@ -2711,6 +2717,26 @@ def test_check_shows_optional_deps(tmp_path, monkeypatch, capsys):
     assert "rapidfuzz" in captured.out
     assert "customtkinter" in captured.out
     assert "Pillow" in captured.out
+
+
+def test_check_success_footer(tmp_path, monkeypatch, capsys):
+    """--check ends with `All checks passed.` when every check is OK.
+
+    Added in v1.0.14 to give an at-a-glance success confirmation that
+    mirrors the existing failure-path footer (`Fix missing dependencies
+    with: pip install --upgrade peekdocs`). Previously the success path
+    just ended silently after the disk-space line, forcing the user to
+    scan every check line to confirm nothing said MISSING.
+    """
+    monkeypatch.chdir(tmp_path)
+    result = main(["--check"])
+    captured = capsys.readouterr()
+    # All deps are required for the test suite to run at all, so this
+    # path always hits the success footer in a healthy environment.
+    assert result == 0
+    assert "All checks passed." in captured.out
+    # Should not also show the failure-path remediation footer
+    assert "Fix missing dependencies" not in captured.out
 
 
 def test_fuzzy_missing_dep(tmp_path, monkeypatch, capsys):
