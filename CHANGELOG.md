@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.20] — 2026-06-04
+
 ### Docs
 
 - **README voice: four soft-touch fixes for slightly overstated
