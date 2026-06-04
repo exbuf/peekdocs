@@ -129,7 +129,7 @@ peekdocs --suite "Code hygiene"
 
 ## Screenshots
 
-*The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works equally well on personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
+*The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works well across personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
 #### 1. Same search, three interfaces — plus the report
 
@@ -330,7 +330,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 - **Highlighted Results**
   Matches are highlighted in two ways:
   - **1) Results Preview (in-app):**
-    - See matches instantly inside peekdocs
+    - See matches right inside peekdocs
     - Right-click to copy text
     - Double-click a filename to open the file
   - **2) Word Report (.docx):**
@@ -362,7 +362,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 - **Search Wizard** — configures complex searches for you with 20 pre-built search types (keywords, Boolean, fuzzy, proximity, dollar ranges, dates, phone numbers, and more) plus a separate regex pattern builder offering 35 named patterns across 6 tabs (one general, five profession-themed: Business/Finance, Legal, Engineering/Technical, Real Estate, HR/Admin). No regex or technical knowledge needed.
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly audits, onboarding reviews, or any workflow that involves the same set of searches. Suites are stored per folder, but the CLI finds them by name from anywhere: `peekdocs --suite "My Suite"` auto-locates the folder it was saved in, and `peekdocs --list-suites` shows every suite and where it lives. Available from the GUI (Tools → Search Suites) and CLI.
-- **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in sub-second time. Auto-refresh keeps the index current when files change.
+- **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in typically sub-second time on most folders. Auto-refresh keeps the index current when files change.
 - **Built-in file analysis tools** — the Tools menu includes:
   - **Collection Summary** — one-page overview combining file count, total size, oldest / newest, top file types, searchability breakdown, age distribution, largest files, and recent activity counts (fast, single-pass).
   - **File Inventory** — summary by type / size / date.
@@ -380,7 +380,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
   - **Safe report handling:**
     - Reports (.docx, .pdf, .csv, .json) are opened only in trusted local applications
     - peekdocs launches installed programs directly (e.g., Microsoft Word, LibreOffice, Adobe Reader), bypassing the operating system's default file handler
-    - Cloud-based apps (e.g., Google Docs, Apple Pages) are never used
+    - Cloud-based apps (e.g., Google Docs, Apple Pages) are never used by peekdocs
   - **Protection against cloud syncing:**
     - If your output folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud Drive, Dropbox), peekdocs automatically redirects reports to a local folder (`~/peekdocs_reports`)
     - This allows you to search cloud-synced documents without uploading report files

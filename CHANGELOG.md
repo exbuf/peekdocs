@@ -14,6 +14,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Docs
 
+- **README voice: four soft-touch fixes for slightly overstated
+  phrasings.** Audit prompted by "do we exaggerate anything?" —
+  most claims hold up under scrutiny (verified "100+ file types"
+  via `len(SUPPORTED_TYPES | OCR_IMAGE_TYPES) = 103`; "never
+  modifies your files," "no telemetry," "11 search modes,"
+  "three interfaces / one engine" all check out). Four passages
+  used stronger words than the underlying truth strictly supports:
+  - `README.md:132` — "works **equally well** on personal
+    documents..." → "works **well** across..." Drops "equally"
+    because search quality genuinely varies with file type
+    (PDF text extraction quality, OCR accuracy on scanned docs,
+    email metadata).
+  - `README.md:333` — "See matches **instantly** inside peekdocs"
+    → "See matches **right inside** peekdocs". Drops the marketing
+    "instantly" — actual UX is 0.5s on indexed/warm, several
+    seconds on cold/first-search.
+  - `README.md:365` — "Build once, search in **sub-second time**"
+    → "Build once, search in **typically sub-second time on most
+    folders**". For 50,000+-file folders even indexed searches can
+    exceed 1 second on result rendering — adds the "typically /
+    most" hedge so the reader knows it's not a guarantee.
+  - `README.md:383` — "Cloud-based apps (e.g., Google Docs, Apple
+    Pages) are **never used**" → "...are **never used by
+    peekdocs**." The original was strictly true *for peekdocs's
+    behavior* but read as a global rule (users can still manually
+    open peekdocs reports in cloud apps if they want; peekdocs
+    doesn't prevent that). Three-word scope clarifier.
+
 - **README readability pass — six denser passages tightened.**
   Follow-up to the v1.0.19 accuracy fixes. The same audit flagged
   six readability issues; this commit closes all of them:
