@@ -12,6 +12,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+
+- **README readability pass — six denser passages tightened.**
+  Follow-up to the v1.0.19 accuracy fixes. The same audit flagged
+  six readability issues; this commit closes all of them:
+  - **Programmers bullet** (~ 182 words → ~ 110): kept the VS Code
+    framing and the auth-requirement anecdote, dropped the inline
+    27-extension list (already in Supported File Types), and split
+    the "search across codebases" content into its own paragraph.
+    Updated the extension count from 27 → 28 to match
+    `peekdocs/constants.py`.
+  - **Built-in file analysis tools bullet** (was a wall with nested
+    parentheticals + 4 em-dashes) converted to a 12-item sub-list,
+    one tool per line. Also renamed "App Files" → "View All
+    peekdocs Files" to match the actual Tools-menu label.
+  - **Python library count claim** corrected — original said
+    "about 50 packages, ~244 MB total" but actual runtime
+    dependency closure is around 200 packages (verified by walking
+    `importlib.metadata.requires()` from the 17 declared
+    dependencies) and venv-on-disk is several hundred MB.
+    Reworded to "around 200 packages and a few hundred megabytes
+    of disk space."
+  - **Windows CLI table cell** (113-word wall) split: cell now
+    carries only the "run from download folder" path + a pointer
+    to the new section below the table; the rename + PATH +
+    PowerShell one-liner moved into a dedicated **"Windows: make
+    `peekdocs` work from any terminal"** section with the
+    one-liner as a fenced code block (4 separate lines instead of
+    one inline string).
+  - **`samples/engineering_test/` count** corrected from 35 to 38
+    (the sample directory holds 38 distinct file types now, up
+    from 35 when the prose was written).
+  - **Terminal-section paragraph** (137-word run-on blending 6
+    topics) split into 3 short paragraphs: where reports land →
+    overwrite/keep semantics → which apps open the report.
+
 ### Fixed
 
 - **README demo code didn't work when copy-pasted.** Two of the three

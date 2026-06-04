@@ -309,7 +309,9 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 <details>
 <summary><b>Detailed use cases by role (click to expand)</b></summary>
 
-- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files it doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside .zip/.7z files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find "what did the client say about the authentication requirement in 2019" can't do that in VS Code if the answer is in a .docx email attachment inside a .zip archive. peekdocs can. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)). **Search across entire codebases** — find every file that references a function, variable, endpoint, or error message across all source code files in all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. Supported source code formats: .py, .c, .cpp, .h, .hpp, .html, .java, .js, .ts, .go, .rs, .rb, .sh, .bat, .ps1, .r, .swift, .kt, .cs, .vb, .f90, .f, .asm, .s, .pl, .tcl, .makefile
+- **Programmers** — VS Code is an excellent editor, but peekdocs searches the files VS Code doesn't natively search: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside `.zip` / `.7z` files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find *"what did the client say about the authentication requirement in 2019"* can't do that in VS Code if the answer is in a `.docx` email attachment inside a `.zip` archive. peekdocs can. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)).
+
+  Also useful for **searching across entire codebases** — find every file that references a function, variable, endpoint, or error message in all source files across all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. peekdocs handles 28 source-code and shell-script extensions; see [Supported File Types](#supported-file-types) for the full list.
 - **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once.
 - **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
 - **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
@@ -361,7 +363,17 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 - **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
 - **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly audits, onboarding reviews, or any workflow that involves the same set of searches. Suites are stored per folder, but the CLI finds them by name from anywhere: `peekdocs --suite "My Suite"` auto-locates the folder it was saved in, and `peekdocs --list-suites` shows every suite and where it lives. Available from the GUI (Tools → Search Suites) and CLI.
 - **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in sub-second time. Auto-refresh keeps the index current when files change.
-- **Built-in file analysis tools** — the Tools menu includes Collection Summary (one-page overview combining file count, total size, oldest/newest, top file types, searchability breakdown, age distribution, largest files, and recent activity counts — fast, single-pass), File Inventory (summary by type/size/date), File Age Distribution (histogram of files by modification age — useful for archives, document collections, and personal files), Duplicate Finder (identical files by content hash), Large Files, Empty Files, Recent Changes, Protected Files (password-encrypted detection), Unsearchable Files (categorizes everything peekdocs cannot search — unsupported types, oversized files relative to the Max File Size you set in Advanced Search Options, hidden / OS metadata, peekdocs-created — with counts per category), Search History (automatic log of past searches), Bookmarks (pin files for quick access), and App Files (lists every file peekdocs has created in the folder — results, reports, indexes, saved searches — so you always know what's yours and what's peekdocs').
+- **Built-in file analysis tools** — the Tools menu includes:
+  - **Collection Summary** — one-page overview combining file count, total size, oldest / newest, top file types, searchability breakdown, age distribution, largest files, and recent activity counts (fast, single-pass).
+  - **File Inventory** — summary by type / size / date.
+  - **File Age Distribution** — histogram of files by modification age. Useful for archives, document collections, and personal files.
+  - **Duplicate Finder** — identical files by content hash.
+  - **Large Files**, **Empty Files**, **Recent Changes** — quick filters on size and modification time.
+  - **Protected Files** — password-encrypted file detection.
+  - **Unsearchable Files** — categorizes everything peekdocs cannot search (unsupported type, oversized relative to Max File Size, hidden / OS metadata, peekdocs-created) with counts per category.
+  - **Search History** — automatic log of past searches.
+  - **Bookmarks** — pin files for quick access.
+  - **View All peekdocs Files** — lists every file peekdocs has created in the folder (results, reports, indexes, saved searches), so you always know what's yours and what's peekdocs'.
 - **Offline and private** — your documents never leave your computer.
   - peekdocs never uploads, transmits, alters, moves, or deletes your files
   - No cloud, no accounts, no subscriptions, no internet connection required
@@ -485,7 +497,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 | **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
 | **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
 
-**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) — about 50 packages, ~244 MB total. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
+**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
 ### Option A: Standalone Download (recommended for most users)
 
@@ -507,7 +519,7 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 
 | Platform | Download | After download [\*](#first-launch-security) |
 |---|---|---|
-| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | **Run from the download folder:** `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell — the `.\` prefix is required because PowerShell doesn't put the current directory on `$env:Path` by default). **For global access from any terminal:** rename to `peekdocs.exe`, move to a folder on your user `PATH`, and add it to `PATH`. PowerShell one-liner: `Rename-Item peekdocs-cli-windows.exe peekdocs.exe; New-Item -ItemType Directory -Force -Path "$HOME\bin" \| Out-Null; Move-Item peekdocs.exe "$HOME\bin\"; [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$HOME\bin", "User")`. Open a fresh PowerShell window afterward; `peekdocs --version` then works from any directory. PowerShell-specific `--%` token and `.rar`/`.pst` limitations are documented in [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
+| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell needs the `.\` prefix). For global access from any terminal, see **Windows: make `peekdocs` work from any terminal** below the table. PowerShell-specific `--%` token and `.rar`/`.pst` limitations: [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
 | macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Safari auto-unzips → the binary inside is named just `peekdocs` (no `-cli` suffix). `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs && ./peekdocs --version`. Optionally `sudo mv peekdocs /usr/local/bin/peekdocs && sudo xattr -dr com.apple.quarantine /usr/local/bin/peekdocs` so `peekdocs "query" /path` works from any terminal session. **The post-move `xattr` is important** — without it the binary is slow to start on every invocation. See [docs/INSTALLATION.md → macOS CLI startup slowness](docs/INSTALLATION.md#macos-cli-startup-slowness) for the full explanation. |
 | Linux | [**peekdocs-cli-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux) | In the download folder: `cd ~/Downloads && chmod +x peekdocs-cli-linux && ./peekdocs-cli-linux --version`. Optionally `sudo mv peekdocs-cli-linux /usr/local/bin/peekdocs` for global access. |
 
@@ -516,7 +528,18 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 > - **Windows PowerShell:** `.\peekdocs-cli-windows.exe --version` (backslash + dot)
 > - **Windows cmd.exe:** `peekdocs-cli-windows.exe --version` (bare name works; cmd.exe includes the current directory in its search by default)
 >
-> The reason: shells search `$PATH` (`$env:Path` on Windows) for executables, and the current directory isn't on `PATH` by default on macOS / Linux / PowerShell (a security default — prevents accidentally running a malicious binary in a folder you `cd`'d into). The `./` or `.\` prefix overrides that. Once you've installed the binary to a folder that *is* on `PATH` (`/usr/local/bin` on macOS / Linux, `$HOME\bin` on Windows after the steps in the table above), the prefix becomes unnecessary and `peekdocs ...` works from any directory.
+> The reason: shells search `$PATH` (`$env:Path` on Windows) for executables, and the current directory isn't on `PATH` by default on macOS / Linux / PowerShell (a security default — prevents accidentally running a malicious binary in a folder you `cd`'d into). The `./` or `.\` prefix overrides that. Once you've installed the binary to a folder that *is* on `PATH` (`/usr/local/bin` on macOS / Linux, `$HOME\bin` on Windows after the steps below), the prefix becomes unnecessary and `peekdocs ...` works from any directory.
+
+**Windows: make `peekdocs` work from any terminal.** Rename the CLI to `peekdocs.exe`, move it to a folder on your user `PATH`, and add the folder to `PATH`. Run this in PowerShell from the download folder:
+
+```powershell
+Rename-Item peekdocs-cli-windows.exe peekdocs.exe
+New-Item -ItemType Directory -Force -Path "$HOME\bin" | Out-Null
+Move-Item peekdocs.exe "$HOME\bin\"
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$HOME\bin", "User")
+```
+
+Open a fresh PowerShell window afterward; `peekdocs --version` then works from any directory.
 
 Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
@@ -617,7 +640,7 @@ After that combination, no trace of peekdocs remains on your machine.
 
 ## Quick Start
 
-**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs TODO -r` returns hits across 35 source-code and engineering file types. No setup beyond installing peekdocs.
+**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs TODO -r` returns hits across 38 source-code and engineering file types. No setup beyond installing peekdocs.
 
 ### Terminal
 
@@ -660,7 +683,11 @@ peekdocs --clear-all                # delete all peekdocs output files (results,
 
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
-Results are saved to `peekdocs_standard_results.txt` and `peekdocs_standard_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too. **All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten. When clicked, the .docx report opens automatically in whatever word processor you have — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data. The .txt report works on any computer with no extra software.
+Results are saved to `peekdocs_standard_results.txt` and `peekdocs_standard_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too.
+
+**All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten.
+
+The `.docx` report opens automatically in whatever word processor you have — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are recommended. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data. The `.txt` report works on any computer with no extra software.
 
 To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
 
