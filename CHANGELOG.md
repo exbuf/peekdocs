@@ -12,7 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.19] — 2026-06-03
+
 ### Docs
+
+- **README "After download" column headers in the Direct GUI and
+  Direct CLI download tables now link to "First-launch security
+  warnings."** Users following the per-platform "after download"
+  instructions hit OS-level security warnings on first launch
+  (macOS Gatekeeper, Windows SmartScreen) that aren't mentioned
+  in the table cell. Appended a clickable `*` to each "After
+  download" column heading that jumps to the security-warnings
+  paragraph below; added a matching `*` prefix to the destination
+  heading plus an explicit `<a id="first-launch-security">` anchor
+  so the link resolves regardless of how GitHub would slug the
+  bold heading. Alerts the user before they commit to a platform's
+  setup steps.
 
 - **README top-of-file install instructions consolidated.** The top
   had drifted from "copy-paste-and-try" into a mini-Installation
