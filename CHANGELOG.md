@@ -12,6 +12,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **README demo code didn't work when copy-pasted.** Two of the three
+  examples in the top "What running peekdocs looks like" demo block
+  silently failed for any user trying them:
+  - The CLI demo `peekdocs "budget" ~/Documents` doesn't work — the
+    CLI doesn't take a positional folder argument, so `~/Documents`
+    was treated as a *second search term* and the search ran in the
+    current working directory. Verified live: with cwd off the
+    target, the example reports `Found 0 match(es)`. Fix: rewrote
+    the CLI demo to `cd ~/Documents && peekdocs "budget"`, with an
+    inline comment explaining that peekdocs searches the current
+    directory.
+  - The Python API demo `search(["budget"], directory="~/Documents")`
+    returns 0 matches because the API does no `os.path.expanduser()`
+    on `directory`. Verified live: the literal `~/Documents` is
+    treated as a missing folder; expanding it via `os.path.expanduser`
+    returns the real path and the search returns matches. Fix: added
+    `import os` and changed the call to
+    `directory=os.path.expanduser("~/Documents")`, with an inline
+    comment ("pass a real path — no shell ~ expansion here").
+
+### Docs
+
+- **README cross-reference fixes from a v1.0.19 accuracy audit.**
+  - Line 873 ("Corporate firewalls") pointed at *"the ZIP-based pipx
+    install (described under Option B's 'No git?' subsection)"* — but
+    the no-git ZIP install was removed from Option B in 7a112d9 and
+    now lives only in `docs/INSTALLATION.md`. Repointed the link to
+    `docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip`.
+  - Line 446 ("Read-only") said *"Tools → Clear Files, Delete Index"*
+    which reads as if **Delete Index** were a sibling Tools-menu
+    item. The actual Tools-menu entry is **Indexes**; Delete Index
+    is the button inside the Indexes popup. Reworded as
+    "Tools → Clear Files, Tools → Indexes → Delete Index(es)".
+
 ## [1.0.19] — 2026-06-03
 
 ### Docs

@@ -64,8 +64,10 @@ A single command installs everything — the GUI, the CLI, and the Python API. S
 **What running peekdocs looks like:**
 
 ```bash
-# Search from the terminal
-peekdocs "budget" ~/Documents
+# Search from the terminal — peekdocs searches the current directory,
+# so cd to the folder you want first
+cd ~/Documents
+peekdocs "budget"
 # Found 47 match(es) in 12 file(s). Files searched: 238 (142.50 MB).
 #   2024_tax_return_summary.pdf: 8
 #   quarterly_report_Q1.docx: 6
@@ -74,9 +76,10 @@ peekdocs "budget" ~/Documents
 # Search with the GUI
 peekdocs-gui
 
-# Search from the Python API
+# Search from the Python API — pass a real path (no shell ~ expansion here)
+import os
 from peekdocs import search
-results = search(["budget"], directory="~/Documents")
+results = search(["budget"], directory=os.path.expanduser("~/Documents"))
 for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
@@ -440,7 +443,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 #### Privacy & transparency
 
 - **Offline and private** — your documents never leave your computer. peekdocs never uploads, transmits, alters, moves, or deletes your files. No cloud, no accounts, no subscriptions. Everything runs locally and stays local
-- **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Tools → Clear Files, Delete Index)
+- **Read-only** — peekdocs never modifies, moves, or deletes your files. It does create its own output files (reports, indexes, settings) and can delete those when you ask (e.g., Tools → Clear Files, Tools → Indexes → Delete Index(es))
 - **Delete on Close** — one checkbox automatically deletes every result file and the search index across the session when you close peekdocs. Saved reports, saved searches, settings, and bookmarks are preserved
 - **Safe defaults** — files over 100 MB are skipped automatically to prevent slow searches and memory issues; archives that would expand past 500 MB are skipped to prevent archive bombs. Adjust **Max File Size** in Advanced Search Options or set it to 0 for no limit
 - **Excluded Files view** — after each search, see exactly which files were skipped and why (unsupported type, oversized, hidden, etc.) — no guessing what was missed
@@ -867,7 +870,7 @@ If you'd rather avoid indexing entirely, add `--no-index` to your CLI command or
 - **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
 - **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If peekdocs is blocked, add your Python installation or the peekdocs folder to your antivirus allow list
 - **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If peekdocs reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `peekdocs_errors.log`
-- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-recommended-for-most-users) (no Python, no network needed beyond the initial download) or the ZIP-based pipx install (described under Option B's "No git?" subsection)
+- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-recommended-for-most-users) (no Python, no network needed beyond the initial download) or the [ZIP-based pipx install](docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip) documented in `docs/INSTALLATION.md`
 - **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
 - **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
 
