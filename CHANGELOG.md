@@ -12,6 +12,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **Post-v1.0.20 README accuracy audit caught seven stale UI / count
+  references.** Verified each against the actual code (`_mixin_build.py`,
+  `cli.py`) and the README's own internal counts before fixing:
+  - **"Tools → Search Suites" → "green Search Suites button on the
+    main screen"** in three places (`README.md:364`, `:446`, `:711`).
+    Search Suites was promoted from a Tools-menu item to a green
+    main-screen button (verified `peekdocs/gui/_mixin_build.py:621`
+    and the explicit comment at `:1552` "Search Suites moved to main
+    screen next to Wizard").
+  - **Wizard location**: `README.md:711` claimed both Wizard and
+    Search Suites were "in the Tools menu" — both are actually
+    main-screen buttons (Wizard at `_mixin_build.py:487`). Sentence
+    rewritten to "the **Wizard** button on the main screen" and
+    "both ... live on the main screen next to the search bar, not
+    in the Tools menu."
+  - **"Run Search" → "Run Standard Search"** across four lines
+    (`:322, :708, :847, :711`). Actual blue button label is
+    "Run Standard Search" (the `:15` and `:403` mentions already
+    used the correct form; the others were inconsistent).
+  - **"File button" → "Single File button"** (`README.md:706`).
+    Actual button label is "Single File" per `_mixin_build.py:576`.
+  - **"Regex Search ... GUI only"** (`README.md:356`) — Regex
+    collections also run from the CLI (`peekdocs --regex-collection
+    NAME`) and Python API (`run_regex_collection()`). The README's
+    own line 27 and 404 already say so; the "GUI only" parenthetical
+    contradicted them. Reworded.
+  - **".docx report opens in ... Apple Pages"** (`README.md:152`) —
+    contradicts the README's privacy stance (`:355, :383, :389`) that
+    explicitly says peekdocs avoids opening reports in Apple Pages.
+    Dropped Apple Pages from the demo opener list and added a
+    pointer to the Report security section.
+  - **"28 source-code and shell-script extensions"** (`README.md:314`)
+    → **31**. The README's own Source Code table row at `:475` lists
+    31 distinct extensions (asm, bat, c, cmake, cpp, cs, css, f, f90,
+    go, gradle, h, hpp, java, js, kt, lua, pl, ps1, py, r, rb, rs, s,
+    scala, scss, sh, swift, tcl, ts, vb). Updated.
+  - **"Source code (48 languages)"** (`README.md:773`, grep
+    comparison row) → **"Source code (31 extensions)"** to align
+    with the actual count. The previous "48" matched neither the
+    table nor reality.
+  - **"11 search modes" but the list contains 12** (`README.md:357`
+    and `:356`) — "quoted phrases" was added to the list in an
+    earlier session without bumping the count. Updated both mentions
+    from 11 → 12.
+
 ## [1.0.20] — 2026-06-04
 
 ### Docs
