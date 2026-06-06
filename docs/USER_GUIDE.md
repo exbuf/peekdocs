@@ -234,7 +234,7 @@ If you've never used a terminal before, this section walks you through everythin
 
 **Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode-graphical-user-interface).
 
-**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs TODO -r` returns hits across 35 source-code and engineering file types — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
+**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 40 extensions in total) — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
 
 ### Which installation method did you use?
 
@@ -317,12 +317,12 @@ peekdocs will scan every supported file in the folder and show a summary:
 
 ```
 Files searched: 47 (12.34 MB) — Found 23 match(es).
-Elapsed time: 1.2 seconds, Cores used: 4 of 8
+Elapsed time: 0.18 seconds, Cores used: 4 of 8
 Results ==> /Users/YourName/Documents
   peekdocs_standard_results.txt (5.67 KB), peekdocs_standard_results.docx (42.31 KB)
 ```
 
-That's it — you just searched 47 files in 1.2 seconds. Your results are saved in two files.
+That's it — you just searched 47 files in 0.18 seconds. Your results are saved in two files.
 
 ### Step 4: Open your results
 
