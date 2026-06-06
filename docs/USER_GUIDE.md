@@ -1353,7 +1353,7 @@ Every payload starts with a `generator` field that includes the peekdocs version
 
 ```json
 {
-  "generator": "peekdocs v1.0.4",
+  "generator": "peekdocs v1.0.20",
   "directory": "/abs/path/to/search/folder",
   "search_terms": ["budget", "revenue"],
   "mode": "ANY",
@@ -1385,7 +1385,7 @@ Every payload starts with a `generator` field that includes the peekdocs version
 
 ```json
 {
-  "generator": "peekdocs v1.0.4",
+  "generator": "peekdocs v1.0.20",
   "collection": "my-patterns",
   "directory": "/abs/.../docs",
   "timestamp": "2026-05-23 09:08:31",
@@ -1455,7 +1455,7 @@ For batch loops (run several collections or suites in one cron job) see [Regex C
 Every search-mode CLI invocation appends one JSON object to `~/.peekdocs_runs.log` (JSON Lines / NDJSON format — one self-contained JSON per line). This gives IT a tail-able, grep-able, SIEM-shippable record of every search peekdocs has run on this machine, without setting anything up first.
 
 ```json
-{"timestamp":"2026-05-23T10:32:01","peekdocs_version":"1.0.0","argv":["peekdocs","--suite","Example 1"],"cwd":"/Users/bob/Documents/SearchTheseDocuments","exit_code":0,"match_count":3339,"file_count":444,"error_count":0,"elapsed_seconds":3.05}
+{"timestamp":"2026-05-23T10:32:01","peekdocs_version":"1.0.20","argv":["peekdocs","--suite","Example 1"],"cwd":"/Users/bob/Documents/SearchTheseDocuments","exit_code":0,"match_count":3339,"file_count":444,"error_count":0,"elapsed_seconds":3.05}
 ```
 
 **What's captured:**
@@ -1808,7 +1808,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 | Contracts missing an indemnification clause | `peekdocs --inverse -t pdf,docx "indemnification"` |
 | Policies missing a confidentiality notice | `peekdocs --inverse -r "CONFIDENTIAL"` |
 | Documents without a required signature date | `peekdocs --inverse -x "\d{1,2}/\d{1,2}/\d{2,4}"` |
-| Files missing SSNs (data hygiene check) | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
+| Files missing a reference number | `peekdocs --inverse -x "\bREF-\d{4,}\b"` |
 | HR documents without employee IDs | `peekdocs --inverse -t pdf,docx -x "[Ee]mp\.?\s*#?\s*\d{4,}"` |
 
 **How it works:**
@@ -2339,7 +2339,7 @@ When a single search becomes too complex, break it into several focused searches
 2. "missing_date"      — Regex: \d{2}/\d{2}/\d{4}  + Inverse
 3. "no_draft_stamp"    — Terms: DRAFT
 4. "amounts_in_range"  — Range: amount:1000..50000
-5. "has_ssn"           — Regex: \d{3}-\d{2}-\d{4}
+5. "has_ref_number"    — Regex: \bREF-\d{4,}\b
 ```
 
 Use Load Search to reload each one when you need it. The search bar and all Advanced Search Options settings are restored exactly as they were when you saved the search.
