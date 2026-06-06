@@ -471,7 +471,25 @@ Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for
 
 **Search Wizard:**
 
-Click the **Wizard** button in the Search Bar to open the Search Wizard — a point-and-click regex builder. Instead of writing regex by hand, choose a profession-specific category and check the patterns you want:
+Click the **Wizard** button in the Search Bar to open the Search Wizard — a scrollable list of **20 pre-built search-type forms** covering the most common scenarios:
+
+- Keyword searches (OR / AND, with optional excludes)
+- Files missing required terms (inverse)
+- Phone numbers, email addresses, dates in range
+- Dollar amounts in range; vendor + amount; keywords + amount
+- Keywords in specific file types; keywords in subfolders
+- Fuzzy matching (typo / OCR tolerant)
+- Words near each other (proximity)
+- Boolean expressions (AND + OR + NOT with parentheses)
+- OCR for scanned PDFs and images
+- Keywords with surrounding context (lines before / after)
+- Regex pattern builder (opens the sub-wizard described next)
+
+Each form shows a brief description and the fields it needs. Fill in the fields and click **Apply** — the wizard pre-fills the Search Bar and toggles the right checkboxes in Advanced Search Options.
+
+**Regex pattern builder (sub-wizard):**
+
+Selecting the "Regex pattern builder" entry opens a separate window — a point-and-click regex builder with **35 named patterns across 6 categories**. Instead of writing regex by hand, choose a category and check the patterns you want:
 
 | Category | Example patterns |
 |----------|-----------------|
@@ -543,37 +561,24 @@ The dialog composes the right `peekdocs` CLI command for your choices and puts i
 
 The trade-offs you accept in return: an extra paste step, no in-app schedule list ("you have 3 scheduled searches"), no in-app edit/disable (changes mean editing the OS scheduler directly), and paste-time errors aren't caught. For a solo-maintained project with a clear no-surprise-system-modifications stance, the trade-off favors keeping peekdocs's surface small and the user firmly in control of what runs on their machine.
 
-## Why peekdocs Instead of grep?
+## peekdocs and grep
 
-grep is an excellent tool for searching plain text files. peekdocs is built for the mixed-format reality of most real-world document folders — PDFs, Word documents, spreadsheets, emails, and 100+ other formats handled in a single command, with extraction and search wired together out of the box. The two are complementary: reach for grep for plain text in source trees; reach for peekdocs for mixed-format document collections.
+peekdocs is built for the mixed-format reality of most document folders — PDFs, Word documents, spreadsheets, emails, EPUBs, ODTs, and 100+ other formats handled in a single command, with extraction and search wired together out of the box. grep remains an excellent choice for plain text in source trees and log files; the two tools are complementary.
 
-Here is what each tool can do:
+**What peekdocs offers for document-search workflows:**
 
-| Capability | grep | peekdocs |
-|---|---|---|
-| Plain text files (.txt, .log, .csv) | Yes | Yes |
-| PDF text extraction | Manual piping required | Built in |
-| Word documents (.docx) | Manual piping required | Built in |
-| Excel spreadsheets (.xlsx) | Manual piping required | Built in |
-| PowerPoint, email, EPUB, RTF, ODT | Each needs a different converter | Built in |
-| OCR (scanned PDFs and images) | Manual piping required | Built in (`-O` flag) |
-| Highlighted .docx, .pdf, .html reports | No | Yes |
-| CSV and JSON export | Manual scripting | Built in (`-o csv,json`) |
-| Boolean expressions | No | Yes (`-e "A AND (B OR C)"`) |
-| Proximity search (terms near each other) | No | Yes (`-p 5`) |
-| Fuzzy matching (typo-tolerant) | No | Yes (`-z`) |
-| Range queries (amounts, dates, file size) | No | Yes (`-R amount:1000..5000`) |
-| Saved searches and search suites | No | Yes |
-| Regex collections (batch patterns) | Manual scripting | Built in (`--regex-collection`) |
-| Search index with auto-refresh | No | Built in (`--index`) |
-| GUI | No | Yes |
-| Cross-platform consistency | Varies (GNU vs BSD grep) | Identical on all platforms |
+- **100+ file types out of the box** — PDF (with optional OCR), Word, Excel, PowerPoint, EPUB, RTF, ODT, ODS, ODP, email (`.eml`, `.msg`, `.mbox`, `.pst`), Jupyter notebooks, archives (`.zip`, `.7z`, `.rar`) searched in place, and 31 source-code extensions
+- **Highlighted reports** — `.docx`, `.pdf`, and `.html` with matches highlighted in yellow, plus `.csv` / `.json` structured exports for downstream tooling
+- **Search modes beyond plain matching** — Boolean expressions (`-e "A AND (B OR C)"`), fuzzy matching (`-z`), regex (`-x`), wildcards (`-w`), word and line proximity (`-p`, `-P`), range queries on amounts, dates, and file sizes (`-R`), and inverse search for files missing required content (`--inverse`)
+- **Saved searches and suites** — name a search, group related searches into a suite, run the whole suite with one command
+- **Regex collections** — batch-run up to 10 named patterns at once with per-pattern reporting (`--regex-collection`)
+- **Search index** — SQLite FTS5 with auto-refresh for repeated searches over large collections (`--index`)
+- **GUI** — point-and-click interface including a 20-form Search Wizard for non-terminal users
+- **Identical behavior on macOS, Windows, and Linux**
 
-**When to use grep:** For quick plain-text searches in a terminal, grep is faster and simpler. Use it when all your files are plain text and you don't need reports.
+**When to reach for which:** plain-text grep is faster and simpler for one-off text searches in a terminal — particularly for source trees and log files. peekdocs is the right reach when you need any of the capabilities above, or when your data spans the mixed-format reality of bank statements, contracts, scanned tax returns, and spreadsheets in one folder.
 
-**When to use peekdocs:** For searching across mixed-format documents (PDFs, Word, Excel, email archives), producing shareable highlighted reports, running saved pattern collections, or giving a non-terminal user a search tool with a GUI.
-
-For a more detailed comparison, see [Why peekdocs?](../README.md#why-peekdocs) in the README.
+For a more detailed peekdocs feature tour, see [Why peekdocs?](../README.md#why-peekdocs) in the README.
 
 ## Usage
 
@@ -704,6 +709,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-O` requires Tesseract to be installed on your system (see the [README](../README.md#prerequisites) for installation instructions)
 - `-O` enables OCR for PDF pages that have no extractable text and adds image file types (.jpg, .jpeg, .png, .tiff, .tif, .bmp) to the search
 - `-O` makes searches slower — only use it when you need to search scanned or image-based documents
+- For a backlog of image-only scanned PDFs, [ocrmypdf](https://github.com/ocrmypdf/OCRmyPDF) (free, open-source, runs locally) adds a text layer once instead of OCR'ing on every search. peekdocs itself never modifies your PDFs; ocrmypdf is a separate tool you opt into for permanent conversion. See the [README scanning tips](../README.md#preparing-your-documents-for-searching) for install lines per platform
 - `-z` enables fuzzy matching — words that are approximately similar (80% or better) to your search terms will match
 - `-z` and `-x` cannot be used together (fuzzy and regex are incompatible modes)
 - `-z` is especially useful with `-O` (OCR), since OCR text often contains recognition errors
@@ -3105,6 +3111,7 @@ This glossary focuses on terms users encounter while operating peekdocs — flag
 | **MSP technician** | Managed Service Provider technician — an IT professional employed by an outside firm that manages computers, networks, and software for client businesses on contract. One MSP typically serves dozens of small clients who do not have their own in-house IT staff |
 | **multiprocessing** | Python's standard library for running work in parallel processes (not threads — to sidestep the GIL). peekdocs uses it to scan many files at once. Side effect: scripts that import the peekdocs API must wrap their main code in `if __name__ == "__main__":` because on macOS and Windows, child processes re-import the parent script — without the guard, this re-imports and re-spawns infinitely, crashing with `RuntimeError`. See the API Reference for details |
 | **OCR** | Optical Character Recognition — technology that reads text from images and scanned PDFs. Requires Tesseract (optional) |
+| **ocrmypdf** | A free, open-source command-line tool that adds a text layer to image-only PDFs, making them searchable. Useful for converting a backlog of scanned PDFs once instead of running peekdocs's `-O` flag on every search. Install: `brew install ocrmypdf` (macOS), `pipx install ocrmypdf` (Windows), `sudo apt install ocrmypdf` (Linux). peekdocs itself never modifies your PDFs; ocrmypdf is opt-in. See the [GLOSSARY](GLOSSARY.md) for the full entry |
 | **PATH** | A system setting that tells your computer where to find programs. If a command says "not recognized," the program probably isn't in your PATH |
 | **pip** | Python's built-in package installer. Comes with Python automatically. Used to install Python programs and libraries |
 | **Piping** | Connecting one command's output to another command's input with the `\|` character on macOS, Linux, and Windows terminals. Example: `peekdocs --stdout TODO \| jq '.matches_found'` runs the search, then pipes the JSON output into `jq`. peekdocs's `--stdout` and `--runs --json` flags exist specifically to compose into pipes |
