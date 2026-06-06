@@ -460,12 +460,14 @@ Several possible causes:
 
 1. **OCR not enabled** — check the OCR checkbox in Advanced Search Options (GUI) or add the `-O` flag (CLI). Without it, peekdocs only reads the text layer — image-only files will have no matches.
 2. **Stale index** — if you're using the search index, it may not include the file yet. Rebuild the index (Tools → Indexes → Build Index) or uncheck the Index checkbox to search directly.
-2. **Tesseract not installed** — run `peekdocs --check` to verify. See the entry above for installation instructions.
-3. **Low scan quality** — scans below 200 DPI produce poor OCR results. 300 DPI is recommended. Re-scan the document at a higher resolution if possible.
-4. **Skewed or rotated text** — Tesseract struggles with text that isn't level. Re-scan with the document flat and straight.
-5. **Handwritten text** — Tesseract is designed for printed text. Handwriting recognition is unreliable.
-6. **Non-Latin scripts** — Tesseract needs language packs for non-English text. Install them: macOS: `brew install tesseract-lang`, Linux: `sudo apt install tesseract-ocr-chi-sim` (for Simplified Chinese, etc.).
-7. **The file isn't image-only** — some PDFs have a text layer that's nearly empty (a few whitespace characters). peekdocs may read the text layer instead of falling back to OCR. Try searching with `-O --no-index` from the CLI to confirm.
+3. **Tesseract not installed** — run `peekdocs --check` to verify. See the entry above for installation instructions.
+4. **Low scan quality** — scans below 200 DPI produce poor OCR results. 300 DPI is recommended. Re-scan the document at a higher resolution if possible.
+5. **Skewed or rotated text** — Tesseract struggles with text that isn't level. Re-scan with the document flat and straight.
+6. **Handwritten text** — Tesseract is designed for printed text. Handwriting recognition is unreliable.
+7. **Non-Latin scripts** — Tesseract needs language packs for non-English text. Install them: macOS: `brew install tesseract-lang`, Linux: `sudo apt install tesseract-ocr-chi-sim` (for Simplified Chinese, etc.).
+8. **The file isn't image-only** — some PDFs have a text layer that's nearly empty (a few whitespace characters). peekdocs may read the text layer instead of falling back to OCR. Try searching with `-O --no-index` from the CLI to confirm.
+
+**Have a backlog of image-only scanned PDFs?** Instead of running `-O` on every search, you can pre-process them once with [ocrmypdf](https://github.com/ocrmypdf/OCRmyPDF) (free, open-source, runs locally) to add a permanent text layer — see the [README scanning tips](../README.md#preparing-your-documents-for-searching) for install lines per platform. peekdocs itself never modifies your PDFs; ocrmypdf is a separate tool you opt into for permanent conversion.
 
 ---
 
