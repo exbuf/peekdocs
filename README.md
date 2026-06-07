@@ -135,6 +135,33 @@ peekdocs --suite "Code hygiene"
 
 *Hardware and install context: search times shown in these screenshots (0.51s, 0.50s, 0.3s) were measured on the development and test machine — a MacBook Pro with an Apple M4 Pro chip and 24 GB of memory — running peekdocs installed via pipx (Option B), not the standalone download. Times on other configurations will vary; older or lower-spec hardware will be slower on the same workload, and the standalone download (Option A) adds the platform-specific [PyInstaller / Gatekeeper startup tax](docs/GLOSSARY.md#pyinstaller-gatekeeper-startup-tax) per invocation on top of the search time itself.*
 
+#### Watch peekdocs in action
+
+<!--
+  TO EMBED THE DEMO VIDEO:
+  1. Record a ~15-30s screen capture with OBS (1280×720 MP4, no audio)
+     showing: open peekdocs-gui → Browse to samples/engineering_test → type
+     "BUILD" → Run Standard Search → click DOCX to open the highlighted report
+  2. Open https://github.com/exbuf/peekdocs/issues/new in a browser
+  3. Drag the MP4 into the comment box; wait for upload to finish
+  4. Copy the user-attachments URL GitHub inserts (looks like
+     https://github.com/user-attachments/assets/<uuid>)
+  5. Don't submit the issue — discard it
+  6. Replace VIDEO_URL_HERE in both places below with the URL you copied
+-->
+
+<video src="VIDEO_URL_HERE"
+       controls
+       poster="docs/images/screenshot-main-page-TODO.png"
+       width="720"
+       muted
+       playsinline>
+  Your browser does not render embedded video.
+  <a href="VIDEO_URL_HERE">Download the demo (~3 MB MP4)</a>.
+</video>
+
+*A ~20-second walkthrough: open the GUI, pick a folder, type a search term, view the highlighted results in the preview pane and the auto-generated `.docx` report. No audio.*
+
 #### 1. Same search, three interfaces — plus the report
 
 One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
