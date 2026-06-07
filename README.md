@@ -640,7 +640,7 @@ After that combination, no trace of peekdocs remains on your machine.
 
 ## Quick Start
 
-**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs TODO -r` returns hits across 38 source-code and engineering file types. No setup beyond installing peekdocs.
+**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total). No setup beyond installing peekdocs.
 
 ### Terminal
 
