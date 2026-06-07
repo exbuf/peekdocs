@@ -210,7 +210,7 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 
 For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans, weekly compliance reviews, and any "is the situation better or worse than last week?" question.
 
-**(a) Finding it.** Tools menu in the lower-right corner of the main page. Lists every available power-user feature in plain English; **Diff Snapshots** is between **Bookmarks** and **Indexes**.
+**(a) Finding it.** Tools menu in the lower-right corner of the main page. Lists every Tools-menu feature in plain English; **Diff Snapshots** is between **Bookmarks** and **Indexes**.
 
 ![Tools menu](docs/images/screenshot-tools-menu.png)
 
@@ -313,17 +313,17 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 <details>
 <summary><b>Detailed use cases by role (click to expand)</b></summary>
 
+- **Home users** — tax returns, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Standard Search, done. No configuration, no manual.
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates.
+- **Documentation teams and tech writers** — search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search.
+- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
+- **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. OCR reads scanned engineering drawings and handwritten notes. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
+- **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
+- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
 - **Programmers** — peekdocs covers the documents that live outside the source tree: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside `.zip` / `.7z` files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find *"what did the client say about the authentication requirement in 2019"* can pull the answer out of a `.docx` email attachment buried in a `.zip` archive without unpacking anything. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)).
 
   Also useful for **searching across entire codebases** — find every file that references a function, variable, endpoint, or error message in all source files across all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. peekdocs handles 31 source-code and shell-script extensions; see [Supported File Types](#supported-file-types) for the full list.
 - **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once.
-- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
-- **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
-- **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. OCR reads scanned engineering drawings and handwritten notes. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
-- **Documentation teams and tech writers** — search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search.
-- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates.
-- **Home users** — tax returns, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Standard Search, done. No configuration, no manual.
 - **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. peekdocs reads each format natively.
 
 </details>
@@ -647,6 +647,25 @@ After that combination, no trace of peekdocs remains on your machine.
 
 **Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total). No setup beyond installing peekdocs.
 
+### GUI
+
+```bash
+peekdocs-gui
+```
+
+See [Screenshots](#screenshots) for what peekdocs looks like in action — both GUI and CLI.
+
+On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
+
+1. Click **Browse** to select a folder (or **Single File** to search a specific file)
+2. Type your search terms
+3. Click **Run Standard Search**
+4. View results in the preview pane or click **DOCX** to open the highlighted report
+
+The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you (the **Wizard** button on the main screen) — pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. Both Wizard and the green **Search Suites** button (run a group of saved searches together) live on the main screen next to the search bar, not in the Tools menu.
+
+**If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
+
 ### Terminal
 
 If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the source install for contributors, navigate to the cloned repo folder and activate the virtual environment first:
@@ -697,25 +716,6 @@ The `.docx` report opens automatically in whatever word processor you have — M
 To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
 
 Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
-
-### GUI
-
-```bash
-peekdocs-gui
-```
-
-See [Screenshots](#screenshots) for what peekdocs looks like in action — both GUI and CLI.
-
-On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
-
-1. Click **Browse** to select a folder (or **Single File** to search a specific file)
-2. Type your search terms
-3. Click **Run Standard Search**
-4. View results in the preview pane or click **DOCX** to open the highlighted report
-
-The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings), or let the **Search Wizard** do it for you (the **Wizard** button on the main screen) — pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. Both Wizard and the green **Search Suites** button (run a group of saved searches together) live on the main screen next to the search bar, not in the Tools menu.
-
-**If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
 
 ### Python API
 
