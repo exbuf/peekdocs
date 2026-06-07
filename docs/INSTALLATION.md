@@ -22,7 +22,7 @@ Your Mac may come with an older Python (3.9.x) pre-installed. If `python3 --vers
 
 Installing a newer Python does **not** replace or affect the old version. Each version installs to its own folder (e.g., system Python lives at `/usr/bin/python3`, Homebrew Python at `/opt/homebrew/bin/python3.13`). They live side by side, and any programs that use the older version continue to work. After installing, the plain `python3` command may still point to the old 3.9 — use `python3.13` (or whichever version you installed) instead.
 
-You also need tkinter for the GUI: `brew install python-tk@3.14` (replace 3.14 with your version if different).
+You also need tkinter for the GUI: `brew install python-tk@3.13` (replace 3.13 with your version if different).
 
 ### Windows
 
@@ -47,7 +47,7 @@ Without `python3-venv` and `python3-pip`, `python3 -m venv venv` will fail with 
 ### Tkinter (required for GUI)
 
 - **Windows:** included automatically by the Python installer — no action needed.
-- **macOS (Homebrew Python):** `brew install python-tk@3.14` (replace 3.14 with your version).
+- **macOS (Homebrew Python):** `brew install python-tk@3.13` (replace 3.13 with your version).
 - **macOS (python.org installer):** already included.
 - **Linux:** `sudo apt install python3-tk` (already in the Linux command above).
 
@@ -57,7 +57,7 @@ These tools are only needed for specific file types or workflows. peekdocs runs 
 
 ### Tesseract (for OCR)
 
-OCR (Optical Character Recognition) reads text from scanned PDFs and images (.png, .jpg, .tiff, .bmp). Most users don't need this — it's only for documents that are pictures of text rather than actual text.
+OCR (Optical Character Recognition) reads text from scanned PDFs and images (.png, .jpg, .tiff, .bmp). It's only needed for documents that are pictures of text (scans, screenshots, photos of a page) rather than actual text — if all your files were created digitally, you can skip this.
 
 - **macOS:** `brew install tesseract`
 - **Windows:** [download](https://github.com/UB-Mannheim/tesseract/wiki) — during installation, check **"Add to PATH"** so peekdocs can find it. If you missed this step, run `peekdocs --check` to confirm whether Tesseract is detected.
@@ -200,7 +200,7 @@ Replace `3.13` with the version you installed.
 
 ### No git? Install from a downloaded ZIP
 
-Download the ZIP from the green **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of the URL:
+Download the ZIP from the **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of the URL:
 
 ```bash
 pipx install --force ~/Downloads/peekdocs-main.zip                              # macOS / Linux
@@ -252,7 +252,7 @@ python -m pip install --user --upgrade git+https://github.com/exbuf/peekdocs.git
 
 ## CLI-on-Windows footnotes
 
-The Releases page has command-line standalone executables (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) alongside the GUI standalones. Two things to know if you use the CLI standalone on Windows:
+The Releases page has command-line standalone executables (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) alongside the GUI standalones. A few things to know if you use the CLI standalone on Windows:
 
 1. **Run from an already-open terminal.** Double-clicking a CLI `.exe` just flashes a Command Prompt and closes — it ran with no arguments and exited. Open Command Prompt or PowerShell first, then run the executable.
 2. **PowerShell and `--flag` arguments.** PowerShell rejects `--flag` arguments unless you use the `--%` stop-parsing token (e.g., `.\peekdocs-cli-windows.exe --% --check`) or switch to plain `cmd.exe`.
