@@ -5685,9 +5685,19 @@ class ToolsMixin:
         ]
         self._inverse_results = False
 
-        # Show matched files button — use stdout-parsed count for display
-        if total_matched_files_status > 0:
-            link_text = f"{total_matched_files_status} Matched File(s)"
+        # Show matched files button — advertise the de-duplicated unique
+        # file count (len(self.matched_files)) rather than the summed
+        # total_matched_files_status. The status line above still uses
+        # the summed count as a meaningful "this many file-level hits
+        # across the whole suite" aggregate, but the BUTTON has to match
+        # what the Matched Files popup will actually display when clicked.
+        # Using the summed count here was advertising e.g. 177 files
+        # while the popup contained 73 unique files (the difference being
+        # files that matched in multiple sub-searches, counted once per
+        # sub-search by the sum but de-duped in self.matched_files).
+        unique_matched_count = len(self.matched_files)
+        if unique_matched_count > 0:
+            link_text = f"{unique_matched_count} Matched File(s)"
             self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
@@ -5737,6 +5747,16 @@ class ToolsMixin:
                     hl_re = _re_hl.compile("|".join(hl_patterns), _re_hl.IGNORECASE)
                 except _re_hl.error:
                     hl_re = None
+
+            # Stash the combined regex so the per-file Matched Files popup
+            # can highlight matches when the user clicks a file from a
+            # suite run. Without this the popup falls back to the main
+            # search bar — which is empty after a suite — and reports
+            # "No matches in this file" with no yellow highlights even
+            # though the file truly does contain hits for one or more
+            # sub-searches. The regex already accounts for each
+            # sub-search's regex / wildcard / whole-word flags.
+            self._suite_highlight_re = hl_re
 
             def _insert_hl(text):
                 if not hl_re:

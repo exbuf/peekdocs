@@ -60,6 +60,14 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         except Exception:
             self._recent_searches = []
         self._excluded_files = []
+        # Combined highlight regex built at Search Suites completion time
+        # from every sub-search's terms (with per-sub-search regex /
+        # wildcard / whole-word flags honored). Used by the per-file
+        # Matched Files popup so a suite-run file viewer doesn't fall
+        # back to reading the (empty) main search bar and end up
+        # displaying "No matches in this file." Reset to None whenever a
+        # Standard Search starts or Clear Preview is clicked.
+        self._suite_highlight_re = None
         self._searched_folders = set()  # track all folders searched this session
         self.advanced_visible = False
         self.elapsed_timer_id = None

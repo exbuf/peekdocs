@@ -1628,11 +1628,27 @@ class DataMixin:
         txt.tag_configure("line_num", foreground="#888888")
         txt.tag_configure("match", background="yellow", foreground="black")
 
-        # Build highlight pattern — either from the caller-supplied regex
-        # (Regex Search path) or from the main search bar (normal path).
+        # Build highlight pattern — priority order:
+        #   1. caller-supplied regex (Regex Search path)
+        #   2. combined regex saved at Search Suites completion
+        #      (suite mode — the suite runs multiple sub-searches each
+        #      with their own terms; one combined regex covers them all)
+        #   3. main search bar terms (normal Standard Search path)
+        #
+        # The suite-mode branch sets ``combined_re`` directly because the
+        # regex was pre-compiled at suite-finish; the other paths still
+        # build a ``patterns`` list that gets compiled below.
         patterns = []
+        combined_re = None
+        suite_re = getattr(self, '_suite_highlight_re', None)
         if highlight_regex_pattern:
             patterns.append(highlight_regex_pattern)
+        elif suite_re is not None:
+            # Suite-run viewer: use the combined regex from the suite run.
+            # Ignore whatever's in the main search bar — it may hold stale
+            # text from a Standard Search the user ran before the suite,
+            # which would highlight the wrong terms here.
+            combined_re = suite_re
         else:
             search_text = self.search_entry.get().strip()
             if search_text:
@@ -1665,8 +1681,7 @@ class DataMixin:
                     else:
                         patterns.append(_re_view.escape(term))
 
-        combined_re = None
-        if patterns:
+        if combined_re is None and patterns:
             # Strip inline global flags like (?i) — we already pass re.IGNORECASE.
             # Inline flags must be at the start of the expression, but wrapping
             # in a group for alternation moves them away from position 0.

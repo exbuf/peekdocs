@@ -213,6 +213,11 @@ class SearchMixin:
         # state and stale matched_files from a previous search.
         self._inverse_results = self.inverse_var.get() == "on"
         self.matched_files = []
+        # Forget any combined regex left over from a previous Suite run —
+        # otherwise the Matched Files popup for this Standard search would
+        # pick the suite regex over the main search bar, highlighting the
+        # wrong terms in opened files.
+        self._suite_highlight_re = None
         self._clear_action_buttons()
         self._hide_files_list()
         self._hide_preview()
@@ -953,6 +958,10 @@ class SearchMixin:
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
         self._hide_files_list()
+        # Drop any saved Suite-run highlight regex too — clearing the
+        # preview means there's no result on screen this regex still
+        # applies to.
+        self._suite_highlight_re = None
         self.status_label.configure(
             text="Results Preview cleared.",
             text_color=("blue", "#66BBFF"),
