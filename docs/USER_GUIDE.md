@@ -573,7 +573,7 @@ peekdocs is built for the mixed-format reality of most document folders — PDFs
 - **Saved searches and suites** — name a search, group related searches into a suite, run the whole suite with one command
 - **Regex collections** — batch-run up to 10 named patterns at once with per-pattern reporting (`--regex-collection`)
 - **Search index** — SQLite FTS5 with auto-refresh for repeated searches over large collections (`--index`)
-- **GUI** — point-and-click interface including a 20-form Search Wizard for non-terminal users
+- **GUI** — point-and-click interface including a 20-form Search Wizard for users who prefer point-and-click
 - **Identical behavior on macOS, Windows, and Linux**
 
 **When to reach for which:** plain-text grep is faster and simpler for one-off text searches in a terminal — particularly for source trees and log files. peekdocs is the right reach when you need any of the capabilities above, or when your data spans the mixed-format reality of bank statements, contracts, scanned tax returns, and spreadsheets in one folder.

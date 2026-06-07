@@ -276,7 +276,7 @@ Developers, sysadmins, engineers, and technical writers — people who work with
 
 | Who | Why they care | What they do with it |
 |-----|--------------|---------------------|
-| **Developers and technical power users** | Integrate document search into scripts and CI pipelines with CLI, JSON output, Python API, and regex collections | Search source trees for patterns, analyze logs, scan repos for TODO/FIXME, build automation scripts, generate machine-readable reports |
+| **Developers and technical users** | Integrate document search into scripts and CI pipelines with CLI, JSON output, Python API, and regex collections | Search source trees for patterns, analyze logs, scan repos for TODO/FIXME, build automation scripts, generate machine-readable reports |
 | **Engineers** | Search across datasheets, specs, and engineering files, with highlighted reports for design reviews | Search SPICE netlists, Verilog/VHDL, DXF, MATLAB files alongside PDFs, test reports, maintenance records, and standards references |
 | **Technical writers and documentation teams** | Catch inconsistencies across large documentation sets using fuzzy matching, regex workflows, and recursive analysis | Find inconsistent terminology, review documentation trees, audit references across manuals, search exported HTML/Markdown/DOCX collections |
 
@@ -298,7 +298,7 @@ Researchers, analysts, consultants, and business users — people who use peekdo
 | **Investigators, journalists, and analysts** | Sift through large document archives with precision using Boolean logic, proximity search, regex workflows, and OCR | Review large archives, investigate document collections, contract review, timeline reconstruction, email archive analysis |
 | **Archivists and digital historians** | Search digitized and scanned collections locally without uploading to cloud services, with full OCR and Boolean support | Search digitized archives, historical newspapers, scanned records, museum and university collections, long-term document preservation |
 | **Consultants and independent analysts** | Analyze client documents locally with no cloud exposure, then generate shareable highlighted reports | One-off document analysis, client archive review, research and report generation, technical due diligence |
-| **Business and office power users** | Search years of mixed-format files without learning any syntax — just type keywords and click Run | Find contracts, search invoices, review budgets, search years of Word/PDF files, find information across correspondence |
+| **Business and office users** | Search years of mixed-format files without learning any syntax — just type keywords and click Run | Find contracts, search invoices, review budgets, search years of Word/PDF files, find information across correspondence |
 
 *The audiences and scenarios above describe possible uses of peekdocs. peekdocs is provided "as is" under the [MIT License](LICENSE), without warranty of any kind, express or implied.*
 
@@ -499,7 +499,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 **Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
-### Option A: Standalone Download (recommended for most users)
+### Option A: Standalone Download (recommended — no Python required)
 
 The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
 
@@ -556,7 +556,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 
 **Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#uninstalling) below for full removal instructions.
 
-**No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together. Unlike `pip install`, there are no external dependencies to upgrade, conflict, or break.
+**No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together — nothing external to upgrade, conflict, or break.
 
 **Safe for your computer.** No installation option (standalone, pipx, or source) modifies your existing Python, installs system services, writes to the registry, or interferes with any other program.
 
@@ -844,7 +844,7 @@ We also tested with small .txt files (~113 bytes each) to see how peekdocs handl
 
 ### Should you build an index?
 
-For most users, direct search is fast enough — just click Run Standard Search. An index helps when you have large files or search the same folder repeatedly:
+Direct search is fast enough for most folders — just click Run Standard Search. An index helps when you have large files or search the same folder repeatedly:
 
 | Situation | Index helps? | Why |
 |-----------|:-----------:|-----|
