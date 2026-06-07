@@ -51,15 +51,17 @@ A workbench for document collections: search them, characterize them through bui
 
 &nbsp;
 
-**No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
+**Quick install**
 
-**Quick install (Python users):**
+1. **No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
 
-```bash
-pipx install --force git+https://github.com/exbuf/peekdocs.git
-```
+2. **Have Python?** A single command installs everything — the GUI, the CLI, and the Python API:
 
-A single command installs everything — the GUI, the CLI, and the Python API. See [Installation](#installation) below for the standalone download (no Python required), `pip` alternative, per-platform notes, upgrade, and uninstall.
+   ```bash
+   pipx install --force git+https://github.com/exbuf/peekdocs.git
+   ```
+
+See [Installation](#installation) below for per-platform notes, the `pip` alternative, upgrade, and uninstall.
 
 > **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
 
