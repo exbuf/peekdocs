@@ -159,7 +159,7 @@ peekdocs --suite "Code hygiene"
   <a href="https://github.com/user-attachments/assets/127e5a79-c881-4684-bf3d-7ba469318f1a">Download the demo (~3 MB MP4)</a>.
 </video>
 
-*A ~20-second walkthrough: open the GUI, pick a folder, type a search term, view the highlighted results in the preview pane and the auto-generated `.docx` report. No audio.*
+*A ~30-second walkthrough of the same `TODO` search the labeled screenshots below break down — here as it actually unfolds in the GUI: pick a folder, run the search, view the highlighted results in the preview pane, open the auto-generated `.docx` report. No audio.*
 
 #### 1. Same search, three interfaces — plus the report
 
