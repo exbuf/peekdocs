@@ -641,16 +641,25 @@ def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
 
 
 def main(argv=None):
-    # Force UTF-8 output on Windows to prevent UnicodeEncodeError
-    # when printing Unicode characters (progress bars, filenames, etc.)
-    # Only reconfigure when connected to a real terminal (not piped by GUI)
+    # Force UTF-8 output to prevent UnicodeEncodeError when printing
+    # Unicode characters (progress bars, CJK filenames, etc.) on a
+    # console or pipe whose default encoding is narrower than UTF-8
+    # (Windows cp1252 being the common case).
+    #
+    # Reconfigure unconditionally — the original code only ran this
+    # when sys.stdout.isatty(), which skipped every subprocess /
+    # captured-pipe invocation (smoke tests, user pipes, cron jobs
+    # logging to file) and let them crash on non-cp1252 content. The
+    # GUI subprocess invocation in peekdocs/gui/_helpers.py already
+    # sets PYTHONIOENCODING=utf-8 so a redundant reconfigure here is
+    # an idempotent no-op for that path.
     import sys as _sys
-    if _sys.stdout and _sys.stdout.isatty() and hasattr(_sys.stdout, 'reconfigure'):
+    if _sys.stdout and hasattr(_sys.stdout, 'reconfigure'):
         try:
             _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
         except Exception:
             pass
-    if _sys.stderr and _sys.stderr.isatty() and hasattr(_sys.stderr, 'reconfigure'):
+    if _sys.stderr and hasattr(_sys.stderr, 'reconfigure'):
         try:
             _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
         except Exception:

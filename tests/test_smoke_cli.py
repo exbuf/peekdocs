@@ -135,20 +135,6 @@ def test_extension_case_parity(tmp_path):
 
 # ── Unicode filename round-trip ────────────────────────────────────────
 
-# Marked xfail because the v1.0.20 Windows binary crashes when its
-# reporter encounters a CJK filename — peekdocs uses Python's default
-# encoding (cp1252 on Windows) instead of explicit UTF-8 when writing
-# either stdout messages or the report file, and chokes on characters
-# outside cp1252 with: "'charmap' codec can't encode characters ...".
-#
-# When the underlying bug is fixed in peekdocs/reporter.py (or wherever
-# the encoding is implicit), this xfail starts passing unexpectedly and
-# can be removed. strict=False so an XPASS doesn't break CI.
-@pytest.mark.xfail(
-    reason="peekdocs v1.0.20 Windows binary crashes on CJK filenames "
-           "(charmap codec encoding issue in reporter)",
-    strict=False,
-)
 def test_unicode_filename_in_report(tmp_path):
     """A CJK filename must round-trip through the UTF-8 report file intact."""
     (tmp_path / "北京报告.txt").write_text("budget", encoding="utf-8")

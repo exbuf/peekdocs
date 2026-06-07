@@ -14,6 +14,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Windows non-TTY UnicodeEncodeError ('charmap' codec).** The CLI's
+  `main()` had an `isatty()` guard on its `sys.stdout.reconfigure(...)`
+  call, so the UTF-8 encoding switch only fired when peekdocs was
+  attached to a real terminal. Every non-TTY invocation — `subprocess.run`
+  with `capture_output=True`, shell pipes (`peekdocs ... | tool`),
+  cron jobs logging to a file — left stdout on cp1252 and crashed with
+  `'charmap' codec can't encode characters ...` the first time a CJK
+  filename hit the progress bar or a regular `print(...)`. Caught by
+  the new Windows smoke test (commit 4608237, marked xfail at the time);
+  fix in `peekdocs/cli.py:643-657` removes the `isatty()` gate so the
+  reconfigure runs unconditionally. The GUI's subprocess invocation
+  already sets `PYTHONIOENCODING=utf-8` (`peekdocs/gui/_helpers.py:76`),
+  so the unconditional reconfigure is an idempotent no-op for that
+  path — no GUI-side change required.
+
 - **Post-v1.0.20 README accuracy audit caught seven stale UI / count
   references.** Verified each against the actual code (`_mixin_build.py`,
   `cli.py`) and the README's own internal counts before fixing:
