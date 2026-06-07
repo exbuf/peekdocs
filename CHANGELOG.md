@@ -1513,7 +1513,7 @@ Windows / macOS executables shipping for the first time.
   Normal pip / pipx installs are unaffected — they still use
   subprocess and Cancel still works.
 
-## [1.0.0] — 2026-05-25
+## [1.0.0] — 2026-05-26
 
 First 1.0 release. Brings a major new feature (Regex Search), removes PII Scan to eliminate legal liability, adds Schedule Search, builds out the automation/IT-use CLI surface (`--diff`, `--hash`, `--on-match`, `--dry-run`, run log), expands the Python API, polishes the main-screen UI (color-coded Run buttons, hyperlink-styled Advanced/Wizard, tinted options row), and rewrites large portions of the README and User Guide. Not yet published to PyPI.
 
