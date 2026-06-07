@@ -127,62 +127,40 @@ If you're on Sequoia or Sonoma and the right-click menu doesn't show **Open** in
 - **No installation, no system changes.** The `.app` is a fully self-contained bundle. Drag it to `/Applications` if you want it in Launchpad, or leave it in Downloads. There's nothing to uninstall later — just delete the `.app` and (if you want a clean wipe) `~/.peekdocsrc`.
 
 <a id="macos-cli-startup-slowness"></a>
-### CLI standalone startup time — what to expect per platform (especially macOS)
+### CLI standalone startup time — what to expect per platform
 
-The standalone CLI is a PyInstaller `--onefile` binary — a single executable that bundles its own Python interpreter and every library peekdocs uses. On every invocation, the binary extracts those bundled contents to a temp directory before any peekdocs code runs. That extraction is the dominant cost. On top of it, each OS adds its own security-check overhead that varies wildly. Rough expectations for a `peekdocs --version` invocation on the bundled CLI:
+The standalone CLI uses PyInstaller in different modes per platform:
+
+- **macOS:** `--onedir` — ships as a `peekdocs/` folder containing the launcher binary plus an `_internal/` directory with Python and the bundled libraries already extracted. No per-launch unpack cost.
+- **Windows and Linux:** `--onefile` — a single binary that self-extracts to a temp directory on every invocation. Self-extraction is the dominant cost on these platforms.
+
+Typical wall-clock startup for `peekdocs --version`:
 
 | Platform | Typical startup | What contributes |
 |---|---|---|
-| **macOS** | **5–7 seconds** | PyInstaller unpack (~2s) + XProtect / AMFI / Notarization round-trip on every execution of an unsigned binary (~3–4s). macOS is by far the slowest. |
-| **Windows** | **2–4 seconds** | PyInstaller unpack (~2s) + Windows Defender scan of unpacked temp files (faster than macOS and aggressively cached after first scan of a given file hash). SmartScreen runs only on the first launch of a freshly-downloaded binary; subsequent runs skip it. |
-| **Linux** | **0.5–1.5 seconds** | PyInstaller unpack only. No OS-level signing or notarization checks, ELF loading is the lightest of the three. |
-
-**Why macOS is so much slower than the other two:** macOS runs XProtect (malware scan), AMFI (Apple Mobile File Integrity, kernel-level signature check), and a Notarization round-trip on every execution of an unsigned binary. Even after you remove the `com.apple.quarantine` xattr, those background checks fire on every launch because peekdocs isn't signed with an Apple Developer ID. Linux has no equivalent layers. Windows Defender does similar scanning but is significantly faster and better-cached. The actual peekdocs Python code finishes in roughly the same wall-clock time on all three platforms; the difference is the macOS security model running underneath.
-
-#### Why the GUI standalone has no equivalent delay
-
-The macOS GUI (`peekdocs-gui.app`) and the macOS CLI (`peekdocs`) are built differently. From `build_app.py`:
-
-- **GUI** uses PyInstaller `--onedir` mode (the `.app` bundle is actually a folder of unpacked Python files). Nothing to extract on launch — the bundled Python and libraries are already on disk, ready to run. Launch time is normal app-startup speed (~1s).
-- **CLI** uses PyInstaller `--onefile` mode (single binary). Extraction to `/var/folders/_MEIxxxxxx/` happens on every invocation.
-
-PyInstaller documented this asymmetry: `--onefile` is being deprecated for windowed (GUI) apps because the unpack overhead is so noticeable on first launch, but it remains the standard for CLI tools that need to ship as a single distributable file. The CLI pays the unpack cost on every invocation; the GUI pays it once at build time (the unpacked files ship inside the `.app`).
-
-That's also why a Gatekeeper warning for the GUI fires only on first launch (the `.app` bundle has a stable identity macOS can remember), while CLI invocations re-extract to fresh temp directories that macOS treats as new executions each time.
+| **macOS** | **~1–2 seconds** | XProtect / AMFI signature check on every execution of an unsigned binary (cached for ~1 hour after first run). No PyInstaller unpack — that cost was eliminated when the macOS CLI moved from `--onefile` to `--onedir`, matching how the GUI `.app` ships. |
+| **Windows** | **2–4 seconds** | PyInstaller `--onefile` self-extraction + Defender scan of unpacked temp files (cached after first scan of a given file hash). SmartScreen runs only on the first launch of a freshly-downloaded binary. |
+| **Linux** | **0.5–1.5 seconds** | PyInstaller `--onefile` self-extraction. No OS-level signing or notarization checks. |
 
 #### The `sudo mv` quarantine gotcha (macOS-specific)
 
-`sudo mv ~/Downloads/peekdocs /usr/local/bin/peekdocs` preserves *extended attributes* on the moved file — including `com.apple.quarantine`, the flag your browser attached when you first downloaded the zip. macOS Gatekeeper sees the quarantine flag at the new path and re-verifies the binary on each launch, adding cost *on top* of the inherent CLI startup time documented above. Even if you Gatekeeper-allowed the file at the *download* location, the move to a new path can re-trigger checks because Gatekeeper's "approved" memory keys off path + code-signature, not file content.
-
-Fix the avoidable half (xattr):
+Moving the `peekdocs/` folder into a system location preserves *extended attributes*, including `com.apple.quarantine` — the flag your browser attached when you first downloaded the zip. macOS Gatekeeper sees that flag at the new path and re-verifies the binary on each launch, adding cost on top of the inherent startup time documented above. Remove the attribute once after moving:
 
 ```bash
-sudo xattr -dr com.apple.quarantine /usr/local/bin/peekdocs
+sudo xattr -dr com.apple.quarantine /usr/local/lib/peekdocs
 ```
 
-One-time, immediate. Subsequent invocations skip the Gatekeeper re-verify (you still pay the inherent CLI startup, but not the Gatekeeper delta on top of it).
-
-#### Diagnose what kind of slowness you have (macOS)
-
-```bash
-time peekdocs --version
-time peekdocs --version    # run twice in the same terminal session
-```
-
-Read zsh's output for the **`total`** column (wall-clock seconds; zsh confusingly drops the `s` suffix on `total`):
-
-- **First run ~5–7s, second run ~5–7s:** consistent PyInstaller unpack tax. Inherent for `--onefile` standalone CLIs on macOS; the only way to eliminate it is the pipx path below.
-- **First run ~5–7s, second run <1s:** the first run paid a one-time XProtect / signature-check round-trip; macOS cached the result. Subsequent runs in this session (and typically for the next hour or so) skip it. You'll see the slow first run again in a fresh terminal session or after the cache expires.
-- **High `total` but low `user + system` CPU time (e.g., 6.5s total / 1.1s CPU):** the binary is mostly *waiting* on macOS security checks and disk I/O, not computing. Confirms the slowness is OS overhead, not peekdocs being slow.
+(Adjust the path if you put the folder somewhere other than `/usr/local/lib/peekdocs/`.) One-time, immediate; subsequent invocations skip the Gatekeeper re-verify.
 
 #### The faster alternative: pipx (any OS)
 
-If startup time matters and you have Python installed (or are willing to install it), the pipx path skips the PyInstaller unpack entirely — pipx drops peekdocs into a real Python venv and the `peekdocs` shim invokes Python directly. Typical startup: **0.2–0.5 seconds on any OS**, regardless of macOS's security overhead, because there's no unpacked binary for macOS to inspect.
+If startup time still matters and you have Python installed (or are willing to install it), the pipx path skips the PyInstaller pipeline entirely — pipx drops peekdocs into a real Python venv and the `peekdocs` shim invokes Python directly. Typical startup: **0.2–0.5 seconds on any OS**.
 
 ```bash
 brew install pipx                                                  # macOS, if you don't have it
 pipx install --force git+https://github.com/exbuf/peekdocs.git
-sudo rm /usr/local/bin/peekdocs                                    # remove standalone CLI (macOS / Linux)
+sudo rm /usr/local/bin/peekdocs                                    # remove the symlink (macOS)
+sudo rm -rf /usr/local/lib/peekdocs                                # remove the unpacked folder (macOS)
 which peekdocs                                                     # now points at the pipx shim
 ```
 

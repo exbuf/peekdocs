@@ -177,16 +177,16 @@ time ./peekdocs-cli-linux --version    # expect 0.5–1.5 s
 
 ## macOS parity check
 
-If most testing has happened on macOS, this is the simplest leg. Run from the standalone `.app`/binary location to confirm Gatekeeper has been bypassed:
+If most testing has happened on macOS, this is the simplest leg. The macOS CLI standalone ships as a `peekdocs/` folder (PyInstaller `--onedir` — see INSTALLATION.md for the rationale), so the launcher is one level in:
 
 ```bash
-./peekdocs --version
-./peekdocs --check
-./peekdocs -x '\bREF-\d{4,}\b' ~/Documents
-time ./peekdocs --version    # expect 5–7 s without xattr fix; 0.2–0.5 s after
+./peekdocs/peekdocs --version
+./peekdocs/peekdocs --check
+./peekdocs/peekdocs -x '\bREF-\d{4,}\b' ~/Documents
+time ./peekdocs/peekdocs --version    # expect ~1–2 s after xattr applied
 ```
 
-**Watch for:** the `xattr -dr com.apple.quarantine` step on the binary has actually been applied (documented in INSTALLATION.md). Without it, every invocation re-pays the Gatekeeper check — the slowness compounds.
+**Watch for:** the `xattr -dr com.apple.quarantine peekdocs` step has actually been applied to the folder (documented in INSTALLATION.md and the README CLI download row). Without it, every invocation re-pays the Gatekeeper check on top of the ~1–2 s baseline.
 
 ---
 
