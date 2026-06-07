@@ -66,6 +66,23 @@ jobs:
           mv dist/peekdocs-gui dist/peekdocs-gui-linux
           mv dist/peekdocs dist/peekdocs-cli-linux
 
+      # --- Smoke test the built CLI binary (Windows only, initially) ---
+      # Exercises the shell-binary boundary the in-process test harness
+      # skips: PowerShell / cmd argument parsing, shell wildcard handling,
+      # backslash regex, Unicode filenames in report files, PyInstaller
+      # startup tax. See docs/SMOKE_TEST.md for what these cover and what
+      # remains manual. A failure here blocks artifact upload, so a
+      # broken binary never publishes to a release.
+      - name: Install pytest for smoke tests (Windows)
+        if: runner.os == 'Windows'
+        run: pip install pytest
+
+      - name: Smoke test the built CLI binary (Windows)
+        if: runner.os == 'Windows'
+        env:
+          PEEKDOCS_BINARY: ${{ github.workspace }}\dist\peekdocs-cli-windows.exe
+        run: pytest tests/test_smoke_cli.py -v
+
       - name: Upload GUI artifact
         uses: actions/upload-artifact@v4
         with:
