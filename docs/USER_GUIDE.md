@@ -234,7 +234,7 @@ If you've never used a terminal before, this section walks you through everythin
 
 **Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode-graphical-user-interface).
 
-**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 40 extensions in total) — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
+**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total) — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
 
 ### Which installation method did you use?
 
