@@ -938,11 +938,21 @@ class SearchMixin:
             pass
 
     def _clear_preview(self):
-        """Clear all text from the Results Preview pane."""
+        """Clear the Results Preview pane and the matched/excluded files buttons.
+
+        Leaving the buttons visible after clearing the preview is misleading
+        — the preview pane goes empty but the buttons still advertise
+        "N Matched File(s)" / "N Excluded File(s)" against no on-screen
+        evidence. Mirror the reset pattern used at search start
+        (lines 215–220) so the main screen returns to a clean state.
+        """
         self.preview_text.configure(state="normal")
         self.preview_text.delete("1.0", "end")
         self.preview_text.configure(state="disabled")
         self._preview_count_label.configure(text="")
+        self._matched_files_link.pack_forget()
+        self._excluded_files_btn.pack_forget()
+        self._hide_files_list()
         self.status_label.configure(
             text="Results Preview cleared.",
             text_color=("blue", "#66BBFF"),

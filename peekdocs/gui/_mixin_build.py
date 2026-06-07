@@ -1162,7 +1162,7 @@ class BuildMixin:
             command=self._clear_preview,
         )
         self._clear_preview_btn.pack(side="left", padx=(8, 0))
-        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk")
+        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk")
 
         # App-wide text size dropdown
         self._app_size_menu = ctk.CTkOptionMenu(
