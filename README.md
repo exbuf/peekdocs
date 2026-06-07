@@ -138,26 +138,25 @@ peekdocs --suite "Code hygiene"
 #### Watch peekdocs in action
 
 <!--
-  TO EMBED THE DEMO VIDEO:
-  1. Record a ~15-30s screen capture with OBS (1280×720 MP4, no audio)
-     showing: open peekdocs-gui → Browse to samples/engineering_test → type
-     "BUILD" → Run Standard Search → click DOCX to open the highlighted report
-  2. Open https://github.com/exbuf/peekdocs/issues/new in a browser
-  3. Drag the MP4 into the comment box; wait for upload to finish
-  4. Copy the user-attachments URL GitHub inserts (looks like
-     https://github.com/user-attachments/assets/<uuid>)
-  5. Don't submit the issue — discard it
-  6. Replace VIDEO_URL_HERE in both places below with the URL you copied
+  TO UPDATE THIS DEMO VIDEO:
+  1. Record the new clip (1280×720 MP4, no audio, ~15-30s).
+  2. Open a new Issue on this repo and drag the MP4 into the
+     "Add a description" Write tab; wait for the upload to finish.
+  3. Copy the user-attachments URL GitHub inserts (the
+     "https://github.com/user-attachments/assets/<uuid>" form).
+  4. Replace both occurrences of the URL below — the src= on the
+     <video> tag and the href on the fallback <a> link.
+  5. Don't submit the issue — discard it. The URL stays live.
 -->
 
-<video src="VIDEO_URL_HERE"
+<video src="https://github.com/user-attachments/assets/127e5a79-c881-4684-bf3d-7ba469318f1a"
        controls
        poster="docs/images/screenshot-main-page-TODO.png"
        width="720"
        muted
        playsinline>
   Your browser does not render embedded video.
-  <a href="VIDEO_URL_HERE">Download the demo (~3 MB MP4)</a>.
+  <a href="https://github.com/user-attachments/assets/127e5a79-c881-4684-bf3d-7ba469318f1a">Download the demo (~3 MB MP4)</a>.
 </video>
 
 *A ~20-second walkthrough: open the GUI, pick a folder, type a search term, view the highlighted results in the preview pane and the auto-generated `.docx` report. No audio.*
