@@ -71,13 +71,16 @@ def text_files(tmp_path):
 # ── Sanity ─────────────────────────────────────────────────────────────
 
 def test_version():
-    r = run(["--version"], timeout=15)
+    # Default 60s timeout: PyInstaller cold-start on a Windows CI runner
+    # (shared VM + Defender scanning a fresh binary) is materially slower
+    # than the 2-4s a developer machine sees.
+    r = run(["--version"])
     assert r.returncode == 0, f"stdout={r.stdout!r} stderr={r.stderr!r}"
     assert "peekdocs" in r.stdout.lower()
 
 
 def test_check():
-    r = run(["--check"], timeout=30)
+    r = run(["--check"])
     assert r.returncode == 0, f"stdout={r.stdout!r} stderr={r.stderr!r}"
 
 
@@ -162,15 +165,22 @@ def test_unicode_filename_in_report(tmp_path):
     )
 
 
-# ── PyInstaller startup tax ────────────────────────────────────────────
+# ── PyInstaller startup time ───────────────────────────────────────────
 
-def test_startup_under_six_seconds():
-    """Documented Windows startup tax is 2-4s; assert a generous upper bound."""
+def test_startup_does_not_hang():
+    """Catch a hung binary, not a slow one.
+
+    Developer-machine startup is documented as 2-4s on Windows, but a
+    GitHub Actions windows-latest runner with Defender scanning a freshly
+    built binary measures consistently ~8-12s. The assertion here is
+    only meant to catch a truly-hung process; a generous 20s ceiling
+    is fine on both surfaces.
+    """
     t0 = time.perf_counter()
-    r = run(["--version"], timeout=15)
+    r = run(["--version"])
     elapsed = time.perf_counter() - t0
     assert r.returncode == 0
-    assert elapsed < 6.0, (
-        f"startup took {elapsed:.2f}s; documented expectation is 2-4s, "
-        f"hard ceiling 6s"
+    assert elapsed < 20.0, (
+        f"startup took {elapsed:.2f}s; expected <20s (the binary is "
+        f"likely hung, not just slow)"
     )
