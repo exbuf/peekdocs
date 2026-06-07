@@ -1335,6 +1335,8 @@ rather than swallowing them silently.
 
 ## [1.0.4] — 2026-05-30
 
+*(EXE-only release; no `v1.0.4` git tag exists — `gh release list` skips from v1.0.3 to v1.0.5. The standalone GUI and CLI binaries described below were built and published, but the tag was never created. v1.0.5 succeeds it directly in the tag history.)*
+
 Polish release focused on first-run experience and onboarding clarity:
 new System Check tool, a conditional CLI banner notice that explains
 the first-index-build delay, an expanded sample corpus, persistence
