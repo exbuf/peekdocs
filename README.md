@@ -501,7 +501,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 ### Option A: Standalone Download (no Python needed)
 
-Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster on macOS.)
+Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster — especially on macOS.)
 
 The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
 
