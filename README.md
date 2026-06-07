@@ -84,7 +84,7 @@ for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
 
-**No Python?** [Download the standalone app](#option-a-standalone-download-recommended-for-most-users) — the GUI and CLI binaries are separate downloads; pick what you need.
+**No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
 
 ## Contents
 
@@ -482,7 +482,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 ## Installation
 
-[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-recommended-for-most-users) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
+[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
 
 ### Prerequisites
 
@@ -499,9 +499,9 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 **Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
-### Option A: Standalone Download (recommended — no Python required)
+### Option A: Standalone Download (no Python needed)
 
-The simplest way to get peekdocs. No Python, no terminal commands, no installation — just download and run.
+Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster on macOS.)
 
 The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
 
@@ -562,7 +562,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 
 ---
 
-*If you used Option A, you're done — skip ahead to [Quick Start](#quick-start). The section below is for users who want the CLI / Python API alongside the GUI.*
+*Done with Option A? Skip ahead to [Quick Start](#quick-start). If you have Python installed, Option B below is the better path — one command, faster startup, and you get the CLI and Python API alongside the GUI.*
 
 ### Option B: Quick Install with pipx (for Python users)
 
@@ -897,7 +897,7 @@ If you'd rather avoid indexing entirely, add `--no-index` to your CLI command or
 - **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
 - **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If peekdocs is blocked, add your Python installation or the peekdocs folder to your antivirus allow list
 - **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If peekdocs reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `peekdocs_errors.log`
-- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-recommended-for-most-users) (no Python, no network needed beyond the initial download) or the [ZIP-based pipx install](docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip) documented in `docs/INSTALLATION.md`
+- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-no-python-needed) (no Python, no network needed beyond the initial download) or the [ZIP-based pipx install](docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip) documented in `docs/INSTALLATION.md`
 - **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
 - **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
 
