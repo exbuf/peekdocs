@@ -12,7 +12,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.21] — 2026-06-07
+
+Release driven by two real product fixes — a Windows non-TTY Unicode
+crash and a macOS CLI standalone startup tax cut from ~5–7s to
+~1–2s — plus a release-time CI gate that exercises the shell-binary
+boundary on Windows, and a sweeping documentation accuracy pass
+across the docs/ tree.
+
 ### Fixed
+
+- **Python API `file_types="pdf,docx"` was silently buggy.** The
+  signature declares `file_types: list[str]`, but the implementation
+  at `peekdocs/api.py:199` does `set(file_types) if file_types else
+  None`. Passing a string therefore became `set("pdf,docx")` — a
+  set of single characters `{'p','d','f',',','o','c','x'}` — which
+  extension-matched against parts of any filename containing those
+  letters rather than rejecting the malformed input. Both
+  `docs/API.md:96` and `samples/api_example.py:27` demonstrated the
+  buggy idiom, teaching it to API consumers. Fixed both call sites
+  to `file_types=[".pdf", ".docx"]`. The signature itself isn't
+  tightened — that's a v1.1 break-the-API decision; for v1.0.21 we
+  just stop demonstrating the wrong form.
+
+- **First-experience demo command returned zero hits.** Both the
+  README's "Want a quick demo first?" line and the USER_GUIDE's
+  "Want to try peekdocs on a sample corpus first?" pitch told
+  readers to run `cd samples/engineering_test && peekdocs TODO -r`
+  — but none of the 38 sample files in that corpus contain the
+  word `TODO`. A new user following the docs literally saw
+  `Found 0 match(es) in 0 file(s)`, the worst possible first
+  impression. Swapped to `peekdocs BUILD -r`, which finds 29
+  matches across 5 language files (sh, tcl, vhd, vhdl, makefile)
+  and shows the engine doing its job.
+
+- **`line_proximity` and `use_whole_word` undocumented in source
+  docstring.** Both are in the public `search()` signature at
+  `peekdocs/api.py:60-83`, but the docstring at lines 87-128
+  omitted them. `help(search)` now shows both; `docs/API.md`'s
+  Parameters table got a fresh `line_proximity` row to match
+  (the `use_whole_word` row was already there).
+
+- **`run_suite()` `FileNotFoundError` missing from the Error
+  Handling table.** The function's docstring at
+  `peekdocs/api.py:458-466` listed three raised exceptions, but
+  `docs/API.md`'s table only documented two (`KeyError`,
+  `ValueError`). Added the missing row.
+
+- **macOS Homebrew install command referenced a non-existent
+  formula.** `docs/INSTALLATION.md` instructed macOS users to
+  `brew install python-tk@3.14` in two places (lines 25 and 50),
+  but no `python-tk@3.14` formula exists at the time of writing —
+  only `python-tk@3.13`. A copy-paste user got
+  `Error: No available formula`. Corrected both to `3.13`; the
+  "replace with your version" hedge is preserved.
 
 - **Windows non-TTY UnicodeEncodeError ('charmap' codec).** The CLI's
   `main()` had an `isatty()` guard on its `sys.stdout.reconfigure(...)`
@@ -73,6 +126,146 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
     and `:356`) — "quoted phrases" was added to the list in an
     earlier session without bumping the count. Updated both mentions
     from 11 → 12.
+
+### Changed
+
+- **macOS CLI standalone build mode: `--onefile` → `--onedir`.**
+  Previously the macOS CLI binary was a PyInstaller `--onefile`
+  build, meaning each invocation paid a ~2s self-extraction cost
+  to `/var/folders/_MEIxxxxxx/` before any peekdocs code ran.
+  Stacked with the ~3–4s of Gatekeeper / XProtect / AMFI rechecks
+  that fire on every execution of an unsigned binary, total
+  startup came to ~5–7s per invocation — the worst per-OS user
+  experience in the project. Switching the macOS CLI to `--onedir`
+  (matching how the GUI `.app` has always shipped) eliminates the
+  self-extraction cost entirely; startup drops to ~1–2s, dominated
+  only by the inherent macOS signing checks. User-facing impact:
+  `peekdocs-cli-macos.zip` now contains a `peekdocs/` folder (the
+  launcher binary at `peekdocs/peekdocs` plus an `_internal/`
+  directory with bundled Python and libs) rather than a single
+  binary. The README CLI download row, the `./` prefix-rule block,
+  the `docs/SMOKE_TEST.md` macOS parity section, and the
+  `docs/INSTALLATION.md` startup-time discussion are all updated
+  to match. Windows and Linux continue to ship `--onefile` single
+  binaries — the gap there is smaller and a single binary is the
+  conventional CLI shape.
+
+- **Audience voicing pass across README and USER_GUIDE.** Dropped
+  six audience-splitting phrases that survived previous voice
+  audits, plus six borderline talking-down phrasings:
+  - Two `power users` audience-table headers (`README.md:279, :301`).
+  - Three `most users` qualifiers (the Option A heading at
+    `README.md:502`, "direct search is fast enough for most
+    users" at `:847`, and "20-form Wizard for non-terminal users"
+    at `docs/USER_GUIDE.md:576`).
+  - One direct jab at `pip install` in the "No dependency breakage"
+    paragraph (`README.md:559`).
+  - Six borderlines: a praise-then-jab VS Code comparison
+    (`README.md:312`), "no regex or technical knowledge needed"
+    (`:362`), "no terminal experience required" in two parallel
+    places (`:450` and `docs/USER_GUIDE.md:545`), an LLM-tradeoffs
+    coda (`README.md:796`), "intimidating at first" terminal
+    framing (`docs/USER_GUIDE.md:271`), and a "no more terminal
+    commands needed" tail (`:425`).
+
+- **Option A (Standalone Download) framing flipped.** The section
+  heading changed from "recommended for most users" to "no Python
+  needed", and the intro paragraph now explicitly steers
+  Python-having users to Option B (pipx) with the per-platform
+  startup-tax tradeoff surfaced ("starts noticeably faster —
+  especially on macOS"). The
+  `#option-a-standalone-download-no-python-needed` anchor replaces
+  the old one; all four inbound references updated
+  (`README.md:87, :485, :900`; `docs/INSTALLATION.md:15`).
+
+- **CHANGELOG v1.0.0 release date.** Header said
+  `## [1.0.0] — 2026-05-25`. The git tag is
+  `2026-05-26 12:43:47 -0400` and the GitHub release is
+  `2026-05-26T16:52:07Z` — both unambiguously May 26. Off by one
+  day; corrected.
+
+### Added
+
+- **Release-time Windows smoke test gate.** Three components:
+  - **`docs/SMOKE_TEST.md`** — a runnable cross-platform
+    release-time checklist documenting what the existing
+    630-test pytest matrix already covers (every internal
+    Python code path on Windows + macOS + Linux × Python
+    3.10-3.14) and what manual smoke testing catches (the
+    shell-binary boundary).
+  - **`tests/test_smoke_cli.py`** — seven pytest tests that
+    invoke the built CLI via `subprocess.run` rather than the
+    in-process `from peekdocs.cli import main` path. Covers
+    `--version`, `--check`, backslash regex survival through
+    shell parsing, shell wildcard handling (cmd / PowerShell
+    pass `*` literally; peekdocs handles it), `-t pdf` vs
+    `-t PDF` case parity, CJK filename round-trip through the
+    UTF-8 report file, and a 20-second startup-time ceiling
+    that catches a hung binary without policing performance
+    variance the test can't control. Skips cleanly when
+    `PEEKDOCS_BINARY` is unset or `sys.platform` is not
+    `win32`, so an ordinary `pytest tests/` run is unaffected.
+  - **`.github/workflows/build-release.yml`** — new Windows-only
+    steps inserted between the PyInstaller build and the
+    artifact upload. A smoke-test failure blocks the artifact
+    upload; the `release` job depends on `build`, so a broken
+    binary cannot publish. Adds ~30-60s of CI time to
+    release-tag pushes. Proven across five throwaway-tag runs
+    before being trusted with a real release: the gate caught
+    real bugs in three of the five (the Windows charmap
+    `isatty()` regression, a test-infrastructure encoding
+    issue, and a CI-runner timing tolerance miss).
+
+- **ocrmypdf coverage across the docset.** README's "Preparing
+  Your Documents" section gets a new item walking through the
+  per-platform install lines and a safe-to-rerun batch loop
+  with `--skip-text`. A new `ocrmypdf` glossary entry lands in
+  `docs/GLOSSARY.md`. `docs/USER_GUIDE.md` adds an OCR-bullet
+  pointer and a matching glossary entry. `docs/TROUBLESHOOTING.md`'s
+  "OCR is enabled but peekdocs doesn't find text" section closes
+  with the ocrmypdf alternative. Voice rule consistent across all
+  four surfaces: "peekdocs itself never modifies your PDFs;
+  ocrmypdf is a separate tool you opt into for permanent
+  conversion."
+
+### Docs
+
+- **Substantial accuracy pass across USER_GUIDE, TROUBLESHOOTING,
+  API.md, INSTALLATION, GLOSSARY, and CHANGELOG.**
+  - **PII-coded examples replaced with neutral patterns.** Two
+    SSN-shaped regex examples in `docs/USER_GUIDE.md`
+    (`\d{3}-\d{2}-\d{4}` in an inverse-search row and a
+    `"has_ssn"` saved-search label) and three explicit "SSN
+    pattern" mentions in `samples/api_example.py` swapped to a
+    generic reference-number pattern (`\bREF-\d{4,}\b`). One
+    additional structural SSN in `docs/API.md:213` (worded as
+    "9-digit ID pattern" but using the 3-2-4 shape) replaced
+    with a structured-reference example. Aligned with the
+    project's long-standing rule of never naming regulated
+    industries or PII categories in user-facing material.
+  - **USER_GUIDE grep section reframed strengths-only.** Renamed
+    from `## Why peekdocs Instead of grep?` to `## peekdocs and
+    grep` and rewritten to describe what peekdocs adds for
+    document-search workflows instead of what grep can't do.
+  - **USER_GUIDE Search Wizard section restructured.** Previously
+    described only the embedded regex pattern builder; now
+    describes both levels — the top-level 20 pre-built search-
+    type forms and the embedded sub-wizard with 35 regex
+    patterns across 6 categories.
+  - **USER_GUIDE stale version literals in JSON examples.**
+    `peekdocs v1.0.4` (two places) and `1.0.0` (per-run log
+    example) bumped to current.
+  - **TROUBLESHOOTING numbered-list bug.** "OCR is enabled but
+    peekdocs doesn't find text" had two consecutive items
+    numbered `2.` (copy-paste artifact from when "Stale index"
+    was inserted between "OCR not enabled" and "Tesseract not
+    installed"). Renumbered the trailing items.
+  - **CHANGELOG v1.0.4 git-tag gap explained.** v1.0.4 has a
+    full CHANGELOG entry dated 2026-05-30 but no v1.0.4 git tag
+    or GitHub release exists — `gh release list` jumps directly
+    from v1.0.3 to v1.0.5. Added a parenthetical at the top of
+    the entry noting the EXE-only ship and the direct succession
+    to v1.0.5.
 
 ## [1.0.20] — 2026-06-04
 
