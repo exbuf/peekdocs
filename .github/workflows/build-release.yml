@@ -104,6 +104,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Checkout is needed so the "Extract CHANGELOG section" step below
+      # can read CHANGELOG.md. The other release steps don't need the
+      # working copy, but adding checkout at the top keeps the job
+      # idiomatic and lets future steps reference any repo file.
+      - uses: actions/checkout@v6
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -113,8 +119,35 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f
 
+      # Extract just the [N.N.N] section from CHANGELOG.md for this
+      # tag's version. Without this the GitHub Release body was only
+      # the auto-generated "Full Changelog: ...compare..." link — the
+      # substantive narrative entry in CHANGELOG.md never made it to
+      # the release page. The awk script walks the file until it sees
+      # `## [<version>]`, then prints subsequent lines until the next
+      # `## [` boundary or EOF. Throwaway tags whose versions aren't
+      # in CHANGELOG produce an empty file; action-gh-release falls
+      # back gracefully to just the auto-generated notes in that case.
+      - name: Extract CHANGELOG section for this release
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (in_section) exit
+              if ($0 ~ "\\[" ver "\\]") { in_section = 1; next }
+            }
+            in_section { print }
+          ' CHANGELOG.md > release_notes.md
+          echo "--- Extracted release notes preview ---"
+          head -40 release_notes.md
+          echo "--- Total bytes ---"
+          wc -c release_notes.md
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*
+          body_path: release_notes.md
+          # Still appends the auto-generated "Full Changelog: ...compare..."
+          # link after the body_path content — best of both worlds.
           generate_release_notes: true
