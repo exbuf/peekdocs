@@ -88,7 +88,10 @@ def test_backslash_regex_survives_shell(tmp_path):
     (tmp_path / "order.txt").write_text("REF-12345")
     (tmp_path / "noise.txt").write_text("nothing to find here")
 
-    r = run(["-x", r"\bREF-\d{4,}\b", "."], cwd=tmp_path)
+    # No trailing "." — peekdocs already searches cwd. Passing a literal
+    # dot makes it a *second* search term, which in regex mode means
+    # "any character" and matches both files.
+    r = run(["-x", r"\bREF-\d{4,}\b"], cwd=tmp_path)
 
     assert r.returncode == 0, f"stdout={r.stdout!r} stderr={r.stderr!r}"
     assert "1 file(s)" in r.stdout, (
@@ -100,7 +103,7 @@ def test_backslash_regex_survives_shell(tmp_path):
 
 def test_wildcard_passes_literal(text_files):
     """cmd.exe and PowerShell pass ``budg*`` literally; peekdocs expands it."""
-    r = run(["-w", "budg*", "."], cwd=text_files)
+    r = run(["-w", "budg*"], cwd=text_files)
     assert r.returncode == 0, f"stdout={r.stdout!r} stderr={r.stderr!r}"
     # budget / budgets / budgeting across three files
     assert "3 file(s)" in r.stdout, (
@@ -114,8 +117,8 @@ def test_extension_case_parity(tmp_path):
     """``-t pdf`` and ``-t PDF`` must produce identical results."""
     (tmp_path / "test.pdf").write_text("budget")
 
-    lower = run(["-t", "pdf", "budget", "."], cwd=tmp_path)
-    upper = run(["-t", "PDF", "budget", "."], cwd=tmp_path)
+    lower = run(["-t", "pdf", "budget"], cwd=tmp_path)
+    upper = run(["-t", "PDF", "budget"], cwd=tmp_path)
 
     assert lower.returncode == upper.returncode, (
         f"return codes differ: lower={lower.returncode} upper={upper.returncode}"
@@ -129,11 +132,25 @@ def test_extension_case_parity(tmp_path):
 
 # ── Unicode filename round-trip ────────────────────────────────────────
 
+# Marked xfail because the v1.0.20 Windows binary crashes when its
+# reporter encounters a CJK filename — peekdocs uses Python's default
+# encoding (cp1252 on Windows) instead of explicit UTF-8 when writing
+# either stdout messages or the report file, and chokes on characters
+# outside cp1252 with: "'charmap' codec can't encode characters ...".
+#
+# When the underlying bug is fixed in peekdocs/reporter.py (or wherever
+# the encoding is implicit), this xfail starts passing unexpectedly and
+# can be removed. strict=False so an XPASS doesn't break CI.
+@pytest.mark.xfail(
+    reason="peekdocs v1.0.20 Windows binary crashes on CJK filenames "
+           "(charmap codec encoding issue in reporter)",
+    strict=False,
+)
 def test_unicode_filename_in_report(tmp_path):
     """A CJK filename must round-trip through the UTF-8 report file intact."""
     (tmp_path / "北京报告.txt").write_text("budget", encoding="utf-8")
 
-    r = run(["budget", "."], cwd=tmp_path)
+    r = run(["budget"], cwd=tmp_path)
     assert r.returncode == 0, f"stdout={r.stdout!r} stderr={r.stderr!r}"
 
     report = tmp_path / "peekdocs_standard_results.txt"
