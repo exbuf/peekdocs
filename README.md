@@ -51,6 +51,8 @@ A workbench for document collections: search them, characterize them through bui
 
 &nbsp;
 
+**No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
+
 **Quick install (Python users):**
 
 ```bash
@@ -83,8 +85,6 @@ results = search(["budget"], directory=os.path.expanduser("~/Documents"))
 for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
-
-**No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
 
 ## Contents
 
