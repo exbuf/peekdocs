@@ -39,13 +39,22 @@ pytestmark = [
 
 
 def run(args, cwd=None, timeout=60):
-    """Invoke the CLI binary with the given arguments."""
+    """Invoke the CLI binary with the given arguments.
+
+    Uses ``errors="replace"`` because peekdocs writes Unicode punctuation
+    (em-dashes, smart quotes) to stdout, and on Windows the console
+    defaults to cp1252 — strict UTF-8 decoding crashes in subprocess's
+    reader thread and turns ``stdout`` into ``None``. Replacing invalid
+    bytes with ``?`` keeps stdout decodable while preserving all the
+    ASCII tokens the assertions actually check.
+    """
     return subprocess.run(
         [BINARY] + list(args),
         cwd=cwd,
         capture_output=True,
         text=True,
         encoding="utf-8",
+        errors="replace",
         timeout=timeout,
     )
 
