@@ -131,7 +131,7 @@ peekdocs --suite "Code hygiene"
 
 *The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works well across personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
-*Hardware context: the search times shown in these screenshots (0.51s, 0.50s, 0.3s) were measured on the development and test machine — a MacBook Pro with an Apple M4 Pro chip and 24 GB of memory. Times on other configurations will vary; older or lower-spec hardware will be slower on the same workload.*
+*Hardware and install context: search times shown in these screenshots (0.51s, 0.50s, 0.3s) were measured on the development and test machine — a MacBook Pro with an Apple M4 Pro chip and 24 GB of memory — running peekdocs installed via pipx (Option B), not the standalone download. Times on other configurations will vary; older or lower-spec hardware will be slower on the same workload, and the standalone download (Option A) adds the platform-specific PyInstaller / Gatekeeper startup tax per invocation on top of the search time itself (see [Installation](#installation)).*
 
 #### 1. Same search, three interfaces — plus the report
 
