@@ -50,13 +50,18 @@ jobs:
           move dist\peekdocs-gui.exe dist\peekdocs-gui-windows.exe
           move dist\peekdocs.exe dist\peekdocs-cli-windows.exe
 
-      # --- macOS: zip the .app bundle ---
+      # --- macOS: zip the .app bundle and the onedir CLI folder ---
+      # Both the GUI .app and the CLI are now PyInstaller --onedir output
+      # (directories). The CLI was --onefile previously but switched to
+      # --onedir to avoid the per-invocation self-extraction cost — see
+      # build_app.py:build_cli(). -r on the CLI zip handles the directory
+      # the way -r on the GUI zip already does for the .app bundle.
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
           cd dist
           zip -r peekdocs-gui-macos.zip peekdocs-gui.app
-          zip peekdocs-cli-macos.zip peekdocs
+          zip -r peekdocs-cli-macos.zip peekdocs
           cd ..
 
       # --- Linux: rename outputs ---

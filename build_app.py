@@ -118,11 +118,22 @@ def build_gui():
 
 def build_cli():
     """Build the CLI executable."""
+    # macOS pays the worst onefile penalty (~5-7s vs ~2-4s elsewhere)
+    # because the per-launch self-extraction stacks with Gatekeeper
+    # rechecks that fire on every invocation of an unsigned binary.
+    # Building --onedir on macOS leaves Python and libraries pre-
+    # extracted in a folder, dropping per-invocation startup to roughly
+    # the same overhead the GUI .app already enjoys (~1-2s).
+    #
+    # Keep --onefile on Windows and Linux: the gap there is smaller
+    # (Windows ~2-4s, Linux ~0.5-1.5s) and a single .exe / binary is
+    # the conventional CLI shape on those platforms.
+    is_mac = sys.platform == "darwin"
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--name", "peekdocs",
         "--console",                           # console app
-        "--onefile",                           # single executable
+        "--onedir" if is_mac else "--onefile",
         "--noconfirm",                         # overwrite without asking
     ]
 
