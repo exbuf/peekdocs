@@ -1568,7 +1568,29 @@ class DataMixin:
 
         win, _dark = self._themed_toplevel()
         win.title(f"Text View — {filename}")
-        win.geometry("900x720")
+
+        # Position on the same screen as the main app window. Tk's
+        # default position is "primary display center" or "cursor's
+        # display" depending on platform — neither follows where the
+        # main window (or the Matched Files popup that just invoked
+        # this) actually lives. On multi-monitor setups (e.g. laptop
+        # + external display) this stranded the Text View popup on the
+        # laptop while the user was working on the external display.
+        # Computing a top-left from the main window's screen rectangle
+        # and letting the OS keep the window inside that screen fixes
+        # the strand without forcing a specific monitor.
+        _tv_w, _tv_h = 900, 720
+        try:
+            self.update_idletasks()
+            _mx = self.winfo_rootx()
+            _my = self.winfo_rooty()
+            _mw = max(self.winfo_width(), 1)
+            _mh = max(self.winfo_height(), 1)
+            _tv_x = _mx + (_mw - _tv_w) // 2
+            _tv_y = _my + (_mh - _tv_h) // 2
+            win.geometry(f"{_tv_w}x{_tv_h}+{_tv_x}+{_tv_y}")
+        except Exception:
+            win.geometry(f"{_tv_w}x{_tv_h}")
         win.resizable(True, True)
 
         _tv_header = tk.Frame(win)
