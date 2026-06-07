@@ -5628,7 +5628,17 @@ class ToolsMixin:
                 if cnt > 0:
                     _unique_filepaths.add(fp)
         total_matched_files_status = len(_unique_filepaths)
-        total_files_searched = sum(len(s["all_files"]) for s in sections)
+        # "Files searched" is the size of the corpus, not a count of
+        # search operations. Every sub-search in a suite runs against
+        # the same folder, so sum() across sections counted the same
+        # files once per sub-search and showed e.g. 2225 (5 × 445) for
+        # a 5-sub-search suite over 445 files. max() is the right
+        # answer for the typical case (all sub-searches see the same
+        # corpus, so max == any one) and gracefully handles suites
+        # where one sub-search narrows with -t while another doesn't.
+        total_files_searched = max(
+            (len(s["all_files"]) for s in sections), default=0
+        )
 
         # Parse error/skip counts from subprocess stdout
         total_errors = 0
