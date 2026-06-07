@@ -100,6 +100,8 @@ def search(
         Use fuzzy/approximate matching.
     use_wildcard : bool
         Treat search terms as wildcard patterns (* and ?).
+    use_whole_word : bool
+        Match complete words only (won't match "bob" inside "bobcat").
     use_ocr : bool
         Enable OCR for scanned PDFs and images.
     exclude_terms : list[str], optional
@@ -114,6 +116,9 @@ def search(
         Number of lines to include after each match.
     proximity : int
         If > 0, require all terms within this many words of each other.
+    line_proximity : int
+        If > 0, require all terms within this many lines of each other
+        (the line-proximity counterpart to ``proximity``, which is word-proximity).
     cores : int, optional
         Number of CPU cores. None = auto-detect.
     use_index : bool, optional

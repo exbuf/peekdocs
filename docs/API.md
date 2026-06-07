@@ -93,7 +93,7 @@ def main():
         directory=".",
         match_all=True,         # AND mode — both terms must appear on the same line
         recursive=True,         # search subfolders
-        file_types="pdf,docx",  # only PDFs and Word docs
+        file_types=[".pdf", ".docx"],  # only PDFs and Word docs
     )
 
     print(f"AND search: {len(result.matches)} match(es) in {len(result.files_searched)} file(s)")
@@ -210,9 +210,9 @@ def main():
         range_filters=["fn:date:2024-01-01..2024-12-31"],
     )
 
-    # Search emails for a 9-digit ID pattern (xxx-xx-xxxx)
+    # Search emails for structured reference IDs (e.g., ORD-12345, REF-9876)
     result = search(
-        [r"\d{3}-\d{2}-\d{4}"],
+        [r"\b[A-Z]{2,3}-\d{4,}\b"],
         directory="/path/to/exported-emails",
         use_regex=True,
         file_types=[".eml", ".msg", ".pst"],
@@ -263,6 +263,7 @@ if __name__ == "__main__":
 | `context_before` | `int` | `0` | Lines to include before each match. What counts as a "line" follows the unit peekdocs indexes per file format: a literal line for plain text and source code, a paragraph for Word (.docx) and PDF, a row for Excel. Paragraph-heavy formats can include several sentences per "line." |
 | `context_after` | `int` | `0` | Lines to include after each match. Same per-format meaning as `context_before` — see above. |
 | `proximity` | `int` | `0` | Require terms within N words of each other |
+| `line_proximity` | `int` | `0` | Require terms within N lines of each other (the line-proximity counterpart to `proximity`, which is word-proximity) |
 | `cores` | `int` | Auto | CPU cores for parallel processing |
 | `use_index` | `bool` | Auto | Use search index if available |
 | `progress` | `callable` | `None` | Callback `progress(done, total, filename)` |
@@ -370,6 +371,7 @@ Each `SuiteSearchResult` has fields: `search_name`, `search_terms`, `matches` (l
 
 | Exception | When |
 |-----------|------|
+| `FileNotFoundError` | No collection file exists in the directory |
 | `KeyError` | Named suite not found (message lists available suites) |
 | `ValueError` | Suite has no searches |
 
