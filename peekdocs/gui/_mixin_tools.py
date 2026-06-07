@@ -5615,7 +5615,19 @@ class ToolsMixin:
 
         import re as _re_fin
 
-        total_matched_files_status = sum(s.get("matched_file_count", 0) for s in sections)
+        # Unique file count across all sub-searches. The previous formula
+        # sum(s["matched_file_count"]) double-counted any file that hit
+        # in more than one sub-search (e.g. a file matching both TODO
+        # and FIXME counted twice). The orange Matched Files button and
+        # the popup both show the deduplicated unique count; the status
+        # line should too. The total_matches figure stays a sum because
+        # match-locations are genuinely independent across sub-searches.
+        _unique_filepaths = set()
+        for _sec in sections:
+            for fp, _, cnt, _ in _sec.get("parsed_files", []):
+                if cnt > 0:
+                    _unique_filepaths.add(fp)
+        total_matched_files_status = len(_unique_filepaths)
         total_files_searched = sum(len(s["all_files"]) for s in sections)
 
         # Parse error/skip counts from subprocess stdout
