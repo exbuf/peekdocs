@@ -1109,4 +1109,18 @@ The tool is not designed or intended for high-assurance or safety-critical use c
 
 ## License
 
-Copyright (c) 2026 Robert D. Schoening. This project is licensed under the [MIT License](LICENSE).
+Copyright (c) 2026 Robert D. Schoening. peekdocs's own source code is licensed under the [MIT License](LICENSE).
+
+### Note on dependencies
+
+peekdocs depends on a number of third-party Python libraries, each with its own license. **End users running peekdocs are not affected by this** — the AGPL and similar copyleft terms govern distribution and modification, not use. A user who installs peekdocs to search their own documents triggers no obligations.
+
+The most significant third-party license to be aware of is **[PyMuPDF](https://github.com/pymupdf/PyMuPDF) / [MuPDF](https://mupdf.com/) (the PDF reader), distributed under AGPL v3 or a commercial license from [Artifex Software](https://artifex.com/licensing/)**.
+
+**Developers integrating peekdocs into derivative work should be aware that the dependency chain transitively carries AGPL obligations.** Three common scenarios:
+
+- **Your derivative work is open-source under an AGPL-compatible license.** Straightforward — both licenses coexist.
+- **Your derivative work is closed-source or under a permissive license that's incompatible with AGPL** (MIT, BSD, Apache 2.0, etc.). You have two paths: (a) accept that the combined work falls under AGPL terms, or (b) acquire a commercial PyMuPDF license from Artifex Software for the PDF-reader piece.
+- **Internal-only company use without distribution.** Generally fine. AGPL obligations are triggered by distribution / conveyance, not by internal use.
+
+peekdocs makes no representations about license compatibility in your downstream context — consult your own counsel for derivative-work questions. The other Python libraries peekdocs depends on (python-docx, openpyxl, python-pptx, ebooklib, striprtf, odfpy, rapidfuzz, pytesseract, Pillow, customtkinter, etc.) are all permissively licensed (MIT, BSD, Apache 2.0, or similar) and present no comparable compatibility tension.
