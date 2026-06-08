@@ -857,6 +857,8 @@ peekdocs is a search tool because it helps you find information across PDFs, Off
 
 **Compared with cloud AI document tools.** Cloud AI tools excel at summarization, question answering, semantic search, and extracting meaning from large document collections — often the right reach for those tasks. peekdocs serves a different purpose: it runs entirely on your computer. For keyword, pattern, date, amount, regex, fuzzy, and proximity searches across mixed-format folders, peekdocs delivers deterministic and repeatable results while keeping your documents local.
 
+At the hundreds-of-files scale, cloud AI tools also hit practical ceilings worth knowing about: per-conversation or per-project file-count caps usually in the tens rather than hundreds, per-file size limits that exclude larger scanned PDFs, upload time across a residential connection that adds up quickly, and format support that often omits archives (`.zip`, `.7z`, `.rar`), Outlook email containers (`.pst`, `.msg`, `.mbox`), and other formats peekdocs reads natively. peekdocs processes the whole folder in one local pass with no upload step — same engine whether the folder has 50 files or 50,000.
+
 **Compared with `grep`.** For plain-text search in a terminal, `grep` is excellent — use it. peekdocs is built for mixed-format document collections (PDF, Word, Excel, PowerPoint, email, OCR-able scans), with highlighted reports, saved searches, search suites, regex collections, indexing, a GUI, and a Python API. Both can live in your toolkit; they're designed for different jobs.
 
 | Capability | grep | peekdocs |
