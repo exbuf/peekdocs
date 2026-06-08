@@ -161,6 +161,35 @@ peekdocs --suite "Code hygiene"
 
 *A ~60-second walkthrough of the same `TODO` search the labeled screenshots below break down — here as it actually unfolds in the GUI: pick a folder, run the search, view the highlighted results in the preview pane, browse the **Matched Files** list, open the auto-generated `.docx` report. No audio.*
 
+#### Watch Search Suites in action
+
+<!--
+  TO UPDATE THIS SEARCH SUITES DEMO VIDEO:
+  1. Record the new clip (1280×720 MP4, no audio, ~30-60s) showing the
+     Code Hygiene suite: open Search Suites, select the suite, click
+     Run Search Suite, watch the combined report build, click into the
+     HTML or Matched Files view.
+  2. Open a new Issue on this repo and drag the MP4 into the
+     "Add a description" Write tab; wait for the upload to finish.
+  3. Copy the user-attachments URL GitHub inserts (the
+     "https://github.com/user-attachments/assets/<uuid>" form).
+  4. Replace both occurrences of the URL below — the src= on the
+     <video> tag and the href on the fallback <a> link.
+  5. Don't submit the issue — discard it. The URL stays live.
+-->
+
+<video src="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff"
+       controls
+       poster="docs/images/screenshot-searchsuite-setup.png"
+       width="720"
+       muted
+       playsinline>
+  Your browser does not render embedded video.
+  <a href="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff">Download the demo (MP4)</a>.
+</video>
+
+*A walkthrough of the Code Hygiene suite running end-to-end: open Search Suites, run the five-search suite, view the combined report — the same workflow the labeled screenshots in section 4 below break down. No audio.*
+
 #### 1. Same search, three interfaces — plus the report
 
 One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
@@ -212,33 +241,6 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 #### 4. Search Suites — recurring multi-search workflows
 
 Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
-
-<!--
-  TO UPDATE THIS SEARCH SUITES DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~30-60s) showing the
-     Code Hygiene suite: open Search Suites, select the suite, click
-     Run Search Suite, watch the combined report build, click into the
-     HTML or Matched Files view.
-  2. Open a new Issue on this repo and drag the MP4 into the
-     "Add a description" Write tab; wait for the upload to finish.
-  3. Copy the user-attachments URL GitHub inserts (the
-     "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of the URL below — the src= on the
-     <video> tag and the href on the fallback <a> link.
-  5. Don't submit the issue — discard it. The URL stays live.
--->
-
-<video src="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff"
-       controls
-       poster="docs/images/screenshot-searchsuite-setup.png"
-       width="720"
-       muted
-       playsinline>
-  Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff">Download the demo (MP4)</a>.
-</video>
-
-*A walkthrough of the Code Hygiene suite running end-to-end: open Search Suites, run the five-search suite, view the combined report. No audio.*
 
 **(a) Setup.** Five saved searches (`TODO`, `FIXME`, `HACK` with Whole Word on; `print(` and `console.log(` with Whole Word off — same kit, different option per search). Run order is top-to-bottom; the Up/Down buttons reorder. HTML output added to the always-on TXT and DOCX defaults.
 
