@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+# setuptools >= 77.0 required for native PEP 639 `license-files`
+# support — used below to ship LICENSE + NOTICE + THIRD_PARTY_NOTICES.md
+# inside the wheel and surface them on PyPI's project page.
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -27,6 +30,12 @@ classifiers = [
 ]
 keywords = ["document-search", "file-search", "text-search", "pdf-search", "docx", "offline", "offline-search", "privacy", "cli", "gui", "batch-search", "document-scanner"]
 license = "MIT"
+# PEP 639: ship LICENSE (peekdocs's own MIT terms), NOTICE (the Apache-
+# convention pointer file), and THIRD_PARTY_NOTICES.md (per-dependency
+# license listing including the AGPL / GPL / LGPL copyleft tier) inside
+# the built wheel. PyPI surfaces these on the project page sidebar so a
+# license-compliance reviewer can find them without leaving pypi.org.
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
 readme = "README.md"
 authors = [{name = "Robert D. Schoening", email = "bobschoening@gmail.com"}]
 requires-python = ">=3.10"
@@ -56,6 +65,7 @@ Documentation = "https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md"
 Repository = "https://github.com/exbuf/peekdocs"
 "Bug Tracker" = "https://github.com/exbuf/peekdocs/issues"
 Changelog = "https://github.com/exbuf/peekdocs/blob/main/CHANGELOG.md"
+"Third-Party Notices" = "https://github.com/exbuf/peekdocs/blob/main/THIRD_PARTY_NOTICES.md"
 
 [project.optional-dependencies]
 pst = ["libpff-python"]
