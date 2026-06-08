@@ -192,6 +192,37 @@ peekdocs --suite "Code hygiene"
 
 *peekdocs ships no pre-built suites — "Code Hygiene" was assembled ad-hoc for this demo. You build your own suites from your saved searches (any number of them), then run them on demand from the GUI / CLI or unattended on a schedule via cron (Mac/Linux) or Task Scheduler (Windows). See Schedule Search further down for the schedule-setup flow.*
 
+#### Watch Regex Search in action
+
+<!--
+  TO UPDATE THIS REGEX SEARCH DEMO VIDEO:
+  1. Record the new clip (1280×720 MP4, no audio, ~30-60s) showing
+     the Regex Search popup with a saved collection: open Regex
+     Search, pick a collection, check several patterns, click Run,
+     review the per-pattern results.
+  2. Open a new Issue on this repo and drag the MP4 into the
+     "Add a description" Write tab; wait for the upload to finish.
+  3. Copy the user-attachments URL GitHub inserts (the
+     "https://github.com/user-attachments/assets/<uuid>" form).
+  4. Replace both occurrences of the URL below — the src= on the
+     <video> tag and the href on the fallback <a> link.
+  5. Don't submit the issue — discard it. The URL stays live.
+-->
+
+<video src="https://github.com/user-attachments/assets/c1bc333e-96bb-4d44-8c3e-ef5c1edeba90"
+       controls
+       poster="docs/images/screenshot-regex-search.png"
+       width="720"
+       muted
+       playsinline>
+  Your browser does not render embedded video.
+  <a href="https://github.com/user-attachments/assets/c1bc333e-96bb-4d44-8c3e-ef5c1edeba90">Download the demo (MP4)</a>.
+</video>
+
+*A walkthrough of a Regex Search collection running end-to-end: open Regex Search, pick a saved collection of named patterns, run, review the per-pattern hits — the same workflow the labeled screenshots in section 3 below break down. No audio.*
+
+*peekdocs ships no pre-built collections — you assemble them yourself, saving up to 10 named regex patterns per collection. There's no limit on the number of collections; switch between them for different tasks ("code patterns", "log analysis", "invoice extraction", etc.). Collections also run from the CLI (`peekdocs --regex-collection NAME`) and Python API (`run_regex_collection()`) — so cron / Task Scheduler scheduling works the same way it does for suites.*
+
 #### 1. Same search, three interfaces — plus the report
 
 One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
