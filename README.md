@@ -300,7 +300,7 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
 
 #### 5. Diff Snapshots — what changed between two scans
 
-For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans, weekly compliance reviews, and any "is the situation better or worse than last week?" question.
+For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans and any "is the situation better or worse than last week?" question.
 
 **(a) Finding it.** Tools menu in the lower-right corner of the main page. Lists every Tools-menu feature in plain English; **Diff Snapshots** is between **Bookmarks** and **Indexes**.
 
