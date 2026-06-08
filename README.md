@@ -321,6 +321,8 @@ peekdocs TODO -W -r --hash --stdout > peekdocs-snapshot-todo-after.json
 peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.json
 ```
 
+**To preserve snapshots across recurring runs** (so you can diff today's against last week's), either redirect each run to a unique filename — `> snapshot_$(date +%F).json` in a POSIX shell, or the equivalent date-stamped form in PowerShell — or add `--timestamp -o json` so peekdocs appends `_YYYYMMDD_HHMMSS` to its output filenames automatically. Without one of those, each run overwrites the previous JSON and there's nothing to diff against. The **Schedule Search** dialog enables `--timestamp` by default for exactly this reason.
+
 The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
 
 #### 6. Schedule Search — generate a ready-to-paste cron / Task Scheduler command
