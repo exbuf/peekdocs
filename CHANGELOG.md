@@ -12,6 +12,237 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.22] — 2026-06-08
+
+Release driven by a set of related Search Suites GUI fixes (Matched
+Files button vs popup count mismatch, status-line number consistency,
+per-file highlights in the Text View popup), a multi-monitor fix for
+the Text View popup that was stranding it on the wrong screen, three
+new demo videos embedded in the README Screenshots area, two voice /
+values discipline passes (structural audience splits + a sweep for
+latent-compliance phrasing), and the CI improvement that makes this
+release's GitHub Release body the first one pulled from the CHANGELOG
+section instead of just an auto-generated compare link.
+
+### Fixed
+
+- **Search Suites: orange Matched Files button now matches the popup
+  it opens.** Running a suite (e.g. Code Hygiene) was advertising one
+  count on the orange `N Matched File(s)` button on the main page,
+  showing a different count when the user clicked the button, and
+  reporting "No matches in this file" with no yellow highlights when
+  the user clicked any file in the popup — three distinct symptoms,
+  all in one workflow. Three commits fixed the three components:
+  - The button label was using `sum(matched_file_count)` across
+    sub-searches, which double-counted any file that hit in more
+    than one sub-search (a file matching both `TODO` and `FIXME`
+    counted twice). The popup, meanwhile, used a de-duplicated
+    `self.matched_files` list, so the button promised e.g. 177 files
+    and the popup contained 73. Button label now uses
+    `len(self.matched_files)` so it matches what the popup will
+    actually display.
+  - Per-file highlights in the Text View popup were being built from
+    the main search bar, which is empty after a suite run — so the
+    popup built no regex, no yellow highlights appeared, and the
+    "Matching lines:" label dropped to "No matches in this file"
+    even though the file genuinely contained hits for one or more
+    sub-searches. The suite-finish handler already builds a combined
+    highlight regex from every sub-search's terms (with each sub-
+    search's regex / wildcard / whole-word flags honored) for the
+    preview pane. That same regex is now stashed on
+    `self._suite_highlight_re` and the popup reads it with priority
+    over the main search bar.
+  - The status line above the preview pane was using the same
+    summed file count as the button had, and the "N file(s) searched"
+    figure was using `sum(len(s["all_files"]))` — both inflated the
+    real numbers by the number of sub-searches. Status line now
+    matches the popup; "files searched" uses `max()` across sub-
+    searches (the right answer for the typical case where every sub-
+    search runs against the same corpus).
+  - `total_matches` (the "Found N match(es)" figure) stays summed
+    because match-locations across sub-searches really are distinct
+    hits — three TODO hits plus three FIXME hits in one file is
+    genuinely six matches, not three.
+
+- **Clear Preview button now also clears the Matched Files / Excluded
+  Files buttons.** Clicking Clear Preview on the main screen cleared
+  the preview text and the count label but left the orange Matched
+  Files and Excluded Files buttons visible — so a user who had just
+  cleared the preview saw an empty pane while those buttons still
+  claimed "47 Matched File(s)" against no on-screen evidence, and
+  clicking either button reopened a popup populated from the prior
+  search. `_clear_preview` now mirrors the reset block already used
+  at search start: hide both buttons via `pack_forget()` and drop
+  the underlying `matched_files` / `_excluded_files` lists. Tooltip
+  updated to advertise the new behavior.
+
+- **Text View popup now follows the main app's screen on multi-
+  monitor setups.** Double-clicking a file in the Matched Files popup
+  opened the Text View popup with `win.geometry("900x720")` — size
+  but no explicit position, so Tk picked a default (cursor's display
+  on macOS, primary display's center on X11) that did not necessarily
+  match where the rest of the workflow lived. A user on a laptop +
+  external monitor setup with peekdocs on the external monitor saw
+  the Text View pop up on the laptop. Fix: read the main app
+  window's `winfo_rootx` / `winfo_rooty` / `winfo_width` /
+  `winfo_height` before sizing and pass an explicit centered
+  position; the OS window manager keeps the new window on the same
+  screen as the main app. Wrapped in try/except so a coordinate-read
+  failure falls back gracefully to the original no-position
+  behavior.
+
+### Changed
+
+- **Structural audience-split audit follow-up.** The previous audit
+  caught phrase-level violations (`power users`, `most users`,
+  `intimidating`). This pass caught splits that were structural
+  rather than phrase-level — places where ordering or implicit
+  prioritization disadvantaged one audience even when the literal
+  text was neutral. Four clear-tier fixes landed:
+  - README's top-of-page install picker was running "Quick install
+    (Python users):" first and "No Python? Download the standalone
+    app" 33 lines below the demo block. A non-Python visitor reading
+    top-down hit the "Python users" label first and could reasonably
+    bail before reaching the standalone path. Restructured the top
+    of the README as a numbered "Quick install" block — item 1 is
+    the standalone download for non-Python users, item 2 is the
+    pipx command for Python users.
+  - Quick Start subsections reordered from Terminal → GUI → Python
+    API to GUI → Terminal → Python API. The platforms banner
+    advertises the canonical order as `GUI · CLI · Python API`; the
+    subsections now match.
+  - "Detailed use cases by role" `<details>` block reordered to lead
+    with non-developer roles (Home users → Small businesses →
+    Documentation teams → Researchers → Engineers → Data researchers
+    → AI/ML engineers → Programmers) so a reader expanding the
+    optional details doesn't read four developer-flavored entries
+    first.
+  - The in-app "WHO IS IT FOR?" help text in
+    `peekdocs/gui/_mixin_tools.py` was leading with Developers; a
+    home user opening Help inside the GUI saw "Developers" before
+    themselves. Reordered to lead Home users → Small businesses →
+    Researchers → Engineers → Legal → IT/Operations → Developers.
+  - The "every available power-user feature" survivor of the
+    previous audit at `README.md:213` swapped to "every Tools-menu
+    feature" — describes the structural fact without the audience
+    label.
+
+- **Latent-compliance phrasing pass — three commits.** Started with
+  "weekly compliance reviews" in the Diff Snapshots use-case list
+  and grew into a focused sweep across the docs.
+  THEORY_OF_OPERATION principle 7 forbids parking peekdocs in the
+  regulatory drawer through use-case framing — not only the
+  literal naming of HIPAA / SEC / FERPA / SSN that the previous
+  audit caught, but also the more subtle "audits / reviews /
+  compliance / audit trails" capability-pitch vocabulary. Five
+  clear-tier swaps (`audits` / `reviews` in capability claims at
+  `README.md:328` Schedule Search, `README.md:460` Search Suites,
+  `docs/USER_GUIDE.md:543` Tools menu table, `README.md:377`
+  Technical writers row, `docs/USER_GUIDE.md:2206` example code
+  comment) and six borderline-tier swaps (four `"Weekly Audit"`
+  → `"Weekly Code Scan"` API examples, `"audit trails"` →
+  `"reproducible-output workflows"` in the Deterministic glossary
+  entries, `"audits"` → `"completeness checks"` in the Inverse
+  search glossary entry, `"vendor audit"` → `"release checklist"`
+  in shell-loop examples, `"retention policy"` → `"license header"`
+  in an inverse-search example, `"Audit Patterns"` →
+  `"Code Patterns"` in a scheduled-task example). Defensive
+  disclaimers using `compliance` / `forensic` / `evidence`
+  vocabulary stay — they do the load-bearing "we are not this"
+  disavowal work.
+
+### Added
+
+- **Three demo videos embedded in the README Screenshots area.** The
+  static labeled screenshots are still there; the videos sit above
+  them as a "watch the demos first" pair (now trio). All three use
+  the same pattern — GitHub `user-attachments` upload (size cap 10 MB
+  per file, the recompression line documented in the surrounding
+  HTML comments produces ~1–3 MB files at 720p / 30fps), `<video>`
+  tag with a poster image (the existing main-page screenshot for the
+  hero, suite setup for the Suites demo, regex setup for the
+  Regex demo), controls + muted + playsinline, and an `<a>` fallback
+  link for feed readers that strip `<video>`:
+  - **#### Watch peekdocs in action** — ~60s TODO search end-to-end:
+    pick a folder, run the search, view highlighted results in the
+    preview pane, browse the Matched Files list, open the
+    auto-generated `.docx` report. Same workflow the static
+    screenshots in section 1 break down.
+  - **#### Watch Search Suites in action** — Code Hygiene suite
+    end-to-end, with a caption note clarifying that "Code Hygiene"
+    is ad-hoc for this demo (peekdocs ships no pre-built suites),
+    that any number of suites can be defined, and that suites also
+    run unattended via cron / Task Scheduler.
+  - **#### Watch Regex Search in action** — a saved regex collection
+    running, with a caption note on the 10-patterns-per-collection
+    limit, the unlimited number of collections, and the
+    `peekdocs --regex-collection` CLI surface that also composes
+    into cron / Task Scheduler.
+  - A new `### Labeled walkthroughs` H3 separates the videos from
+    the static numbered screenshots so a reader scrolling down has
+    an unambiguous "videos are over, here come the stills" signal.
+
+- **PyInstaller / Gatekeeper startup tax glossary entry.** The phrase
+  was used in the README's Screenshots disclosure note but defined
+  nowhere. New `docs/GLOSSARY.md` entry names the two components
+  (PyInstaller unpack + macOS Gatekeeper / XProtect / AMFI rechecks),
+  gives per-platform numbers, notes that pipx skips both, and carries
+  an inline `<a id>` anchor so the README's disclosure note can deep-
+  link directly. A short Gatekeeper one-liner entry was also added,
+  pointing readers at the compound term for the full breakdown.
+  Both entries name Option A and Option B explicitly to match the
+  README's install-picker vocabulary.
+
+- **Hardware and install context note under Screenshots.** The
+  screenshots show search times like 0.51s / 0.50s / 0.3s. A reader
+  on different hardware would reasonably wonder whether those are
+  achievable on a CI runner, a five-year-old laptop, or just on the
+  developer's machine. Added a hardware-context italicized note
+  upfront — MacBook Pro / Apple M4 Pro / 24 GB of memory — and a
+  separate install-method note clarifying that peekdocs was running
+  via pipx (Option B), not the standalone download. Closes one of
+  the followups surfaced by yesterday's smoke-test debugging arc.
+
+- **Diff Snapshots — preserving snapshots across recurring runs.**
+  The Diff Snapshots section showed the demo command using manual
+  filename redirection (`> snapshot-before.json` /
+  `> snapshot-after.json`) but never explained why those names
+  mattered. A reader thinking about their own recurring workflow
+  hit a silent overwrite trap: each `peekdocs ... > snap.json`
+  overwrites the previous file, so without distinct names or
+  `--timestamp`, today's run has nothing to diff against last week's.
+  New paragraph right after the demo block names the problem and
+  the two ways to solve it (manual date-redirect or
+  `--timestamp -o json`), and cross-links to Schedule Search which
+  enables `--timestamp` by default for the same reason.
+
+- **CI: GitHub Release body now pulls from the CHANGELOG.md section
+  for the tag's version.** The release workflow was using
+  `softprops/action-gh-release@v2` with `generate_release_notes: true`,
+  which produced 79-byte bodies like "**Full Changelog**:
+  ...compare...". The substantive narrative in CHANGELOG.md never
+  made it to the release page. Added a checkout step + an awk-based
+  "Extract CHANGELOG section for this release" step that parses the
+  `## [<version>]` block matching the tag (stripping the leading "v")
+  and passes it via `body_path` to `action-gh-release`.
+  `generate_release_notes: true` is kept so the auto-generated
+  compare link still appears after the body. Verified across a
+  throwaway tag where the version isn't in CHANGELOG — the
+  extraction produces an empty file and the action falls back to
+  just the auto-generated notes, so existing throwaway-tag workflow
+  patterns aren't broken. v1.0.22 is the first real release to
+  exercise this path; the v1.0.21 / v1.0.20 release bodies were
+  manually backfilled.
+
+### Docs
+
+- **Refreshed the `screenshot-searchsuite-result-mainpage.png`
+  screenshot** to match the post-fix counts. The previous capture
+  showed the pre-fix totals (`177 Matched Files` button label,
+  `in 177 file(s)` status, `2225 file(s) searched`) — all artifacts
+  of the Search Suites summing bugs fixed in this release. The new
+  capture shows the corrected numbers all agreeing.
+
 ## [1.0.21] — 2026-06-07
 
 Release driven by two real product fixes — a Windows non-TTY Unicode
