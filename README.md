@@ -223,6 +223,10 @@ peekdocs --suite "Code hygiene"
 
 *peekdocs ships no pre-built collections — you assemble them yourself, saving up to 10 named regex patterns per collection. There's no limit on the number of collections; switch between them for different tasks ("code patterns", "log analysis", "invoice extraction", etc.). Collections also run from the CLI (`peekdocs --regex-collection NAME`) and Python API (`run_regex_collection()`) — so cron / Task Scheduler scheduling works the same way it does for suites.*
 
+### Labeled walkthroughs
+
+*Each section below pairs annotated screenshots with a description of the moment captured — useful for slowing down what the videos above show in motion, or for readers who'd rather scan stills than watch a clip.*
+
 #### 1. Same search, three interfaces — plus the report
 
 One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
