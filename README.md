@@ -1115,12 +1115,19 @@ Copyright (c) 2026 Robert D. Schoening. peekdocs's own source code is licensed u
 
 peekdocs depends on a number of third-party Python libraries, each with its own license. **End users running peekdocs are not affected by this** — the AGPL and similar copyleft terms govern distribution and modification, not use. A user who installs peekdocs to search their own documents triggers no obligations.
 
-The most significant third-party license to be aware of is **[PyMuPDF](https://github.com/pymupdf/PyMuPDF) / [MuPDF](https://mupdf.com/) (the PDF reader), distributed under AGPL v3 or a commercial license from [Artifex Software](https://artifex.com/licensing/)**.
+peekdocs's dependency tree includes a mix of permissive (MIT / BSD / Apache 2.0 / ISC / CC0) and copyleft (LGPL / GPL / AGPL) licenses. **The most significant ones to be aware of are:**
 
-**Developers integrating peekdocs into derivative work should be aware that the dependency chain transitively carries AGPL obligations.** Three common scenarios:
+- **[PyMuPDF](https://github.com/pymupdf/PyMuPDF) (the PDF reader)** — AGPL v3 or a commercial license from [Artifex Software](https://artifex.com/licensing/)
+- **[EbookLib](https://github.com/aerkalov/ebooklib) (the EPUB reader)** — AGPL v3 (no documented commercial-license alternative)
+- **[extract-msg](https://github.com/TeamMsgExtractor/msg-extractor) (Outlook `.msg` email reader)** — GPL
+- **[py7zr](https://py7zr.readthedocs.io/), [fpdf2](https://py-pdf.github.io/fpdf2/), and the optional [libpff-python](https://github.com/libyal/libpff)** — LGPL (weak copyleft, generally permits proprietary use through dynamic linking)
 
-- **Your derivative work is open-source under an AGPL-compatible license.** Straightforward — both licenses coexist.
-- **Your derivative work is closed-source or under a permissive license that's incompatible with AGPL** (MIT, BSD, Apache 2.0, etc.). You have two paths: (a) accept that the combined work falls under AGPL terms, or (b) acquire a commercial PyMuPDF license from Artifex Software for the PDF-reader piece.
-- **Internal-only company use without distribution.** Generally fine. AGPL obligations are triggered by distribution / conveyance, not by internal use.
+For the full per-library license listing — including every direct dependency declared in `pyproject.toml`, grouped by license category, with upstream links — see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-peekdocs makes no representations about license compatibility in your downstream context — consult your own counsel for derivative-work questions. The other Python libraries peekdocs depends on (python-docx, openpyxl, python-pptx, ebooklib, striprtf, odfpy, rapidfuzz, pytesseract, Pillow, customtkinter, etc.) are all permissively licensed (MIT, BSD, Apache 2.0, or similar) and present no comparable compatibility tension.
+**Developers integrating peekdocs into derivative work should be aware that the dependency chain transitively carries AGPL / GPL / LGPL obligations.** Three common scenarios:
+
+- **Your derivative work is open-source under an AGPL-compatible license.** Straightforward — all licenses coexist.
+- **Your derivative work is closed-source or under a permissive license that's incompatible with AGPL** (MIT, BSD, Apache 2.0, etc.). You have three practical options: (a) accept that the combined work falls under AGPL terms, (b) acquire a commercial PyMuPDF license from Artifex Software for the PDF-reader piece *and* avoid the `.epub` reading code path entirely (since EbookLib has no commercial-license alternative), or (c) vendor or replace these libraries with permissively-licensed alternatives where your use case allows.
+- **Internal-only company use without distribution.** Generally fine. Copyleft obligations are triggered by distribution / conveyance, not by internal use.
+
+peekdocs makes no representations about license compatibility in your downstream context — consult your own counsel for derivative-work questions.
