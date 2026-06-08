@@ -223,19 +223,19 @@ Where Regex Collections run many *patterns* at once, Search Suites run many *com
      "Add a description" Write tab; wait for the upload to finish.
   3. Copy the user-attachments URL GitHub inserts (the
      "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of SEARCHSUITES_VIDEO_URL_HERE below —
-     the src= on the <video> tag and the href on the fallback <a> link.
+  4. Replace both occurrences of the URL below — the src= on the
+     <video> tag and the href on the fallback <a> link.
   5. Don't submit the issue — discard it. The URL stays live.
 -->
 
-<video src="SEARCHSUITES_VIDEO_URL_HERE"
+<video src="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff"
        controls
        poster="docs/images/screenshot-searchsuite-setup.png"
        width="720"
        muted
        playsinline>
   Your browser does not render embedded video.
-  <a href="SEARCHSUITES_VIDEO_URL_HERE">Download the demo (MP4)</a>.
+  <a href="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff">Download the demo (MP4)</a>.
 </video>
 
 *A walkthrough of the Code Hygiene suite running end-to-end: open Search Suites, run the five-search suite, view the combined report. No audio.*
