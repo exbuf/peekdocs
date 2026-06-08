@@ -12,6 +12,101 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.23] — 2026-06-08
+
+A licensing-track release. No code changes, no GUI fixes, no API
+changes — every commit between v1.0.22 and v1.0.23 was on the path
+toward making peekdocs's dependency-license picture accurate and
+visible to downstream consumers before any PyPI publication. The
+runtime behavior of peekdocs is byte-identical to v1.0.22.
+
+### Added
+
+- **`THIRD_PARTY_NOTICES.md` at the repo root.** Per-library license
+  listing of every direct dependency declared in `pyproject.toml`,
+  grouped by license category (permissive / choose-your-license /
+  LGPL / GPL / AGPL), with version constraints, upstream repository
+  URLs, and the `pip show` recipe to regenerate or audit the file
+  from a fresh install. The result of an actual `pip show` audit of
+  the installed venv rather than a guess — and the audit corrected
+  a wrong claim in the previous release's README addition (see
+  Changed below). Specifically names PyMuPDF (AGPL v3 OR commercial
+  from Artifex Software) and EbookLib (AGPL v3, no commercial-license
+  alternative) as the two strong-copyleft dependencies, extract-msg
+  (GPL) as the one strong-copyleft non-AGPL dependency, and py7zr /
+  fpdf2 / libpff-python as the weak-copyleft (LGPL) dependencies.
+  Eleven other deps confirmed permissive (MIT / BSD / Apache 2.0 /
+  ISC / CC0 / MIT-CMU).
+
+- **`NOTICE` file at the repo root.** Apache-convention sibling to
+  LICENSE. Five-line pointer file that explicitly names the
+  copyleft tiers (LGPL / GPL / AGPL) so a reader knows there's
+  substantive content to look up in `THIRD_PARTY_NOTICES.md` before
+  drilling. LICENSE itself stays as the standard MIT text — license-
+  scan tools (FOSSA / ScanCode / Snyk Licenses) look for the
+  verbatim MIT phrase boundaries to classify the project's primary
+  license, and modifying LICENSE would risk misclassification. NOTICE
+  catches the reviewer who only opens LICENSE; THIRD_PARTY_NOTICES.md
+  carries the detail.
+
+- **PEP 639 `license-files` wiring in `pyproject.toml`.** Three
+  changes to make sure the new licensing files actually ship inside
+  the wheel and surface on PyPI:
+  - `[build-system] requires` bumped from `setuptools>=68.0` to
+    `setuptools>=77.0` (the first release with native PEP 639
+    `license-files` support under `[project]`).
+  - `license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]`
+    added under `[project]`. Setuptools embeds all three at
+    `peekdocs-<version>.dist-info/licenses/` in the built wheel. PyPI
+    surfaces files in this location on the project page sidebar so a
+    license-compliance reviewer can find them without leaving
+    pypi.org.
+  - `"Third-Party Notices"` URL added under `[project.urls]` so the
+    per-library license listing is one click away from the PyPI
+    project page even for readers who never inspect the wheel.
+
+  Verified end-to-end by building a wheel locally
+  (`python -m build --wheel`) — `dist-info/licenses/` contains all
+  three files; `METADATA` shows `License-Expression: MIT` plus three
+  `License-File:` entries plus the new `Project-URL` entry.
+
+### Changed
+
+- **`README.md` `## License` section now includes a `### Note on
+  dependencies` subsection.** Up to v1.0.22 the README asserted
+  peekdocs's MIT licensing in seven places but said nothing about
+  its dependencies' licenses anywhere. The PyMuPDF AGPL chain
+  transitively constrains downstream developers who depend on
+  peekdocs's MIT-licensed code; the MIT badge alone was misleading
+  them by implication.
+
+  The first draft of this addition (commit 68d4cd2) made a mistake:
+  it claimed "the other Python libraries peekdocs depends on ... are
+  all permissively licensed (MIT, BSD, Apache 2.0, or similar) and
+  present no comparable compatibility tension." A `pip show` audit
+  of every declared dependency (which became
+  `THIRD_PARTY_NOTICES.md`) showed that claim was wrong — there are
+  actually six copyleft dependencies, including a second AGPL one
+  (EbookLib) the first draft missed entirely. Commit e801699
+  corrected the addition: it now names PyMuPDF, EbookLib (AGPL),
+  extract-msg (GPL), and the LGPL trio explicitly, points at
+  `THIRD_PARTY_NOTICES.md` for the full picture, and offers three
+  practical options for downstream developers integrating peekdocs
+  into work that isn't AGPL-compatible (accept AGPL terms, acquire
+  a commercial PyMuPDF license *and* avoid the `.epub` reading code
+  path, or vendor / replace these libraries).
+
+  Also adjusted the opening line of the License section from "This
+  project is licensed under the MIT License" to "peekdocs's own
+  source code is licensed under the MIT License" — slight but
+  important shift that foreshadows the dependency note and is more
+  accurate (the runtime composition isn't purely MIT; the source
+  written here is).
+
+  End-user impact stays explicitly called out as zero: AGPL governs
+  distribution and modification, not use. A user installing peekdocs
+  to search their own documents triggers no obligations.
+
 ## [1.0.22] — 2026-06-08
 
 Release driven by a set of related Search Suites GUI fixes (Matched
