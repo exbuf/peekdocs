@@ -1,0 +1,9 @@
+peekdocs
+Copyright (c) 2026 Robert D. Schoening
+
+This product includes software developed by third parties.
+See LICENSE for peekdocs's own license (MIT) and
+THIRD_PARTY_NOTICES.md for the per-library license listing,
+including copyleft (LGPL / GPL / AGPL) dependencies that
+downstream developers should be aware of when integrating
+peekdocs into derivative work.
