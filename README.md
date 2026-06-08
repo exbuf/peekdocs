@@ -188,7 +188,9 @@ peekdocs --suite "Code hygiene"
   <a href="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff">Download the demo (MP4)</a>.
 </video>
 
-*A walkthrough of the Code Hygiene suite running end-to-end: open Search Suites, run the five-search suite, view the combined report — the same workflow the labeled screenshots in section 4 below break down. No audio.*
+*A walkthrough of a "Code Hygiene" suite running end-to-end: open Search Suites, run the five-search suite, view the combined report — the same workflow the labeled screenshots in section 4 below break down. No audio.*
+
+*peekdocs ships no pre-built suites — "Code Hygiene" was assembled ad-hoc for this demo. You build your own suites from your saved searches (any number of them), then run them on demand from the GUI / CLI or unattended on a schedule via cron (Mac/Linux) or Task Scheduler (Windows). See Schedule Search further down for the schedule-setup flow.*
 
 #### 1. Same search, three interfaces — plus the report
 
