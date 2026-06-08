@@ -841,7 +841,7 @@ The index is updated automatically every time you create, rename, or delete a su
 *Shell loop (macOS/Linux):*
 
 ```
-for s in "monthly review" "quarterly review" "vendor audit"; do
+for s in "monthly review" "quarterly review" "release checklist"; do
   peekdocs --suite "$s" --timestamp
 done
 ```
@@ -849,7 +849,7 @@ done
 *Shell loop (Windows PowerShell):*
 
 ```
-foreach ($s in "monthly review","quarterly review","vendor audit") {
+foreach ($s in "monthly review","quarterly review","release checklist") {
   peekdocs --suite $s --timestamp
 }
 ```
@@ -1033,7 +1033,7 @@ The `if __name__ == "__main__":` guard is **required** on macOS and Windows — 
 | 99 | Files missing ALL required terms | `peekdocs --inverse -a confidential signature date` |
 | 100 | Inverse with regex pattern | `peekdocs --inverse -x "\d{3}-\d{2}-\d{4}"` |
 | 101 | Inverse with file type filter | `peekdocs --inverse -t pdf,docx "effective date"` |
-| 102 | Inverse recursive search | `peekdocs --inverse -r "retention policy"` |
+| 102 | Inverse recursive search | `peekdocs --inverse -r "license header"` |
 | 103 | Inverse with CSV output | `peekdocs --inverse -o csv "indemnification"` |
 | 104 | Inverse with JSON output | `peekdocs --inverse -o json "authorization"` |
 | | **Boolean Expression Search** | |
@@ -1111,7 +1111,7 @@ The `if __name__ == "__main__":` guard is **required** on macOS and Windows — 
 | 157 | Run collection with JSON to stdout | `peekdocs --regex-collection "Email Patterns" --stdout` |
 | 158 | Run collection on folder, recursive, JSON | `peekdocs --regex-collection "IP Addresses" -d /var/log -r --stdout` |
 | 159 | Pipe collection results to a file | `peekdocs --regex-collection "Dates" --stdout > results.json` |
-| 160 | Run collection in a scheduled task | `peekdocs --regex-collection "Audit Patterns" -d ~/reports -r --stdout >> /tmp/audit.json` |
+| 160 | Run collection in a scheduled task | `peekdocs --regex-collection "Code Patterns" -d ~/reports -r --stdout >> /tmp/scan.json` |
 | | **Installation Check** | |
 | 161 | Check installation health | `peekdocs --check` |
 | | **Version and Help** | |
@@ -3087,7 +3087,7 @@ This glossary focuses on terms users encounter while operating peekdocs — flag
 | **Command Prompt** | The Windows terminal application where you type commands. On macOS it's called Terminal |
 | **Context lines** | Extra lines shown before and/or after each match to give you surrounding context — helpful for understanding what the match is part of |
 | **cron** | A built-in Unix/Linux/macOS scheduler for running commands on a schedule. Windows equivalent: **Task Scheduler** (`schtasks`). peekdocs's CLI flags compose into cron / Task Scheduler jobs for unattended scans. See Tools → Schedule Search in the GUI for an OS-correct command generator |
-| **Deterministic** | Given the same inputs, peekdocs produces byte-identical outputs every time. Search algorithms (substring, regex, fuzzy, Boolean) are classical pattern-matching with well-defined behavior — no model inference, no sampling, no stochastic ranking. Result ordering is fixed (alphabetical by file path, then line number). Load-bearing for audit trails, `peekdocs --diff` workflows, and CI pipelines that depend on stable exit codes |
+| **Deterministic** | Given the same inputs, peekdocs produces byte-identical outputs every time. Search algorithms (substring, regex, fuzzy, Boolean) are classical pattern-matching with well-defined behavior — no model inference, no sampling, no stochastic ranking. Result ordering is fixed (alphabetical by file path, then line number). Load-bearing for reproducible-output workflows, `peekdocs --diff` workflows, and CI pipelines that depend on stable exit codes |
 | **Diff** | Comparison of two files or datasets — term from the Unix `diff` command. peekdocs's `--diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json` reports what's new, removed, changed, or modified between two scan snapshots — the scheduled-scan "what's new since last week?" question. See [Diff between runs](#diff-between-runs) |
 | **Direct search** | Searching by reading each file on the fly, without using a pre-built index. Slower for repeated searches but always up-to-date |
 | **Expression mode** | A search mode that lets you type Boolean expressions like `(budget OR revenue) AND NOT draft` directly in the search bar |

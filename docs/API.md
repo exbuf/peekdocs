@@ -28,7 +28,7 @@ def main():
     print(f"{len(result.matches)} matches")
 
     # Run a named search suite
-    suite = run_suite("Weekly Audit", directory="/path/to/docs")
+    suite = run_suite("Weekly Code Scan", directory="/path/to/docs")
     for sr in suite.search_results:
         print(f"  {sr.search_name}: {len(sr.matches)} matches")
 
@@ -296,7 +296,7 @@ Run saved search suites programmatically. Suites are groups of saved searches cr
 from peekdocs import list_suites
 
 suites = list_suites("/path/to/docs")
-print(suites)  # e.g. {'Weekly Audit': ['Find passwords', 'Find TODOs', 'Find drafts']}
+print(suites)  # e.g. {'Weekly Code Scan': ['Find passwords', 'Find TODOs', 'Find drafts']}
 ```
 
 ### Run a suite
@@ -306,7 +306,7 @@ from peekdocs import run_suite
 
 def main():
     result = run_suite(
-        "Weekly Audit",
+        "Weekly Code Scan",
         directory="/path/to/docs",
     )
 
@@ -335,7 +335,7 @@ def main():
             print(f"  [{i+1}/{total}] {name}")
 
     result = run_suite(
-        "Weekly Audit",
+        "Weekly Code Scan",
         directory="/path/to/docs",
         progress=on_progress,
     )
