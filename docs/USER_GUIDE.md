@@ -608,24 +608,13 @@ Regex is powerful but can look intimidating at first. See the table below for co
 
 #### Common Regex Search Patterns
 
-Below is a list of common regex patterns you can copy and paste into your search. Remember to enclose in quotes. The **Report translation** column shows how peekdocs describes each pattern in the plain-English report header (see [Command Translation](#command-translation) below).
+peekdocs intentionally doesn't ship a curated regex pattern library — external resources are kept more current than anything a single project could maintain. For common patterns and syntax reference:
 
-| Pattern | Matches | Example | Report translation |
-|---------|---------|---------|-------------------|
-| `\d{3}-\d{3}-\d{4}` | US phone numbers | 555-123-4567 | a US phone number |
-| `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}` | Email addresses | jane@example.com | an email address |
-| `\d{1,2}/\d{1,2}/\d{2,4}` | Dates (MM/DD/YYYY) | 03/17/2026 | a date |
-| `\d{4}-\d{2}-\d{2}` | Dates (YYYY-MM-DD) | 2026-03-17 | — |
-| `\$\d+(\.\d{2})?` | Dollar amounts | $45.99 | a dollar amount |
-| `\d{3}-\d{2}-\d{4}` | 9-digit ID with dashes | 123-45-6789 | — |
-| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP addresses | 192.168.1.1 | an IP address |
-| `https?://\S+` | URLs | https://example.com | a URL |
-| `\b[A-Z]{2,}\b` | Acronyms (all caps) | NASA, FBI | — |
-| `\b\d{5}(-\d{4})?\b` | US ZIP codes | 12345 or 12345-6789 | a US ZIP code |
-| `\(\d{3}\)\s?\d{3}-\d{4}` | Phone with area code parens | (555) 123-4567 | a phone number with area code |
-| `\b[A-Z][a-z]+\s[A-Z][a-z]+\b` | Proper names (two capitalized words) | John Smith | — |
-| `\b\d+%` | Percentages | 92% | a percentage |
-| `Q[1-4]\s?\d{4}` | Fiscal quarters | Q1 2026 | a fiscal quarter |
+- **[regex101.com](https://regex101.com)** — interactive tester with a community-curated pattern library
+- **[ihateregex.io](https://ihateregex.io)** — common patterns organized by category with explanations
+- **[developer.mozilla.org](https://developer.mozilla.org)** — regex syntax reference and cheatsheet
+
+You can also ask your favorite AI assistant — ChatGPT, Claude, or a fully-local model like Llama 3, Mistral, or Gemma running via [Ollama](https://ollama.com), [llama.cpp](https://github.com/ggml-org/llama.cpp), or [LM Studio](https://lmstudio.ai) — to generate a regex for what you're looking for. *"Give me a regex for finding IPv4 addresses"* returns a working pattern in seconds. Test the result against your actual data before relying on it for important searches; regex looks correct more often than it actually is, and a one-character difference (`\d{4}` vs `\d{4,}`) silently changes what's matched.
 
 ## Flag Use Summary
 
@@ -1184,7 +1173,7 @@ With the `-o` flag, additional output files are created:
 
 ### Command Translation
 
-Every report includes a **Translation** line that explains the search command in plain English. Regex patterns are automatically recognized and described by their meaning — not their individual characters. See the **Report translation** column in the [Common Regex Search Patterns](#common-regex-search-patterns) table above for the full list of recognized patterns.
+Every report includes a **Translation** line that explains the search command in plain English. peekdocs auto-recognizes many common regex patterns and describes them by their meaning rather than by their individual characters — e.g., a URL-shaped pattern becomes "a URL" in the report header. The recognized patterns are a fixed internal list maintained by peekdocs; user-supplied regex that doesn't match the list is reported as the literal pattern.
 
 Example report header:
 ```
