@@ -156,7 +156,7 @@ BANNER_BOTTOM = (
     '  peekdocs term1 term2           OR search (any term matches)\n'
     '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
     '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
-    '  peekdocs -x "\\bREF-\\d{4,}\\b"   Regex pattern matching (patterns: regex101.com, cheatsheet: developer.mozilla.org)\n'
+    '  peekdocs -x "\\bREF-\\d{4,}\\b"   Regex pattern matching\n'
     '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
     '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
     '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
@@ -190,6 +190,11 @@ BANNER_BOTTOM = (
     '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
     '  Cannot combine: -e (expression) with -a (AND), -n (exclude), or -p (proximity).\n'
     '\n'
+    '── Regex (external resources) ────────────────────────────────────\n'
+    '  regex101.com           — interactive tester + community pattern library\n'
+    '  ihateregex.io          — common patterns with explanations\n'
+    '  developer.mozilla.org  — regex syntax reference / cheatsheet\n'
+    '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_*_results* files\n'
@@ -215,7 +220,7 @@ BANNER_QUICK = (
     '  peekdocs term1 term2           OR search (any term matches)\n'
     '  peekdocs -a term1 term2        AND search (all terms required in same line)\n'
     '  peekdocs -e "(A AND B) OR C"   Boolean expression with AND, OR, NOT, parens\n'
-    '  peekdocs -x "\\bREF-\\d{4,}\\b"   Regex pattern matching (patterns: regex101.com, cheatsheet: developer.mozilla.org)\n'
+    '  peekdocs -x "\\bREF-\\d{4,}\\b"   Regex pattern matching\n'
     '  peekdocs -w "budg*"            Wildcard (* = any chars, ? = one char)\n'
     '  peekdocs -z budgt              Fuzzy matching (typo-tolerant)\n'
     '  peekdocs -W bob                Whole-word only (not "bobcat")\n'
@@ -252,6 +257,11 @@ BANNER_QUICK = (
     '  Cannot combine: -x (regex), -z (fuzzy), -w (wildcard) — pick one.\n'
     '  Cannot combine: -e (expression) with -a (AND), -n (exclude), or -p (proximity).\n'
     '\n'
+    '── Regex (external resources) ────────────────────────────────────\n'
+    '  regex101.com           — interactive tester + community pattern library\n'
+    '  ihateregex.io          — common patterns with explanations\n'
+    '  developer.mozilla.org  — regex syntax reference / cheatsheet\n'
+    '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_*_results* files\n'
@@ -260,26 +270,8 @@ BANNER_QUICK = (
     '\n'
     'Exit codes: 0 = matches found, 1 = no matches, 2 = error.\n'
     '\n'
-    'Type peekdocs -h for full help (all flags, file types, regex patterns).\n'
+    'Type peekdocs -h for full help (all flags, file types, examples).\n'
 )
-
-REGEX_PATTERNS = (
-    '\nCommon Regex Search Patterns (enclose in quotes):\n'
-    '  \\d{3}-\\d{3}-\\d{4}                              US phone numbers (555-123-4567)\n'
-    '  [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}    Email addresses (jane@example.com)\n'
-    '  \\d{4}-\\d{2}-\\d{2}                              Dates, YYYY-MM-DD (2026-03-17)\n'
-    '  \\$\\d+(\\.\\d{2})?                                 Dollar amounts ($45.99)\n'
-    '  \\d{3}-\\d{2}-\\d{4}                              9-digit ID with dashes (123-45-6789)\n'
-    '  \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}              IP addresses (192.168.1.1)\n'
-    '  https?://\\S+                                    URLs (https://example.com)\n'
-    '  \\b[A-Z]{2,}\\b                                   Acronyms, all caps (NASA, FBI)\n'
-    '  \\b\\d{5}(-\\d{4})?\\b                              US ZIP codes (12345 or 12345-6789)\n'
-    '  \\(\\d{3}\\)\\s?\\d{3}-\\d{4}                         Phone with area code parens ((555) 123-4567)\n'
-    '  \\b[A-Z][a-z]+\\s[A-Z][a-z]+\\b                    Proper names (John Smith)\n'
-    '  \\b\\d+%                                          Percentages (92%)\n'
-    '  Q[1-4]\\s?\\d{4}                                  Fiscal quarters (Q1 2026)\n'
-)
-
 
 CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
@@ -867,8 +859,6 @@ def _main_inner(argv=None):
         print('Readme documentation: https://github.com/exbuf/peekdocs/blob/main/README.md')
         print(BANNER_TOP)
         print(BANNER_BOTTOM)
-        print('-------------------------------------------------------------------------')
-        print(REGEX_PATTERNS)
         print()
         print('Type peekdocs for a quick command reference.')
         return 0
