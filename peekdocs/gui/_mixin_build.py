@@ -1148,8 +1148,10 @@ class BuildMixin:
         import tkinter as tk
         preview_header = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         preview_header.pack(fill="x", padx=5, pady=(5, 0))
-        ctk.CTkLabel(preview_header, text="Results Preview:",
-                     font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
+        _preview_label = ctk.CTkLabel(preview_header, text="Results Preview:",
+                                      font=ctk.CTkFont(size=12, weight="bold"))
+        _preview_label.pack(side="left")
+        Tooltip(_preview_label, "Live preview of search matches — capped at the first 500 lines so the GUI stays responsive on searches that return tens of thousands of matches. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit)")
         self._preview_count_label = ctk.CTkLabel(
             preview_header, text="", font=ctk.CTkFont(size=12),
             text_color=("gray50", "gray50"))
