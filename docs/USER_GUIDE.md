@@ -608,7 +608,11 @@ Regex is powerful but can look intimidating at first. See the table below for co
 
 #### Common Regex Search Patterns
 
-peekdocs intentionally doesn't ship a curated regex pattern library — external resources are kept more current than anything a single project could maintain. For common patterns and syntax reference:
+The first time you open **Regex Search** in the GUI (Tools menu → Regex Search), peekdocs seeds an **"Examples"** collection into `~/.peekdocs_regex_collections.json` with ~17 truly universal patterns — email, URL, IPv4 / IPv6, ISO date and time, UUID, semantic version, hex color, Markdown link, TODO / FIXME, JIRA-style ticket IDs, ISBN-13, DOI, USD amounts, and environment variable references. The collection sits alongside any collections you build yourself; you can run it, modify individual patterns, copy it as the starting point for your own collections, or delete it entirely.
+
+The Examples collection is also runnable from the CLI: `peekdocs --regex-collection Examples`.
+
+The Examples list is intentionally small. Region-coded patterns (US phone numbers, US ZIP codes, fiscal quarters) and audience-coded categories (Healthcare, Legal, Finance) are deliberately excluded — they're either trivially region-rewritten in 30 seconds or open compliance / audience-coding doors peekdocs doesn't want to walk through. For everything beyond the universal core, three external resources stay more current than anything a single project could maintain:
 
 - **[regex101.com](https://regex101.com)** — interactive tester with a community-curated pattern library
 - **[ihateregex.io](https://ihateregex.io)** — common patterns organized by category with explanations

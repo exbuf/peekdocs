@@ -6957,6 +6957,18 @@ class ToolsMixin:
         # Save/Restore collection buttons
         _collections_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
 
+        # Seed the "Examples" collection on first ever Regex Search open.
+        # No-op if the user already has any collections (including ones
+        # they've deleted Examples from) — peekdocs writes once, then the
+        # collections file is the user's data. See peekdocs/regex_examples.py
+        # for the pattern list and the design notes behind why it's flat
+        # rather than audience-categorized.
+        try:
+            from peekdocs.regex_examples import seed_examples_if_missing
+            seed_examples_if_missing(_collections_path)
+        except Exception:
+            pass  # If seeding fails, the popup still works with empty state
+
         def _save_collection():
             import json as _json_rc
             from peekdocs.gui._helpers import themed_ask_string
