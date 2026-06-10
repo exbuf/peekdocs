@@ -3727,6 +3727,38 @@ class ToolsMixin:
         e("  Repeat the same set of searches later   Search Suites")
         e("  Combine results into one report         Search Suites")
         blank()
+        s("Why the different result surfaces?")
+        b("Search Suites populate the main page's Results Preview pane,")
+        b("Matched Files link, and count label. Regex Search shows its")
+        b("results in a separate popup window. Three reasons:")
+        blank()
+        b("1. Engine reuse. A suite is a sequence of standard searches —")
+        b("   every saved search in the suite goes through the same")
+        b("   standard-search pipeline the green Run Standard Search")
+        b("   button uses. That pipeline already wires its output to the")
+        b("   main page, so the suite inherits the preview pane, the")
+        b("   Matched Files link, and the count label for free. Regex")
+        b("   Search calls the in-process API directly per pattern and")
+        b("   never goes through the standard-search code path, so the")
+        b("   main-page wiring would have to be re-plumbed by hand.")
+        blank()
+        b("2. Shape of the result. Regex Search wants to show per-")
+        b("   pattern hit counts side by side (\"Pattern A: 17 hits in")
+        b("   4 files\", \"Pattern B: 42 hits in 11 files\", …) with a")
+        b("   View Files / View Text button on each row. That card-")
+        b("   per-pattern layout doesn't fit the main page's single")
+        b("   linear preview stream. A suite, by contrast, produces a")
+        b("   single combined match list that maps naturally onto the")
+        b("   preview pane.")
+        blank()
+        b("3. Screen-only mode. Regex Search has a 'Do not save regex")
+        b("   match contents to reports' checkbox for sensitive scans.")
+        b("   A popup that disappears on Close is the natural surface")
+        b("   for that — putting sensitive matches into the persistent")
+        b("   main-page preview defeats the privacy intent. Search")
+        b("   Suites have no equivalent screen-only mode, so there's no")
+        b("   privacy reason to keep their output off the main page.")
+        blank()
 
         h("SAVING AND LOADING SEARCHES")
         b("Save Search saves your current search terms AND all settings in")
@@ -5311,6 +5343,184 @@ class ToolsMixin:
         _btn_run.pack()
         Tooltip(_btn_run, "Run all searches in this suite — results are combined into a single highlighted report")
 
+        def _run_multiple_suites():
+            """Pick two or more saved suites and run all their searches
+            together. The combined run reuses the existing suite-run
+            pipeline (_run_suite_searches) so the report formatting,
+            cancel button, status updates, and Open Report buttons all
+            behave identically to a single-suite run — there's just
+            more sections in the combined report. Search names that
+            appear in multiple picked suites run only once (dedup by
+            saved-search name); the display label in the combined
+            report records every source suite.
+            """
+            _data_mc = load_collection(folder)
+            _suites_mc = _data_mc.get("suites", {}) or {}
+            if not _suites_mc:
+                self._show_error(
+                    "No saved suites found.\n\n"
+                    "Use Create New (above) to make a suite, then add "
+                    "saved searches to it."
+                )
+                return
+
+            ms_win, _ = self._themed_toplevel(win)
+            ms_win.title("Run Multiple Search Suites")
+            ms_win.geometry("440x460")
+            ms_win.transient(win)
+            self.update_idletasks()
+            _msx = win.winfo_rootx() + (win.winfo_width() - 440) // 2
+            _msy = win.winfo_rooty() + (win.winfo_height() - 460) // 2
+            ms_win.geometry(f"+{_msx}+{_msy}")
+            ms_win.update_idletasks()
+            try:
+                ms_win.wait_visibility()
+            except tk.TclError:
+                pass
+            try:
+                ms_win.grab_set()
+            except tk.TclError:
+                pass
+
+            tk.Label(
+                ms_win,
+                text="Select two or more suites to run together. The "
+                     "saved searches from each are combined into one "
+                     "run (output formats are taken from the Suites "
+                     "popup). Searches present in more than one suite "
+                     "run only once.",
+                font=("TkDefaultFont", 11),
+                wraplength=410, justify="left", anchor="w",
+            ).pack(fill="x", padx=15, pady=(12, 8))
+
+            # Scrollable list — long suite lists shouldn't push the
+            # Run / Cancel buttons off the bottom of the popup.
+            _list_frame = tk.Frame(ms_win)
+            _list_frame.pack(fill="both", expand=True, padx=15, pady=(0, 8))
+            _list_canvas = tk.Canvas(_list_frame, highlightthickness=0)
+            _list_scroll = tk.Scrollbar(_list_frame, orient="vertical", command=_list_canvas.yview)
+            _list_inner = tk.Frame(_list_canvas)
+            _list_inner.bind(
+                "<Configure>",
+                lambda e: _list_canvas.configure(scrollregion=_list_canvas.bbox("all")),
+            )
+            _list_cw_id = _list_canvas.create_window((0, 0), window=_list_inner, anchor="nw")
+            _list_canvas.bind(
+                "<Configure>",
+                lambda e: _list_canvas.itemconfig(_list_cw_id, width=e.width),
+            )
+            _list_canvas.configure(yscrollcommand=_list_scroll.set)
+            _list_scroll.pack(side="right", fill="y")
+            _list_canvas.pack(side="left", fill="both", expand=True)
+
+            _ms_check_vars = {}
+            for _sname in sorted(_suites_mc.keys()):
+                _v = tk.BooleanVar(value=False)
+                _ms_check_vars[_sname] = _v
+                _n = len(_suites_mc[_sname])
+                tk.Checkbutton(
+                    _list_inner, variable=_v,
+                    text=f"{_sname}  ({_n} search{'es' if _n != 1 else ''})",
+                    font=("TkDefaultFont", 11), anchor="w",
+                ).pack(fill="x", anchor="w", padx=4, pady=1)
+
+            def _do_run_multi_suites():
+                _picked = [n for n, v in _ms_check_vars.items() if v.get()]
+                if len(_picked) < 2:
+                    self._show_error(
+                        "Select at least two suites.\n\n"
+                        "To run a single suite, pick it in the list "
+                        "above and click Run Search Suite."
+                    )
+                    return
+                # Combine search names, deduping. Order: walk suites
+                # in pick order; within each suite walk searches in
+                # their saved order. Skip names we've already added.
+                _combined = []
+                _seen = set()
+                _per_suite = {}
+                for _sname in _picked:
+                    _per_suite[_sname] = []
+                    for _search in _suites_mc.get(_sname, []):
+                        _per_suite[_sname].append(_search)
+                        if _search not in _seen:
+                            _seen.add(_search)
+                            _combined.append(_search)
+                # Validate every search exists as a saved search.
+                _saved = _data_mc.get("saved_searches", {}) or {}
+                _missing = [s for s in _combined if s not in _saved]
+                if _missing:
+                    self._show_error(
+                        "Missing saved search(es): "
+                        + ", ".join(_missing)
+                        + "\n\nOpen each affected suite and remove "
+                        "the missing search, or re-create the saved "
+                        "search."
+                    )
+                    return
+                if not _combined:
+                    self._show_error(
+                        "The selected suites have no searches.\n\n"
+                        "Add saved searches to them first."
+                    )
+                    return
+                _formats = {
+                    "html": _suite_html_var.get(),
+                    "csv": _suite_csv_var.get(),
+                    "json": _suite_json_var.get(),
+                    "pdf": _suite_pdf_var.get(),
+                }
+                # Friendly suite-name label for the status line and
+                # the combined report header. Listing every suite gets
+                # unwieldy past three.
+                if len(_picked) <= 3:
+                    _label = " + ".join(_picked)
+                else:
+                    _label = f"{len(_picked)} suites"
+                ms_win.destroy()
+                win.destroy()
+                self._run_suite_searches(
+                    _label, _combined, folder, suite_formats=_formats,
+                    show_completion_popup=True,
+                )
+
+            _ms_btns = tk.Frame(ms_win)
+            _ms_btns.pack(pady=(0, 12))
+            ctk.CTkButton(
+                _ms_btns, text="Run Selected", width=130,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
+                command=_do_run_multi_suites,
+            ).pack(side="left", padx=5)
+            ctk.CTkButton(
+                _ms_btns, text="Cancel", width=90,
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=ms_win.destroy,
+            ).pack(side="left", padx=5)
+
+            self._apply_dark_theme(ms_win)
+
+        # Run Multiple Search Suites button — own row, just above Close.
+        # Mirrors the Regex Search popup's Run Multiple Collections
+        # placement so users find the same pattern in both surfaces.
+        _multi_suite_frame = tk.Frame(win)
+        _multi_suite_frame.pack(pady=(4, 0))
+        _multi_suite_btn = ctk.CTkButton(
+            _multi_suite_frame, text="Run Multiple Search Suites…",
+            width=220, font=ctk.CTkFont(size=11),
+            command=_run_multiple_suites,
+        )
+        _multi_suite_btn.pack()
+        Tooltip(
+            _multi_suite_btn,
+            "Pick two or more saved suites and run all their searches "
+            "together. Output formats and search folder are taken from "
+            "this popup. Searches that appear in more than one of the "
+            "picked suites run only once.",
+        )
+
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 10))
         ctk.CTkButton(
@@ -5333,8 +5543,16 @@ class ToolsMixin:
         win.geometry(f"880x640+{x}+{y}")
         win.deiconify()
 
-    def _run_suite_searches(self, suite_name, search_names, folder, suite_formats=None):
-        """Execute all searches in a suite sequentially using subprocess."""
+    def _run_suite_searches(self, suite_name, search_names, folder, suite_formats=None, show_completion_popup=False):
+        """Execute all searches in a suite sequentially using subprocess.
+
+        ``show_completion_popup`` is set by the Run Multiple Search Suites
+        path so the user gets a clearly-labeled "reports written" popup
+        with Open TXT / Open DOCX / Open Folder buttons at the end of the
+        run. Single-suite runs leave it False — they rely on the existing
+        main-page report-button row, which is unambiguous for that flow
+        because there's only one search type involved.
+        """
         import threading
         import subprocess as _sp
         from peekdocs.collection import get_search_params
@@ -5600,12 +5818,20 @@ class ToolsMixin:
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
             extra_paths = {"html": html_path, "csv": csv_path, "json": json_path, "pdf": pdf_path}
-            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path, extra_paths))
+            self.after(0, lambda: self._suite_finished(suite_name, sections, total_matches, txt_path, docx_path, total_elapsed, folder, html_path, extra_paths, show_completion_popup=show_completion_popup))
 
         threading.Thread(target=_run, daemon=True).start()
 
-    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder="", html_path="", extra_paths=None):
-        """Handle suite completion — show results summary and report buttons."""
+    def _suite_finished(self, suite_name, sections, total_matches, txt_path, docx_path, total_elapsed=0, folder="", html_path="", extra_paths=None, show_completion_popup=False):
+        """Handle suite completion — show results summary and report buttons.
+
+        ``show_completion_popup`` triggers a small modal at the end of
+        the run with Open TXT / Open DOCX / Open Folder buttons and the
+        resolved report paths — used by Run Multiple Search Suites to
+        make it unambiguous that the main-page report buttons now point
+        at the just-finished combined suite run (vs leftover from a
+        previous standard search).
+        """
         self._suite_elapsed_active = False
         self.search_start_time = None
         try:
@@ -5835,6 +6061,83 @@ class ToolsMixin:
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
 
+        # Optional completion popup — used by Run Multiple Search
+        # Suites so the user gets an unambiguous "the reports you
+        # just generated are here" affirmation, separate from the
+        # main-page Step 4 buttons (which look identical regardless
+        # of whether the previous search was Standard or Suite).
+        if show_completion_popup:
+            self._show_suite_completion_popup(
+                suite_name, total_matches, total_elapsed,
+                folder, txt_path, docx_path, extra_paths or {},
+            )
+
+    def _show_suite_completion_popup(self, suite_name, total_matches, elapsed, folder, txt_path, docx_path, extra_paths):
+        """Small modal shown after a multi-suite run with Open TXT /
+        Open DOCX / Open Folder buttons. Parallel to the Regex Search
+        results popup so the two batch-run workflows present the same
+        post-run UI."""
+        import tkinter as tk
+        pop, _dark = self._themed_toplevel()
+        pop.title(f"Suite Reports — {suite_name}")
+        pop.resizable(True, False)
+        self._center_popup_on_main(pop, 640, 360)
+
+        tk.Label(
+            pop, text=f"Run complete: {suite_name}",
+            font=("TkDefaultFont", 14, "bold"),
+        ).pack(pady=(12, 4), padx=15)
+        tk.Label(
+            pop,
+            text=f"{total_matches} match(es) in {elapsed:.1f}s",
+            font=("TkDefaultFont", 12),
+        ).pack(pady=(0, 8), padx=15)
+
+        report_lines = ["Reports saved to:"]
+        report_lines.append(f"  {txt_path}")
+        report_lines.append(f"  {docx_path}")
+        for fmt, path in (extra_paths or {}).items():
+            if path:
+                report_lines.append(f"  {path}")
+        tk.Label(
+            pop, text="\n".join(report_lines),
+            font=("TkDefaultFont", 10), fg="gray",
+            justify="left", anchor="w", wraplength=600,
+        ).pack(fill="x", padx=15, pady=(0, 8))
+
+        def _open_helper(path):
+            try:
+                from peekdocs.gui._helpers import safe_open_file
+                w = safe_open_file(path)
+                if w:
+                    self._show_error(w)
+            except Exception as exc:
+                self._show_error(f"Could not open {path}:\n{exc}")
+
+        btn_row = tk.Frame(pop)
+        btn_row.pack(pady=(4, 8))
+        ctk.CTkButton(
+            btn_row, text="Open TXT", width=110, font=ctk.CTkFont(size=12),
+            command=lambda p=txt_path: _open_helper(p),
+        ).pack(side="left", padx=5)
+        ctk.CTkButton(
+            btn_row, text="Open DOCX", width=110, font=ctk.CTkFont(size=12),
+            command=lambda p=docx_path: _open_helper(p),
+        ).pack(side="left", padx=5)
+        ctk.CTkButton(
+            btn_row, text="Open Folder", width=120, font=ctk.CTkFont(size=12),
+            command=lambda p=folder: _open_helper(p),
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            pop, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=pop.destroy,
+        ).pack(pady=(0, 12))
+
+        self._apply_dark_theme(pop)
+
     def _show_search_modes_compare(self):
         """Show a short side-by-side comparison of the three search modes."""
         import tkinter as tk
@@ -6008,6 +6311,34 @@ class ToolsMixin:
         n("also check HTML, CSV, JSON, or PDF in the suite popup to get")
         n("additional output formats. These checkboxes are independent")
         n("from the ones in Advanced Search Options.\n")
+
+        b("Run Multiple Search Suites")
+        n("The Run Multiple Search Suites… button on its own row, just")
+        n("above Close, lets you run two or more saved suites in one go.")
+        n("Click it to open a checkbox picker over every saved suite in the")
+        n("current folder (each line shows the suite's search count). Check")
+        n("two or more, click Run Selected, and every saved search across")
+        n("the picked suites runs in sequence:\n")
+        n("• Saved-search names that appear in more than one of the")
+        n("  picked suites run only once (dedup by name; duplicates don't")
+        n("  re-run).")
+        n("• The status line and combined report header show the label")
+        n("  \"Suite A + Suite B\" when three or fewer suites are picked,")
+        n("  or \"N suites\" otherwise.")
+        n("• Output format checkboxes (HTML/CSV/JSON/PDF) and the search")
+        n("  folder are taken from the parent Search Suites popup.")
+        n("• When the run finishes, a small popup confirms the combined")
+        n("  reports are written and offers Open TXT / Open DOCX / Open")
+        n("  Folder buttons. That's the unambiguous way to open the")
+        n("  just-generated reports — separate from the main-page")
+        n("  Step 4 buttons, which look identical regardless of which")
+        n("  search produced them.\n")
+        n("CLI parity: to fan out a single suite across several folders,")
+        n("use a shell loop with `peekdocs --suite \"$s\"`. The GUI")
+        n("multi-run is the only path that fuses several suites into one")
+        n("combined report — from the CLI, run each suite separately and")
+        n("aggregate the reports yourself, or use the Python API")
+        n("(`run_suite`) and merge `SuiteResult` objects.\n")
 
         b("Use Cases")
         n("\u2022 Pre-publication checklist \u2014 search for outdated terms, placeholder")
@@ -7898,6 +8229,20 @@ class ToolsMixin:
         Run was clicked. It's surfaced in the results popup title and a
         header label so the user can tell which saved collection produced
         the result set — useful when they have several similar collections.
+
+        Why a popup instead of the main page's Results Preview pane (the
+        path Search Suites use)? Three reasons, documented in
+        docs/USER_GUIDE.md → "Standard / Suite results land in the
+        Preview pane; Regex Search results land in a popup":
+          1. Engine reuse — suites delegate to the standard-search
+             pipeline that's already wired to the main page; Regex
+             Search calls the in-process API directly per pattern and
+             would have to re-plumb that wiring by hand.
+          2. Shape — per-pattern cards with "View Files / View Text"
+             buttons don't fit the single linear preview stream.
+          3. Screen-only mode — sensitive runs shouldn't leak into the
+             persistent main-page preview; a popup that disappears on
+             Close is the natural surface.
         """
         import tkinter as tk
 
