@@ -8463,6 +8463,21 @@ class ToolsMixin:
 
             if not screen_only and all_matches:
                 self.results_dir = folder
+                # Repoint the main-page Step 4 report buttons at the just-
+                # written regex reports, mirroring what Suite runs do at
+                # _suite_finished. Without this, after a regex run the
+                # main-page DOCX / TXT / CSV / JSON / PDF / HTML buttons
+                # still open peekdocs_standard_results.* from whenever
+                # the user's last standard search was — silently stale
+                # and actively misleading. Regex Search writes only TXT
+                # and DOCX, so the CSV / JSON / PDF / HTML buttons will
+                # flip red (no file); the Advanced Search Options output-
+                # format checkboxes do NOT apply to Regex Search, which
+                # is called out in the Getting Started step 4 disclaimer
+                # and in the format-checkbox tooltips.
+                self._report_file_prefix = "peekdocs_regex_results"
+                self._last_ts_suffix = ""
+                self._show_action_buttons()
 
             # Show results popup
             popup, _dark = self._themed_toplevel()
