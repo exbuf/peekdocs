@@ -5370,7 +5370,11 @@ class ToolsMixin:
             ms_win.transient(win)
             self.update_idletasks()
             _msx = win.winfo_rootx() + (win.winfo_width() - 440) // 2
-            _msy = win.winfo_rooty() + (win.winfo_height() - 460) // 2
+            # Anchor the picker's bottom to the parent popup's bottom so
+            # it overlays the Run Search Suite button below — keeps the
+            # user from misclicking the parent's Run while the picker is
+            # open, and visually confirms "this is the active picker now."
+            _msy = win.winfo_rooty() + win.winfo_height() - 460
             ms_win.geometry(f"+{_msx}+{_msy}")
             ms_win.update_idletasks()
             try:
@@ -7720,7 +7724,11 @@ class ToolsMixin:
             mc_win.transient(win)
             self.update_idletasks()
             _mx = win.winfo_rootx() + (win.winfo_width() - 420) // 2
-            _my = win.winfo_rooty() + (win.winfo_height() - 460) // 2
+            # Anchor the picker's bottom to the parent popup's bottom so
+            # it overlays the Run Regex Search button below — keeps the
+            # user from misclicking the parent's Run while the picker is
+            # open, and visually confirms "this is the active picker now."
+            _my = win.winfo_rooty() + win.winfo_height() - 460
             mc_win.geometry(f"+{_mx}+{_my}")
             mc_win.update_idletasks()
             try:
