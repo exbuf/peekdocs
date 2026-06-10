@@ -7478,16 +7478,24 @@ class ToolsMixin:
                         f"with {len(enabled_rows)} pattern(s)."
                     )
 
-            # CTkEntry doesn't fire <KeyRelease> the way tk.Entry does;
-            # bind on the underlying tk widget the CTk wrapper exposes.
-            # Typing also clears the "came-from-listbox-click" flag so
-            # the user can override an Add intent into Overwrite simply
-            # by editing the entry.
-            def _on_name_keyrelease(*_):
+            # Reset the "came-from-listbox-click" flag whenever the user
+            # edits the entry, so a list-pick followed by typing reverts
+            # the action to OVERWRITE. <KeyRelease> covers typed input;
+            # <<Paste>> and <<Cut>> cover the Cmd-V/Ctrl-V/context-menu
+            # paths that don't always emit a KeyRelease the binding can
+            # see. The paste/cut virtual events fire BEFORE the entry's
+            # buffer is updated, so we defer through after_idle to make
+            # sure _refresh_status reads the post-edit text.
+            def _on_name_change(*_):
                 _from_list_pick[0] = False
                 _refresh_status()
+
+            def _on_paste_or_cut(*_):
+                save_win.after_idle(_on_name_change)
             try:
-                name_entry.bind("<KeyRelease>", _on_name_keyrelease)
+                name_entry.bind("<KeyRelease>", _on_name_change)
+                name_entry.bind("<<Paste>>", _on_paste_or_cut)
+                name_entry.bind("<<Cut>>", _on_paste_or_cut)
             except Exception:
                 pass
 
@@ -8287,6 +8295,13 @@ class ToolsMixin:
             # search_terms list, silently dropping all yellow highlights.
             _seen_match_keys = set()
             files_searched = 0
+            # Collect the actual file paths each pattern scanned (union
+            # across patterns — for a single folder all api_search calls
+            # walk the same set, but a set-union is the defensive form
+            # if that ever changes). Needed by write_txt_report so the
+            # "Files searched ==> N (size)" line in the report shows
+            # the real count and total bytes instead of 0 (0 bytes).
+            _files_searched_set = set()
             total_patterns = len(active_patterns)
 
             def _respect_case_intent(rx):
@@ -8325,6 +8340,7 @@ class ToolsMixin:
                         use_index=False,
                     )
                     files_searched = max(files_searched, len(result.files_searched))
+                    _files_searched_set.update(result.files_searched)
                     file_matches = {}
                     for match in result.matches:
                         key = match.filename
@@ -8361,8 +8377,17 @@ class ToolsMixin:
 
             # Group the deduped matches by file, then by line, so the
             # report reads naturally instead of being interleaved in
-            # pattern-iteration order.
-            all_matches.sort(key=lambda m: (m[0], m[1], m[2]))
+            # pattern-iteration order. Sort by filename first (case-
+            # insensitive), then by folder, then by line_num — this
+            # matches what users mean by "alphabetical by document":
+            # apple.txt comes before banana.txt whether or not they
+            # live in the same folder. Sorting by full path first
+            # would cluster files by directory and then jump back to
+            # earlier letters when a sibling directory starts; the
+            # filename-first key produces one straight A-to-Z pass.
+            all_matches.sort(key=lambda m: (
+                m[1].lower(), m[0].lower(), m[2],
+            ))
 
             elapsed = time.time() - start
 
@@ -8388,7 +8413,9 @@ class ToolsMixin:
                     output_path = os.path.join(folder, "peekdocs_regex_results.txt")
                     docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
                     write_txt_report(
-                        output_path, all_matches, [], search_terms, command_str,
+                        output_path, all_matches,
+                        sorted(_files_searched_set),
+                        search_terms, command_str,
                         "ANY", False, [], False, False, True, False,
                         elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
                         recursive=recursive, use_index=False,
