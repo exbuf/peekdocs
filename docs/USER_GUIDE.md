@@ -571,7 +571,7 @@ peekdocs is built for the mixed-format reality of most document folders — PDFs
 - **Highlighted reports** — `.docx`, `.pdf`, and `.html` with matches highlighted in yellow, plus `.csv` / `.json` structured exports for downstream tooling
 - **Search modes beyond plain matching** — Boolean expressions (`-e "A AND (B OR C)"`), fuzzy matching (`-z`), regex (`-x`), wildcards (`-w`), word and line proximity (`-p`, `-P`), range queries on amounts, dates, and file sizes (`-R`), and inverse search for files missing required content (`--inverse`)
 - **Saved searches and suites** — name a search, group related searches into a suite, run the whole suite with one command
-- **Regex collections** — batch-run up to 10 named patterns at once with per-pattern reporting (`--regex-collection`)
+- **Regex collections** — batch-run a saved collection of named patterns with per-pattern reporting (`--regex-collection`). Collections are unbounded in size; the GUI popup edits up to 10 at a time, and the **Run Multiple Collections…** picker (GUI) and `--regex-collection` (CLI) read all patterns straight off disk
 - **Search index** — SQLite FTS5 with auto-refresh for repeated searches over large collections (`--index`)
 - **GUI** — point-and-click interface including a 20-form Search Wizard for users who prefer point-and-click
 - **Identical behavior on macOS, Windows, and Linux**
@@ -748,7 +748,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 
 ### Regex Collection Use Cases
 
-The `--regex-collection` flag lets you run saved regex collections from the command line. Collections are created in the GUI (Regex Search → Save Collection As) and can contain up to 10 regex patterns each. Here are some practical scenarios:
+The `--regex-collection` flag lets you run saved regex collections from the command line. Collections are created in the GUI (Regex Search → Save Collection As). The GUI popup edits up to 10 patterns at a time, but collections on disk are unbounded — grow one by clicking an existing entry in the Save popup's list (ADD mode), seed Examples (17 patterns), or maintain larger sets by hand-editing `~/.peekdocs_regex_collections.json`. `--regex-collection` runs every pattern in the named collection, no row cap. Here are some practical scenarios:
 
 **Code patterns** — Create a collection with patterns for TODO/FIXME comments (`(TODO|FIXME|HACK|XXX)\b`), deprecated function calls, and debug print statements. Run it against your source code to catch loose ends:
 
@@ -776,6 +776,8 @@ peekdocs --regex-collection "financial" -d ~/Documents/invoices
 ```
 
 **Running several collections in one pass** — `--regex-collection` takes one collection at a time. To run several in sequence (e.g., for IT scans or daily sweeps), use a shell loop or the Python API. Add `--timestamp` so each run produces uniquely named reports (`peekdocs_regex_results_YYYYMMDD_HHMMSS.txt`/`.docx`) instead of overwriting the previous run.
+
+In the GUI, the same fan-out is one click: the **Run Multiple Collections…** button at the bottom of the Regex Search popup opens a picker with a checkbox per saved collection. Check two or more, click **Run Selected**, and patterns from all picked collections are merged into a single search against the folder set in the popup. The 10-row visible cap doesn't apply — patterns are pulled straight off disk — and every result's display name is prefixed with its source collection (`[Examples] Email address`, `[Common Code Patterns] UPPER_CASE constant`, etc.) so per-pattern hit counts in the results popup tell you which collection produced which matches. The popup's folder, Recursive checkbox, Whole Word toggle, and report-mode checkbox all apply.
 
 *Shell loop (macOS/Linux):*
 
@@ -1124,7 +1126,7 @@ peekdocs has three distinct search modes. They share the same search engine, fla
 | Mode | What it does | How to launch | Report files (in the search folder) |
 |------|-------------|--------------|-------------------------------------|
 | **Standard Search** | One search, configured by flags or GUI options (keyword, AND/OR, fuzzy, wildcard, OCR, etc.) | GUI **Run Standard Search** button, or `peekdocs <terms>` | `peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, plus optional `.csv` / `.json` / `.pdf` / `.html` with `-o` |
-| **Regex Search** | A named collection of up to 10 regex patterns, each run separately with per-pattern results | GUI **Regex Search** button, or `peekdocs --regex-collection "Name"` | `peekdocs_regex_results.txt`, `peekdocs_regex_results.docx` |
+| **Regex Search** | A named collection of regex patterns, each run separately with per-pattern results (popup edits up to 10 at a time; collections on disk are unbounded; **Run Multiple Collections** fans out across several) | GUI **Regex Search** button, or `peekdocs --regex-collection "Name"` | `peekdocs_regex_results.txt`, `peekdocs_regex_results.docx` |
 | **Suite** | A named group of saved Standard searches, run together and combined into one highlighted report | GUI **Run Search Suite** in the suites popup — opened via Tools → Search Suites menu entry or the main-screen **Search Suites** button, or `peekdocs --suite "Name"` | `peekdocs_suite_results.txt`, `peekdocs_suite_results.docx`, plus optional `.html` / `.csv` / `.json` |
 
 > **What counts as which mode?** The "mode" is defined by the workflow, not by the flag set. A one-off `peekdocs -x "pattern"` (or `-z` for fuzzy, `-w` for wildcard, `-W` for whole-word) is a *Standard Search* with a search-mode flag — it writes `peekdocs_standard_results.*`. Only the dedicated **Regex Search** workflow (the GUI popup or `--regex-collection`) writes `peekdocs_regex_results.*`. This is deliberate: the CLI's `-x`, `-z`, `-w`, etc. are all just search modifiers on the same Standard pipeline, and giving each its own filename would be a slippery slope.

@@ -238,30 +238,85 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
             else:
                 highlight_patterns.append(re.escape(term))
 
-    # Combine into one pattern for efficient matching
+    # Combine into one pattern for efficient matching. Wrap each
+    # individual highlight pattern in a non-capturing group so the
+    # OR-joined pattern stays a clean alternation; otherwise capturing
+    # groups inside any user pattern (e.g. (TODO|FIXME) from regex
+    # collections) make re.split return interleaved capture values
+    # and re.findall return tuples of captures — the kind of mismatch
+    # that previously dropped words from the rendered docx. We use
+    # re.finditer + span() below, which sidesteps both quirks
+    # regardless of capturing structure.
+    #
+    # Case sensitivity is decided per-pattern with an inline (?i:...)
+    # scope rather than a global re.IGNORECASE flag. Patterns whose
+    # character classes explicitly use ONLY one case (e.g.
+    # \b[A-Z][A-Z0-9_]{3,}\b for UPPER_CASE constants) preserve the
+    # author's case intent; patterns with no case-bearing class, or
+    # with both [A-Z] and [a-z], get IGNORECASE so that a literal
+    # "TODO" pattern still highlights "todo" in the report (matching
+    # how the search itself runs).
+    def _pattern_wants_case_sensitive(pat):
+        has_upper = "A-Z" in pat
+        has_lower = "a-z" in pat
+        # Author wrote a one-sided letter range → respect that intent.
+        return has_upper != has_lower
+
     combined_pattern = None
     if highlight_patterns:
         try:
-            combined_pattern = re.compile("|".join(highlight_patterns), re.IGNORECASE)
+            parts = []
+            for p in highlight_patterns:
+                if _pattern_wants_case_sensitive(p):
+                    parts.append(f"(?:{p})")
+                else:
+                    parts.append(f"(?i:{p})")
+            combined_pattern = re.compile("|".join(parts))
         except re.error:
             combined_pattern = None
 
     def _add_highlighted_line(para, line, bold=False):
-        """Add a line to a paragraph with yellow highlighting on matched terms."""
-        if combined_pattern:
-            parts = combined_pattern.split(line)
-            matches = combined_pattern.findall(line)
-            for i, part in enumerate(parts):
-                if part:
-                    run = para.add_run(part)
-                    if bold:
-                        run.bold = True
-                if i < len(matches):
-                    run = para.add_run(matches[i])
-                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
-                    if bold:
-                        run.bold = True
-        else:
+        """Add a line to a paragraph with yellow highlighting on matched terms.
+
+        Uses re.finditer + span() rather than split/findall so capturing
+        groups inside any user-supplied highlight pattern don't shift the
+        match alignment. Non-matched stretches of *line* are added as
+        plain runs; matched stretches get the yellow background.
+        """
+        if not combined_pattern:
+            run = para.add_run(line)
+            if bold:
+                run.bold = True
+            return
+        last_end = 0
+        added_any = False
+        for m in combined_pattern.finditer(line):
+            start, end = m.span()
+            if start == end:
+                # Zero-width match (e.g. a stray \b). Skip — adding it as
+                # a highlight produces an empty run and the next iteration
+                # would loop forever.
+                continue
+            if start > last_end:
+                run = para.add_run(line[last_end:start])
+                if bold:
+                    run.bold = True
+                added_any = True
+            run = para.add_run(line[start:end])
+            run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+            if bold:
+                run.bold = True
+            added_any = True
+            last_end = end
+        if last_end < len(line):
+            run = para.add_run(line[last_end:])
+            if bold:
+                run.bold = True
+            added_any = True
+        if not added_any:
+            # Line had no matches and was empty after the loop (or the
+            # only matches were zero-width). Emit the whole line so the
+            # paragraph isn't blank.
             run = para.add_run(line)
             if bold:
                 run.bold = True

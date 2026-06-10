@@ -3678,8 +3678,11 @@ class ToolsMixin:
         b("\u2022 Uses the index when available for faster results")
         blank()
         b("Regex Search popup:")
-        b("\u2022 Save and name up to 10 regex patterns across sessions")
+        b("\u2022 Edit up to 10 named regex patterns at a time; collections")
+        b("  on disk are unbounded")
         b("\u2022 Run all enabled patterns one at a time with per-pattern results")
+        b("\u2022 Run two or more saved collections together via Run Multiple")
+        b("  Collections\u2026 (no row cap \u2014 patterns come straight off disk)")
         b("\u2022 Optional screen-only mode (no report files written)")
         b("\u2022 Always scans files directly (index is bypassed)")
         b("\u2022 Does not support AND, Boolean, fuzzy, wildcard, whole-word,")
@@ -3695,7 +3698,8 @@ class ToolsMixin:
         b("purposes:")
         blank()
         b("Regex Search popup:")
-        b("\u2022 10 named regex patterns in one view")
+        b("\u2022 Up to 10 named regex patterns visible at a time (collections")
+        b("  on disk are unbounded; Run Multiple Collections\u2026 runs more)")
         b("\u2022 Each pattern runs separately with per-pattern match counts")
         b("\u2022 Screen-only mode available (no reports written)")
         b("\u2022 Regex patterns only")
@@ -5901,7 +5905,8 @@ class ToolsMixin:
         txt.insert("end", "Regex Search (orange)\n", "regex")
         txt.insert("end",
                    "Open the Regex workflow to build or run a named collection "
-                   "of up to 10 regex patterns. Each pattern runs separately, "
+                   "of regex patterns (up to 10 visible in the popup at a time; "
+                   "collections on disk are unbounded). Each pattern runs separately, "
                    "with per-pattern results.\n"
                    "Best for: pattern-based work — structured strings, IDs, "
                    "URLs, code tokens — where regular search terms aren’t "
@@ -6969,22 +6974,72 @@ class ToolsMixin:
         except Exception:
             pass  # If seeding fails, the popup still works with empty state
 
+        # Load config early so the active-collection display can be seeded
+        # before any widgets are built. The folder-bar block below reads
+        # the same _rs_cfg.
+        from peekdocs.cli import _load_config as _lc_rs
+        _rs_cfg = _lc_rs()
+
+        # Currently-loaded collection state. We track the name in a mutable
+        # holder so closures can both read and write it, and bind the
+        # human-readable form to a StringVar so the label updates
+        # automatically when _set_active_collection is called from
+        # _save_collection / _restore_collection. The window title gets
+        # the same name appended.
+        _active_collection_name = [(_rs_cfg.get("regex_search_active_collection") or "").strip()]
+        _active_collection_display_var = tk.StringVar(value="(no collection loaded)")
+
+        def _set_active_collection(name):
+            n = (name or "").strip()
+            _active_collection_name[0] = n
+            if n:
+                _active_collection_display_var.set(f"Currently loaded: {n}")
+                try:
+                    win.title(f"Regex Search — {n}")
+                except Exception:
+                    pass
+            else:
+                _active_collection_display_var.set("(no collection loaded)")
+                try:
+                    win.title("Regex Search")
+                except Exception:
+                    pass
+
         def _save_collection():
+            """Save the enabled-and-non-empty pattern rows under a new
+            or existing collection name.
+
+            Only rows whose checkbox is ON and whose Regex field is
+            non-empty are persisted, so users can curate subsets of a
+            larger collection by toggling checkboxes before clicking
+            Save. The popup offers two ways to choose the name: type a
+            fresh name into the entry, or click a row in the existing-
+            collections list to populate the entry with that name (the
+            actual write still happens at Save time, with an overwrite
+            prompt if the name already exists). Cancel writes nothing.
+            """
             import json as _json_rc
-            from peekdocs.gui._helpers import themed_ask_string
-            name = themed_ask_string(win, "Save Collection As", "Collection name:")
-            if not name or not name.strip():
-                return
-            name = name.strip()
-            # Gather current patterns
-            patterns = []
+            from tkinter import messagebox as _mb
+
+            # Pre-flight: how many rows would we save?
+            enabled_rows = []
             for en_var, nm_entry, rx_entry in pattern_rows:
-                patterns.append({
-                    "enabled": en_var.get(),
-                    "name": nm_entry.get(),
-                    "regex": rx_entry.get(),
-                })
-            # Load existing collections
+                if not en_var.get():
+                    continue
+                rx = rx_entry.get().strip()
+                if not rx:
+                    continue
+                enabled_rows.append((nm_entry.get(), rx_entry.get()))
+            if not enabled_rows:
+                self._show_error(
+                    "No enabled patterns to save.\n\n"
+                    "Check the box on at least one row with a non-empty "
+                    "Regex field, then click Save Collection As again."
+                )
+                return
+
+            # Load existing collections so we can show them in the picker
+            # AND so the overwrite prompt knows what's already on disk.
             collections = {}
             if os.path.exists(_collections_path):
                 try:
@@ -6992,13 +7047,222 @@ class ToolsMixin:
                         collections = _json_rc.load(f)
                 except Exception:
                     pass
-            collections[name] = patterns
-            with open(_collections_path, "w", encoding="utf-8") as f:
-                _json_rc.dump(collections, f, indent=2, ensure_ascii=False)
-            self.status_label.configure(
-                text=f"Regex collection '{name}' saved.",
-                text_color="green",
+
+            save_win, _ = self._themed_toplevel(win)
+            save_win.title("Save Regex Collection")
+            save_win.geometry("420x500")
+            save_win.transient(win)
+            self.update_idletasks()
+            _sx = win.winfo_rootx() + (win.winfo_width() - 420) // 2
+            _sy = win.winfo_rooty() + (win.winfo_height() - 500) // 2
+            save_win.geometry(f"+{_sx}+{_sy}")
+            save_win.update_idletasks()
+            try:
+                save_win.wait_visibility()
+            except tk.TclError:
+                pass
+            try:
+                save_win.grab_set()
+            except tk.TclError:
+                pass
+
+            tk.Label(
+                save_win,
+                text=f"{len(enabled_rows)} enabled pattern row(s) will be "
+                     f"saved. Disabled or empty-regex rows are skipped.",
+                font=("TkDefaultFont", 11),
+                wraplength=390, justify="left", anchor="w",
+            ).pack(fill="x", padx=15, pady=(12, 8))
+
+            tk.Label(
+                save_win, text="New collection name:",
+                font=("TkDefaultFont", 11, "bold"),
+            ).pack(anchor="w", padx=15)
+            name_entry = ctk.CTkEntry(
+                save_win, width=390, font=ctk.CTkFont(size=11),
             )
+            name_entry.pack(padx=15, pady=(2, 2))
+
+            # Track whether the current name came from a listbox click
+            # ("Or, click an existing collection to ADD the checked rows
+            # to it") versus typed/pre-filled into the entry. The two
+            # paths have to do different things on Save:
+            #   - Listbox click on existing name  → APPEND to that
+            #     collection.
+            #   - Typed/pre-filled matching name  → OVERWRITE.
+            #   - Typed name that doesn't exist   → CREATE new.
+            # The flag flips back to False the moment the user edits the
+            # entry, so a pick-then-edit sequence reverts to typed
+            # semantics.
+            _from_list_pick = [False]
+
+            # Live status: tell the user whether Save will CREATE, ADD, or OVERWRITE
+            # based on whether the name matches an existing collection.
+            _status_var = tk.StringVar(value="")
+            tk.Label(
+                save_win, textvariable=_status_var,
+                font=("TkDefaultFont", 10, "italic"),
+                fg="blue", wraplength=390, justify="left", anchor="w",
+            ).pack(fill="x", padx=15, pady=(0, 8))
+
+            def _existing_match(n):
+                """Return the existing collection key whose name matches
+                *n* case-insensitively, or None. Lets the user type
+                'examples' and have it resolve to a collection saved as
+                'Examples'."""
+                nl = n.lower()
+                for k in collections:
+                    if k.lower() == nl:
+                        return k
+                return None
+
+            def _refresh_status(*_):
+                n = name_entry.get().strip()
+                if not n:
+                    _status_var.set("")
+                    return
+                match = _existing_match(n)
+                if match is not None:
+                    raw = len(collections[match])
+                    if _from_list_pick[0]:
+                        _status_var.set(
+                            f"➜ Will ADD {len(enabled_rows)} pattern(s) "
+                            f"to existing '{match}' "
+                            f"({raw} → {raw + len(enabled_rows)} total)."
+                        )
+                    else:
+                        _status_var.set(
+                            f"➜ Will OVERWRITE '{match}' with "
+                            f"{len(enabled_rows)} pattern(s) "
+                            f"({raw} existing entr"
+                            f"{'y' if raw == 1 else 'ies'} discarded)."
+                        )
+                else:
+                    _status_var.set(
+                        f"➜ Will CREATE new collection '{n}' "
+                        f"with {len(enabled_rows)} pattern(s)."
+                    )
+
+            # CTkEntry doesn't fire <KeyRelease> the way tk.Entry does;
+            # bind on the underlying tk widget the CTk wrapper exposes.
+            # Typing also clears the "came-from-listbox-click" flag so
+            # the user can override an Add intent into Overwrite simply
+            # by editing the entry.
+            def _on_name_keyrelease(*_):
+                _from_list_pick[0] = False
+                _refresh_status()
+            try:
+                name_entry.bind("<KeyRelease>", _on_name_keyrelease)
+            except Exception:
+                pass
+
+            if _active_collection_name[0]:
+                name_entry.insert(0, _active_collection_name[0])
+                _refresh_status()
+
+            if collections:
+                tk.Label(
+                    save_win,
+                    text="Or, click an existing collection to add the checked "
+                         "rows to it (populates the field above):",
+                    font=("TkDefaultFont", 11, "bold"),
+                    wraplength=390, justify="left", anchor="w",
+                ).pack(anchor="w", padx=15)
+                lb_frame = tk.Frame(save_win)
+                lb_frame.pack(fill="both", expand=True, padx=15, pady=(2, 8))
+                lb = tk.Listbox(
+                    lb_frame, font=("TkDefaultFont", 11),
+                    exportselection=False,
+                )
+                lb_scroll = tk.Scrollbar(
+                    lb_frame, orient="vertical", command=lb.yview,
+                )
+                lb.configure(yscrollcommand=lb_scroll.set)
+                lb_scroll.pack(side="right", fill="y")
+                lb.pack(side="left", fill="both", expand=True)
+                for _cname in sorted(collections.keys()):
+                    lb.insert("end", _cname)
+
+                def _on_pick(_evt=None):
+                    _sel = lb.curselection()
+                    if _sel:
+                        name_entry.delete(0, "end")
+                        name_entry.insert(0, lb.get(_sel[0]))
+                        _from_list_pick[0] = True
+                        _refresh_status()
+                lb.bind("<<ListboxSelect>>", _on_pick)
+
+            def _do_save():
+                name = name_entry.get().strip()
+                if not name:
+                    _mb.showerror(
+                        "Save Collection",
+                        "Please enter a collection name.",
+                        parent=save_win,
+                    )
+                    return
+                new_patterns = [
+                    {"enabled": True, "name": nm, "regex": rx}
+                    for nm, rx in enabled_rows
+                ]
+                match = _existing_match(name)
+                if match is not None and _from_list_pick[0]:
+                    # ADD. The name came from a click in the existing-
+                    # collections list, whose label is "click an
+                    # existing collection to add the checked rows to
+                    # it." Honor that intent by appending. Use the
+                    # match's existing capitalization, not the entry's.
+                    combined = list(collections[match]) + new_patterns
+                    collections[match] = combined
+                    status_text = (
+                        f"Added {len(new_patterns)} pattern(s) to "
+                        f"'{match}' (now {len(combined)} total)."
+                    )
+                    name = match
+                elif match is not None:
+                    # OVERWRITE. The name was typed or pre-filled, not
+                    # picked from the list. Treat it as "save the
+                    # current row state under this name," which means
+                    # replacing whatever was there. Status line already
+                    # warned about the discard count. Use the match's
+                    # existing capitalization so typing 'examples' when
+                    # 'Examples' exists doesn't fork into two keys.
+                    discarded = len(collections[match])
+                    collections[match] = new_patterns
+                    status_text = (
+                        f"Overwrote '{match}' with "
+                        f"{len(new_patterns)} pattern(s) "
+                        f"({discarded} discarded)."
+                    )
+                    name = match
+                else:
+                    collections[name] = new_patterns
+                    status_text = (
+                        f"Created collection '{name}' with "
+                        f"{len(new_patterns)} pattern(s)."
+                    )
+                with open(_collections_path, "w", encoding="utf-8") as f:
+                    _json_rc.dump(collections, f, indent=2, ensure_ascii=False)
+                _set_active_collection(name)
+                save_win.destroy()
+                self.status_label.configure(text=status_text, text_color="green")
+
+            btn_row = tk.Frame(save_win)
+            btn_row.pack(pady=(0, 12))
+            ctk.CTkButton(
+                btn_row, text="Save", width=100,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                command=_do_save,
+            ).pack(side="left", padx=5)
+            ctk.CTkButton(
+                btn_row, text="Cancel", width=100,
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=save_win.destroy,
+            ).pack(side="left", padx=5)
+
+            self._apply_dark_theme(save_win)
 
         def _restore_collection():
             import json as _json_rc
@@ -7060,6 +7324,7 @@ class ToolsMixin:
                         nm_entry.delete(0, "end")
                         rx_entry.delete(0, "end")
                 pick_win.destroy()
+                _set_active_collection(chosen)
                 self.status_label.configure(
                     text=f"Regex collection '{chosen}' restored.",
                     text_color="green",
@@ -7077,6 +7342,10 @@ class ToolsMixin:
                 with open(_collections_path, "w", encoding="utf-8") as f:
                     _json_rc.dump(collections, f, indent=2, ensure_ascii=False)
                 pick_lb.delete(sel[0])
+                # If the deleted collection was the currently-loaded one,
+                # clear the label so it doesn't claim a now-missing name.
+                if _active_collection_name[0] == chosen:
+                    _set_active_collection("")
 
             btn_row = tk.Frame(pick_win)
             btn_row.pack(pady=(0, 10))
@@ -7088,6 +7357,179 @@ class ToolsMixin:
                           hover_color=("gray90", "gray25"), command=pick_win.destroy).pack(side="left", padx=5)
             self._apply_dark_theme(pick_win)
 
+        def _run_multiple_collections():
+            """Pick two or more saved collections and run all their
+            patterns together against the popup's folder. The visible
+            10-row state is left alone — the multi-run reads patterns
+            straight off disk, so there's no row-count cap.
+
+            Reuses the popup's Whole Word toggle, the screen-only
+            checkbox, and the folder + Recursive settings, so users
+            don't need to re-pick those for each run.
+            """
+            import json as _json_mc
+            import re as _re_mc
+
+            if not os.path.exists(_collections_path):
+                self._show_error("No saved collections found.")
+                return
+            try:
+                with open(_collections_path, "r", encoding="utf-8") as f:
+                    _all_colls = _json_mc.load(f)
+            except Exception:
+                self._show_error("Could not read collections file.")
+                return
+            if not _all_colls:
+                self._show_error("No saved collections found.")
+                return
+
+            mc_win, _ = self._themed_toplevel(win)
+            mc_win.title("Run Multiple Collections")
+            mc_win.geometry("420x460")
+            mc_win.transient(win)
+            self.update_idletasks()
+            _mx = win.winfo_rootx() + (win.winfo_width() - 420) // 2
+            _my = win.winfo_rooty() + (win.winfo_height() - 460) // 2
+            mc_win.geometry(f"+{_mx}+{_my}")
+            mc_win.update_idletasks()
+            try:
+                mc_win.wait_visibility()
+            except tk.TclError:
+                pass
+            try:
+                mc_win.grab_set()
+            except tk.TclError:
+                pass
+
+            tk.Label(
+                mc_win,
+                text="Select two or more collections to run together. "
+                     "Patterns from each are combined into one search "
+                     "(folder, Recursive, Whole Word, and report mode "
+                     "are taken from the Regex Search popup).",
+                font=("TkDefaultFont", 11),
+                wraplength=390, justify="left", anchor="w",
+            ).pack(fill="x", padx=15, pady=(12, 8))
+
+            # Scrollable checkbox list so big collection counts still fit.
+            _list_frame = tk.Frame(mc_win)
+            _list_frame.pack(fill="both", expand=True, padx=15, pady=(0, 8))
+            _list_canvas = tk.Canvas(_list_frame, highlightthickness=0)
+            _list_scroll = tk.Scrollbar(_list_frame, orient="vertical", command=_list_canvas.yview)
+            _list_inner = tk.Frame(_list_canvas)
+            _list_inner.bind(
+                "<Configure>",
+                lambda e: _list_canvas.configure(scrollregion=_list_canvas.bbox("all")),
+            )
+            _list_cw_id = _list_canvas.create_window((0, 0), window=_list_inner, anchor="nw")
+            _list_canvas.bind(
+                "<Configure>",
+                lambda e: _list_canvas.itemconfig(_list_cw_id, width=e.width),
+            )
+            _list_canvas.configure(yscrollcommand=_list_scroll.set)
+            _list_scroll.pack(side="right", fill="y")
+            _list_canvas.pack(side="left", fill="both", expand=True)
+
+            _check_vars = {}
+            for _cname in sorted(_all_colls.keys()):
+                _v = tk.BooleanVar(value=False)
+                _check_vars[_cname] = _v
+                _n = len(_all_colls[_cname])
+                tk.Checkbutton(
+                    _list_inner, variable=_v,
+                    text=f"{_cname}  ({_n} pattern{'' if _n == 1 else 's'})",
+                    font=("TkDefaultFont", 11), anchor="w",
+                ).pack(fill="x", anchor="w", padx=4, pady=1)
+
+            def _do_run_multi():
+                _picked = [n for n, v in _check_vars.items() if v.get()]
+                if len(_picked) < 2:
+                    self._show_error(
+                        "Select at least two collections.\n\n"
+                        "To run a single collection, use Restore From "
+                        "Collection and then Run Regex Search."
+                    )
+                    return
+                # Folder must already be set on the popup.
+                _folder = _rs_folder_label.cget("text")
+                if not _folder or _folder == "(none)" or not os.path.isdir(_folder):
+                    self._show_error(
+                        "Please pick a folder in the Regex Search popup first."
+                    )
+                    return
+                # Build (display_name, regex) pairs across all picked
+                # collections. Prefix each pattern name with its source
+                # collection so results clearly attribute matches.
+                _active = []
+                for _cname in _picked:
+                    for _p in _all_colls[_cname]:
+                        _rx = (_p.get("regex") or "").strip()
+                        if not _rx:
+                            continue
+                        _pname = (_p.get("name") or "").strip() or "Pattern"
+                        _active.append((f"[{_cname}] {_pname}", _rx))
+                if not _active:
+                    self._show_error(
+                        "Selected collections have no non-empty patterns to run."
+                    )
+                    return
+                # Apply Whole Word if the popup's toggle is on.
+                if whole_word_var.get():
+                    _active = [(n, rf"\b(?:{rx})\b") for n, rx in _active]
+                # Per-pattern regex validation — surface a clear error
+                # pointing at the offending entry instead of a cryptic
+                # combined-regex failure.
+                _flag_re = _re_mc.compile(r'^\(\?[aiLmsux]+\)')
+                _cleaned = []
+                for _n, _rx in _active:
+                    try:
+                        _re_mc.compile(_rx)
+                    except _re_mc.error as exc:
+                        self._show_error(
+                            f"Invalid regex in {_n}:\n\n{exc}\n\n"
+                            "Fix it in the source collection and try again."
+                        )
+                        return
+                    _cleaned.append((_n, _flag_re.sub('', _rx)))
+                _combined = "|".join(f"(?:{rx})" for _n, rx in _cleaned)
+                try:
+                    _re_mc.compile(_combined, _re_mc.IGNORECASE)
+                except _re_mc.error as exc:
+                    self._show_error(f"Combined regex is invalid:\n\n{exc}")
+                    return
+                _recursive = _rs_recursive_var.get()
+                _screen_only = no_report_var.get()
+                # Friendly label for the results popup title/header —
+                # listing every collection name gets unwieldy past a few.
+                if len(_picked) <= 3:
+                    _cn_label = " + ".join(_picked)
+                else:
+                    _cn_label = f"{len(_picked)} collections"
+                mc_win.destroy()
+                win.destroy()
+                self._run_regex_search_per_pattern(
+                    _active, _combined, _folder, _recursive,
+                    _screen_only, collection_name=_cn_label,
+                )
+
+            _mc_btns = tk.Frame(mc_win)
+            _mc_btns.pack(pady=(0, 12))
+            ctk.CTkButton(
+                _mc_btns, text="Run Selected", width=130,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#FF9800", hover_color="#F57C00",
+                command=_do_run_multi,
+            ).pack(side="left", padx=5)
+            ctk.CTkButton(
+                _mc_btns, text="Cancel", width=90,
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent", text_color=("gray30", "gray70"),
+                hover_color=("gray90", "gray25"),
+                command=mc_win.destroy,
+            ).pack(side="left", padx=5)
+
+            self._apply_dark_theme(mc_win)
+
         collection_frame = tk.Frame(win)
         collection_frame.pack(fill="x", padx=15, pady=(2, 2))
         ctk.CTkButton(
@@ -7098,10 +7540,24 @@ class ToolsMixin:
             collection_frame, text="Restore From Collection", width=170,
             font=ctk.CTkFont(size=11), command=_restore_collection,
         ).pack(side="left")
+        # Bold + blue so the active-collection name is unmistakable next
+        # to the two buttons. The dark-theme helper only overrides fg when
+        # the color is generic ("gray", default, etc.), so "blue" stays in
+        # both modes — readable on the popup's light-gray light-mode
+        # background AND on the dark-mode #2b2b2b.
+        tk.Label(
+            collection_frame,
+            textvariable=_active_collection_display_var,
+            font=("TkDefaultFont", 11, "bold"),
+            fg="blue",
+        ).pack(side="left", padx=(15, 0))
+
+        # Apply the persisted active-collection name now that the label
+        # widget exists (the StringVar already has the seeded display text,
+        # but this also sets the window title).
+        _set_active_collection(_active_collection_name[0])
 
         # Folder bar with Browse and Recursive
-        from peekdocs.cli import _load_config as _lc_rs
-        _rs_cfg = _lc_rs()
         _saved_rs_folder = getattr(self, "_last_regex_search_folder", None)
         if not _saved_rs_folder:
             _saved_rs_folder = _rs_cfg.get("regex_search_folder")
@@ -7121,6 +7577,29 @@ class ToolsMixin:
         patterns_frame.pack(fill="x", padx=20, pady=(0, 2))
 
         pattern_rows = []  # list of (enabled_var, name_entry, regex_entry)
+
+        def _remove_pattern_row(idx):
+            """Remove the pattern at *idx* from the displayed rows only —
+            shift rows below up by one, clear the last slot. Nothing is
+            written to disk; the active collection is unchanged until
+            the user clicks Save Collection As. Closure binds to
+            ``pattern_rows`` — the click can only happen after the loop
+            has fully populated it, so the late-bound reference is safe
+            even though this is defined pre-loop.
+            """
+            for j in range(idx, 9):
+                en_dst, nm_dst, rx_dst = pattern_rows[j]
+                en_src, nm_src, rx_src = pattern_rows[j + 1]
+                en_dst.set(en_src.get())
+                nm_dst.delete(0, "end")
+                nm_dst.insert(0, nm_src.get())
+                rx_dst.delete(0, "end")
+                rx_dst.insert(0, rx_src.get())
+            en_last, nm_last, rx_last = pattern_rows[9]
+            en_last.set(False)
+            nm_last.delete(0, "end")
+            rx_last.delete(0, "end")
+
         for i in range(1, 11):
             saved_enabled = bool(_rs_cfg.get(f"regex_search_{i}_enabled", False))
             saved_name = _rs_cfg.get(f"regex_search_{i}_name", "")
@@ -7149,10 +7628,75 @@ class ToolsMixin:
                 "correctly finds what you intend \u2014 you own the outcome.",
             )
 
+            # Per-row minus button: removes this row from the list and
+            # shifts the rows below up by one. Default-argument capture
+            # of `i` so each button binds to its own zero-based index;
+            # lambda free-vars would all resolve to 9 by loop end.
+            _minus_btn = ctk.CTkButton(
+                row, text="\u2212", width=26, height=26,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="#CC3333", hover_color="#AA2222",
+                command=lambda _idx=i - 1: _remove_pattern_row(_idx),
+            )
+            _minus_btn.pack(side="left", padx=(2, 0))
+            Tooltip(
+                _minus_btn,
+                "Remove this row from the display. Shifts the rows below "
+                "up by one and clears the last slot. Nothing is written "
+                "to disk \u2014 to persist the change, click Save Collection "
+                "As and save under the same name (overwrites) or a new "
+                "name (creates a subset).",
+            )
+
             pattern_rows.append((enabled_var, name_entry, regex_entry))
 
-        # "Do not save regex match contents to reports" checkbox
+        # If no active collection was persisted (older config, or first run
+        # after the active-collection feature was added), try to infer one
+        # by comparing the just-populated row regexes against every saved
+        # collection's regex sequence. Exact positional match wins. Names
+        # are intentionally ignored — the user may have renamed a row,
+        # which shouldn't break detection if the pattern set is otherwise
+        # identical to a known collection.
+        if not _active_collection_name[0]:
+            try:
+                if os.path.exists(_collections_path):
+                    import json as _json_ac
+                    with open(_collections_path, "r", encoding="utf-8") as f:
+                        _saved_colls = _json_ac.load(f)
+                    _current_rx = tuple(
+                        rx.get().strip() for _e, _n, rx in pattern_rows
+                    )
+                    for _cname, _patterns in _saved_colls.items():
+                        _saved_rx = [p.get("regex", "").strip() for p in _patterns[:10]]
+                        while len(_saved_rx) < 10:
+                            _saved_rx.append("")
+                        if tuple(_saved_rx) == _current_rx:
+                            _set_active_collection(_cname)
+                            break
+            except Exception:
+                pass
+
+        # "Whole Word" and "Do not save..." checkboxes
         _ttk.Separator(win, orient="horizontal").pack(fill="x", padx=15, pady=(8, 4))
+
+        whole_word_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_whole_word", False)))
+        whole_word_frame = tk.Frame(win)
+        whole_word_frame.pack(fill="x", padx=20, pady=(0, 2))
+        ww_cb = tk.Checkbutton(
+            whole_word_frame, variable=whole_word_var,
+            text="Whole Word (wrap each pattern with \\b at run time)",
+            font=("TkDefaultFont", 11),
+        )
+        ww_cb.pack(anchor="w")
+        Tooltip(
+            ww_cb,
+            "When on, each enabled pattern is wrapped with \\b...\\b before "
+            "searching, so it only matches at word boundaries. Patterns that "
+            "already include their own \\b, ^, or $ anchors are unaffected by "
+            "the extra wrap (\\b is idempotent). Leave off if you want pure "
+            "substring behavior or are using lookbehind/lookahead at the edges.",
+        )
+
         no_report_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_no_report", False)))
         no_report_frame = tk.Frame(win)
         no_report_frame.pack(fill="x", padx=20, pady=(0, 4))
@@ -7176,6 +7720,8 @@ class ToolsMixin:
                     config["regex_search_folder"] = rs_folder
                 config["regex_search_recursive"] = _rs_recursive_var.get()
                 config["regex_search_no_report"] = no_report_var.get()
+                config["regex_search_whole_word"] = whole_word_var.get()
+                config["regex_search_active_collection"] = _active_collection_name[0]
                 _save_config(config)
             except Exception:
                 pass
@@ -7183,6 +7729,25 @@ class ToolsMixin:
         # Clear All, Run, and Close buttons
         btn_frame = tk.Frame(win)
         btn_frame.pack(fill="x", pady=(8, 2), padx=15)
+        # Run Multiple Collections sits between the action row above
+        # and the Close button below, so it's visually grouped with
+        # other run-style actions instead of crowding the top.
+        _multi_frame = tk.Frame(win)
+        _multi_frame.pack(pady=(4, 0))
+        _multi_btn = ctk.CTkButton(
+            _multi_frame, text="Run Multiple Collections…", width=210,
+            font=ctk.CTkFont(size=11),
+            command=_run_multiple_collections,
+        )
+        _multi_btn.pack()
+        Tooltip(
+            _multi_btn,
+            "Pick two or more saved collections and run all their "
+            "patterns at once. Uses the folder, Recursive, Whole Word, "
+            "and report-mode settings from this popup. The 10 visible "
+            "rows are ignored — patterns come straight from the saved "
+            "collections on disk, so there's no row-count limit.",
+        )
         close_frame = tk.Frame(win)
         close_frame.pack(pady=(0, 12))
 
@@ -7213,6 +7778,8 @@ class ToolsMixin:
             import re as _re
             from tkinter import messagebox as _mb
 
+            wrap_ww = whole_word_var.get()
+
             # Collect enabled patterns with non-empty regex
             active = []
             for idx, (en_var, nm_entry, rx_entry) in enumerate(pattern_rows, 1):
@@ -7222,7 +7789,11 @@ class ToolsMixin:
                 if not rx:
                     continue
                 nm = nm_entry.get().strip() or f"Pattern {idx}"
-                # Validate regex
+                # Validate the user's pattern as-typed first so the error
+                # message points at what they actually wrote, not the wrapped
+                # form. The Whole Word wrap is a non-capturing group around
+                # the original pattern, so any error in the original surfaces
+                # cleanly without "\b(?:" prefix noise.
                 try:
                     _re.compile(rx)
                 except _re.error as exc:
@@ -7231,6 +7802,13 @@ class ToolsMixin:
                         "Fix the pattern and try again."
                     )
                     return
+                if wrap_ww:
+                    # \b is idempotent — wrapping a pattern that already has
+                    # \b anchors at the edges (like the seeded Examples) is a
+                    # no-op. The non-capturing group is essential: \bcat|dog\b
+                    # parses as (\bcat)|(dog\b), but \b(?:cat|dog)\b matches
+                    # "cat" or "dog" at word boundaries.
+                    rx = rf"\b(?:{rx})\b"
                 active.append((nm, rx))
 
             if not active:
@@ -7263,8 +7841,12 @@ class ToolsMixin:
                 self._searched_folders.add(rs_folder)
 
             screen_only = no_report_var.get()
+            collection_name = _active_collection_name[0]
             win.destroy()
-            self._run_regex_search_per_pattern(active, combined, rs_folder, rs_recursive, screen_only)
+            self._run_regex_search_per_pattern(
+                active, combined, rs_folder, rs_recursive, screen_only,
+                collection_name=collection_name,
+            )
 
         ctk.CTkButton(
             btn_frame, text="Clear All", width=100,
@@ -7306,11 +7888,16 @@ class ToolsMixin:
         win.deiconify()
 
 
-    def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True):
+    def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True, collection_name=""):
         """Run regex search per-pattern via API with status updates.
 
         If screen_only is True, results are shown in a popup with no reports.
         If screen_only is False, results are written to report files and shown in the preview.
+
+        ``collection_name`` is the active Regex Search collection at the time
+        Run was clicked. It's surfaced in the results popup title and a
+        header label so the user can tell which saved collection produced
+        the result set — useful when they have several similar collections.
         """
         import tkinter as tk
 
@@ -7339,8 +7926,33 @@ class ToolsMixin:
             start = time.time()
             scan_results = []
             all_matches = []  # combined matches for report generation
+            # Track which (file_dir, filename, line_num, text) tuples we
+            # already saw across patterns. Multi-collection runs in
+            # particular hit the same line with several patterns; without
+            # this dedup, the report contains the same line N times and
+            # the docx highlighter trips on the duplicate-laden
+            # search_terms list, silently dropping all yellow highlights.
+            _seen_match_keys = set()
             files_searched = 0
             total_patterns = len(active_patterns)
+
+            def _respect_case_intent(rx):
+                """If the pattern uses an uppercase-only or lowercase-only
+                letter range, wrap the whole thing with an inline (?-i:...)
+                so the otherwise-IGNORECASE search engine doesn't match
+                the wrong case. \\b[A-Z][A-Z0-9_]{3,}\\b stays an
+                UPPER_CASE constant detector instead of matching every
+                4+ letter word, which is what was pulling header words
+                like 'Document' / 'Westfield' into the report and then
+                leaving the corresponding rows un-highlighted (because
+                the docx highlighter correctly refused to claim those
+                lines under the same case-sensitive interpretation).
+                """
+                has_upper = "A-Z" in rx
+                has_lower = "a-z" in rx
+                if has_upper != has_lower:
+                    return f"(?-i:{rx})"
+                return rx
 
             for pat_idx, (name, regex) in enumerate(active_patterns, 1):
                 if getattr(self, "_regex_search_cancelled", False):
@@ -7353,7 +7965,7 @@ class ToolsMixin:
                 )
                 try:
                     result = api_search(
-                        [regex],
+                        [_respect_case_intent(regex)],
                         directory=folder,
                         recursive=recursive,
                         use_regex=True,
@@ -7374,7 +7986,10 @@ class ToolsMixin:
                         file_matches[key]["lines"].append(match.line_num)
                         file_matches[key]["match_texts"].append(match.text)
                         if not screen_only and len(all_matches) < 10000:
-                            all_matches.append((match.file_dir, match.filename, match.line_num, match.text))
+                            _mk = (match.file_dir, match.filename, match.line_num, match.text)
+                            if _mk not in _seen_match_keys:
+                                _seen_match_keys.add(_mk)
+                                all_matches.append(_mk)
                     scan_results.append({
                         "name": name,
                         "regex": regex,
@@ -7391,6 +8006,11 @@ class ToolsMixin:
                         "files": {},
                     })
 
+            # Group the deduped matches by file, then by line, so the
+            # report reads naturally instead of being interleaved in
+            # pattern-iteration order.
+            all_matches.sort(key=lambda m: (m[0], m[1], m[2]))
+
             elapsed = time.time() - start
 
             # Write reports in the background thread (not on GUI thread)
@@ -7401,7 +8021,16 @@ class ToolsMixin:
                 ))
                 try:
                     from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
-                    search_terms = [regex for _name, regex in active_patterns]
+                    # Dedupe search_terms while preserving order. Multi-
+                    # collection runs commonly pick overlapping pattern
+                    # sets (Examples and Common Code Patterns both have
+                    # IPv4, semver, UUID...) — passing duplicates to the
+                    # docx highlighter's "|".join compile makes the
+                    # combined regex unnecessarily large and, in some
+                    # combinations, drops highlighting entirely.
+                    search_terms = list(dict.fromkeys(
+                        regex for _name, regex in active_patterns
+                    ))
                     command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
                     output_path = os.path.join(folder, "peekdocs_regex_results.txt")
                     docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
@@ -7459,7 +8088,10 @@ class ToolsMixin:
             popup, _dark = self._themed_toplevel()
 
             popup.withdraw()  # hidden during widget setup; centered + shown at end
-            popup.title("Regex Search Results")
+            _cn = (collection_name or "").strip()
+            popup.title(
+                f"Regex Search Results \u2014 {_cn}" if _cn else "Regex Search Results"
+            )
             popup.resizable(True, True)
             self._center_popup_on_main(popup, 800, 520)
 
@@ -7475,6 +8107,18 @@ class ToolsMixin:
                 header_frame, text="Regex Search Results",
                 font=("TkDefaultFont", 14, "bold"),
             ).pack(side="left", expand=True)
+            # Mirror the main-popup convention: bold + blue so the
+            # active collection name is unmistakable. Only render when a
+            # collection was active at run time; ad-hoc runs (no
+            # collection loaded) just get the bare "Regex Search Results"
+            # header.
+            if _cn:
+                tk.Label(
+                    popup,
+                    text=f"Collection: {_cn}",
+                    font=("TkDefaultFont", 11, "bold"),
+                    fg="blue",
+                ).pack(fill="x", padx=15, pady=(0, 2))
             if screen_only:
                 tk.Label(
                     popup,
@@ -7490,6 +8134,38 @@ class ToolsMixin:
                     font=("TkDefaultFont", 10), fg="gray",
                     justify="left", anchor="w",
                 ).pack(fill="x", padx=15, pady=(0, 2))
+
+                # One-click access to the report files and the folder
+                # that holds them. safe_open_file dispatches to the OS
+                # default viewer (open on macOS, xdg-open on Linux,
+                # os.startfile on Windows) and returns a warning
+                # string only on failure.
+                def _open_with_helper(path):
+                    try:
+                        from peekdocs.gui._helpers import safe_open_file
+                        w = safe_open_file(path)
+                        if w:
+                            self._show_error(w)
+                    except Exception as exc:
+                        self._show_error(f"Could not open {path}:\n{exc}")
+
+                _open_btn_row = tk.Frame(popup)
+                _open_btn_row.pack(fill="x", padx=15, pady=(0, 6))
+                ctk.CTkButton(
+                    _open_btn_row, text="Open TXT", width=100,
+                    font=ctk.CTkFont(size=11),
+                    command=lambda p=_txt_full: _open_with_helper(p),
+                ).pack(side="left", padx=(0, 6))
+                ctk.CTkButton(
+                    _open_btn_row, text="Open DOCX", width=100,
+                    font=ctk.CTkFont(size=11),
+                    command=lambda p=_docx_full: _open_with_helper(p),
+                ).pack(side="left", padx=(0, 6))
+                ctk.CTkButton(
+                    _open_btn_row, text="Open Folder", width=110,
+                    font=ctk.CTkFont(size=11),
+                    command=lambda p=folder: _open_with_helper(p),
+                ).pack(side="left")
             tk.Label(
                 popup, text=header_text,
                 font=("TkDefaultFont", 12), fg=header_color,
@@ -7619,7 +8295,7 @@ class ToolsMixin:
             "Saving and Restoring Collections",
             "Pattern Tips",
             "Common Regex Patterns (50 Examples)",
-            "Report Checkbox",
+            "Checkboxes (Whole Word, Report)",
             "Advanced Search Options",
             "Performance and Index",
             "Disclaimer",
@@ -7629,11 +8305,21 @@ class ToolsMixin:
 
         h("WHAT THIS IS")
         b("Regex Search lets you define up to 10 named regex patterns")
-        b("and run them all at once against a folder of your choice.")
-        b("Each pattern has a Name (for your reference) and a Regex")
-        b("(the actual pattern to search for). Each enabled pattern")
-        b("with a non-empty Regex field is executed separately, with")
-        b("per-pattern match counts shown in the results.")
+        b("in this popup and run them all at once against a folder of")
+        b("your choice. Each pattern has a Name (for your reference)")
+        b("and a Regex (the actual pattern to search for). Each enabled")
+        b("pattern with a non-empty Regex field is executed separately,")
+        b("with per-pattern match counts shown in the results.")
+        blank()
+        b("The 10-row limit is a per-popup workbench cap, not a")
+        b("collection-size cap. Saved collections on disk can hold")
+        b("any number of patterns — the seeded Examples collection")
+        b("ships with 17, and you can grow collections beyond 10 via")
+        b("Save Collection As (ADD mode). Larger collections run")
+        b("from the CLI with peekdocs --regex-collection NAME (every")
+        b("pattern, no cap) or from this popup via Run Multiple")
+        b("Collections… at the bottom (every pattern in every picked")
+        b("collection, no cap).")
         blank()
         b("This is useful when you have several patterns you want to")
         b("check simultaneously \u2014 for example, searching for multiple")
@@ -7696,10 +8382,85 @@ class ToolsMixin:
         blank()
 
         h("SAVING AND RESTORING COLLECTIONS")
-        b("Save Collection As saves all 10 pattern rows (enabled state,")
-        b("name, and regex) under a label you choose. Restore From")
-        b("Collection loads a previously saved collection, replacing")
-        b("whatever is currently in the pattern rows.")
+        b("Save Collection As saves the enabled (checked) pattern rows")
+        b("under a label you choose. Disabled rows and rows with empty")
+        b("Regex fields are skipped \u2014 only what is currently checked")
+        b("makes it into the collection. This lets you carve out subsets")
+        b("of a larger collection: restore the full set, uncheck the")
+        b("rows you don't want, then Save Collection As under a new name.")
+        blank()
+        b("The Save popup picks one of three actions based on how the")
+        b("name in the entry got there and whether it matches an")
+        b("existing collection:")
+        blank()
+        b("\u2022 CREATE \u2014 the name is new (does not match any existing")
+        b("  collection). A new collection is created with the")
+        b("  checked rows.")
+        b("\u2022 OVERWRITE \u2014 the name was typed into the entry (or left as")
+        b("  the pre-filled active-collection name) AND it matches an")
+        b("  existing collection. The collection is replaced with the")
+        b("  checked rows; previous contents are discarded.")
+        b("\u2022 ADD \u2014 the name was set by clicking an entry under 'Or,")
+        b("  click an existing collection...' AND it matches an")
+        b("  existing collection. The checked rows are appended to")
+        b("  that collection. Editing the name entry after a list")
+        b("  click reverts the action to OVERWRITE.")
+        blank()
+        b("A live status line below the name field tells you which of")
+        b("the three actions will happen and shows the resulting count")
+        b("(and discard count for OVERWRITE) before you commit.")
+        blank()
+        b("Workflow 1 \u2014 Remove patterns from a saved collection:")
+        b("1. Restore From Collection \u2192 pick the collection.")
+        b("2. Click the red \u2212 button next to one or more patterns")
+        b("   you want to drop. Each click shifts the rows below")
+        b("   up by one. The saved collection on disk is not")
+        b("   changed yet.")
+        b("3. Click Save Collection As.")
+        b("4. In the New collection name field, enter the same name")
+        b("   as the loaded collection. The match is case-")
+        b("   insensitive \u2014 typing 'examples' resolves to a")
+        b("   collection saved as 'Examples'. The name is also")
+        b("   pre-filled with the active collection name, so most")
+        b("   of the time you can leave it as-is.")
+        b("5. Click Save. The collection is overwritten with what")
+        b("   remains in the rows \u2014 the \u2212 patterns are gone.")
+        blank()
+        b("Workflow 2 \u2014 Append patterns from one collection to another:")
+        b("1. Restore From Collection \u2192 pick the source collection")
+        b("   (the one whose patterns you want to copy from). Its")
+        b("   rows now fill the popup.")
+        b("2. Click Save Collection As.")
+        b("3. In the existing-collections list (the section labeled")
+        b("   'Or, click an existing collection to add the checked")
+        b("   rows to it'), click the destination collection name.")
+        b("   The status line flips to 'Will ADD ...'.")
+        b("4. Click Save. The source rows are appended to the")
+        b("   destination collection.")
+        b("Tip: if you click a collection in the list and then start")
+        b("typing in the name entry, the action reverts to OVERWRITE")
+        b("\u2014 editing the entry tells peekdocs you no longer want")
+        b("the list-click's Add intent.")
+        blank()
+        b("Workflow 3 \u2014 Run two or more collections together:")
+        b("1. Pick a folder in the Regex Search popup (and set")
+        b("   Recursive, Whole Word, and the report checkbox to")
+        b("   what you want).")
+        b("2. Click 'Run Multiple Collections\u2026' (the button just")
+        b("   above Close at the bottom of the popup).")
+        b("3. In the picker, check two or more collections and click")
+        b("   Run Selected. Patterns are pulled straight off disk \u2014")
+        b("   the 10 visible rows are ignored, so there's no cap")
+        b("   on how many patterns can run together.")
+        b("Pattern names in the results popup are prefixed with")
+        b("their source collection (e.g. '[Examples] Email address'),")
+        b("so you can tell which collection produced which hits.")
+        blank()
+        b("Restore From Collection loads a previously saved collection,")
+        b("replacing whatever is currently in the pattern rows. Saved")
+        b("collections with more than 10 patterns are truncated to the")
+        b("first 10 in the rows; collections with fewer than 10 leave")
+        b("the trailing rows blank and disabled.")
         blank()
         b("Use this to maintain multiple regex profiles \u2014 for example:")
         b("\u2022 'Code patterns' \u2014 TODOs, deprecated APIs, error patterns")
@@ -7810,7 +8571,32 @@ class ToolsMixin:
         b("whether the pattern matches what you intend.")
         blank()
 
-        h("REPORT CHECKBOX")
+        h("CHECKBOXES (WHOLE WORD, REPORT)")
+        b("Whole Word")
+        blank()
+        b("When checked, each enabled pattern is wrapped with \\b...\\b")
+        b("at run time (in a non-capturing group so alternation like")
+        b("cat|dog still behaves as expected). \\b is a word-boundary")
+        b("assertion: it matches at the transition between a word")
+        b("character (letter, digit, or underscore) and a non-word")
+        b("character. The wrap is harmless when a pattern already has")
+        b("its own \\b anchors — \\b is idempotent.")
+        blank()
+        b("Use Whole Word for short keyword-style patterns. Without the")
+        b("wrap, the bare regex 'TODO' matches inside 'TODOIST'; with")
+        b("Whole Word on, only standalone occurrences match.")
+        blank()
+        b("Whole Word does NOT prevent substring matches caused by")
+        b("dotted, colon-separated, or dash-separated number sequences.")
+        b("A semver pattern like \\d+\\.\\d+\\.\\d+ will still match")
+        b("inside an IP address like 192.168.1.100 even with Whole")
+        b("Word on, because a dot is a non-word character and \\b")
+        b("fires on either side of it. The fix for those is to add")
+        b("negative lookbehind/lookahead inside the pattern itself")
+        b("(see the seeded Examples collection for working versions).")
+        blank()
+        b("The setting persists between sessions.")
+        blank()
         b("'Do not save regex match contents to reports'")
         blank()
         b("When UNCHECKED (default): the combined regex is placed in")
@@ -7818,12 +8604,25 @@ class ToolsMixin:
         b("a normal search runs. Report files (.txt, .docx, etc.)")
         b("are generated as usual.")
         blank()
+        b("The Regex Search Results popup then shows the report paths")
+        b("under 'Reports saved to:' with three buttons: Open TXT,")
+        b("Open DOCX, and Open Folder. Each one hands the path to the")
+        b("OS default viewer — TextEdit / Notepad / your configured")
+        b(".txt editor for the .txt, Word / Pages / LibreOffice for the")
+        b(".docx, and Finder / Explorer for the folder. The reports")
+        b("live next to the searched files (peekdocs_regex_results.txt")
+        b("and peekdocs_regex_results.docx), so opening the folder")
+        b("also gives you direct access for emailing, archiving, or")
+        b("editing.")
+        blank()
         b("When checked, the search runs in the background through the")
         b("API. Results are displayed in a screen-only popup and are not")
         b("written to report files on disk. This is designed to prevent")
         b("sensitive information from being saved to files. Use this")
         b("option when your search patterns may match content you prefer")
-        b("not to persist on disk.")
+        b("not to persist on disk. The Open TXT / Open DOCX / Open")
+        b("Folder buttons do not appear in screen-only mode because")
+        b("there are no files to open.")
         blank()
         b("Note: standard search does not have a screen-only mode, but")
         b("you can achieve a similar effect by checking Delete on Close")
@@ -7836,9 +8635,9 @@ class ToolsMixin:
         blank()
 
         h("ADVANCED SEARCH OPTIONS")
-        b("When the report checkbox is UNCHECKED (normal mode), Regex")
-        b("Search triggers a standard search and respects most Advanced")
-        b("Search Options settings:")
+        b("When 'Do not save regex match contents to reports' is")
+        b("UNCHECKED (normal mode), Regex Search triggers a standard")
+        b("search and respects most Advanced Search Options settings:")
         blank()
         b("\u2022 Max Matches, Max File Size, Context Lines (Before/After)")
         b("\u2022 Output formats (CSV, JSON, PDF, HTML)")
@@ -7853,10 +8652,10 @@ class ToolsMixin:
         b("\u2022 Fuzzy / Wildcard \u2014 forced off")
         b("\u2022 Index \u2014 forced off (always scans files directly)")
         blank()
-        b("When the report checkbox is CHECKED (screen-only mode), the")
-        b("search runs through the API and none of the Advanced Search")
-        b("Options apply. Only the popup's folder and Recursive setting")
-        b("are used.")
+        b("When 'Do not save regex match contents to reports' is")
+        b("CHECKED (screen-only mode), the search runs through the")
+        b("API and none of the Advanced Search Options apply. Only")
+        b("the popup's folder and Recursive setting are used.")
         blank()
 
         h("PERFORMANCE AND INDEX")

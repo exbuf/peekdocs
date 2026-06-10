@@ -12,6 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Regex Search — Run Multiple Collections.** New button at the bottom of the Regex Search popup opens a checkbox picker listing every saved collection and pattern count. Check two or more, click **Run Selected**, and all their patterns run together against the popup's folder. Pattern display names in the results popup are prefixed with their source collection (`[Examples] Email address`, `[Common Code Patterns] UPPER_CASE constant`, …) so per-pattern hit counts attribute matches to a specific collection. Reuses the popup's Whole Word toggle and report-mode checkbox. The 10-row visible cap doesn't apply — patterns come straight off disk.
+- **Regex Search results popup — Open TXT / Open DOCX / Open Folder buttons.** Three buttons appear under the "Reports saved to:" line so users can launch the saved reports directly from the popup. Buttons are hidden in screen-only mode (no files to open).
+- **Regex Search — per-row remove button.** A small red **−** button next to each pattern row removes that row from the visible 10-slot list (shifts the rows below up by one). Display-only; persist the change via Save Collection As → same name (overwrite).
+- **Regex Search — active collection label.** A bold blue **Currently loaded: X** label next to Save / Restore buttons and the popup title bar tells users which saved collection produced the rows they're seeing. Persisted across sessions via `~/.peekdocsrc`. Auto-detected on open by comparing row regexes against saved collections when no name has been persisted yet.
+- **Regex Search — Whole Word toggle.** Checkbox below the pattern rows wraps each enabled pattern with `\b(?:…)\b` at run time (non-capturing so alternation like `cat|dog` stays correct). State persists across sessions.
+
+### Changed
+
+- **Regex Search Save Collection As — rich popup.** Replaces the original single-name prompt with a popup that includes a live status line ("Will CREATE / OVERWRITE / ADD …"), a scrollable list of existing collections, and three explicit save modes: CREATE (new name), OVERWRITE (typed name matches existing — case-insensitive), ADD (clicked an entry in the list). Saves only the enabled (checked) rows with non-empty regex; legacy disabled entries are no longer persisted.
+- **Regex Search reports — yellow highlighting accuracy.** The docx highlighter now uses `re.finditer` + span positions instead of `split`/`findall`, which fixes word-dropping when any user pattern contains capturing groups (e.g. `(TODO|FIXME)`). Each highlight pattern is also wrapped in `(?:…)` defensively. Per-pattern case sensitivity is now decided from explicit `[A-Z]` / `[a-z]` character classes — `[A-Z][A-Z0-9_]{3,}` (UPPER_CASE constant) only highlights uppercase tokens; `\bTODO\b` still highlights `todo` via IGNORECASE.
+- **Regex Search search engine — case-intent inline scoping.** Patterns whose character classes use one-sided letter ranges (`[A-Z]`-only or `[a-z]`-only) are now wrapped with `(?-i:…)` before being passed to the search engine, matching the highlighter's case decision. Eliminates report bloat from `[A-Z][A-Z0-9_]{3,}` matching every 4+ char word under the otherwise-IGNORECASE search.
+- **Regex Search reports — dedup + ordering.** When several patterns match the same line of the same file, that line is deduplicated and the final match list is sorted by `(file_dir, filename, line_num)`. Reports now read naturally instead of being interleaved in pattern-iteration order with N copies of each match.
+- **Seeded Examples collection — substring-match hardening.** The IPv4, IPv6, ISO date, ISO time, USD amount, and Semantic version patterns gained negative lookbehind / lookahead anchors so `1.2.3` no longer matches inside `192.168.1.100`, `192.168.1.1` doesn't match inside `192.168.1.100.5`, etc.
+
 ## [1.0.23] — 2026-06-08
 
 A licensing-track release. No code changes, no GUI fixes, no API
