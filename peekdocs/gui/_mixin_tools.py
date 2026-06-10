@@ -5591,6 +5591,9 @@ class ToolsMixin:
             row=5, column=0, columnspan=3, padx=10, pady=(2, 2), sticky="ew"
         )
         self.search_start_time = time.time()
+        # Captured separately for _show_action_buttons' mtime-vs-cutoff
+        # check (see _mixin_search.py _show_action_buttons docstring).
+        self._last_search_start_time = self.search_start_time
         self._suite_elapsed_active = True
         self._suite_cancelled = False
         # Repurpose the GREEN suites button as Cancel during the run. The
@@ -8267,6 +8270,10 @@ class ToolsMixin:
             return
 
         mode_label = "screen only, no reports" if screen_only else "with reports"
+        # Captured for _show_action_buttons' mtime-vs-cutoff check (see
+        # the docstring there) — distinguishes report files written by
+        # this run from stale leftovers in the same folder.
+        self._last_search_start_time = time.time()
         self.status_label.configure(
             text=f"Running Regex Search ({mode_label})...",
             text_color=("blue", "#66BBFF"),

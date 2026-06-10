@@ -72,6 +72,12 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.advanced_visible = False
         self.elapsed_timer_id = None
         self.search_start_time = None
+        # Stable cutoff used by _show_action_buttons to compare report
+        # file mtimes against the most recent search's start time, so
+        # leftover files from prior sessions don't show as green
+        # report buttons. Initialized None so the first render before
+        # any search has run falls back to exists-only semantics.
+        self._last_search_start_time = None
         self._refresh_timer_id = None
         self._refresh_running = False
         self._text_size_var = ctk.StringVar(value="Normal")

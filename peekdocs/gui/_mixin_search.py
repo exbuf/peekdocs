@@ -270,6 +270,11 @@ class SearchMixin:
         # claim.
         self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("blue", "#66BBFF"))
         self.search_start_time = time.time()
+        # Captured separately because search_start_time gets nulled at
+        # finish; _show_action_buttons needs a stable cutoff to decide
+        # whether a report file on disk was written by this run vs a
+        # prior session.
+        self._last_search_start_time = self.search_start_time
         self._start_elapsed_timer()
 
         self.search_thread = threading.Thread(
@@ -995,11 +1000,30 @@ class SearchMixin:
         # Suite completes.
         prefix = getattr(self, "_report_file_prefix", "peekdocs_standard_results")
         report_formats = {}
+        # Mtime cutoff: only treat a format as "green" if its file mtime
+        # is at or after the current search's start time. Prevents a
+        # leftover peekdocs_standard_results.pdf from a prior session
+        # showing as green after a run that didn't even ask for PDF
+        # output. _last_search_start_time survives the search_start_time
+        # = None reset at search-finish so it's still readable here. The
+        # 2-second buffer accommodates filesystem timestamp coarseness
+        # on Windows and network shares. If no start time has been
+        # recorded yet (very first action-button render before any
+        # search has run), fall back to the exists-only check.
+        _cutoff = getattr(self, "_last_search_start_time", None)
         if self.results_dir:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
             for fmt in ("txt", "docx", "csv", "json", "pdf", "html"):
                 path = os.path.join(self.results_dir, f"{prefix}{suffix}.{fmt}")
-                report_formats[fmt] = os.path.exists(path)
+                if not os.path.exists(path):
+                    report_formats[fmt] = False
+                elif _cutoff is None:
+                    report_formats[fmt] = True
+                else:
+                    try:
+                        report_formats[fmt] = os.path.getmtime(path) >= _cutoff - 2
+                    except OSError:
+                        report_formats[fmt] = False
 
         has_any_report = any(report_formats.values())
 
