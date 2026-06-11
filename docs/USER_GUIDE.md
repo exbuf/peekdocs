@@ -77,6 +77,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Configuration file](#configuration-file)
   - [Summary](#summary)
   - [Delete on Close](#delete-on-close)
+  - [Notify on Search Complete](#notify-on-search-complete)
   - [Privacy cleanup options](#privacy-cleanup-options)
   - [The Clear Files popup (Tools → Clear Files)](#the-clear-files-popup)
   - [CLI cleanup scope (`--clear`, `--clear-all`)](#cli-cleanup-scope---clear---clear-all)
@@ -2571,7 +2572,7 @@ Your saved default settings.
 **What does "rc" mean?** The "rc" in `.peekdocsrc` stands for "run commands" — a naming convention from Unix in the 1960s. Files ending in `rc` (like `.bashrc`, `.vimrc`, `.peekdocsrc`) contain startup configuration that's loaded when the program runs. It simply means "config file."
 
 **Protected from searching:** Yes — located in your home directory, not in any search folder. Also excluded by filename if it happens to be in a search folder.
-**How to delete:** Delete it to reset all settings to defaults. You can also click **Restore Factory Settings** in Advanced Search Options — this does the same thing with a confirmation dialog that enumerates the nine categories of settings about to be reset (search mode, regex/fuzzy/wildcard/OCR flags, file types, output formats, max matches and file size, CPU cores, proximity and context lines, recent searches and last folder, and appearance). Use **Inspect .peekdocsrc** in Advanced Search Options to view its current contents.
+**How to delete:** Delete it to reset all settings to defaults. You can also click **Restore Factory Settings** in Advanced Search Options — this does the same thing with a confirmation dialog that enumerates the ten categories of settings about to be reset (search mode, regex/fuzzy/wildcard/OCR flags, file types, output formats, max matches and file size, CPU cores, proximity and context lines, recent searches and last folder, session checkboxes including Notify on Search Complete, and appearance). Use **Inspect .peekdocsrc** in Advanced Search Options to view its current contents.
 **What happens if it's deleted?** peekdocs runs normally using built-in defaults. Nothing breaks — you just lose your customized settings.
 **How to recover:**
 1. Open the GUI (`peekdocs-gui`)

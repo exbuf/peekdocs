@@ -285,6 +285,8 @@ class DataMixin:
             "  • Max Matches, Max File Size, CPU Cores\n"
             "  • Word Proximity, Lines Before, Lines After\n"
             "  • Recent searches and last-used Search Folder\n"
+            "  • Session checkboxes (Delete on Close, Clear History on Close,\n"
+            "    Restrict File Permissions, Notify on Search Complete)\n"
             "  • Quiet mode and appearance (dark / light theme, text size)\n\n"
             "Your documents, search history, saved searches, bookmarks, and any "
             "personal files are not affected.\n\n"
