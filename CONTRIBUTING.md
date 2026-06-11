@@ -19,7 +19,7 @@ PRs are welcome, but please open an issue first to discuss the change. This avoi
 
 Before submitting a PR:
 
-1. Run the test suite: `pytest tests/ -v` (all 627 tests should pass).
+1. Run the test suite: `pytest tests/ -v` (all 630 tests should pass).
 2. For search or scanner changes, also run the integration script against the sample corpus: `cd samples/test-files && bash peekdocs_global_test_unix.sh "test"` (or `peekdocs_global_test_windows.ps1` on Windows). It exercises every search mode and flag combination against 100+ sample files.
 3. For GUI changes, launch `peekdocs-gui` and verify the affected workflow visually — the test suite can't catch every layout or interaction issue.
 4. Keep changes focused — one fix or feature per PR.
@@ -30,7 +30,11 @@ Before submitting a PR:
 
 **Maintainer handles the CHANGELOG.** Don't worry about updating `CHANGELOG.md` in your PR — the maintainer adds entries when merging. Commit messages don't need to follow any particular convention; clear is enough.
 
-**Response times are best-effort.** peekdocs is a solo project — review and merge happen when the maintainer has time. There's no service-level commitment.
+**Response times are best-effort.** peekdocs is a solo project — review, merge, and bug-fix happen when the maintainer has time. There's no service-level commitment, no fixed triage cadence, and no guarantee that any specific PR or issue will be accepted or fixed. An extended review period or a declined PR is not a quality judgment on the contribution; it most often means the change doesn't fit the project's current direction, or the maintainer hasn't had time to evaluate it in depth yet. If your change is time-sensitive (e.g., a security-class fix) please mark it clearly in the issue or PR title.
+
+**Stale issues may be closed.** Issues without activity for a few months are sometimes closed to keep the open-issues list focused. A closed-stale issue is not a rejection — feel free to reopen if it's still relevant, ideally with a fresh repro or a one-line "still hitting this on vX.Y.Z" update so the maintainer can pick it up from where you are.
+
+**No commercial-support tier or vendor-management artifacts.** peekdocs does not provide paid support, custom builds, NDA-bound consulting, SOC 2 / HIPAA / ISO 27001 attestations, or signed SBOMs. Organizations whose vendor-management process requires those artifacts should evaluate peekdocs against their internal risk-acceptance framework. See [SECURITY.md → Support model and response expectations](docs/SECURITY.md#support-model-and-response-expectations) for the IT-evaluator-facing version of the same boundaries.
 
 ## Development Setup
 
@@ -85,7 +89,7 @@ peekdocs/
     _mixin_search.py    — Search execution and results
     _mixin_tools.py     — Tools menu features, regex search, wizard, help
     _mixin_data.py      — Settings, history, bookmarks, index management
-tests/                — Pytest test suite (627 tests)
+tests/                — Pytest test suite (630 tests)
 docs/                 — User Guide, API Reference, FAQ & Troubleshooting
 samples/              — Test corpus and integration test scripts
 ```
