@@ -633,7 +633,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._suites_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._suites_btn, "Search Suites — open the management popup to create, edit, reorder, or run a named group of saved searches. The popup's own Run Search Suite button executes the selected suite.")
+        Tooltip(self._suites_btn, "Search Suites — open the management popup to create, edit, reorder, or run a named group of saved searches. The popup's Run Search Suite button executes the selected suite. Run Multiple Search Suites… (button at the bottom of the same popup) opens a checkbox picker over every saved suite — pick two or more and run them together as one combined report.")
 
         # Regex Search button — orange, third color in the run-buttons
         # row so the three search modes are visually distinct
@@ -647,7 +647,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._regex_search_btn, "Regex Search — open the management popup to create, edit, or run a named collection of up to 10 regex patterns, each executed separately with per-pattern results. The popup's own Run Regex Search button executes the selected collection. Results depend on the report checkbox setting in the popup.")
+        Tooltip(self._regex_search_btn, "Regex Search — open the management popup to create, edit, or run a named collection of regex patterns. The popup edits up to 10 patterns at a time; collections on disk are unbounded (the seeded Examples collection ships with 17). Each pattern runs separately with per-pattern results. The popup's Run Regex Search button executes the visible rows; Run Multiple Collections… (button at the bottom) opens a checkbox picker over every saved collection — pick two or more and run them together. Results depend on the report-checkbox setting in the popup.")
 
         # "What's the difference?" link below the three Run buttons. Muted
         # blue + underline matches the Advanced/Wizard hyperlink styling and
