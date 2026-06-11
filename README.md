@@ -526,6 +526,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Highlighted reports** — results saved to `.docx` and `.pdf` with yellow-highlighted matches, `.txt` with full context, and optional CSV and JSON output
 - **Results preview** — see matches inline in the GUI with highlighted terms. **View Text** on any matched file shows the file's full extracted text with every match highlighted, without opening external software. Double-click any file to open in its native application; click **DOCX**, **HTML**, or **PDF** to open the highlighted multi-file report
 - **HTML export** — no Word or LibreOffice? Enable HTML output and the highlighted report opens in any browser. The file is stored locally — nothing is uploaded, and it's easy to share by email
+- **Desktop notification on complete** — opt-in checkbox in Advanced Search Options. When a Standard / Suite / Regex run finishes, fires a native desktop notification (macOS Notification Center, Windows toast, Linux libnotify) with the match count, file count, and elapsed time. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. No data leaves the machine
 
 #### Analysis
 

@@ -728,7 +728,43 @@ class SearchMixin:
                             text=current + "  |  Tip: Build an index for faster searches — click Manage Indexes",
                         )
 
+        # Desktop notification (opt-in, focus-suppressed). Reads the
+        # final status text so the notification body matches exactly
+        # what the user would see if they switched back to the GUI.
+        self._fire_completion_notification(
+            "peekdocs — Standard Search complete",
+            self.status_label.cget("text") or "Search complete.",
+        )
 
+
+
+    def _fire_completion_notification(self, title, body):
+        """Fire a desktop notification when a search finishes.
+
+        No-op when ``Notify on Search Complete`` is unchecked, or when
+        the peekdocs window currently has keyboard focus (the user can
+        already see the result; no need to interrupt). Failures are
+        swallowed — desktop notifications are nice-to-have polish, not
+        load-bearing functionality."""
+        try:
+            if getattr(self, "notify_on_complete_var", None) is None:
+                return
+            if self.notify_on_complete_var.get() != "on":
+                return
+            # focus_displayof() returns None when no window of this
+            # application has the focus on the display. This covers
+            # backgrounded, minimized, hidden behind another app, and
+            # different-Space cases on macOS.
+            try:
+                focused = self.focus_displayof()
+            except Exception:
+                focused = None
+            if focused is not None:
+                return
+            from peekdocs.notifier import desktop_notify
+            desktop_notify(title, body)
+        except Exception:
+            pass
 
     def _show_preview(self, stdout):
         """Populate the results preview pane from search output."""

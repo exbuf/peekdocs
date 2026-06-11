@@ -6068,6 +6068,13 @@ class ToolsMixin:
             self.preview_text.insert("end", f"\nClick DOCX or TXT above to open the full report.\n")
             self.preview_text.configure(state="disabled")
 
+        # Desktop notification (opt-in, focus-suppressed). Fires for
+        # both single-suite runs and Run Multiple Search Suites.
+        self._fire_completion_notification(
+            f"peekdocs — Suite complete: {suite_name}",
+            self.status_label.cget("text") or "Suite complete.",
+        )
+
         # Optional completion popup — used by Run Multiple Search
         # Suites so the user gets an unambiguous "the reports you
         # just generated are here" affirmation, separate from the
@@ -8495,6 +8502,14 @@ class ToolsMixin:
                     text=f"Regex Search complete ({elapsed:.1f}s, {files_searched} files) \u2014 {total} match(es).{_bypass_note}",
                     text_color=("black", "#e0e0e0"),
                 )
+
+            # Desktop notification (opt-in, focus-suppressed).
+            self._fire_completion_notification(
+                "peekdocs \u2014 Regex Search complete"
+                + (f": {collection_name}" if (collection_name or "").strip() else ""),
+                f"{total} match(es) in {files_searched} file(s)  ({elapsed:.1f}s)"
+                if total else f"No matches across {files_searched} file(s)  ({elapsed:.1f}s)",
+            )
 
             if not screen_only and all_matches:
                 self.results_dir = folder
