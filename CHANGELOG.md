@@ -12,6 +12,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-06-11
+
+First minor-version bump since 1.0.0. The release leads with two
+genuinely new public features and three new modules. **`peekdocs
+--watch`** is a long-running CLI mode that tails a folder and emits
+matches as NDJSON for log-shipper pipelines (`watcher.py`, new
+dependency `watchdog>=4.0,<7.0`). **Desktop notification on search
+complete** fires a native OS notification when a Standard / Suite
+/ Regex run finishes (`notifier.py`, dep-free across macOS / Linux
+/ Windows). Plus a **Regex Tester** scratchpad popup, **bash-style
+↑ / ↓ history recall** in the search bar, **Run Multiple Search
+Suites** + **Run Multiple Regex Collections** multi-run pickers,
+report-accuracy fixes (yellow-highlight word dropping, file-count
+header, dedup + sort order), and a round of voice / accuracy
+polish across the user-facing docs. The 1.0.x → 1.1.0 bump reflects
+the new CLI flag, the two new public modules, and the new
+dependency — semantic-versioning correct.
+
 ### Added
 
 - **`peekdocs --watch` — folder watcher with NDJSON streaming output.** Long-running mode that watches a folder via the `watchdog` library, re-runs a named regex collection on every file create / modify / move event, and emits one self-contained JSON record per match to stdout. Each record carries `timestamp` / `file` / `line` / `matched_text` / `pattern_name` / `pattern_regex` / `collection`, on its own line — the standard NDJSON / JSON Lines shape that any log shipper and any shell pipeline (`jq`, `grep`, `awk`) consume natively. Usage: `peekdocs --watch -d <folder> --regex-collection NAME [-r]`. Status / warnings go to stderr so the stdout stream stays a clean NDJSON pipe; `Ctrl-C` shuts down cleanly with exit 0; per-file debounce absorbs the duplicate `on_created` + `on_modified` events that platforms emit for a single save. Refuses to run as root by default (`--allow-root` overrides); warns when the watch target looks like a system path or another user's home directory (`--allow-system-paths` suppresses). Reuses the existing `api.search()` per-file extraction + matching pipeline so the watcher inherits the 100-format matrix and every regex-engine improvement the one-shot search path carries. Pairs with the seeded Examples collection (email, URL, IPv4/v6, ISO date / time, UUID, semver, hex color, Markdown link, TODO / FIXME, JIRA ticket, ISBN, DOI, USD amount, env var) or any user-built collection — the watcher inherits whatever patterns the collection contains and emits matches in real time as files arrive. New watcher module at `peekdocs/watcher.py`; new dependency `watchdog>=4.0,<7.0`; 18 new tests in `tests/test_watcher.py` covering safety checks, the legacy-string `"on"` / `"off"` enabled-flag, and per-file scan emission.
