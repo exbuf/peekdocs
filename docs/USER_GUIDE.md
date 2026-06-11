@@ -569,7 +569,7 @@ peekdocs is built for the mixed-format reality of most document folders — PDFs
 
 **What peekdocs offers for document-search workflows:**
 
-- **100+ file types out of the box** — PDF (with optional OCR), Word, Excel, PowerPoint, EPUB, RTF, ODT, ODS, ODP, email (`.eml`, `.msg`, `.mbox`, `.pst`), Jupyter notebooks, archives (`.zip`, `.7z`, `.rar`) searched in place, and 31 source-code extensions
+- **100+ file types out of the box** — PDF (with optional OCR), Word, Excel, PowerPoint, EPUB, RTF, ODT, ODS, ODP, email (`.eml`, `.msg`, `.mbox`, `.pst`), Jupyter notebooks, archives (`.zip`, `.7z`, `.rar`) searched in place, and 40+ source-code extensions
 - **Highlighted reports** — `.docx`, `.pdf`, and `.html` with matches highlighted in yellow, plus `.csv` / `.json` structured exports for downstream tooling
 - **Search modes beyond plain matching** — Boolean expressions (`-e "A AND (B OR C)"`), fuzzy matching (`-z`), regex (`-x`), wildcards (`-w`), word and line proximity (`-p`, `-P`), range queries on amounts, dates, and file sizes (`-R`), and inverse search for files missing required content (`--inverse`)
 - **Saved searches and suites** — name a search, group related searches into a suite, run the whole suite with one command
