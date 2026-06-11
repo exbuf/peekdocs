@@ -117,6 +117,10 @@ BANNER_BOTTOM = (
     '  --list-suites --rescan   Re-discover suites by scanning ~/Documents and ~/Desktop\n'
     '  --regex-collection NAME  Run a saved regex collection by name\n'
     '  --regex-collection --list  List all saved regex collections\n'
+    '  --watch            Long-running mode: watch a folder, run a regex collection\n'
+    '                     on each file create/modify, emit one NDJSON line per match\n'
+    '                     to stdout. Pair with --regex-collection NAME. Add -r for\n'
+    '                     recursive. Ctrl-C to stop. See "Folder watcher" below.\n'
     '  --config KEY=VAL   Save a default setting (e.g., --config recursive=true)\n'
     '  --config           Show all saved settings\n'
     '  --config --reset   Delete all saved settings and return to factory defaults\n'
@@ -205,6 +209,18 @@ BANNER_BOTTOM = (
     '    ihateregex.io          — common patterns with explanations\n'
     '    developer.mozilla.org  — regex syntax reference / cheatsheet\n'
     '\n'
+    '── Folder watcher (long-running, NDJSON to stdout) ──────────────────\n'
+    '  peekdocs --watch -d ~/folder --regex-collection NAME      Watch + stream matches\n'
+    '  peekdocs --watch -d ~/folder --regex-collection NAME -r   Recursive into subfolders\n'
+    '\n'
+    '  Emits one JSON record per match to stdout while files are created or modified;\n'
+    '  status / warnings go to stderr so the stdout stream stays a clean NDJSON pipe.\n'
+    '  Ctrl-C stops cleanly (exit 0). Compose with anything that reads JSON Lines:\n'
+    '    peekdocs --watch -d ~/Downloads --regex-collection PII > matches.ndjson\n'
+    '    peekdocs --watch -d ~/repo --regex-collection secrets | jq -c "{file,line}"\n'
+    '  Refuses to run as root by default (pass --allow-root to override). Warns when\n'
+    '  the watch target looks like a system path (pass --allow-system-paths to suppress).\n'
+    '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
     '  peekdocs --clear               Delete peekdocs_*_results* files\n'
@@ -281,6 +297,18 @@ BANNER_QUICK = (
     '    regex101.com           — interactive tester + community pattern library\n'
     '    ihateregex.io          — common patterns with explanations\n'
     '    developer.mozilla.org  — regex syntax reference / cheatsheet\n'
+    '\n'
+    '── Folder watcher (long-running, NDJSON to stdout) ──────────────────\n'
+    '  peekdocs --watch -d ~/folder --regex-collection NAME      Watch + stream matches\n'
+    '  peekdocs --watch -d ~/folder --regex-collection NAME -r   Recursive into subfolders\n'
+    '\n'
+    '  Emits one JSON record per match to stdout while files are created or modified;\n'
+    '  status / warnings go to stderr so the stdout stream stays a clean NDJSON pipe.\n'
+    '  Ctrl-C stops cleanly (exit 0). Compose with anything that reads JSON Lines:\n'
+    '    peekdocs --watch -d ~/Downloads --regex-collection PII > matches.ndjson\n'
+    '    peekdocs --watch -d ~/repo --regex-collection secrets | jq -c "{file,line}"\n'
+    '  Refuses to run as root by default (pass --allow-root to override). Warns when\n'
+    '  the watch target looks like a system path (pass --allow-system-paths to suppress).\n'
     '\n'
     '── Cleanup (current directory only — never subdirectories) ────────────────\n'
     '  peekdocs --list-files          List all peekdocs-created files\n'
@@ -890,7 +918,13 @@ def _main_inner(argv=None):
         print(BANNER_QUICK)
         return 0
 
-    if not quiet:
+    # The watcher mode emits NDJSON to stdout — banner and "no index"
+    # notes would pollute that stream and break downstream consumers
+    # (jq, log shippers). Suppress all preamble unconditionally when
+    # --watch is present; status / warnings still go to stderr from
+    # peekdocs/watcher.py.
+    _is_watch_mode = "--watch" in args
+    if not quiet and not _is_watch_mode:
         # Normal search: show short banner before search runs
         print(f'\npeekdocs v{VERSION}')
         print(f'Your system has {cpu_count} CPU cores (default for -c: {max(1, cpu_count // 2)})')
@@ -1334,6 +1368,88 @@ def _main_inner(argv=None):
         print()
         print(f"{len(entries)} suite(s).  Run with:  peekdocs --suite \"<name>\"")
         return 0
+
+    # ── --watch: long-running folder-watcher mode ──
+    # Accepts --watch anywhere in args (not necessarily args[0]) so it
+    # composes naturally with the existing --regex-collection / -d / -r
+    # flags. Headline usage:
+    #     peekdocs --watch -d <folder> --regex-collection NAME [-r]
+    # NDJSON streams to stdout, status / warnings to stderr, exits 0 on
+    # clean Ctrl-C. See peekdocs/watcher.py for design notes.
+    if "--watch" in args:
+        if dry_run:
+            print("Error: --dry-run is not supported with --watch — the watcher")
+            print("is a long-running mode, not a one-shot scope-preview command.\n")
+            return 2
+        # Consume --watch and any --watch-mode-only flags before falling
+        # through to pattern source discovery.
+        args = [a for a in args if a != "--watch"]
+        _watch_allow_root = False
+        if "--allow-root" in args:
+            _watch_allow_root = True
+            args = [a for a in args if a != "--allow-root"]
+        _watch_allow_system_paths = False
+        if "--allow-system-paths" in args:
+            _watch_allow_system_paths = True
+            args = [a for a in args if a != "--allow-system-paths"]
+        # Folder from -d / --directory (default cwd)
+        _watch_folder = os.getcwd()
+        for _flag in ("-d", "--directory"):
+            if _flag in args:
+                _i = args.index(_flag)
+                if _i + 1 < len(args):
+                    _watch_folder = args[_i + 1]
+                    del args[_i:_i + 2]
+                else:
+                    print(f"Error: {_flag} requires a folder path.\n")
+                    return 2
+        _watch_recursive = "-r" in args
+        if "-r" in args:
+            args = [a for a in args if a != "-r"]
+        # Pattern source: --regex-collection NAME is the only supported
+        # source in v1. Single -x "regex" and standard-search modes are
+        # deferred — every realistic watcher workflow names its patterns,
+        # and a saved collection gives the NDJSON output meaningful
+        # pattern_name and collection fields out of the box.
+        if "--regex-collection" not in args:
+            print("Error: --watch requires --regex-collection NAME.\n"
+                  "Usage:\n"
+                  "  peekdocs --watch -d <folder> --regex-collection NAME [-r]\n")
+            return 2
+        _i = args.index("--regex-collection")
+        if _i + 1 >= len(args):
+            print("Error: --regex-collection requires a collection name.\n")
+            return 2
+        _watch_collection_name = args[_i + 1]
+        _watch_rc_path = os.path.join(
+            os.path.expanduser("~"), ".peekdocs_regex_collections.json"
+        )
+        if not os.path.exists(_watch_rc_path):
+            print("No saved regex collections found. Create one in the GUI "
+                  "(Regex Search → Save Collection As).\n")
+            return 2
+        try:
+            with open(_watch_rc_path, "r", encoding="utf-8") as _f:
+                _watch_rc_data = json.loads(_f.read())
+        except Exception as exc:
+            print(f"Error reading collections: {exc}\n")
+            return 2
+        if _watch_collection_name not in _watch_rc_data:
+            _available = sorted(_watch_rc_data.keys())
+            print(f"Collection '{_watch_collection_name}' not found.")
+            if _available:
+                print(f"Available collections: {', '.join(_available)}")
+            return 2
+        from peekdocs.watcher import WatcherConfig, run_watch
+        _watch_cfg = WatcherConfig(
+            folder=_watch_folder,
+            patterns=_watch_rc_data[_watch_collection_name],
+            collection_name=_watch_collection_name,
+            recursive=_watch_recursive,
+            allow_root=_watch_allow_root,
+            allow_system_paths=_watch_allow_system_paths,
+        )
+        return run_watch(_watch_cfg)
 
     # ── --suite NAME: run a search suite ──
     if args and args[0] == "--suite":

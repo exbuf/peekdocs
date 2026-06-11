@@ -820,6 +820,51 @@ The Python API is the most reliable way to enumerate and run every saved collect
 peekdocs --regex-collection --list
 ```
 
+**Real-time monitoring with `--watch`** — `--regex-collection` is a one-shot scan. The `--watch` flag turns it into a long-running mode: peekdocs sits on the folder, re-runs the collection every time a file is created or modified, and emits one JSON record per match to stdout. The stream is JSON Lines (NDJSON), the de-facto standard for log shipping — every line is a self-contained JSON object, no top-level array, no commas between records — so it pipes straight into `jq`, `grep`, a log shipper, or a file:
+
+```
+# Watch ~/Downloads for any of the seeded Examples patterns
+peekdocs --watch -d ~/Downloads --regex-collection Examples
+
+# Same thing, recursive, redirected to a running log file
+peekdocs --watch -d ~/Downloads --regex-collection PII -r > matches.ndjson
+
+# Compose with jq to filter at the pipe — alert only when emails appear
+peekdocs --watch -d ~/repo --regex-collection secrets | \
+  jq -c 'select(.pattern_name == "Email address")'
+
+# Pipe into a log shipper — Filebeat / Vector / Fluent Bit all read JSONL natively
+peekdocs --watch -d /var/log/app --regex-collection error-shapes | \
+  vector --config vector.toml
+```
+
+Each emitted record has the shape:
+
+```json
+{
+  "timestamp": "2026-06-11T14:23:18",
+  "file": "/abs/path/to/invoice.docx",
+  "line": 7,
+  "matched_text": "SSN: 412-55-8903",
+  "pattern_name": "SSN",
+  "pattern_regex": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+  "collection": "PII"
+}
+```
+
+Status messages and warnings go to stderr so the stdout stream stays a clean JSON pipe. Ctrl-C stops the watcher cleanly (exit 0). On platforms that fire both `on_created` and `on_modified` events for a single file save (most do), a per-file debounce window absorbs the duplicate so the stream emits one record per match, not two.
+
+**Safety guardrails.** Because the watcher is a long-running mode that reads file contents, two safety checks are on by default:
+
+- **Refuses to run as root.** A privileged watcher can read files the operator may not be authorized to access. Pass `--allow-root` if you genuinely need root.
+- **Warns on system paths.** If the watch target looks like `/etc`, `/var`, `/Library`, `C:\Windows`, etc., or like another user's home directory on Unix, peekdocs prints a startup warning. Pass `--allow-system-paths` to suppress.
+
+**Caveats.**
+
+- *Cloud-synced folders are noisy.* OneDrive / Dropbox / iCloud / Google Drive Sync emit constant metadata events on hydration and rename-as-delete-plus-create. The watcher will fire repeatedly. For monitoring a synced folder, point it at the local mirror after sync completes, or accept the noise.
+- *No service-manager templates ship in v1.* Restarting `peekdocs --watch` on boot is the operator's responsibility — `systemd`, `launchd`, or Windows Task Scheduler — and the recipes aren't yet documented. A community contribution adding starter templates is welcome.
+- *Per-file extraction errors don't crash the watcher.* A bad file (corrupted PDF, password-protected document, etc.) writes a one-line diagnostic to stderr and the watcher continues with the next event. Search the stderr for `watcher: error scanning` if you suspect coverage gaps.
+
 ### Search Suite Use Cases
 
 The `--suite` flag runs a saved search suite from the command line. Suites live in `.peekdocs_collection.json` inside each search folder, but peekdocs keeps a small global index (`~/.peekdocs_suites_index.json`) so the CLI can find a suite by name from any working directory. Concretely:
