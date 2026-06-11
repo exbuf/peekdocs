@@ -28,8 +28,8 @@ A workbench for document collections: search them, characterize them through bui
 - **Search Suites** — group saved searches and run them all with one click. Fan out across several suites in one go via the in-popup **Run Multiple Search Suites** picker. Also runnable from Python via `run_suite()`.
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into a workflow system: define a search by name; group related searches into a suite; reuse pattern sets via Regex Collections; schedule a suite to run on a cadence; audit every run via Search History; compare today's run against last week's via Diff Snapshots.
 - **File analysis built in** — Collection Summary, Duplicate Finder, Empty Files, File Age Distribution, File Inventory, Large Files, Protected Files, Recent Changes, and Unsearchable Files. Plus Bookmarks and Search History for recurring workflows.
-- **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, and report formats are byte-identical regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
-- **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce byte-identical outputs every time — the same search produces the same results today, tomorrow, and a year from now.
+- **Three interfaces, one engine** — same search engine and same behavior across the GUI, CLI, and Python API. Search Suites, Regex Collections, saved searches, and report formats use the same underlying schemas regardless of which surface you use. Run a search by hand from the GUI today; schedule the identical command via cron / Task Scheduler tonight; integrate the same logic into a Python script tomorrow.
+- **Scriptable, deterministic, integrable** — Python API, JSON / NDJSON output, meaningful exit codes, Diff Snapshots, Schedule Search, and a stable CLI surface for cron jobs, CI pipelines, log shippers, and shell pipelines. Same inputs produce the same matches every time — the same search finds the same lines in the same files, today and on every subsequent run within a release. The CHANGELOG documents behavior changes between releases; users who need stable output across releases should pin to a specific version.
 - **Cross-platform** — same features on macOS, Windows, and Linux
 
 &nbsp;
@@ -241,7 +241,7 @@ One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Py
 
 ![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
 
-**(c) Python API — same search from a script or notebook.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same `0.3`-second result.
+**(c) Python API — same search from a script or notebook.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same matches; the in-process call also runs faster than the CLI (~`0.3`-second vs. `0.50`) because there's no subprocess startup cost.
 
 ![peekdocs Python API in a Jupyter notebook](docs/images/screenshot-python-api.png)
 
