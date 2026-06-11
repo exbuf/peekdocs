@@ -517,7 +517,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Inverse search** — find files that are *missing* required content
 - **Search Wizard** — guided search builder with 20 pre-built search types (phone, email, dollar range, date range, Boolean, fuzzy, and more) plus a regex pattern builder with 35 named patterns across 6 categories — no flags or regex knowledge needed
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
-- **Recent searches** — dropdown next to the search bar remembers your last 10 searches
+- **Recent searches** — your last 10 search terms are remembered for re-use. With the search bar focused, press **↑** / **↓** to walk through them (most recent first; **↓** past the newest entry restores whatever you were typing). Or click the **▼ Recent Searches** dropdown next to the search bar to see all 10 in a popup with a **Clear** button
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
 - **Works in any language** — Unicode-based text handling; searches documents in any language with exact character-sequence matching (no stemming or word segmentation). GUI and documentation are English-only. The PDF report uses a Latin-1 font, so non-Latin text shows as `?` in `.pdf` only — use `.docx`, `.html`, `.txt`, `.json`, or `.csv` for non-Latin content.
 
