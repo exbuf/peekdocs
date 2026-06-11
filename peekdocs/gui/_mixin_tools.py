@@ -7998,6 +7998,34 @@ class ToolsMixin:
                 "name (creates a subset).",
             )
 
+            # Per-row "Test" button: opens the Regex Tester pre-filled
+            # with this row's regex. The tester's "Use this pattern"
+            # button writes back to this row, so the loop is
+            # edit-row \u2192 click Test \u2192 iterate against sample \u2192 Use \u2192 done,
+            # without ever leaving the Regex Search popup.
+            def _open_tester_for_row(_re=regex_entry):
+                def _write_back(new_pattern):
+                    _re.delete(0, "end")
+                    _re.insert(0, new_pattern)
+                self._show_regex_tester(
+                    initial_pattern=_re.get(),
+                    on_use=_write_back,
+                )
+
+            _test_btn = ctk.CTkButton(
+                row, text="Test", width=44, height=26,
+                font=ctk.CTkFont(size=11),
+                fg_color="#555555", hover_color="#444444",
+                command=_open_tester_for_row,
+            )
+            _test_btn.pack(side="left", padx=(4, 0))
+            Tooltip(
+                _test_btn,
+                "Open the Regex Tester pre-filled with this row's pattern. "
+                "Type sample text and watch matches highlight live; click "
+                "Use this pattern to write the edited regex back to this row.",
+            )
+
             pattern_rows.append((enabled_var, name_entry, regex_entry))
 
         # If no active collection was persisted (older config, or first run
@@ -8644,6 +8672,519 @@ class ToolsMixin:
                 text_color="white", text="Run Regex Search",
                 command=self._start_regex_search,
             )
+
+    def _show_regex_tester(self, initial_pattern="", initial_sample="", on_use=None):
+        """Live regex tester popup.
+
+        Pattern at the top, sample text in the middle, matches and per-
+        match list at the bottom. Typing in either the pattern or the
+        sample triggers a debounced re-match (~300 ms) — matches are
+        highlighted in yellow in the sample widget as the user types,
+        invalid regex shows the compile error inline rather than as a
+        modal exception. Closes the build → run → fix loop that the
+        Regex Search popup otherwise forces users into.
+
+        Parameters
+        ----------
+        initial_pattern : str
+            Pre-fill the pattern entry. Used when the tester is opened
+            from a Regex Search popup row (the row's regex is passed in
+            so the user can iterate on an existing pattern).
+        initial_sample : str
+            Pre-fill the sample text area. Useful when the tester is
+            opened with selected text from another widget.
+        on_use : callable[[str], None] | None
+            Called with the current pattern string when the user clicks
+            "Use this pattern." When None, the button is hidden (the
+            tester is standalone and there's no caller to hand the
+            pattern back to).
+        """
+        import tkinter as tk
+        from tkinter import filedialog
+
+        win, _dark = self._themed_toplevel()
+        win.title("Regex Tester")
+        win.geometry("760x660")
+        win.resizable(True, True)
+        try:
+            win.transient(self)
+        except Exception:
+            pass
+
+        # ── Header with title + ? help ──────────────────────
+        header = tk.Frame(win)
+        header.pack(fill="x", padx=15, pady=(10, 0))
+        tk.Label(
+            header, text="Regex Tester",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
+            command=lambda: self._show_regex_tester_help(win),
+        ).pack(side="right")
+
+        # ── Pattern row ─────────────────────────────────────
+        pattern_frame = tk.Frame(win)
+        pattern_frame.pack(fill="x", padx=15, pady=(8, 4))
+        tk.Label(
+            pattern_frame, text="Pattern:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(side="left", padx=(0, 6))
+        pattern_entry = ctk.CTkEntry(
+            pattern_frame, width=600,
+            font=ctk.CTkFont(family="Courier", size=12),
+        )
+        pattern_entry.pack(side="left", fill="x", expand=True)
+        if initial_pattern:
+            pattern_entry.insert(0, initial_pattern)
+
+        status_var = tk.StringVar(value="")
+        status_label = tk.Label(
+            win, textvariable=status_var,
+            font=("TkDefaultFont", 11), anchor="w", justify="left",
+        )
+        status_label.pack(fill="x", padx=15, pady=(0, 6))
+
+        # ── Sample text widget ──────────────────────────────
+        sample_frame = tk.Frame(win)
+        sample_frame.pack(fill="both", expand=True, padx=15, pady=(0, 4))
+        tk.Label(
+            sample_frame, text="Sample text (type, paste, or load a file):",
+            font=("TkDefaultFont", 11, "bold"), anchor="w",
+        ).pack(fill="x")
+        sample_inner = tk.Frame(sample_frame)
+        sample_inner.pack(fill="both", expand=True, pady=(2, 0))
+        sample_scroll = tk.Scrollbar(sample_inner, orient="vertical")
+        sample_scroll.pack(side="right", fill="y")
+        sample_text = tk.Text(
+            sample_inner, wrap="word", height=10,
+            font=("Courier", 11),
+            yscrollcommand=sample_scroll.set,
+            undo=True,
+        )
+        sample_text.pack(side="left", fill="both", expand=True)
+        sample_scroll.config(command=sample_text.yview)
+        # Yellow highlight tag — same color as the standard-search
+        # preview's "match" tag so the tester feels of-a-piece with the
+        # rest of the GUI.
+        sample_text.tag_configure(
+            "match", background="#FFFF00", foreground="#000000",
+        )
+        if initial_sample:
+            sample_text.insert("1.0", initial_sample)
+
+        # ── Sample source buttons ──────────────────────────
+        source_frame = tk.Frame(win)
+        source_frame.pack(fill="x", padx=15, pady=(0, 4))
+
+        def _paste_from_clipboard():
+            try:
+                content = win.clipboard_get()
+            except tk.TclError:
+                return
+            sample_text.delete("1.0", "end")
+            sample_text.insert("1.0", content)
+            _rematch_now()
+
+        # Sample-text size cap. Larger samples make the live re-match
+        # path feel sluggish (and a pathological regex on a big sample
+        # can hang for seconds — Python's re has no native timeout).
+        # 50 KB is enough to represent realistic short documents while
+        # keeping the debounced re-match snappy.
+        _SAMPLE_CAP = 50 * 1024
+
+        def _load_from_file():
+            path = filedialog.askopenfilename(parent=win)
+            if not path:
+                return
+            try:
+                # Plain text fast path — read directly.
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                    content = f.read(_SAMPLE_CAP + 1)
+                if len(content) > _SAMPLE_CAP:
+                    content = content[:_SAMPLE_CAP] + "\n\n…(truncated to 50 KB)…"
+            except (UnicodeDecodeError, OSError):
+                # Not plain text — route through the same extractor the
+                # search engine uses. This is what makes the tester
+                # useful against actual Word / PDF / Excel content the
+                # user is planning to search.
+                try:
+                    from peekdocs.scanner import _extract_lines
+                    lines = _extract_lines(path, use_ocr=False)
+                    content = "\n".join(t for _ln, t in lines)
+                    if len(content) > _SAMPLE_CAP:
+                        content = content[:_SAMPLE_CAP] + "\n\n…(truncated to 50 KB)…"
+                except Exception as exc:
+                    self._show_error(
+                        f"Couldn't extract text from {os.path.basename(path)}:\n\n{exc}"
+                    )
+                    return
+            sample_text.delete("1.0", "end")
+            sample_text.insert("1.0", content)
+            _rematch_now()
+
+        ctk.CTkButton(
+            source_frame, text="Paste from clipboard", width=160,
+            font=ctk.CTkFont(size=11), command=_paste_from_clipboard,
+        ).pack(side="left", padx=(0, 6))
+        ctk.CTkButton(
+            source_frame, text="Load from file…", width=140,
+            font=ctk.CTkFont(size=11), command=_load_from_file,
+        ).pack(side="left")
+
+        # ── Match list ──────────────────────────────────────
+        matches_frame = tk.Frame(win)
+        matches_frame.pack(fill="both", expand=False, padx=15, pady=(8, 4))
+        tk.Label(
+            matches_frame, text="Matches:",
+            font=("TkDefaultFont", 11, "bold"), anchor="w",
+        ).pack(fill="x")
+        list_inner = tk.Frame(matches_frame)
+        list_inner.pack(fill="both", expand=True, pady=(2, 0))
+        list_scroll = tk.Scrollbar(list_inner, orient="vertical")
+        list_scroll.pack(side="right", fill="y")
+        match_list = tk.Text(
+            list_inner, wrap="none", height=6,
+            font=("Courier", 10),
+            yscrollcommand=list_scroll.set,
+            state="disabled",
+        )
+        match_list.pack(side="left", fill="both", expand=True)
+        list_scroll.config(command=match_list.yview)
+
+        # ── Action buttons ──────────────────────────────────
+        action_frame = tk.Frame(win)
+        action_frame.pack(pady=(8, 4))
+
+        def _translate_pattern():
+            pat = pattern_entry.get()
+            if not pat:
+                return
+            try:
+                from peekdocs.translator import _translate_regex
+                translation = _translate_regex(pat)
+            except Exception as exc:
+                translation = f"(translator error: {exc})"
+            self._show_simple_popup(
+                "Pattern in plain English",
+                f"Regex: {pat}",
+                translation,
+            )
+
+        if on_use:
+            ctk.CTkButton(
+                action_frame, text="Use this pattern", width=140,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#1565C0", hover_color="#0D47A1", text_color="white",
+                command=lambda: (on_use(pattern_entry.get()), win.destroy()),
+            ).pack(side="left", padx=4)
+
+        def _copy_to_clipboard():
+            pat = pattern_entry.get()
+            if not pat:
+                return
+            win.clipboard_clear()
+            win.clipboard_append(pat)
+
+        ctk.CTkButton(
+            action_frame, text="Copy to clipboard", width=140,
+            font=ctk.CTkFont(size=12),
+            command=_copy_to_clipboard,
+        ).pack(side="left", padx=4)
+        ctk.CTkButton(
+            action_frame, text="Translate to plain English", width=190,
+            font=ctk.CTkFont(size=12),
+            command=_translate_pattern,
+        ).pack(side="left", padx=4)
+
+        # Close on its own row, centered. Visually separates the
+        # dismiss action from the pattern-action row (Use / Copy /
+        # Translate) so it's hard to misclick when reaching for one of
+        # the pattern actions.
+        close_frame = tk.Frame(win)
+        close_frame.pack(pady=(0, 12))
+        ctk.CTkButton(
+            close_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=win.destroy,
+        ).pack()
+
+        # ── Live re-match (debounced) ───────────────────────
+        # `_pending` holds the after() ID of the next scheduled rematch
+        # so we can cancel-and-reschedule on every keystroke. Net effect:
+        # one rematch per 300 ms of typing, not one per keystroke.
+        _pending = [None]
+        _RE_DEBOUNCE_MS = 300
+
+        def _format_position(text, char_index):
+            """Translate a character offset within the sample text to
+            (line, column), both 1-indexed for display."""
+            up_to = text[:char_index]
+            line = up_to.count("\n") + 1
+            last_newline = up_to.rfind("\n")
+            col = char_index - (last_newline + 1) + 1
+            return line, col
+
+        def _rematch_now(*_args):
+            import re as _re_mod
+            pat = pattern_entry.get()
+            sample = sample_text.get("1.0", "end-1c")
+
+            # Clear previous match tags + reset the list widget. Tag
+            # removal first so a transient-invalid pattern blanks the
+            # highlights immediately rather than leaving stale ones.
+            sample_text.tag_remove("match", "1.0", "end")
+            match_list.configure(state="normal")
+            match_list.delete("1.0", "end")
+
+            if not pat:
+                status_var.set("(no pattern)")
+                status_label.configure(fg="gray")
+                match_list.configure(state="disabled")
+                return
+
+            try:
+                compiled = _re_mod.compile(pat)
+            except _re_mod.error as exc:
+                status_var.set(f"✗ Invalid regex: {exc}")
+                status_label.configure(fg="#CC3333")
+                match_list.configure(state="disabled")
+                return
+
+            matches = list(compiled.finditer(sample))
+            count = len(matches)
+            if count == 0:
+                status_var.set("✓ Compiles  —  no matches in sample")
+                status_label.configure(fg=("gray30" if not _dark else "gray70"))
+            else:
+                status_var.set(f"✓ Compiles  —  {count} match(es)")
+                status_label.configure(fg="#1B7A1B")
+
+            # Apply the yellow tag to every match span. tk.Text indices
+            # are line.column 1-based, so we convert char offsets to
+            # that shape via Text's "1.0 + N chars" syntax.
+            for i, m in enumerate(matches):
+                start, end = m.span()
+                if start == end:
+                    # Zero-width match (e.g., a stray \b). Skip — Text
+                    # can't apply a tag over a zero-width range and the
+                    # iteration would loop on it.
+                    continue
+                sample_text.tag_add(
+                    "match",
+                    f"1.0 + {start} chars",
+                    f"1.0 + {end} chars",
+                )
+                # Cap the list at first 200 entries; users testing
+                # against very generic patterns don't need a 10,000-line
+                # match list scrolling out of bounds.
+                if i < 200:
+                    line, col_start = _format_position(sample, start)
+                    _, col_end = _format_position(sample, end)
+                    snippet = m.group(0)
+                    if len(snippet) > 60:
+                        snippet = snippet[:57] + "…"
+                    match_list.insert(
+                        "end",
+                        f"  {i + 1:>3}. {snippet}   (L{line}, c{col_start}–c{col_end})\n",
+                    )
+            if count > 200:
+                match_list.insert(
+                    "end",
+                    f"  … and {count - 200} more (list capped at 200; "
+                    f"highlights are applied to all)\n",
+                )
+            match_list.configure(state="disabled")
+
+        def _schedule_rematch(*_args):
+            if _pending[0] is not None:
+                try:
+                    win.after_cancel(_pending[0])
+                except Exception:
+                    pass
+            _pending[0] = win.after(_RE_DEBOUNCE_MS, _rematch_now)
+
+        # Bind the debounced rematch to both inputs. KeyRelease fires
+        # after the character is in the widget, so reading entry.get()
+        # / text.get() inside the handler sees the updated content.
+        try:
+            pattern_entry.bind("<KeyRelease>", _schedule_rematch)
+        except Exception:
+            pass
+        sample_text.bind("<KeyRelease>", _schedule_rematch)
+        sample_text.bind("<<Paste>>", lambda _e: win.after(50, _rematch_now))
+
+        self._apply_dark_theme(win)
+        # First render — fire the rematch immediately so the highlight
+        # state is consistent with the seeded pattern + sample on open.
+        _rematch_now()
+        try:
+            pattern_entry.focus_set()
+        except Exception:
+            pass
+
+    def _show_regex_tester_help(self, parent):
+        """Help popup for the Regex Tester."""
+        import tkinter as tk
+
+        help_win, _dark = self._themed_toplevel()
+        help_win.title("Regex Tester — Help")
+        help_win.geometry("760x600")
+        help_win.resizable(True, True)
+        try:
+            help_win.transient(parent)
+        except Exception:
+            pass
+
+        # Close button packed FIRST with side="bottom" so it reserves
+        # its space before the scrollable Text takes the rest. Matches
+        # the convention used by every other help popup in the project.
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=help_win.destroy,
+        ).pack(side="bottom", pady=(5, 12))
+
+        txt = tk.Text(
+            help_win, wrap="word", font=("TkDefaultFont", 12),
+            padx=15, pady=10, borderwidth=0, highlightthickness=0,
+        )
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=5)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                          lmargin2=30, spacing1=2)
+
+        def h(text):
+            txt.insert("end", text + "\n", "heading")
+
+        def b(text):
+            txt.insert("end", text + "\n", "body")
+
+        def e(text):
+            txt.insert("end", text + "\n", "example")
+
+        def blank():
+            txt.insert("end", "\n")
+
+        h("WHAT THIS IS")
+        b("The Regex Tester is a scratchpad for crafting a regular")
+        b("expression against sample text and watching matches highlight")
+        b("in real time. Type a pattern at the top, paste or load sample")
+        b("text below, and matches appear in yellow as you type — no need")
+        b("to run a full search against a folder just to see whether a")
+        b("pattern works.")
+        blank()
+        b("Open it from Tools → Regex Tester (standalone), or from the")
+        b("Test button next to any pattern row in the Regex Search popup")
+        b("(pre-fills the tester with that row's regex; the Use this")
+        b("pattern button writes the edited regex back to the row).")
+        blank()
+
+        h("HOW TO USE IT")
+        b("1. Type a regex in the Pattern field at the top.")
+        b("2. Type or paste text into the Sample text area, or click")
+        b("   Load from file… to extract text from any of the 100+ file")
+        b("   types peekdocs supports (Word, PDF, Excel, CSV, .eml,")
+        b("   source code, etc.) — the first 50 KB is loaded.")
+        b("3. Watch the Sample text area: every match gets a yellow")
+        b("   highlight, and the Matches list below shows each match in")
+        b("   order with its line + column position.")
+        b("4. Tweak the pattern until matches look right.")
+        b("5. Use this pattern (if opened from a Regex Search row) writes")
+        b("   the pattern back to the row. Copy to clipboard puts it on")
+        b("   the system clipboard so you can paste it anywhere.")
+        blank()
+        b("Re-matching is debounced to ~300 ms after the last keystroke,")
+        b("so typing feels smooth even on long sample text.")
+        blank()
+
+        h("STATUS LINE")
+        b("Just below the Pattern field, the status line tells you what")
+        b("the tester sees:")
+        e("  (no pattern)                       — Pattern field is empty")
+        e("  ✗ Invalid regex: <error>           — Regex won't compile")
+        e("  ✓ Compiles — no matches in sample  — Valid, just no hits here")
+        e("  ✓ Compiles — N match(es)           — Valid, with N matches")
+        blank()
+        b("Invalid-regex errors are inline (no modal popup) — fix and")
+        b("the status flips back to green as soon as the pattern parses.")
+        blank()
+
+        h("PATTERN ACTIONS")
+        b("Use this pattern (only shown when the tester was opened from")
+        b("a Regex Search row) — copy the current pattern back to that")
+        b("row and close the tester.")
+        blank()
+        b("Copy to clipboard — put the current pattern on the system")
+        b("clipboard, then close the tester. Handy when you want to paste")
+        b("the pattern into another tool, a chat message, a notebook, etc.")
+        blank()
+        b("Translate to plain English — describe the pattern in words")
+        b("using peekdocs's built-in translator (the same one that")
+        b("produces the Translation ==> line in every search report).")
+        b("Useful for sanity-checking that a pattern means what you")
+        b("intended it to mean.")
+        blank()
+
+        h("SAMPLE TEXT SOURCES")
+        b("Type directly — small patterns are often easier to verify")
+        b("against a handful of typed-out examples than a real document.")
+        blank()
+        b("Paste from clipboard — fills the sample area with whatever's")
+        b("on the system clipboard.")
+        blank()
+        b("Load from file… — opens a file picker; the selected file is")
+        b("read or extracted (Word / PDF / Excel / archives — anything")
+        b("peekdocs supports) and the first 50 KB of its text content")
+        b("fills the sample area. Use this to verify a pattern against")
+        b("the actual shape of content you plan to search.")
+        blank()
+
+        h("LIMITS")
+        b("Sample text is capped at 50 KB. Larger samples make the live")
+        b("debounced re-match path feel sluggish, and a pathological")
+        b("regex on a big sample can hang the GUI briefly — Python's")
+        b("regex engine has no native timeout, so the cap is the")
+        b("simplest protective measure.")
+        blank()
+        b("The Matches list is capped at the first 200 hits, but the")
+        b("yellow highlight in the sample text covers every match. A")
+        b("very generic pattern (e.g., \\w+) will produce thousands of")
+        b("matches and a 200-line list with a tail count — not a 10,000-")
+        b("line list scrolling out of bounds.")
+        blank()
+        b("Catastrophic backtracking (a runaway pattern with nested")
+        b("quantifiers) can still freeze the tester for a few seconds.")
+        b("If the GUI stops responding while you're editing a pattern,")
+        b("that's the cause — wait, then simplify the pattern.")
+        blank()
+
+        h("TESTING AGAINST REAL DOCUMENTS")
+        b("The Load from file… button is the killer feature: it routes")
+        b("the file through the same text-extraction pipeline that the")
+        b("search engine uses, so you can craft a pattern against the")
+        b("exact shape of content it will meet in production. A pattern")
+        b("that matches \"line 7 of test.txt\" doesn't necessarily match")
+        b("\"paragraph 7 of a .docx\" — for Word / PDF / Excel, a")
+        b("\"line\" is a paragraph / row, not a 80-character text line.")
+        b("Loading the actual file reveals what the pattern will see")
+        b("when the search runs.")
+        blank()
+
+        txt.configure(state="disabled")
+        self._apply_dark_theme(help_win)
 
     def _show_regex_search_help(self, parent):
         """Show help for the Regex Search feature."""

@@ -827,15 +827,15 @@ peekdocs --regex-collection --list
 peekdocs --watch -d ~/Downloads --regex-collection Examples
 
 # Same thing, recursive, redirected to a running log file
-peekdocs --watch -d ~/Downloads --regex-collection PII -r > matches.ndjson
+peekdocs --watch -d ~/Downloads --regex-collection Examples -r > matches.ndjson
 
-# Compose with jq to filter at the pipe — alert only when emails appear
-peekdocs --watch -d ~/repo --regex-collection secrets | \
+# Compose with jq to filter at the pipe — keep only email matches
+peekdocs --watch -d ~/repo --regex-collection Examples | \
   jq -c 'select(.pattern_name == "Email address")'
 
-# Pipe into a log shipper — Filebeat / Vector / Fluent Bit all read JSONL natively
-peekdocs --watch -d /var/log/app --regex-collection error-shapes | \
-  vector --config vector.toml
+# Pipe into a log shipper that reads JSON Lines
+peekdocs --watch -d /var/log/app --regex-collection Examples | \
+  log-shipper --config some-pipeline.toml
 ```
 
 Each emitted record has the shape:
@@ -843,12 +843,12 @@ Each emitted record has the shape:
 ```json
 {
   "timestamp": "2026-06-11T14:23:18",
-  "file": "/abs/path/to/invoice.docx",
-  "line": 7,
-  "matched_text": "SSN: 412-55-8903",
-  "pattern_name": "SSN",
-  "pattern_regex": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
-  "collection": "PII"
+  "file": "/abs/path/to/notes.docx",
+  "line": 12,
+  "matched_text": "contact alice@example.com about the schedule",
+  "pattern_name": "Email address",
+  "pattern_regex": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b",
+  "collection": "Examples"
 }
 ```
 

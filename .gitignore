@@ -64,3 +64,6 @@ test_gui_debug.py
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Personal notes / docs not for the public repo
+THEORY_OF_OPERATION.md

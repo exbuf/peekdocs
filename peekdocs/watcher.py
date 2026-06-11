@@ -14,12 +14,12 @@ Fluent Bit, Splunk Universal Forwarder, etc.) and any shell pipeline (`jq`,
 
     {
         "timestamp": "2026-06-11T14:23:18",
-        "file": "/abs/path/to/invoice.docx",
-        "line": 7,
-        "matched_text": "SSN: 412-55-8903",
-        "pattern_name": "SSN",
-        "pattern_regex": "\\d{3}-\\d{2}-\\d{4}",
-        "collection": "PII"
+        "file": "/abs/path/to/notes.docx",
+        "line": 12,
+        "matched_text": "contact alice@example.com about the schedule",
+        "pattern_name": "Email address",
+        "pattern_regex": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b",
+        "collection": "Examples"
     }
 
 ## Design constraints

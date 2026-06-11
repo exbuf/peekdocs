@@ -285,8 +285,10 @@ class BuildMixin:
             self._input_frame, placeholder_text="Enter search terms...", font=ctk.CTkFont(size=14)
         )
         self.search_entry.grid(row=1, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
-        self.search_entry.bind("<Key>", lambda e: self._assistant_label.grid_remove() if e.keysym not in ("Return", "Tab") else None)
+        self.search_entry.bind("<Key>", self._on_search_key)
         self.search_entry.bind("<Return>", lambda e: self.start_search())
+        self.search_entry.bind("<Up>", self._search_history_prev)
+        self.search_entry.bind("<Down>", self._search_history_next)
 
         self._search_btn_frame = ctk.CTkFrame(self._input_frame, corner_radius=6,
                                                border_width=2, border_color=("gray50", "gray50"))
@@ -544,7 +546,7 @@ class BuildMixin:
         Tooltip(self.save_load_help_btn, "Help for Save Search and Load Search")
 
 
-        Tooltip(self.search_entry, "Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\").")
+        Tooltip(self.search_entry, "Search Bar: Type one or more search terms separated by spaces — there is no limit to the number of terms. Use quotes for phrases (e.g., \"annual report\"). All searches are case-insensitive. Do not use commas. Do not enter flags here — the checkboxes under Advanced Search Options handle that. When Expression is checked, enter a boolean expression instead (e.g., \"(bob AND amy) OR fred NOT draft\"). Press ↑ / ↓ to recall recent searches without opening the popup.")
 
 
 
@@ -1578,6 +1580,7 @@ class BuildMixin:
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
             menu.add_command(label="Diff Snapshots — compare two saved scans to see what changed", command=self._open_diff_snapshots)
             menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)
+            menu.add_command(label="Regex Tester — paste sample text and watch matches highlight in real time", command=lambda: self._show_regex_tester())
             menu.add_command(label="Schedule Search — generate a command to run searches on a schedule (cron / Task Scheduler)", command=self._open_schedule_search)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
             # Search Suites moved to main screen next to Wizard
@@ -1936,6 +1939,13 @@ class BuildMixin:
         n("you can quickly re-use them without retyping. Select one")
         n("and click Use (or double-click) to fill the search bar.\n")
 
+        b("Keyboard shortcut")
+        n("With the search bar focused, press ↑ to walk backward")
+        n("through your recent searches (most recent first) and ↓ to")
+        n("walk forward. ↓ past the newest entry restores whatever")
+        n("you had typed before you started navigating. Skips opening")
+        n("this popup when you just want the previous query back.\n")
+
         b("How they're stored")
         n("Recent searches are saved to ~/.peekdocsrc and persist")
         n("across sessions. They're available every time you open")
@@ -1960,6 +1970,80 @@ class BuildMixin:
 
         txt.configure(state="disabled")
         self._apply_dark_theme(help_win)
+
+    # ── Search-bar history navigation (Up / Down arrows) ─────────────
+    # Keysyms that should NOT reset the history-navigation cursor.
+    # Pure cursor / modifier / focus keys leave the recalled entry
+    # editable in place; anything else (typing, Backspace, paste,
+    # Delete, etc.) signals the user has started a fresh draft and
+    # the cursor is reset.
+    _SEARCH_HISTORY_SAFE_KEYS = (
+        "Up", "Down", "Left", "Right", "Home", "End",
+        "Shift_L", "Shift_R", "Control_L", "Control_R",
+        "Alt_L", "Alt_R", "Meta_L", "Meta_R",
+        "Super_L", "Super_R", "Caps_Lock", "Num_Lock",
+        "Return", "Tab", "Escape",
+    )
+
+    def _on_search_key(self, event):
+        """Search-bar <Key> handler: hide the assistant label on any
+        non-Return/Tab key, and reset the history-navigation cursor
+        whenever the user types something that changes the entry."""
+        if event.keysym not in ("Return", "Tab"):
+            try:
+                self._assistant_label.grid_remove()
+            except Exception:
+                pass
+        if event.keysym not in self._SEARCH_HISTORY_SAFE_KEYS:
+            self._search_history_idx = -1
+            self._search_history_draft = ""
+
+    def _search_history_prev(self, event=None):
+        """Up arrow in the search bar — recall an older entry from
+        the recent-searches list. First press snapshots whatever
+        the user had typed so Down can restore it later."""
+        recents = getattr(self, "_recent_searches", None) or []
+        if not recents:
+            return "break"
+        idx = getattr(self, "_search_history_idx", -1)
+        if idx == -1:
+            self._search_history_draft = self.search_entry.get()
+        if idx + 1 >= len(recents):
+            try:
+                self.bell()
+            except Exception:
+                pass
+            return "break"
+        self._search_history_idx = idx + 1
+        self._replace_search_text(recents[self._search_history_idx])
+        return "break"
+
+    def _search_history_next(self, event=None):
+        """Down arrow in the search bar — recall a newer entry, or
+        restore the snapshot draft once past the most-recent entry."""
+        idx = getattr(self, "_search_history_idx", -1)
+        if idx == -1:
+            return "break"
+        recents = getattr(self, "_recent_searches", None) or []
+        new_idx = idx - 1
+        if new_idx == -1:
+            self._replace_search_text(getattr(self, "_search_history_draft", ""))
+            self._search_history_idx = -1
+            return "break"
+        self._search_history_idx = new_idx
+        self._replace_search_text(recents[new_idx])
+        return "break"
+
+    def _replace_search_text(self, text):
+        """Replace the search bar contents and move the cursor to
+        the end. Shared by Up / Down arrow navigation."""
+        self.search_entry.delete(0, "end")
+        if text:
+            self.search_entry.insert(0, text)
+        try:
+            self.search_entry.icursor("end")
+        except Exception:
+            pass
 
     def _save_ui_preference(self, key, value):
         """Auto-save a single UI preference to ~/.peekdocsrc."""
