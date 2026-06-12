@@ -12,6 +12,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.2] — 2026-06-12
+
+Point release fixing the Standard Search Cancel button. It has been silently broken for an indeterminate number of releases — clicking Cancel mid-search showed an error popup with a half-formed CLI banner ("`peekdocs -q -r -W --max-file-size 0 budget` / Searching ... / Error: An unexpected error occurred"), and the original search kept running to completion in the background.
+
+### Fixed
+
+- **Standard Search — Cancel button now actually cancels.** Three causes compounded into the symptom:
+  1. **`self.process` was never given the live `Popen` handle.** `_run_search` set `self.process = None` and called `_run_peekdocs_cli`, which spawned its own local `proc` variable — the GUI held no reference to the running subprocess. So the Cancel branch (`if self.process is not None: terminate`) was always skipped silently.
+  2. **The "Cancel" button fell through and started a SECOND search.** With the cancel branch skipped, `start_search()` continued into validation + command-building + thread-start. Two subprocesses then ran simultaneously, colliding on `peekdocs_standard_results.txt` and the SQLite index; one of them raised an exception that the CLI caught and printed as "An unexpected error occurred. Details logged to peekdocs_errors.log". The GUI surfaced that stdout in an error popup, with the second command's banner still in the buffer — which is where the mysterious "`--max-file-size 0`" artifact came from.
+  3. **SIGTERM returncode is platform-dependent.** Even after wiring (1) correctly, `-15` on Unix lands in the cancel branch but `1` on Windows (Python's `TerminateProcess` convention) collides with peekdocs's "no matches" exit code — so a Windows cancel would silently say "Search complete. No matches found."
+
+  Fix:
+  - `peekdocs/gui/_helpers.py` — `_run_peekdocs_cli` accepts a new optional `on_process_started` callback invoked with the live `Popen` immediately after spawn on the subprocess path. Backwards-compatible; ignored on the PyInstaller in-process path.
+  - `peekdocs/gui/_mixin_search.py` — `_run_search` passes the callback to stash the Popen on `self.process` so Cancel can `terminate()` it.
+  - `peekdocs/gui/_mixin_search.py` — `start_search()` sets `self._search_cancelled = True` before calling `terminate()`, and resets the flag at the start of every new search. `_search_finished()` checks the flag *before* the returncode dispatch and short-circuits to a clean "Search was cancelled." status line — bypassing the platform-dependent SIGTERM returncode entirely so the Windows-vs-Unix exit-code disparity becomes moot.
+
+  No behavior change for Search Suites or Regex Search cancel paths — those have always used their own cooperative cancellation flags (`_multi_folder_cancelled`, etc.) and were never affected by this bug.
+
 ## [1.1.1] — 2026-06-11
 
 Point release fixing the v1.1.0 desktop-notification feature on macOS — it shipped broken in two independent ways and no notification fired when the user clicked away to another app. Both root causes addressed; no behavior change on Linux or Windows.

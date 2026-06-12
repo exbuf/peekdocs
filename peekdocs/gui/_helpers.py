@@ -8,8 +8,16 @@ import subprocess
 import sys
 
 
-def _run_peekdocs_cli(cmd, folder, env=None):
+def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None):
     """Run a peekdocs CLI command and return ``(stdout, stderr, returncode)``.
+
+    ``on_process_started`` is an optional callback invoked with the
+    live ``subprocess.Popen`` object immediately after spawn on the
+    subprocess path — the caller can stash it (``self.process = proc``)
+    so a Cancel button can ``proc.terminate()`` mid-flight. Ignored on
+    the in-process (PyInstaller) path because there's no subprocess to
+    expose. Exceptions raised by the callback are swallowed so a buggy
+    caller can't break the search.
 
     Two paths, chosen by ``sys.frozen``:
 
@@ -80,6 +88,11 @@ def _run_peekdocs_cli(cmd, folder, env=None):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True, encoding="utf-8", errors="replace", env=env,
     )
+    if on_process_started is not None:
+        try:
+            on_process_started(proc)
+        except Exception:
+            pass
     stdout, stderr = proc.communicate()
     return stdout, stderr, proc.returncode
 

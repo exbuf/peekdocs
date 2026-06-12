@@ -26,6 +26,14 @@ class SearchMixin:
     def start_search(self):
         """Validate inputs, build the CLI command, and launch a search thread."""
         if self.process is not None:
+            # Mark this run as user-cancelled BEFORE sending the signal
+            # so the completion handler can short-circuit the returncode
+            # dispatch. SIGTERM exits with returncode = -15 on Unix but
+            # = 1 on Windows (`TerminateProcess` uses exit code 1 by
+            # convention) — and 1 happens to be peekdocs's "no matches"
+            # code, so without the flag a Windows cancel would land in
+            # the "Search complete. No matches found." branch.
+            self._search_cancelled = True
             self.process.terminate()
             self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             return
@@ -277,6 +285,10 @@ class SearchMixin:
         self._last_search_start_time = self.search_start_time
         self._start_elapsed_timer()
 
+        # Reset the cancel flag for the new run — a prior cancelled run
+        # would otherwise short-circuit the completion handler.
+        self._search_cancelled = False
+
         self.search_thread = threading.Thread(
             target=self._run_search, args=(cmd, folder), daemon=True
         )
@@ -516,13 +528,18 @@ class SearchMixin:
         import re as _re
         from peekdocs.gui._helpers import _run_peekdocs_cli
         try:
-            # On a normal install we'd hand the Popen object to
-            # self.process so Cancel can terminate it; the in-process
-            # branch can't be cancelled mid-flight, so we leave
-            # self.process as None and the Cancel button becomes a
-            # best-effort visual reset only.
+            # Hand the live Popen object to self.process so the Cancel
+            # branch in start_search() can terminate the running search.
+            # In-process (PyInstaller) mode never invokes the callback —
+            # there's no subprocess to expose — so self.process stays
+            # None there and Cancel is a no-op for the duration. That's
+            # called out in _run_peekdocs_cli's docstring.
             self.process = None
-            stdout, stderr, returncode = _run_peekdocs_cli(cmd, folder)
+            def _capture_process(proc):
+                self.process = proc
+            stdout, stderr, returncode = _run_peekdocs_cli(
+                cmd, folder, on_process_started=_capture_process,
+            )
             # Include stderr in output if stdout is empty
             if not stdout.strip() and stderr.strip():
                 stdout = stderr
@@ -550,6 +567,20 @@ class SearchMixin:
 
         self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
         self.search_entry.configure(state="normal")
+
+        # User-cancelled run: short-circuit the returncode dispatch.
+        # SIGTERM returncode is platform-dependent (-15 on Unix, 1 on
+        # Windows) and the Windows code collides with peekdocs's "no
+        # matches" exit code — without this check, a Windows cancel
+        # would silently show "Search complete. No matches found." or
+        # an error popup with the half-written CLI banner stdout.
+        if getattr(self, "_search_cancelled", False):
+            self._search_cancelled = False
+            self.status_label.configure(
+                text="Search was cancelled.", text_color=("blue", "#66BBFF"),
+            )
+            self._reschedule_refresh()
+            return
 
         if returncode == -1:
             self._show_error("Search process failed to start.")
