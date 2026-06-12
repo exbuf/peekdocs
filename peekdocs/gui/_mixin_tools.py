@@ -2758,7 +2758,7 @@ class ToolsMixin:
              [("From:", "lo", "2026-01-01"), ("To:", "hi", "2026-12-31")],
              lambda v: self._apply_wizard(search_text=r"\d{2}/\d{2}/\d{4}", regex=True, range_filters=f"date:{v['lo']}..{v['hi']}")),
 
-            ("Regex pattern builder", "Opens a separate window with categorized regex presets (dates, invoices, part numbers, etc.).\n"
+            ("Regex Wizard", "Opens the Regex Wizard — a categorized regex pattern picker (dates, money, identifiers, contacts, code patterns, networking).\n"
              "Select a category, check the patterns you need, combine with OR or AND,\n"
              "and optionally add your own custom regex. When you click Apply, the regex is\n"
              "placed in the Search Terms field and Regex is checked in Advanced Search Options.",
@@ -3080,9 +3080,10 @@ class ToolsMixin:
         b("Dates in range — find lines with dates in a specific range")
         e("  From: 2026-01-01  To: 2026-12-31")
         blank()
-        b("Regex pattern builder — opens the categorized regex picker")
-        b("with checkboxes for SSNs, invoice numbers, part numbers,")
-        b("and dozens more patterns organized by profession.")
+        b("Regex Wizard — opens the categorized regex picker with 35")
+        b("named patterns across 6 categories (dates, money, identifiers,")
+        b("contacts, code patterns, networking). Pick one or more, combine")
+        b("with OR or AND, optionally add your own custom regex.")
         blank()
         b("Search scanned PDFs (OCR) — enable OCR to extract text")
         b("from scanned PDFs and image files. Requires Tesseract.*")
@@ -3129,10 +3130,217 @@ class ToolsMixin:
         close_btn.pack(pady=(5, 10))
         self._apply_dark_theme(help_win)
 
+    def _show_regex_builder_help(self, parent):
+        """Help popup for the Regex Wizard (the picker invoked by
+        `_open_search_wizard`).
 
+        Distinct from `_show_search_wizard_help`, which documents the
+        search-type wizard (the category-cards popup behind the
+        main-screen Search Wizard button). This one documents the
+        picker-and-combiner popup — categories, checkbox list,
+        OR/AND mode, custom regex, Apply target. The AND/OR section
+        is the load-bearing part: AND mode's multi-term output is
+        only valid for the main search bar (with AND mode in
+        Advanced Search Options), NOT for the Regex Tester or the
+        Regex Search popup's per-row pattern field."""
+        import tkinter as tk
 
-    def _open_search_wizard(self):
-        """Open the Search Wizard popup for building regex patterns."""
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Regex Wizard — Help")
+        help_win.geometry("720x640")
+        help_win.resizable(True, True)
+        try:
+            help_win.transient(parent)
+        except Exception:
+            pass
+
+        # Close button lives in its own bottom-anchored frame so it's
+        # on a dedicated row, visually separated from the scrollable
+        # text. Packing the frame FIRST with side="bottom" reserves
+        # the bottom strip; the text + scrollbar then fill what's left
+        # above. Matches the close_frame pattern the Wizard popup
+        # itself uses for its own Close button.
+        close_frame = tk.Frame(help_win)
+        close_frame.pack(side="bottom", fill="x", pady=(6, 12))
+        ctk.CTkButton(
+            close_frame, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12), command=help_win.destroy,
+        ).pack()  # default anchor=center
+
+        txt = tk.Text(
+            help_win, wrap="word", font=("TkDefaultFont", 12),
+            padx=15, pady=10, borderwidth=0, highlightthickness=0,
+        )
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("heading", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=5)
+        txt.tag_configure("body", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("example", font=("Courier", 11), lmargin1=30,
+                          lmargin2=30, spacing1=2)
+
+        def h(text):
+            txt.insert("end", text + "\n", "heading")
+
+        def b(text):
+            txt.insert("end", text + "\n", "body")
+
+        def e(text):
+            txt.insert("end", text + "\n", "example")
+
+        def blank():
+            txt.insert("end", "\n")
+
+        h("WHAT THIS POPUP IS")
+        b("The Regex Wizard — a picker + combiner for regex patterns.")
+        b("Choose a category, check the patterns you want, optionally")
+        b("add your own custom regex, choose how to combine them, and")
+        b("click Apply. The combined result lands in whichever context")
+        b("opened the Regex Wizard — the main search bar, the Regex")
+        b("Tester, or the Regex Search popup's first empty pattern row.")
+        blank()
+        b("Don't confuse it with the main-screen Search Wizard button —")
+        b("that one opens the category-cards search-type wizard, and")
+        b("one of its cards (\"Regex Wizard\") leads here.")
+        blank()
+        b("Six categories ship out of the box, 35 patterns total:")
+        e("  Dates        — ISO, US, EU, month-name, weekday, etc.")
+        e("  Money        — USD, EUR, generic currency amounts")
+        e("  Identifiers  — UUID, hex, ISBN, DOI, semver, JIRA ticket")
+        e("  Contacts     — email, phone (US and international), URL")
+        e("  Code patterns — TODO/FIXME, env var, Markdown link, ANSI")
+        e("  Networking   — IPv4, IPv6, MAC address, hex color")
+        blank()
+
+        h("HOW TO USE IT")
+        b("1. Pick a Category from the dropdown.")
+        b("2. Check one or more patterns.")
+        b("3. Optionally type a custom regex in the Custom regex field —")
+        b("   it gets combined with the checked patterns under the")
+        b("   selected mode.")
+        b("4. Choose OR or AND mode (see next section).")
+        b("5. Watch the Preview box — it shows the exact string Apply")
+        b("   will produce.")
+        b("6. Click Apply to send the result to the caller.")
+        blank()
+        b("Selections are remembered per category — switching categories")
+        b("doesn't lose your earlier checks. Use Clear All to wipe a")
+        b("category's checks, or Select All to check everything in it.")
+        blank()
+
+        h("OR vs AND — THE KEY CHOICE")
+        b("OR and AND mean fundamentally different things and produce")
+        b("different output shapes. Get this right or the result is")
+        b("either broken or just confusing.")
+        blank()
+        b("OR mode — combine patterns into ONE regex via alternation.")
+        b("A line matches if ANY of the patterns matches. Output is")
+        b("a single regex string:")
+        e("  (\\d{4}-\\d{2}-\\d{2})|(\\$[\\d,]+)|([A-Z0-9._%+-]+@…)")
+        b("This is a valid regex — every regex engine accepts it. Use")
+        b("OR for: \"find any of these shapes\" — invoices that mention")
+        b("a date OR an amount OR an email, etc.")
+        blank()
+        b("AND mode — keep patterns SEPARATE, joined with spaces as")
+        b("quoted terms. A line matches only if ALL the patterns")
+        b("appear on it. Output is multi-term search-bar syntax:")
+        e('  "\\d{4}-\\d{2}-\\d{2}" "\\$[\\d,]+" "[A-Z0-9._%+-]+@…"')
+        b("This is NOT a valid single regex — it's the multi-term shape")
+        b("the peekdocs search bar parses when AND mode is on in")
+        b("Advanced Search Options. Use AND for: \"find lines that")
+        b("contain all of these shapes\" — e.g., a date AND an amount")
+        b("AND a vendor name on the same line.")
+        blank()
+
+        h("WHERE OR APPLIES")
+        b("OR mode works EVERYWHERE. Every place the Regex Wizard's Apply")
+        b("button targets accepts a single regex string:")
+        e("  Main search bar (Search Wizard button on the main screen)")
+        e("  Regex Tester       (Tools → Regex Tester → Pick from Wizard…)")
+        e("  Regex Search popup (Regex Search → Pick from Wizard…)")
+        b("Pick OR if you're unsure. It's the safe default.")
+        blank()
+
+        h("WHERE AND APPLIES — AND WHERE IT DOESN'T")
+        b("AND mode only works for the main search bar, because that's")
+        b("the only context that parses multi-term shapes:")
+        blank()
+        b("✓ Main search bar (Search Wizard button on the main screen)")
+        b("  Apply puts the multi-term string in the search bar and")
+        b("  auto-enables AND mode in Advanced Search Options. The")
+        b("  search engine then requires every term to match.")
+        blank()
+        b("✗ Regex Tester (Pick from Wizard…)")
+        b("  The Tester's Pattern field expects ONE regex. AND mode's")
+        b("  multi-term output gets dropped in as a literal string —")
+        b("  it'll compile as \"match the literal characters \\\"date\\\"")
+        b("  \\\"amount\\\"\\\" \" and produce zero matches against any normal")
+        b("  text. If you used AND, switch to OR and re-Apply.")
+        blank()
+        b("✗ Regex Search popup (Pick from Wizard…)")
+        b("  Each pattern row holds ONE regex. AND's multi-term output")
+        b("  similarly doesn't parse as a single regex. Use OR, or")
+        b("  alternatively, paste each individual pattern into its own")
+        b("  row manually and they'll all run independently per row.")
+        blank()
+        b("Rule of thumb: AND mode only makes sense if your destination")
+        b("is the main search bar. Otherwise stick to OR.")
+        blank()
+
+        h("CUSTOM REGEX FIELD")
+        b("Type any regex into the Custom regex field and it gets")
+        b("combined with the checked patterns under the selected mode.")
+        b("Useful for project-specific shapes that don't fit any")
+        b("built-in category — e.g. \"all our purchase orders look like")
+        b("PO-\\d{6}\". Empty by default; the field's contents are")
+        b("remembered across opens.")
+        blank()
+
+        h("APPLY — WHAT IT DOES PER CONTEXT")
+        b("Main search bar caller (default):")
+        b("  Puts the combined regex in the search bar; auto-enables")
+        b("  regex mode and (if AND was selected) auto-enables AND mode")
+        b("  in Advanced Search Options. Asks before overwriting any")
+        b("  existing search-bar text.")
+        blank()
+        b("Regex Tester caller (Pick from Wizard… inside the Tester):")
+        b("  Replaces the Tester's Pattern field with the combined")
+        b("  regex; fires the match highlighter immediately so the")
+        b("  sample area lights up without the usual 300 ms debounce.")
+        blank()
+        b("Regex Search popup caller (Pick from Wizard… next to the")
+        b("Whole Word checkbox):")
+        b("  Drops the combined regex into the first EMPTY pattern row")
+        b("  above; enables that row; seeds the Name field with")
+        b("  \"Wizard pattern\" if it was blank. If all 10 rows are")
+        b("  already in use, surfaces a dialog telling you to clear")
+        b("  one first.")
+        blank()
+
+        txt.configure(state="disabled")
+        self._apply_dark_theme(help_win)
+
+    def _open_search_wizard(self, on_apply=None):
+        """Open the Regex Wizard popup for building regex patterns.
+
+        (The method name stays ``_open_search_wizard`` for git-history
+        continuity, but the popup is user-titled "Regex Wizard" so
+        it's distinguishable from the main-screen "Search Wizard"
+        button — which opens the category-cards search-type wizard,
+        not this picker.)
+
+        When ``on_apply`` is provided, the Apply button calls that
+        callback with the combined regex string instead of routing it
+        into the main search bar + flipping the global regex-mode
+        flag. Used by the Regex Tester popup and the Regex Search
+        popup's "Pick from Wizard…" buttons to reuse this picker's
+        category dropdown + checkbox-list + OR/AND combiner without
+        duplicating the UI."""
         import tkinter as tk
         from tkinter import ttk
         from peekdocs.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
@@ -3150,14 +3358,25 @@ class ToolsMixin:
 
 
         wiz.withdraw()  # hidden during widget setup; centered + shown at end
-        wiz.title("Search Wizard")
+        wiz.title("Regex Wizard")
         wiz.resizable(True, True)
-        self._center_popup_on_main(wiz, 560, 640)
+        self._center_popup_on_main(wiz, 560, 700)
 
+        # Header frame: title centered, ? help button right-aligned.
+        wiz_header = tk.Frame(wiz)
+        wiz_header.pack(fill="x", padx=15, pady=(10, 2))
         tk.Label(
-            wiz, text="Search Wizard",
+            wiz_header, text="Regex Wizard",
             font=("TkDefaultFont", 15, "bold"),
-        ).pack(pady=(10, 2))
+        ).pack(side="left", expand=True)
+        ctk.CTkButton(
+            wiz_header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
+            command=lambda: self._show_regex_builder_help(wiz),
+        ).pack(side="right")
         tk.Label(
             wiz, text="Select a category and check the patterns to include.",
             font=("TkDefaultFont", 11), fg="gray",
@@ -3330,6 +3549,19 @@ class ToolsMixin:
             combined = preview_text.get("1.0", "end").strip()
             preview_text.configure(state="disabled")
             if not combined:
+                return
+
+            # Custom apply path — Regex Tester (and any other future
+            # caller that wants the composed regex without the main-
+            # screen side effects) routes through the callback. Skip
+            # all of the search_entry / regex_var / fuzzy_var / etc.
+            # mutations below; the caller decides what to do with the
+            # combined string.
+            if on_apply is not None:
+                try:
+                    on_apply(combined)
+                finally:
+                    wiz.destroy()
                 return
 
             current_text = self.search_entry.get().strip()
@@ -8074,7 +8306,7 @@ class ToolsMixin:
             text="Whole Word (wrap each pattern with \\b at run time)",
             font=("TkDefaultFont", 11),
         )
-        ww_cb.pack(anchor="w")
+        ww_cb.pack(side="left", anchor="w")
         Tooltip(
             ww_cb,
             "When on, each enabled pattern is wrapped with \\b...\\b before "
@@ -8082,6 +8314,50 @@ class ToolsMixin:
             "already include their own \\b, ^, or $ anchors are unaffected by "
             "the extra wrap (\\b is idempotent). Leave off if you want pure "
             "substring behavior or are using lookbehind/lookahead at the edges.",
+        )
+
+        def _pick_from_wizard_to_rows():
+            """Open the Regex Wizard with Apply rewired to drop the
+            combined regex into the FIRST empty pattern row (and enable
+            it). If all 10 rows are full, alert the user — they can
+            clear a row and click again."""
+            def _apply_to_first_empty(combined):
+                for en_var, nm_entry, rx_entry in pattern_rows:
+                    if not rx_entry.get().strip():
+                        rx_entry.delete(0, "end")
+                        rx_entry.insert(0, combined)
+                        if not nm_entry.get().strip():
+                            nm_entry.insert(0, "Wizard pattern")
+                        en_var.set(True)
+                        return
+                from tkinter import messagebox as _mb
+                _mb.showinfo(
+                    "All rows in use",
+                    "All 10 pattern rows already have a regex. Clear a row "
+                    "(remove the regex text or click the − button next to it), "
+                    "then click Pick from Wizard… again.",
+                    parent=win,
+                )
+            self._open_search_wizard(on_apply=_apply_to_first_empty)
+
+        pfw_btn = ctk.CTkButton(
+            whole_word_frame, text="Pick from Wizard…", width=160, height=28,
+            font=ctk.CTkFont(size=12),
+            command=_pick_from_wizard_to_rows,
+        )
+        pfw_btn.pack(side="right", padx=(0, 0))
+        Tooltip(
+            pfw_btn,
+            "Open the Regex Wizard (categorized regex picker — 35 named "
+            "patterns across 6 categories: dates, money, identifiers, "
+            "contacts, code patterns, networking) and drop the combined "
+            "regex into the first empty pattern row above. Enables the row "
+            "automatically and seeds the Name field with 'Wizard pattern' "
+            "if you hadn't named it yet — edit either field to suit. The "
+            "Wizard's OR / AND combiner and custom-regex field all work the "
+            "same as on the main screen; only the target changes. Note: "
+            "the AND-mode output (multi-term shape) won't drop cleanly into "
+            "a single regex field — click the Wizard's ? for details.",
         )
 
         no_report_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_no_report", False)))
@@ -8918,6 +9194,30 @@ class ToolsMixin:
             command=_translate_pattern,
         ).pack(side="left", padx=4)
 
+        def _pick_from_wizard():
+            """Open the Regex Wizard with its Apply button rewired to
+            populate this Tester's pattern field instead of the main
+            search bar. Reuses the Wizard's category dropdown +
+            checkbox list + OR/AND combiner + custom-regex field so
+            there's no duplicated UI to maintain."""
+            def _apply_to_tester(combined):
+                pattern_entry.delete(0, "end")
+                pattern_entry.insert(0, combined)
+                # Skip the debounce — the user just clicked Apply, they
+                # want to see matches immediately.
+                _rematch_now()
+                try:
+                    pattern_entry.icursor("end")
+                except Exception:
+                    pass
+            self._open_search_wizard(on_apply=_apply_to_tester)
+
+        ctk.CTkButton(
+            action_frame, text="Pick from Wizard…", width=160,
+            font=ctk.CTkFont(size=12),
+            command=_pick_from_wizard,
+        ).pack(side="left", padx=4)
+
         # Close on its own row, centered. Visually separates the
         # dismiss action from the pattern-action row (Use / Copy /
         # Translate) so it's hard to misclick when reaching for one of
@@ -9153,6 +9453,18 @@ class ToolsMixin:
         b("produces the Translation ==> line in every search report).")
         b("Useful for sanity-checking that a pattern means what you")
         b("intended it to mean.")
+        blank()
+        b("Pick from Wizard… — open the Regex Wizard (the categorized")
+        b("regex picker — same one reached from the main screen's")
+        b("Search Wizard → Regex Wizard card) and route its Apply target")
+        b("to this Tester's Pattern field instead of the main search")
+        b("bar. Useful when you want a ready-made pattern (dates, money,")
+        b("identifiers, contacts, code patterns, networking) to start")
+        b("from, then tweak or combine inside the Tester. Closes the")
+        b("Regex Wizard popup on Apply; matches highlight immediately")
+        b("in the sample area below — no debounce delay.")
+        b("Note: pick OR mode in the Wizard — AND mode produces a")
+        b("multi-term shape that doesn't compile as a single regex.")
         blank()
 
         h("SAMPLE TEXT SOURCES")
