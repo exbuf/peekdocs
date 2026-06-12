@@ -983,7 +983,7 @@ class BuildMixin:
             command=lambda: _save_output_format("notify_on_complete", self.notify_on_complete_var),
         )
         cb_notify_complete.grid(row=2, column=3, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
-        Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon", anchor="above")
+        Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
         # Separator line below output options
         import tkinter as _tk_sep

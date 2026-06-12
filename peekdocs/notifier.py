@@ -7,8 +7,15 @@ expected to swallow failures silently — desktop notifications are
 nice-to-have polish, not load-bearing functionality.
 
 Platform mechanisms:
-  - macOS:    ``osascript`` invoking AppleScript ``display notification``
-              (Notification Center, no permission prompt).
+  - macOS:    ``terminal-notifier`` (preferred — Homebrew install,
+              first-class Cocoa app with its own notification
+              identity), falling back to ``osascript`` AppleScript
+              ``display notification`` if terminal-notifier isn't
+              installed. The osascript path is unreliable on macOS
+              Sequoia (15+) because notifications are attributed to
+              Script Editor and silently dropped unless that app has
+              been explicitly approved in System Settings →
+              Notifications.
   - Linux:    ``notify-send`` from ``libnotify-bin`` (pre-installed on
               most GNOME / KDE / XFCE desktops).
   - Windows:  PowerShell + ``System.Windows.Forms.NotifyIcon`` balloon
@@ -75,6 +82,25 @@ def _spawn(cmd, hide_window=False):
 
 
 def _notify_macos(title, body):
+    # Preferred path: terminal-notifier. It's a real Cocoa app with
+    # its own bundle ID, properly registered for notification
+    # permissions on modern macOS — unlike osascript, which is
+    # attributed to Script Editor and silently dropped on Sequoia
+    # (15+) when Script Editor hasn't been explicitly approved.
+    # Install: `brew install terminal-notifier`. `-group` collapses
+    # repeated completion notifications into the most recent one so
+    # they don't pile up in Notification Center after a long session.
+    if shutil.which("terminal-notifier"):
+        _spawn([
+            "terminal-notifier",
+            "-title", title,
+            "-message", body,
+            "-sound", "default",
+            "-group", "com.peekdocs.search-complete",
+        ])
+        return None
+    # Fallback: osascript. Less reliable but works when the user
+    # hasn't installed terminal-notifier.
     safe_title = title.replace("\\", "\\\\").replace('"', '\\"')
     safe_body = body.replace("\\", "\\\\").replace('"', '\\"')
     script = (

@@ -742,24 +742,30 @@ class SearchMixin:
         """Fire a desktop notification when a search finishes.
 
         No-op when ``Notify on Search Complete`` is unchecked, or when
-        the peekdocs window currently has keyboard focus (the user can
-        already see the result; no need to interrupt). Failures are
-        swallowed — desktop notifications are nice-to-have polish, not
-        load-bearing functionality."""
+        the peekdocs window is the foreground OS-level app (the user
+        can already see the result; no need to interrupt). Failures
+        are swallowed — desktop notifications are nice-to-have polish,
+        not load-bearing functionality.
+
+        Focus detection uses `self._gui_has_focus`, a flag maintained
+        by `<FocusIn>` / `<FocusOut>` root-toplevel handlers in
+        `_app.py`. The original implementation tried Tk's
+        `focus_displayof()` and failed on macOS: that API is
+        per-application, not per-OS-foreground, so it kept reporting
+        our toplevel as focused even after the user clicked away to
+        another app. The event-driven flag tracks the actual OS-level
+        transition."""
         try:
             if getattr(self, "notify_on_complete_var", None) is None:
                 return
             if self.notify_on_complete_var.get() != "on":
                 return
-            # focus_displayof() returns None when no window of this
-            # application has the focus on the display. This covers
-            # backgrounded, minimized, hidden behind another app, and
-            # different-Space cases on macOS.
-            try:
-                focused = self.focus_displayof()
-            except Exception:
-                focused = None
-            if focused is not None:
+            # Default True so a notification doesn't fire when we
+            # genuinely don't know (e.g. very early startup before the
+            # first FocusOut has been observed). Once macOS hands us
+            # FocusOut, the flag goes False and stays False until the
+            # user comes back.
+            if getattr(self, "_gui_has_focus", True):
                 return
             from peekdocs.notifier import desktop_notify
             desktop_notify(title, body)

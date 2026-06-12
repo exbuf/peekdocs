@@ -82,6 +82,18 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._refresh_running = False
         self._text_size_var = ctk.StringVar(value="Normal")
 
+        # App-level focus tracking for the desktop-notification feature.
+        # Tk's focus_displayof() is per-application on macOS — it reports
+        # our toplevel even when macOS has given another app the
+        # foreground. <FocusIn> / <FocusOut> on the root toplevel DO
+        # fire on OS-level app transitions (verified on darwin Tk 8.6+).
+        # Filtered to only the root-toplevel events (event.widget is
+        # self) so widget-to-widget transitions inside our own UI don't
+        # flip the flag.
+        self._gui_has_focus = True
+        self.bind("<FocusIn>", self._on_app_focus_in, add="+")
+        self.bind("<FocusOut>", self._on_app_focus_out, add="+")
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -155,6 +167,19 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.after(1300, self._sync_input_widths)
 
 
+
+    def _on_app_focus_in(self, event):
+        """Maintain `_gui_has_focus` for desktop-notification suppression.
+        Only respond to the root toplevel's own focus event so widget-to-
+        widget transitions inside the UI don't flip the flag."""
+        if event.widget is self:
+            self._gui_has_focus = True
+
+    def _on_app_focus_out(self, event):
+        """Counterpart to `_on_app_focus_in`. Fires when macOS / Windows
+        / X11 switches the foreground app away from peekdocs."""
+        if event.widget is self:
+            self._gui_has_focus = False
 
     def destroy(self):
         """Override destroy to optionally delete report files and clear history on close."""

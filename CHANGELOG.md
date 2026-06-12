@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-06-11
+
+Point release fixing the v1.1.0 desktop-notification feature on macOS — it shipped broken in two independent ways and no notification fired when the user clicked away to another app. Both root causes addressed; no behavior change on Linux or Windows.
+
+### Fixed
+
+- **Notify on Search Complete — macOS focus detection.** The v1.1.0 implementation used Tk's `focus_displayof()` to decide whether to suppress the notification when the GUI was already focused. That API is per-application on macOS, not per-OS-foreground — it kept reporting our toplevel as focused even after the user had clicked to Terminal or any other app, so the suppression check fired in every case and the notification never went out. Replaced with an event-driven flag (`self._gui_has_focus`) maintained by `<FocusIn>` / `<FocusOut>` handlers bound to the root toplevel. These events DO fire on real OS-level app transitions across all three platforms, which is the standard cross-platform Tk approach. Default flag value is `True` so notifications don't fire spuriously before the first focus event has been observed.
+- **Notify on Search Complete — macOS notification delivery.** Even with focus detection fixed, the v1.1.0 `osascript display notification` path is silently dropped on macOS Sequoia (15+) because Apple Script Editor is the host bundle for AppleScript notifications and isn't approved for notifications by default. The notification was being sent into a denied path with no error, no banner, no Notification Center entry. Switched the preferred macOS delivery to **`terminal-notifier`** (Homebrew: `brew install terminal-notifier`) — a tiny Cocoa app with its own bundle ID that registers for notification permissions properly. Falls back to `osascript` automatically when terminal-notifier isn't installed so the dep-free guarantee still holds for downstream packagers, but the on-disk recommendation is now to install terminal-notifier on macOS. `-group com.peekdocs.search-complete` collapses repeated completion notifications into the most recent one so they don't pile up in Notification Center after a long session.
+
+### Changed
+
+- **Docs — macOS notification setup guidance.** USER_GUIDE per-platform mechanism table and the troubleshooting section now lead with `brew install terminal-notifier` as the macOS recommendation, with the osascript fallback and Script-Editor-not-listed-in-System-Settings symptom documented for users who hit the old path. Checkbox tooltip in Advanced Search Options updated to mention the `brew install terminal-notifier` line.
+
 ## [1.1.0] — 2026-06-11
 
 First minor-version bump since 1.0.0. The release leads with two

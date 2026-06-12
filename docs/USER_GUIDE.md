@@ -2631,7 +2631,7 @@ Useful for long scans — start the search, switch to another app, get a ping wh
 
 | Platform | Mechanism | Notes |
 |----------|-----------|-------|
-| **macOS** | Notification Center via `osascript` | No permission prompt; appears in the upper-right and gets logged in Notification Center history |
+| **macOS** | `terminal-notifier` if installed (recommended), `osascript` fallback | `brew install terminal-notifier` for the reliable path. The osascript fallback is attributed to Script Editor and gets silently dropped on macOS Sequoia (15+) unless Script Editor has been explicitly approved in System Settings → Notifications |
 | **Linux** | `notify-send` from `libnotify-bin` | Pre-installed on most GNOME / KDE / XFCE desktops. If not installed, the notification is silently skipped (no error) |
 | **Windows** | PowerShell-spawned `System.Windows.Forms.NotifyIcon` balloon | Works on Windows 10 / 11 out of the box — no third-party modules like BurntToast required |
 
@@ -2639,7 +2639,7 @@ Useful for long scans — start the search, switch to another app, get a ping wh
 
 **If the notification doesn't appear:**
 
-- macOS: open System Settings → Notifications and check whether `osascript` / "Script Editor" notifications are allowed. The first notification usually requires no permission, but a denied prompt earlier in the OS lifetime can suppress future ones.
+- macOS: install **terminal-notifier** via Homebrew (`brew install terminal-notifier`) — this is the modern, reliable path; peekdocs uses it automatically when available. Without terminal-notifier, peekdocs falls back to AppleScript, which is attributed to *Script Editor* and gets silently dropped on macOS Sequoia (15+) unless Script Editor has been explicitly approved in System Settings → Notifications → scroll the Application Notifications list. If you don't see Script Editor listed there at all, that's the smoking gun — the notification is delivered to a "denied by default" path. Either install terminal-notifier (recommended) or open Script Editor.app once so macOS registers it in the notifications list, then enable notifications for it.
 - Linux: run `which notify-send`. If empty, `sudo apt-get install libnotify-bin` (Debian / Ubuntu) or the equivalent for your distribution.
 - Windows: confirm focus assist isn't suppressing the toast (Settings → Focus assist).
 - All platforms: confirm the peekdocs window is not focused at the moment the search ends — focus suppression is by design. To force-test, run a search and immediately tab away to another app.
