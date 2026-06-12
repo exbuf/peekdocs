@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.3] — 2026-06-12
+
+Point release rolling up the post-1.1.2 Regex Wizard work — rename, UI reuse via "Pick from Wizard…" buttons in two places (the Regex Tester and the Regex Search popup), a dedicated ? help popup explaining the OR-vs-AND choice and where each applies, and a small height bump on the picker popup. No CLI / public-API change.
+
 ### Added
 
 - **Regex Wizard rename.** The categorized regex picker popup formerly titled *Search Wizard* is now titled **Regex Wizard** to disambiguate from the main-screen **Search Wizard** button (which opens the category-cards search-type wizard — a separate popup). The picker's old card label on the search-type wizard (*Regex pattern builder*) is also renamed to *Regex Wizard* for consistency. Window title, header label, help popup title, and every user-facing reference in docstrings / tooltips / help bodies are updated; the internal method name `_open_search_wizard` is unchanged for git-history continuity. Side-fix in the same touch: the search-type wizard's *Regex Wizard* card help bullet dropped a stale `SSNs, invoice numbers, part numbers` example (violates the neutral-language voice rule) and now lists the six neutral categories instead.
