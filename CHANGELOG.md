@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.7] — 2026-06-13
+
+Pre-PyPI testing-phase point release adding Brazilian Portuguese (pt-BR) as the seventh UI language. No other behavior changes — the rest of the release is the surrounding paperwork (README intro block, contributor style notes, PyPI keywords). Translation quality remains AI-authored across the non-English surfaces and needs native-speaker review per language.
+
 ### Added
 
 - **i18n — added Brazilian Portuguese (pt-BR, Português brasileiro) as the seventh language.** All 134 keys translated (938 entries total across the seven languages). Picker in the preview-header row now offers `English` / `Español` / `Français` / `Deutsch` / `日本語` / `简体中文` / `Português brasileiro`. Reasoning for the addition: Brazil has one of the largest Python developer populations on PyPI, and Portuguese-language search terms had no chance of surfacing peekdocs prior to this. Brazilian Portuguese (pt-BR, ~215M speakers) is the variant shipped; European Portuguese (pt-PT) is not currently shipped but is welcomed as a separate language entry — a Portugal-based contributor opening an issue would unblock it. Vocabulary conventions: Brazilian forms (`Arquivos` not `Ficheiros`, `Tela` not `Ecrã`), formal register on buttons (`Salvar`, `Procurar`, `Executar`), Boolean operators kept as English `AND` / `OR` (same convention as Spanish — avoids single-letter ambiguity of `E` / `OU`). The `README` button translates to `Leia-me`. PyPI discovery: added `busca-documentos` and `busca-arquivos` to the multilingual keywords in `pyproject.toml`. README intro `<details>` block gains a 🇧🇷 Português brasileiro section mirroring the structure of the other six. `CONTRIBUTING_i18n.md` extended with a Brazilian Portuguese style-notes section. Translations carry the same AI-authored caveat as the existing six languages and need native-speaker review.
