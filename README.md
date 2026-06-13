@@ -6,6 +6,25 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
+<details>
+<summary>🌍 <strong>Non-English speakers — short intro in your language</strong> (UI is partially translated; pick your language from the in-app picker)</summary>
+
+&nbsp;
+
+**🇪🇸 Español** — peekdocs es una herramienta local de búsqueda de documentos para Windows, macOS y Linux, con interfaz gráfica (GUI), línea de comandos (CLI) y API de Python. Busca en más de 100 formatos de archivo (PDF, Word, Excel, correo electrónico, código fuente, archivos comprimidos) usando búsquedas por palabra clave, booleanas, aproximadas, comodín y regex. La interfaz está parcialmente traducida al español; el resto de la documentación está en inglés más abajo.
+
+**🇫🇷 Français** — peekdocs est un outil local de recherche de documents pour Windows, macOS et Linux, disponible avec une interface graphique (GUI), en ligne de commande (CLI) et via une API Python. Recherche dans plus de 100 formats de fichiers (PDF, Word, Excel, e-mails, code source, archives) avec des recherches par mot-clé, booléennes, approximatives, joker et regex. L'interface est partiellement traduite en français ; le reste de la documentation est en anglais ci-dessous.
+
+**🇩🇪 Deutsch** — peekdocs ist ein lokales Dokumenten-Suchwerkzeug für Windows, macOS und Linux mit grafischer Benutzeroberfläche (GUI), Kommandozeile (CLI) und Python-API. Durchsucht über 100 Dateiformate (PDF, Word, Excel, E-Mail, Quellcode, Archive) mit Stichwort-, booleschen, unscharfen, Platzhalter- und Regex-Suchen. Die Oberfläche ist teilweise ins Deutsche übersetzt; die restliche Dokumentation ist auf Englisch weiter unten.
+
+**🇯🇵 日本語** — peekdocs は Windows、macOS、Linux 向けのローカルドキュメント検索ツールで、GUI、コマンドライン (CLI)、Python API として利用できます。100 以上のファイル形式 (PDF、Word、Excel、メール、ソースコード、アーカイブ) を、キーワード、ブール、あいまい、ワイルドカード、正規表現検索で検索します。UI は日本語に部分的に翻訳されています。残りのドキュメントは下の英語版をご覧ください。
+
+**🇨🇳 简体中文** — peekdocs 是一款适用于 Windows、macOS 和 Linux 的本地文档搜索工具，提供 GUI、命令行 (CLI) 和 Python API。可使用关键词、布尔、模糊、通配符和正则表达式搜索超过 100 种文件格式 (PDF、Word、Excel、电子邮件、源代码、压缩包)。界面已部分翻译为简体中文；其余文档请参见下方英文版。
+
+</details>
+
+&nbsp;
+
 peekdocs is a local document search and analysis workbench for Windows, macOS, and Linux, available as a point-and-click GUI, a command-line CLI, and a Python API. Search across 100+ file types—including PDFs, Office documents, email archives, ZIP/7z files, source code, and scanned documents via OCR—using keyword, Boolean, fuzzy, wildcard, proximity, range, and advanced regex searches. Generate yellow-highlighted reports, automate recurring searches, perform batch analysis, and save reusable search profiles. Free and open-source under the MIT License.
 
 Built for people who prefer local, transparent, deterministic tools.

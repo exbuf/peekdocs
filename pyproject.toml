@@ -28,7 +28,26 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Security",
 ]
-keywords = ["document-search", "file-search", "text-search", "pdf-search", "docx", "offline", "offline-search", "privacy", "cli", "gui", "batch-search", "document-scanner"]
+keywords = [
+    # English (primary)
+    "document-search", "file-search", "text-search", "pdf-search", "docx",
+    "offline", "offline-search", "privacy", "cli", "gui", "batch-search",
+    "document-scanner",
+    # Multilingual discovery terms — non-English speakers searching PyPI
+    # in their own language have a chance of finding peekdocs without
+    # needing to translate "document search" to English first. The UI
+    # is partially translated to these languages; see README.
+    # Spanish
+    "busqueda-documentos", "busqueda-archivos",
+    # French
+    "recherche-documents", "recherche-fichiers",
+    # German
+    "dokumentensuche", "dateisuche",
+    # Japanese (kanji)
+    "文書検索",
+    # Simplified Chinese (kanji)
+    "文档搜索", "全文检索",
+]
 license = "MIT"
 # PEP 639: ship LICENSE (peekdocs's own MIT terms), NOTICE (the Apache-
 # convention pointer file), and THIRD_PARTY_NOTICES.md (per-dependency
