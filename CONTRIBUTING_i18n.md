@@ -6,9 +6,9 @@ If you're looking for general contribution guidance (bug reports, code PRs, deve
 
 ## Current state
 
-peekdocs ships with five languages: **English, Español, Français, Deutsch, 日本語** — about 102 translation keys × 5 languages = 510 entries. The translations cover the main page workflow surface (Search row, options row, three Run buttons, Status / Results Preview / Clear Preview, bottom-row navigation, Delete on Close, App Size / Language labels) plus the Advanced Search Options panel labels.
+peekdocs ships with six languages: **English, Español, Français, Deutsch, 日本語, 简体中文** — about 102 translation keys × 6 languages = 612 entries. The translations cover the main page workflow surface (Search row, options row, three Run buttons, Status / Results Preview / Clear Preview, bottom-row navigation, Delete on Close, App Size / Language labels) plus the Advanced Search Options panel labels.
 
-**Translation-quality disclosure.** The initial translations to date were authored by an AI assistant (Claude) — non-native for Spanish, French, German, and Japanese. Grammar parses; idiom may not. **Native-speaker corrections are exactly what this document is asking for.**
+**Translation-quality disclosure.** The initial translations to date were authored by an AI assistant (Claude) — non-native for Spanish, French, German, Japanese, and Simplified Chinese. Grammar parses; idiom may not. **Native-speaker corrections are exactly what this document is asking for.** Chinese is particularly likely to need review — AI translation of Chinese tech UI tends to be more literal than idiomatic.
 
 The current scope is a deliberate first cut, not a complete localization. The full inventory of what is and isn't translated lives in [`peekdocs/i18n.py`](peekdocs/i18n.py)'s module docstring — that file is the canonical source for "what's already translatable" at any given moment.
 
@@ -49,6 +49,7 @@ These are conventions the existing translations try to follow — feel free to c
 - **French.** Use the typographic non-breaking space before `?`, `!`, `:`, `;` (`Statut :`, `Mot entier`, `Tooltips : OUI`). The straight ASCII space works at the source-code level; the rendered glyph is what matters. Native-language name is `Français`.
 - **German.** Use compound nouns where natural (`Suchordner`, `Dateiinventar`). Capitalize nouns. `ß` vs `ss` follows the 1996 reform (use `ß` after long vowels and diphthongs: `schließen`, `Schließen`). Native-language name is `Deutsch`.
 - **Japanese.** Use 全角 (full-width) punctuation where appropriate (`？`, `：` — but the experiment currently uses half-width `:` after English-style labels, e.g. `ステータス:`; either is defensible). Mix kanji + hiragana + katakana naturally — katakana for foreign loanwords (ステップ, スイート), kanji for content words, hiragana for grammar particles. Native-language name is `日本語`. The `README` button currently translates to `お読みください` ("please read") as a localization choice; many real Japanese OSS projects just keep `README` — feel free to argue either way in a PR.
+- **Simplified Chinese (zh-CN).** Targets mainland China + Singapore + Malaysia (~1 billion speakers). Use half-width punctuation when adjacent to English / digits (`Max File Size (MB):` → `最大文件大小 (MB)：`) and full-width when in pure Chinese context (`，`, `。`, `：`, `？`). Buttons typically use 2-character terms when possible (`关闭` for Close, `保存` for Save, `打开` for Open). Boolean operators kept as English `AND` / `OR` (prevailing convention in Chinese tech UIs). Native-language name is `简体中文`. The `README` button currently translates to `自述文件` (the standard Chinese translation, "self-description file"); the literal English `README` is also commonly seen in Chinese OSS — feel free to argue either way. **Traditional Chinese (zh-TW, 繁體中文)** is not currently shipped but would be welcomed — open an issue first if you want to add it; a separate language entry is the right shape.
 
 ## Width caveats
 
