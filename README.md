@@ -1,6 +1,6 @@
 <h1 align="center">👀 peekdocs</h1>
 
-<p align="center"><strong>🇬🇧 English (full)</strong> · 🇪🇸 Español · 🇫🇷 Français · 🇩🇪 Deutsch · 🇯🇵 日本語 · 🇨🇳 简体中文 <em>(partial UI translation)</em></p>
+<p align="center"><strong>🇬🇧 English (full)</strong> · 🇪🇸 Español · 🇫🇷 Français · 🇩🇪 Deutsch · 🇯🇵 日本語 · 🇨🇳 简体中文 · 🇧🇷 Português brasileiro <em>(partial UI translation)</em></p>
 
 <p align="center">
   <a href="https://github.com/exbuf/peekdocs/actions/workflows/test.yml"><img src="https://github.com/exbuf/peekdocs/actions/workflows/test.yml/badge.svg" alt="Tests"></a>&nbsp;&nbsp;
@@ -9,7 +9,7 @@
 </p>
 
 <details>
-<summary>🌍 <strong>Español · Français · Deutsch · 日本語 · 简体中文</strong> — click to expand for intro in your language</summary>
+<summary>🌍 <strong>Español · Français · Deutsch · 日本語 · 简体中文 · Português brasileiro</strong> — click to expand for intro in your language</summary>
 
 &nbsp;
 
@@ -52,6 +52,14 @@ peekdocs 是一款适用于 Windows、macOS 和 Linux 的本地文档搜索与�
 为偏好本地、透明、确定性工具的人士而构建。
 
 **主要工作流程已提供简体中文版本 — 主页面、搜索按钮、高级搜索选项以及最常见的状态消息。** 帮助窗口、详细对话框、CLI 消息和输出报告仍为英文。详细信息请参见下方英文版。
+
+### 🇧🇷 Português brasileiro
+
+O peekdocs é uma plataforma local de busca e análise de documentos para Windows, macOS e Linux, disponível como GUI gráfica, CLI de linha de comando e API Python. Pesquise mais de 100 tipos de arquivos — incluindo PDFs, documentos do Office (Word, Excel, PowerPoint), arquivos de e-mail, ZIP/7z, código-fonte e documentos digitalizados via OCR — usando buscas por palavra-chave, booleanas, aproximadas, com curingas, de proximidade, de intervalo e regex avançado. Gere relatórios com correspondências destacadas em amarelo, automatize buscas recorrentes, execute análises em lote e salve perfis de pesquisa reutilizáveis. Software livre e de código aberto sob a licença MIT.
+
+Feito para quem prefere ferramentas locais, transparentes e determinísticas.
+
+**O fluxo de trabalho principal está disponível em português brasileiro — página principal, botões de pesquisa, Opções Avançadas de Pesquisa e as mensagens de status mais comuns.** Janelas de ajuda, diálogos detalhados, mensagens do CLI e relatórios de saída permanecem em inglês. Veja abaixo a versão em inglês para detalhes completos.
 
 </details>
 
@@ -96,7 +104,7 @@ A workbench for document collections: search them, characterize them through bui
 - **OCR** — search scanned PDFs and images. Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *Accuracy depends on source quality: clean printed pages work well; handwriting, low-resolution scans, and complex layouts may extract poorly.*
 - **Regex Tester** — Tools → Regex Tester opens a live scratchpad for prototyping regex patterns: paste sample text or load a file (any of the 100+ formats peekdocs reads — Word, PDF, Excel, source code, archives, email) and watch matches highlight in yellow as you type. Inline compile-error feedback, debounced re-matching, a one-click **Translate to plain English** explainer via the built-in translator, and a **Pick from Wizard…** button that loads any of the 35 built-in patterns (6 categories) to start from and tweak. Also reachable per-row from the Regex Search popup's Test buttons, so you can debug an individual pattern from its row without leaving the workbench.
 - **Desktop notification on search complete** — opt-in toggle in Advanced Search Options fires a native OS notification (macOS Notification Center, Windows toast, Linux libnotify) when a Standard / Suite / Regex run finishes, carrying the match count, file count, and elapsed time. Suppressed when the peekdocs window is in the foreground — you only get pinged if you've tabbed away to another app. Useful for long scans across thousands of files where you don't want to babysit the GUI. macOS users: `brew install terminal-notifier` for the reliable delivery path. No data leaves the machine; the notification is delivered by the local OS notification daemon.
-- **UI translation — experimental, partial, 6 languages** — picker in the preview-header row flips the Main page workflow + Advanced Search Options panel labels between English, Español, Français, Deutsch, 日本語, and 简体中文 live, without restarting. *(This is distinct from peekdocs's content-search capability — the search engine already handles documents written in any language out of the box via Unicode-based matching, regardless of UI language. See the **Works in any language** bullet further down in the [GUI Mode section](#gui-mode-graphical-user-interface) for details on multilingual content search.)* Coverage is partial by design: the search workflow translates, but help popups, dialogs, status-line messages, the CLI banner, and report content all stay English (treat the picker as polish for users who happen to read multiple languages, not as a production-ready non-English UI). Initial translations were AI-authored and need native-speaker review. **The author of peekdocs is an English-only speaker and is reluctant to lean heavily on machine translations without native-speaker review** — the partial-i18n surface exists primarily to make the contribution path discoverable, not to claim production-ready multi-language support. Corrections and contributions from native speakers are explicitly welcomed; see [CONTRIBUTING_i18n.md](CONTRIBUTING_i18n.md) for the architecture and how to contribute.
+- **UI translation — experimental, partial, 7 languages** — picker in the preview-header row flips the Main page workflow + Advanced Search Options panel labels between English, Español, Français, Deutsch, 日本語, 简体中文, and Português brasileiro live, without restarting. *(This is distinct from peekdocs's content-search capability — the search engine already handles documents written in any language out of the box via Unicode-based matching, regardless of UI language. See the **Works in any language** bullet further down in the [GUI Mode section](#gui-mode-graphical-user-interface) for details on multilingual content search.)* Coverage is partial by design: the search workflow translates, but help popups, dialogs, status-line messages, the CLI banner, and report content all stay English (treat the picker as polish for users who happen to read multiple languages, not as a production-ready non-English UI). Initial translations were AI-authored and need native-speaker review. **The author of peekdocs is an English-only speaker and is reluctant to lean heavily on machine translations without native-speaker review** — the partial-i18n surface exists primarily to make the contribution path discoverable, not to claim production-ready multi-language support. Corrections and contributions from native speakers are explicitly welcomed; see [CONTRIBUTING_i18n.md](CONTRIBUTING_i18n.md) for the architecture and how to contribute.
 
 &nbsp;
 
@@ -584,7 +592,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Save Search / Load Search** — save a configured search by name and reload it later with one click
 - **Recent searches** — your last 10 search terms are remembered for re-use. With the search bar focused, press **↑** / **↓** to walk through them (most recent first; **↓** past the newest entry restores whatever you were typing). Or click the **▼ Recent Searches** dropdown next to the search bar to see all 10 in a popup with a **Clear** button. Only the search text is remembered — use **Save Search** for full-context recall (folder + every Advanced Search Option)
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
-- **Works in any language** — Unicode-based text handling; searches documents in any language with exact character-sequence matching (no stemming or word segmentation). Documentation is English-only; the GUI ships partial UI translation in six languages (English, Español, Français, Deutsch, 日本語, 简体中文) for the search workflow — see *UI translation* in the Feature Highlights above — but help popups, dialogs, the CLI banner, and reports remain English. The PDF report uses a Latin-1 font, so non-Latin text shows as `?` in `.pdf` only — use `.docx`, `.html`, `.txt`, `.json`, or `.csv` for non-Latin content.
+- **Works in any language** — Unicode-based text handling; searches documents in any language with exact character-sequence matching (no stemming or word segmentation). Documentation is English-only; the GUI ships partial UI translation in seven languages (English, Español, Français, Deutsch, 日本語, 简体中文, Português brasileiro) for the search workflow — see *UI translation* in the Feature Highlights above — but help popups, dialogs, the CLI banner, and reports remain English. The PDF report uses a Latin-1 font, so non-Latin text shows as `?` in `.pdf` only — use `.docx`, `.html`, `.txt`, `.json`, or `.csv` for non-Latin content.
 
 #### Reporting
 

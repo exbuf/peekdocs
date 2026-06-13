@@ -47,6 +47,8 @@ keywords = [
     "文書検索",
     # Simplified Chinese (kanji)
     "文档搜索", "全文检索",
+    # Brazilian Portuguese
+    "busca-documentos", "busca-arquivos",
 ]
 license = "MIT"
 # PEP 639: ship LICENSE (peekdocs's own MIT terms), NOTICE (the Apache-

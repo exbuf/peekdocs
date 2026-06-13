@@ -6,9 +6,9 @@ If you're looking for general contribution guidance (bug reports, code PRs, deve
 
 ## Current state
 
-peekdocs ships with six languages: **English, Español, Français, Deutsch, 日本語, 简体中文** — about 102 translation keys × 6 languages = 612 entries. The translations cover the main page workflow surface (Search row, options row, three Run buttons, Status / Results Preview / Clear Preview, bottom-row navigation, Delete on Close, App Size / Language labels) plus the Advanced Search Options panel labels.
+peekdocs ships with seven languages: **English, Español, Français, Deutsch, 日本語, 简体中文, Português brasileiro** — about 134 translation keys × 7 languages = 938 entries. The translations cover the main page workflow surface (Search row, options row, three Run buttons, Status / Results Preview / Clear Preview, bottom-row navigation, Delete on Close, App Size / Language labels), the Advanced Search Options panel labels, and the most common search-lifecycle status messages.
 
-**Translation-quality disclosure.** The initial translations to date were authored by an AI assistant (Claude) — non-native for Spanish, French, German, Japanese, and Simplified Chinese. Grammar parses; idiom may not. **Native-speaker corrections are exactly what this document is asking for.** Chinese is particularly likely to need review — AI translation of Chinese tech UI tends to be more literal than idiomatic.
+**Translation-quality disclosure.** The initial translations to date were authored by an AI assistant (Claude) — non-native for Spanish, French, German, Japanese, Simplified Chinese, and Brazilian Portuguese. Grammar parses; idiom may not. **Native-speaker corrections are exactly what this document is asking for.** Chinese is particularly likely to need review — AI translation of Chinese tech UI tends to be more literal than idiomatic.
 
 The current scope is a deliberate first cut, not a complete localization. The full inventory of what is and isn't translated lives in [`peekdocs/i18n.py`](peekdocs/i18n.py)'s module docstring — that file is the canonical source for "what's already translatable" at any given moment.
 
@@ -20,7 +20,7 @@ The current scope is a deliberate first cut, not a complete localization. The fu
 
 ## Priority for now: corrections > new languages
 
-If you're a native speaker of one of the five languages already shipped, the highest-leverage thing you can do is review the current translations in [`peekdocs/i18n.py`](peekdocs/i18n.py) and open a PR fixing whatever sounds awkward, wrong-register, or just unidiomatic. A translation review pass by a single native speaker per language is what would let peekdocs honestly mark the non-English UI as "native-reviewed" rather than "AI-authored."
+If you're a native speaker of one of the languages already shipped, the highest-leverage thing you can do is review the current translations in [`peekdocs/i18n.py`](peekdocs/i18n.py) and open a PR fixing whatever sounds awkward, wrong-register, or just unidiomatic. A translation review pass by a single native speaker per language is what would let peekdocs honestly mark the non-English UI as "native-reviewed" rather than "AI-authored."
 
 ## How to submit a translation correction
 
@@ -33,7 +33,7 @@ If you're a native speaker of one of the five languages already shipped, the hig
 
 ## How to add a new language
 
-If you want to add a sixth language:
+If you want to add another language:
 
 1. **Open an issue first** describing the language and your willingness to maintain corrections across future releases. We want to be honest about the carrying cost — every new translatable string in future releases needs to be translated in every supported language, and unmaintained translations drift faster than English source strings change.
 2. Add the language to the `LANGUAGES` dict at the top of `peekdocs/i18n.py` (ISO 639-1 code as key, native-language name as value).
@@ -50,6 +50,7 @@ These are conventions the existing translations try to follow — feel free to c
 - **German.** Use compound nouns where natural (`Suchordner`, `Dateiinventar`). Capitalize nouns. `ß` vs `ss` follows the 1996 reform (use `ß` after long vowels and diphthongs: `schließen`, `Schließen`). Native-language name is `Deutsch`.
 - **Japanese.** Use 全角 (full-width) punctuation where appropriate (`？`, `：` — but the experiment currently uses half-width `:` after English-style labels, e.g. `ステータス:`; either is defensible). Mix kanji + hiragana + katakana naturally — katakana for foreign loanwords (ステップ, スイート), kanji for content words, hiragana for grammar particles. Native-language name is `日本語`. The `README` button currently translates to `お読みください` ("please read") as a localization choice; many real Japanese OSS projects just keep `README` — feel free to argue either way in a PR.
 - **Simplified Chinese (zh-CN).** Targets mainland China + Singapore + Malaysia (~1 billion speakers). Use half-width punctuation when adjacent to English / digits (`Max File Size (MB):` → `最大文件大小 (MB)：`) and full-width when in pure Chinese context (`，`, `。`, `：`, `？`). Buttons typically use 2-character terms when possible (`关闭` for Close, `保存` for Save, `打开` for Open). Boolean operators kept as English `AND` / `OR` (prevailing convention in Chinese tech UIs). Native-language name is `简体中文`. The `README` button currently translates to `自述文件` (the standard Chinese translation, "self-description file"); the literal English `README` is also commonly seen in Chinese OSS — feel free to argue either way. **Traditional Chinese (zh-TW, 繁體中文)** is not currently shipped but would be welcomed — open an issue first if you want to add it; a separate language entry is the right shape.
+- **Brazilian Portuguese (pt-BR).** Targets Brazil (~215 million speakers). Use Brazilian (not European) vocabulary: `Arquivos` (not `Ficheiros`), `Tela` (not `Ecrã`), `Você` over `Tu`. Formal register for buttons and labels (`Salvar`, `Procurar`, `Executar`). Boolean operators kept as English `AND` / `OR` — same convention as Spanish, avoids the single-letter ambiguity of `E` / `OU`. OCR, Regex, and other tech loanwords stay in English. Native-language name is `Português brasileiro`. The `README` button currently translates to `Leia-me` (the standard Portuguese translation). **European Portuguese (pt-PT)** is not currently shipped but would be welcomed as a separate language entry — open an issue first if you want to add it.
 
 ## Width caveats
 
@@ -85,7 +86,7 @@ That's about 2-3 lines of code per translatable string, plus the translation ent
 
 ```python
 # peekdocs/i18n.py
-LANGUAGES = {"en": "English", "es": "Español", "fr": "Français", "de": "Deutsch", "ja": "日本語"}
+LANGUAGES = {"en": "English", "es": "Español", "fr": "Français", "de": "Deutsch", "ja": "日本語", "zh-CN": "简体中文", "pt-BR": "Português brasileiro"}
 _current = "en"
 _STRINGS = {"en": {key: english_text, ...}, "es": {key: spanish_text, ...}, ...}
 
