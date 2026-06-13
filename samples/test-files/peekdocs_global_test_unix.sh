@@ -23,7 +23,8 @@
 #
 # Safe with peekdocs --clear and --clear-all: these scripts and their output
 # file (peekdocs_global_test_results.txt) start with "peekdocs_global", which
-# does not match any of the delete patterns (peekdocs_results*, peekdocs_report_*,
+# does not match any of the delete patterns (peekdocs_standard_results*,
+# peekdocs_regex_results*, peekdocs_suite_results*, peekdocs_report_*,
 # peekdocs_accumulated_*, peekdocs_errors.log, .peekdocs.db).
 #
 # Notes for cross-platform use:
@@ -188,7 +189,7 @@ run_test() {
     echo "" >> "$OUTFILE"
 
     # Clean up reports between tests so they don't clutter
-    rm -f peekdocs_results.txt peekdocs_results.docx 2>/dev/null
+    rm -f peekdocs_standard_results.txt peekdocs_standard_results.docx 2>/dev/null
 }
 
 # ── verify_file ───────────────────────────────────────────────────────────
@@ -237,7 +238,7 @@ BASELINE_FOUND=$(echo "$BASELINE_CLEAN" | grep -E "^Found [0-9]" || true)
 BASELINE_COUNT=$(echo "$BASELINE_FOUND" | grep -oE "Found [0-9]+ match" | grep -oE "[0-9]+" || echo "0")
 BASELINE_FILES=$(echo "$BASELINE_CLEAN" | grep -E '^\s+\S+\.\S+: [0-9]+' | sed 's/^ *//' | sed 's/: [0-9]*//' | sort)
 BASELINE_WARNED=$(echo "$BASELINE_CLEAN" | grep -i "Warning: Could not read" | sed 's/.*Could not read //' | sed 's/ (.*//' | sort)
-rm -f peekdocs_results.txt peekdocs_results.docx 2>/dev/null
+rm -f peekdocs_standard_results.txt peekdocs_standard_results.docx 2>/dev/null
 
 {
 echo "$SUBDIV"
@@ -428,25 +429,25 @@ rm -f peekdocs_report_test_report.txt peekdocs_report_test_report.docx 2>/dev/nu
 
 run_test "CSV output (-o csv)" \
     "-q -r -o csv \"$TERM1\""
-verify_file "peekdocs_results.csv" "peekdocs_results.csv"
-rm -f peekdocs_results.csv 2>/dev/null
+verify_file "peekdocs_standard_results.csv" "peekdocs_standard_results.csv"
+rm -f peekdocs_standard_results.csv 2>/dev/null
 
 run_test "JSON output (-o json)" \
     "-q -r -o json \"$TERM1\""
-verify_file "peekdocs_results.json" "peekdocs_results.json"
-rm -f peekdocs_results.json 2>/dev/null
+verify_file "peekdocs_standard_results.json" "peekdocs_standard_results.json"
+rm -f peekdocs_standard_results.json 2>/dev/null
 
 run_test "HTML output (-o html)" \
     "-q -r -o html \"$TERM1\""
-verify_file "peekdocs_results.html" "peekdocs_results.html"
-rm -f peekdocs_results.html 2>/dev/null
+verify_file "peekdocs_standard_results.html" "peekdocs_standard_results.html"
+rm -f peekdocs_standard_results.html 2>/dev/null
 
 run_test "Multiple output formats (-o csv,json,html)" \
     "-q -r -o csv,json,html \"$TERM1\""
-verify_file "peekdocs_results.csv" "peekdocs_results.csv"
-verify_file "peekdocs_results.json" "peekdocs_results.json"
-verify_file "peekdocs_results.html" "peekdocs_results.html"
-rm -f peekdocs_results.csv peekdocs_results.json peekdocs_results.html 2>/dev/null
+verify_file "peekdocs_standard_results.csv" "peekdocs_standard_results.csv"
+verify_file "peekdocs_standard_results.json" "peekdocs_standard_results.json"
+verify_file "peekdocs_standard_results.html" "peekdocs_standard_results.html"
+rm -f peekdocs_standard_results.csv peekdocs_standard_results.json peekdocs_standard_results.html 2>/dev/null
 
 run_test "Max matches (-m 5)" \
     "-q -r -m 5 \"$TERM1\""
@@ -459,9 +460,9 @@ run_test "Extra quiet mode (-qq)" \
 
 run_test "Timestamp flag (--timestamp)" \
     "-q -r --timestamp \"$TERM1\""
-# Check that timestamped files were created (peekdocs_results_YYYYMMDD_HHMMSS.*)
-TS_TXT=$(ls peekdocs_results_*.txt 2>/dev/null | head -1)
-TS_DOCX=$(ls peekdocs_results_*.docx 2>/dev/null | head -1)
+# Check that timestamped files were created (peekdocs_standard_results_YYYYMMDD_HHMMSS.*)
+TS_TXT=$(ls peekdocs_standard_results_*.txt 2>/dev/null | head -1)
+TS_DOCX=$(ls peekdocs_standard_results_*.docx 2>/dev/null | head -1)
 if [ -n "$TS_TXT" ]; then
     verify_file "$TS_TXT" "timestamped .txt report"
 else
@@ -474,7 +475,7 @@ else
     echo "         [MISSING] No timestamped .docx report found" | tee -a "$OUTFILE"
     FAIL=$((FAIL + 1)); PASS=$((PASS - 1))
 fi
-rm -f peekdocs_results_*.txt peekdocs_results_*.docx 2>/dev/null
+rm -f peekdocs_standard_results_*.txt peekdocs_standard_results_*.docx 2>/dev/null
 
 
 # ============================================================================
@@ -574,7 +575,7 @@ mv ".${OUTFILE}.tmp" "$OUTFILE" 2>/dev/null || true
 RECHECK_CLEAN=$(echo "$RECHECK_OUTPUT" | sed 's/\x1b\[[0-9;]*m//g')
 RECHECK_FOUND=$(echo "$RECHECK_CLEAN" | grep -E "^Found [0-9]" || true)
 RECHECK_COUNT=$(echo "$RECHECK_FOUND" | grep -oE "Found [0-9]+ match" | grep -oE "[0-9]+" || echo "0")
-rm -f peekdocs_results.txt peekdocs_results.docx 2>/dev/null
+rm -f peekdocs_standard_results.txt peekdocs_standard_results.docx 2>/dev/null
 
 if [ "$RECHECK_COUNT" = "$BASELINE_COUNT" ]; then
     echo "[PASS] Match count stable: $RECHECK_COUNT matches (same as baseline)" | tee -a "$OUTFILE"

@@ -23,7 +23,8 @@
 #
 # Safe with peekdocs --clear and --clear-all: these scripts and their output
 # file (peekdocs_global_test_results.txt) start with "peekdocs_global", which
-# does not match any of the delete patterns (peekdocs_results*, peekdocs_report_*,
+# does not match any of the delete patterns (peekdocs_standard_results*,
+# peekdocs_regex_results*, peekdocs_suite_results*, peekdocs_report_*,
 # peekdocs_accumulated_*, peekdocs_errors.log, .peekdocs.db).
 #
 # Notes for cross-platform use:
@@ -233,8 +234,8 @@ $SUBDIV
     Add-Content -Path $OUTFILE -Value "" -Encoding UTF8
 
     # Clean up reports between tests
-    Remove-Item -Path "peekdocs_results.txt" -ErrorAction SilentlyContinue
-    Remove-Item -Path "peekdocs_results.docx" -ErrorAction SilentlyContinue
+    Remove-Item -Path "peekdocs_standard_results.txt" -ErrorAction SilentlyContinue
+    Remove-Item -Path "peekdocs_standard_results.docx" -ErrorAction SilentlyContinue
 }
 
 # ── run_skip ──────────────────────────────────────────────────────────────
@@ -277,8 +278,8 @@ $BASELINE_WARNED = @($BASELINE_CLEAN -split "`n" |
     ForEach-Object { if ($_ -match 'Could not read (\S+)') { $Matches[1] } } |
     Sort-Object)
 
-Remove-Item -Path "peekdocs_results.txt" -ErrorAction SilentlyContinue
-Remove-Item -Path "peekdocs_results.docx" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.txt" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.docx" -ErrorAction SilentlyContinue
 
 # Write baseline section to results file
 $baselineHeader = @"
@@ -486,27 +487,27 @@ Remove-Item -Path "peekdocs_report_test_report.docx" -ErrorAction SilentlyContin
 
 Run-Test 'CSV output (-o csv)' `
     "-q -r -o csv `"$TERM1`""
-Verify-File "peekdocs_results.csv" "peekdocs_results.csv"
-Remove-Item -Path "peekdocs_results.csv" -ErrorAction SilentlyContinue
+Verify-File "peekdocs_standard_results.csv" "peekdocs_standard_results.csv"
+Remove-Item -Path "peekdocs_standard_results.csv" -ErrorAction SilentlyContinue
 
 Run-Test 'JSON output (-o json)' `
     "-q -r -o json `"$TERM1`""
-Verify-File "peekdocs_results.json" "peekdocs_results.json"
-Remove-Item -Path "peekdocs_results.json" -ErrorAction SilentlyContinue
+Verify-File "peekdocs_standard_results.json" "peekdocs_standard_results.json"
+Remove-Item -Path "peekdocs_standard_results.json" -ErrorAction SilentlyContinue
 
 Run-Test 'HTML output (-o html)' `
     "-q -r -o html `"$TERM1`""
-Verify-File "peekdocs_results.html" "peekdocs_results.html"
-Remove-Item -Path "peekdocs_results.html" -ErrorAction SilentlyContinue
+Verify-File "peekdocs_standard_results.html" "peekdocs_standard_results.html"
+Remove-Item -Path "peekdocs_standard_results.html" -ErrorAction SilentlyContinue
 
 Run-Test 'Multiple output formats (-o csv,json,html)' `
     "-q -r -o csv,json,html `"$TERM1`""
-Verify-File "peekdocs_results.csv" "peekdocs_results.csv"
-Verify-File "peekdocs_results.json" "peekdocs_results.json"
-Verify-File "peekdocs_results.html" "peekdocs_results.html"
-Remove-Item -Path "peekdocs_results.csv" -ErrorAction SilentlyContinue
-Remove-Item -Path "peekdocs_results.json" -ErrorAction SilentlyContinue
-Remove-Item -Path "peekdocs_results.html" -ErrorAction SilentlyContinue
+Verify-File "peekdocs_standard_results.csv" "peekdocs_standard_results.csv"
+Verify-File "peekdocs_standard_results.json" "peekdocs_standard_results.json"
+Verify-File "peekdocs_standard_results.html" "peekdocs_standard_results.html"
+Remove-Item -Path "peekdocs_standard_results.csv" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.json" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.html" -ErrorAction SilentlyContinue
 
 Run-Test 'Max matches (-m 5)' `
     "-q -r -m 5 `"$TERM1`""
@@ -520,8 +521,8 @@ Run-Test 'Extra quiet mode (-qq)' `
 Run-Test 'Timestamp flag (--timestamp)' `
     "-q -r --timestamp `"$TERM1`""
 # Check that timestamped files were created
-$tsTxt = Get-ChildItem "peekdocs_results_*.txt" -ErrorAction SilentlyContinue | Select-Object -First 1
-$tsDocx = Get-ChildItem "peekdocs_results_*.docx" -ErrorAction SilentlyContinue | Select-Object -First 1
+$tsTxt = Get-ChildItem "peekdocs_standard_results_*.txt" -ErrorAction SilentlyContinue | Select-Object -First 1
+$tsDocx = Get-ChildItem "peekdocs_standard_results_*.docx" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($tsTxt) {
     Verify-File $tsTxt.Name "timestamped .txt report"
 } else {
@@ -534,8 +535,8 @@ if ($tsDocx) {
     Write-Both "         [MISSING] No timestamped .docx report found"
     $script:FAIL++; $script:PASS--
 }
-Remove-Item -Path "peekdocs_results_*.txt" -ErrorAction SilentlyContinue
-Remove-Item -Path "peekdocs_results_*.docx" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results_*.txt" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results_*.docx" -ErrorAction SilentlyContinue
 
 
 # ============================================================================
@@ -641,8 +642,8 @@ if ($RECHECK_FOUND -match "Found (\d+) match") {
 } else {
     $RECHECK_COUNT = "0"
 }
-Remove-Item -Path "peekdocs_results.txt" -ErrorAction SilentlyContinue
-Remove-Item -Path "peekdocs_results.docx" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.txt" -ErrorAction SilentlyContinue
+Remove-Item -Path "peekdocs_standard_results.docx" -ErrorAction SilentlyContinue
 
 if ($RECHECK_COUNT -eq $BASELINE_COUNT) {
     Write-Both "[PASS] Match count stable: $RECHECK_COUNT matches (same as baseline)"
