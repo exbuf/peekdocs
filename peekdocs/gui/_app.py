@@ -53,10 +53,19 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.process = None
         self.search_thread = None
         self.results_dir = None
-        # Load persisted recent searches
+        # Load persisted recent searches AND language preference. The
+        # language pointer is module-level state on peekdocs.i18n, so
+        # setting it here BEFORE any widgets are built means the build
+        # methods pick up the right language on first paint — no
+        # re-render needed at startup.
         try:
             from peekdocs.cli import _load_config
-            self._recent_searches = _load_config().get("recent_searches", [])[:10]
+            _cfg = _load_config()
+            self._recent_searches = _cfg.get("recent_searches", [])[:10]
+            _lang = _cfg.get("language")
+            if _lang:
+                from peekdocs.i18n import set_language as _set_lang
+                _set_lang(_lang)
         except Exception:
             self._recent_searches = []
         self._excluded_files = []
@@ -101,16 +110,24 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._tabview = ctk.CTkTabview(self, anchor="nw", command=self._on_tab_changed)
         self._tabview.grid(row=0, column=0, sticky="nsew", padx=5, pady=(5, 0))
 
+        # CTkTabview uses the tab name string as both the lookup key and
+        # the visible button text. To keep the experiment additive (and
+        # avoid breaking every existing `_tabview.set("Getting Started")`
+        # call site), keep the internal name English and override the
+        # button's visible text via the underlying segmented_button.
+        # `_set_language` re-runs the override on every language change.
         self._tab_started = self._tabview.add("Getting Started")
         self._tab_search = self._tabview.add("Search")
 
-        # Add tooltip to the Getting Started tab button
+        from peekdocs.i18n import t as _t
         try:
-            gs_btn = self._tabview._segmented_button._buttons_dict.get("Getting Started")
-            if gs_btn:
-                Tooltip(gs_btn, "A quick introduction to peekdocs — what it does, how to use it, and what features are available")
+            self._gs_tab_btn = self._tabview._segmented_button._buttons_dict.get("Getting Started")
+            if self._gs_tab_btn:
+                self._gs_tab_btn.configure(text=_t("getting_started_tab_label"))
+                self._gs_tab_tooltip = Tooltip(self._gs_tab_btn, _t("getting_started_tab_tooltip"))
         except Exception:
-            pass
+            self._gs_tab_btn = None
+            self._gs_tab_tooltip = None
 
         # Build Getting Started tab
         self._build_getting_started_tab()

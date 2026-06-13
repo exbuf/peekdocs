@@ -35,13 +35,13 @@ class SearchMixin:
             # the "Search complete. No matches found." branch.
             self._search_cancelled = True
             self.process.terminate()
-            self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
+            self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             return
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
             self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
-            self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
+            self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             return
 
         # Reset report-button context to Standard Search; a prior Suite run
@@ -455,7 +455,7 @@ class SearchMixin:
         except Exception:
             pass
         self.progress_bar.grid_remove()
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
+        self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
         self.search_entry.configure(state="normal")
         self.process = None
         self._multi_folder_cancelled = None  # Reset for next search
@@ -565,7 +565,7 @@ class SearchMixin:
             self.after_cancel(self.elapsed_timer_id)
             self.elapsed_timer_id = None
 
-        self.search_button.configure(text="\U0001f50d Run Standard Search", fg_color="#2196F3", hover_color="#1976D2", text_color="white")
+        self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
         self.search_entry.configure(state="normal")
 
         # User-cancelled run: short-circuit the returncode dispatch.

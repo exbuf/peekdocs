@@ -242,9 +242,10 @@ class BuildMixin:
         """
         # Page header — small "Main page" label at the very top so users
         # know which screen they're on. Subordinate to tab/Step labels.
+        from peekdocs.i18n import t as _t
         self._page_header_lbl = ctk.CTkLabel(
             self._search_parent,
-            text="Main page",
+            text=_t("page_header_label"),
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=("gray45", "gray60"),
         )
@@ -270,10 +271,11 @@ class BuildMixin:
         self.recursive_var = ctk.StringVar(value="on")
 
         import tkinter as _tk_step2
-        _step_lbl_2 = _tk_step2.Label(self._input_frame, text=" Step 2 ", font=("TkDefaultFont", 14, "bold"),
+        from peekdocs.i18n import t as _t
+        self._step_lbl_2 = _tk_step2.Label(self._input_frame, text=_t("step_2_label"), font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
-        _step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
-        Tooltip(_step_lbl_2, "Search Terms — type what you're looking for, then select AND/OR, Recursive (include subfolders), or Whole Word. For advanced options click Advanced")
+        self._step_lbl_2.grid(row=1, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        self._step_2_tooltip = Tooltip(self._step_lbl_2, _t("step_2_tooltip"))
 
         self._assistant_label = ctk.CTkLabel(
             self._input_frame, text="", font=ctk.CTkFont(size=12),
@@ -294,38 +296,40 @@ class BuildMixin:
                                                border_width=2, border_color=("gray50", "gray50"))
         self._search_btn_frame.grid(row=1, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
-        clear_button = ctk.CTkButton(
-            self._search_btn_frame, text="Clear", width=70,
+        from peekdocs.i18n import t as _t
+        self._clear_button = ctk.CTkButton(
+            self._search_btn_frame, text=_t("clear_button_label"), width=70,
             command=lambda: self.search_entry.delete(0, "end"),
             font=ctk.CTkFont(size=14),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        clear_button.pack(side="left", padx=(6, 3), pady=4)
-        Tooltip(clear_button, "Clear the search bar", anchor="left")
+        self._clear_button.pack(side="left", padx=(6, 3), pady=4)
+        self._clear_button_tooltip = Tooltip(self._clear_button, _t("clear_button_tooltip"), anchor="left")
 
-        recent_btn = ctk.CTkButton(
-            self._search_btn_frame, text="\u25bc Recent Searches", width=130,
+        self._recent_btn = ctk.CTkButton(
+            self._search_btn_frame, text="\u25bc " + __import__("peekdocs.i18n", fromlist=["t"]).t("recent_searches_label"), width=130,
             command=self._show_recent_searches,
             font=ctk.CTkFont(size=14),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
-        recent_btn.pack(side="left", padx=(0, 6), pady=4)
-        Tooltip(recent_btn, "Show recent searches — click to re-use a previous search", anchor="left")
+        self._recent_btn.pack(side="left", padx=(0, 6), pady=4)
+        self._recent_btn_tooltip = Tooltip(self._recent_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("recent_searches_tooltip"), anchor="left")
 
         # Row 2: options row (AND/OR, Save/Reload, Use Index)
         # Small two-line "Search\nOptions" label in column 0, under the Step 2 tag.
         # Faded color + small font so it doesn't compete with the Step labels.
+        from peekdocs.i18n import t as _t
         self._options_lbl = ctk.CTkLabel(
             self._input_frame,
-            text="Search\nOptions",
+            text=_t("search_options_label"),
             font=ctk.CTkFont(size=16),
             text_color=("gray55", "gray55"),
             justify="left",
         )
         self._options_lbl.grid(row=2, column=0, padx=(10, 2), pady=(0, 8), sticky="nw")
-        Tooltip(self._options_lbl, "Search options that apply to the Run Standard Search button on the next row: AND vs OR, Recursive (include subfolders), Whole Word, Use Index, plus Save / Reload of the entire current search by name. For everything else — file types, exclude terms, range filters, proximity, OCR, context lines, output formats — click the Advanced link above this row.")
+        self._options_lbl_tooltip = Tooltip(self._options_lbl, _t("search_options_tooltip"))
 
         self._options_row = ctk.CTkFrame(
             self._input_frame,
@@ -338,10 +342,11 @@ class BuildMixin:
 
         # Row 3: "Step 3" label + Run Standard Search button
         import tkinter as _tk_step3
-        _step_lbl_3 = _tk_step3.Label(self._input_frame, text=" Step 3 ", font=("TkDefaultFont", 14, "bold"),
+        from peekdocs.i18n import t as _t
+        self._step_lbl_3 = _tk_step3.Label(self._input_frame, text=_t("step_3_label"), font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
-        _step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(6, 8), sticky="nw")
-        Tooltip(_step_lbl_3, "Run Standard Search — click to search all files in the folder")
+        self._step_lbl_3.grid(row=3, column=0, padx=(10, 2), pady=(6, 8), sticky="nw")
+        self._step_3_tooltip = Tooltip(self._step_lbl_3, _t("step_3_tooltip"))
 
         # Run-buttons row is a vertical stack: top sub-row holds the three
         # Run buttons; bottom sub-row holds the "What's the difference?" link.
@@ -354,13 +359,14 @@ class BuildMixin:
         self._run_search_outer = _run_outer
 
         # Run Standard Search button — standalone
+        from peekdocs.i18n import t as _t
         self.search_button = ctk.CTkButton(
-            btn_frame, text="\U0001f50d Run Standard Search", width=270, height=44, command=self.start_search,
+            btn_frame, text=_t("run_standard_search_label"), width=270, height=44, command=self.start_search,
             font=ctk.CTkFont(size=24, weight="bold"),
             fg_color="#2196F3", hover_color="#1976D2", text_color="white",
         )
         self.search_button.pack(side="left", padx=(0, 10))
-        Tooltip(self.search_button, "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use the Regex Search button instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts")
+        self._run_search_tooltip = Tooltip(self.search_button, _t("run_standard_search_tooltip"))
 
 
 
@@ -403,25 +409,26 @@ class BuildMixin:
             _sync_and_or_colors()
             self._save_ui_preference("match_all", False)
 
+        from peekdocs.i18n import t as _t
         self._and_btn = ctk.CTkButton(
-            options_group, text="AND", width=40,
+            options_group, text=_t("and_label"), width=40,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color=_and_off_fg, text_color=_and_off_text,
             hover_color=("#1f6aa5", "#1f6aa5"),
             command=_on_and_click,
         )
         self._and_btn.pack(side="left", padx=(4, 0), pady=3)
-        Tooltip(self._and_btn, "AND mode — all search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph. Synced with AND mode in Advanced Search Options")
+        self._and_btn_tooltip = Tooltip(self._and_btn, _t("and_tooltip"))
 
         self._or_btn = ctk.CTkButton(
-            options_group, text="OR", width=35,
+            options_group, text=_t("or_label"), width=35,
             font=ctk.CTkFont(size=12, weight="bold"),
             fg_color=_and_on_fg, text_color=_and_on_text,
             hover_color=("#1f6aa5", "#1f6aa5"),
             command=_on_or_click,
         )
         self._or_btn.pack(side="left", padx=(2, 4), pady=3)
-        Tooltip(self._or_btn, "OR mode (default) — find lines containing any of the search terms. Synced with AND mode in Advanced Search Options")
+        self._or_btn_tooltip = Tooltip(self._or_btn, _t("or_tooltip"))
         self._sync_and_or_colors = _sync_and_or_colors
 
         # Separator
@@ -430,25 +437,25 @@ class BuildMixin:
         _sep.pack(side="left", padx=(14, 14), pady=3)
 
         self._folder_recursive_cb = ctk.CTkCheckBox(
-            options_group, text="Recursive", variable=self.recursive_var,
+            options_group, text=_t("recursive_label"), variable=self.recursive_var,
             onvalue="on", offvalue="off",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
             command=lambda: self._save_ui_preference("recursive", self.recursive_var.get() == "on"),
         )
         self._folder_recursive_cb.pack(side="left", padx=(2, 5), pady=3)
-        Tooltip(self._folder_recursive_cb, "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting")
+        self._folder_recursive_cb_tooltip = Tooltip(self._folder_recursive_cb, _t("recursive_tooltip"))
 
         self.whole_word_var = ctk.StringVar(value="on")
         self._search_whole_word_cb = ctk.CTkCheckBox(
-            options_group, text="Whole Word", variable=self.whole_word_var,
+            options_group, text=_t("whole_word_label"), variable=self.whole_word_var,
             onvalue="on", offvalue="off",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
             command=lambda: self._save_ui_preference("whole_word", self.whole_word_var.get() == "on"),
         )
         self._search_whole_word_cb.pack(side="left", padx=(0, 4), pady=3)
-        Tooltip(self._search_whole_word_cb, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options")
+        self._search_whole_word_cb_tooltip = Tooltip(self._search_whole_word_cb, _t("whole_word_tooltip"))
 
         # ? help for this options group — blue chip styling, unified with
         # every other help affordance on the page (white ? on blue circle).
@@ -467,7 +474,7 @@ class BuildMixin:
         # Styled as a hyperlink (blue + underline) to signal "click me".
         self.advanced_toggle = ctk.CTkButton(
             options_row,
-            text="Advanced", width=0,
+            text=_t("advanced_label"), width=0,
             fg_color="transparent",
             text_color="#1565C0",
             hover_color=("gray90", "gray25"),
@@ -476,11 +483,11 @@ class BuildMixin:
             font=ctk.CTkFont(size=16, weight="bold", underline=True),
         )
         self.advanced_toggle.pack(side="left", padx=(10, 0))
-        Tooltip(self.advanced_toggle, "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings")
+        self._advanced_toggle_tooltip = Tooltip(self.advanced_toggle, _t("advanced_tooltip"))
 
         self.index_search_var = ctk.StringVar(value="off")
         self.cb_index_search = ctk.CTkCheckBox(
-            options_row, text="Use Index", variable=self.index_search_var,
+            options_row, text=_t("use_index_label"), variable=self.index_search_var,
             onvalue="on", offvalue="off",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=("black", "black"),
@@ -488,13 +495,13 @@ class BuildMixin:
             command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
         self.cb_index_search.pack(side="left", padx=(10, 0))
-        Tooltip(self.cb_index_search, "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app", anchor="left")
+        self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"), anchor="left")
 
         # Search Wizard — sits before the Save / Reload group
         # Styled as a hyperlink (blue + underline) to signal "click me".
         self._search_wiz_btn = ctk.CTkButton(
             options_row,
-            text="Wizard", width=0,
+            text=_t("wizard_label"), width=0,
             fg_color="transparent",
             text_color="#1565C0",
             hover_color=("gray90", "gray25"),
@@ -503,7 +510,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=16, weight="bold", underline=True),
         )
         self._search_wiz_btn.pack(side="left", padx=(20, 0))
-        Tooltip(self._search_wiz_btn, "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed", anchor="left")
+        self._search_wiz_btn_tooltip = Tooltip(self._search_wiz_btn, _t("wizard_tooltip"), anchor="left")
 
         # Save, Reload, and ? grouped together
         # Transparent — sits inside the now-tinted options_row.
@@ -511,7 +518,7 @@ class BuildMixin:
         save_group.pack(side="left", padx=(5, 4), pady=4)
 
         self.save_to_collection_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Save", width=80,
+            save_group, text="\u25b6 " + __import__("peekdocs.i18n", fromlist=["t"]).t("save_label"), width=80,
             fg_color="transparent",
             text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
@@ -519,10 +526,10 @@ class BuildMixin:
             font=ctk.CTkFont(size=13, weight="bold"),
         )
         self.save_to_collection_btn.pack(side="left", padx=(2, 0), pady=3)
-        Tooltip(self.save_to_collection_btn, "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name")
+        self._save_to_collection_btn_tooltip = Tooltip(self.save_to_collection_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("save_tooltip"))
 
         self.load_search_btn = ctk.CTkButton(
-            save_group, text="\u25b6 Reload", width=90,
+            save_group, text="\u25b6 " + __import__("peekdocs.i18n", fromlist=["t"]).t("reload_label"), width=90,
             fg_color="transparent",
             text_color=("black", "black"),
             hover_color=("gray90", "gray25"),
@@ -530,7 +537,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13, weight="bold"),
         )
         self.load_search_btn.pack(side="left", padx=(0, 2), pady=3)
-        Tooltip(self.load_search_btn, "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it")
+        self._load_search_btn_tooltip = Tooltip(self.load_search_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("reload_tooltip"))
         self._load_search_popup = None
 
         self.save_load_help_btn = ctk.CTkButton(
@@ -553,10 +560,11 @@ class BuildMixin:
     def _build_folder_row(self):
         """Build the folder selection row in the shared _input_frame at row 0."""
         import tkinter as _tk_step
-        _step_lbl_1 = _tk_step.Label(self._input_frame, text=" Step 1 ", font=("TkDefaultFont", 14, "bold"),
+        from peekdocs.i18n import t as _t
+        self._step_lbl_1 = _tk_step.Label(self._input_frame, text=_t("step_1_label"), font=("TkDefaultFont", 14, "bold"),
                                       fg="white", bg="#2196F3")
-        _step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
-        Tooltip(_step_lbl_1, "Search Folder — point peekdocs at the folder containing your documents")
+        self._step_lbl_1.grid(row=0, column=0, padx=(10, 2), pady=(4, 8), sticky="w")
+        self._step_1_tooltip = Tooltip(self._step_lbl_1, _t("step_1_tooltip"))
 
         self.folder_entry = ctk.CTkEntry(self._input_frame, font=ctk.CTkFont(size=14))
         self.folder_entry.grid(row=0, column=1, padx=(5, 5), pady=(4, 8), sticky="ew")
@@ -566,30 +574,31 @@ class BuildMixin:
                                           border_width=2, border_color=("gray50", "gray50"))
         self._browse_frame.grid(row=0, column=2, padx=(5, 10), pady=(4, 8), sticky="w")
 
+        from peekdocs.i18n import t as _t
         self.browse_button = ctk.CTkButton(
-            self._browse_frame, text="Browse", width=60, command=self.browse_folder,
+            self._browse_frame, text=_t("browse_button_label"), width=60, command=self.browse_folder,
             font=ctk.CTkFont(size=14),
         )
         self.browse_button.pack(side="left", padx=(6, 3), pady=4)
-        Tooltip(self.browse_button, "Browse for a folder to search. Linux: double-click to select a folder in the dialog", anchor="left")
+        self._browse_button_tooltip = Tooltip(self.browse_button, _t("browse_button_tooltip"), anchor="left")
 
         self._multi_folder_btn = ctk.CTkButton(
-            self._browse_frame, text="+Folder", width=65, command=self._add_folder,
+            self._browse_frame, text=_t("multi_folder_button_label"), width=65, command=self._add_folder,
             font=ctk.CTkFont(size=14),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
         self._multi_folder_btn.pack(side="left", padx=(3, 0))
-        Tooltip(self._multi_folder_btn, "Search multiple top-level folders at once (e.g., Documents and Desktop). Different from Recursive, which searches subfolders within a single folder. Folders are separated by semicolons (;)", anchor="left")
+        self._multi_folder_btn_tooltip = Tooltip(self._multi_folder_btn, _t("multi_folder_button_tooltip"), anchor="left")
 
         self.browse_file_button = ctk.CTkButton(
-            self._browse_frame, text="Single File", width=80, command=self._browse_file,
+            self._browse_frame, text=_t("single_file_button_label"), width=80, command=self._browse_file,
             font=ctk.CTkFont(size=14),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
         )
         self.browse_file_button.pack(side="left", padx=(3, 6), pady=4)
-        Tooltip(self.browse_file_button, "Browse for a specific file to search", anchor="left")
+        self._browse_file_button_tooltip = Tooltip(self.browse_file_button, _t("single_file_button_tooltip"), anchor="left")
 
         # Clear button — inside the browse frame, shown when a file is selected
         self._clear_file_btn = ctk.CTkButton(
@@ -626,44 +635,47 @@ class BuildMixin:
         so it appears between the options group and the save group.
         """
         # Search Suites button — sits next to Run Standard Search in the run-buttons row
+        from peekdocs.i18n import t as _t
         self._suites_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Search Suites", width=200, height=44,
+            text=_t("search_suites_label"), width=200, height=44,
             fg_color="#76BA1B", hover_color="#76BA1B",
             text_color="white",
             command=self._show_search_suites,
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._suites_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._suites_btn, "Search Suites — open the management popup to create, edit, reorder, or run a named group of saved searches. The popup's Run Search Suite button executes the selected suite. Run Multiple Search Suites… (button at the bottom of the same popup) opens a checkbox picker over every saved suite — pick two or more and run them together as one combined report.")
+        self._suites_tooltip = Tooltip(self._suites_btn, _t("search_suites_tooltip"))
 
         # Regex Search button — orange, third color in the run-buttons
         # row so the three search modes are visually distinct
         # (blue=Standard, green=Suites, orange=Regex).
+        from peekdocs.i18n import t as _t
         self._regex_search_btn = ctk.CTkButton(
             self._run_search_frame,
-            text="Regex Search", width=200, height=44,
+            text=_t("regex_search_label"), width=200, height=44,
             fg_color="#FF9800", hover_color="#FF9800",
             text_color="white",
             command=self._start_regex_search,
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._regex_search_btn.pack(side="left", padx=(12, 0))
-        Tooltip(self._regex_search_btn, "Regex Search — open the management popup to create, edit, or run a named collection of regex patterns. The popup edits up to 10 patterns at a time; collections on disk are unbounded (the seeded Examples collection ships with 17). Each pattern runs separately with per-pattern results. The popup's Run Regex Search button executes the visible rows; Run Multiple Collections… (button at the bottom) opens a checkbox picker over every saved collection — pick two or more and run them together. Results depend on the report-checkbox setting in the popup.")
+        self._regex_search_tooltip = Tooltip(self._regex_search_btn, _t("regex_search_tooltip"))
 
         # "What's the difference?" link below the three Run buttons. Muted
         # blue + underline matches the Advanced/Wizard hyperlink styling and
         # gives novices a no-commitment way to learn which mode to pick.
+        from peekdocs.i18n import t as _t_mc
         self._mode_compare_link = ctk.CTkLabel(
             self._run_search_outer,
-            text="3 Search Buttons — what’s the difference?",
+            text=_t_mc("mode_compare_link_label"),
             text_color="#1565C0",
             font=ctk.CTkFont(size=12, underline=True),
             cursor="hand2",
         )
         self._mode_compare_link.pack(side="top", anchor="w", padx=(2, 0), pady=(2, 0))
         self._mode_compare_link.bind("<Button-1>", lambda _e: self._show_search_modes_compare())
-        Tooltip(self._mode_compare_link, "Quick comparison of Run Standard Search vs. Search Suites vs. Regex Search")
+        self._mode_compare_link_tooltip = Tooltip(self._mode_compare_link, _t_mc("mode_compare_link_tooltip"))
 
 
 
@@ -671,8 +683,9 @@ class BuildMixin:
         """Build the Advanced Search Options popup window with all search mode checkboxes and fields."""
         # Create popup window for Advanced Search Options
         self.advanced_window = ctk.CTkToplevel(self)
-        self.advanced_window.title("Advanced Search Options")
-        self.advanced_window.after(100, lambda: self.advanced_window.title("Advanced Search Options"))
+        from peekdocs.i18n import t as _t
+        self.advanced_window.title(_t("adv_window_title"))
+        self.advanced_window.after(100, lambda: self.advanced_window.title(_t("adv_window_title")))
         # Width fixed; height set after all widgets are placed (see end of function)
         self.advanced_window.geometry("900x100")
         self.advanced_window.resizable(True, True)
@@ -717,69 +730,70 @@ class BuildMixin:
         # and_mode_var and recursive_var are already created in _build_search_row
         self.fuzzy_var = ctk.StringVar(value="off")
 
-        cb_and = ctk.CTkCheckBox(
-            cb_frame, text="AND mode", variable=self.and_mode_var,
+        self._adv_cb_and = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_and_mode_label"), variable=self.and_mode_var,
             onvalue="on", offvalue="off", command=self._on_and_toggle,
         )
-        cb_and.grid(row=0, column=0, padx=(0, 15), pady=(0, 5), sticky="w")
-        cb_rec = ctk.CTkCheckBox(
-            cb_frame, text="Recursive", variable=self.recursive_var,
+        self._adv_cb_and.grid(row=0, column=0, padx=(0, 15), pady=(0, 5), sticky="w")
+        self._adv_cb_rec = ctk.CTkCheckBox(
+            cb_frame, text=_t("recursive_label"), variable=self.recursive_var,
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("recursive", self.recursive_var.get() == "on"),
         )
-        cb_rec.grid(row=0, column=1, padx=(0, 15), pady=(0, 5), sticky="w")
-        cb_fuz = ctk.CTkCheckBox(
-            cb_frame, text="Fuzzy", variable=self.fuzzy_var,
+        self._adv_cb_rec.grid(row=0, column=1, padx=(0, 15), pady=(0, 5), sticky="w")
+        self._adv_cb_fuz = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_fuzzy_label"), variable=self.fuzzy_var,
             onvalue="on", offvalue="off", command=self._on_fuzzy_toggle,
         )
-        cb_fuz.grid(row=0, column=2, padx=(0, 15), pady=(0, 5), sticky="w")
+        self._adv_cb_fuz.grid(row=0, column=2, padx=(0, 15), pady=(0, 5), sticky="w")
 
         self.wildcard_var = ctk.StringVar(value="off")
         self.ocr_var = ctk.StringVar(value="off")
         self.regex_var = ctk.StringVar(value="off")
 
-        cb_wild = ctk.CTkCheckBox(
-            cb_frame, text="Wildcard", variable=self.wildcard_var,
+        self._adv_cb_wild = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_wildcard_label"), variable=self.wildcard_var,
             onvalue="on", offvalue="off", command=self._on_wildcard_toggle,
         )
-        cb_wild.grid(row=1, column=0, padx=(0, 15), pady=0, sticky="w")
-        cb_ocr = ctk.CTkCheckBox(
-            cb_frame, text="OCR", variable=self.ocr_var,
+        self._adv_cb_wild.grid(row=1, column=0, padx=(0, 15), pady=0, sticky="w")
+        self._adv_cb_ocr = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_ocr_label"), variable=self.ocr_var,
             onvalue="on", offvalue="off",
         )
-        cb_ocr.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
-        cb_regex = ctk.CTkCheckBox(
-            cb_frame, text="Regex", variable=self.regex_var,
+        self._adv_cb_ocr.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
+        self._adv_cb_regex = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_regex_label"), variable=self.regex_var,
             onvalue="on", offvalue="off", command=self._on_regex_toggle,
         )
-        cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
+        self._adv_cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
 
         # whole_word_var already created in _build_search_row
-        cb_whole_word = ctk.CTkCheckBox(
-            cb_frame, text="Whole Word", variable=self.whole_word_var,
+        self._adv_cb_whole_word = ctk.CTkCheckBox(
+            cb_frame, text=_t("whole_word_label"), variable=self.whole_word_var,
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("whole_word", self.whole_word_var.get() == "on"),
         )
-        cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
-        Tooltip(cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with the Whole Word checkbox on the search row")
+        self._adv_cb_whole_word.grid(row=1, column=3, padx=(0, 15), pady=0, sticky="w")
+        Tooltip(self._adv_cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with the Whole Word checkbox on the search row")
 
         self.expression_var = ctk.StringVar(value="off")
-        cb_expr = ctk.CTkCheckBox(
-            cb_frame, text="Expression", variable=self.expression_var,
+        self._adv_cb_expr = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_expression_label"), variable=self.expression_var,
             onvalue="on", offvalue="off", command=self._on_expression_toggle,
         )
-        cb_expr.grid(row=0, column=3, padx=(0, 15), pady=(0, 5), sticky="w")
+        self._adv_cb_expr.grid(row=0, column=3, padx=(0, 15), pady=(0, 5), sticky="w")
 
         self.inverse_var = ctk.StringVar(value="off")
-        cb_inverse = ctk.CTkCheckBox(
-            cb_frame, text="Inverse", variable=self.inverse_var,
+        self._adv_cb_inverse = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_inverse_label"), variable=self.inverse_var,
             onvalue="on", offvalue="off",
         )
-        cb_inverse.grid(row=0, column=4, padx=(0, 15), pady=(0, 5), sticky="w")
-        Tooltip(cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
+        self._adv_cb_inverse.grid(row=0, column=4, padx=(0, 15), pady=(0, 5), sticky="w")
+        Tooltip(self._adv_cb_inverse, "Show files that do NOT contain the search terms — useful for finding missing content")
 
         # Row 2: exclude
-        ctk.CTkLabel(self.advanced_frame, text="Exclude:").grid(
+        self._adv_lbl_exclude = ctk.CTkLabel(self.advanced_frame, text=_t("adv_exclude_label"))
+        self._adv_lbl_exclude.grid(
             row=2, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.exclude_entry = ctk.CTkEntry(
@@ -788,7 +802,8 @@ class BuildMixin:
         self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         # Row 3: file types
-        ctk.CTkLabel(self.advanced_frame, text="File types:").grid(
+        self._adv_lbl_file_types = ctk.CTkLabel(self.advanced_frame, text=_t("adv_file_types_label"))
+        self._adv_lbl_file_types.grid(
             row=3, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.file_types_entry = ctk.CTkEntry(
@@ -797,7 +812,8 @@ class BuildMixin:
         self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         # Row 3: proximity + context lines
-        ctk.CTkLabel(self.advanced_frame, text="Word Proximity:").grid(
+        self._adv_lbl_word_proximity = ctk.CTkLabel(self.advanced_frame, text=_t("adv_word_proximity_label"))
+        self._adv_lbl_word_proximity.grid(
             row=4, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -807,17 +823,20 @@ class BuildMixin:
         self.proximity_entry.grid(row=0, column=0)
 
         num_frame.grid_columnconfigure(1, minsize=110)
-        ctk.CTkLabel(num_frame, text="Lines Before:").grid(row=0, column=1, padx=(20, 5), sticky="e")
+        self._adv_lbl_lines_before = ctk.CTkLabel(num_frame, text=_t("adv_lines_before_label"))
+        self._adv_lbl_lines_before.grid(row=0, column=1, padx=(20, 5), sticky="e")
         self.context_before_entry = ctk.CTkEntry(num_frame, width=60)
         self.context_before_entry.grid(row=0, column=2)
 
-        ctk.CTkLabel(num_frame, text="Lines After:").grid(row=0, column=3, padx=(20, 5))
+        self._adv_lbl_lines_after = ctk.CTkLabel(num_frame, text=_t("adv_lines_after_label"))
+        self._adv_lbl_lines_after.grid(row=0, column=3, padx=(20, 5))
         self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
         self.context_after_entry.grid(row=0, column=4)
 
         # Row 4: cores
         self._default_cores = max(1, (os.cpu_count() or 1) // 2)
-        ctk.CTkLabel(self.advanced_frame, text="Cores to Use:").grid(
+        self._adv_lbl_cores = ctk.CTkLabel(self.advanced_frame, text=_t("adv_cores_to_use_label"))
+        self._adv_lbl_cores.grid(
             row=5, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -828,18 +847,21 @@ class BuildMixin:
         self.cores_entry.grid(row=0, column=0)
 
         cores_frame.grid_columnconfigure(1, minsize=110)
-        ctk.CTkLabel(cores_frame, text="Max Matches:").grid(row=0, column=1, padx=(20, 5), sticky="e")
+        self._adv_lbl_max_matches = ctk.CTkLabel(cores_frame, text=_t("adv_max_matches_label"))
+        self._adv_lbl_max_matches.grid(row=0, column=1, padx=(20, 5), sticky="e")
         self.max_matches_entry = ctk.CTkEntry(cores_frame, width=60)
         self.max_matches_entry.insert(0, "1000")
         self.max_matches_entry.grid(row=0, column=2)
 
-        ctk.CTkLabel(cores_frame, text="Max File Size (MB):").grid(row=0, column=3, padx=(20, 5), sticky="e")
+        self._adv_lbl_max_file_size = ctk.CTkLabel(cores_frame, text=_t("adv_max_file_size_label"))
+        self._adv_lbl_max_file_size.grid(row=0, column=3, padx=(20, 5), sticky="e")
         self.max_file_size_entry = ctk.CTkEntry(cores_frame, width=60)
         self.max_file_size_entry.insert(0, "100")
         self.max_file_size_entry.grid(row=0, column=4)
 
         # Row 6: range filters
-        ctk.CTkLabel(self.advanced_frame, text="Range:").grid(
+        self._adv_lbl_range = ctk.CTkLabel(self.advanced_frame, text=_t("adv_range_label"))
+        self._adv_lbl_range.grid(
             row=6, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.range_entry = ctk.CTkEntry(
@@ -849,7 +871,8 @@ class BuildMixin:
         Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
 
         # Row 7: specific files
-        ctk.CTkLabel(self.advanced_frame, text="Specific files:").grid(
+        self._adv_lbl_specific_files = ctk.CTkLabel(self.advanced_frame, text=_t("adv_specific_files_label"))
+        self._adv_lbl_specific_files.grid(
             row=7, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.specific_files_entry = ctk.CTkEntry(
@@ -858,7 +881,8 @@ class BuildMixin:
         self.specific_files_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         # Row 7: save as + append to
-        ctk.CTkLabel(self.advanced_frame, text="Save report as:").grid(
+        self._adv_lbl_save_as = ctk.CTkLabel(self.advanced_frame, text=_t("adv_save_report_as_label"))
+        self._adv_lbl_save_as.grid(
             row=8, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
         )
         save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -867,12 +891,14 @@ class BuildMixin:
         self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
         self.save_name_entry.grid(row=0, column=0, padx=(0, 20))
 
-        ctk.CTkLabel(save_frame, text="Append report to:").grid(row=0, column=1, padx=(0, 5))
+        self._adv_lbl_append_to = ctk.CTkLabel(save_frame, text=_t("adv_append_report_to_label"))
+        self._adv_lbl_append_to.grid(row=0, column=1, padx=(0, 5))
         self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
         self.append_name_entry.grid(row=0, column=2)
 
         # Row 8: output directory
-        ctk.CTkLabel(self.advanced_frame, text="Output Dir:").grid(
+        self._adv_lbl_output_dir = ctk.CTkLabel(self.advanced_frame, text=_t("adv_output_dir_label"))
+        self._adv_lbl_output_dir.grid(
             row=9, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
         )
         outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
@@ -895,8 +921,9 @@ class BuildMixin:
         output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
         output_frame.grid(row=10, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
 
-        _output_label = ctk.CTkLabel(output_frame, text="Also output report as ==>")
-        _output_label.grid(row=0, column=0, padx=(0, 10))
+        self._adv_lbl_also_output = ctk.CTkLabel(output_frame, text=_t("adv_also_output_label"))
+        self._adv_lbl_also_output.grid(row=0, column=0, padx=(0, 10))
+        _output_label = self._adv_lbl_also_output
         # The output-format checkboxes here apply ONLY to Standard Search
         # (the green Run Standard Search button). Search Suites have
         # their own HTML / CSV / JSON / PDF picker inside the Search
@@ -949,39 +976,44 @@ class BuildMixin:
         # by the later ones; the bottom calls carry the
         # _output_scope_note disclaimer.
         self.timestamp_var = ctk.StringVar(value="off")
-        cb_ts = ctk.CTkCheckBox(
-            output_frame, text="Timestamp Filename", variable=self.timestamp_var,
+        self._adv_cb_ts = ctk.CTkCheckBox(
+            output_frame, text=_t("adv_timestamp_filename_label"), variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._adv_cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_ts = self._adv_cb_ts
         Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Tools → Clear Files → Wipe Session to clean up")
         self.delete_reports_var = ctk.StringVar(value="off")
-        cb_delete_adv = ctk.CTkCheckBox(
-            output_frame, text="Delete on Close", variable=self.delete_reports_var,
+        from peekdocs.i18n import t as _t
+        self._cb_delete_adv = ctk.CTkCheckBox(
+            output_frame, text=_t("delete_on_close_label"), variable=self.delete_reports_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        cb_delete_adv.grid(row=1, column=2, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._cb_delete_adv.grid(row=1, column=2, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
         self.clear_history_var = ctk.StringVar(value="off")
-        cb_clear_hist = ctk.CTkCheckBox(
-            output_frame, text="Clear History on Close", variable=self.clear_history_var,
+        self._adv_cb_clear_hist = ctk.CTkCheckBox(
+            output_frame, text=_t("adv_clear_history_label"), variable=self.clear_history_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
+        cb_clear_hist = self._adv_cb_clear_hist
         cb_clear_hist.grid(row=1, column=4, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
         self.restrict_permissions_var = ctk.StringVar(value="off")
-        cb_restrict = ctk.CTkCheckBox(
-            output_frame, text="Restrict File Permissions", variable=self.restrict_permissions_var,
+        self._adv_cb_restrict = ctk.CTkCheckBox(
+            output_frame, text=_t("adv_restrict_perms_label"), variable=self.restrict_permissions_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
         )
+        cb_restrict = self._adv_cb_restrict
         cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
         self.notify_on_complete_var = ctk.StringVar(value="off")
-        cb_notify_complete = ctk.CTkCheckBox(
-            output_frame, text="Notify on Search Complete", variable=self.notify_on_complete_var,
+        self._adv_cb_notify_complete = ctk.CTkCheckBox(
+            output_frame, text=_t("adv_notify_complete_label"), variable=self.notify_on_complete_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("notify_on_complete", self.notify_on_complete_var),
         )
+        cb_notify_complete = self._adv_cb_notify_complete
         cb_notify_complete.grid(row=2, column=3, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
@@ -997,12 +1029,13 @@ class BuildMixin:
 
 
 
-        reset_btn = ctk.CTkButton(
-            settings_btn_frame, text="Reset All Fields", width=120,
+        self._adv_reset_btn = ctk.CTkButton(
+            settings_btn_frame, text=_t("adv_reset_all_label"), width=120,
             fg_color="#CC3333", hover_color="#AA2222",
             command=self.reset_form,
             font=ctk.CTkFont(size=13, weight="bold"),
         )
+        reset_btn = self._adv_reset_btn
         reset_btn.pack(side="left", padx=5)
         Tooltip(reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it")
 
@@ -1013,12 +1046,12 @@ class BuildMixin:
         self.advanced_frame.grid_columnconfigure(1, weight=1)
 
         # Tooltips
-        Tooltip(cb_and, "All search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
-        Tooltip(cb_rec, "Search subfolders inside the Search Folder")
-        Tooltip(cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
-        Tooltip(cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
-        Tooltip(cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see Readme.md)")
-        Tooltip(cb_expr, (
+        Tooltip(self._adv_cb_and, "All search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
+        Tooltip(self._adv_cb_rec, "Search subfolders inside the Search Folder")
+        Tooltip(self._adv_cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
+        Tooltip(self._adv_cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
+        Tooltip(self._adv_cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see Readme.md)")
+        Tooltip(self._adv_cb_expr, (
             "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
             "\n"
             "Examples:\n"
@@ -1033,7 +1066,7 @@ class BuildMixin:
             "Precedence: NOT > AND > OR. Use parentheses to override.\n"
             "Cannot combine with AND mode, Exclude, or Proximity."
         ))
-        Tooltip(cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
+        Tooltip(self._adv_cb_regex, "Use regular expressions for advanced pattern matching (e.g., \\d{3}-\\d{4} for phone numbers).\nFuzzy and Regex are mutually exclusive.")
         Tooltip(self.exclude_entry, "Comma-separated terms to skip (e.g., draft,obsolete)")
         Tooltip(self.file_types_entry, "Comma-separated file extensions to search. Leave blank to search ALL 100+ supported file types (not every file on disk — unsupported formats like .DS_Store, .exe, random binaries are always skipped). Supported types: 7z, asm, bat, bz2, c, cfg, cir, cmake, conf, cpp, cs, css, csv, doc, dockerfile, docx, dxf, eml, env, epub, f, f90, go, gql, gradle, graphql, gz, h, hpp, html, ics, ini, ipynb, java, js, json, jsonl, key, kt, log, lua, m, makefile, mbox, md, msg, ndjson, numbers, odp, ods, odt, pages, pdf, pl, ppt, pptx, properties, proto, ps1, pst, py, r, rar, rb, rs, rst, rtf, s, scala, scss, sh, sp, spice, sql, sv, swift, tar, tcl, tex, tf, tgz, toml, ts, tsv, txt, v, vb, vcf, vhd, vhdl, vsdx, xls, xlsx, xml, yaml, yml, zip. With OCR enabled: bmp, jpg, jpeg, png, tif, tiff")
         Tooltip(self.proximity_entry, "Word Proximity (-p): find terms within this many words of each other on the same line. Line Proximity (-P) is available in the CLI only — it finds terms within N lines of each other")
@@ -1049,7 +1082,7 @@ class BuildMixin:
         Tooltip(cb_json, "Also save results as a JSON file (peekdocs_standard_results.json) — machine-readable format for automation and integration. " + _output_scope_note)
         Tooltip(cb_pdf, "Also save results as a PDF file (peekdocs_standard_results.pdf) — matches highlighted in yellow, portable format for sharing and printing. " + _output_scope_note)
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_standard_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public. " + _output_scope_note)
-        Tooltip(cb_delete_adv, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted — those represent work you explicitly chose to keep")
+        self._cb_delete_adv_tooltip = Tooltip(self._cb_delete_adv, __import__("peekdocs.i18n", fromlist=["t"]).t("delete_on_close_tooltip"))
         Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If a search term you'd rather not leave on disk has been typed, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings. Saved searches, bookmarks, and the rest of your settings are not affected")
         Tooltip(cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML")
 
@@ -1060,38 +1093,42 @@ class BuildMixin:
         adv_bottom_frame = ctk.CTkFrame(self.advanced_window, fg_color="transparent")
         adv_bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
 
-        adv_save_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Save As Defaults", width=110,
+        self._adv_save_btn = ctk.CTkButton(
+            adv_bottom_frame, text=_t("adv_save_defaults_label"), width=110,
             command=self._save_current_settings,
             font=ctk.CTkFont(size=13),
         )
+        adv_save_btn = self._adv_save_btn
         adv_save_btn.pack(side="left", padx=(5, 0))
         Tooltip(adv_save_btn, "Save all current options as permanent defaults to ~/.peekdocsrc. This includes all settings on this Advanced Search Options screen and on the main screen (search terms, folder, recursive, AND/OR mode, whole word, etc.). These become the defaults every time you launch the app", anchor="above")
 
-        adv_close_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Close", width=80,
+        self._adv_close_btn = ctk.CTkButton(
+            adv_bottom_frame, text=_t("close_button_label"), width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=self._close_advanced_window,
             font=ctk.CTkFont(size=13),
         )
+        adv_close_btn = self._adv_close_btn
         adv_close_btn.place(relx=0.5, rely=0.5, anchor="center")
         Tooltip(adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next search. To make them permanent across sessions, click Save Defaults first", anchor="above")
 
-        adv_restore_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Restore Saved Defaults", width=130,
+        self._adv_restore_btn = ctk.CTkButton(
+            adv_bottom_frame, text=_t("adv_restore_defaults_label"), width=130,
             command=self._load_saved_settings,
             font=ctk.CTkFont(size=13),
         )
+        adv_restore_btn = self._adv_restore_btn
         adv_restore_btn.pack(side="left", padx=(5, 0))
         Tooltip(adv_restore_btn, "Load saved defaults from ~/.peekdocsrc into the GUI", anchor="above")
 
-        adv_reset_defaults_btn = ctk.CTkButton(
-            adv_bottom_frame, text="Restore Factory Settings", width=130,
+        self._adv_reset_defaults_btn = ctk.CTkButton(
+            adv_bottom_frame, text=_t("adv_restore_factory_label"), width=130,
             fg_color="#DC2626", hover_color="#B91C1C",
             command=self._reset_saved_defaults,
             font=ctk.CTkFont(size=13),
         )
+        adv_reset_defaults_btn = self._adv_reset_defaults_btn
         adv_reset_defaults_btn.pack(side="right", padx=(0, 5))
         Tooltip(adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
 
@@ -1141,11 +1178,12 @@ class BuildMixin:
         status_row.grid(row=4, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
 
         _status_label_size = 16 if sys.platform == "win32" else 14
-        status_label_left = ctk.CTkLabel(
-            status_row, text="Status:", font=ctk.CTkFont(size=_status_label_size, weight="bold"),
+        from peekdocs.i18n import t as _t
+        self._status_label_left = ctk.CTkLabel(
+            status_row, text=_t("status_label"), font=ctk.CTkFont(size=_status_label_size, weight="bold"),
         )
-        status_label_left.pack(side="left", padx=(0, 5))
-        Tooltip(status_label_left, "Search status — shows progress during search and results summary when complete")
+        self._status_label_left.pack(side="left", padx=(0, 5))
+        self._status_label_tooltip = Tooltip(self._status_label_left, _t("status_tooltip"))
 
         _status_font_size = 16 if sys.platform == "win32" else 14
         self.status_label = ctk.CTkLabel(
@@ -1187,23 +1225,24 @@ class BuildMixin:
         import tkinter as tk
         preview_header = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         preview_header.pack(fill="x", padx=5, pady=(5, 0))
-        _preview_label = ctk.CTkLabel(preview_header, text="Results Preview:",
+        from peekdocs.i18n import t as _t
+        self._preview_label = ctk.CTkLabel(preview_header, text=_t("results_preview_label"),
                                       font=ctk.CTkFont(size=12, weight="bold"))
-        _preview_label.pack(side="left")
-        Tooltip(_preview_label, "Live preview of search matches — capped at the first 500 lines so the GUI stays responsive on searches that return tens of thousands of matches. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit)")
+        self._preview_label.pack(side="left")
+        self._preview_label_tooltip = Tooltip(self._preview_label, _t("results_preview_tooltip"))
         self._preview_count_label = ctk.CTkLabel(
             preview_header, text="", font=ctk.CTkFont(size=12),
             text_color=("gray50", "gray50"))
         self._preview_count_label.pack(side="left", padx=(8, 0))
         self._clear_preview_btn = ctk.CTkButton(
-            preview_header, text="Clear Preview", width=100,
+            preview_header, text=_t("clear_preview_label"), width=100,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=self._clear_preview,
         )
         self._clear_preview_btn.pack(side="left", padx=(8, 0))
-        Tooltip(self._clear_preview_btn, "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk")
+        self._clear_preview_tooltip = Tooltip(self._clear_preview_btn, _t("clear_preview_tooltip"))
 
         # App-wide text size dropdown
         self._app_size_menu = ctk.CTkOptionMenu(
@@ -1212,7 +1251,29 @@ class BuildMixin:
             width=110, font=ctk.CTkFont(size=11),
             command=self._on_text_size_changed,
         )
-        self._app_size_menu.pack(side="right")
+        # Language picker — packed side="right" FIRST so it claims the
+        # rightmost edge of the preview header row. The App Size group
+        # then packs side="right" to the left of it.
+        from peekdocs.i18n import LANGUAGES as _LANGS, current_language as _curlang
+        self._lang_picker = ctk.CTkOptionMenu(
+            preview_header,
+            values=list(_LANGS.values()),
+            command=self._on_lang_picker_change,
+            width=130, font=ctk.CTkFont(size=11),
+        )
+        self._lang_picker.set(_LANGS.get(_curlang(), "English"))
+        self._lang_picker.pack(side="right")
+        Tooltip(self._lang_picker, "Language (experiment scope — currently translates the four main-page Step badges and tooltips, plus the Run Standard Search / Search Suites / Regex Search buttons + their tooltips. Everything else stays English).", anchor="left")
+
+        # "Language:" label sits just LEFT of the picker. Packed with
+        # side="right" AFTER the picker so the right-edge stacking
+        # order is (right→left): picker, label, App Size dropdown,
+        # "App Size:" label.
+        from peekdocs.i18n import t as _t_lang
+        self._lang_label = ctk.CTkLabel(preview_header, text=_t_lang("language_picker_label"), font=ctk.CTkFont(size=11))
+        self._lang_label.pack(side="right", padx=(10, 3))
+
+        self._app_size_menu.pack(side="right", padx=(0, 10))
         Tooltip(self._app_size_menu, "Adjust the overall app text size — changes all labels, buttons, and fields", anchor="left")
         ctk.CTkLabel(preview_header, text="App Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(10, 3))
 
@@ -1309,10 +1370,11 @@ class BuildMixin:
 
         self.report_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
         import tkinter as _tk_step4
-        _step_lbl_4 = _tk_step4.Label(self.report_frame, text=" Step 4 ", font=("TkDefaultFont", 14, "bold"),
+        from peekdocs.i18n import t as _t
+        self._step_lbl_4 = _tk_step4.Label(self.report_frame, text=_t("step_4_label"), font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
-        _step_lbl_4.pack(side="left", padx=(0, 8))
-        Tooltip(_step_lbl_4, "View Report — open the highlighted results report. Additional formats (CSV, JSON, PDF, HTML) can be enabled in Advanced Search Options", anchor="above")
+        self._step_lbl_4.pack(side="left", padx=(0, 8))
+        self._step_4_tooltip = Tooltip(self._step_lbl_4, _t("step_4_tooltip"), anchor="above")
 
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
@@ -1348,14 +1410,15 @@ class BuildMixin:
         )
         Tooltip(self.report_btn_html, f"Open the HTML report — view in any web browser. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public. {_report_color_note}", anchor="above")
 
+        from peekdocs.i18n import t as _t
         self.report_delete_cb = ctk.CTkCheckBox(
-            self.report_frame, text="Delete on Close",
+            self.report_frame, text=_t("delete_on_close_label"),
             variable=self.delete_reports_var,
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("delete_reports_on_close", self.delete_reports_var.get() == "on"),
             font=ctk.CTkFont(size=12),
         )
-        Tooltip(self.report_delete_cb, "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted. For immediate cleanup mid-session, use Tools → Clear Files → Wipe Session.", anchor="above")
+        self._report_delete_cb_tooltip = Tooltip(self.report_delete_cb, __import__("peekdocs.i18n", fromlist=["t"]).t("delete_on_close_tooltip"), anchor="above")
 
 
 
@@ -1503,9 +1566,10 @@ class BuildMixin:
         left_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="w")
 
+        from peekdocs.i18n import t as _t
         self._readme_button = ctk.CTkButton(
             left_frame,
-            text="README",
+            text=_t("readme_button_label"),
             width=70,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -1514,11 +1578,11 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._readme_button.pack(side="left")
-        Tooltip(self._readme_button, "Open the peekdocs README on GitHub — features, installation, security, and more", anchor="above")
+        self._readme_tooltip = Tooltip(self._readme_button, _t("readme_button_tooltip"), anchor="above")
 
         self.help_button = ctk.CTkButton(
             left_frame,
-            text="User Guide",
+            text=_t("user_guide_button_label"),
             width=90,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -1527,7 +1591,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.help_button.pack(side="left")
-        Tooltip(self.help_button, "Open the peekdocs User Guide on GitHub — also includes Troubleshooting and Python API documentation", anchor="above")
+        self._user_guide_tooltip = Tooltip(self.help_button, _t("user_guide_button_tooltip"), anchor="above")
 
         # Close button packed into the left group (after README and User
         # Guide). Previously gridded at column=1 of bottom_frame, which
@@ -1535,9 +1599,9 @@ class BuildMixin:
         # exactly where popup Close buttons sit when popups are centered,
         # making it easy to misclick when dismissing a popup. Now it lives
         # with the other navigation buttons on the left.
-        close_main_btn = ctk.CTkButton(
+        self._close_main_btn = ctk.CTkButton(
             left_frame,
-            text="Close",
+            text=_t("close_button_label"),
             width=70,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -1545,16 +1609,17 @@ class BuildMixin:
             command=self.destroy,
             font=ctk.CTkFont(size=13),
         )
-        close_main_btn.pack(side="left")
-        Tooltip(close_main_btn, "Close peekdocs", anchor="above")
+        self._close_main_btn.pack(side="left")
+        self._close_main_tooltip = Tooltip(self._close_main_btn, _t("close_button_tooltip"), anchor="above")
 
         # Right group
         right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
         right_frame.grid(row=0, column=2, sticky="e")
 
+        from peekdocs.i18n import t as _t
         self.about_button = ctk.CTkButton(
             right_frame,
-            text="About",
+            text=_t("about_button_label"),
             width=70,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -1563,7 +1628,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.about_button.pack(side="right", padx=5)
-        Tooltip(self.about_button, "About peekdocs — version, author, and license information", anchor="above-left")
+        self._about_tooltip = Tooltip(self.about_button, _t("about_button_tooltip"), anchor="above-left")
 
         # Tools menu — consolidates utilities, settings, and maintenance
         def _show_tools_menu():
@@ -1620,6 +1685,8 @@ class BuildMixin:
                     label=f"Appearance: {mode}{marker}",
                     command=lambda m=mode: self._set_appearance_mode(m),
                 )
+            # Language picker is now in the main page header row
+            # (top-left); no longer duplicated as a Tools-menu cascade.
             btn = self._tools_btn
             x = btn.winfo_rootx() - 400
             y = btn.winfo_rooty() - 350
@@ -1627,7 +1694,7 @@ class BuildMixin:
 
         self._tools_btn = ctk.CTkButton(
             right_frame,
-            text="Tools \u25b2",
+            text=__import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_label") + " \u25b2",
             width=70,
             fg_color="transparent",
             text_color=("gray30", "gray70"),
@@ -1636,9 +1703,10 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._tools_btn.pack(side="right", padx=5)
-        Tooltip(self._tools_btn, "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more. Linux: hold mouse button and drag to select — click-to-open is a known Linux/tkinter limitation", anchor="above-left")
+        self._tools_tooltip = Tooltip(self._tools_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_tooltip"), anchor="above-left")
 
-        hover_label = "Tooltips: ON" if Tooltip.enabled else "Tooltips: OFF"
+        _t_h = __import__("peekdocs.i18n", fromlist=["t"]).t
+        hover_label = _t_h("tooltips_on_label") if Tooltip.enabled else _t_h("tooltips_off_label")
         self._hover_toggle_btn = ctk.CTkButton(
             right_frame,
             text=hover_label,
@@ -1650,7 +1718,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._hover_toggle_btn.pack(side="right", padx=5)
-        Tooltip(self._hover_toggle_btn, "Enable or disable hover text (tooltips) on all buttons and controls", anchor="above-left")
+        self._tooltips_toggle_tooltip = Tooltip(self._hover_toggle_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tooltips_button_tooltip"), anchor="above-left")
 
         # Keep references for tooltip toggle (used by _toggle_tooltips)
         self.tooltip_toggle_btn = None
@@ -1682,7 +1750,7 @@ class BuildMixin:
             self.advanced_window.geometry(f"{w}x{h}+{x}+{y}")
             self.advanced_window.deiconify()
             self.advanced_window.lift()
-            self.advanced_toggle.configure(text="Advanced")
+            self.advanced_toggle.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("advanced_label"))
             self.advanced_visible = True
 
 
@@ -1690,7 +1758,7 @@ class BuildMixin:
     def _close_advanced_window(self):
         """Hide the Advanced Search Options window and update the toggle button."""
         self.advanced_window.withdraw()
-        self.advanced_toggle.configure(text="Advanced")
+        self.advanced_toggle.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("advanced_label"))
         self.advanced_visible = False
 
 
@@ -2063,6 +2131,193 @@ class BuildMixin:
         except Exception:
             pass
 
+    def _on_lang_picker_change(self, display_name):
+        """CTkOptionMenu callback — receives the display name (e.g.
+        ``'Español'``), reverse-looks-it-up to the language code, and
+        routes through ``_set_language`` so the label re-render and
+        config-persist flow is shared between the picker and any
+        future menu/keyboard entry points."""
+        from peekdocs.i18n import LANGUAGES
+        code = next((c for c, n in LANGUAGES.items() if n == display_name), None)
+        if code:
+            self._set_language(code)
+
+    def _set_language(self, code):
+        """Switch the UI language for the four main-page Step labels +
+        their tooltips. Experiment scope — only those eight strings are
+        translatable today; the rest of the UI stays English.
+
+        Mechanics: update the module-level current-language pointer,
+        re-`configure(text=…)` each Step label widget, rewrite each
+        Tooltip's `text` attribute (the Tooltip class reads the
+        attribute lazily on each hover, so no widget recreation is
+        needed), and persist the selection to ~/.peekdocsrc so the
+        next launch picks the same language."""
+        from peekdocs.i18n import set_language, t
+        set_language(code)
+        # Re-render the four Step labels. Each was stashed on self in
+        # the corresponding _build_* method so we can find them here.
+        try:
+            self._step_lbl_1.configure(text=t("step_1_label"))
+            self._step_lbl_2.configure(text=t("step_2_label"))
+            self._step_lbl_3.configure(text=t("step_3_label"))
+            self._step_lbl_4.configure(text=t("step_4_label"))
+        except Exception:
+            pass
+        # Re-render the three main-screen action buttons. Each writes
+        # the idle-state label (Run Standard Search / Search Suites /
+        # Regex Search). If the user happens to change language while
+        # a search is mid-flight, the button text will flip from
+        # "Cancel" back to the idle label — minor UX wobble, accepted
+        # for experiment scope. The buttons also have their own reset
+        # sites scattered across _mixin_search.py, _mixin_tools.py,
+        # and _mixin_data.py that have been routed through t() so the
+        # active language sticks across search-finish transitions.
+        try:
+            self.search_button.configure(text=t("run_standard_search_label"))
+            self._suites_btn.configure(text=t("search_suites_label"))
+            self._regex_search_btn.configure(text=t("regex_search_label"))
+            # Status / Results Preview / Clear Preview static labels.
+            self._status_label_left.configure(text=t("status_label"))
+            self._preview_label.configure(text=t("results_preview_label"))
+            self._clear_preview_btn.configure(text=t("clear_preview_label"))
+            # Bottom-row navigation buttons (left + right groups).
+            self._readme_button.configure(text=t("readme_button_label"))
+            self.help_button.configure(text=t("user_guide_button_label"))
+            self._close_main_btn.configure(text=t("close_button_label"))
+            self.about_button.configure(text=t("about_button_label"))
+            # Tools button — preserve the trailing "▲" arrow indicator
+            # since it's a universal dropdown affordance, not English.
+            self._tools_btn.configure(text=t("tools_button_label") + " ▲")
+            # Tooltips toggle — pick the right state-dependent key.
+            from peekdocs.gui._tooltip import Tooltip as _TT
+            self._hover_toggle_btn.configure(
+                text=t("tooltips_on_label") if _TT.enabled else t("tooltips_off_label")
+            )
+            # Page header + Search Options label + both Delete on Close
+            # checkboxes (Advanced Search Options + main-page report row).
+            self._page_header_lbl.configure(text=t("page_header_label"))
+            self._options_lbl.configure(text=t("search_options_label"))
+            self._cb_delete_adv.configure(text=t("delete_on_close_label"))
+            self.report_delete_cb.configure(text=t("delete_on_close_label"))
+            # Folder row buttons: Browse / +Folder / Single File.
+            self.browse_button.configure(text=t("browse_button_label"))
+            self._multi_folder_btn.configure(text=t("multi_folder_button_label"))
+            self.browse_file_button.configure(text=t("single_file_button_label"))
+            # Getting Started tab — re-configure the segmented_button
+            # button's visible text. The internal CTk tab name stays
+            # "Getting Started" so callers like _tabview.set(...) still
+            # work; only the user-visible label flips.
+            if getattr(self, "_gs_tab_btn", None) is not None:
+                self._gs_tab_btn.configure(text=t("getting_started_tab_label"))
+            # Search-bar row: Clear button + Recent Searches button
+            # (the latter keeps a literal "▼ " prefix for the universal
+            # dropdown affordance).
+            self._clear_button.configure(text=t("clear_button_label"))
+            self._recent_btn.configure(text="▼ " + t("recent_searches_label"))
+            # "Language:" label next to the picker.
+            self._lang_label.configure(text=t("language_picker_label"))
+            # "3 Search Buttons — what’s the difference?" link under
+            # the Run buttons.
+            self._mode_compare_link.configure(text=t("mode_compare_link_label"))
+            # Options row: AND / OR / Recursive / Whole Word / Advanced
+            # / Use Index / Wizard / Save / Reload. Save and Reload both
+            # carry a static ▶ prefix.
+            self._and_btn.configure(text=t("and_label"))
+            self._or_btn.configure(text=t("or_label"))
+            self._folder_recursive_cb.configure(text=t("recursive_label"))
+            self._search_whole_word_cb.configure(text=t("whole_word_label"))
+            self.advanced_toggle.configure(text=t("advanced_label"))
+            self.cb_index_search.configure(text=t("use_index_label"))
+            self._search_wiz_btn.configure(text=t("wizard_label"))
+            self.save_to_collection_btn.configure(text="▶ " + t("save_label"))
+            self.load_search_btn.configure(text="▶ " + t("reload_label"))
+            # ─── Advanced Search Options panel ───
+            try:
+                self.advanced_window.title(t("adv_window_title"))
+            except Exception:
+                pass
+            self._adv_cb_and.configure(text=t("adv_and_mode_label"))
+            self._adv_cb_rec.configure(text=t("recursive_label"))
+            self._adv_cb_fuz.configure(text=t("adv_fuzzy_label"))
+            self._adv_cb_wild.configure(text=t("adv_wildcard_label"))
+            self._adv_cb_ocr.configure(text=t("adv_ocr_label"))
+            self._adv_cb_regex.configure(text=t("adv_regex_label"))
+            self._adv_cb_whole_word.configure(text=t("whole_word_label"))
+            self._adv_cb_expr.configure(text=t("adv_expression_label"))
+            self._adv_cb_inverse.configure(text=t("adv_inverse_label"))
+            self._adv_lbl_exclude.configure(text=t("adv_exclude_label"))
+            self._adv_lbl_file_types.configure(text=t("adv_file_types_label"))
+            self._adv_lbl_word_proximity.configure(text=t("adv_word_proximity_label"))
+            self._adv_lbl_lines_before.configure(text=t("adv_lines_before_label"))
+            self._adv_lbl_lines_after.configure(text=t("adv_lines_after_label"))
+            self._adv_lbl_cores.configure(text=t("adv_cores_to_use_label"))
+            self._adv_lbl_max_matches.configure(text=t("adv_max_matches_label"))
+            self._adv_lbl_max_file_size.configure(text=t("adv_max_file_size_label"))
+            self._adv_lbl_range.configure(text=t("adv_range_label"))
+            self._adv_lbl_specific_files.configure(text=t("adv_specific_files_label"))
+            self._adv_lbl_save_as.configure(text=t("adv_save_report_as_label"))
+            self._adv_lbl_append_to.configure(text=t("adv_append_report_to_label"))
+            self._adv_lbl_output_dir.configure(text=t("adv_output_dir_label"))
+            self._adv_lbl_also_output.configure(text=t("adv_also_output_label"))
+            self._adv_cb_ts.configure(text=t("adv_timestamp_filename_label"))
+            self._adv_cb_clear_hist.configure(text=t("adv_clear_history_label"))
+            self._adv_cb_restrict.configure(text=t("adv_restrict_perms_label"))
+            self._adv_cb_notify_complete.configure(text=t("adv_notify_complete_label"))
+            self._adv_reset_btn.configure(text=t("adv_reset_all_label"))
+            self._adv_save_btn.configure(text=t("adv_save_defaults_label"))
+            self._adv_close_btn.configure(text=t("close_button_label"))
+            self._adv_restore_btn.configure(text=t("adv_restore_defaults_label"))
+            self._adv_reset_defaults_btn.configure(text=t("adv_restore_factory_label"))
+        except Exception:
+            pass
+        try:
+            self._step_1_tooltip.text = t("step_1_tooltip")
+            self._step_2_tooltip.text = t("step_2_tooltip")
+            self._step_3_tooltip.text = t("step_3_tooltip")
+            self._step_4_tooltip.text = t("step_4_tooltip")
+            self._run_search_tooltip.text = t("run_standard_search_tooltip")
+            self._suites_tooltip.text = t("search_suites_tooltip")
+            self._regex_search_tooltip.text = t("regex_search_tooltip")
+            # Status / Results Preview / Clear Preview tooltips.
+            self._status_label_tooltip.text = t("status_tooltip")
+            self._preview_label_tooltip.text = t("results_preview_tooltip")
+            self._clear_preview_tooltip.text = t("clear_preview_tooltip")
+            # Bottom-row tooltips.
+            self._readme_tooltip.text = t("readme_button_tooltip")
+            self._user_guide_tooltip.text = t("user_guide_button_tooltip")
+            self._close_main_tooltip.text = t("close_button_tooltip")
+            self._about_tooltip.text = t("about_button_tooltip")
+            self._tools_tooltip.text = t("tools_button_tooltip")
+            self._tooltips_toggle_tooltip.text = t("tooltips_button_tooltip")
+            # Search Options + Delete on Close tooltips (page header has
+            # no tooltip to refresh).
+            self._options_lbl_tooltip.text = t("search_options_tooltip")
+            self._cb_delete_adv_tooltip.text = t("delete_on_close_tooltip")
+            self._report_delete_cb_tooltip.text = t("delete_on_close_tooltip")
+            # Folder row + Getting Started tab tooltips.
+            self._browse_button_tooltip.text = t("browse_button_tooltip")
+            self._multi_folder_btn_tooltip.text = t("multi_folder_button_tooltip")
+            self._browse_file_button_tooltip.text = t("single_file_button_tooltip")
+            if getattr(self, "_gs_tab_tooltip", None) is not None:
+                self._gs_tab_tooltip.text = t("getting_started_tab_tooltip")
+            self._clear_button_tooltip.text = t("clear_button_tooltip")
+            self._recent_btn_tooltip.text = t("recent_searches_tooltip")
+            # Options-row tooltips.
+            self._and_btn_tooltip.text = t("and_tooltip")
+            self._or_btn_tooltip.text = t("or_tooltip")
+            self._folder_recursive_cb_tooltip.text = t("recursive_tooltip")
+            self._search_whole_word_cb_tooltip.text = t("whole_word_tooltip")
+            self._advanced_toggle_tooltip.text = t("advanced_tooltip")
+            self._cb_index_search_tooltip.text = t("use_index_tooltip")
+            self._search_wiz_btn_tooltip.text = t("wizard_tooltip")
+            self._save_to_collection_btn_tooltip.text = t("save_tooltip")
+            self._load_search_btn_tooltip.text = t("reload_tooltip")
+            self._mode_compare_link_tooltip.text = t("mode_compare_link_tooltip")
+        except Exception:
+            pass
+        self._save_ui_preference("language", code)
+
     def _set_appearance_mode(self, mode):
         """Switch between Dark, Light, and System appearance modes."""
         ctk.set_appearance_mode(mode)
@@ -2309,11 +2564,12 @@ class BuildMixin:
 
     def _toggle_tooltips(self):
         """Toggle hover tooltip visibility on or off."""
+        from peekdocs.i18n import t
         Tooltip.enabled = not Tooltip.enabled
         self._save_ui_preference("hover_text", Tooltip.enabled)
         if hasattr(self, "_hover_toggle_btn"):
             self._hover_toggle_btn.configure(
-                text="Tooltips: ON" if Tooltip.enabled else "Tooltips: OFF"
+                text=t("tooltips_on_label") if Tooltip.enabled else t("tooltips_off_label")
             )
 
 

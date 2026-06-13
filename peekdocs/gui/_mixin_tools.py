@@ -6081,7 +6081,7 @@ class ToolsMixin:
             pass
         self.progress_bar.grid_remove()
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text="Search Suites", fg_color="#76BA1B", hover_color="#76BA1B",
+        self._suites_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label"), fg_color="#76BA1B", hover_color="#76BA1B",
                                    text_color="white", command=self._show_search_suites)
 
         import re as _re_fin
@@ -6485,7 +6485,7 @@ class ToolsMixin:
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text="Search Suites", fg_color="#76BA1B", hover_color="#76BA1B",
+        self._suites_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label"), fg_color="#76BA1B", hover_color="#76BA1B",
                                    text_color="white", command=self._show_search_suites)
         self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
 
@@ -8759,7 +8759,7 @@ class ToolsMixin:
             if hasattr(self, "_regex_search_btn"):
                 self._regex_search_btn.configure(
                     state="normal", fg_color="#FF9800", hover_color="#FF9800",
-                    text_color="white", text="Run Regex Search",
+                    text_color="white", text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_regex_search_label"),
                     command=self._start_regex_search,
                 )
 

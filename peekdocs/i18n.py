@@ -1,0 +1,716 @@
+"""
+Minimal i18n for peekdocs — experiment scope.
+
+This module is intentionally tiny: a dict-of-dicts translation table
+keyed by language code, a current-language module-level variable, and
+a single ``t(key)`` lookup function. It exists to prove out the pattern
+without committing the project to gettext / .po files / .mo files or
+any of the heavier i18n infrastructure that would lock in a decision
+before the experiment is evaluated.
+
+Adding a new language: append an entry to ``LANGUAGES`` and a sub-dict
+to ``_STRINGS``. Adding a new translatable string: pick a stable key,
+add it to every language's sub-dict (English entry is the source of
+truth; missing translations fall back to the English value, which
+falls back to the key itself).
+
+Adding more strings later means filling in more rows of ``_STRINGS``.
+Adding more languages means filling in more columns. Either expansion
+is mechanical — no schema change.
+
+Coverage inventory (current scope of what's translatable today)
+---------------------------------------------------------------
+
+✅ TRANSLATED — five languages (English, Español, Français, Deutsch,
+日本語), 102 keys × 5 = 510 entries:
+
+  • Main page tabs: Getting Started tab label + tooltip
+  • Page header: "Main page" label
+  • Folder row: Browse, +Folder, Single File buttons + tooltips
+  • Search row: search-bar Clear button + ▼ Recent Searches button
+    + their tooltips
+  • Options row: AND / OR buttons + Recursive / Whole Word
+    checkboxes + Advanced link + Use Index checkbox + Wizard link
+    + ▶ Save / ▶ Reload buttons + all their tooltips
+  • Run buttons: 🔍 Run Standard Search, Search Suites,
+    Regex Search + tooltips. Reset sites in _mixin_search,
+    _mixin_data, _mixin_tools also routed through t() so the
+    active-language label survives a search-finish transition.
+  • "3 Search Buttons — what's the difference?" hyperlink + tooltip
+  • Status / Results Preview / Clear Preview labels + tooltips
+  • Bottom row: README, User Guide, Close, About, Tools ▲, and the
+    state-dependent Tooltips: ON / OFF button + their tooltips
+  • Search Options two-line label + tooltip
+  • Delete on Close checkboxes (Advanced + main report row) + tooltip
+  • Preview header: App Size dropdown label + Language: label
+    + the language picker itself
+  • Advanced Search Options panel (labels only, NOT tooltips):
+      window title, 9 search-mode checkboxes (AND mode, Recursive,
+      Fuzzy, Wildcard, OCR, Regex, Whole Word, Expression, Inverse),
+      13 form labels (Exclude, File types, Word Proximity, Lines
+      Before, Lines After, Cores to Use, Max Matches, Max File Size,
+      Range, Specific files, Save report as, Append report to,
+      Output Dir), 5 output-row labels (Also output report as,
+      Timestamp Filename, Clear History on Close, Restrict File
+      Permissions, Notify on Search Complete), 5 bottom buttons
+      (Save As Defaults, Restore Saved Defaults, Restore Factory
+      Settings, Reset All Fields, Close)
+
+❌ NOT TRANSLATED — the deferred surface. Each item below would
+extend the same pattern (one new key per string, one stash on
+``self`` per widget, one ``configure(text=t(...))`` per refresh):
+
+  • Status line dynamic text ("Searching ({terms})...", "Search
+    complete. N matches", "Search was cancelled", "Suite cancelled",
+    etc.) — needs format-arg templates, not plain string lookup
+  • Advanced Search Options panel TOOLTIPS (~25 strings)
+  • Header description paragraph in Advanced panel
+  • Placeholder text in entry fields (Ex: draft,obsolete, etc.)
+  • Tools menu: Bookmarks, Diff Snapshots, Indexes, Schedule Search,
+    Search History, Clear Files, Clean Folder + all their popups
+  • Help popups: Getting Started tab content, Search Wizard,
+    Regex Wizard, Regex Tester, Recent Searches, Advanced help,
+    Search Options group help, every section heading inside them
+    (~1000+ strings collectively)
+  • Search Suites popup (entire popup + its sub-popups)
+  • Regex Search popup (entire popup + Run Multiple Collections
+    + per-row Test buttons + Save Collection As)
+  • Search Wizard popup (category cards + search-type forms)
+  • Diff Snapshots popup
+  • All confirmation dialogs (Reset Form, Restore Factory, Wipe
+    Session, Clear History, etc.) — title + body + button text
+  • All error popups
+  • Notification body text (notifier.py builds strings inline)
+  • Watcher status / warning strings (watcher.py)
+  • Regex Tester popup
+  • CLI banner (BANNER_TOP, BANNER_BOTTOM, BANNER_QUICK)
+  • CLI help / --check / --version output
+  • Report file content (TXT / DOCX section headings, "Match",
+    "Files searched", etc.)
+
+Rough extrapolation of remaining scope: ~2,000+ user-facing strings,
+~10,000 translation entries total. Realistically 200+ hours of
+solo-dev work plus native-speaker review per language to finish.
+
+Translation-quality caveat
+--------------------------
+
+Translations to date were authored by Claude (non-native for Spanish,
+French, German, Japanese). Grammar parses; idiom may not. Native-
+speaker review is required before any release that markets the
+non-English UI as production-ready.
+"""
+
+# Display-friendly language names shown in the picker. ISO 639-1 codes
+# as keys; native-language names as values (more discoverable than
+# "Spanish" / "French" / etc. when a user is already looking for their
+# own language).
+LANGUAGES = {
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ja": "日本語",
+}
+
+# Module-level current-language pointer. Default to English; the GUI
+# overrides on startup if `language` is set in ~/.peekdocsrc.
+_current = "en"
+
+
+# Translation table: language code → {key → translated string}. English
+# rows hold both the key and the canonical English value (same string)
+# because English IS the source language. Other rows translate FROM
+# English.
+_STRINGS = {
+    "en": {
+        # Step 1 — folder picker
+        "step_1_label": " Step 1 ",
+        "step_1_tooltip": "Search Folder — point peekdocs at the folder containing your documents",
+        # Step 2 — search terms
+        "step_2_label": " Step 2 ",
+        "step_2_tooltip": "Search Terms — type what you're looking for, then select AND/OR, Recursive (include subfolders), or Whole Word. For advanced options click Advanced",
+        # Step 3 — run search
+        "step_3_label": " Step 3 ",
+        "step_3_tooltip": "Run Standard Search — click to search all files in the folder",
+        # Step 4 — view report
+        "step_4_label": " Step 4 ",
+        "step_4_tooltip": "View Report — open the highlighted results report. Additional formats (CSV, JSON, PDF, HTML) can be enabled in Advanced Search Options",
+        # Three main-screen action buttons + their tooltips
+        "run_standard_search_label": "\U0001f50d Run Standard Search",
+        "run_standard_search_tooltip": "Run a standard search using the current search terms and all settings in Advanced Search Options (checkboxes, file types, exclude terms, range filters, proximity, etc.). For pattern-based searches (regex collections, screen-only mode), use the Regex Search button instead. This button turns red and is temporarily disabled while an index is being built to avoid conflicts",
+        "search_suites_label": "Search Suites",
+        "search_suites_tooltip": "Search Suites — open the management popup to create, edit, reorder, or run a named group of saved searches. The popup's Run Search Suite button executes the selected suite. Run Multiple Search Suites… (button at the bottom of the same popup) opens a checkbox picker over every saved suite — pick two or more and run them together as one combined report.",
+        "regex_search_label": "Regex Search",
+        "regex_search_tooltip": "Regex Search — open the management popup to create, edit, or run a named collection of regex patterns. The popup edits up to 10 patterns at a time; collections on disk are unbounded (the seeded Examples collection ships with 17). Each pattern runs separately with per-pattern results. The popup's Run Regex Search button executes the visible rows; Run Multiple Collections… (button at the bottom) opens a checkbox picker over every saved collection — pick two or more and run them together. Results depend on the report-checkbox setting in the popup.",
+        # The main-screen Regex Search button retitles itself to "Run
+        # Regex Search" after the first regex run finishes (existing
+        # inconsistency in the code — preserved by giving it its own
+        # key rather than normalizing).
+        "run_regex_search_label": "Run Regex Search",
+        # Status label (static "Status:" prefix to the dynamic status text)
+        "status_label": "Status:",
+        "status_tooltip": "Search status — shows progress during search and results summary when complete",
+        # Results Preview pane header + Clear button
+        "results_preview_label": "Results Preview:",
+        "results_preview_tooltip": "Live preview of search matches — capped at the first 500 lines so the GUI stays responsive on searches that return tens of thousands of matches. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit)",
+        "clear_preview_label": "Clear Preview",
+        "clear_preview_tooltip": "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk",
+        # Bottom-row navigation buttons (left group): README / User Guide / Close
+        "readme_button_label": "README",
+        "readme_button_tooltip": "Open the peekdocs README on GitHub — features, installation, security, and more",
+        "user_guide_button_label": "User Guide",
+        "user_guide_button_tooltip": "Open the peekdocs User Guide on GitHub — also includes Troubleshooting and Python API documentation",
+        "close_button_label": "Close",
+        "close_button_tooltip": "Close peekdocs",
+        # Bottom-row navigation buttons (right group): About / Tools / Tooltips toggle
+        "about_button_label": "About",
+        "about_button_tooltip": "About peekdocs — version, author, and license information",
+        "tools_button_label": "Tools",
+        "tools_button_tooltip": "File Inventory, Duplicates, Large Files, Empty Files, Recent Changes, Protected Files, Search History, Bookmarks, App Files, and more. Linux: hold mouse button and drag to select — click-to-open is a known Linux/tkinter limitation",
+        "tooltips_on_label": "Tooltips: ON",
+        "tooltips_off_label": "Tooltips: OFF",
+        "tooltips_button_tooltip": "Enable or disable hover text (tooltips) on all buttons and controls",
+        # Main page header label (top-left of the Search tab)
+        "page_header_label": "Main page",
+        # "Search Options" two-line label below the Step 2 tag + tooltip
+        "search_options_label": "Search\nOptions",
+        "search_options_tooltip": "Search options that apply to the Run Standard Search button on the next row: AND vs OR, Recursive (include subfolders), Whole Word, Use Index, plus Save / Reload of the entire current search by name. For everything else — file types, exclude terms, range filters, proximity, OCR, context lines, output formats — click the Advanced link above this row.",
+        # Delete on Close checkbox (appears in two places — Advanced
+        # Search Options output_frame, and next to the main-page report
+        # buttons; both share the same label + tooltip).
+        "delete_on_close_label": "Delete on Close",
+        "delete_on_close_tooltip": "Automatically delete all search result files (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) and the search index (.peekdocs.db) in every folder searched during the session when you close peekdocs. The index is included because it contains extracted text from every indexed file. You can check or uncheck this at any time — it only matters at the moment you close the app. Saved reports (peekdocs_report_*), accumulated reports (peekdocs_accumulated_*), saved searches, settings, and bookmarks are never deleted. For immediate cleanup mid-session, use Tools → Clear Files → Wipe Session.",
+        # Getting Started tab (visible label override; internal CTk tab
+        # name stays "Getting Started" since CTk uses names as keys)
+        "getting_started_tab_label": "Getting Started",
+        "getting_started_tab_tooltip": "A quick introduction to peekdocs — what it does, how to use it, and what features are available",
+        # Folder row buttons: Browse / +Folder / Single File
+        "browse_button_label": "Browse",
+        "browse_button_tooltip": "Browse for a folder to search. Linux: double-click to select a folder in the dialog",
+        "multi_folder_button_label": "+Folder",
+        "multi_folder_button_tooltip": "Search multiple top-level folders at once (e.g., Documents and Desktop). Different from Recursive, which searches subfolders within a single folder. Folders are separated by semicolons (;)",
+        "single_file_button_label": "Single File",
+        "single_file_button_tooltip": "Browse for a specific file to search",
+        # Search-bar button row: Clear / ▼ Recent Searches (the ▼ is
+        # appended at runtime as a universal dropdown affordance, not
+        # in the translation).
+        "clear_button_label": "Clear",
+        "clear_button_tooltip": "Clear the search bar",
+        "recent_searches_label": "Recent Searches",
+        "recent_searches_tooltip": "Show recent searches — click to re-use a previous search",
+        # Options-row controls: AND / OR / Recursive / Whole Word / Advanced
+        # / Use Index / Wizard / Save / Reload
+        "and_label": "AND",
+        "and_tooltip": "AND mode — all search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph. Synced with AND mode in Advanced Search Options",
+        "or_label": "OR",
+        "or_tooltip": "OR mode (default) — find lines containing any of the search terms. Synced with AND mode in Advanced Search Options",
+        "recursive_label": "Recursive",
+        "recursive_tooltip": "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting",
+        "whole_word_label": "Whole Word",
+        "whole_word_tooltip": "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options",
+        "advanced_label": "Advanced",
+        "advanced_tooltip": "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings",
+        "use_index_label": "Use Index",
+        "use_index_tooltip": "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app",
+        "wizard_label": "Wizard",
+        "wizard_tooltip": "Search Wizard — guided search builder with 20+ pre-built patterns. Pick a search type, fill in values, and apply. No flags or regex knowledge needed",
+        # Save / Reload buttons. ▶ is appended at runtime as a static
+        # affordance — not part of the translation.
+        "save_label": "Save",
+        "save_tooltip": "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name",
+        "reload_label": "Reload",
+        "reload_tooltip": "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it",
+        # ─── Advanced Search Options panel — labels only ───
+        "adv_window_title": "Advanced Search Options",
+        # Checkboxes in cb_frame
+        "adv_and_mode_label": "AND mode",
+        "adv_fuzzy_label": "Fuzzy",
+        "adv_wildcard_label": "Wildcard",
+        "adv_ocr_label": "OCR",
+        "adv_regex_label": "Regex",
+        "adv_expression_label": "Expression",
+        "adv_inverse_label": "Inverse",
+        # Form labels (left column)
+        "adv_exclude_label": "Exclude:",
+        "adv_file_types_label": "File types:",
+        "adv_word_proximity_label": "Word Proximity:",
+        "adv_lines_before_label": "Lines Before:",
+        "adv_lines_after_label": "Lines After:",
+        "adv_cores_to_use_label": "Cores to Use:",
+        "adv_max_matches_label": "Max Matches:",
+        "adv_max_file_size_label": "Max File Size (MB):",
+        "adv_range_label": "Range:",
+        "adv_specific_files_label": "Specific files:",
+        "adv_save_report_as_label": "Save report as:",
+        "adv_append_report_to_label": "Append report to:",
+        "adv_output_dir_label": "Output Dir:",
+        # Output frame
+        "adv_also_output_label": "Also output report as ==>",
+        "adv_timestamp_filename_label": "Timestamp Filename",
+        "adv_clear_history_label": "Clear History on Close",
+        "adv_restrict_perms_label": "Restrict File Permissions",
+        "adv_notify_complete_label": "Notify on Search Complete",
+        # Bottom buttons
+        "adv_save_defaults_label": "Save As Defaults",
+        "adv_restore_defaults_label": "Restore Saved Defaults",
+        "adv_restore_factory_label": "Restore Factory Settings",
+        "adv_reset_all_label": "Reset All Fields",
+        # "Language:" label that sits to the left of the picker in the
+        # preview-header row.
+        "language_picker_label": "Language:",
+        # Hyperlink-styled label under the three Run buttons that pops
+        # the Standard vs. Suites vs. Regex comparison popup.
+        "mode_compare_link_label": "3 Search Buttons — what’s the difference?",
+        "mode_compare_link_tooltip": "Quick comparison of Run Standard Search vs. Search Suites vs. Regex Search",
+    },
+    "es": {
+        "step_1_label": " Paso 1 ",
+        "step_1_tooltip": "Carpeta de búsqueda — apunte peekdocs a la carpeta que contiene sus documentos",
+        "step_2_label": " Paso 2 ",
+        "step_2_tooltip": "Términos de búsqueda — escriba lo que está buscando, luego seleccione Y/O, Recursivo (incluir subcarpetas), o Palabra completa. Para opciones avanzadas haga clic en Avanzado",
+        "step_3_label": " Paso 3 ",
+        "step_3_tooltip": "Ejecutar búsqueda estándar — haga clic para buscar en todos los archivos de la carpeta",
+        "step_4_label": " Paso 4 ",
+        "step_4_tooltip": "Ver informe — abra el informe de resultados destacados. Se pueden habilitar formatos adicionales (CSV, JSON, PDF, HTML) en Opciones avanzadas de búsqueda",
+        "run_standard_search_label": "\U0001f50d Ejecutar búsqueda estándar",
+        "run_standard_search_tooltip": "Ejecute una búsqueda estándar usando los términos de búsqueda actuales y todas las configuraciones en Opciones avanzadas de búsqueda (casillas, tipos de archivo, términos a excluir, filtros de rango, proximidad, etc.). Para búsquedas basadas en patrones (colecciones regex, modo solo pantalla), use el botón Búsqueda con regex en su lugar. Este botón se pone rojo y se deshabilita temporalmente mientras se construye un índice para evitar conflictos",
+        "search_suites_label": "Conjuntos de búsqueda",
+        "search_suites_tooltip": "Conjuntos de búsqueda — abra el popup de gestión para crear, editar, reordenar o ejecutar un grupo nombrado de búsquedas guardadas. El botón Ejecutar conjunto de búsqueda del popup ejecuta el conjunto seleccionado. Ejecutar múltiples conjuntos de búsqueda… (botón en la parte inferior del mismo popup) abre un selector de casillas sobre cada conjunto guardado — elija dos o más y ejecútelos juntos como un informe combinado.",
+        "regex_search_label": "Búsqueda con regex",
+        "regex_search_tooltip": "Búsqueda con regex — abra el popup de gestión para crear, editar o ejecutar una colección nombrada de patrones regex. El popup edita hasta 10 patrones a la vez; las colecciones en disco no tienen límite (la colección Examples incluida tiene 17). Cada patrón se ejecuta por separado con resultados por patrón. El botón Ejecutar búsqueda con regex del popup ejecuta las filas visibles; Ejecutar múltiples colecciones… (botón en la parte inferior) abre un selector de casillas sobre cada colección guardada — elija dos o más y ejecútelos juntos. Los resultados dependen de la configuración de informe del popup.",
+        "run_regex_search_label": "Ejecutar búsqueda con regex",
+        "status_label": "Estado:",
+        "status_tooltip": "Estado de búsqueda — muestra el progreso durante la búsqueda y un resumen de resultados al completarse",
+        "results_preview_label": "Vista previa de resultados:",
+        "results_preview_tooltip": "Vista previa en vivo de las coincidencias — limitada a las primeras 500 líneas para que la GUI siga respondiendo en búsquedas que devuelven decenas de miles de coincidencias. El conjunto completo de coincidencias siempre se escribe en los archivos de informe (.txt, .docx, .html, .csv, .json, .pdf) independientemente del límite de vista previa. Para limitar las coincidencias escritas en los propios informes, configure Coincidencias máximas en Opciones avanzadas de búsqueda (predeterminado 1000; 0 = sin límite)",
+        "clear_preview_label": "Limpiar vista previa",
+        "clear_preview_tooltip": "Limpiar el panel de vista previa de resultados y los botones de archivos coincidentes / excluidos — elimina todos los datos de coincidencias visibles de la pantalla. Útil si ha terminado de revisar y no quiere los resultados visibles. No elimina los archivos de informe del disco",
+        "readme_button_label": "Léame",
+        "readme_button_tooltip": "Abrir el README de peekdocs en GitHub — características, instalación, seguridad y más",
+        "user_guide_button_label": "Guía del usuario",
+        "user_guide_button_tooltip": "Abrir la Guía del usuario de peekdocs en GitHub — también incluye Solución de problemas y documentación de la API de Python",
+        "close_button_label": "Cerrar",
+        "close_button_tooltip": "Cerrar peekdocs",
+        "about_button_label": "Acerca de",
+        "about_button_tooltip": "Acerca de peekdocs — versión, autor e información de licencia",
+        "tools_button_label": "Herramientas",
+        "tools_button_tooltip": "Inventario de archivos, Duplicados, Archivos grandes, Archivos vacíos, Cambios recientes, Archivos protegidos, Historial de búsquedas, Marcadores, Archivos de la aplicación y más. Linux: mantenga presionado el botón del mouse y arrastre para seleccionar — el clic para abrir es una limitación conocida de Linux/tkinter",
+        "tooltips_on_label": "Sugerencias: SÍ",
+        "tooltips_off_label": "Sugerencias: NO",
+        "tooltips_button_tooltip": "Activar o desactivar el texto al pasar el cursor (sugerencias / tooltips) en todos los botones y controles",
+        "page_header_label": "Página principal",
+        "search_options_label": "Opciones de\nbúsqueda",
+        "search_options_tooltip": "Opciones de búsqueda que se aplican al botón Ejecutar búsqueda estándar en la siguiente fila: Y vs O, Recursivo (incluir subcarpetas), Palabra completa, Usar índice, además de Guardar / Recargar de la búsqueda actual completa por nombre. Para todo lo demás — tipos de archivo, términos a excluir, filtros de rango, proximidad, OCR, líneas de contexto, formatos de salida — haga clic en el enlace Avanzado encima de esta fila.",
+        "delete_on_close_label": "Eliminar al cerrar",
+        "delete_on_close_tooltip": "Eliminar automáticamente todos los archivos de resultados de búsqueda (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) y el índice de búsqueda (.peekdocs.db) en cada carpeta buscada durante la sesión cuando cierre peekdocs. El índice está incluido porque contiene texto extraído de cada archivo indexado. Puede marcar o desmarcar esto en cualquier momento — solo importa en el momento de cerrar la aplicación. Los informes guardados (peekdocs_report_*), informes acumulados (peekdocs_accumulated_*), búsquedas guardadas, configuraciones y marcadores nunca se eliminan. Para limpieza inmediata a mitad de sesión, use Herramientas → Limpiar archivos → Limpiar sesión.",
+        "getting_started_tab_label": "Primeros pasos",
+        "getting_started_tab_tooltip": "Una introducción rápida a peekdocs — qué hace, cómo usarlo y qué funciones están disponibles",
+        "browse_button_label": "Examinar",
+        "browse_button_tooltip": "Examinar para encontrar una carpeta a buscar. Linux: doble clic para seleccionar una carpeta en el diálogo",
+        "multi_folder_button_label": "+Carpeta",
+        "multi_folder_button_tooltip": "Buscar varias carpetas de nivel superior a la vez (por ejemplo, Documentos y Escritorio). Diferente de Recursivo, que busca en subcarpetas dentro de una sola carpeta. Las carpetas se separan con punto y coma (;)",
+        "single_file_button_label": "Archivo único",
+        "single_file_button_tooltip": "Examinar para encontrar un archivo específico a buscar",
+        "clear_button_label": "Borrar",
+        "clear_button_tooltip": "Borrar la barra de búsqueda",
+        "recent_searches_label": "Búsquedas recientes",
+        "recent_searches_tooltip": "Mostrar búsquedas recientes — haga clic para reutilizar una búsqueda anterior",
+        "and_label": "Y",
+        "and_tooltip": "Modo Y — todos los términos de búsqueda deben aparecer en la misma línea. Para documentos PDF/Word, una línea suele ser un párrafo. Sincronizado con el modo Y en Opciones avanzadas de búsqueda",
+        "or_label": "O",
+        "or_tooltip": "Modo O (predeterminado) — encuentra líneas que contengan cualquiera de los términos de búsqueda. Sincronizado con el modo Y en Opciones avanzadas de búsqueda",
+        "recursive_label": "Recursivo",
+        "recursive_tooltip": "Incluir todas las subcarpetas al buscar. Sincronizado con Recursivo en Opciones avanzadas de búsqueda. Sin esto marcado y sin usar el índice, peekdocs busca solo en la carpeta mostrada — sin subcarpetas. Con el índice marcado, las búsquedas siempre son recursivas independientemente de esta configuración",
+        "whole_word_label": "Palabra completa",
+        "whole_word_tooltip": "Coincide solo con palabras completas. 'bob' coincide con 'bob' pero no con 'bobcat'. Sincronizado con Palabra completa en Opciones avanzadas de búsqueda",
+        "advanced_label": "Avanzado",
+        "advanced_tooltip": "Abrir el panel de Opciones avanzadas de búsqueda — modo Y, regex, fuzzy, tipos de archivo, términos a excluir, filtros de rango y todas las demás configuraciones de búsqueda",
+        "use_index_label": "Usar índice",
+        "use_index_tooltip": "Usar el índice de búsqueda para búsquedas más rápidas. Desmarque para buscar archivos directamente. Cree un índice primero usando Índices en el menú Herramientas. Cuando esté marcado, las búsquedas siempre son recursivas (todas las subcarpetas) independientemente de la casilla Recursivo. Los índices persisten entre sesiones a menos que Eliminar al cerrar esté marcado, lo que los elimina cuando cierra la aplicación",
+        "wizard_label": "Asistente",
+        "wizard_tooltip": "Asistente de búsqueda — generador guiado de búsquedas con 20+ patrones preconstruidos. Elija un tipo de búsqueda, complete los valores y aplique. No se necesita conocimiento de regex ni de flags",
+        "save_label": "Guardar",
+        "save_tooltip": "Guardar la configuración actual de búsqueda por nombre para que pueda recargarla más tarde. Puede hacer clic en esto antes o después de ejecutar una búsqueda — guarda la configuración (términos y opciones), no los resultados.",
+        "reload_label": "Recargar",
+        "reload_tooltip": "Cargar una búsqueda guardada de la colección de la carpeta en la GUI para revisarla, editarla o volver a ejecutarla",
+        "adv_window_title": "Opciones avanzadas de búsqueda",
+        "adv_and_mode_label": "Modo Y",
+        "adv_fuzzy_label": "Fuzzy",
+        "adv_wildcard_label": "Comodín",
+        "adv_ocr_label": "OCR",
+        "adv_regex_label": "Regex",
+        "adv_expression_label": "Expresión",
+        "adv_inverse_label": "Inverso",
+        "adv_exclude_label": "Excluir:",
+        "adv_file_types_label": "Tipos de archivo:",
+        "adv_word_proximity_label": "Proximidad de palabras:",
+        "adv_lines_before_label": "Líneas antes:",
+        "adv_lines_after_label": "Líneas después:",
+        "adv_cores_to_use_label": "Núcleos a usar:",
+        "adv_max_matches_label": "Coincidencias máx.:",
+        "adv_max_file_size_label": "Tamaño máx. archivo (MB):",
+        "adv_range_label": "Rango:",
+        "adv_specific_files_label": "Archivos específicos:",
+        "adv_save_report_as_label": "Guardar informe como:",
+        "adv_append_report_to_label": "Anexar informe a:",
+        "adv_output_dir_label": "Dir. salida:",
+        "adv_also_output_label": "También salida del informe como ==>",
+        "adv_timestamp_filename_label": "Marca de tiempo en nombre",
+        "adv_clear_history_label": "Limpiar historial al cerrar",
+        "adv_restrict_perms_label": "Restringir permisos de archivo",
+        "adv_notify_complete_label": "Notificar al completar búsqueda",
+        "adv_save_defaults_label": "Guardar como predet.",
+        "adv_restore_defaults_label": "Restaurar predet. guardados",
+        "adv_restore_factory_label": "Restaurar config. de fábrica",
+        "adv_reset_all_label": "Restablecer todos los campos",
+        "language_picker_label": "Idioma:",
+        "mode_compare_link_label": "3 botones de búsqueda — ¿cuál es la diferencia?",
+        "mode_compare_link_tooltip": "Comparación rápida de Ejecutar búsqueda estándar vs. Conjuntos de búsqueda vs. Búsqueda con regex",
+    },
+    "fr": {
+        "step_1_label": " Étape 1 ",
+        "step_1_tooltip": "Dossier de recherche — pointez peekdocs vers le dossier contenant vos documents",
+        "step_2_label": " Étape 2 ",
+        "step_2_tooltip": "Termes de recherche — tapez ce que vous cherchez, puis sélectionnez ET/OU, Récursif (inclure les sous-dossiers), ou Mot entier. Pour les options avancées, cliquez sur Avancé",
+        "step_3_label": " Étape 3 ",
+        "step_3_tooltip": "Lancer la recherche standard — cliquez pour rechercher tous les fichiers du dossier",
+        "step_4_label": " Étape 4 ",
+        "step_4_tooltip": "Voir le rapport — ouvrez le rapport des résultats surlignés. Des formats supplémentaires (CSV, JSON, PDF, HTML) peuvent être activés dans les Options de recherche avancées",
+        "run_standard_search_label": "\U0001f50d Lancer la recherche standard",
+        "run_standard_search_tooltip": "Lancez une recherche standard en utilisant les termes de recherche actuels et tous les paramètres dans Options de recherche avancées (cases à cocher, types de fichiers, termes à exclure, filtres de plage, proximité, etc.). Pour les recherches par motif (collections regex, mode écran uniquement), utilisez le bouton Recherche regex à la place. Ce bouton devient rouge et est temporairement désactivé pendant la construction d'un index pour éviter les conflits",
+        "search_suites_label": "Suites de recherche",
+        "search_suites_tooltip": "Suites de recherche — ouvrez le popup de gestion pour créer, modifier, réorganiser ou exécuter un groupe nommé de recherches enregistrées. Le bouton Exécuter la suite de recherche du popup exécute la suite sélectionnée. Exécuter plusieurs suites de recherche… (bouton en bas du même popup) ouvre un sélecteur de cases sur chaque suite enregistrée — choisissez-en deux ou plus et exécutez-les ensemble comme un rapport combiné.",
+        "regex_search_label": "Recherche regex",
+        "regex_search_tooltip": "Recherche regex — ouvrez le popup de gestion pour créer, modifier ou exécuter une collection nommée de motifs regex. Le popup édite jusqu'à 10 motifs à la fois ; les collections sur disque sont illimitées (la collection Examples fournie en compte 17). Chaque motif s'exécute séparément avec des résultats par motif. Le bouton Lancer la recherche regex du popup exécute les lignes visibles ; Exécuter plusieurs collections… (bouton en bas) ouvre un sélecteur de cases sur chaque collection enregistrée — choisissez-en deux ou plus et exécutez-les ensemble. Les résultats dépendent du paramètre de rapport du popup.",
+        "run_regex_search_label": "Lancer la recherche regex",
+        "status_label": "Statut :",
+        "status_tooltip": "Statut de la recherche — affiche la progression pendant la recherche et un résumé des résultats à la fin",
+        "results_preview_label": "Aperçu des résultats :",
+        "results_preview_tooltip": "Aperçu en direct des correspondances — limité aux 500 premières lignes pour que l'interface reste réactive sur les recherches qui retournent des dizaines de milliers de correspondances. L'ensemble complet des correspondances est toujours écrit dans les fichiers de rapport (.txt, .docx, .html, .csv, .json, .pdf) quel que soit le plafond de l'aperçu. Pour limiter les correspondances écrites dans les rapports eux-mêmes, définissez Correspondances maximales dans les Options de recherche avancées (par défaut 1000 ; 0 = pas de limite)",
+        "clear_preview_label": "Effacer l'aperçu",
+        "clear_preview_tooltip": "Effacer le panneau Aperçu des résultats et les boutons Fichiers correspondants / Fichiers exclus — supprime toutes les données de correspondances visibles à l'écran. Utile si vous avez terminé l'examen et ne voulez plus voir les résultats. Ne supprime pas les fichiers de rapport sur le disque",
+        "readme_button_label": "Lisez-moi",
+        "readme_button_tooltip": "Ouvrir le README de peekdocs sur GitHub — fonctionnalités, installation, sécurité, etc.",
+        "user_guide_button_label": "Guide de l'utilisateur",
+        "user_guide_button_tooltip": "Ouvrir le Guide de l'utilisateur de peekdocs sur GitHub — inclut également le dépannage et la documentation de l'API Python",
+        "close_button_label": "Fermer",
+        "close_button_tooltip": "Fermer peekdocs",
+        "about_button_label": "À propos",
+        "about_button_tooltip": "À propos de peekdocs — version, auteur et informations de licence",
+        "tools_button_label": "Outils",
+        "tools_button_tooltip": "Inventaire des fichiers, Doublons, Fichiers volumineux, Fichiers vides, Modifications récentes, Fichiers protégés, Historique de recherche, Signets, Fichiers de l'application, etc. Linux : maintenez le bouton de la souris et faites glisser pour sélectionner — cliquer pour ouvrir est une limitation connue de Linux/tkinter",
+        "tooltips_on_label": "Info-bulles : OUI",
+        "tooltips_off_label": "Info-bulles : NON",
+        "tooltips_button_tooltip": "Activer ou désactiver le texte au survol (info-bulles) sur tous les boutons et contrôles",
+        "page_header_label": "Page principale",
+        "search_options_label": "Options de\nrecherche",
+        "search_options_tooltip": "Options de recherche qui s'appliquent au bouton Lancer la recherche standard sur la ligne suivante : ET vs OU, Récursif (inclure les sous-dossiers), Mot entier, Utiliser l'index, plus Enregistrer / Recharger l'intégralité de la recherche actuelle par son nom. Pour tout le reste — types de fichiers, termes à exclure, filtres de plage, proximité, OCR, lignes de contexte, formats de sortie — cliquez sur le lien Avancé au-dessus de cette ligne.",
+        "delete_on_close_label": "Supprimer à la fermeture",
+        "delete_on_close_tooltip": "Supprimer automatiquement tous les fichiers de résultats de recherche (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) et l'index de recherche (.peekdocs.db) dans chaque dossier recherché pendant la session lorsque vous fermez peekdocs. L'index est inclus car il contient le texte extrait de chaque fichier indexé. Vous pouvez cocher ou décocher cette option à tout moment — cela n'a d'importance qu'au moment où vous fermez l'application. Les rapports enregistrés (peekdocs_report_*), les rapports accumulés (peekdocs_accumulated_*), les recherches enregistrées, les paramètres et les signets ne sont jamais supprimés. Pour un nettoyage immédiat en cours de session, utilisez Outils → Effacer les fichiers → Effacer la session.",
+        "getting_started_tab_label": "Premiers pas",
+        "getting_started_tab_tooltip": "Une introduction rapide à peekdocs — ce qu'il fait, comment l'utiliser et quelles fonctionnalités sont disponibles",
+        "browse_button_label": "Parcourir",
+        "browse_button_tooltip": "Parcourir pour un dossier à rechercher. Linux : double-cliquez pour sélectionner un dossier dans la boîte de dialogue",
+        "multi_folder_button_label": "+Dossier",
+        "multi_folder_button_tooltip": "Rechercher plusieurs dossiers de premier niveau à la fois (par exemple, Documents et Bureau). Différent de Récursif, qui recherche dans les sous-dossiers d'un seul dossier. Les dossiers sont séparés par des points-virgules (;)",
+        "single_file_button_label": "Fichier unique",
+        "single_file_button_tooltip": "Parcourir pour un fichier spécifique à rechercher",
+        "clear_button_label": "Effacer",
+        "clear_button_tooltip": "Effacer la barre de recherche",
+        "recent_searches_label": "Recherches récentes",
+        "recent_searches_tooltip": "Afficher les recherches récentes — cliquez pour réutiliser une recherche antérieure",
+        "and_label": "ET",
+        "and_tooltip": "Mode ET — tous les termes de recherche doivent apparaître sur la même ligne. Pour les documents PDF/Word, une ligne est généralement un paragraphe. Synchronisé avec le mode ET dans les Options de recherche avancées",
+        "or_label": "OU",
+        "or_tooltip": "Mode OU (par défaut) — trouve les lignes contenant l'un quelconque des termes de recherche. Synchronisé avec le mode ET dans les Options de recherche avancées",
+        "recursive_label": "Récursif",
+        "recursive_tooltip": "Inclure tous les sous-dossiers lors de la recherche. Synchronisé avec Récursif dans les Options de recherche avancées. Sans cette case cochée et sans utiliser l'index, peekdocs ne recherche que dans le dossier affiché — pas de sous-dossiers. Avec l'index coché, les recherches sont toujours récursives quel que soit ce paramètre",
+        "whole_word_label": "Mot entier",
+        "whole_word_tooltip": "Ne correspond qu'aux mots entiers. 'bob' correspond à 'bob' mais pas à 'bobcat'. Synchronisé avec Mot entier dans les Options de recherche avancées",
+        "advanced_label": "Avancé",
+        "advanced_tooltip": "Ouvrir le panneau Options de recherche avancées — mode ET, regex, fuzzy, types de fichiers, termes à exclure, filtres de plage et tous les autres paramètres de recherche",
+        "use_index_label": "Utiliser l'index",
+        "use_index_tooltip": "Utiliser l'index de recherche pour des recherches plus rapides. Décochez pour rechercher directement dans les fichiers. Construisez d'abord un index en utilisant Index dans le menu Outils. Lorsqu'il est coché, les recherches sont toujours récursives (tous les sous-dossiers) quelle que soit la case Récursif. Les index persistent entre les sessions sauf si Supprimer à la fermeture est coché, ce qui les supprime à la fermeture de l'application",
+        "wizard_label": "Assistant",
+        "wizard_tooltip": "Assistant de recherche — générateur de recherche guidé avec 20+ modèles prédéfinis. Choisissez un type de recherche, remplissez les valeurs et appliquez. Aucune connaissance des regex ni des flags requise",
+        "save_label": "Enregistrer",
+        "save_tooltip": "Enregistrer les paramètres de recherche actuels par nom afin de pouvoir les recharger plus tard. Vous pouvez cliquer dessus avant ou après l'exécution d'une recherche — il enregistre les paramètres (termes et options), pas les résultats.",
+        "reload_label": "Recharger",
+        "reload_tooltip": "Charger une recherche enregistrée de la collection du dossier dans l'interface pour la consulter, la modifier ou la réexécuter",
+        "adv_window_title": "Options de recherche avancées",
+        "adv_and_mode_label": "Mode ET",
+        "adv_fuzzy_label": "Approximatif",
+        "adv_wildcard_label": "Joker",
+        "adv_ocr_label": "OCR",
+        "adv_regex_label": "Regex",
+        "adv_expression_label": "Expression",
+        "adv_inverse_label": "Inverse",
+        "adv_exclude_label": "Exclure :",
+        "adv_file_types_label": "Types de fichiers :",
+        "adv_word_proximity_label": "Proximité de mots :",
+        "adv_lines_before_label": "Lignes avant :",
+        "adv_lines_after_label": "Lignes après :",
+        "adv_cores_to_use_label": "Cœurs à utiliser :",
+        "adv_max_matches_label": "Corresp. max. :",
+        "adv_max_file_size_label": "Taille max. fichier (Mo) :",
+        "adv_range_label": "Plage :",
+        "adv_specific_files_label": "Fichiers spécifiques :",
+        "adv_save_report_as_label": "Enregistrer rapport sous :",
+        "adv_append_report_to_label": "Ajouter rapport à :",
+        "adv_output_dir_label": "Dossier de sortie :",
+        "adv_also_output_label": "Sortir aussi le rapport en ==>",
+        "adv_timestamp_filename_label": "Horodater le nom de fichier",
+        "adv_clear_history_label": "Effacer l'historique à la fermeture",
+        "adv_restrict_perms_label": "Restreindre les permissions de fichier",
+        "adv_notify_complete_label": "Notifier à la fin de la recherche",
+        "adv_save_defaults_label": "Enregistrer par défaut",
+        "adv_restore_defaults_label": "Restaurer les défauts enregistrés",
+        "adv_restore_factory_label": "Restaurer paramètres d'usine",
+        "adv_reset_all_label": "Réinitialiser tous les champs",
+        "language_picker_label": "Langue :",
+        "mode_compare_link_label": "3 boutons de recherche — quelle est la différence ?",
+        "mode_compare_link_tooltip": "Comparaison rapide de Lancer la recherche standard vs Suites de recherche vs Recherche regex",
+    },
+    "de": {
+        "step_1_label": " Schritt 1 ",
+        "step_1_tooltip": "Suchordner — verweisen Sie peekdocs auf den Ordner mit Ihren Dokumenten",
+        "step_2_label": " Schritt 2 ",
+        "step_2_tooltip": "Suchbegriffe — geben Sie ein, wonach Sie suchen, und wählen Sie dann UND/ODER, Rekursiv (Unterordner einbeziehen) oder Ganzes Wort. Für erweiterte Optionen klicken Sie auf Erweitert",
+        "step_3_label": " Schritt 3 ",
+        "step_3_tooltip": "Standardsuche starten — klicken Sie, um alle Dateien im Ordner zu durchsuchen",
+        "step_4_label": " Schritt 4 ",
+        "step_4_tooltip": "Bericht anzeigen — öffnen Sie den hervorgehobenen Ergebnisbericht. Zusätzliche Formate (CSV, JSON, PDF, HTML) können in den erweiterten Suchoptionen aktiviert werden",
+        "run_standard_search_label": "\U0001f50d Standardsuche starten",
+        "run_standard_search_tooltip": "Führen Sie eine Standardsuche mit den aktuellen Suchbegriffen und allen Einstellungen in den erweiterten Suchoptionen aus (Kontrollkästchen, Dateitypen, Ausschlussbegriffe, Bereichsfilter, Nähe usw.). Verwenden Sie für musterbasierte Suchen (Regex-Sammlungen, Nur-Bildschirm-Modus) stattdessen die Schaltfläche Regex-Suche. Diese Schaltfläche wird rot und vorübergehend deaktiviert, während ein Index erstellt wird, um Konflikte zu vermeiden",
+        "search_suites_label": "Suchsuiten",
+        "search_suites_tooltip": "Suchsuiten — öffnen Sie das Verwaltungs-Popup, um eine benannte Gruppe gespeicherter Suchen zu erstellen, zu bearbeiten, neu zu ordnen oder auszuführen. Die Schaltfläche Suchsuite ausführen im Popup führt die ausgewählte Suite aus. Mehrere Suchsuiten ausführen… (Schaltfläche unten im selben Popup) öffnet einen Kontrollkästchen-Picker über jede gespeicherte Suite — wählen Sie zwei oder mehr und führen Sie sie zusammen als einen kombinierten Bericht aus.",
+        "regex_search_label": "Regex-Suche",
+        "regex_search_tooltip": "Regex-Suche — öffnen Sie das Verwaltungs-Popup, um eine benannte Sammlung von Regex-Mustern zu erstellen, zu bearbeiten oder auszuführen. Das Popup bearbeitet bis zu 10 Muster gleichzeitig; Sammlungen auf der Festplatte sind unbegrenzt (die mitgelieferte Examples-Sammlung enthält 17). Jedes Muster wird separat mit Ergebnissen pro Muster ausgeführt. Die Schaltfläche Regex-Suche ausführen im Popup führt die sichtbaren Zeilen aus; Mehrere Sammlungen ausführen… (Schaltfläche unten) öffnet einen Kontrollkästchen-Picker über jede gespeicherte Sammlung — wählen Sie zwei oder mehr und führen Sie sie zusammen aus. Die Ergebnisse hängen von der Berichts-Einstellung im Popup ab.",
+        "run_regex_search_label": "Regex-Suche ausführen",
+        "status_label": "Status:",
+        "status_tooltip": "Suchstatus — zeigt den Fortschritt während der Suche und eine Ergebniszusammenfassung nach Abschluss",
+        "results_preview_label": "Ergebnisvorschau:",
+        "results_preview_tooltip": "Live-Vorschau der Suchtreffer — auf die ersten 500 Zeilen begrenzt, damit die GUI bei Suchen, die Zehntausende von Treffern zurückgeben, reaktionsschnell bleibt. Die vollständige Trefferliste wird unabhängig von der Vorschau-Begrenzung immer in die Berichtsdateien (.txt, .docx, .html, .csv, .json, .pdf) geschrieben. Um die in den Berichten selbst gespeicherten Treffer zu begrenzen, setzen Sie Max. Treffer in den erweiterten Suchoptionen (Standard 1000; 0 = keine Begrenzung)",
+        "clear_preview_label": "Vorschau löschen",
+        "clear_preview_tooltip": "Den Ergebnisvorschau-Bereich und die Schaltflächen für übereinstimmende / ausgeschlossene Dateien löschen — entfernt alle sichtbaren Trefferdaten vom Bildschirm. Nützlich, wenn Sie mit der Überprüfung fertig sind und die Ergebnisse nicht mehr sichtbar haben möchten. Löscht keine Berichtsdateien auf der Festplatte",
+        "readme_button_label": "Liesmich",
+        "readme_button_tooltip": "Öffnen Sie die peekdocs-README auf GitHub — Funktionen, Installation, Sicherheit und mehr",
+        "user_guide_button_label": "Benutzerhandbuch",
+        "user_guide_button_tooltip": "Öffnen Sie das peekdocs-Benutzerhandbuch auf GitHub — enthält auch Fehlerbehebung und Python-API-Dokumentation",
+        "close_button_label": "Schließen",
+        "close_button_tooltip": "peekdocs schließen",
+        "about_button_label": "Über",
+        "about_button_tooltip": "Über peekdocs — Version, Autor und Lizenzinformationen",
+        "tools_button_label": "Werkzeuge",
+        "tools_button_tooltip": "Dateiinventar, Duplikate, Große Dateien, Leere Dateien, Letzte Änderungen, Geschützte Dateien, Suchverlauf, Lesezeichen, App-Dateien und mehr. Linux: Maustaste gedrückt halten und ziehen, um auszuwählen — Klick zum Öffnen ist eine bekannte Einschränkung von Linux/tkinter",
+        "tooltips_on_label": "Tooltipps: AN",
+        "tooltips_off_label": "Tooltipps: AUS",
+        "tooltips_button_tooltip": "Hover-Text (Tooltipps) auf allen Schaltflächen und Steuerelementen aktivieren oder deaktivieren",
+        "page_header_label": "Hauptseite",
+        "search_options_label": "Such-\noptionen",
+        "search_options_tooltip": "Suchoptionen, die für die Schaltfläche Standardsuche starten in der nächsten Zeile gelten: UND vs ODER, Rekursiv (Unterordner einbeziehen), Ganzes Wort, Index verwenden, plus Speichern / Neu laden der gesamten aktuellen Suche nach Namen. Für alles andere — Dateitypen, Ausschlussbegriffe, Bereichsfilter, Nähe, OCR, Kontextzeilen, Ausgabeformate — klicken Sie auf den Link Erweitert über dieser Zeile.",
+        "delete_on_close_label": "Beim Schließen löschen",
+        "delete_on_close_tooltip": "Beim Schließen von peekdocs alle Suchergebnisdateien (peekdocs_standard_results.*, peekdocs_regex_results.*, peekdocs_suite_results.*) und den Suchindex (.peekdocs.db) in jedem während der Sitzung durchsuchten Ordner automatisch löschen. Der Index ist enthalten, weil er den extrahierten Text aus jeder indexierten Datei enthält. Sie können dies jederzeit aktivieren oder deaktivieren — es ist nur im Moment des Schließens der Anwendung von Bedeutung. Gespeicherte Berichte (peekdocs_report_*), kumulierte Berichte (peekdocs_accumulated_*), gespeicherte Suchen, Einstellungen und Lesezeichen werden niemals gelöscht. Für sofortige Bereinigung innerhalb der Sitzung verwenden Sie Werkzeuge → Dateien löschen → Sitzung löschen.",
+        "getting_started_tab_label": "Erste Schritte",
+        "getting_started_tab_tooltip": "Eine kurze Einführung in peekdocs — was es tut, wie man es benutzt und welche Funktionen verfügbar sind",
+        "browse_button_label": "Durchsuchen",
+        "browse_button_tooltip": "Nach einem Ordner zum Durchsuchen suchen. Linux: Doppelklick, um einen Ordner im Dialog auszuwählen",
+        "multi_folder_button_label": "+Ordner",
+        "multi_folder_button_tooltip": "Mehrere übergeordnete Ordner gleichzeitig durchsuchen (z. B. Dokumente und Desktop). Anders als Rekursiv, das Unterordner innerhalb eines einzelnen Ordners durchsucht. Ordner werden durch Semikolons (;) getrennt",
+        "single_file_button_label": "Einzelne Datei",
+        "single_file_button_tooltip": "Nach einer bestimmten Datei zum Durchsuchen suchen",
+        "clear_button_label": "Löschen",
+        "clear_button_tooltip": "Suchleiste löschen",
+        "recent_searches_label": "Letzte Suchen",
+        "recent_searches_tooltip": "Letzte Suchen anzeigen — klicken Sie, um eine frühere Suche wiederzuverwenden",
+        "and_label": "UND",
+        "and_tooltip": "UND-Modus — alle Suchbegriffe müssen in derselben Zeile erscheinen. Bei PDF/Word-Dokumenten ist eine Zeile in der Regel ein Absatz. Synchronisiert mit UND-Modus in den erweiterten Suchoptionen",
+        "or_label": "ODER",
+        "or_tooltip": "ODER-Modus (Standard) — findet Zeilen, die einen beliebigen Suchbegriff enthalten. Synchronisiert mit UND-Modus in den erweiterten Suchoptionen",
+        "recursive_label": "Rekursiv",
+        "recursive_tooltip": "Bei der Suche alle Unterordner einbeziehen. Synchronisiert mit Rekursiv in den erweiterten Suchoptionen. Ohne dieses Kontrollkästchen und ohne Verwendung des Index durchsucht peekdocs nur den angezeigten Ordner — keine Unterordner. Mit aktiviertem Index sind die Suchen unabhängig von dieser Einstellung immer rekursiv",
+        "whole_word_label": "Ganzes Wort",
+        "whole_word_tooltip": "Findet nur ganze Wörter. 'bob' findet 'bob', aber nicht 'bobcat'. Synchronisiert mit Ganzes Wort in den erweiterten Suchoptionen",
+        "advanced_label": "Erweitert",
+        "advanced_tooltip": "Öffnet das Panel mit erweiterten Suchoptionen — UND-Modus, Regex, Fuzzy, Dateitypen, Ausschlussbegriffe, Bereichsfilter und alle anderen Sucheinstellungen",
+        "use_index_label": "Index verwenden",
+        "use_index_tooltip": "Verwendet den Suchindex für schnellere Suchen. Deaktivieren, um direkt in Dateien zu suchen. Erstellen Sie zuerst einen Index über Indizes im Werkzeuge-Menü. Wenn aktiviert, sind die Suchen unabhängig vom Kontrollkästchen Rekursiv immer rekursiv (alle Unterordner). Indizes bleiben zwischen den Sitzungen erhalten, sofern Beim Schließen löschen nicht aktiviert ist, was sie beim Schließen der Anwendung löscht",
+        "wizard_label": "Assistent",
+        "wizard_tooltip": "Suchassistent — geführter Suchbau mit 20+ vorgefertigten Mustern. Wählen Sie einen Suchtyp, geben Sie die Werte ein und wenden Sie an. Keine Regex- oder Flag-Kenntnisse erforderlich",
+        "save_label": "Speichern",
+        "save_tooltip": "Speichert die aktuellen Sucheinstellungen unter einem Namen, damit Sie sie später wieder laden können. Sie können dies vor oder nach dem Ausführen einer Suche anklicken — es speichert die Einstellungen (Suchbegriffe und Optionen), nicht die Ergebnisse.",
+        "reload_label": "Neu laden",
+        "reload_tooltip": "Lädt eine gespeicherte Suche aus der Ordner-Sammlung in die GUI zur Überprüfung, Bearbeitung oder erneuten Ausführung",
+        "adv_window_title": "Erweiterte Suchoptionen",
+        "adv_and_mode_label": "UND-Modus",
+        "adv_fuzzy_label": "Fuzzy",
+        "adv_wildcard_label": "Platzhalter",
+        "adv_ocr_label": "OCR",
+        "adv_regex_label": "Regex",
+        "adv_expression_label": "Ausdruck",
+        "adv_inverse_label": "Invers",
+        "adv_exclude_label": "Ausschließen:",
+        "adv_file_types_label": "Dateitypen:",
+        "adv_word_proximity_label": "Wort-Nähe:",
+        "adv_lines_before_label": "Zeilen davor:",
+        "adv_lines_after_label": "Zeilen danach:",
+        "adv_cores_to_use_label": "Zu verwendende Kerne:",
+        "adv_max_matches_label": "Max. Treffer:",
+        "adv_max_file_size_label": "Max. Dateigröße (MB):",
+        "adv_range_label": "Bereich:",
+        "adv_specific_files_label": "Bestimmte Dateien:",
+        "adv_save_report_as_label": "Bericht speichern als:",
+        "adv_append_report_to_label": "Bericht anhängen an:",
+        "adv_output_dir_label": "Ausgabeordner:",
+        "adv_also_output_label": "Bericht auch ausgeben als ==>",
+        "adv_timestamp_filename_label": "Zeitstempel im Dateinamen",
+        "adv_clear_history_label": "Verlauf beim Schließen löschen",
+        "adv_restrict_perms_label": "Dateiberechtigungen beschränken",
+        "adv_notify_complete_label": "Benachrichtigen bei Suchabschluss",
+        "adv_save_defaults_label": "Als Standard speichern",
+        "adv_restore_defaults_label": "Gespeicherte Standards wiederherstellen",
+        "adv_restore_factory_label": "Werkseinstellungen wiederherstellen",
+        "adv_reset_all_label": "Alle Felder zurücksetzen",
+        "language_picker_label": "Sprache:",
+        "mode_compare_link_label": "3 Such-Schaltflächen — was ist der Unterschied?",
+        "mode_compare_link_tooltip": "Schnellvergleich von Standardsuche starten vs. Suchsuiten vs. Regex-Suche",
+    },
+    "ja": {
+        "step_1_label": " ステップ 1 ",
+        "step_1_tooltip": "検索フォルダ — ドキュメントを含むフォルダを peekdocs に指定します",
+        "step_2_label": " ステップ 2 ",
+        "step_2_tooltip": "検索語 — 探しているものを入力し、AND/OR、再帰的 (サブフォルダを含む)、または完全一致を選択します。詳細オプションは [詳細] をクリックします",
+        "step_3_label": " ステップ 3 ",
+        "step_3_tooltip": "標準検索を実行 — クリックしてフォルダ内のすべてのファイルを検索します",
+        "step_4_label": " ステップ 4 ",
+        "step_4_tooltip": "レポートを表示 — ハイライトされた結果レポートを開きます。追加形式 (CSV、JSON、PDF、HTML) は [詳細検索オプション] で有効にできます",
+        "run_standard_search_label": "\U0001f50d 標準検索を実行",
+        "run_standard_search_tooltip": "現在の検索語と [詳細検索オプション] のすべての設定 (チェックボックス、ファイルタイプ、除外語、範囲フィルタ、近接など) を使用して標準検索を実行します。パターンベースの検索 (正規表現コレクション、画面のみモード) の場合は、代わりに [正規表現検索] ボタンを使用してください。インデックス構築中はこのボタンは赤くなり一時的に無効になり、競合を避けます",
+        "search_suites_label": "検索スイート",
+        "search_suites_tooltip": "検索スイート — 管理ポップアップを開いて、名前付きの保存済み検索グループを作成、編集、並べ替え、または実行します。ポップアップの [検索スイートを実行] ボタンで選択したスイートが実行されます。[複数の検索スイートを実行…] (同じポップアップの下部のボタン) を押すと、保存済みの各スイートに対するチェックボックスピッカーが開きます — 2 つ以上を選択して、結合されたレポートとして一緒に実行します。",
+        "regex_search_label": "正規表現検索",
+        "regex_search_tooltip": "正規表現検索 — 管理ポップアップを開いて、名前付きの正規表現パターンコレクションを作成、編集、または実行します。ポップアップでは一度に最大 10 パターンを編集できます。ディスク上のコレクションは無制限です (シードされた Examples コレクションには 17 パターンが含まれています)。各パターンはパターンごとの結果で個別に実行されます。ポップアップの [正規表現検索を実行] ボタンで表示されている行が実行されます。[複数のコレクションを実行…] (下部のボタン) を押すと、保存済みの各コレクションに対するチェックボックスピッカーが開きます — 2 つ以上を選択して一緒に実行します。結果はポップアップのレポートチェックボックスの設定に依存します。",
+        "run_regex_search_label": "正規表現検索を実行",
+        "status_label": "ステータス:",
+        "status_tooltip": "検索ステータス — 検索中の進行状況と完了時の結果概要を表示します",
+        "results_preview_label": "結果プレビュー:",
+        "results_preview_tooltip": "検索一致のライブプレビュー — 数万件の一致を返す検索でも GUI が応答性を保つよう、最初の 500 行に制限されています。プレビューの上限に関わらず、一致の完全なセットは常にレポートファイル (.txt、.docx、.html、.csv、.json、.pdf) に書き込まれます。レポート自体に書き込まれる一致を制限するには、[詳細検索オプション] で [最大一致数] を設定します (デフォルト 1000、0 = 制限なし)",
+        "clear_preview_label": "プレビューをクリア",
+        "clear_preview_tooltip": "結果プレビューペインと一致ファイル / 除外ファイルボタンをクリア — 画面からすべての表示中の一致データを削除します。確認が完了して結果を表示したくない場合に便利です。ディスク上のレポートファイルは削除されません",
+        "readme_button_label": "お読みください",
+        "readme_button_tooltip": "GitHub で peekdocs README を開きます — 機能、インストール、セキュリティなど",
+        "user_guide_button_label": "ユーザーガイド",
+        "user_guide_button_tooltip": "GitHub で peekdocs ユーザーガイドを開きます — トラブルシューティングと Python API ドキュメントも含まれます",
+        "close_button_label": "閉じる",
+        "close_button_tooltip": "peekdocs を閉じる",
+        "about_button_label": "情報",
+        "about_button_tooltip": "peekdocs について — バージョン、作者、ライセンス情報",
+        "tools_button_label": "ツール",
+        "tools_button_tooltip": "ファイルインベントリ、重複、大容量ファイル、空ファイル、最近の変更、保護されたファイル、検索履歴、ブックマーク、アプリファイルなど。Linux: マウスボタンを押しながらドラッグして選択 — クリックで開くのは Linux/tkinter の既知の制限です",
+        "tooltips_on_label": "ツールチップ: ON",
+        "tooltips_off_label": "ツールチップ: OFF",
+        "tooltips_button_tooltip": "すべてのボタンとコントロールのホバーテキスト (ツールチップ) を有効または無効にします",
+        "page_header_label": "メインページ",
+        "search_options_label": "検索\nオプション",
+        "search_options_tooltip": "次の行の [標準検索を実行] ボタンに適用される検索オプション: AND / OR、再帰的 (サブフォルダを含む)、完全一致、インデックスを使用、加えて現在の検索全体を名前で保存 / 再読み込み。それ以外のすべて — ファイルタイプ、除外語、範囲フィルタ、近接、OCR、コンテキスト行、出力形式 — については、この行の上の [詳細] リンクをクリックしてください。",
+        "delete_on_close_label": "閉じるときに削除",
+        "delete_on_close_tooltip": "peekdocs を閉じるときに、セッション中に検索したすべてのフォルダで、すべての検索結果ファイル (peekdocs_standard_results.*、peekdocs_regex_results.*、peekdocs_suite_results.*) と検索インデックス (.peekdocs.db) を自動的に削除します。インデックスには各インデックス付きファイルから抽出されたテキストが含まれているため、含まれています。これはいつでもオン / オフを切り替えることができます — 重要なのはアプリを閉じる瞬間だけです。保存されたレポート (peekdocs_report_*)、累積レポート (peekdocs_accumulated_*)、保存された検索、設定、ブックマークは決して削除されません。セッション中の即時クリーンアップには、[ツール] → [ファイルをクリア] → [セッションをワイプ] を使用してください。",
+        "getting_started_tab_label": "はじめに",
+        "getting_started_tab_tooltip": "peekdocs の概要 — 機能、使い方、利用可能な機能の紹介",
+        "browse_button_label": "参照",
+        "browse_button_tooltip": "検索するフォルダを参照します。Linux: ダイアログでフォルダを選択するにはダブルクリックします",
+        "multi_folder_button_label": "+フォルダ",
+        "multi_folder_button_tooltip": "複数の最上位フォルダを一度に検索します (例: ドキュメントとデスクトップ)。単一のフォルダ内のサブフォルダを検索する再帰的とは異なります。フォルダはセミコロン (;) で区切ります",
+        "single_file_button_label": "単一ファイル",
+        "single_file_button_tooltip": "検索する特定のファイルを参照します",
+        "clear_button_label": "クリア",
+        "clear_button_tooltip": "検索バーをクリア",
+        "recent_searches_label": "最近の検索",
+        "recent_searches_tooltip": "最近の検索を表示 — クリックして以前の検索を再利用します",
+        # Japanese Boolean operators kept as English uppercase — that's
+        # the prevailing convention in Japanese dev UIs and saves width
+        # vs. the 「かつ」/「または」 alternatives.
+        "and_label": "AND",
+        "and_tooltip": "AND モード — すべての検索語が同じ行に表示される必要があります。PDF/Word ドキュメントの場合、行は通常段落です。詳細検索オプションの AND モードと同期します",
+        "or_label": "OR",
+        "or_tooltip": "OR モード (デフォルト) — いずれかの検索語を含む行を見つけます。詳細検索オプションの AND モードと同期します",
+        "recursive_label": "再帰的",
+        "recursive_tooltip": "検索時にすべてのサブフォルダを含めます。詳細検索オプションの再帰的と同期します。これがオフでインデックスを使用しない場合、peekdocs は表示されているフォルダのみを検索します — サブフォルダは検索しません。インデックスがオンの場合、この設定に関係なく検索は常に再帰的です",
+        "whole_word_label": "完全一致",
+        "whole_word_tooltip": "完全な単語のみと一致します。'bob' は 'bob' と一致しますが、'bobcat' とは一致しません。詳細検索オプションの完全一致と同期します",
+        "advanced_label": "詳細",
+        "advanced_tooltip": "詳細検索オプションパネルを開きます — AND モード、正規表現、あいまい、ファイルタイプ、除外語、範囲フィルタ、その他のすべての検索設定",
+        "use_index_label": "インデックスを使用",
+        "use_index_tooltip": "検索インデックスを使用して検索を高速化します。ファイルを直接検索するにはオフにします。最初に [ツール] メニューの [インデックス] でインデックスを作成してください。オンの場合、[再帰的] チェックボックスに関係なく、検索は常に再帰的 (すべてのサブフォルダ) です。インデックスは [閉じるときに削除] がオンでない限りセッション間で保持され、オンの場合はアプリを閉じるときに削除されます",
+        "wizard_label": "ウィザード",
+        "wizard_tooltip": "検索ウィザード — 20 以上の事前構築済みパターンを備えたガイド付き検索ビルダー。検索タイプを選択し、値を入力して適用します。フラグや正規表現の知識は不要です",
+        "save_label": "保存",
+        "save_tooltip": "現在の検索設定を名前で保存し、後で再読み込みできるようにします。検索の実行前または実行後にこれをクリックできます — 結果ではなく設定 (検索語とオプション) を保存します。",
+        "reload_label": "再読み込み",
+        "reload_tooltip": "フォルダのコレクションから保存された検索を GUI に読み込んで、確認、編集、または再実行します",
+        "adv_window_title": "詳細検索オプション",
+        "adv_and_mode_label": "AND モード",
+        "adv_fuzzy_label": "あいまい",
+        "adv_wildcard_label": "ワイルドカード",
+        "adv_ocr_label": "OCR",
+        "adv_regex_label": "正規表現",
+        "adv_expression_label": "式",
+        "adv_inverse_label": "逆検索",
+        "adv_exclude_label": "除外:",
+        "adv_file_types_label": "ファイルタイプ:",
+        "adv_word_proximity_label": "単語近接:",
+        "adv_lines_before_label": "前の行:",
+        "adv_lines_after_label": "後の行:",
+        "adv_cores_to_use_label": "使用コア数:",
+        "adv_max_matches_label": "最大一致数:",
+        "adv_max_file_size_label": "最大ファイルサイズ (MB):",
+        "adv_range_label": "範囲:",
+        "adv_specific_files_label": "特定ファイル:",
+        "adv_save_report_as_label": "レポートを保存:",
+        "adv_append_report_to_label": "レポートを追加:",
+        "adv_output_dir_label": "出力ディレクトリ:",
+        "adv_also_output_label": "次の形式でも出力 ==>",
+        "adv_timestamp_filename_label": "ファイル名にタイムスタンプ",
+        "adv_clear_history_label": "閉じるときに履歴をクリア",
+        "adv_restrict_perms_label": "ファイル権限を制限",
+        "adv_notify_complete_label": "検索完了時に通知",
+        "adv_save_defaults_label": "デフォルトとして保存",
+        "adv_restore_defaults_label": "保存されたデフォルトを復元",
+        "adv_restore_factory_label": "初期設定に戻す",
+        "adv_reset_all_label": "すべてのフィールドをリセット",
+        "language_picker_label": "言語:",
+        "mode_compare_link_label": "3 つの検索ボタン — 違いは何ですか？",
+        "mode_compare_link_tooltip": "標準検索を実行 vs. 検索スイート vs. 正規表現検索のクイック比較",
+    },
+}
+
+
+def set_language(code):
+    """Set the active translation language. Unknown codes fall back
+    to English silently — i18n is polish, not load-bearing."""
+    global _current
+    if code in _STRINGS:
+        _current = code
+    else:
+        _current = "en"
+
+
+def current_language():
+    """Return the active language code (e.g. ``'en'``, ``'es'``)."""
+    return _current
+
+
+def t(key):
+    """Translate ``key`` into the active language.
+
+    Falls back through: active-language entry → English entry → the key
+    itself. Missing translations are silent — better to show a slightly-
+    English UI than to crash on a missing key."""
+    table = _STRINGS.get(_current, _STRINGS["en"])
+    if key in table:
+        return table[key]
+    en = _STRINGS["en"]
+    if key in en:
+        return en[key]
+    return key

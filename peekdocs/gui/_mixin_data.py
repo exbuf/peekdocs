@@ -404,11 +404,11 @@ class DataMixin:
         # Shorten row 3 button labels at Extra Large and Huge to save width
         try:
             if value in ("Extra Large", "Huge"):
-                self.search_button.configure(text="\U0001f50d Run Standard Search")
+                self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"))
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
             else:
-                self.search_button.configure(text="\U0001f50d Run Standard Search")
+                self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"))
                 self.save_to_collection_btn.configure(text="\u25b6 Save")
                 self.load_search_btn.configure(text="\u25b6 Reload")
         except Exception:
