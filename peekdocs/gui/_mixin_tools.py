@@ -6487,7 +6487,7 @@ class ToolsMixin:
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
         self._suites_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label"), fg_color="#76BA1B", hover_color="#76BA1B",
                                    text_color="white", command=self._show_search_suites)
-        self.status_label.configure(text="Suite cancelled.", text_color=("blue", "#66BBFF"))
+        self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_suite_cancelled"), text_color=("blue", "#66BBFF"))
 
     def _update_suite_elapsed(self, suite_name):
         """Update the status label with elapsed time during suite execution."""
@@ -8956,7 +8956,7 @@ class ToolsMixin:
     def _cancel_regex_search(self):
         """Cancel a running Regex Search."""
         self._regex_search_cancelled = True
-        self.status_label.configure(text="Regex Search cancelled.", text_color=("blue", "#66BBFF"))
+        self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_regex_cancelled"), text_color=("blue", "#66BBFF"))
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
         if hasattr(self, "_regex_search_btn"):

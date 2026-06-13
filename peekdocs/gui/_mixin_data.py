@@ -1420,7 +1420,7 @@ class DataMixin:
         from peekdocs.collection import COLLECTION_FILENAME, load_collection
 
         home = os.path.expanduser("~")
-        self.status_label.configure(text="Scanning for saved collections…", text_color=("blue", "#66BBFF"))
+        self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_scanning_collections"), text_color=("blue", "#66BBFF"))
         self.update_idletasks()
 
         # Walk home directory to find all collection files
@@ -2201,10 +2201,10 @@ class DataMixin:
                     self.refresh_interval_var.set("1 hour")
                     self._on_refresh_interval_changed("1 hour")
             elif returncode == 2:
-                self.status_label.configure(text="Index build cancelled.", text_color=("blue", "#66BBFF"))
+                self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_index_cancelled"), text_color=("blue", "#66BBFF"))
             else:
                 err_msg = (result or {}).get("error", "Unknown error")
-                self.status_label.configure(text=f"Index build failed: {err_msg}", text_color="red")
+                self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_index_failed_format").format(err=err_msg), text_color="red")
 
         threading.Thread(target=_run, daemon=True).start()
         self.after(300, _poll_progress)
@@ -2327,6 +2327,6 @@ class DataMixin:
                     self._index_process.terminate()
                 except Exception:
                     pass
-        self.status_label.configure(text="Cancelling index build...", text_color=("blue", "#66BBFF"))
+        self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_cancelling_index"), text_color=("blue", "#66BBFF"))
 
 

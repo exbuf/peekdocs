@@ -1346,7 +1346,7 @@ class BuildMixin:
             if sel.strip():
                 self.clipboard_clear()
                 self.clipboard_append(sel.strip())
-                self.status_label.configure(text="Copied to clipboard.",
+                self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_copied_to_clipboard"),
                                             text_color=("blue", "#66BBFF"))
         self.preview_text.bind("<Button-3>", _preview_copy)  # Windows/Linux
         self.preview_text.bind("<Button-2>", _preview_copy)  # macOS right-click
@@ -1979,7 +1979,7 @@ class BuildMixin:
             self._recent_searches.clear()
             self._save_ui_preference("recent_searches", [])
             popup.destroy()
-            self.status_label.configure(text="Recent searches cleared.", text_color=("blue", "#66BBFF"))
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_recent_searches_cleared"), text_color=("blue", "#66BBFF"))
 
         ctk.CTkButton(top_btn_row, text="Clear", width=70, font=ctk.CTkFont(size=12),
                        fg_color="#CC3333", hover_color="#AA2222",

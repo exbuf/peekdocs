@@ -40,7 +40,7 @@ class SearchMixin:
         # Cancel multi-folder search if running
         if hasattr(self, '_multi_folder_cancelled') and self._multi_folder_cancelled is False:
             self._multi_folder_cancelled = True
-            self.status_label.configure(text="Cancelling multi-folder search...", text_color=("blue", "#66BBFF"))
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_cancelling_multi_folder"), text_color=("blue", "#66BBFF"))
             self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
             return
 
@@ -276,7 +276,7 @@ class SearchMixin:
         # _parse_summary_text in _helpers.py, so the user still gets a
         # one-line notice in the right place without the false "Rebuilding"
         # claim.
-        self.status_label.configure(text=f"Searching ({_term_label})...", text_color=("blue", "#66BBFF"))
+        self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_searching_format").format(terms=_term_label), text_color=("blue", "#66BBFF"))
         self.search_start_time = time.time()
         # Captured separately because search_start_time gets nulled at
         # finish; _show_action_buttons needs a stable cutoff to decide
@@ -1041,7 +1041,7 @@ class SearchMixin:
         # applies to.
         self._suite_highlight_re = None
         self.status_label.configure(
-            text="Results Preview cleared.",
+            text=__import__("peekdocs.i18n", fromlist=["t"]).t("preview_cleared_status"),
             text_color=("blue", "#66BBFF"),
         )
 
@@ -1311,7 +1311,7 @@ class SearchMixin:
             if f.startswith(RESULT_FILE_PREFIXES)
         ]
         if not results_files:
-            self.status_label.configure(text="No results files to clear.")
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_no_results_to_clear"))
             return
         from tkinter import messagebox
         msg = f"Delete {len(results_files)} results file(s)?\n\n"
@@ -1328,7 +1328,7 @@ class SearchMixin:
                     deleted += 1
                 except OSError:
                     pass
-            self.status_label.configure(text=f"Deleted {deleted} results file(s).")
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_deleted_results_format").format(n=deleted))
             self._hide_preview()
             self._clear_action_buttons()
 
@@ -1342,14 +1342,14 @@ class SearchMixin:
             return
         error_log_path = os.path.join(folder, "peekdocs_errors.log")
         if not os.path.exists(error_log_path):
-            self.status_label.configure(text="No error log to clear.")
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_no_error_log_to_clear"))
             return
         from tkinter import messagebox
         if messagebox.askyesno("Clear Error Log",
                                f"Delete {os.path.basename(error_log_path)}?\n\nThis cannot be undone."):
             try:
                 os.remove(error_log_path)
-                self.status_label.configure(text="Error log cleared.")
+                self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_error_log_cleared"))
             except OSError as e:
                 self._show_error(f"Could not delete error log: {e}")
 
@@ -1439,7 +1439,7 @@ class SearchMixin:
 
         # Report results.
         if not deleted and not failed:
-            self.status_label.configure(text="No files deleted.")
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_no_files_deleted"))
             return
 
         if failed:
@@ -1555,7 +1555,7 @@ class SearchMixin:
             all_choose_files.extend(cat_files)
 
         if not folders_with_files and not all_choose_files:
-            self.status_label.configure(text="No peekdocs files found to clear.")
+            self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_no_peekdocs_files_to_clear"))
             return
 
         # ── Popup ──
@@ -1772,7 +1772,7 @@ class SearchMixin:
                     except OSError:
                         pass
                 win.destroy()
-                self.status_label.configure(text=f"Deleted {deleted} file(s).")
+                self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_deleted_files_format").format(n=deleted))
                 self._hide_preview()
                 self._clear_action_buttons()
 
