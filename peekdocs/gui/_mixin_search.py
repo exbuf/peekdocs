@@ -486,10 +486,10 @@ class SearchMixin:
         # Show matched files link
         if self.matched_files:
             if self._inverse_results:
-                link_text = f"{len(self.matched_files)} File(s) Without Matches"
+                link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("files_without_matches_format").format(n=len(self.matched_files))
                 self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
             else:
-                link_text = f"{len(self.matched_files)} Matched File(s)"
+                link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=len(self.matched_files))
                 self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
@@ -620,7 +620,7 @@ class SearchMixin:
             self._excluded_files = []
         _excl_count = len(self._excluded_files)
         if _excl_count > 0:
-            self._excluded_files_btn.configure(text=f"{_excl_count} Excluded Files")
+            self._excluded_files_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("excluded_files_format").format(n=_excl_count))
             self._excluded_files_btn.pack(side="left", padx=(5, 0))
         else:
             self._excluded_files_btn.pack_forget()
@@ -678,10 +678,10 @@ class SearchMixin:
             # Show matched files link on status line
             if self.matched_files:
                 if self._inverse_results:
-                    link_text = f"{len(self.matched_files)} File(s) Without Matches"
+                    link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("files_without_matches_format").format(n=len(self.matched_files))
                     self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
                 else:
-                    link_text = f"{len(self.matched_files)} Matched File(s)"
+                    link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=len(self.matched_files))
                     self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
                 self._matched_files_link.pack(side="left", padx=(5, 0))
         elif returncode == 1:
@@ -706,10 +706,10 @@ class SearchMixin:
             # "matched files" style. Using red for non-inverse zero-match
             # runs made it look like Inverse was still on.
             if self._inverse_results:
-                link_text = "0 File(s) Without Matches"
+                link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("files_without_matches_format").format(n=0)
                 link_fg, link_hover = "#CC3333", "#AA2222"
             else:
-                link_text = "0 Matched File(s)"
+                link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=0)
                 link_fg, link_hover = "#FF6B35", "#E55A2B"
             self._matched_files_link.configure(
                 text=link_text, fg_color=link_fg, hover_color=link_hover,

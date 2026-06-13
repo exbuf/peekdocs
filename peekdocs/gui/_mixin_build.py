@@ -1200,7 +1200,8 @@ class BuildMixin:
         )
         self._matched_files_link.pack(side="left", padx=(5, 0))
         self._matched_files_link.pack_forget()  # Hidden until matches found
-        Tooltip(self._matched_files_link, "Click to see the list of files that matched — double-click a filename to open it, or use View Text to see the extracted content with highlighted matches. The number of files shown may be affected by the Max Matches setting in Advanced Search Options")
+        from peekdocs.i18n import t as _t_mf
+        self._matched_files_link_tooltip = Tooltip(self._matched_files_link, _t_mf("matched_files_tooltip"))
 
         self._excluded_files_btn = ctk.CTkButton(
             status_row, text="", font=ctk.CTkFont(size=10),
@@ -1210,7 +1211,7 @@ class BuildMixin:
         )
         self._excluded_files_btn.pack(side="left", padx=(5, 0))
         self._excluded_files_btn.pack_forget()  # Hidden until search completes
-        Tooltip(self._excluded_files_btn, "Click to see which files in the folder were skipped and why (unsupported type, prior peekdocs output, oversized, hidden, etc.) — explains any difference between your folder's file count and the number peekdocs searched")
+        self._excluded_files_btn_tooltip = Tooltip(self._excluded_files_btn, _t_mf("excluded_files_tooltip"))
 
 
         self.matched_files = []
@@ -1274,8 +1275,9 @@ class BuildMixin:
         self._lang_label.pack(side="right", padx=(10, 3))
 
         self._app_size_menu.pack(side="right", padx=(0, 10))
-        Tooltip(self._app_size_menu, "Adjust the overall app text size — changes all labels, buttons, and fields", anchor="left")
-        ctk.CTkLabel(preview_header, text="App Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(10, 3))
+        self._app_size_menu_tooltip = Tooltip(self._app_size_menu, __import__("peekdocs.i18n", fromlist=["t"]).t("app_size_tooltip"), anchor="left")
+        self._app_size_lbl = ctk.CTkLabel(preview_header, text=__import__("peekdocs.i18n", fromlist=["t"]).t("app_size_label"), font=ctk.CTkFont(size=11))
+        self._app_size_lbl.pack(side="right", padx=(10, 3))
 
         # Preview-only font size dropdown
         self._preview_font_size = 11
@@ -1287,8 +1289,9 @@ class BuildMixin:
             command=self._on_preview_size_changed,
         )
         preview_size_menu.pack(side="right")
-        Tooltip(preview_size_menu, "Adjust the font size of the Results Preview text only", anchor="left")
-        ctk.CTkLabel(preview_header, text="Preview Size:", font=ctk.CTkFont(size=11)).pack(side="right", padx=(0, 3))
+        self._preview_size_menu_tooltip = Tooltip(preview_size_menu, __import__("peekdocs.i18n", fromlist=["t"]).t("preview_size_tooltip"), anchor="left")
+        self._preview_size_lbl = ctk.CTkLabel(preview_header, text=__import__("peekdocs.i18n", fromlist=["t"]).t("preview_size_label"), font=ctk.CTkFont(size=11))
+        self._preview_size_lbl.pack(side="right", padx=(0, 3))
 
         preview_text_frame = tk.Frame(self.preview_frame)
         preview_text_frame.pack(fill="both", expand=True, padx=5, pady=(2, 5))
@@ -2217,6 +2220,9 @@ class BuildMixin:
             self._recent_btn.configure(text="▼ " + t("recent_searches_label"))
             # "Language:" label next to the picker.
             self._lang_label.configure(text=t("language_picker_label"))
+            # Preview-header size labels.
+            self._app_size_lbl.configure(text=t("app_size_label"))
+            self._preview_size_lbl.configure(text=t("preview_size_label"))
             # "3 Search Buttons — what’s the difference?" link under
             # the Run buttons.
             self._mode_compare_link.configure(text=t("mode_compare_link_label"))
@@ -2314,6 +2320,14 @@ class BuildMixin:
             self._save_to_collection_btn_tooltip.text = t("save_tooltip")
             self._load_search_btn_tooltip.text = t("reload_tooltip")
             self._mode_compare_link_tooltip.text = t("mode_compare_link_tooltip")
+            # Status-row count-button tooltips + preview-header size
+            # tooltips. The buttons' dynamic count text doesn't
+            # auto-update on language change — same caveat as the
+            # status label's dynamic messages.
+            self._matched_files_link_tooltip.text = t("matched_files_tooltip")
+            self._excluded_files_btn_tooltip.text = t("excluded_files_tooltip")
+            self._app_size_menu_tooltip.text = t("app_size_tooltip")
+            self._preview_size_menu_tooltip.text = t("preview_size_tooltip")
         except Exception:
             pass
         self._save_ui_preference("language", code)
