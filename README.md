@@ -1,5 +1,7 @@
 <h1 align="center">👀 peekdocs</h1>
 
+<p align="center"><strong>🇬🇧 English (full)</strong> · 🇪🇸 Español · 🇫🇷 Français · 🇩🇪 Deutsch · 🇯🇵 日本語 · 🇨🇳 简体中文 <em>(partial UI translation)</em></p>
+
 <p align="center">
   <a href="https://github.com/exbuf/peekdocs/actions/workflows/test.yml"><img src="https://github.com/exbuf/peekdocs/actions/workflows/test.yml/badge.svg" alt="Tests"></a>&nbsp;&nbsp;
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>&nbsp;&nbsp;
@@ -7,7 +9,7 @@
 </p>
 
 <details>
-<summary>🌍 <strong>Non-English speakers — short intro in your language</strong> (UI is partially translated; pick your language from the in-app picker)</summary>
+<summary>🌍 <strong>Español · Français · Deutsch · 日本語 · 简体中文</strong> — click to expand for intro in your language</summary>
 
 &nbsp;
 
