@@ -1245,13 +1245,28 @@ class BuildMixin:
         self._clear_preview_btn.pack(side="left", padx=(8, 0))
         self._clear_preview_tooltip = Tooltip(self._clear_preview_btn, _t("clear_preview_tooltip"))
 
-        # App-wide text size dropdown
+        # App-wide text size dropdown — values displayed in the
+        # active language, but the underlying _text_size_var (and the
+        # ~/.peekdocsrc preference) always stores the canonical
+        # English key ("Small" / "Normal" / "Large" / "Extra Large" /
+        # "Huge"). This way the saved-preferences format is stable
+        # across language changes, and the existing scales-dict
+        # lookup in _on_text_size_changed keeps working.
+        # `_TEXT_SIZE_KEYS` is the canonical English list (also used
+        # by the Tools-menu Text Size cascade). The reverse-lookup
+        # `_app_size_menu_pick` callback translates a localized
+        # display string back to its canonical English key.
+        self._TEXT_SIZE_KEYS = ["Small", "Normal", "Large", "Extra Large", "Huge"]
         self._app_size_menu = ctk.CTkOptionMenu(
-            preview_header, variable=self._text_size_var,
-            values=["Small", "Normal", "Large", "Extra Large", "Huge"],
+            preview_header,
+            values=[self._text_size_localized(k) for k in self._TEXT_SIZE_KEYS],
             width=110, font=ctk.CTkFont(size=11),
-            command=self._on_text_size_changed,
+            command=self._app_size_menu_pick,
         )
+        # Initial selection: show the localized variant of whatever
+        # the loaded preference says (defaults to "Normal" until
+        # _apply_settings runs and may override).
+        self._app_size_menu.set(self._text_size_localized(self._text_size_var.get() or "Normal"))
         # Language picker — packed side="right" FIRST so it claims the
         # rightmost edge of the preview header row. The App Size group
         # then packs side="right" to the left of it.
@@ -2145,6 +2160,36 @@ class BuildMixin:
         if code:
             self._set_language(code)
 
+    def _text_size_localized(self, canonical_key):
+        """Translate a canonical English text-size key (one of
+        ``Small`` / ``Normal`` / ``Large`` / ``Extra Large`` /
+        ``Huge``) into the active language's display string. Used to
+        build the App Size dropdown's `values` list."""
+        from peekdocs.i18n import t
+        key = "text_size_" + canonical_key.lower().replace(" ", "_") + "_label"
+        return t(key)
+
+    def _text_size_canonical(self, display_value):
+        """Reverse lookup — given a localized display string from the
+        App Size dropdown, return the canonical English key (or
+        ``"Normal"`` if no match). Lets the dropdown callback
+        translate the user's pick back to the stable internal value
+        before calling the scales-dict logic."""
+        for k in getattr(self, "_TEXT_SIZE_KEYS", ["Small", "Normal", "Large", "Extra Large", "Huge"]):
+            if self._text_size_localized(k) == display_value:
+                return k
+        return "Normal"
+
+    def _app_size_menu_pick(self, display_value):
+        """CTkOptionMenu callback for the App Size dropdown. Receives
+        the user's localized pick, maps it back to the canonical
+        English key, syncs `_text_size_var`, and calls the existing
+        `_on_text_size_changed` so the scales-dict lookup keeps
+        working unchanged."""
+        canonical = self._text_size_canonical(display_value)
+        self._text_size_var.set(canonical)
+        self._on_text_size_changed(canonical)
+
     def _set_language(self, code):
         """Switch the UI language for the four main-page Step labels +
         their tooltips. Experiment scope — only those eight strings are
@@ -2223,6 +2268,15 @@ class BuildMixin:
             # Preview-header size labels.
             self._app_size_lbl.configure(text=t("app_size_label"))
             self._preview_size_lbl.configure(text=t("preview_size_label"))
+            # App Size dropdown — rebuild values in the new language,
+            # then re-select the localized variant of the canonical
+            # English key currently held in _text_size_var.
+            try:
+                new_values = [self._text_size_localized(k) for k in self._TEXT_SIZE_KEYS]
+                self._app_size_menu.configure(values=new_values)
+                self._app_size_menu.set(self._text_size_localized(self._text_size_var.get() or "Normal"))
+            except Exception:
+                pass
             # "3 Search Buttons — what’s the difference?" link under
             # the Run buttons.
             self._mode_compare_link.configure(text=t("mode_compare_link_label"))

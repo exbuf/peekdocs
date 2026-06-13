@@ -278,6 +278,16 @@ _STRINGS = {
         "preview_size_tooltip": "Adjust the font size of the Results Preview text only",
         "app_size_label": "App Size:",
         "app_size_tooltip": "Adjust the overall app text size — changes all labels, buttons, and fields",
+        # App Size dropdown values. The internal stored value
+        # (~/.peekdocsrc + the _TEXT_SIZE_SCALES dict in _mixin_data)
+        # stays English; this is the localized display only. A
+        # reverse-lookup helper in _mixin_build maps the displayed
+        # string back to the canonical English key on selection.
+        "text_size_small_label": "Small",
+        "text_size_normal_label": "Normal",
+        "text_size_large_label": "Large",
+        "text_size_extra_large_label": "Extra Large",
+        "text_size_huge_label": "Huge",
     },
     "es": {
         "step_1_label": " Paso 1 ",
@@ -351,7 +361,7 @@ _STRINGS = {
         "reload_tooltip": "Cargar una búsqueda guardada de la colección de la carpeta en la GUI para revisarla, editarla o volver a ejecutarla",
         "adv_window_title": "Opciones avanzadas de búsqueda",
         "adv_and_mode_label": "Modo Y",
-        "adv_fuzzy_label": "Fuzzy",
+        "adv_fuzzy_label": "Aproximado",
         "adv_wildcard_label": "Comodín",
         "adv_ocr_label": "OCR",
         "adv_regex_label": "Regex",
@@ -391,6 +401,11 @@ _STRINGS = {
         "preview_size_tooltip": "Ajusta el tamaño de fuente del texto de Vista previa de resultados únicamente",
         "app_size_label": "Tamaño app:",
         "app_size_tooltip": "Ajusta el tamaño de texto general de la aplicación — cambia todas las etiquetas, botones y campos",
+        "text_size_small_label": "Pequeño",
+        "text_size_normal_label": "Mediano",
+        "text_size_large_label": "Grande",
+        "text_size_extra_large_label": "Extra grande",
+        "text_size_huge_label": "Enorme",
     },
     "fr": {
         "step_1_label": " Étape 1 ",
@@ -504,6 +519,11 @@ _STRINGS = {
         "preview_size_tooltip": "Ajuste la taille de police du texte d'Aperçu des résultats uniquement",
         "app_size_label": "Taille app :",
         "app_size_tooltip": "Ajuste la taille de texte globale de l'application — change toutes les étiquettes, boutons et champs",
+        "text_size_small_label": "Petit",
+        "text_size_normal_label": "Moyen",
+        "text_size_large_label": "Grand",
+        "text_size_extra_large_label": "Très grand",
+        "text_size_huge_label": "Énorme",
     },
     "de": {
         "step_1_label": " Schritt 1 ",
@@ -521,7 +541,7 @@ _STRINGS = {
         "regex_search_label": "Regex-Suche",
         "regex_search_tooltip": "Regex-Suche — öffnen Sie das Verwaltungs-Popup, um eine benannte Sammlung von Regex-Mustern zu erstellen, zu bearbeiten oder auszuführen. Das Popup bearbeitet bis zu 10 Muster gleichzeitig; Sammlungen auf der Festplatte sind unbegrenzt (die mitgelieferte Examples-Sammlung enthält 17). Jedes Muster wird separat mit Ergebnissen pro Muster ausgeführt. Die Schaltfläche Regex-Suche ausführen im Popup führt die sichtbaren Zeilen aus; Mehrere Sammlungen ausführen… (Schaltfläche unten) öffnet einen Kontrollkästchen-Picker über jede gespeicherte Sammlung — wählen Sie zwei oder mehr und führen Sie sie zusammen aus. Die Ergebnisse hängen von der Berichts-Einstellung im Popup ab.",
         "run_regex_search_label": "Regex-Suche ausführen",
-        "status_label": "Status:",
+        "status_label": "Suchstatus:",
         "status_tooltip": "Suchstatus — zeigt den Fortschritt während der Suche und eine Ergebniszusammenfassung nach Abschluss",
         "results_preview_label": "Ergebnisvorschau:",
         "results_preview_tooltip": "Live-Vorschau der Suchtreffer — auf die ersten 500 Zeilen begrenzt, damit die GUI bei Suchen, die Zehntausende von Treffern zurückgeben, reaktionsschnell bleibt. Die vollständige Trefferliste wird unabhängig von der Vorschau-Begrenzung immer in die Berichtsdateien (.txt, .docx, .html, .csv, .json, .pdf) geschrieben. Um die in den Berichten selbst gespeicherten Treffer zu begrenzen, setzen Sie Max. Treffer in den erweiterten Suchoptionen (Standard 1000; 0 = keine Begrenzung)",
@@ -537,9 +557,9 @@ _STRINGS = {
         "about_button_tooltip": "Über peekdocs — Version, Autor und Lizenzinformationen",
         "tools_button_label": "Werkzeuge",
         "tools_button_tooltip": "Dateiinventar, Duplikate, Große Dateien, Leere Dateien, Letzte Änderungen, Geschützte Dateien, Suchverlauf, Lesezeichen, App-Dateien und mehr. Linux: Maustaste gedrückt halten und ziehen, um auszuwählen — Klick zum Öffnen ist eine bekannte Einschränkung von Linux/tkinter",
-        "tooltips_on_label": "Tooltipps: AN",
-        "tooltips_off_label": "Tooltipps: AUS",
-        "tooltips_button_tooltip": "Hover-Text (Tooltipps) auf allen Schaltflächen und Steuerelementen aktivieren oder deaktivieren",
+        "tooltips_on_label": "Tooltips: AN",
+        "tooltips_off_label": "Tooltips: AUS",
+        "tooltips_button_tooltip": "Hover-Text (Tooltips) auf allen Schaltflächen und Steuerelementen aktivieren oder deaktivieren",
         "page_header_label": "Hauptseite",
         "search_options_label": "Such-\noptionen",
         "search_options_tooltip": "Suchoptionen, die für die Schaltfläche Standardsuche starten in der nächsten Zeile gelten: UND vs ODER, Rekursiv (Unterordner einbeziehen), Ganzes Wort, Index verwenden, plus Speichern / Neu laden der gesamten aktuellen Suche nach Namen. Für alles andere — Dateitypen, Ausschlussbegriffe, Bereichsfilter, Nähe, OCR, Kontextzeilen, Ausgabeformate — klicken Sie auf den Link Erweitert über dieser Zeile.",
@@ -577,7 +597,7 @@ _STRINGS = {
         "reload_tooltip": "Lädt eine gespeicherte Suche aus der Ordner-Sammlung in die GUI zur Überprüfung, Bearbeitung oder erneuten Ausführung",
         "adv_window_title": "Erweiterte Suchoptionen",
         "adv_and_mode_label": "UND-Modus",
-        "adv_fuzzy_label": "Fuzzy",
+        "adv_fuzzy_label": "Unscharf",
         "adv_wildcard_label": "Platzhalter",
         "adv_ocr_label": "OCR",
         "adv_regex_label": "Regex",
@@ -617,6 +637,11 @@ _STRINGS = {
         "preview_size_tooltip": "Passt nur die Schriftgröße des Ergebnisvorschau-Textes an",
         "app_size_label": "App-Größe:",
         "app_size_tooltip": "Passt die gesamte App-Textgröße an — ändert alle Beschriftungen, Schaltflächen und Felder",
+        "text_size_small_label": "Klein",
+        "text_size_normal_label": "Mittel",
+        "text_size_large_label": "Groß",
+        "text_size_extra_large_label": "Sehr groß",
+        "text_size_huge_label": "Riesig",
     },
     "ja": {
         "step_1_label": " ステップ 1 ",
@@ -650,8 +675,8 @@ _STRINGS = {
         "about_button_tooltip": "peekdocs について — バージョン、作者、ライセンス情報",
         "tools_button_label": "ツール",
         "tools_button_tooltip": "ファイルインベントリ、重複、大容量ファイル、空ファイル、最近の変更、保護されたファイル、検索履歴、ブックマーク、アプリファイルなど。Linux: マウスボタンを押しながらドラッグして選択 — クリックで開くのは Linux/tkinter の既知の制限です",
-        "tooltips_on_label": "ツールチップ: ON",
-        "tooltips_off_label": "ツールチップ: OFF",
+        "tooltips_on_label": "ツールチップ: オン",
+        "tooltips_off_label": "ツールチップ: オフ",
         "tooltips_button_tooltip": "すべてのボタンとコントロールのホバーテキスト (ツールチップ) を有効または無効にします",
         "page_header_label": "メインページ",
         "search_options_label": "検索\nオプション",
@@ -670,13 +695,13 @@ _STRINGS = {
         "clear_button_tooltip": "検索バーをクリア",
         "recent_searches_label": "最近の検索",
         "recent_searches_tooltip": "最近の検索を表示 — クリックして以前の検索を再利用します",
-        # Japanese Boolean operators kept as English uppercase — that's
-        # the prevailing convention in Japanese dev UIs and saves width
-        # vs. the 「かつ」/「または」 alternatives.
-        "and_label": "AND",
-        "and_tooltip": "AND モード — すべての検索語が同じ行に表示される必要があります。PDF/Word ドキュメントの場合、行は通常段落です。詳細検索オプションの AND モードと同期します",
-        "or_label": "OR",
-        "or_tooltip": "OR モード (デフォルト) — いずれかの検索語を含む行を見つけます。詳細検索オプションの AND モードと同期します",
+        # Japanese Boolean operators translated to native terms: かつ
+        # (and) and または (or). Tooltips reference both the native
+        # term and the English programming convention.
+        "and_label": "かつ",
+        "and_tooltip": "AND (かつ) モード — すべての検索語が同じ行に表示される必要があります。PDF/Word ドキュメントの場合、行は通常段落です。詳細検索オプションの AND モードと同期します",
+        "or_label": "または",
+        "or_tooltip": "OR (または) モード (デフォルト) — いずれかの検索語を含む行を見つけます。詳細検索オプションの AND モードと同期します",
         "recursive_label": "再帰的",
         "recursive_tooltip": "検索時にすべてのサブフォルダを含めます。詳細検索オプションの再帰的と同期します。これがオフでインデックスを使用しない場合、peekdocs は表示されているフォルダのみを検索します — サブフォルダは検索しません。インデックスがオンの場合、この設定に関係なく検索は常に再帰的です",
         "whole_word_label": "完全一致",
@@ -733,6 +758,11 @@ _STRINGS = {
         "preview_size_tooltip": "結果プレビューのテキストのフォントサイズのみを調整",
         "app_size_label": "アプリサイズ:",
         "app_size_tooltip": "アプリ全体のテキストサイズを調整 — すべてのラベル、ボタン、フィールドを変更",
+        "text_size_small_label": "小",
+        "text_size_normal_label": "標準",
+        "text_size_large_label": "大",
+        "text_size_extra_large_label": "特大",
+        "text_size_huge_label": "超大",
     },
     "zh-CN": {
         "step_1_label": " 第 1 步 ",
@@ -743,8 +773,6 @@ _STRINGS = {
         "step_3_tooltip": "运行标准搜索 — 点击以搜索文件夹中的所有文件",
         "step_4_label": " 第 4 步 ",
         "step_4_tooltip": "查看报告 — 打开高亮显示的结果报告。可在高级搜索选项中启用其他格式（CSV、JSON、PDF、HTML）",
-        # Boolean operator labels kept as English uppercase — prevailing
-        # convention in Chinese tech UIs for AND / OR.
         "run_standard_search_label": "\U0001f50d 运行标准搜索",
         "run_standard_search_tooltip": "使用当前的搜索词以及高级搜索选项中的所有设置（复选框、文件类型、排除词、范围过滤器、邻近等）运行标准搜索。对于基于模式的搜索（正则表达式集合、仅屏幕模式），请改用正则表达式搜索按钮。构建索引时，此按钮会变为红色并暂时禁用以避免冲突",
         "search_suites_label": "搜索套件",
@@ -788,10 +816,13 @@ _STRINGS = {
         "clear_button_tooltip": "清除搜索栏",
         "recent_searches_label": "最近搜索",
         "recent_searches_tooltip": "显示最近的搜索 — 点击以重用之前的搜索",
-        "and_label": "AND",
-        "and_tooltip": "AND 模式 — 所有搜索词必须出现在同一行中。对于 PDF/Word 文档，一行通常是一个段落。与高级搜索选项中的 AND 模式同步",
-        "or_label": "OR",
-        "or_tooltip": "OR 模式（默认）— 查找包含任何搜索词的行。与高级搜索选项中的 AND 模式同步",
+        # Chinese Boolean operators translated to native characters: 与
+        # (and) and 或 (or). Tooltips reference both the native and
+        # the English programming convention.
+        "and_label": "与",
+        "and_tooltip": "AND (与) 模式 — 所有搜索词必须出现在同一行中。对于 PDF/Word 文档，一行通常是一个段落。与高级搜索选项中的 AND 模式同步",
+        "or_label": "或",
+        "or_tooltip": "OR (或) 模式（默认）— 查找包含任何搜索词的行。与高级搜索选项中的 AND 模式同步",
         "recursive_label": "递归",
         "recursive_tooltip": "搜索时包括所有子文件夹。与高级搜索选项中的递归同步。如果未勾选此项且未使用索引，peekdocs 只搜索显示的文件夹 — 不搜索子文件夹。勾选索引后，无论此设置如何，搜索始终是递归的",
         "whole_word_label": "全词匹配",
@@ -848,6 +879,11 @@ _STRINGS = {
         "preview_size_tooltip": "仅调整结果预览文本的字体大小",
         "app_size_label": "应用大小：",
         "app_size_tooltip": "调整整个应用程序的文本大小 — 更改所有标签、按钮和字段",
+        "text_size_small_label": "小",
+        "text_size_normal_label": "标准",
+        "text_size_large_label": "大",
+        "text_size_extra_large_label": "特大",
+        "text_size_huge_label": "巨大",
     },
 }
 
