@@ -13,6 +13,8 @@ Check the [FAQ and Troubleshooting](docs/TROUBLESHOOTING.md) first — your issu
 
 **Looking for somewhere to start?** Browse the open issues for any tagged `good first issue` or `help wanted`, or pick anything that catches your eye and mention in the issue that you'd like to take it on.
 
+**Translation contributions.** peekdocs ships an experimental partial i18n surface in five languages (English, Español, Français, Deutsch, 日本語). The initial translations were AI-authored — native-speaker corrections are explicitly welcomed. See [CONTRIBUTING_i18n.md](CONTRIBUTING_i18n.md) for what's already translated, how to fix existing translations, and how to add a new language.
+
 ## Pull Requests
 
 PRs are welcome, but please open an issue first to discuss the change. This avoids duplicate work and ensures the change fits the project's direction.
