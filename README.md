@@ -742,7 +742,8 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
 | [Glossary](docs/GLOSSARY.md) | 82 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
-| [Security](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |
+| [Security architecture](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |
+| [Reporting security issues](SECURITY.md) | Vulnerability-reporting policy — preferred channel, supported versions, scope, expected response timing |
 | [Changelog](CHANGELOG.md) | Version history and release notes |
 | [Contributing](CONTRIBUTING.md) | How to report bugs, suggest features, and submit code |
 
@@ -975,7 +976,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
 | **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install --force git+https://github.com/exbuf/peekdocs.git`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
 
-*For the deep dive — every file peekdocs writes (path, contents, sensitivity rating, cleanup), plus a documented list of risks that are outside the application's control (process arguments, swap space, force-kill, backup software, etc.) — see **[docs/SECURITY.md](docs/SECURITY.md)**.*
+*For the deep dive — every file peekdocs writes (path, contents, sensitivity rating, cleanup), plus a documented list of risks that are outside the application's control (process arguments, swap space, force-kill, backup software, etc.) — see **[docs/SECURITY.md](docs/SECURITY.md)**. To report a suspected vulnerability, see **[SECURITY.md](SECURITY.md)** at the repository root.*
 
 ## Testing
 
