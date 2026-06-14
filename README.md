@@ -7,7 +7,7 @@
 </p>
 
 <details>
-<summary>🌍 <strong>🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</strong> — click for intro in your language <em>(partial UI translation)</em></summary>
+<summary>🌍 <strong><font size="5">🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</font></strong> — click for intro in your language <em>(partial UI translation)</em></summary>
 
 &nbsp;
 
