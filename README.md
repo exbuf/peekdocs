@@ -299,123 +299,7 @@ peekdocs --suite "Code hygiene"
 
 ### Labeled walkthroughs
 
-*Each section below pairs annotated screenshots with a description of the moment captured — useful for slowing down what the videos above show in motion, or for readers who'd rather scan stills than watch a clip.*
-
-#### 1. Same search, three interfaces — plus the report
-
-One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Python API), followed by the highlighted Word report a standard search auto-produces alongside the on-screen results.
-
-**(a) GUI — main page searching for `TODO` across a source tree.** Index-backed search returned 69 matches in 54 files (out of 442 files / 806 MB scanned) in 0.51 seconds. Every match is highlighted in yellow with surrounding context.
-
-![Main page searching for TODO](docs/images/screenshot-main-page-TODO.png)
-
-> **Tip — can't find a file you expected?** The Results Preview is a scrollable window into the matched set, ordered alphabetically by file path. Broad searches (OR mode with a short common word like `dr` or `id`) can return hundreds of files, so the specific one you were looking for may be lower in the list. Click the **Matched File(s)** link on the status line for the complete list, or open the `.docx` / `.html` report for every match across every file. The simplest narrowing is **quoted phrase search** — type `"Dr. Bowling"` in the search bar for an exact-phrase match instead of OR'ing each word. See [the FAQ](docs/TROUBLESHOOTING.md) for AND / proximity / expression variants.
-
-**(b) CLI — same search from the terminal.** Same folder, same Whole Word + indexed mode, same 69 matches in 54 files. Quiet output (`-qq`) keeps the screenshot to the headline numbers; stderr redirected so optional-format warnings don't clutter the frame. The 0.50-second elapsed time is the *second* run — the first search took about 44 seconds while peekdocs built the index for this folder. Every subsequent search uses the warm index and runs in milliseconds (see [First-run timing](#first-run-timing-and-the-banner-notice) for details).
-
-![CLI searching for TODO](docs/images/screenshot-CLI-TODO.png)
-
-**(c) Python API — same search from a script or notebook.** The same engine is exposed as a library: `from peekdocs import search` returns a typed `SearchResult` of `SearchMatch` dataclasses (`file_dir`, `filename`, `line_num`, `text`) — no parsing strings out of CLI output. Drop it into a Jupyter notebook, a script, or any Python program. Same index, same matches; the in-process call also runs faster than the CLI (~`0.3`-second vs. `0.50`) because there's no subprocess startup cost.
-
-![peekdocs Python API in a Jupyter notebook](docs/images/screenshot-python-api.png)
-
-**(d) Word report — the shareable artifact.** Every search automatically produces `peekdocs_standard_results.docx` alongside the .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) — the screenshot below is LibreOffice. peekdocs avoids opening reports in cloud-based apps like Google Docs or Apple Pages (see Report security below). Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options) — these apply to Standard Search only. Search Suites have their own format picker inside the Suites popup, and Regex Search always writes just TXT and DOCX.
-
-![TODO results opened in LibreOffice](docs/images/screenshot-TODO-LibreOffice.png)
-
-#### 2. Advanced Search Options — every option in one GUI panel
-
-The CLI flags this README mentions — `--regex`, `--fuzzy`, `--whole-word`, `--ocr`, `--exclude`, `-t` (file types), `--range`, `--max-file-size`, `--output-dir`, `--timestamp`, CSV/JSON/PDF/HTML output, and so on — every one of them has a checkbox or field in the **Advanced Search Options** panel under the main search bar. Click the panel header on the main page to expand it. As the note at the top says: *"All searches are based on this screen and the Search Terms on the main screen. Your selections take effect immediately on the next search."* **Save As Defaults** persists the current configuration to `~/.peekdocsrc` for the next session; **Restore Factory Settings** clears it. Hover any control for a tooltip describing what it does.
-
-![Advanced Search Options panel](docs/images/screenshot-advanced-screen.png)
-
-#### 3. Regex Search — full workflow
-
-A four-shot tour through the Regex Search popup using a saved collection of 10 common code patterns (URL, IPv4 address, Local port, ISO date, UPPER_CASE constant, Python decorator, Email, Semver version, UUID, Markdown link).
-
-**(a) Setup.** All 10 patterns enabled, recursive search across the same 452-file folder.
-
-![Regex Search setup](docs/images/screenshot-regex-search.png)
-
-**(b) Results.** 1,402,532 matches across 452 files in 20.7 seconds, broken down per pattern. Each row has a **View Files** button to drill into that pattern's hits.
-
-![Regex Search results](docs/images/screenshot-regex-search-results.png)
-
-**(c) Drilling in.** Clicking **View Files** on the "Local port" row (above) narrows from millions of matches down to the one file containing `localhost:<port>` — a `Dockerfile`, with 2 matches on lines 19 and 25.
-
-![Files containing Local port matches](docs/images/screenshot-regex-localport.png)
-
-**(d) Context view.** Clicking **View Text (with line numbers)** opens the file with matches highlighted in yellow — here, `localhost:5432` and `localhost:8080` show up as hardcoded values that should probably come from environment variables. Reviewable in context, no leaving the GUI.
-
-![Dockerfile text view with highlighted matches](docs/images/screenshot-regex-textview-dockerfile.png)
-
-#### 4. Search Suites — recurring multi-search workflows
-
-Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
-
-**(a) Setup.** Five saved searches (`TODO`, `FIXME`, `HACK` with Whole Word on; `print(` and `console.log(` with Whole Word off — same kit, different option per search). Run order is top-to-bottom; the Up/Down buttons reorder. HTML output added to the always-on TXT and DOCX defaults.
-
-![Search Suites setup](docs/images/screenshot-searchsuite-setup.png)
-
-**(b) Results on the main page.** 237 total matches across 177 files in 7.1 seconds. The Section summary at the top of the combined report lists every search's match count up front — no scrolling through 69 TODO matches to discover there were 7 `console.log` hits at the bottom.
-
-![Suite results in the main-page preview](docs/images/screenshot-searchsuite-result-mainpage.png)
-
-**(c) HTML report opened in the browser.** Same Section summary at the top, but each entry is a clickable anchor link that jumps to that section. Yellow match highlighting throughout. The report is a single self-contained file on disk — nothing uploaded, nothing requires the GUI to view.
-
-![Suite HTML report](docs/images/screenshot-searchsuite-result-html.png)
-
-**What this demo proves**, in three shots:
-
-- Same source tree, **five distinct questions** answered in one click.
-- **Per-search settings** — three searches with Whole Word on, two with it off. A regex collection couldn't express that mix as cleanly.
-- **Combined report** with sections per saved search, plus the Section summary up front so the smallest result count is as visible as the largest.
-- **Real workflow** — every developer recognizes this as their actual pre-commit / pre-PR sanity check, not a contrived demo.
-
-#### 5. Diff Snapshots — what changed between two scans
-
-For users who want to know not just *what's in my documents* but *what changed since last time*: the **Diff Snapshots** tool compares two peekdocs JSON snapshots and reports what's NEW, CHANGED, UNCHANGED, or REMOVED. Useful for periodic source-tree scans and any "is the situation better or worse than last week?" question.
-
-**(a) Finding it.** Tools menu in the lower-right corner of the main page. Lists every Tools-menu feature in plain English; **Diff Snapshots** is between **Bookmarks** and **Indexes**.
-
-![Tools menu](docs/images/screenshot-tools-menu.png)
-
-<p align="center"><b>Tools</b></p>
-
-**(b) Comparing two snapshots.** Picked two snapshots of a `TODO` search captured before and after a small code change: one new file gained a TODO, one existing file went from 1 to 2 TODOs. The result pane shows the three distinct categories in color (green NEW, orange CHANGED, muted UNCHANGED summary) plus a red status line at the top — *"Actionable changes: 1 new, 1 changed, 0 modified."*
-
-![Diff Snapshots popup with results](docs/images/screenshot-diff-snapshots.png)
-
-Both snapshot JSON files used in this demo are checked into `docs/images/` (`peekdocs-snapshot-todo-before.json` and `peekdocs-snapshot-todo-after.json`) so a reader can download them and try the diff themselves. Snapshots were generated with:
-
-```bash
-peekdocs TODO -W -r --hash --stdout > peekdocs-snapshot-todo-before.json
-# ... time passes, files change ...
-peekdocs TODO -W -r --hash --stdout > peekdocs-snapshot-todo-after.json
-peekdocs --diff peekdocs-snapshot-todo-before.json peekdocs-snapshot-todo-after.json
-```
-
-**To preserve snapshots across recurring runs** (so you can diff today's against last week's), either redirect each run to a unique filename — `> snapshot_$(date +%F).json` in a POSIX shell, or the equivalent date-stamped form in PowerShell — or add `--timestamp -o json` so peekdocs appends `_YYYYMMDD_HHMMSS` to its output filenames automatically. Without one of those, each run overwrites the previous JSON and there's nothing to diff against. The **Schedule Search** dialog enables `--timestamp` by default for exactly this reason.
-
-The same diff is also available as a CLI command — see [Automation and IT Use → Diff between runs](docs/USER_GUIDE.md#diff-between-runs) in the User Guide for the scheduled-scan use case.
-
-#### 6. Schedule Search — generate a ready-to-paste cron / Task Scheduler command
-
-For recurring scans (nightly source-tree sweeps, weekly code-hygiene runs, monthly project sweeps), **Tools → Schedule Search** generates the scheduler command for you. Pick a Search Suite or Regex Collection, choose a folder, set the frequency (daily, weekly, monthly), and the dialog writes a complete `cd … && peekdocs …` one-liner with the right flags already in place — including `--timestamp` so each run's report is preserved instead of overwritten. Copy to Clipboard, then paste into `crontab -e` (Mac/Linux) or Task Scheduler (Windows). Step-by-step instructions for both Mac/Linux and Windows are shown right below the command box, with your current OS's steps listed first.
-
-![Schedule Search dialog generating a cron command](docs/images/screenshot-schedule-search.png)
-
-#### 7. `peekdocs --check` — operational health probe
-
-For IT staff, scheduled jobs, and anyone wrapping peekdocs in automation: `peekdocs --check` verifies the installation in one shot. Reports the peekdocs version, Python version, OS, every required and optional dependency with its installed version, Tesseract (the OCR engine), SQLite version, and free disk space. Exit code 0 = everything healthy, exit code 2 = something missing. Run it once after install and at the start of any deployment script — and at the top of any scheduled command from the dialog above to fail fast on a broken environment.
-
-![peekdocs --check output](docs/images/screenshot-check-output.png)
-
-The search bar covers the common case; for more, peekdocs has regex, Boolean logic, range queries, fuzzy matching, wildcards, proximity search, a command-line interface, and a Python API.
-
-Searches text in any language (Unicode-based; see [Multilingual notes](docs/USER_GUIDE.md#multilingual-support) for caveats). Runs on Windows, macOS, and Linux. No fees, no subscriptions, no cloud. Everything stays on your computer. Nothing is uploaded anywhere. Your files are not altered or deleted. Free and open-source.
-
-**[See peekdocs in action →](https://robertdschoening.com/peekdocs)**
+Seven annotated screenshot tours — *Same search, three interfaces* / *Advanced Search Options* / *Regex Search* / *Search Suites* / *Diff Snapshots* / *Schedule Search* / *`peekdocs --check`* — live in **[docs/WALKTHROUGHS.md](docs/WALKTHROUGHS.md)**. Useful for slowing down what the videos above show in motion, or for readers who'd rather scan stills than watch a clip.
 
 ## Who Is It For?
 
@@ -496,75 +380,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 
 </details>
 
-**What makes peekdocs different:**
-
-- **[100+ file types at once](#supported-file-types)** — Word, PDF, Excel, PowerPoint, email (.eml, .msg, .pst), archives (.zip, .7z, .rar), source code, engineering files, e-books, calendars, contacts, and more. All searched simultaneously in a single pass. **Note:** `.pst` requires `libpff-python` (no Windows wheel) and `.rar` requires the `unrar` tool — both covered in [Prerequisites](#prerequisites).
-- **Highlighted Results**
-  Matches are highlighted in two ways:
-  - **1) Results Preview (in-app):**
-    - See matches right inside peekdocs
-    - Right-click to copy text
-    - Double-click a filename to open the file
-  - **2) Word Report (.docx):**
-    - Standalone document with all matches highlighted in yellow
-    - Organized by file with surrounding context, search metadata, and match counts
-    - Easy to save, print, email, or share
-  - Both views show the same matches: Preview = quick scanning, Report = saving and sharing
-  - **How matches are displayed:**
-    - Word documents and PDFs: full paragraph is shown (based on text extraction)
-    - Plain text files: individual lines are shown
-    - Use Context Lines (Advanced Search Options) to include extra lines before/after matches
-    - The yellow highlighting makes a real difference when reviewing large result sets — your eyes go straight to the matches instead of reading every line
-  - **Other output options:**
-    - A plain-text (.txt) report is generated automatically
-    - Optional formats: CSV, JSON, PDF, HTML
-  - **No Microsoft Word?**
-    - Enable HTML output in Advanced Search Options
-    - Click the HTML button to open the highlighted report in your browser
-    - The file is stored locally — nothing is uploaded or shared
-  - **Compatibility and privacy:**
-    - The `.docx` report opens in Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free)
-    - peekdocs avoids opening reports in Google Docs, Apple Pages, or other cloud-based apps that may upload your data
-- **Regex Search** — run custom regex patterns from a dedicated popup (GUI) or via `peekdocs --regex-collection NAME` (CLI) / `run_regex_collection()` (Python API), each pattern executed separately with per-pattern results and status updates. The popup edits up to 10 patterns at a time; each has a name and regex field, with row settings saved across sessions. Create unlimited named collections (**Save Collection As** / **Restore From Collection**) to maintain separate profiles for different tasks — "code patterns", "log analysis", "invoice extraction", etc. Saving distinguishes CREATE (new name) from OVERWRITE (typed-or-pre-filled existing name, case-insensitive match) from ADD (clicked an existing entry in the popup's list, which appends). Per-row red **−** button removes a pattern from the visible workbench; persist the change via Save → same name. Whole Word toggle wraps each enabled pattern with `\b(?:…)\b` at run time. **Run Multiple Collections…** at the bottom of the popup lets you check two or more saved collections and run them all in one search — no row cap, results in the popup are prefixed with their source collection (e.g. `[Examples] Email address`). Results popup has **Open TXT** / **Open DOCX** / **Open Folder** buttons for one-click access to the saved reports, plus per-pattern **View Files** / **View Text** buttons. Cancel stops the search between patterns. Check "Do not save regex match contents to reports" for a screen-only run. Always scans files directly (index is bypassed) to ensure current results. The ? help includes 50 common regex patterns to copy and paste, plus three numbered workflows (Remove patterns from a collection / Append patterns from one collection to another / Run two or more collections together). Note: you can also run a single regex search via Standard Search (check "Regex" in Advanced Search Options) — Standard Search supports all 12 search modes (AND, Boolean, fuzzy, wildcard, proximity, etc.) that the Regex Search popup does not.
-- **12 search modes** — plain keywords, quoted phrases (`"annual report"` as a single unit), AND/OR, Boolean expressions (`(budget OR revenue) AND NOT draft`), regex, wildcards, fuzzy matching (typo-tolerant), whole-word, word proximity (terms within N words on the same line), line proximity (terms within N lines of each other), inverse search (find files that DON'T contain a term), and range queries (filter by dollar amounts, dates, percentages, ages, file sizes).
-- **Three interfaces** — point-and-click GUI (`peekdocs-gui`), terminal CLI (`peekdocs`), and Python API (`from peekdocs import search`). All search modes work from all three interfaces except the Search Wizard, which is GUI-only. Use the GUI for daily work, the CLI for scripting, the API for integration.
-- **Scanned documents** — OCR reads text from scanned PDFs and images (.jpg, .png, .tiff, .bmp). Tesseract (free, open-source) must be installed separately — but once it is, peekdocs handles the rest. *OCR accuracy depends on source quality: clean printed pages and modern scanner output extract well; handwriting, low-resolution scans, faxed pages, and documents with complex multi-column layouts may extract poorly or partially.*
-- **Search inside archives** — searches inside .zip, .7z, and .rar files without extracting them first. Find a document buried in a compressed backup without unzipping anything.
-- **Multi-folder search** — search across multiple top-level folders at once using the +Folder button, with optional recursive searching into subfolders. Results are combined from all folders. With recursive mode, you can even search your entire computer from a single search — point it at your root folder and peekdocs will search every supported file on the drive (system files that can't be read are logged and skipped).
-- **Search Wizard** — configures complex searches for you with 20 pre-built search types (keywords, Boolean, fuzzy, proximity, dollar ranges, dates, phone numbers, and more) plus a separate regex pattern builder offering 35 named patterns across 6 tabs (one general, five profession-themed: Business/Finance, Legal, Engineering/Technical, Real Estate, HR/Admin). Pick a type, click Apply — no regex to write.
-- **Save and reload searches** — save a configured search by name and reload it later with one click. Each folder has its own collection of saved searches.
-- **Search Suites** — group multiple saved searches into a named suite and run them all at once with a single click. Each search runs independently with its own settings, and results are organized by search in a single combined highlighted report. Choose your output formats (TXT and DOCX are always generated; HTML, CSV, JSON, and PDF are optional — select them in the Search Suites popup). Create suites for recurring tasks like pre-publication checks, quarterly content sweeps, onboarding handoffs, or any workflow that involves the same set of searches. **Run Multiple Search Suites…** at the bottom of the popup opens a checkbox picker over every saved suite — check two or more and run them together as one combined report (saved-search names that appear in multiple picked suites run only once; duplicate searches don't re-run). The multi-suite run ends with an explicit confirmation popup listing the resolved report paths with **Open TXT** / **Open DOCX** / **Open Folder** buttons so it's unambiguous which run produced the reports currently on disk. Suites are stored per folder, but the CLI finds them by name from anywhere: `peekdocs --suite "My Suite"` auto-locates the folder it was saved in, and `peekdocs --list-suites` shows every suite and where it lives. Available from the GUI (green **Search Suites** button on the main screen) and CLI.
-- **Search index** — optional SQLite FTS5 index for faster repeated searches. Build once, search in typically sub-second time on most folders. Auto-refresh keeps the index current when files change.
-- **Built-in file analysis tools** — the Tools menu includes:
-  - **Collection Summary** — one-page overview combining file count, total size, oldest / newest, top file types, searchability breakdown, age distribution, largest files, and recent activity counts (fast, single-pass).
-  - **File Inventory** — summary by type / size / date.
-  - **File Age Distribution** — histogram of files by modification age. Useful for archives, document collections, and personal files.
-  - **Duplicate Finder** — identical files by content hash.
-  - **Large Files**, **Empty Files**, **Recent Changes** — quick filters on size and modification time.
-  - **Protected Files** — password-encrypted file detection.
-  - **Unsearchable Files** — categorizes everything peekdocs cannot search (unsupported type, oversized relative to Max File Size, hidden / OS metadata, peekdocs-created) with counts per category.
-  - **Search History** — automatic log of past searches.
-  - **Bookmarks** — pin files for quick access.
-  - **View All peekdocs Files** — lists every file peekdocs has created in the folder (results, reports, indexes, saved searches), so you always know what's yours and what's peekdocs'.
-- **Offline and private** — your documents never leave your computer.
-  - peekdocs never uploads, transmits, alters, moves, or deletes your files
-  - No cloud, no accounts, no subscriptions, no internet connection required
-  - **Safe report handling:**
-    - Reports (.docx, .pdf, .csv, .json) are opened only in trusted local applications
-    - peekdocs launches installed programs directly (e.g., Microsoft Word, LibreOffice, Adobe Reader), bypassing the operating system's default file handler
-    - Cloud-based apps (e.g., Google Docs, Apple Pages) are never used by peekdocs
-  - **Protection against cloud syncing:**
-    - If your output folder is inside a cloud-synced directory (OneDrive, Google Drive, iCloud Drive, Dropbox), peekdocs automatically redirects reports to a local folder (`~/peekdocs_reports`)
-    - This allows you to search cloud-synced documents without uploading report files
-  - **Automatic cleanup:**
-    - Enable **Delete on Close** to remove all result files when the app closes
-- **Report security** — peekdocs takes steps to reduce the risk of your search results being exposed. Reports are opened in safe local applications rather than cloud-based viewers like Google Docs or Apple Pages. If your search folder is inside OneDrive, Google Drive, iCloud Drive, or Dropbox, peekdocs automatically redirects report output to a safe local folder (`~/peekdocs_reports`) — your documents are still searched, but no report files are written to the cloud-synced location. The status line tells you where reports were saved and why. **Delete on Close** automatically removes result files when you close the app. **Clear History on Close** clears your search history and recent searches (useful if a search term you'd rather not leave on disk has been typed). **Clear Preview** wipes the Results Preview pane on demand. **Wipe Session** (Tools → Clear Files → Wipe Session tab) immediately deletes result files, clears the preview, and wipes search history in one click — useful if you don't close the app regularly. If your search term matches certain numeric ID patterns, peekdocs warns you before proceeding because that term will appear in report files. See [For IT and Security Teams](#for-it-and-security-teams) for details.
-- **Network folders** — search documents on a shared network drive just like a local folder. Map or mount the network share (e.g., `Z:\` on Windows, `/Volumes/` on macOS) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
-- **Cross-platform** — Windows, macOS, and Linux. Tested on all three.
-- **Performance** — 1,000 mixed-format documents (PDFs, Word, Excel, email) searched in ~1 second. 105 real Word docs (1.9 GB) in 4 seconds (0.24 seconds with index). See [Performance](#performance) for detailed benchmarks.
-- **Help everywhere** — every screen has a **?** button that opens a detailed help page explaining all the features on that screen. Every data field, button, and checkbox has a hover tooltip that explains what it does. No need to open the manual — the answers are right where you need them. Toggle tooltips on/off with the **Tooltips: ON/OFF** button on the bottom row of the main screen. Saved automatically.
-- **Adjustable text size** — five sizes from Small to Huge, accessible from the Tools menu. All text, labels, and buttons scale together. Helpful for users with low vision or high-DPI displays. Saved automatically.
-- **Dark mode** — switch between Dark, Light, or System (follows your OS setting) from the Tools menu. Saved automatically. Note: on Windows, popup windows may briefly flash white before the dark theme is applied — this is a normal Windows/tkinter limitation, not a bug. If the flashing is distracting, switch to Appearance: Light in the Tools menu.
+The full per-feature breakdown lives in the **[Features](#features)** section below — search modes, reporting, analysis tools, automation, privacy. The [Feature Highlights](#feature-highlights) up top is the executive summary; this is the detailed reference.
 
 ## Features
 
@@ -670,7 +486,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 | **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
 | **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
 
-**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 17 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
+**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
 ### Option A: Standalone Download (no Python needed)
 
@@ -814,7 +630,7 @@ After that combination, no trace of peekdocs remains on your machine.
 
 ## Quick Start
 
-**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total). No setup beyond installing peekdocs.
+**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 41 extensions in total). No setup beyond installing peekdocs.
 
 ### GUI
 
@@ -912,7 +728,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
-| [Glossary](docs/GLOSSARY.md) | ~70 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, and more |
+| [Glossary](docs/GLOSSARY.md) | 82 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Security](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |
 | [Changelog](CHANGELOG.md) | Version history and release notes |
@@ -1129,7 +945,7 @@ Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com
 
 ## Glossary
 
-The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and ~70 more — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
+The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 82 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
 
 ## For IT and Security Teams
 
@@ -1151,7 +967,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 
 ## Testing
 
-**Unit tests** — 630 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
+**Unit tests** — 648 pytest tests that verify correctness: exact match counts, error messages, edge cases, argument validation, regex patterns, expression parsing, range queries, and more.
 
 ```bash
 pytest tests/ -v
