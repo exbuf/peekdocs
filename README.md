@@ -7,7 +7,7 @@
 </p>
 
 <details>
-<summary>🌍 <strong>🇪🇸 Español · 🇫🇷 Français · 🇩🇪 Deutsch · 🇯🇵 日本語 · 🇨🇳 简体中文 · 🇧🇷 Português brasileiro</strong> — click for intro in your language <em>(partial UI translation)</em></summary>
+<summary>🌍 <strong>🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</strong> — click for intro in your language <em>(partial UI translation)</em></summary>
 
 &nbsp;
 
