@@ -449,7 +449,10 @@ def write_csv_report(output_path, matches, inverse_files=None):
     """Write the .csv result report."""
     if os.path.exists(output_path):
         os.remove(output_path)
-    with open(output_path, "w", newline="", encoding="utf-8") as f:
+    # utf-8-sig writes a UTF-8 BOM so legacy Excel on Windows reads
+    # accented characters correctly instead of as cp1252 mojibake.
+    # No effect on LibreOffice, Excel 365, or any text-based tooling.
+    with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         if inverse_files is not None:
             writer.writerow(["filename", "folder"])

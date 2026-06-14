@@ -5989,7 +5989,10 @@ class ToolsMixin:
                     for s in sections:
                         for fd, fn, ln, text in s["matches"]:
                             all_matches.append((fn, fd, ln, text, s["search_name"]))
-                    with open(csv_path, "w", newline="", encoding="utf-8") as cf:
+                    # utf-8-sig writes a UTF-8 BOM so legacy Excel on
+                    # Windows reads accented characters correctly. No
+                    # effect on LibreOffice, Excel 365, or text tooling.
+                    with open(csv_path, "w", newline="", encoding="utf-8-sig") as cf:
                         writer = _csv_s.writer(cf)
                         writer.writerow(["search_name", "filename", "folder", "line_number", "matched_text"])
                         for fn, fd, ln, text, sn in all_matches:

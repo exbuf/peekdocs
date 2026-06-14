@@ -2114,7 +2114,8 @@ def test_output_csv(tmp_path, capsys, monkeypatch):
 
     csv_path = tmp_path / "peekdocs_standard_results.csv"
     assert csv_path.exists()
-    with open(csv_path) as f:
+    # utf-8-sig strips the BOM that the writer emits for Excel-on-Windows
+    with open(csv_path, encoding="utf-8-sig") as f:
         reader = csv.reader(f)
         rows = list(reader)
     assert rows[0] == ["filename", "folder", "line_number", "matched_text"]
