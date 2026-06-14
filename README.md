@@ -6,6 +6,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
+<p align="center"><sub><em>Actively maintained — last reviewed June 2026.</em></sub></p>
+
 <details>
 <summary>🌍 <strong><font size="5">🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</font></strong> — click for intro in your language <em>(partial UI translation)</em></summary>
 
