@@ -1,0 +1,83 @@
+peekdocs Regex Wizard — sample text for the Regex Tester
+
+This file exercises at least one match for each of the 35 patterns
+across all six Regex Wizard categories (25 distinct patterns; the
+duplicates — Date, Dollar Amount, Phone, Email — are picked up in
+the Common / General section so the other sections stay concise).
+
+To use: open Tools → Regex Tester, click the Load File button and
+pick this file, then either type a pattern by hand or click
+"Pick from Wizard…" and choose patterns category-by-category to see
+each one highlight a different element below.
+
+
+═══════════════════════════════════════════════════════════════════
+Common / General
+═══════════════════════════════════════════════════════════════════
+
+Meeting scheduled for 06/14/2026 at the Sutter Street office; the
+confirmation memo is dated 2026-06-14. Total quoted at $1,250.00
+with a 12.5% deposit due on signing. Direct line is (415) 555-0123 —
+leave voicemail or email coordinator@example.com. Reference internal
+document ID 482371 in the response.
+
+
+═══════════════════════════════════════════════════════════════════
+Business / Finance
+═══════════════════════════════════════════════════════════════════
+
+Vendor submitted invoice INV-48921 against purchase order PO-22781
+last Tuesday. Customer service confirmed the refund was credited to
+Acct # 559203 on the same day.
+
+
+═══════════════════════════════════════════════════════════════════
+Legal
+═══════════════════════════════════════════════════════════════════
+
+Matter docketed as 24-CA-0581 was reassigned to Department 7 last
+week. The contract references § 215 of the prevailing code; see
+also No. 24-3917 in the prior filing. Discovery production stamped
+SMITHCO000582 includes the disputed exhibit.
+
+
+═══════════════════════════════════════════════════════════════════
+Engineering / Technical
+═══════════════════════════════════════════════════════════════════
+
+Replacement part XK-44821 (Rev. B2) ships with the updated fixture,
+drawing DWG-114002. Bore diameter measured 120 mm with a tolerance
+of ±0.05; pressure rating 300 psi. Unit shipped with serial
+S/N: ABC-99821 attached to the housing.
+
+
+═══════════════════════════════════════════════════════════════════
+Real Estate
+═══════════════════════════════════════════════════════════════════
+
+Parcel 412-058-007 covers Lot 14 of the original subdivision plat
+(2,450 sq ft of living area). Listing MLS#8821055 expires at
+month-end.
+
+
+═══════════════════════════════════════════════════════════════════
+HR / Admin
+═══════════════════════════════════════════════════════════════════
+
+New hire Emp # 4099 to start Monday; contact details on file.
+
+
+═══════════════════════════════════════════════════════════════════
+Notes
+═══════════════════════════════════════════════════════════════════
+
+- The (415) 555-0123 phone uses the 555 reserved-fiction prefix —
+  not a real number.
+- Bates Number "SMITHCO000582" requires no separator between letters
+  and digits, which is why other identifiers like PO-22781 don't
+  accidentally trigger it.
+- "MLS#8821055" is written without a space because the regex allows
+  exactly one separator character (# or whitespace), not both.
+- Invoice "INV-48921" is single-segment for the same reason — the
+  pattern stops at the first non-digit, so "INV-2026-0042" would
+  only highlight up through "INV-2026".
