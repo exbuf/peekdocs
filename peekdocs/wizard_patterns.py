@@ -33,11 +33,23 @@ WIZARD_PATTERNS = {
         ("Court Docket", r"[Nn]o\.\s*\d{2}-\d{4,}"),
     ],
     "Engineering / Technical": [
-        ("Part Number", r"[A-Z]{2,3}-\d{4,}"),
+        # Part Number: \b boundaries + negative lookahead excluding
+        # competing identifier prefixes (Invoice, Purchase Order,
+        # Drawing, MLS, Case, Serial) so the picker focuses on
+        # bare AAA-NNNN shapes instead of every hyphenated alphanum.
+        ("Part Number", r"\b(?!(?:INV|PO|DWG|MLS|CA|SN)-)[A-Z]{2,3}-\d{4,}\b"),
         ("Revision Number", r"[Rr]ev\.?\s*[A-Z0-9]+"),
-        ("Measurement", r"\d+\.?\d*\s*(mm|cm|m|in|ft|kg|lb|psi|MPa)"),
+        # Measurement: \b boundaries reduce mid-word noise. "in" and
+        # "m" remain inherently ambiguous against English prepositions
+        # — a user document with "120 mm" matches; "482371 in" still
+        # over-matches because "in" is a real word at a word boundary.
+        ("Measurement", r"\b\d+\.?\d*\s*(?:mm|cm|m|in|ft|kg|lb|psi|MPa)\b"),
         ("Serial Number", r"S/?N[: ]?\s*[A-Z0-9-]{4,}"),
-        ("Tolerance", r"[±+\-]\s*\d+\.?\d*"),
+        # Tolerance: negative lookbehind for digit/letter prevents
+        # matching mid-identifier ("-48921" in "INV-48921") or
+        # mid-date ("-06" in "2026-06-14"). Drops sample false-match
+        # count from 19 to 1.
+        ("Tolerance", r"(?<![\dA-Za-z])[±+\-]\s*\d+\.?\d*\b"),
         ("Drawing Number", r"DWG[-\s]?\d{4,}"),
     ],
     "Real Estate": [
