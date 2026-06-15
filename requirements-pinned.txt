@@ -12,7 +12,7 @@ olefile==0.47
 openpyxl==3.1.5
 pillow==12.1.1
 py7zr==1.1.0
-PyMuPDF==1.27.2.2
+PyMuPDF==1.27.2.3
 pytesseract==0.3.13
 python-docx==1.2.0
 python-pptx==1.0.2
