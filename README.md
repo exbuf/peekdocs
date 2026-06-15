@@ -1008,7 +1008,7 @@ bash peekdocs_global_test_unix.sh "test file for peekdocs"    # macOS / Linux
 
 ## Contributing
 
-Ideas, bug reports, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Ideas, bug reports, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details. PRs require a [Developer Certificate of Origin](https://developercertificate.org/) sign-off — one flag on `git commit -s`; full how-to in CONTRIBUTING.md.
 
 If peekdocs saves you time, star the repo and share feedback — it helps others discover the tool.
 
