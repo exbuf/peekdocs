@@ -21,7 +21,7 @@ PRs are welcome, but please open an issue first to discuss the change. This avoi
 
 Before submitting a PR:
 
-1. Run the test suite: `pytest tests/ -v` (all 630 tests should pass).
+1. Run the test suite: `pytest tests/ -v` (all 648 tests should pass).
 2. For search or scanner changes, also run the integration script against the sample corpus: `cd samples/test-files && bash peekdocs_global_test_unix.sh "test"` (or `peekdocs_global_test_windows.ps1` on Windows). It exercises every search mode and flag combination against 100+ sample files.
 3. For GUI changes, launch `peekdocs-gui` and verify the affected workflow visually — the test suite can't catch every layout or interaction issue.
 4. Keep changes focused — one fix or feature per PR.
@@ -37,6 +37,40 @@ Before submitting a PR:
 **Stale issues may be closed.** Issues without activity for a few months are sometimes closed to keep the open-issues list focused. A closed-stale issue is not a rejection — feel free to reopen if it's still relevant, ideally with a fresh repro or a one-line "still hitting this on vX.Y.Z" update so the maintainer can pick it up from where you are.
 
 **No commercial-support tier or vendor-management artifacts.** peekdocs does not provide paid support, custom builds, NDA-bound consulting, SOC 2 / HIPAA / ISO 27001 attestations, or signed SBOMs. Organizations whose vendor-management process requires those artifacts should evaluate peekdocs against their internal risk-acceptance framework. See [SECURITY.md → Support model and response expectations](docs/SECURITY.md#support-model-and-response-expectations) for the IT-evaluator-facing version of the same boundaries.
+
+## Sign Off (Developer Certificate of Origin)
+
+peekdocs requires every commit in a pull request to be signed off per the [Developer Certificate of Origin v1.1](https://developercertificate.org/). The mechanics are one extra flag on `git commit`:
+
+```bash
+git commit -s -m "Your commit message"
+```
+
+The `-s` flag appends one line to the commit message:
+
+```
+Signed-off-by: Your Name <your@email>
+```
+
+That line is your certification that you wrote the code (or are building on prior open-source work that allows this), and that you have the right to submit it under peekdocs's MIT license. No separate document, no CLA, no rights transfer — just a one-line attestation per commit. The full text of what you're certifying is at [developercertificate.org](https://developercertificate.org/).
+
+**The CI will check this.** A GitHub Action verifies every commit in your PR carries a `Signed-off-by` line matching the commit author. PRs without sign-off will fail the check until fixed.
+
+**How to fix a PR that already has unsigned commits:**
+
+```bash
+# Last commit only:
+git commit --amend -s --no-edit
+
+# Last N commits:
+git rebase HEAD~N --signoff
+
+# Every commit on the PR branch (from main):
+git rebase main --signoff
+
+# Then push the rewritten history:
+git push --force-with-lease
+```
 
 ## Development Setup
 
