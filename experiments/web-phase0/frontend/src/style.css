@@ -795,6 +795,15 @@ label {
   word-break: break-word;
 }
 
+/* Yellow highlight on matched substrings inside .match-text */
+.match-text mark.hl {
+  background: #ffeb3b;
+  color: #222;
+  padding: 0 1px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
 .chart-wrap {
   height: 380px;
   background: white;

@@ -38,6 +38,8 @@ export default function App() {
   const [params, setParamsState] = useState<SearchRequest>(INITIAL_PARAMS);
   const [tooltipsOn, setTooltipsOn] = useState(true);
 
+  const [outputTxt, setOutputTxt] = useState(true);
+  const [outputDocx, setOutputDocx] = useState(true);
   const [outputCsv, setOutputCsv] = useState(false);
   const [outputJson, setOutputJson] = useState(false);
   const [outputPdf, setOutputPdf] = useState(false);
@@ -64,6 +66,8 @@ export default function App() {
 
   const resetToFactory = useCallback(() => {
     setParamsState({ ...INITIAL_PARAMS, directory: params.directory });
+    setOutputTxt(true);
+    setOutputDocx(true);
     setOutputCsv(false);
     setOutputJson(false);
     setOutputPdf(false);
@@ -78,12 +82,18 @@ export default function App() {
     try {
       const r = await runSearch({
         ...params,
+        output_txt: outputTxt,
+        output_docx: outputDocx,
         output_csv: outputCsv,
         output_json: outputJson,
         output_pdf: outputPdf,
         output_html: outputHtml,
       });
       setResult(r);
+      if (r.report_errors && r.report_errors.length > 0) {
+        // Non-fatal — surface so user knows why a button is greyed.
+        setError(`Some report formats failed: ${r.report_errors.join("; ")}`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -121,6 +131,10 @@ export default function App() {
             loading={loading}
             onRun={onRun}
             result={result}
+            outputTxt={outputTxt}
+            setOutputTxt={setOutputTxt}
+            outputDocx={outputDocx}
+            setOutputDocx={setOutputDocx}
             outputCsv={outputCsv}
             setOutputCsv={setOutputCsv}
             outputJson={outputJson}
@@ -145,7 +159,18 @@ export default function App() {
         <Splitter leftPercent={leftPercent} onChange={setLeftPercent} />
 
         <div className="right-pane" style={{ width: `${100 - leftPercent}%` }}>
-          <ResultsPanel loading={loading} error={error} result={result} />
+          <ResultsPanel
+            loading={loading}
+            error={error}
+            result={result}
+            highlight={{
+              terms: params.terms,
+              expression: params.expression ?? null,
+              useRegex: params.use_regex ?? false,
+              useWildcard: params.use_wildcard ?? false,
+              useWholeWord: params.use_whole_word ?? false,
+            }}
+          />
         </div>
       </main>
 

@@ -87,10 +87,13 @@ class SearchRequest(BaseModel):
     max_file_size_mb: int = 100
     range_filters: Optional[str] = None
 
-    # Output formats — selects which optional formats to also write
+    # Output formats — selects which formats to write to disk. All
+    # default ON in the web GUI (the user can opt out per format).
     write_reports: bool = Field(
-        True, description="Write report files to disk (TXT+DOCX always, plus the optional flags below)"
+        True, description="Master toggle for writing any report files to disk"
     )
+    output_txt: bool = True
+    output_docx: bool = True
     output_csv: bool = False
     output_json: bool = False
     output_pdf: bool = False
@@ -111,6 +114,7 @@ class SearchResponse(BaseModel):
     elapsed_seconds: float
     used_index: bool
     output_files: Dict[str, str]  # format -> absolute file path
+    report_errors: List[str] = []  # per-format failures, if any
 
 
 class SaveSearchRequest(BaseModel):
@@ -164,39 +168,96 @@ def root() -> dict:
 # ─── Search ─────────────────────────────────────────────────────────
 
 
-def _write_reports(req: SearchRequest, result) -> Dict[str, str]:
-    """Write the result to .txt / .docx / optional formats next to
-    the documents and return a {format: absolute_path} dict for the
-    files actually written."""
-    if not req.write_reports:
-        return {}
-    output_dir = req.directory
-    if not os.path.isdir(output_dir):
-        return {}
+def _write_reports(
+    req: SearchRequest, result
+) -> tuple[Dict[str, str], List[str]]:
+    """Write the requested formats next to the searched documents.
 
+    Returns a tuple of (output_files_dict, errors_list). Output files
+    is {format: absolute_path}; errors is a list of human-readable
+    failure messages so the frontend can surface them rather than
+    silently dropping a button.
+    """
     written: Dict[str, str] = {}
+    errors: List[str] = []
+
+    if not req.write_reports:
+        return written, errors
+
+    output_dir = req.directory.split(";", 1)[0]  # first folder if multi
+    if not os.path.isdir(output_dir):
+        errors.append(f"output_dir not a directory: {output_dir}")
+        return written, errors
+
+    command_str = "peekdocs " + " ".join(req.terms)
+    cpu_count = os.cpu_count() or 1
+    report_mode = "ALL" if req.match_all else "ANY"
 
     txt_path = os.path.join(output_dir, "peekdocs_standard_results.txt")
     docx_path = os.path.join(output_dir, "peekdocs_standard_results.docx")
-    command_str = "peekdocs " + " ".join(req.terms)
 
-    try:
-        pd_reporter.write_txt_report(
-            txt_path,
-            result.matches,
-            result.files_searched,
-            req.terms,
-            command_str,
-            len(result.matches),
-        )
-        written["txt"] = txt_path
-    except Exception:
-        pass
+    # TXT — required for DOCX even if not explicitly requested, since
+    # write_docx_report reads from the TXT file.
+    need_txt = req.output_txt or req.output_docx
+    if need_txt:
+        try:
+            pd_reporter.write_txt_report(
+                txt_path,
+                result.matches,
+                result.files_searched,
+                req.terms,
+                command_str,
+                report_mode,
+                req.use_ocr,
+                req.exclude_terms or [],
+                bool(req.context_before or req.context_after),
+                req.use_fuzzy,
+                req.use_regex,
+                req.use_wildcard,
+                result.elapsed,
+                req.cores or cpu_count,
+                cpu_count,
+                recursive=req.recursive,
+                file_types=req.file_types,
+                proximity=req.proximity,
+                context_before=req.context_before,
+                context_after=req.context_after,
+                specific_files=req.file_names,
+                use_index=bool(req.use_index),
+                output_csv=req.output_csv,
+                output_json=req.output_json,
+                expression=req.expression,
+                use_whole_word=req.use_whole_word,
+                total_matches=len(result.matches),
+            )
+            if req.output_txt:
+                written["txt"] = txt_path
+        except Exception as e:
+            errors.append(f"TXT: {type(e).__name__}: {e}")
 
-    try:
-        pd_reporter.write_docx_report(docx_path, txt_path, search_terms=req.terms)
-        written["docx"] = docx_path
-    except Exception:
+    if req.output_docx:
+        try:
+            pd_reporter.write_docx_report(
+                docx_path,
+                txt_path,
+                search_terms=req.terms,
+                use_regex=req.use_regex,
+                use_wildcard=req.use_wildcard,
+                use_whole_word=req.use_whole_word,
+                use_fuzzy=req.use_fuzzy,
+                expression=req.expression,
+            )
+            written["docx"] = docx_path
+        except Exception as e:
+            errors.append(f"DOCX: {type(e).__name__}: {e}")
+
+    # If TXT was only needed for DOCX, clean it up unless explicitly
+    # requested.
+    if need_txt and not req.output_txt and os.path.exists(txt_path):
+        # Leave it — peekdocs's convention is to keep TXT next to DOCX,
+        # so we leave it on disk but don't include it in output_files.
+        # User can still download via the /report/txt endpoint if they
+        # want it.
         pass
 
     if req.output_csv:
@@ -204,36 +265,45 @@ def _write_reports(req: SearchRequest, result) -> Dict[str, str]:
             p = os.path.join(output_dir, "peekdocs_standard_results.csv")
             pd_reporter.write_csv_report(p, result.matches)
             written["csv"] = p
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(f"CSV: {type(e).__name__}: {e}")
 
     if req.output_json:
         try:
             p = os.path.join(output_dir, "peekdocs_standard_results.json")
             pd_reporter.write_json_report(
-                p, result.matches, req.terms, "ANY", result.elapsed, len(result.files_searched)
+                p,
+                result.matches,
+                req.terms,
+                report_mode,
+                result.elapsed,
+                len(result.files_searched),
             )
             written["json"] = p
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(f"JSON: {type(e).__name__}: {e}")
 
     if req.output_pdf:
         try:
             p = os.path.join(output_dir, "peekdocs_standard_results.pdf")
-            pd_reporter.write_pdf_report(p, result.matches, search_terms=req.terms)
+            pd_reporter.write_pdf_report(
+                p, result.matches, search_terms=req.terms
+            )
             written["pdf"] = p
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(f"PDF: {type(e).__name__}: {e}")
 
     if req.output_html:
         try:
             p = os.path.join(output_dir, "peekdocs_standard_results.html")
-            pd_reporter.write_html_report(p, result.matches, search_terms=req.terms)
+            pd_reporter.write_html_report(
+                p, result.matches, search_terms=req.terms
+            )
             written["html"] = p
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(f"HTML: {type(e).__name__}: {e}")
 
-    return written
+    return written, errors
 
 
 @app.post("/search", response_model=SearchResponse)
@@ -284,7 +354,7 @@ def search(req: SearchRequest) -> SearchResponse:
         pass
 
     # Write reports if requested.
-    output_files = _write_reports(req, result)
+    output_files, report_errors = _write_reports(req, result)
     last_outputs = output_files  # remember for /report/{fmt}
 
     return SearchResponse(
@@ -302,6 +372,7 @@ def search(req: SearchRequest) -> SearchResponse:
         elapsed_seconds=result.elapsed,
         used_index=result.used_index,
         output_files=output_files,
+        report_errors=report_errors,
     )
 
 

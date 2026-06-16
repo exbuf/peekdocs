@@ -7,7 +7,11 @@ interface AdvancedOptionsProps {
   setParams: (next: Partial<SearchRequest>) => void;
 
   // Output-format checkboxes (also Delete on Close) — moved here
-  // from Step 3.
+  // from Step 3. All six formats are now individually selectable.
+  outputTxt: boolean;
+  setOutputTxt: (v: boolean) => void;
+  outputDocx: boolean;
+  setOutputDocx: (v: boolean) => void;
   outputCsv: boolean;
   setOutputCsv: (v: boolean) => void;
   outputJson: boolean;
@@ -26,6 +30,8 @@ interface AdvancedOptionsProps {
 // Subset of fields that map cleanly to ~/.peekdocsrc keys.
 function paramsToConfigDict(
   p: SearchRequest,
+  outputTxt: boolean,
+  outputDocx: boolean,
   outputCsv: boolean,
   outputJson: boolean,
   outputPdf: boolean,
@@ -50,6 +56,8 @@ function paramsToConfigDict(
     exclude: (p.exclude_terms ?? []).join(" "),
     specific_files: (p.file_names ?? []).join(","),
     range: p.range_filters ?? "",
+    output_txt: outputTxt,
+    output_docx: outputDocx,
     output_csv: outputCsv,
     output_json: outputJson,
     output_pdf: outputPdf,
@@ -370,13 +378,28 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
             </label>
           </div>
 
-          {/* Output formats — moved here from Step 3. TXT and DOCX are
-              always generated; these are the optional formats. */}
+          {/* Output formats — all six are individually selectable. */}
           <div className="adv-group">
             <div className="adv-group-label">
-              Output formats <span className="muted small">(TXT and DOCX always generated)</span>
+              Output formats <span className="muted small">(each format produces a file next to the searched documents)</span>
             </div>
             <div className="adv-checkrow">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={p.outputTxt}
+                  onChange={(e) => p.setOutputTxt(e.target.checked)}
+                />
+                TXT
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={p.outputDocx}
+                  onChange={(e) => p.setOutputDocx(e.target.checked)}
+                />
+                DOCX
+              </label>
               <label>
                 <input
                   type="checkbox"
@@ -458,6 +481,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                   await saveDefaults(
                     paramsToConfigDict(
                       p.params,
+                      p.outputTxt,
+                      p.outputDocx,
                       p.outputCsv,
                       p.outputJson,
                       p.outputPdf,
@@ -478,6 +503,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                   const cfg = await getDefaults();
                   const patch = configDictToParamsPatch(cfg);
                   p.setParams(patch);
+                  if ("output_txt" in cfg) p.setOutputTxt(!!cfg.output_txt);
+                  if ("output_docx" in cfg) p.setOutputDocx(!!cfg.output_docx);
                   if ("output_csv" in cfg) p.setOutputCsv(!!cfg.output_csv);
                   if ("output_json" in cfg) p.setOutputJson(!!cfg.output_json);
                   if ("output_pdf" in cfg) p.setOutputPdf(!!cfg.output_pdf);

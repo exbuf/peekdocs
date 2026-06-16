@@ -15,6 +15,10 @@ interface SearchPanelProps {
   onRun: () => void;
   result: SearchResponse | null;
 
+  outputTxt: boolean;
+  setOutputTxt: (v: boolean) => void;
+  outputDocx: boolean;
+  setOutputDocx: (v: boolean) => void;
   outputCsv: boolean;
   setOutputCsv: (v: boolean) => void;
   outputJson: boolean;
@@ -137,7 +141,7 @@ export default function SearchPanel(p: SearchPanelProps) {
     const path = p.result?.output_files[fmt];
     if (!path) {
       alert(
-        `No ${fmt.toUpperCase()} report from the most recent search.\n\nRun a search first; CSV/JSON/PDF/HTML need to be selected in Advanced Options before running.`
+        `No ${fmt.toUpperCase()} report from the most recent search.\n\nRun a search first, with ${fmt.toUpperCase()} checked in Advanced Search Options → Output formats.`
       );
       return;
     }
@@ -302,6 +306,10 @@ export default function SearchPanel(p: SearchPanelProps) {
       <AdvancedOptions
         params={p.params}
         setParams={p.setParams}
+        outputTxt={p.outputTxt}
+        setOutputTxt={p.setOutputTxt}
+        outputDocx={p.outputDocx}
+        setOutputDocx={p.setOutputDocx}
         outputCsv={p.outputCsv}
         setOutputCsv={p.setOutputCsv}
         outputJson={p.outputJson}

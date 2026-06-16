@@ -34,6 +34,8 @@ export interface SearchRequest {
   range_filters?: string | null;
 
   write_reports?: boolean;
+  output_txt?: boolean;
+  output_docx?: boolean;
   output_csv?: boolean;
   output_json?: boolean;
   output_pdf?: boolean;
@@ -54,6 +56,7 @@ export interface SearchResponse {
   elapsed_seconds: number;
   used_index: boolean;
   output_files: Record<string, string>; // format -> absolute path
+  report_errors?: string[];
 }
 
 async function json<T>(res: Response): Promise<T> {

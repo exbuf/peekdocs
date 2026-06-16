@@ -10,6 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import type { SearchResponse } from "../api";
+import { highlightLine, type HighlightContext } from "../highlight";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -17,12 +18,14 @@ interface ResultsPanelProps {
   loading: boolean;
   error: string | null;
   result: SearchResponse | null;
+  highlight: HighlightContext;
 }
 
 export default function ResultsPanel({
   loading,
   error,
   result,
+  highlight,
 }: ResultsPanelProps) {
   const [view, setView] = useState<"matches" | "files" | "excluded" | "chart">(
     "matches"
@@ -135,7 +138,9 @@ export default function ResultsPanel({
                 <span className="match-loc">
                   {m.filename}:{m.line_num}
                 </span>
-                <span className="match-text">{m.text}</span>
+                <span className="match-text">
+                  {highlightLine(m.text, highlight)}
+                </span>
               </li>
             ))}
             {result.matches.length > 500 && (
