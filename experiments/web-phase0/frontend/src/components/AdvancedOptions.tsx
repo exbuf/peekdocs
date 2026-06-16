@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SearchRequest } from "../api";
+import { saveDefaults, getDefaults, clearFactoryDefaults } from "../api";
 
 interface AdvancedOptionsProps {
   params: SearchRequest;
@@ -17,6 +18,93 @@ interface AdvancedOptionsProps {
   setOutputHtml: (v: boolean) => void;
   deleteOnClose: boolean;
   setDeleteOnClose: (v: boolean) => void;
+
+  // Factory reset (used by Restore Factory Settings and Reset All Fields)
+  resetToFactory: () => void;
+}
+
+// Subset of fields that map cleanly to ~/.peekdocsrc keys.
+function paramsToConfigDict(
+  p: SearchRequest,
+  outputCsv: boolean,
+  outputJson: boolean,
+  outputPdf: boolean,
+  outputHtml: boolean
+): Record<string, unknown> {
+  return {
+    match_all: p.match_all ?? false,
+    recursive: p.recursive ?? false,
+    use_whole_word: p.use_whole_word ?? false,
+    use_index: p.use_index ?? false,
+    use_fuzzy: p.use_fuzzy ?? false,
+    use_wildcard: p.use_wildcard ?? false,
+    use_regex: p.use_regex ?? false,
+    use_ocr: p.use_ocr ?? false,
+    context_before: p.context_before ?? 0,
+    context_after: p.context_after ?? 0,
+    proximity: p.proximity ?? 0,
+    line_proximity: p.line_proximity ?? 0,
+    cores: p.cores ?? "",
+    max_file_size_mb: p.max_file_size_mb ?? 100,
+    file_types: (p.file_types ?? []).join(","),
+    exclude: (p.exclude_terms ?? []).join(" "),
+    specific_files: (p.file_names ?? []).join(","),
+    range: p.range_filters ?? "",
+    output_csv: outputCsv,
+    output_json: outputJson,
+    output_pdf: outputPdf,
+    output_html: outputHtml,
+  };
+}
+
+function configDictToParamsPatch(
+  cfg: Record<string, unknown>
+): Partial<SearchRequest> {
+  const patch: Partial<SearchRequest> = {};
+  const set = <K extends keyof SearchRequest>(k: K, v: SearchRequest[K]) => {
+    patch[k] = v;
+  };
+  if ("match_all" in cfg) set("match_all", !!cfg.match_all);
+  if ("recursive" in cfg) set("recursive", !!cfg.recursive);
+  if ("use_whole_word" in cfg) set("use_whole_word", !!cfg.use_whole_word);
+  if ("use_index" in cfg) set("use_index", !!cfg.use_index);
+  if ("use_fuzzy" in cfg) set("use_fuzzy", !!cfg.use_fuzzy);
+  if ("use_wildcard" in cfg) set("use_wildcard", !!cfg.use_wildcard);
+  if ("use_regex" in cfg) set("use_regex", !!cfg.use_regex);
+  if ("use_ocr" in cfg) set("use_ocr", !!cfg.use_ocr);
+  if ("context_before" in cfg)
+    set("context_before", Number(cfg.context_before) || 0);
+  if ("context_after" in cfg)
+    set("context_after", Number(cfg.context_after) || 0);
+  if ("proximity" in cfg) set("proximity", Number(cfg.proximity) || 0);
+  if ("line_proximity" in cfg)
+    set("line_proximity", Number(cfg.line_proximity) || 0);
+  if ("max_file_size_mb" in cfg)
+    set("max_file_size_mb", Number(cfg.max_file_size_mb) || 100);
+  if ("cores" in cfg && cfg.cores !== "" && cfg.cores != null)
+    set("cores", Number(cfg.cores));
+  if (typeof cfg.file_types === "string" && cfg.file_types) {
+    set(
+      "file_types",
+      cfg.file_types.split(",").map((s) => s.trim()).filter(Boolean)
+    );
+  }
+  if (typeof cfg.exclude === "string" && cfg.exclude) {
+    set(
+      "exclude_terms",
+      cfg.exclude.split(/\s+/).filter(Boolean)
+    );
+  }
+  if (typeof cfg.specific_files === "string" && cfg.specific_files) {
+    set(
+      "file_names",
+      cfg.specific_files.split(",").map((s) => s.trim()).filter(Boolean)
+    );
+  }
+  if (typeof cfg.range === "string" && cfg.range) {
+    set("range_filters", cfg.range);
+  }
+  return patch;
 }
 
 /**
@@ -364,16 +452,64 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
           </div>
 
           <div className="adv-buttons">
-            <button onClick={() => alert("Save Defaults (stub)")}>
+            <button
+              onClick={async () => {
+                try {
+                  await saveDefaults(
+                    paramsToConfigDict(
+                      p.params,
+                      p.outputCsv,
+                      p.outputJson,
+                      p.outputPdf,
+                      p.outputHtml
+                    )
+                  );
+                  alert("Defaults saved to ~/.peekdocsrc");
+                } catch (e) {
+                  alert(`Save Defaults failed: ${e}`);
+                }
+              }}
+            >
               Save as Defaults
             </button>
-            <button onClick={() => alert("Restore Saved Defaults (stub)")}>
+            <button
+              onClick={async () => {
+                try {
+                  const cfg = await getDefaults();
+                  const patch = configDictToParamsPatch(cfg);
+                  p.setParams(patch);
+                  if ("output_csv" in cfg) p.setOutputCsv(!!cfg.output_csv);
+                  if ("output_json" in cfg) p.setOutputJson(!!cfg.output_json);
+                  if ("output_pdf" in cfg) p.setOutputPdf(!!cfg.output_pdf);
+                  if ("output_html" in cfg) p.setOutputHtml(!!cfg.output_html);
+                  alert("Restored from ~/.peekdocsrc");
+                } catch (e) {
+                  alert(`Restore Saved Defaults failed: ${e}`);
+                }
+              }}
+            >
               Restore Saved Defaults
             </button>
-            <button onClick={() => alert("Restore Factory (stub)")}>
+            <button
+              onClick={async () => {
+                if (
+                  !confirm(
+                    "Restore Factory Settings will delete ~/.peekdocsrc and reset every field. Continue?"
+                  )
+                )
+                  return;
+                try {
+                  await clearFactoryDefaults();
+                  p.resetToFactory();
+                  alert("Factory settings restored.");
+                } catch (e) {
+                  alert(`Restore Factory failed: ${e}`);
+                }
+              }}
+            >
               Restore Factory Settings
             </button>
-            <button onClick={() => alert("Reset All Fields (stub)")}>
+            <button onClick={() => p.resetToFactory()}>
               Reset All Fields
             </button>
           </div>
