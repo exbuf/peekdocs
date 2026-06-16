@@ -1,43 +1,50 @@
-import { useMemo, useState } from "react";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { runSearch, type Match, type SearchResponse } from "./api";
+import { useCallback, useState } from "react";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import SearchPanel from "./components/SearchPanel";
+import ResultsPanel from "./components/ResultsPanel";
+import Splitter from "./components/Splitter";
+import { runSearch, type SearchRequest, type SearchResponse } from "./api";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+const INITIAL_PARAMS: SearchRequest = {
+  terms: [],
+  directory: "",
+  recursive: true,
+  use_whole_word: false,
+  use_index: false,
+  match_all: false,
+};
 
 export default function App() {
-  const [directory, setDirectory] = useState("");
-  const [terms, setTerms] = useState("");
-  const [recursive, setRecursive] = useState(true);
-  const [wholeWord, setWholeWord] = useState(false);
-  const [useIndex, setUseIndex] = useState(false);
-  const [matchAll, setMatchAll] = useState(false);
+  const [params, setParamsState] = useState<SearchRequest>(INITIAL_PARAMS);
+  const [tooltipsOn, setTooltipsOn] = useState(true);
+
+  // Step 3 output-format checkboxes — visual only for now since the
+  // web backend doesn't write files. Lifted to App level so a future
+  // Phase 1 can persist them like the other settings.
+  const [outputCsv, setOutputCsv] = useState(false);
+  const [outputJson, setOutputJson] = useState(false);
+  const [outputPdf, setOutputPdf] = useState(false);
+  const [outputHtml, setOutputHtml] = useState(false);
+  const [deleteOnClose, setDeleteOnClose] = useState(false);
+
+  const [leftPercent, setLeftPercent] = useState(50);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SearchResponse | null>(null);
+
+  // Partial setter — merges into existing params.
+  const setParams = useCallback((next: Partial<SearchRequest>) => {
+    setParamsState((prev) => ({ ...prev, ...next }));
+  }, []);
 
   async function onRun() {
     setError(null);
     setResult(null);
     setLoading(true);
     try {
-      const r = await runSearch({
-        terms: terms.split(/\s+/).filter(Boolean),
-        directory,
-        recursive,
-        use_whole_word: wholeWord,
-        use_index: useIndex,
-        match_all: matchAll,
-      });
+      const r = await runSearch(params);
       setResult(r);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -46,167 +53,38 @@ export default function App() {
     }
   }
 
-  // Top-10 files by match count for the Chart.js bar chart.
-  const chartData = useMemo(() => {
-    if (!result) return null;
-    const byFile = new Map<string, number>();
-    for (const m of result.matches) {
-      byFile.set(m.filename, (byFile.get(m.filename) ?? 0) + 1);
-    }
-    const top = [...byFile.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-    return {
-      labels: top.map(([fn]) => fn),
-      datasets: [
-        {
-          label: "Matches",
-          data: top.map(([, n]) => n),
-          backgroundColor: "rgba(33, 150, 243, 0.7)",
-          borderColor: "rgba(33, 150, 243, 1)",
-          borderWidth: 1,
-        },
-      ],
-    };
-  }, [result]);
-
   return (
-    <div className="container">
-      <header>
-        <h1>👀 peekdocs</h1>
-        <p className="sub">Phase 0 web experiment — round-trip + Chart.js</p>
-      </header>
+    <div className="app">
+      <Header tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn} />
 
-      <section className="search-form">
-        <label>
-          Folder
-          <input
-            type="text"
-            placeholder="/absolute/path/to/folder"
-            value={directory}
-            onChange={(e) => setDirectory(e.target.value)}
+      <main className="split-layout">
+        <div className="left-pane" style={{ width: `${leftPercent}%` }}>
+          <SearchPanel
+            params={params}
+            setParams={setParams}
+            loading={loading}
+            onRun={onRun}
+            outputCsv={outputCsv}
+            setOutputCsv={setOutputCsv}
+            outputJson={outputJson}
+            setOutputJson={setOutputJson}
+            outputPdf={outputPdf}
+            setOutputPdf={setOutputPdf}
+            outputHtml={outputHtml}
+            setOutputHtml={setOutputHtml}
+            deleteOnClose={deleteOnClose}
+            setDeleteOnClose={setDeleteOnClose}
           />
-        </label>
-
-        <label>
-          Search terms
-          <input
-            type="text"
-            placeholder="budget revenue"
-            value={terms}
-            onChange={(e) => setTerms(e.target.value)}
-          />
-        </label>
-
-        <div className="options">
-          <label>
-            <input
-              type="checkbox"
-              checked={recursive}
-              onChange={(e) => setRecursive(e.target.checked)}
-            />
-            Recursive
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={wholeWord}
-              onChange={(e) => setWholeWord(e.target.checked)}
-            />
-            Whole word
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={useIndex}
-              onChange={(e) => setUseIndex(e.target.checked)}
-            />
-            Use index
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={matchAll}
-              onChange={(e) => setMatchAll(e.target.checked)}
-            />
-            AND mode
-          </label>
         </div>
 
-        <button
-          className="run-button"
-          disabled={loading || !directory || !terms}
-          onClick={onRun}
-        >
-          {loading ? "Searching…" : "Run Standard Search"}
-        </button>
-      </section>
+        <Splitter leftPercent={leftPercent} onChange={setLeftPercent} />
 
-      {error && <div className="error">Error: {error}</div>}
+        <div className="right-pane" style={{ width: `${100 - leftPercent}%` }}>
+          <ResultsPanel loading={loading} error={error} result={result} />
+        </div>
+      </main>
 
-      {result && (
-        <section className="results">
-          <div className="summary">
-            <strong>{result.matches.length}</strong> matches in{" "}
-            <strong>
-              {new Set(result.matches.map((m) => m.filename)).size}
-            </strong>{" "}
-            file(s) — searched <strong>{result.files_searched}</strong>{" "}
-            file(s),{" "}
-            <strong>{result.elapsed_seconds.toFixed(2)}s</strong>
-            {result.used_index && (
-              <span className="badge">indexed</span>
-            )}
-            {result.skipped_files > 0 && (
-              <span className="muted">
-                · {result.skipped_files} skipped
-              </span>
-            )}
-          </div>
-
-          {chartData && chartData.labels.length > 0 && (
-            <div className="chart">
-              <Bar
-                data={chartData}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    title: { display: true, text: "Matches per file (top 10)" },
-                    legend: { display: false },
-                  },
-                  scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } },
-                  },
-                }}
-              />
-            </div>
-          )}
-
-          <ul className="matches">
-            {result.matches.slice(0, 200).map((m: Match, i: number) => (
-              <li key={i}>
-                <span className="match-loc">
-                  {m.filename}:{m.line_num}
-                </span>
-                <span className="match-text">{m.text}</span>
-              </li>
-            ))}
-            {result.matches.length > 200 && (
-              <li className="muted">
-                … {result.matches.length - 200} more matches (preview capped at
-                200)
-              </li>
-            )}
-          </ul>
-        </section>
-      )}
-
-      <footer>
-        <p className="muted">
-          Backend: <code>http://127.0.0.1:8000</code> · Frontend:{" "}
-          <code>http://127.0.0.1:5173</code> · Local-only, no external network.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }

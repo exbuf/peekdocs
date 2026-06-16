@@ -1,15 +1,40 @@
-// Typed client for the Phase 0 backend. Mirrors the Pydantic models
-// in backend/server.py — keep these in sync.
+// Typed client for the peekdocs web backend.
+// Mirrors the Pydantic models in backend/server.py.
 
 const BACKEND = "http://127.0.0.1:8000";
 
 export interface SearchRequest {
   terms: string[];
   directory: string;
+
+  // Step 2 options row
   recursive?: boolean;
   use_whole_word?: boolean;
   use_index?: boolean;
   match_all?: boolean;
+
+  // Advanced — search modes
+  use_fuzzy?: boolean;
+  use_wildcard?: boolean;
+  use_regex?: boolean;
+  use_ocr?: boolean;
+  expression?: string | null;
+
+  // Advanced — filters
+  exclude_terms?: string[] | null;
+  file_types?: string[] | null;
+  file_names?: string[] | null;
+
+  // Advanced — context & proximity
+  context_before?: number;
+  context_after?: number;
+  proximity?: number;
+  line_proximity?: number;
+
+  // Advanced — limits
+  cores?: number | null;
+  max_file_size_mb?: number;
+  range_filters?: string | null;
 }
 
 export interface Match {
