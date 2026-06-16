@@ -7,6 +7,7 @@ import {
   reportUrl,
 } from "../api";
 import AdvancedOptions from "./AdvancedOptions";
+import { useI18n } from "../i18n";
 
 interface SearchPanelProps {
   params: SearchRequest;
@@ -14,6 +15,7 @@ interface SearchPanelProps {
   loading: boolean;
   onRun: () => void;
   result: SearchResponse | null;
+  tooltipsOn: boolean;
 
   outputTxt: boolean;
   setOutputTxt: (v: boolean) => void;
@@ -44,9 +46,11 @@ interface SearchPanelProps {
 const FORMATS = ["docx", "txt", "csv", "json", "pdf", "html"] as const;
 
 export default function SearchPanel(p: SearchPanelProps) {
+  const { t } = useI18n();
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const [stash, setStash] = useState<string>(""); // current input before cycling
+  const tip = (s: string): string | undefined => (p.tooltipsOn ? s : undefined);
 
   // Load history once on mount.
   useEffect(() => {
@@ -164,12 +168,20 @@ export default function SearchPanel(p: SearchPanelProps) {
     <div className="left-pane-body">
       {/* Step 1 — folder */}
       <section className="step-row">
-        <span className="step-label">Step 1</span>
+        <span className="step-label" title={tip("Pick the folder to search")}>
+          {t("step_1_label", "Step 1")}
+        </span>
         <div className="step-body">
           <div className="folder-buttons">
-            <button onClick={onBrowse}>Browse</button>
-            <button onClick={onAddFolder}>+Folder</button>
-            <button onClick={onSingleFile}>Single File</button>
+            <button onClick={onBrowse} title={tip("Open native folder picker")}>
+              {t("browse_button_label", "Browse")}
+            </button>
+            <button onClick={onAddFolder} title={tip("Add another folder (multi-folder search)")}>
+              {t("multi_folder_button_label", "+Folder")}
+            </button>
+            <button onClick={onSingleFile} title={tip("Pick a single file to search")}>
+              {t("single_file_button_label", "Single File")}
+            </button>
           </div>
           <input
             type="text"
@@ -182,7 +194,7 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 2 — search terms only */}
       <section className="step-row">
-        <span className="step-label">Step 2</span>
+        <span className="step-label">{t("step_2_label", "Step 2")}</span>
         <div className="step-body">
           <div className="search-input-row">
             <input
@@ -219,18 +231,32 @@ export default function SearchPanel(p: SearchPanelProps) {
             >
               ↓
             </button>
-            <button className="clear-btn" onClick={onClear}>
-              Clear
+            <button
+              className="clear-btn"
+              onClick={onClear}
+              title={tip("Clear the search bar")}
+            >
+              {t("clear_button_label", "Clear")}
             </button>
           </div>
           <div className="step2-buttons">
-            <button onClick={p.openSaveSearchModal} disabled={!p.params.directory}>
-              Save
+            <button
+              onClick={p.openSaveSearchModal}
+              disabled={!p.params.directory}
+              title={tip("Save current configuration as a named search")}
+            >
+              {t("save_label", "Save")}
             </button>
-            <button onClick={p.openReloadModal} disabled={!p.params.directory}>
-              Reload
+            <button
+              onClick={p.openReloadModal}
+              disabled={!p.params.directory}
+              title={tip("Load a saved search")}
+            >
+              {t("reload_label", "Reload")}
             </button>
-            <button onClick={p.openWizardModal}>Wizard</button>
+            <button onClick={p.openWizardModal} title={tip("Open the Regex Wizard")}>
+              {t("wizard_label", "Wizard")}
+            </button>
           </div>
           {history.length > 0 && (
             <div className="history-hint muted small">
@@ -244,7 +270,7 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 3 — pointer to Advanced */}
       <section className="step-row">
-        <span className="step-label">Step 3</span>
+        <span className="step-label">{t("step_3_label", "Step 3")}</span>
         <div className="step-body">
           <p className="step3-note">
             Use <strong>Advanced Search Options</strong> below to configure search parameters
@@ -254,29 +280,32 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 4 — Run buttons + report indicators */}
       <section className="step-row">
-        <span className="step-label step-4">Step 4</span>
+        <span className="step-label step-4">{t("step_4_label", "Step 4")}</span>
         <div className="step-body">
           <div className="run-buttons">
             <button
               className="run-standard"
               disabled={p.loading || !p.params.directory || p.params.terms.length === 0}
               onClick={p.onRun}
+              title={tip("Run a Standard Search with the current configuration")}
             >
-              {p.loading ? "Searching…" : "🔍 Run Standard Search"}
+              {p.loading ? "Searching…" : t("run_standard_search_label", "🔍 Run Standard Search")}
             </button>
             <button
               className="run-suites"
               onClick={p.openSuitesModal}
               disabled={!p.params.directory}
+              title={tip("Open Search Suites — groups of saved searches")}
             >
-              Search Suites
+              {t("search_suites_label", "Search Suites")}
             </button>
             <button
               className="run-regex"
               onClick={p.openRegexModal}
               disabled={!p.params.directory}
+              title={tip("Open Regex Search collections")}
             >
-              Regex Search
+              {t("regex_search_label", "Regex Search")}
             </button>
           </div>
           <div className="report-indicators">

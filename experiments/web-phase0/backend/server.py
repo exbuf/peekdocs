@@ -990,6 +990,306 @@ def list_bookmarks() -> dict:
 # ─── About ──────────────────────────────────────────────────────────
 
 
+# ─── Indexes ────────────────────────────────────────────────────────
+
+
+@app.get("/indexes/info")
+def index_info(directory: str = Query(...)) -> dict:
+    from peekdocs import indexer as pd_idx
+
+    if not os.path.isdir(directory):
+        raise HTTPException(status_code=404, detail=f"directory not found: {directory}")
+    db_path = pd_idx._db_path(directory)
+    exists = pd_idx.index_exists(directory)
+    size = os.path.getsize(db_path) if exists else 0
+    return {"exists": exists, "path": db_path, "size_bytes": size}
+
+
+class BuildIndexBody(BaseModel):
+    directory: str
+    recursive: bool = True
+    use_ocr: bool = False
+
+
+@app.post("/indexes/build")
+def build_index(body: BuildIndexBody) -> dict:
+    from peekdocs import indexer as pd_idx
+
+    if not os.path.isdir(body.directory):
+        raise HTTPException(status_code=404, detail=f"directory not found: {body.directory}")
+    try:
+        pd_idx.build_index(
+            body.directory,
+            recursive=body.recursive,
+            use_ocr=body.use_ocr,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"ok": True}
+
+
+@app.delete("/indexes")
+def delete_index(directory: str = Query(...)) -> dict:
+    from peekdocs import indexer as pd_idx
+
+    if not os.path.isdir(directory):
+        raise HTTPException(status_code=404, detail=f"directory not found: {directory}")
+    pd_idx.clear_index(directory)
+    return {"ok": True}
+
+
+# ─── Diff snapshots ─────────────────────────────────────────────────
+
+
+class DiffBody(BaseModel):
+    old_path: str
+    new_path: str
+
+
+@app.post("/diff-snapshots")
+def diff_snapshots(body: DiffBody) -> dict:
+    """Compare two peekdocs JSON snapshots and return what's new,
+    removed, changed, unchanged."""
+    if not os.path.exists(body.old_path):
+        raise HTTPException(status_code=404, detail=f"old_path missing: {body.old_path}")
+    if not os.path.exists(body.new_path):
+        raise HTTPException(status_code=404, detail=f"new_path missing: {body.new_path}")
+    try:
+        with open(body.old_path) as f:
+            old = json.load(f)
+        with open(body.new_path) as f:
+            new = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"failed to parse JSON: {e}")
+
+    def by_file(snapshot):
+        out: Dict[str, int] = {}
+        for m in snapshot.get("matches", []):
+            fn = m.get("filename") or os.path.basename(m.get("file", ""))
+            out[fn] = out.get(fn, 0) + 1
+        return out
+
+    old_files = by_file(old)
+    new_files = by_file(new)
+
+    new_set = set(new_files) - set(old_files)
+    removed_set = set(old_files) - set(new_files)
+    changed = []
+    unchanged = []
+    for f in set(old_files) & set(new_files):
+        if old_files[f] != new_files[f]:
+            changed.append({"filename": f, "old": old_files[f], "new": new_files[f]})
+        else:
+            unchanged.append({"filename": f, "count": old_files[f]})
+
+    return {
+        "new": [{"filename": f, "count": new_files[f]} for f in sorted(new_set)],
+        "removed": [{"filename": f, "count": old_files[f]} for f in sorted(removed_set)],
+        "changed": changed,
+        "unchanged_summary": {"count": len(unchanged), "total_matches": sum(u["count"] for u in unchanged)},
+    }
+
+
+# ─── Schedule search command generator ──────────────────────────────
+
+
+class ScheduleBody(BaseModel):
+    kind: str  # "suite" or "regex-collection"
+    name: str
+    directory: str
+    frequency: str  # "daily", "weekly", "monthly"
+    os_target: str  # "unix" or "windows"
+
+
+@app.post("/schedule-search/generate")
+def schedule_search(body: ScheduleBody) -> dict:
+    """Generate a ready-to-paste cron / Task Scheduler command."""
+    if body.kind == "suite":
+        flag = f"--suite {body.name!r}"
+    elif body.kind == "regex-collection":
+        flag = f"--regex-collection {body.name!r}"
+    else:
+        raise HTTPException(status_code=400, detail="kind must be 'suite' or 'regex-collection'")
+
+    cmd_core = f"cd {body.directory!r} && peekdocs {flag} --timestamp"
+
+    if body.os_target == "unix":
+        schedule_lines = {
+            "daily": "0 2 * * *",       # 2 AM daily
+            "weekly": "0 2 * * 1",      # 2 AM Mondays
+            "monthly": "0 2 1 * *",     # 2 AM first of month
+        }
+        cron_line = schedule_lines.get(body.frequency, "0 2 * * *")
+        return {
+            "command": f"{cron_line} {cmd_core}",
+            "instructions": [
+                "Open your crontab:    crontab -e",
+                "Paste the line above at the bottom of the file.",
+                "Save and exit. Verify with:    crontab -l",
+            ],
+        }
+
+    # windows — Task Scheduler
+    sched_args = {
+        "daily": "/SC DAILY /ST 02:00",
+        "weekly": "/SC WEEKLY /D MON /ST 02:00",
+        "monthly": "/SC MONTHLY /D 1 /ST 02:00",
+    }.get(body.frequency, "/SC DAILY /ST 02:00")
+    task_name = f"peekdocs_{body.name.replace(' ', '_')}"
+    cmd = (
+        f'schtasks /CREATE /TN "{task_name}" '
+        f"/TR \"powershell -Command \\\"{cmd_core}\\\"\" "
+        f"{sched_args} /F"
+    )
+    return {
+        "command": cmd,
+        "instructions": [
+            "Open PowerShell as Administrator.",
+            "Paste the line above and press Enter.",
+            "List your tasks with:    schtasks /QUERY /TN \"" + task_name + "\"",
+        ],
+    }
+
+
+# ─── Wizard patterns ────────────────────────────────────────────────
+
+
+@app.get("/wizard-patterns")
+def wizard_patterns() -> dict:
+    """Return WIZARD_PATTERNS for the Regex Wizard frontend modal."""
+    from peekdocs.wizard_patterns import WIZARD_PATTERNS, WIZARD_CATEGORY_ORDER
+
+    return {
+        "categories": [
+            {
+                "name": cat,
+                "patterns": [
+                    {"name": p[0], "pattern": p[1]} for p in WIZARD_PATTERNS[cat]
+                ],
+            }
+            for cat in WIZARD_CATEGORY_ORDER
+        ],
+    }
+
+
+# ─── Regex tester ───────────────────────────────────────────────────
+
+
+class RegexTestBody(BaseModel):
+    pattern: str
+    text: str
+    case_sensitive: bool = False
+
+
+@app.post("/regex-test")
+def regex_test(body: RegexTestBody) -> dict:
+    """Test a regex against a sample text. Returns positions and
+    matched strings so the frontend can highlight."""
+    import re
+
+    flags = 0 if body.case_sensitive else re.IGNORECASE
+    try:
+        pat = re.compile(body.pattern, flags)
+    except re.error as e:
+        return {"error": str(e), "matches": []}
+    matches = [
+        {"start": m.start(), "end": m.end(), "text": m.group(0)}
+        for m in pat.finditer(body.text)
+    ]
+    return {"matches": matches, "count": len(matches)}
+
+
+# ─── peekdocs files (Clear Files / Clean Folder / View All) ─────────
+
+
+@app.get("/peekdocs-files")
+def peekdocs_files(directory: str = Query(...)) -> dict:
+    """List every peekdocs-created file in the directory (and below)."""
+    if not os.path.isdir(directory):
+        raise HTTPException(status_code=404, detail=f"directory not found: {directory}")
+    PREFIXES = ("peekdocs_", ".peekdocs")
+    out: List[Dict[str, Any]] = []
+    for root, dirs, files in os.walk(directory):
+        dirs[:] = [d for d in dirs if not d.startswith(".") or d == ".peekdocs"]
+        for fn in files:
+            if any(fn.startswith(pref) for pref in PREFIXES):
+                p = os.path.join(root, fn)
+                try:
+                    out.append({"path": p, "size": os.path.getsize(p)})
+                except OSError:
+                    pass
+    out.sort(key=lambda x: x["path"])
+    return {"files": out, "total_bytes": sum(f["size"] for f in out)}
+
+
+class ClearFilesBody(BaseModel):
+    directory: str
+    include_index: bool = False
+    include_saved_searches: bool = False  # .peekdocs_collection.json
+    include_reports: bool = False  # peekdocs_report_*
+
+
+@app.post("/peekdocs-files/clear")
+def clear_files(body: ClearFilesBody) -> dict:
+    """Delete peekdocs-generated files in a folder. Returns counts."""
+    if not os.path.isdir(body.directory):
+        raise HTTPException(status_code=404, detail=f"directory not found: {body.directory}")
+    deleted: List[str] = []
+    failed: List[str] = []
+
+    def _maybe_rm(path: str):
+        try:
+            os.remove(path)
+            deleted.append(path)
+        except Exception as e:
+            failed.append(f"{path}: {e}")
+
+    for root, _, files in os.walk(body.directory):
+        for fn in files:
+            full = os.path.join(root, fn)
+            # Standard / suite / regex result files
+            if fn.startswith(
+                ("peekdocs_standard_results.", "peekdocs_suite_results.", "peekdocs_regex_results.")
+            ):
+                _maybe_rm(full)
+            elif fn == "peekdocs_errors.log":
+                _maybe_rm(full)
+            elif body.include_reports and fn.startswith(
+                ("peekdocs_report_", "peekdocs_accumulated_")
+            ):
+                _maybe_rm(full)
+            elif body.include_index and (
+                fn == ".peekdocs.db" or fn.startswith(".peekdocs.db-")
+            ):
+                _maybe_rm(full)
+            elif body.include_saved_searches and fn == ".peekdocs_collection.json":
+                _maybe_rm(full)
+    return {"deleted": deleted, "failed": failed, "count": len(deleted)}
+
+
+# ─── i18n ───────────────────────────────────────────────────────────
+
+
+@app.get("/i18n/{lang}")
+def get_i18n(lang: str) -> dict:
+    """Return the i18n strings for the requested language."""
+    from peekdocs.i18n import _STRINGS, LANGUAGES
+
+    if lang not in LANGUAGES:
+        raise HTTPException(status_code=404, detail=f"unknown language: {lang}")
+    return {"lang": lang, "strings": _STRINGS.get(lang, {})}
+
+
+@app.get("/i18n")
+def list_i18n() -> dict:
+    from peekdocs.i18n import LANGUAGES
+
+    return {"languages": LANGUAGES}
+
+
+# ─── About (existing) ───────────────────────────────────────────────
+
+
 @app.get("/about")
 def about() -> dict:
     from peekdocs import __version__ as pd_version

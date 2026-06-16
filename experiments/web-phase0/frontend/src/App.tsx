@@ -11,7 +11,17 @@ import SuitesModal from "./components/SuitesModal";
 import RegexCollectionsModal from "./components/RegexCollectionsModal";
 import SystemCheckModal from "./components/SystemCheckModal";
 import ToolsModal, { type ToolKind } from "./components/ToolsModal";
+import SearchHistoryModal from "./components/SearchHistoryModal";
+import BookmarksModal from "./components/BookmarksModal";
+import AllFilesModal from "./components/AllFilesModal";
+import ClearFilesModal from "./components/ClearFilesModal";
+import IndexesModal from "./components/IndexesModal";
+import ScheduleSearchModal from "./components/ScheduleSearchModal";
+import DiffSnapshotsModal from "./components/DiffSnapshotsModal";
+import RegexTesterModal from "./components/RegexTesterModal";
+import WizardModal from "./components/WizardModal";
 import { runSearch, type SearchRequest, type SearchResponse } from "./api";
+import { setLanguage } from "./i18n";
 
 const INITIAL_PARAMS: SearchRequest = {
   terms: [],
@@ -34,9 +44,29 @@ const ANALYSIS_TOOLS: Record<string, ToolKind> = {
   "unsearchable-files": "unsearchable-files",
 };
 
+type ModalKey =
+  | null
+  | "save"
+  | "reload"
+  | "about"
+  | "suites"
+  | "regex-collections"
+  | "system-check"
+  | "search-history"
+  | "bookmarks"
+  | "all-files"
+  | "clear-files"
+  | "clean-folder"
+  | "indexes"
+  | "schedule"
+  | "diff"
+  | "regex-tester"
+  | "wizard";
+
 export default function App() {
   const [params, setParamsState] = useState<SearchRequest>(INITIAL_PARAMS);
   const [tooltipsOn, setTooltipsOn] = useState(true);
+  const [lang, setLangState] = useState("en");
 
   const [outputTxt, setOutputTxt] = useState(true);
   const [outputDocx, setOutputDocx] = useState(true);
@@ -52,12 +82,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SearchResponse | null>(null);
 
-  const [showSave, setShowSave] = useState(false);
-  const [showReload, setShowReload] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
-  const [showSuites, setShowSuites] = useState(false);
-  const [showRegex, setShowRegex] = useState(false);
-  const [showSystemCheck, setShowSystemCheck] = useState(false);
+  const [openModal, setOpenModal] = useState<ModalKey>(null);
   const [activeTool, setActiveTool] = useState<ToolKind | null>(null);
 
   const setParams = useCallback((next: Partial<SearchRequest>) => {
@@ -91,7 +116,6 @@ export default function App() {
       });
       setResult(r);
       if (r.report_errors && r.report_errors.length > 0) {
-        // Non-fatal — surface so user knows why a button is greyed.
         setError(`Some report formats failed: ${r.report_errors.join("; ")}`);
       }
     } catch (e) {
@@ -103,7 +127,59 @@ export default function App() {
 
   function onTool(tool: string) {
     if (tool === "system-check") {
-      setShowSystemCheck(true);
+      setOpenModal("system-check");
+      return;
+    }
+    if (tool === "history") {
+      setOpenModal("search-history");
+      return;
+    }
+    if (tool === "bookmarks") {
+      setOpenModal("bookmarks");
+      return;
+    }
+    if (tool === "view-all") {
+      if (!params.directory) {
+        alert("View All needs a folder — set Step 1 first.");
+        return;
+      }
+      setOpenModal("all-files");
+      return;
+    }
+    if (tool === "clear-files") {
+      if (!params.directory) {
+        alert("Clear Files needs a folder — set Step 1 first.");
+        return;
+      }
+      setOpenModal("clear-files");
+      return;
+    }
+    if (tool === "clean-folder") {
+      setOpenModal("clean-folder");
+      return;
+    }
+    if (tool === "indexes") {
+      if (!params.directory) {
+        alert("Indexes needs a folder — set Step 1 first.");
+        return;
+      }
+      setOpenModal("indexes");
+      return;
+    }
+    if (tool === "schedule") {
+      if (!params.directory) {
+        alert("Schedule Search needs a folder — set Step 1 first.");
+        return;
+      }
+      setOpenModal("schedule");
+      return;
+    }
+    if (tool === "diff") {
+      setOpenModal("diff");
+      return;
+    }
+    if (tool === "regex-tester") {
+      setOpenModal("regex-tester");
       return;
     }
     if (tool in ANALYSIS_TOOLS) {
@@ -114,14 +190,22 @@ export default function App() {
       setActiveTool(ANALYSIS_TOOLS[tool]);
       return;
     }
-    alert(
-      `${tool}\n\nThis tool needs a dedicated backend endpoint — coming in the next round (Tier 3).`
-    );
+    alert(`${tool}\n\n(Not wired yet.)`);
+  }
+
+  function onLangChange(newLang: string) {
+    setLangState(newLang);
+    setLanguage(newLang);
   }
 
   return (
     <div className="app">
-      <Header tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn} />
+      <Header
+        tooltipsOn={tooltipsOn}
+        setTooltipsOn={setTooltipsOn}
+        lang={lang}
+        setLang={onLangChange}
+      />
 
       <main className="split-layout">
         <div className="left-pane" style={{ width: `${leftPercent}%` }}>
@@ -131,6 +215,7 @@ export default function App() {
             loading={loading}
             onRun={onRun}
             result={result}
+            tooltipsOn={tooltipsOn}
             outputTxt={outputTxt}
             setOutputTxt={setOutputTxt}
             outputDocx={outputDocx}
@@ -145,13 +230,11 @@ export default function App() {
             setOutputHtml={setOutputHtml}
             deleteOnClose={deleteOnClose}
             setDeleteOnClose={setDeleteOnClose}
-            openSaveSearchModal={() => setShowSave(true)}
-            openReloadModal={() => setShowReload(true)}
-            openSuitesModal={() => setShowSuites(true)}
-            openRegexModal={() => setShowRegex(true)}
-            openWizardModal={() =>
-              alert("Search Wizard — coming in Tier 3.")
-            }
+            openSaveSearchModal={() => setOpenModal("save")}
+            openReloadModal={() => setOpenModal("reload")}
+            openSuitesModal={() => setOpenModal("suites")}
+            openRegexModal={() => setOpenModal("regex-collections")}
+            openWizardModal={() => setOpenModal("wizard")}
             resetToFactory={resetToFactory}
           />
         </div>
@@ -174,36 +257,81 @@ export default function App() {
         </div>
       </main>
 
-      <Footer onAbout={() => setShowAbout(true)} onTool={onTool} />
+      <Footer onAbout={() => setOpenModal("about")} onTool={onTool} />
 
-      {showSave && (
-        <SaveSearchModal
-          params={params}
-          onClose={() => setShowSave(false)}
-        />
+      {openModal === "save" && (
+        <SaveSearchModal params={params} onClose={() => setOpenModal(null)} />
       )}
-      {showReload && (
+      {openModal === "reload" && (
         <ReloadSearchModal
           directory={params.directory}
           onLoad={(patch) => setParams(patch)}
-          onClose={() => setShowReload(false)}
+          onClose={() => setOpenModal(null)}
         />
       )}
-      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
-      {showSuites && (
-        <SuitesModal
-          directory={params.directory}
-          onClose={() => setShowSuites(false)}
-        />
+      {openModal === "about" && <AboutModal onClose={() => setOpenModal(null)} />}
+      {openModal === "suites" && (
+        <SuitesModal directory={params.directory} onClose={() => setOpenModal(null)} />
       )}
-      {showRegex && (
+      {openModal === "regex-collections" && (
         <RegexCollectionsModal
           directory={params.directory}
-          onClose={() => setShowRegex(false)}
+          onClose={() => setOpenModal(null)}
         />
       )}
-      {showSystemCheck && (
-        <SystemCheckModal onClose={() => setShowSystemCheck(false)} />
+      {openModal === "system-check" && (
+        <SystemCheckModal onClose={() => setOpenModal(null)} />
+      )}
+      {openModal === "search-history" && (
+        <SearchHistoryModal
+          onPick={(terms) =>
+            setParams({ terms: terms.split(/\s+/).filter(Boolean) })
+          }
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+      {openModal === "bookmarks" && (
+        <BookmarksModal onClose={() => setOpenModal(null)} />
+      )}
+      {openModal === "all-files" && (
+        <AllFilesModal directory={params.directory} onClose={() => setOpenModal(null)} />
+      )}
+      {openModal === "clear-files" && (
+        <ClearFilesModal
+          directory={params.directory}
+          kind="clear"
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+      {openModal === "clean-folder" && (
+        <ClearFilesModal
+          directory={params.directory}
+          kind="clean"
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+      {openModal === "indexes" && (
+        <IndexesModal directory={params.directory} onClose={() => setOpenModal(null)} />
+      )}
+      {openModal === "schedule" && (
+        <ScheduleSearchModal
+          directory={params.directory}
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+      {openModal === "diff" && <DiffSnapshotsModal onClose={() => setOpenModal(null)} />}
+      {openModal === "regex-tester" && (
+        <RegexTesterModal onClose={() => setOpenModal(null)} />
+      )}
+      {openModal === "wizard" && (
+        <WizardModal
+          onApply={(pattern) => {
+            // Drop the combined regex into the search bar as a single term,
+            // enable Regex mode.
+            setParams({ terms: [pattern], use_regex: true });
+          }}
+          onClose={() => setOpenModal(null)}
+        />
       )}
       {activeTool && (
         <ToolsModal

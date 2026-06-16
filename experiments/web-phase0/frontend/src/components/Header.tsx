@@ -1,22 +1,23 @@
-import { useState } from "react";
-
-const LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "es", name: "Español" },
-  { code: "fr", name: "Français" },
-  { code: "de", name: "Deutsch" },
-  { code: "ja", name: "日本語" },
-  { code: "zh-CN", name: "简体中文" },
-  { code: "pt-BR", name: "Português brasileiro" },
-];
+import { useEffect, useState } from "react";
 
 interface HeaderProps {
   tooltipsOn: boolean;
   setTooltipsOn: (v: boolean) => void;
+  lang: string;
+  setLang: (v: string) => void;
 }
 
-export default function Header({ tooltipsOn, setTooltipsOn }: HeaderProps) {
-  const [lang, setLang] = useState("en");
+export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: HeaderProps) {
+  const [languages, setLanguages] = useState<Record<string, string>>({
+    en: "English",
+  });
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/i18n")
+      .then((r) => r.json())
+      .then((d: { languages: Record<string, string> }) => setLanguages(d.languages))
+      .catch(() => {});
+  }, []);
 
   return (
     <header className="app-header">
@@ -30,11 +31,11 @@ export default function Header({ tooltipsOn, setTooltipsOn }: HeaderProps) {
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
-            title="Language (visual stub — translation not yet wired)"
+            title={tooltipsOn ? "Choose UI language" : undefined}
           >
-            {LANGUAGES.map((l) => (
-              <option key={l.code} value={l.code}>
-                {l.name}
+            {Object.entries(languages).map(([code, name]) => (
+              <option key={code} value={code}>
+                {name}
               </option>
             ))}
           </select>
@@ -42,7 +43,7 @@ export default function Header({ tooltipsOn, setTooltipsOn }: HeaderProps) {
         <button
           className={`tooltips-toggle ${tooltipsOn ? "on" : "off"}`}
           onClick={() => setTooltipsOn(!tooltipsOn)}
-          title="Toggle tooltips on / off"
+          title={tooltipsOn ? "Toggle tooltips off" : undefined}
         >
           Tooltips: {tooltipsOn ? "ON" : "OFF"}
         </button>

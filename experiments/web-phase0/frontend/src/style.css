@@ -482,6 +482,44 @@ label {
   font-size: 13px;
 }
 
+/* Wizard tabs and pattern rows */
+.wizard-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.wizard-pattern-list {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.wizard-pattern-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 2fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #f3f3f3;
+  font-size: 12px;
+}
+
+.wizard-pattern-row:last-child {
+  border-bottom: none;
+}
+
+.wizard-pattern-row:hover {
+  background: #f8f9fa;
+}
+
+.wizard-pattern-name {
+  font-weight: 500;
+}
+
 .history-hint {
   margin-top: 2px;
 }
