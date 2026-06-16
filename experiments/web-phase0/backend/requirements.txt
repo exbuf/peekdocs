@@ -1,0 +1,6 @@
+# Phase 0 experimental backend dependencies — NOT in the main
+# pyproject.toml. Install into the existing venv:
+#   source venv/bin/activate
+#   pip install -r experiments/web-phase0/backend/requirements.txt
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
