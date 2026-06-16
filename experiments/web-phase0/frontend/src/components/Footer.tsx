@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useI18n } from "../i18n";
 
-// Tool items map to the dispatch handler in App.tsx.
 const TOOLS_ITEMS = [
-  // Analysis
   { label: "File Inventory", section: "Analysis", tool: "file-inventory" },
   { label: "File Age Distribution", section: "Analysis", tool: "age-distribution" },
   { label: "Duplicate Finder", section: "Analysis", tool: "duplicates" },
@@ -11,14 +10,12 @@ const TOOLS_ITEMS = [
   { label: "Recent Changes", section: "Analysis", tool: "recent-changes" },
   { label: "Protected Files", section: "Analysis", tool: "protected-files" },
   { label: "Unsearchable Files", section: "Analysis", tool: "unsearchable-files" },
-  // Workflows (will need backend endpoints — Phase 1)
   { label: "Search History", section: "Workflows", tool: "history" },
   { label: "Bookmarks", section: "Workflows", tool: "bookmarks" },
   { label: "Diff Snapshots", section: "Workflows", tool: "diff" },
   { label: "Schedule Search", section: "Workflows", tool: "schedule" },
   { label: "Indexes", section: "Workflows", tool: "indexes" },
   { label: "Regex Tester", section: "Workflows", tool: "regex-tester" },
-  // Maintenance
   { label: "Clear Files", section: "Maintenance", tool: "clear-files" },
   { label: "Clean Folder", section: "Maintenance", tool: "clean-folder" },
   { label: "View All peekdocs Files", section: "Maintenance", tool: "view-all" },
@@ -30,11 +27,14 @@ export type ToolId = string;
 interface FooterProps {
   onAbout: () => void;
   onTool: (toolId: ToolId) => void;
+  tooltipsOn: boolean;
 }
 
-export default function Footer({ onAbout, onTool }: FooterProps) {
+export default function Footer({ onAbout, onTool, tooltipsOn }: FooterProps) {
+  const { t } = useI18n();
   const [toolsOpen, setToolsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const tip = (s: string): string | undefined => (tooltipsOn ? s : undefined);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -50,21 +50,36 @@ export default function Footer({ onAbout, onTool }: FooterProps) {
 
   return (
     <footer className="app-footer">
-      <a href="https://github.com/exbuf/peekdocs#readme" target="_blank" rel="noreferrer">
-        README
+      <a
+        href="https://github.com/exbuf/peekdocs#readme"
+        target="_blank"
+        rel="noreferrer"
+        title={tip(t("readme_button_tooltip", "Open the peekdocs README on GitHub"))}
+      >
+        {t("readme_button_label", "README")}
       </a>
-      <a href="https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md" target="_blank" rel="noreferrer">
-        User Guide
+      <a
+        href="https://github.com/exbuf/peekdocs/blob/main/docs/USER_GUIDE.md"
+        target="_blank"
+        rel="noreferrer"
+        title={tip(t("user_guide_button_tooltip", "Open the User Guide"))}
+      >
+        {t("user_guide_button_label", "User Guide")}
       </a>
-      <button className="link-btn" onClick={onAbout}>
-        About
+      <button
+        className="link-btn"
+        onClick={onAbout}
+        title={tip(t("about_button_tooltip", "About peekdocs — version, license"))}
+      >
+        {t("about_button_label", "About")}
       </button>
       <div className="tools-menu" ref={menuRef}>
         <button
           className={`link-btn tools-btn ${toolsOpen ? "open" : ""}`}
           onClick={() => setToolsOpen(!toolsOpen)}
+          title={tip(t("tools_button_tooltip", "Tools menu — analysis, workflows, maintenance"))}
         >
-          Tools ▾
+          {t("tools_button_label", "Tools")} ▾
         </button>
         {toolsOpen && (
           <div className="tools-dropdown">

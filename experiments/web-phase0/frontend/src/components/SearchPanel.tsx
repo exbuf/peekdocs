@@ -350,6 +350,7 @@ export default function SearchPanel(p: SearchPanelProps) {
         deleteOnClose={p.deleteOnClose}
         setDeleteOnClose={p.setDeleteOnClose}
         resetToFactory={p.resetToFactory}
+        tooltipsOn={p.tooltipsOn}
       />
     </div>
   );

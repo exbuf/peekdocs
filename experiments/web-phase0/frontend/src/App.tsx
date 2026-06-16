@@ -257,7 +257,7 @@ export default function App() {
         </div>
       </main>
 
-      <Footer onAbout={() => setOpenModal("about")} onTool={onTool} />
+      <Footer onAbout={() => setOpenModal("about")} onTool={onTool} tooltipsOn={tooltipsOn} />
 
       {openModal === "save" && (
         <SaveSearchModal params={params} onClose={() => setOpenModal(null)} />

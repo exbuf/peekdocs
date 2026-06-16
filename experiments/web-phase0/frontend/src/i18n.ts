@@ -27,7 +27,11 @@ export async function setLanguage(lang: string): Promise<void> {
 }
 
 export function t(key: string, fallback: string): string {
-  return strings[key] || fallback;
+  // peekdocs/i18n.py label values often include space-padding meant for
+  // the tkinter widget (e.g. " Step 1 "). The web GUI uses CSS padding,
+  // so strip leading/trailing whitespace.
+  const v = strings[key];
+  return v != null ? v.trim() : fallback;
 }
 
 export function useI18n(): { t: typeof t } {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../i18n";
 
 interface HeaderProps {
   tooltipsOn: boolean;
@@ -8,6 +9,8 @@ interface HeaderProps {
 }
 
 export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: HeaderProps) {
+  const { t } = useI18n();
+  const tip = (s: string): string | undefined => (tooltipsOn ? s : undefined);
   const [languages, setLanguages] = useState<Record<string, string>>({
     en: "English",
   });
@@ -26,12 +29,14 @@ export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: Hea
         <span className="brand-name">peekdocs</span>
       </div>
       <div className="header-controls">
-        <label className="lang-picker">
+        <label
+          className="lang-picker"
+          title={tip(t("language_picker_label", "Choose UI language"))}
+        >
           🌍
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
-            title={tooltipsOn ? "Choose UI language" : undefined}
           >
             {Object.entries(languages).map(([code, name]) => (
               <option key={code} value={code}>
@@ -43,9 +48,11 @@ export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: Hea
         <button
           className={`tooltips-toggle ${tooltipsOn ? "on" : "off"}`}
           onClick={() => setTooltipsOn(!tooltipsOn)}
-          title={tooltipsOn ? "Toggle tooltips off" : undefined}
+          title={tip(t("tooltips_button_tooltip", "Enable/disable hover tooltips"))}
         >
-          Tooltips: {tooltipsOn ? "ON" : "OFF"}
+          {tooltipsOn
+            ? t("tooltips_on_label", "Tooltips: ON")
+            : t("tooltips_off_label", "Tooltips: OFF")}
         </button>
       </div>
     </header>

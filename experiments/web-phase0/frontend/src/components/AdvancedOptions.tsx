@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { SearchRequest } from "../api";
 import { saveDefaults, getDefaults, clearFactoryDefaults } from "../api";
+import { useI18n } from "../i18n";
 
 interface AdvancedOptionsProps {
   params: SearchRequest;
@@ -25,6 +26,9 @@ interface AdvancedOptionsProps {
 
   // Factory reset (used by Restore Factory Settings and Reset All Fields)
   resetToFactory: () => void;
+
+  // Tooltip-toggle awareness
+  tooltipsOn: boolean;
 }
 
 // Subset of fields that map cleanly to ~/.peekdocsrc keys.
@@ -122,7 +126,9 @@ function configDictToParamsPatch(
  * CSV/JSON/PDF/HTML output toggles plus Delete on Close.
  */
 export default function AdvancedOptions(p: AdvancedOptionsProps) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(true);
+  const tip = (s: string): string | undefined => (p.tooltipsOn ? s : undefined);
 
   return (
     <section className="adv-options">
@@ -130,9 +136,10 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
         className={`adv-header ${expanded ? "open" : ""}`}
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
+        title={tip("Click to collapse / expand the Advanced Search Options panel")}
       >
         <span className="chevron">{expanded ? "▾" : "▸"}</span>
-        Advanced Search Options
+        {t("adv_window_title", "Advanced Search Options")}
       </button>
 
       {expanded && (
@@ -140,9 +147,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
           {/* Search modes — now includes AND, Recursive, Use Index,
               alongside the existing fuzzy/wildcard/regex/etc. */}
           <div className="adv-group">
-            <div className="adv-group-label">Search modes</div>
+            <div className="adv-group-label">{t("search_options_label", "Search modes")}</div>
             <div className="adv-checkrow">
-              <label>
+              <label title={tip(t("and_tooltip", "AND mode — all terms must appear on the same line"))}>
                 <input
                   type="checkbox"
                   checked={p.params.match_all ?? false}
@@ -150,9 +157,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ match_all: e.target.checked })
                   }
                 />
-                AND mode <span className="muted small">(default OR)</span>
+                {t("adv_and_mode_label", "AND mode")} <span className="muted small">(default OR)</span>
               </label>
-              <label>
+              <label title={tip(t("recursive_tooltip", "Include all subfolders when searching"))}>
                 <input
                   type="checkbox"
                   checked={p.params.recursive ?? false}
@@ -160,9 +167,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ recursive: e.target.checked })
                   }
                 />
-                Recursive
+                {t("recursive_label", "Recursive")}
               </label>
-              <label>
+              <label title={tip(t("whole_word_tooltip", "Match only complete words"))}>
                 <input
                   type="checkbox"
                   checked={p.params.use_whole_word ?? false}
@@ -170,9 +177,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_whole_word: e.target.checked })
                   }
                 />
-                Whole Word
+                {t("whole_word_label", "Whole Word")}
               </label>
-              <label>
+              <label title={tip(t("use_index_tooltip", "Use the search index for faster repeated searches"))}>
                 <input
                   type="checkbox"
                   checked={p.params.use_index ?? false}
@@ -180,9 +187,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_index: e.target.checked })
                   }
                 />
-                Use Index
+                {t("use_index_label", "Use Index")}
               </label>
-              <label>
+              <label title={tip("Typo-tolerant matching — catches misspellings")}>
                 <input
                   type="checkbox"
                   checked={p.params.use_fuzzy ?? false}
@@ -190,9 +197,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_fuzzy: e.target.checked })
                   }
                 />
-                Fuzzy
+                {t("adv_fuzzy_label", "Fuzzy")}
               </label>
-              <label>
+              <label title={tip("Wildcard matching — * and ? supported")}>
                 <input
                   type="checkbox"
                   checked={p.params.use_wildcard ?? false}
@@ -200,9 +207,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_wildcard: e.target.checked })
                   }
                 />
-                Wildcard
+                {t("adv_wildcard_label", "Wildcard")}
               </label>
-              <label>
+              <label title={tip("Regular expression matching")}>
                 <input
                   type="checkbox"
                   checked={p.params.use_regex ?? false}
@@ -210,9 +217,9 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_regex: e.target.checked })
                   }
                 />
-                Regex
+                {t("adv_regex_label", "Regex")}
               </label>
-              <label>
+              <label title={tip("Optical Character Recognition — search scanned PDFs and images (requires Tesseract)")}>
                 <input
                   type="checkbox"
                   checked={p.params.use_ocr ?? false}
@@ -220,13 +227,15 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                     p.setParams({ use_ocr: e.target.checked })
                   }
                 />
-                OCR
+                {t("adv_ocr_label", "OCR")}
               </label>
             </div>
           </div>
 
           <div className="adv-group">
-            <div className="adv-group-label">Boolean expression (overrides terms)</div>
+            <div className="adv-group-label">
+              {t("adv_expression_label", "Boolean expression")} <span className="muted small">({t("adv_expression_overrides_terms", "overrides terms")})</span>
+            </div>
             <input
               type="text"
               placeholder="(budget OR revenue) AND NOT draft"
@@ -234,6 +243,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
               onChange={(e) =>
                 p.setParams({ expression: e.target.value || null })
               }
+              title={tip("Boolean syntax with AND / OR / NOT and parentheses")}
             />
           </div>
 
@@ -241,8 +251,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
               the four numeric tweaks live with their conceptual home
               (the search expression). */}
           <div className="adv-grid adv-grid-cols-4">
-            <label>
-              Word proximity
+            <label title={tip("All terms must be within N words on the same line")}>
+              {t("adv_word_proximity_label", "Word proximity")}
               <input
                 type="number"
                 min={0}
@@ -253,8 +263,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Line proximity
+            <label title={tip("All terms must be within N lines of each other")}>
+              {t("adv_line_proximity_label", "Line proximity")}
               <input
                 type="number"
                 min={0}
@@ -265,8 +275,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Lines before
+            <label title={tip("Include N lines of context before each match")}>
+              {t("adv_lines_before_label", "Lines before")}
               <input
                 type="number"
                 min={0}
@@ -277,8 +287,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Lines after
+            <label title={tip("Include N lines of context after each match")}>
+              {t("adv_lines_after_label", "Lines after")}
               <input
                 type="number"
                 min={0}
@@ -293,8 +303,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
 
           {/* Filters */}
           <div className="adv-grid">
-            <label>
-              Exclude
+            <label title={tip("Exclude lines containing any of these terms")}>
+              {t("adv_exclude_label", "Exclude")}
               <input
                 type="text"
                 placeholder="draft archive"
@@ -307,8 +317,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              File types
+            <label title={tip("Restrict to these file extensions (comma-separated)")}>
+              {t("adv_file_types_label", "File types")}
               <input
                 type="text"
                 placeholder="pdf,docx,txt"
@@ -322,8 +332,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Specific files
+            <label title={tip("Filename patterns to include — comma-separated, supports * and ?")}>
+              {t("adv_specific_files_label", "Specific files")}
               <input
                 type="text"
                 placeholder="budget*.pdf, *.docx"
@@ -337,8 +347,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Range filter
+            <label title={tip("Filter by dollar amounts, dates, percentages, ages, or file sizes")}>
+              {t("adv_range_label", "Range filter")}
               <input
                 type="text"
                 placeholder="amount:1000..5000"
@@ -348,8 +358,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Cores
+            <label title={tip("Number of CPU cores to use (blank = auto, half of available)")}>
+              {t("adv_cores_to_use_label", "Cores")}
               <input
                 type="number"
                 min={1}
@@ -363,8 +373,8 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               />
             </label>
-            <label>
-              Max file size (MB)
+            <label title={tip("Skip files larger than this (in MB)")}>
+              {t("adv_max_file_size_label", "Max file size (MB)")}
               <input
                 type="number"
                 min={0}
@@ -381,10 +391,10 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
           {/* Output formats — all six are individually selectable. */}
           <div className="adv-group">
             <div className="adv-group-label">
-              Output formats <span className="muted small">(each format produces a file next to the searched documents)</span>
+              {t("adv_also_output_label", "Output formats")} <span className="muted small">({t("adv_output_each_file", "each format produces a file next to the searched documents")})</span>
             </div>
             <div className="adv-checkrow">
-              <label>
+              <label title={tip("Plain-text report")}>
                 <input
                   type="checkbox"
                   checked={p.outputTxt}
@@ -392,7 +402,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 TXT
               </label>
-              <label>
+              <label title={tip("Word document with yellow-highlighted matches")}>
                 <input
                   type="checkbox"
                   checked={p.outputDocx}
@@ -400,7 +410,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 DOCX
               </label>
-              <label>
+              <label title={tip("Spreadsheet — one row per match")}>
                 <input
                   type="checkbox"
                   checked={p.outputCsv}
@@ -408,7 +418,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 CSV
               </label>
-              <label>
+              <label title={tip("Machine-readable JSON for automation")}>
                 <input
                   type="checkbox"
                   checked={p.outputJson}
@@ -416,7 +426,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 JSON
               </label>
-              <label>
+              <label title={tip("PDF report — Latin-1 font, non-Latin shows as ?")}>
                 <input
                   type="checkbox"
                   checked={p.outputPdf}
@@ -424,7 +434,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 PDF
               </label>
-              <label>
+              <label title={tip("HTML report — opens in any browser")}>
                 <input
                   type="checkbox"
                   checked={p.outputHtml}
@@ -432,17 +442,20 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 />
                 HTML
               </label>
-              <label className="delete-on-close-adv">
+              <label
+                className="delete-on-close-adv"
+                title={tip(t("delete_on_close_tooltip", "peekdocs never modifies or deletes your own documents — Delete on Close removes only files peekdocs created (results, the search index, etc.) when you close the app."))}
+              >
                 <input
                   type="checkbox"
                   checked={p.deleteOnClose}
                   onChange={(e) => p.setDeleteOnClose(e.target.checked)}
                 />
-                Delete on Close
+                {t("delete_on_close_label", "Delete on Close")}
               </label>
             </div>
             <p className="muted small">
-              peekdocs never modifies or deletes your own documents — Delete on Close removes only files peekdocs created (results, the search index, etc.) when you close the app.
+              {t("delete_on_close_explainer", "peekdocs never modifies or deletes your own documents — Delete on Close removes only files peekdocs created (results, the search index, etc.) when you close the app.")}
             </p>
           </div>
 
@@ -476,6 +489,7 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
 
           <div className="adv-buttons">
             <button
+              title={tip("Save the current configuration as defaults (~/.peekdocsrc)")}
               onClick={async () => {
                 try {
                   await saveDefaults(
@@ -495,9 +509,10 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               }}
             >
-              Save as Defaults
+              {t("adv_save_defaults_label", "Save as Defaults")}
             </button>
             <button
+              title={tip("Restore your saved defaults from ~/.peekdocsrc")}
               onClick={async () => {
                 try {
                   const cfg = await getDefaults();
@@ -515,9 +530,10 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               }}
             >
-              Restore Saved Defaults
+              {t("adv_restore_defaults_label", "Restore Saved Defaults")}
             </button>
             <button
+              title={tip("Delete ~/.peekdocsrc and reset every field to factory defaults")}
               onClick={async () => {
                 if (
                   !confirm(
@@ -534,10 +550,13 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
                 }
               }}
             >
-              Restore Factory Settings
+              {t("adv_restore_factory_label", "Restore Factory Settings")}
             </button>
-            <button onClick={() => p.resetToFactory()}>
-              Reset All Fields
+            <button
+              title={tip("Reset every field to factory defaults (does not touch ~/.peekdocsrc)")}
+              onClick={() => p.resetToFactory()}
+            >
+              {t("adv_reset_all_label", "Reset All Fields")}
             </button>
           </div>
         </div>
