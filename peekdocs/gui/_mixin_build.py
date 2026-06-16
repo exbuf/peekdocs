@@ -1406,6 +1406,53 @@ class BuildMixin:
         self._step_lbl_3.pack(side="left", padx=(0, 8))
         self._step_3_tooltip = Tooltip(self._step_lbl_3, _t("step_3_tooltip"), anchor="above")
 
+        # Format-selection checkboxes — mirror of the CSV / JSON / PDF / HTML
+        # checkboxes under Advanced Search Options. Both copies share the
+        # same StringVars (self.output_csv_var, etc.), so toggling either
+        # updates the other automatically. TXT and DOCX are always
+        # generated and don't have checkboxes.
+        self._step_3_also_lbl = _tk_step4.Label(self.report_frame, text=_t("step_3_also_label"),
+                                                 fg="gray40", font=("TkDefaultFont", 11))
+        self._step_3_also_lbl.pack(side="left", padx=(4, 4))
+
+        _step3_format_scope_note = (
+            "Select before running. Applies to Standard Search only "
+            "(Step 4 below). TXT and DOCX are always generated. "
+            "Search Suites have their own format picker; Regex Search "
+            "always writes just TXT and DOCX regardless of these checkboxes."
+        )
+        self._step_3_cb_csv = ctk.CTkCheckBox(
+            self.report_frame, text="CSV", variable=self.output_csv_var,
+            onvalue="on", offvalue="off", width=58,
+            command=lambda: self._save_ui_preference("output_csv", self.output_csv_var.get() == "on"),
+        )
+        self._step_3_cb_csv.pack(side="left", padx=(0, 4))
+        Tooltip(self._step_3_cb_csv, "Also save results as a CSV file (peekdocs_standard_results.csv) — open in Excel or Google Sheets. " + _step3_format_scope_note, anchor="above")
+
+        self._step_3_cb_json = ctk.CTkCheckBox(
+            self.report_frame, text="JSON", variable=self.output_json_var,
+            onvalue="on", offvalue="off", width=62,
+            command=lambda: self._save_ui_preference("output_json", self.output_json_var.get() == "on"),
+        )
+        self._step_3_cb_json.pack(side="left", padx=(0, 4))
+        Tooltip(self._step_3_cb_json, "Also save results as a JSON file (peekdocs_standard_results.json) — machine-readable for automation. " + _step3_format_scope_note, anchor="above")
+
+        self._step_3_cb_pdf = ctk.CTkCheckBox(
+            self.report_frame, text="PDF", variable=self.output_pdf_var,
+            onvalue="on", offvalue="off", width=58,
+            command=lambda: self._save_ui_preference("output_pdf", self.output_pdf_var.get() == "on"),
+        )
+        self._step_3_cb_pdf.pack(side="left", padx=(0, 4))
+        Tooltip(self._step_3_cb_pdf, "Also save results as a PDF file (peekdocs_standard_results.pdf) — highlighted, portable. " + _step3_format_scope_note, anchor="above")
+
+        self._step_3_cb_html = ctk.CTkCheckBox(
+            self.report_frame, text="HTML", variable=self.output_html_var,
+            onvalue="on", offvalue="off", width=62,
+            command=lambda: self._save_ui_preference("output_html", self.output_html_var.get() == "on"),
+        )
+        self._step_3_cb_html.pack(side="left", padx=(0, 10))
+        Tooltip(self._step_3_cb_html, "Also save results as an HTML file (peekdocs_standard_results.html) — opens in any browser. " + _step3_format_scope_note, anchor="above")
+
         btn_font = ctk.CTkFont(size=12)
         btn_w = 60
         _report_color_note = "Green = report file exists and is ready to open. Red = not generated (enable in Advanced Search Options under Output Formats)."
@@ -2222,6 +2269,7 @@ class BuildMixin:
             self._step_lbl_2.configure(text=t("step_2_label"))
             self._step_lbl_3.configure(text=t("step_3_label"))
             self._step_lbl_4.configure(text=t("step_4_label"))
+            self._step_3_also_lbl.configure(text=t("step_3_also_label"))
         except Exception:
             pass
         # Re-render the three main-screen action buttons. Each writes
