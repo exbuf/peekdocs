@@ -156,7 +156,7 @@ _STRINGS = {
         # Results Preview pane header + Clear button
         "results_preview_label": "Results Preview:",
         "results_preview_tooltip": "Live preview of search matches — capped at the first 500 lines so the GUI stays responsive on searches that return tens of thousands of matches. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit)",
-        "clear_preview_label": "Clear Preview",
+        "clear_preview_label": "Clear",
         "clear_preview_tooltip": "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk",
         # Bottom-row navigation buttons (left group): README / User Guide / Close
         "readme_button_label": "README",
@@ -200,7 +200,7 @@ _STRINGS = {
         # in the translation).
         "clear_button_label": "Clear",
         "clear_button_tooltip": "Clear the search bar",
-        "recent_searches_label": "Recent Searches",
+        "recent_searches_label": "Recent",
         "recent_searches_tooltip": "Show recent searches — click to re-use a previous search",
         # Options-row controls: AND / OR / Recursive / Whole Word / Advanced
         # / Use Index / Wizard / Save / Reload
@@ -212,7 +212,7 @@ _STRINGS = {
         "recursive_tooltip": "Include all subfolders when searching. Synced with Recursive in Advanced Search Options. Without this checked and without using the index, peekdocs searches only the one folder shown — no subfolders. With the index checked, searches are always recursive regardless of this setting",
         "whole_word_label": "Whole Word",
         "whole_word_tooltip": "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options",
-        "advanced_label": "Advanced",
+        "advanced_label": "Advanced Search Options",
         "advanced_tooltip": "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings",
         "use_index_label": "Use Index",
         "use_index_tooltip": "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app",
@@ -253,7 +253,7 @@ _STRINGS = {
         "adv_append_report_to_label": "Append report to:",
         "adv_output_dir_label": "Output Dir:",
         # Output frame
-        "adv_also_output_label": "Also output report as ==>",
+        "adv_also_output_label": "Also ==>",
         "adv_output_each_file": "each format produces a file next to the searched documents",
         "step_3_also_label": "Also:",
         "adv_timestamp_filename_label": "Timestamp Filename",

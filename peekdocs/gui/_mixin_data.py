@@ -145,6 +145,8 @@ class DataMixin:
             settings["refresh_interval"] = refresh_val
         settings["text_size"] = self._text_size_var.get()
         settings["preview_size"] = self._preview_size_var.get()
+        if hasattr(self, "_preview_cap_var"):
+            settings["preview_cap"] = self._preview_cap_var.get()
         if hasattr(self, "_appearance_mode") and self._appearance_mode != "System":
             settings["appearance_mode"] = self._appearance_mode
 
@@ -255,6 +257,12 @@ class DataMixin:
             preview_size = "11"
         self._preview_size_var.set(preview_size)
         self._on_preview_size_changed(preview_size)
+        # Restore preview cap (browser-GUI dropdown — 100/500/1000/5000/No cap)
+        if hasattr(self, "_preview_cap_var"):
+            preview_cap = config.get("preview_cap", "500")
+            if preview_cap not in self._PREVIEW_CAP_VALUES:
+                preview_cap = "500"
+            self._preview_cap_var.set(preview_cap)
         # Restore appearance mode
         appearance = config.get("appearance_mode", "System")
         if appearance not in ("System", "Light", "Dark"):
@@ -292,7 +300,7 @@ class DataMixin:
             "personal files are not affected.\n\n"
             "This cannot be undone.\n\n"
             "Continue?",
-            parent=self.advanced_window if hasattr(self, "advanced_window") else self,
+            parent=self,
             default=mb.NO,
         )
         if not confirm:
@@ -529,6 +537,13 @@ class DataMixin:
             )
             clear_btn.pack(side="left")
 
+            timeline_btn = ctk.CTkButton(
+                clear_row, text="View Timeline", width=130,
+                command=lambda: self._show_search_history_chart(history, popup),
+                font=ctk.CTkFont(size=12),
+            )
+            timeline_btn.pack(side="left", padx=(8, 0))
+
         # Close — centered, on its own row below Clear History.
         close_row = tk.Frame(popup)
         close_row.pack(pady=(5, 10))
@@ -557,6 +572,61 @@ class DataMixin:
             popup.destroy()
             self.status_label.configure(
                 text="Search history cleared.", text_color=("blue", "#66BBFF"))
+
+    def _show_search_history_chart(self, history, parent):
+        """Timeline of past searches: matches & elapsed time over time."""
+        if not history:
+            self._show_error("No history to chart yet.")
+            return
+
+        from datetime import datetime
+        points = []
+        for entry in history:
+            ts_raw = entry.get("timestamp", "")
+            try:
+                ts = datetime.fromisoformat(ts_raw[:19])
+            except Exception:
+                continue
+            try:
+                matches = int(entry.get("matches", 0) or 0)
+                elapsed = float(entry.get("elapsed", 0) or 0)
+            except Exception:
+                continue
+            points.append((ts, matches, elapsed, entry.get("search_text", "")))
+
+        if not points:
+            self._show_error("History entries missing timestamps — nothing to plot.")
+            return
+        points.sort(key=lambda p: p[0])
+        ts_list   = [p[0] for p in points]
+        matches   = [p[1] for p in points]
+        elapsed_l = [p[2] for p in points]
+
+        def _plot(ax):
+            line1, = ax.plot(ts_list, matches, marker="o", color="#2196F3",
+                              linewidth=1.6, markersize=4, label="Matches")
+            ax.set_ylabel("Matches", fontsize=10, color="#2196F3")
+            ax.tick_params(axis="y", colors="#2196F3")
+            ax.set_title(f"Search history timeline — {len(points)} run(s)",
+                         fontsize=12, weight="bold")
+            ax.grid(axis="y", linestyle="--", alpha=0.4)
+            # Second axis for elapsed time on the right.
+            ax2 = ax.twinx()
+            line2, = ax2.plot(ts_list, elapsed_l, marker="s", color="#76BA1B",
+                               linewidth=1.2, markersize=3, alpha=0.7, label="Elapsed (s)")
+            ax2.set_ylabel("Elapsed (s)", fontsize=10, color="#76BA1B")
+            ax2.tick_params(axis="y", colors="#76BA1B")
+            ax.legend(handles=[line1, line2], loc="upper left", fontsize=9)
+            # Rotate date ticks if there are many points.
+            import matplotlib.dates as mdates
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
+            for lbl in ax.get_xticklabels():
+                lbl.set_rotation(30)
+                lbl.set_ha("right")
+                lbl.set_fontsize(8)
+
+        self._open_chart_window("Search History — timeline", _plot,
+                                 figsize=(9.0, 4.6), parent=parent)
 
     def _show_search_history_help(self, parent):
         """Show help for the Search History popup."""
@@ -1185,10 +1255,29 @@ class DataMixin:
             relief="raised", borderwidth=2,
             padx=20, pady=8, cursor="hand2",
         )
-        view_btn.pack(padx=5)
+        view_btn.pack(side="left", padx=5)
         view_btn.bind("<Button-1>", lambda e: _view_text())
         view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#666666"))
         view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#888888"))
+
+        def _show_heatmap():
+            selection = listbox.curselection()
+            if not selection:
+                self._show_error("Select a file first to view its match heatmap.")
+                return
+            self._show_file_heatmap(self.matched_files[selection[0]], popup)
+
+        heatmap_btn = ctk.CTkButton(
+            btn_frame, text="Heatmap", width=110,
+            command=_show_heatmap,
+            font=ctk.CTkFont(size=12),
+        )
+        heatmap_btn.pack(side="left", padx=5)
+        from peekdocs.gui._tooltip import Tooltip as _TT_hm
+        _TT_hm(heatmap_btn,
+               "Open a chart showing where the matches sit in the selected file "
+               "(by line number). Useful for spotting clusters at the top, "
+               "middle, or end of the document.")
 
         # Close on its own bottom row, centered, muted style — matches the
         # standard Close-button look used in every other help / info popup.
@@ -1201,7 +1290,33 @@ class DataMixin:
         ).pack(pady=(0, 10))
         self._apply_dark_theme(popup)
 
+    def _show_file_heatmap(self, item, parent):
+        """Per-file match heatmap: density of matches by line number."""
+        filename = item[1]
+        line_nums = item[3] if len(item) > 3 else []
+        if not line_nums:
+            self._show_error(
+                f"No line-number data captured for {filename} — the heatmap "
+                "needs per-match line numbers, which weren't included in this "
+                "search's results."
+            )
+            return
 
+        def _plot(ax):
+            # Two-panel chart: hist on top (density), strip plot on bottom
+            # (every match as a vertical tick).
+            ax.hist(line_nums, bins=min(40, max(8, len(line_nums) // 5)),
+                    color="#FF6B35", edgecolor="#E55A2B", alpha=0.85)
+            for ln in line_nums:
+                ax.axvline(ln, color="#1565C0", alpha=0.15, linewidth=0.6)
+            ax.set_xlabel("Line number", fontsize=10)
+            ax.set_ylabel("Matches in bin", fontsize=10)
+            ax.set_title(f"Match heatmap — {filename} ({len(line_nums)} matches)",
+                         fontsize=12, weight="bold")
+            ax.grid(axis="y", linestyle="--", alpha=0.4)
+
+        self._open_chart_window(f"Match heatmap — {filename}", _plot,
+                                 figsize=(8.4, 4.4), parent=parent)
 
     def _show_excluded_files_popup(self):
         """Show a popup listing files excluded from the search with reasons."""
@@ -1271,10 +1386,55 @@ class DataMixin:
                 listbox.insert("end", f"    {os.path.basename(fp)}")
             listbox.insert("end", "")
 
-        ctk.CTkButton(popup, text="Close", width=80, font=ctk.CTkFont(size=12), fg_color="transparent", text_color=("gray30", "gray70"), hover_color=("gray90", "gray25"), command=popup.destroy).pack(pady=(5, 10))
+        btn_row = tk.Frame(popup)
+        btn_row.pack(pady=(5, 10))
+        ctk.CTkButton(
+            btn_row, text="View Chart", width=110,
+            command=lambda: self._show_excluded_reasons_chart(by_reason, popup),
+            font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkButton(
+            btn_row, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            font=ctk.CTkFont(size=12),
+            command=popup.destroy,
+        ).pack(side="left")
         self._apply_dark_theme(popup)
 
+    def _show_excluded_reasons_chart(self, by_reason, parent):
+        """Donut chart of skip-reason proportions."""
+        if not by_reason:
+            self._show_error("No excluded files to chart.")
+            return
+        reasons = sorted(by_reason.keys(), key=lambda r: len(by_reason[r]), reverse=True)
+        sizes = [len(by_reason[r]) for r in reasons]
+        # peekdocs palette — recycled if more than 6 reasons appear
+        palette = ["#2196F3", "#FF6B35", "#76BA1B", "#FF9800",
+                   "#9C27B0", "#1565C0", "#666666", "#CC3333"]
+        colors = [palette[i % len(palette)] for i in range(len(reasons))]
+        total = sum(sizes)
 
+        def _plot(ax):
+            wedges, texts, autotexts = ax.pie(
+                sizes,
+                labels=reasons,
+                colors=colors,
+                autopct=lambda pct: f"{pct:.0f}%\n({int(round(pct * total / 100))})",
+                startangle=90,
+                wedgeprops={"width": 0.42, "edgecolor": "white", "linewidth": 1.5},
+                textprops={"fontsize": 9},
+                pctdistance=0.78,
+            )
+            for at in autotexts:
+                at.set_color("white")
+                at.set_fontsize(8)
+                at.set_weight("bold")
+            ax.set_title(f"Excluded files by reason — {total} file(s)",
+                         fontsize=12, weight="bold")
+
+        self._open_chart_window("Excluded Files by Reason", _plot,
+                                 figsize=(7.4, 5.0), parent=parent)
 
     def _show_app_files(self):
         """List all peekdocs-created files in the search folder and subfolders."""

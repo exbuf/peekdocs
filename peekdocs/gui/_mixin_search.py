@@ -101,13 +101,19 @@ class SearchMixin:
         except Exception:
             pass
 
-        # Record in recent searches (max 10, no duplicates, persisted)
-        if search_text and search_text not in self._recent_searches:
-            self._recent_searches.insert(0, search_text)
+        # Record in recent searches (max 10, no duplicate terms, persisted).
+        # Each entry is a full config dict (terms + folder + all advanced
+        # search options) so selecting one from the popup restores the
+        # whole configuration. Legacy plain-string entries from older
+        # builds still work — see _recent_entry_terms.
+        if search_text:
+            snap = self._snapshot_search_config()
+            self._recent_searches = [
+                e for e in self._recent_searches
+                if self._recent_entry_terms(e) != search_text
+            ]
+            self._recent_searches.insert(0, snap)
             self._recent_searches = self._recent_searches[:10]
-        elif search_text in self._recent_searches:
-            self._recent_searches.remove(search_text)
-            self._recent_searches.insert(0, search_text)
         self._save_ui_preference("recent_searches", self._recent_searches)
 
         if self.index_search_var.get() == "on":
@@ -277,6 +283,12 @@ class SearchMixin:
         # one-line notice in the right place without the false "Rebuilding"
         # claim.
         self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_searching_format").format(terms=_term_label), text_color=("blue", "#66BBFF"))
+        # Wipe last run's headline from the right pane while we start the new one.
+        if hasattr(self, "_results_summary_label"):
+            try:
+                self._results_summary_label.configure(text="")
+            except Exception:
+                pass
         self.search_start_time = time.time()
         # Captured separately because search_start_time gets nulled at
         # finish; _show_action_buttons needs a stable cutoff to decide
@@ -471,12 +483,13 @@ class SearchMixin:
         # Set results directory for report opening
         self.results_dir = output_dir
 
-        # Status line
+        # Results summary — goes to the right-pane headline; the left
+        # status_label just reports completion.
         status = (f"{total_files} file(s) searched across {folder_count} folder(s) "
                   f"— Found {total_matches} match(es) in {elapsed:.1f}s")
         if fail_count:
             status += f"  ({fail_count} folder(s) failed — see preview)"
-        self.status_label.configure(text=status, text_color=("blue", "#66BBFF"))
+        self._report_search_result(status)
 
         # Populate matched files popup
         self._inverse_results = self.inverse_var.get() == "on"
@@ -645,10 +658,7 @@ class SearchMixin:
                 status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
             if getattr(self, "_cloud_redirected", False):
                 status_text += f"  Reports saved to {self.results_dir} (cloud folder detected)"
-            self.status_label.configure(
-                text=status_text,
-                text_color=("blue", "#66BBFF"),
-            )
+            self._report_search_result(status_text)
             # Post-search save (-s) if user filled in "Save as" field.
             # Uses the same subprocess-or-in-process helper as the main
             # search so the standalone bundled exe doesn't spawn a
@@ -697,10 +707,7 @@ class SearchMixin:
                 no_match_text += f"  [{specific}]"
             if _skip_count:
                 no_match_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
-            self.status_label.configure(
-                text=no_match_text,
-                text_color=("blue", "#66BBFF"),
-            )
+            self._report_search_result(no_match_text, status_text="No matches found.")
             # Link color differs by inverse state: red is reserved for the
             # "files without matches" inverse style, orange is the normal
             # "matched files" style. Using red for non-inverse zero-match
@@ -723,9 +730,9 @@ class SearchMixin:
             results_path = os.path.join(self.results_dir or folder, results_fn)
             if os.path.exists(results_path):
                 # Search succeeded but something else failed (likely report generation)
-                self.status_label.configure(
-                    text=summary or "Search complete (with warnings — check error log).",
-                    text_color=("blue", "#66BBFF"),
+                self._report_search_result(
+                    summary or "Search complete (with warnings — check error log).",
+                    status_text="Search complete (with warnings).",
                 )
                 self._inverse_results = self.inverse_var.get() == "on"
                 if self._inverse_results:
@@ -841,9 +848,7 @@ class SearchMixin:
                     "inverse_header")
             self.preview_text.configure(state="disabled")
             self.preview_text.see("1.0")
-            self.preview_frame.grid(
-                row=7, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
-            )
+            self.preview_frame.pack(fill="both", expand=True, padx=0, pady=0)
             return
 
         # Build highlight pattern from current search settings
@@ -934,8 +939,17 @@ class SearchMixin:
             suffix = f"_{self._last_ts_suffix}" if getattr(self, '_last_ts_suffix', '') else ""
             results_path = os.path.join(self.results_dir, f"peekdocs_standard_results{suffix}.txt")
 
+        # Preview cap — browser-GUI convention. Reads the user-chosen
+        # value from the dropdown in the preview header. "No cap" means
+        # render everything; a numeric value caps on MATCHES (not lines).
+        _cap_raw = getattr(self, "_preview_cap_var", None)
+        _cap_str = _cap_raw.get() if _cap_raw is not None else "500"
+        try:
+            preview_cap_matches = int(_cap_str)
+        except ValueError:
+            preview_cap_matches = 0  # "No cap"
         lines_added = 0
-        max_preview_lines = 500  # Cap to keep the GUI responsive
+        matches_rendered = 0
 
         if results_path and os.path.exists(results_path):
             in_results = False
@@ -948,8 +962,7 @@ class SearchMixin:
                         continue
                     if not in_results:
                         continue
-                    if lines_added >= max_preview_lines:
-                        self.preview_text.insert("end", f"\n... (showing first {max_preview_lines} lines — open the report for full results)\n")
+                    if preview_cap_matches and matches_rendered >= preview_cap_matches:
                         break
                     if line.startswith("Document:"):
                         in_match_text = False
@@ -966,6 +979,8 @@ class SearchMixin:
                         display = line
                         if display.startswith('"'):
                             display = display[1:]
+                            # The opening quote marks the start of a new match.
+                            matches_rendered += 1
                         if display.endswith('"'):
                             display = display[:-1]
                             in_match_text = False
@@ -982,22 +997,24 @@ class SearchMixin:
         if lines_added == 0:
             self.preview_text.insert("end", "(No results to preview)")
 
+        # Remember the results file so cap changes can re-render in place.
+        self._last_preview_results_path = results_path
+
         self.preview_text.configure(state="disabled")
         self.preview_text.see("1.0")
 
-        # Update count label
+        # Counts moved to the right-pane headline; no inline count label
+        # to update. Cap-status text still drives the line above the
+        # text widget.
         match_count = len(self.matched_files)
         if self._inverse_results:
-            self._preview_count_label.configure(
-                text=f"{match_count} file(s) without matches")
+            self._preview_cap_status.configure(text="")
         else:
             total_matches = sum(item[2] for item in self.matched_files)
-            self._preview_count_label.configure(text=f"{total_matches} match(es) in {match_count} file(s)")
+            self._update_preview_cap_status(matches_rendered, total_matches, preview_cap_matches)
 
-        # Show the preview frame
-        self.preview_frame.grid(
-            row=7, column=0, columnspan=3, padx=5, pady=(5, 0), sticky="nsew"
-        )
+        # Show the preview frame (lives in the right pane of the split)
+        self.preview_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
 
 
@@ -1012,13 +1029,257 @@ class SearchMixin:
         status — the inconsistent state users have reported. Clearing the
         text here guarantees the preview is empty whenever it's been hidden.
         """
-        self.preview_frame.grid_remove()
+        self.preview_frame.pack_forget()
         try:
             self.preview_text.configure(state="normal")
             self.preview_text.delete("1.0", "end")
             self.preview_text.configure(state="disabled")
         except Exception:
             pass
+
+    def _update_preview_cap_status(self, matches_rendered, total_matches, cap):
+        """Render the browser-GUI-style status line above the preview
+        text — "All N matches rendered…" or "Preview shows the first
+        M of N matches…" depending on whether the cap kicked in."""
+        # (Internal note: snapshot/apply helpers for Recent Searches
+        #  are defined just below this method — see _snapshot_search_config.)
+        if not hasattr(self, "_preview_cap_status"):
+            return
+        capped = bool(cap) and matches_rendered >= cap and total_matches > matches_rendered
+        if capped:
+            text = (
+                f"Preview shows the first {matches_rendered:,} of {total_matches:,} matches. "
+                "The cap keeps the GUI responsive on big result sets — the full data is always "
+                "in the DOCX / TXT / CSV / JSON / HTML reports next to your documents. "
+                "To render more, raise the cap →"
+            )
+        else:
+            text = (
+                f"All {total_matches:,} matches rendered below. The cap (used when results exceed it) "
+                "keeps the GUI responsive on very large result sets. Adjust using Preview cap →"
+            )
+        self._preview_cap_status.configure(text=text)
+
+    # ── Recent-search config snapshot / restore helpers ──────────────
+    # Field map: (attribute name on self, key inside the recent-search
+    # dict). _ENTRY_FIELDS are CTkEntry widgets (use .get()/.delete()/
+    # .insert()); _VAR_FIELDS are StringVars (use .get()/.set()).
+    _RECENT_ENTRY_FIELDS = (
+        ("search_entry",          "terms"),
+        ("folder_entry",          "folder"),
+        ("exclude_entry",         "exclude"),
+        ("file_types_entry",      "file_types"),
+        ("proximity_entry",       "proximity"),
+        ("context_before_entry",  "context_before"),
+        ("context_after_entry",   "context_after"),
+        ("cores_entry",           "cores"),
+        ("max_matches_entry",     "max_matches"),
+        ("max_file_size_entry",   "max_file_size"),
+        ("range_entry",           "range"),
+        ("specific_files_entry",  "specific_files"),
+        ("output_dir_entry",      "output_dir"),
+    )
+    _RECENT_VAR_FIELDS = (
+        ("and_mode_var",            "and_mode"),
+        ("recursive_var",           "recursive"),
+        ("whole_word_var",          "whole_word"),
+        ("index_search_var",        "index_search"),
+        ("fuzzy_var",               "fuzzy"),
+        ("wildcard_var",            "wildcard"),
+        ("ocr_var",                 "ocr"),
+        ("regex_var",               "regex"),
+        ("expression_var",          "expression"),
+        ("inverse_var",             "inverse"),
+        ("output_csv_var",          "output_csv"),
+        ("output_json_var",         "output_json"),
+        ("output_pdf_var",          "output_pdf"),
+        ("output_html_var",         "output_html"),
+        ("timestamp_var",           "timestamp"),
+        ("delete_reports_var",      "delete_reports"),
+        ("clear_history_var",       "clear_history"),
+        ("restrict_permissions_var","restrict_permissions"),
+        ("notify_on_complete_var",  "notify_on_complete"),
+    )
+
+    @staticmethod
+    def _recent_entry_terms(entry):
+        """Return the search-terms string for a Recent Searches entry.
+        Accepts both the new dict format and the legacy plain-string
+        format that may still be sitting in older ~/.peekdocsrc files."""
+        if isinstance(entry, str):
+            return entry
+        if isinstance(entry, dict):
+            return entry.get("terms", "")
+        return ""
+
+    def _snapshot_search_config(self):
+        """Capture the full search configuration (search bar + folder +
+        every Advanced Search Options field) as a dict, for storage in
+        Recent Searches."""
+        snap = {}
+        for attr, key in self._RECENT_ENTRY_FIELDS:
+            w = getattr(self, attr, None)
+            if w is not None:
+                try:
+                    snap[key] = w.get()
+                except Exception:
+                    pass
+        for attr, key in self._RECENT_VAR_FIELDS:
+            v = getattr(self, attr, None)
+            if v is not None:
+                try:
+                    snap[key] = v.get()
+                except Exception:
+                    pass
+        return snap
+
+    def _apply_search_config(self, cfg):
+        """Restore a search configuration from a dict produced by
+        _snapshot_search_config (or from a legacy plain-string entry,
+        in which case only the search terms are filled). Missing keys
+        leave the existing widget value in place."""
+        if isinstance(cfg, str):
+            cfg = {"terms": cfg}
+        if not isinstance(cfg, dict):
+            return
+        for attr, key in self._RECENT_ENTRY_FIELDS:
+            if key in cfg:
+                w = getattr(self, attr, None)
+                if w is not None:
+                    try:
+                        w.delete(0, "end")
+                        if cfg[key]:
+                            w.insert(0, cfg[key])
+                    except Exception:
+                        pass
+        for attr, key in self._RECENT_VAR_FIELDS:
+            if key in cfg:
+                v = getattr(self, attr, None)
+                if v is not None:
+                    try:
+                        v.set(cfg[key])
+                    except Exception:
+                        pass
+
+    def _on_preview_cap_changed(self, value):
+        """Persist the cap selection and re-render the current preview
+        in place (browser-GUI behaviour)."""
+        self._save_ui_preference("preview_cap", value)
+        path = getattr(self, "_last_preview_results_path", None)
+        if path and os.path.exists(path):
+            self._show_preview("")
+
+    def _report_search_result(self, results_text, status_text="Search complete."):
+        """Route the search-result summary to the right pane's headline
+        label and set a short status string on the left status_label.
+        Used by every search-completion path so the right pane carries
+        the numbers and the left pane keeps narrating progress."""
+        if hasattr(self, "_results_summary_label"):
+            try:
+                self._results_summary_label.configure(text=results_text)
+            except Exception:
+                pass
+        try:
+            self.status_label.configure(text=status_text, text_color=("blue", "#66BBFF"))
+        except Exception:
+            pass
+
+    def _open_chart_window(self, title, plot_fn, *, geometry="760x500",
+                           figsize=(7.4, 4.6), parent=None):
+        """Generic chart popup: themed Toplevel + matplotlib canvas +
+        Close button, with figure-cleanup on close. Shared by every
+        chart entry point in the GUI.
+
+        plot_fn receives a matplotlib Axes and draws on it. Returns
+        the Toplevel (or None if matplotlib failed to import).
+
+        matplotlib is imported lazily so the ~300 ms first-import cost
+        is paid only when a user actually clicks a chart button."""
+        try:
+            import matplotlib
+            matplotlib.use("TkAgg")
+            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        except Exception as e:
+            self._show_error(
+                f"matplotlib not available — install it with `pip install matplotlib`.\n\n{e}"
+            )
+            return None
+
+        chart_win, _dark = self._themed_toplevel(parent or self)
+        chart_win.title(title)
+        chart_win.geometry(geometry)
+        chart_win.resizable(True, True)
+        try:
+            chart_win.transient(parent or self)
+        except Exception:
+            pass
+
+        fig, ax = plt.subplots(figsize=figsize, dpi=100)
+        try:
+            plot_fn(ax)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self._show_error(f"Chart render failed: {e}")
+            plt.close(fig)
+            chart_win.destroy()
+            return None
+        fig.tight_layout()
+
+        canvas = FigureCanvasTkAgg(fig, master=chart_win)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=8)
+
+        import customtkinter as _ctk_chart
+        close_btn = _ctk_chart.CTkButton(
+            chart_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=lambda: (plt.close(fig), chart_win.destroy()),
+            font=_ctk_chart.CTkFont(size=12),
+        )
+        close_btn.pack(side="bottom", pady=(0, 8))
+
+        def _on_close():
+            try:
+                plt.close(fig)
+            except Exception:
+                pass
+            chart_win.destroy()
+        chart_win.protocol("WM_DELETE_WINDOW", _on_close)
+        return chart_win
+
+    def _show_match_chart(self):
+        """Top 10 files by match count from the most recent search."""
+        matched = list(getattr(self, "matched_files", []) or [])
+        if not matched:
+            self._show_error(
+                "No chart data yet. Run a search first — the chart shows the "
+                "top 10 files by match count from the most recent search."
+            )
+            return
+        try:
+            ranked = sorted(matched, key=lambda r: r[2], reverse=True)[:10]
+            labels = [r[1] for r in ranked]
+            counts = [r[2] for r in ranked]
+        except (IndexError, TypeError):
+            self._show_error("Match data missing the count column — can't render a chart.")
+            return
+
+        def _plot(ax):
+            y_pos = list(range(len(labels)))
+            ax.barh(y_pos, counts, color="#2196F3", edgecolor="#1976D2")
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels, fontsize=9)
+            ax.invert_yaxis()
+            ax.set_xlabel("Matches", fontsize=10)
+            ax.set_title("Top 10 files by match count", fontsize=12, weight="bold")
+            ax.grid(axis="x", linestyle="--", alpha=0.4)
+            for i, v in enumerate(counts):
+                ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
+
+        self._open_chart_window("Top files by match count", _plot)
 
     def _clear_preview(self):
         """Clear the Results Preview pane and the matched/excluded files buttons.
@@ -1032,7 +1293,9 @@ class SearchMixin:
         self.preview_text.configure(state="normal")
         self.preview_text.delete("1.0", "end")
         self.preview_text.configure(state="disabled")
-        self._preview_count_label.configure(text="")
+        if hasattr(self, "_preview_cap_status"):
+            self._preview_cap_status.configure(text="")
+        # _preview_count_label removed — counts now live in headline.
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
         self._hide_files_list()
@@ -1126,25 +1389,25 @@ class SearchMixin:
                     hover_color="#AA2222",
                     text_color="white",
                 )
-        self.report_delete_cb.pack(side="left", padx=(10, 0))
-        # row=3: report_frame (Step 3 — output formats) sits above the Run row (row=4)
-        self.report_frame.grid(
-            row=3, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
-        )
+        # Delete on Close checkbox removed from this row.
+        # report_frame is gridded at startup by _app.py and is never
+        # hidden during a search any more — no re-grid needed here.
 
 
 
     def _clear_action_buttons(self):
         """Hide all action buttons."""
         self.matched_files_button.grid_remove()
-        self.report_frame.grid_remove()
+        # report_frame is the Step 3 label row ("Use Advanced Search
+        # Options below…") — keep it visible during searches so the
+        # rows below it (Step 4, status, report buttons, Advanced) do
+        # not collapse upward when the search starts.
         self.report_btn_txt.pack_forget()
         self.report_btn_docx.pack_forget()
         self.report_btn_csv.pack_forget()
         self.report_btn_json.pack_forget()
         self.report_btn_pdf.pack_forget()
         self.report_btn_html.pack_forget()
-        self.report_delete_cb.pack_forget()
 
 
 

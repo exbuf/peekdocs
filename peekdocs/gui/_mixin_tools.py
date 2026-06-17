@@ -246,6 +246,14 @@ class ToolsMixin:
         save_btn.pack(side="left")
         Tooltip(save_btn, "Save this inventory as a plain text file")
 
+        chart_btn = ctk.CTkButton(
+            save_row, text="View Chart", width=110,
+            command=lambda: self._show_file_inventory_chart(results, popup),
+            font=ctk.CTkFont(size=12),
+        )
+        chart_btn.pack(side="left", padx=(8, 0))
+        Tooltip(chart_btn, "Open a horizontal bar chart of file counts by extension")
+
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
         close_row.pack(pady=(5, 10))
@@ -258,8 +266,29 @@ class ToolsMixin:
         )
         close_btn.pack()
 
-        self._apply_dark_theme(popup)
+    def _show_file_inventory_chart(self, results, parent):
+        """Horizontal bar chart of top 15 file types by count."""
+        type_counts = results.get("type_counts", {})
+        if not type_counts:
+            self._show_error("No files to chart.")
+            return
+        ranked = sorted(type_counts.items(), key=lambda kv: kv[1], reverse=True)[:15]
+        labels = [k for k, _ in ranked]
+        counts = [v for _, v in ranked]
 
+        def _plot(ax):
+            y_pos = list(range(len(labels)))
+            ax.barh(y_pos, counts, color="#76BA1B", edgecolor="#5A8F12")
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels, fontsize=9)
+            ax.invert_yaxis()
+            ax.set_xlabel("Files", fontsize=10)
+            ax.set_title("Top 15 file types by count", fontsize=12, weight="bold")
+            ax.grid(axis="x", linestyle="--", alpha=0.4)
+            for i, v in enumerate(counts):
+                ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
+
+        self._open_chart_window("File Inventory by Type", _plot, parent=parent)
 
     def _save_inventory_report(self, results):
         """Save the file inventory as a plain text report."""
@@ -1066,12 +1095,60 @@ class ToolsMixin:
         btn_frame = tk.Frame(popup)
         btn_frame.pack(pady=(5, 10))
         ctk.CTkButton(
+            btn_frame, text="View Chart", width=110,
+            command=lambda: self._show_large_files_chart(results, popup),
+            font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkButton(
             btn_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=popup.destroy, font=ctk.CTkFont(size=12),
-        ).pack()
+        ).pack(side="left")
         self._apply_dark_theme(popup)
+
+    def _show_large_files_chart(self, results, parent):
+        """Log-scale histogram of file sizes with top 10 outliers labeled."""
+        largest = results.get("largest", [])
+        if not largest:
+            self._show_error("No files to chart.")
+            return
+        sizes = [s for s, _ in largest if s > 0]
+        if not sizes:
+            self._show_error("All files report zero bytes — nothing to chart.")
+            return
+
+        import math
+        fmt = self._format_file_size
+
+        def _plot(ax):
+            import numpy as np
+            from matplotlib.ticker import FixedLocator, FuncFormatter
+            log_sizes = [math.log10(s) for s in sizes]
+            lo, hi = min(log_sizes), max(log_sizes)
+            # If every file sits on the exact same log value, widen the
+            # display window so the bar isn't a 1-pixel sliver.
+            if hi - lo < 1e-9:
+                lo, hi = lo - 0.5, hi + 0.5
+            bins = np.linspace(lo, hi, 25)
+            ax.hist(log_sizes, bins=bins, color="#FF9800", edgecolor="#E55A2B", alpha=0.8)
+            ax.set_xlabel("File size", fontsize=10)
+            ax.set_ylabel("Files", fontsize=10)
+            ax.set_title(f"Largest {len(largest)} files — size distribution", fontsize=12, weight="bold")
+            ax.grid(axis="y", linestyle="--", alpha=0.4)
+            # Always render 6 evenly-spaced tick labels across the data
+            # range — covers both narrow distributions (all files within
+            # a single decade) and wide distributions (KB to GB).
+            tick_positions = np.linspace(lo, hi, 6)
+            ax.xaxis.set_major_locator(FixedLocator(tick_positions))
+            ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: fmt(int(10 ** x))))
+            for lbl in ax.get_xticklabels():
+                lbl.set_rotation(30)
+                lbl.set_ha("right")
+                lbl.set_fontsize(8)
+
+        self._open_chart_window("Large Files — size distribution", _plot,
+                                 figsize=(8.0, 4.6), parent=parent)
 
     # ── Empty File Detector ──────────────────────────────────
 
@@ -1551,6 +1628,14 @@ class ToolsMixin:
         save_btn.pack(side="left")
         Tooltip(save_btn, "Save this histogram as a plain text file")
 
+        chart_btn = ctk.CTkButton(
+            save_row, text="View Chart", width=110,
+            command=lambda: self._show_file_age_chart(results, popup),
+            font=ctk.CTkFont(size=12),
+        )
+        chart_btn.pack(side="left", padx=(8, 0))
+        Tooltip(chart_btn, "Open this distribution as a matplotlib bar chart")
+
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
         close_row.pack(pady=(5, 10))
@@ -1562,6 +1647,30 @@ class ToolsMixin:
         ).pack()
         self._apply_dark_theme(popup)
         self._center_popup_on_main(popup, 880, 600)
+
+    def _show_file_age_chart(self, results, parent):
+        """Vertical bar chart of files per age bucket."""
+        buckets = results.get("buckets", {})
+        labels = [lbl for lbl, _ in self._AGE_BUCKETS]
+        counts = [len(buckets.get(lbl, [])) for lbl in labels]
+        if sum(counts) == 0:
+            self._show_error("No files to chart.")
+            return
+
+        def _plot(ax):
+            x_pos = list(range(len(labels)))
+            ax.bar(x_pos, counts, color="#2196F3", edgecolor="#1976D2")
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(labels, fontsize=9, rotation=30, ha="right")
+            ax.set_ylabel("Files", fontsize=10)
+            ax.set_title("File age distribution", fontsize=12, weight="bold")
+            ax.grid(axis="y", linestyle="--", alpha=0.4)
+            for i, v in enumerate(counts):
+                if v:
+                    ax.text(i, v, f" {v:,}", ha="center", va="bottom", fontsize=9, color="#333333")
+
+        self._open_chart_window("File Age Distribution", _plot,
+                                 figsize=(8.0, 4.6), parent=parent)
 
     def _save_file_age_distribution_report(self, results):
         """Save the file age distribution as a plain-text report."""
@@ -4243,12 +4352,12 @@ class ToolsMixin:
     def _show_advanced_help(self):
         """Show help for all Advanced Search Options with examples."""
         import tkinter as tk
-        help_win, _dark = self._themed_toplevel(self.advanced_window or self)
+        # Advanced is now inline, not a popup — parent the help window
+        # to the main window directly.
+        help_win, _dark = self._themed_toplevel(self)
         help_win.title("Advanced Search Options — Help")
         help_win.geometry("750x620")
         help_win.resizable(True, True)
-        if self.advanced_window:
-            help_win.transient(self.advanced_window)
 
         # Pack the Close button FIRST, anchored to the bottom, so the
         # scrollable text frame below cannot push it off-screen.
@@ -5814,7 +5923,7 @@ class ToolsMixin:
         self._clear_action_buttons()
         self._hide_files_list()
         self._hide_preview()
-        self._preview_count_label.configure(text="")
+        # _preview_count_label removed — counts moved to the headline.
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
 
@@ -6209,9 +6318,9 @@ class ToolsMixin:
         self._last_ts_suffix = _ts_match.group(1) if _ts_match else ""
         self._show_action_buttons()
 
-        # Show results in preview
+        # Show results in preview (right pane of the split — pack, not grid)
         if hasattr(self, "preview_frame"):
-            self.preview_frame.grid()
+            self.preview_frame.pack(fill="both", expand=True, padx=0, pady=0)
         if hasattr(self, "preview_text"):
             # Build a combined highlight regex from every section's terms so
             # matched text in the preview gets the same yellow "match" tag the

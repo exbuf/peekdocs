@@ -137,7 +137,47 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._search_parent.pack(fill="both", expand=True)
         self._search_parent.grid_columnconfigure(0, weight=0)
         self._search_parent.grid_columnconfigure(1, weight=1)
-        self._search_parent.grid_rowconfigure(1, weight=1)  # _input_frame (now at row 1; row 0 is the Main page header)
+        self._search_parent.grid_rowconfigure(1, weight=1)  # PanedWindow row (row 0 = Main page header; row 2 = footer)
+
+        # Horizontal split — controls on the left, results preview on
+        # the right. ttk.PanedWindow gives a draggable sash; the panes
+        # are CTkFrames so the inside matches the rest of the theme.
+        # ttk's default sash is ~4 px wide and the same color as the
+        # window background — hard to discover and easy to misclick.
+        # Style it visibly chunkier with a contrasting color so users
+        # can see it and grab it.
+        from tkinter import ttk as _ttk_split
+        _sash_style = _ttk_split.Style()
+        _is_dark = ctk.get_appearance_mode() == "Dark"
+        _sash_bg = "#5A8FCC" if _is_dark else "#2196F3"  # peekdocs blue
+        _sash_active = "#3B7CC0" if _is_dark else "#1976D2"
+        _sash_style.configure("Peekdocs.TPanedwindow",
+                              background=_sash_bg)
+        _sash_style.configure("Sash",
+                              sashthickness=10,
+                              gripcount=14)
+        # macOS / aqua needs the sash color rebuilt in every theme map.
+        _sash_style.map("Peekdocs.TPanedwindow",
+                        background=[("active", _sash_active)])
+        self._paned = _ttk_split.PanedWindow(
+            self._search_parent, orient="horizontal",
+            style="Peekdocs.TPanedwindow",
+        )
+        self._paned.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=5, pady=(5, 0))
+        self._left_pane = ctk.CTkFrame(self._paned, fg_color="transparent")
+        self._right_pane = ctk.CTkFrame(self._paned, fg_color="transparent")
+        self._paned.add(self._left_pane, weight=1)
+        self._paned.add(self._right_pane, weight=1)
+
+        # Wrap the left pane in a scrollable frame so the controls
+        # overflow gracefully when the window is narrow or short.
+        self._left_scroll = ctk.CTkScrollableFrame(self._left_pane, fg_color="transparent")
+        self._left_scroll.pack(fill="both", expand=True)
+
+        # Footer area spans the full window width below the split so
+        # the bottom toolbar isn't cramped on one side.
+        self._footer_area = ctk.CTkFrame(self._search_parent, fg_color="transparent")
+        self._footer_area.grid(row=2, column=0, columnspan=3, sticky="ew")
 
         # Empty toggle_row kept for compatibility (no longer displayed)
         self._toggle_row = ctk.CTkFrame(self._search_parent, fg_color="transparent")
@@ -156,10 +196,16 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
                     self.report_btn_json, self.report_btn_pdf, self.report_btn_html):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")
-        self.report_delete_cb.pack(side="left", padx=(10, 0))
-        # row=3: report_frame (Step 3 — output formats) sits above the Run row (row=4)
+        # Delete on Close checkbox removed from this row — equivalent
+        # control lives inside Advanced Search Options.
+        # row=3: Step 3 label row (chip + "Use Advanced Search Options below..." message)
         self.report_frame.grid(
             row=3, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
+        )
+        # row=6: open-report buttons (DOCX/TXT/CSV/JSON/PDF/HTML + Delete on Close).
+        # Sits below status_row (row 5) and above the Advanced container (row 7).
+        self.report_btn_frame.grid(
+            row=6, column=0, columnspan=3, padx=(10, 5), pady=(2, 5), sticky="w"
         )
 
         # Check for first run before loading settings (which creates the config file)
@@ -174,6 +220,11 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.after(1000, self._load_saved_settings)
         # Show the window after all settings reloads are done
         self.after(1100, self.deiconify)
+        # Force the horizontal split to open 50/50. weight=1 on each
+        # pane only governs how resize deltas are shared — the initial
+        # sash position falls out of natural pane widths, which the
+        # left-pane controls otherwise bias slightly wider.
+        self.after(1150, self._set_initial_pane_split)
         if self._is_first_run:
             self._tabview.set("Getting Started")
         else:
@@ -278,6 +329,17 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         by the shared _input_frame grid (both rows share the same columns).
         """
         pass
+
+    def _set_initial_pane_split(self):
+        """Place the horizontal sash at the exact 50% mark on first
+        paint so the controls and results panes start equal width."""
+        try:
+            self.update_idletasks()
+            w = self._paned.winfo_width()
+            if w > 0:
+                self._paned.sashpos(0, w // 2)
+        except Exception:
+            pass
 
 
 
