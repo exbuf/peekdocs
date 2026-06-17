@@ -530,6 +530,20 @@ label {
   background: #bbdefb;
 }
 
+/* When the help button sits inside the blue header, invert its
+   palette so it reads as "on the header" rather than "embedded in
+   the form". */
+.header-help-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.45);
+  margin-left: 4px;
+}
+
+.header-help-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
 /* Getting Started content inside the help modal */
 .help-step {
   display: flex;

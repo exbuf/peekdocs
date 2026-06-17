@@ -39,7 +39,6 @@ interface SearchPanelProps {
   openSuitesModal: () => void;
   openRegexModal: () => void;
   openWizardModal: () => void;
-  openHelpModal: () => void;
 
   // Pass-through to AdvancedOptions
   resetToFactory: () => void;
@@ -316,11 +315,6 @@ export default function SearchPanel(p: SearchPanelProps) {
                 disabled={!p.params.directory}
               >
                 {t("regex_search_label", "Regex Search")}
-              </button>
-            </Tooltip>
-            <Tooltip text={t("help_button_tooltip", "Open Getting Started help")} disabled={!p.tooltipsOn}>
-              <button className="help-btn" onClick={p.openHelpModal} aria-label="Help">
-                ?
               </button>
             </Tooltip>
           </div>

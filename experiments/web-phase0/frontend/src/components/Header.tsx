@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
+import Tooltip from "./Tooltip";
 
 interface HeaderProps {
   tooltipsOn: boolean;
   setTooltipsOn: (v: boolean) => void;
   lang: string;
   setLang: (v: string) => void;
+  onHelp: () => void;
 }
 
-export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: HeaderProps) {
+export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang, onHelp }: HeaderProps) {
   const { t } = useI18n();
   const tip = (s: string): string | undefined => (tooltipsOn ? s : undefined);
   const [languages, setLanguages] = useState<Record<string, string>>({
@@ -54,6 +56,11 @@ export default function Header({ tooltipsOn, setTooltipsOn, lang, setLang }: Hea
             ? t("tooltips_on_label", "Tooltips: ON")
             : t("tooltips_off_label", "Tooltips: OFF")}
         </button>
+        <Tooltip text={t("help_button_tooltip", "Open Getting Started help")} disabled={!tooltipsOn} placement="bottom">
+          <button className="help-btn header-help-btn" onClick={onHelp} aria-label="Help">
+            ?
+          </button>
+        </Tooltip>
       </div>
     </header>
   );

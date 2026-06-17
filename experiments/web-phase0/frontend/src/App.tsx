@@ -245,6 +245,7 @@ export default function App() {
         setTooltipsOn={setTooltipsOn}
         lang={lang}
         setLang={onLangChange}
+        onHelp={() => setOpenModal("help")}
       />
 
       <main className="split-layout">
@@ -275,7 +276,6 @@ export default function App() {
             openSuitesModal={() => setOpenModal("suites")}
             openRegexModal={() => setOpenModal("regex-collections")}
             openWizardModal={() => setOpenModal("wizard")}
-            openHelpModal={() => setOpenModal("help")}
             resetToFactory={resetToFactory}
           />
         </div>
