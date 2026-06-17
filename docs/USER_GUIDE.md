@@ -425,14 +425,33 @@ peekdocs-gui
 
 A window will appear. From here, everything is point-and-click. The GUI can do everything the terminal can do; you don't give up any features by using it.
 
+**Layout — left pane controls, right pane results.** The Search tab is split horizontally by a draggable blue sash:
+
+- **Left pane (scrollable)** — Steps 1–4, the **Search Bar**, the **Open Report:** row, the status row, and the collapsible **Advanced Search Options** panel. Scroll if the window is short.
+- **Right pane** — the results, top to bottom: a Preview Size / Preview cap dropdown row, the **Results Preview** label row (with **Clear** and **Chart** buttons), the search-results **headline** (files searched · matches found · elapsed time), the **Matched Files** / **Excluded Files** count buttons, a cap-status line ("All N matches rendered below…" or "Preview shows the first M of N…"), and the matched lines themselves.
+- The sash opens 50/50 by default; drag it to rebalance, and the layout reflows.
+- **Status reporting** stays on the left ("Searching (3 terms)…" / "Search complete." / "Cancelling…"). **Result numbers** stay on the right.
+
+**Charts (matplotlib).** Several popups now have **View Chart** / **Heatmap** / **View Timeline** buttons that open a quick matplotlib chart:
+
+| Where | Chart |
+|---|---|
+| Preview pane → **Chart** button (next to Clear) | Top 10 files by match count (horizontal bar) |
+| Matched Files popup → **Heatmap** button (per row) | Match positions by line number for the selected file |
+| Tools → File Age Distribution → **View Chart** | File counts per age bucket (today / week / month / …) |
+| Tools → File Inventory → **View Chart** | Top 15 file types by count |
+| Tools → Large Files → **View Chart** | File-size distribution on a log scale |
+| Tools → Search History → **View Timeline** | Matches and elapsed time over past searches |
+| Excluded Files popup → **View Chart** | Skip-reason donut (too-large / password / binary / …) |
+
 The GUI window is organized into these regions, from top to bottom:
 
 | Region | Description |
 |--------|-------------|
-| **Search Bar** | Search entry field with **▼ Recent Searches** dropdown (your last 10 search terms; persisted to `~/.peekdocsrc` so they survive across sessions — press **↑** / **↓** in the search bar to walk through them without opening the popup, **↓** past the newest entry restores whatever you were typing; only the search-bar text is remembered — Advanced Search Options aren't captured per entry, so flip those manually before re-running, or use **Save Search** / **Load Search** for full-context recall that includes folder and every option; different from Search History in the Tools menu, which is a richer log including date, match count, file count, and elapsed time per run), **🔍 Standard Search** button (the main blue action button — runs a keyword/regex/Boolean search using whatever is set in Advanced Search Options), **Regex Search** button (orange — opens the multi-pattern regex popup), **Search Wizard** button, **Save Search** button (saves the current search to the folder's collection so you can reload it later), and **Load Search ▼** button (opens a popup to load or delete saved searches). During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
+| **Search Bar** | Search entry field with four small buttons to its right: **▼ Recent** (your last 10 searches; persisted to `~/.peekdocsrc` so they survive across sessions — each entry captures the FULL search context, terms + folder + every Advanced Search Options setting, so selecting one from the popup restores all of those in one click), **▶ Save** (saves the current search to the folder's collection under a name so you can reload it later), **▶ Reload** (opens a popup to load or delete saved searches), and a **?** help button. Press **↑** / **↓** in the search bar to walk through Recent without opening the popup — the arrow shortcut copies only the search-terms text into the bar (leaving your current Advanced options untouched), so use the arrows when you want to reuse the wording with the current settings, and the **Recent** popup when you want the whole configuration back. Search History (Tools menu) is a richer log including date, match count, file count, and elapsed time per run. The three Run buttons (**🔍 Run Standard Search**, **Search Suites**, **Regex Search**) sit on the Step 4 row below, with Suites and Regex shaped as small squares with stacked two-line labels. During a search the status line shows the number of terms being searched (e.g., "Searching (3 terms)...") |
 | **Folder Bar** | Folder path entry, **Browse** button (select a folder), **Single File** button (select a single file to search — click the ✕ to clear), and **+Folder** button (add another folder for multi-folder search — folders are separated by semicolons) |
-| **Advanced Search Options** | Collapsible panel with all search options (click to expand) |
-| **Results** | After a search: clickable **View N matched file(s)** button on the status line opens a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)"). Double-click a file to open it in its default application, or click **View Text (with line numbers)** to see the extracted file content with line numbers and highlighted matches. A **View N excluded file(s)** button appears alongside, showing files that were NOT searched grouped by reason (unsupported type, prior output files, oversized, hidden, etc.) — useful when the file count differs from a manual `find` or `ls` count. **View Report:** label with **TXT**, **DOCX**, **CSV**, **JSON**, and **PDF** buttons to open reports in each format, and **View Error Log** if any files could not be read. In the Results Preview pane, right-click to copy the selected text (or the current line) to the clipboard, and double-click a filename to open it in your default application |
+| **Advanced Search Options** | Collapsible panel inline in the left pane — click the **▶ Advanced Search Options** header to expand it (the chevron flips to **▼**). Holds every search-tuning option (AND/OR, recursive, regex, fuzzy, whole word, file types, exclude terms, output formats, output directory, Delete on Close, and the rest). The panel scrolls with the left pane rather than opening a separate popup window. |
+| **Results** | The right pane stacks six rows top to bottom: (1) a Preview Size / Preview cap dropdown row, (2) the **Results Preview** label row with **Clear** and a **Chart** button (Chart opens a "Top 10 files by match count" bar chart), (3) the search-results headline (files searched · matches · elapsed time), (4) **Matched Files** and **Excluded Files** count buttons, (5) a cap-status line, and (6) the matched lines. Click **Matched Files** for a popup listing each matching file with its match count and line numbers (e.g., "contract.docx (3 matches — lines 12, 47, 89)") — double-click a file to open it in its default application, click **View Text (with line numbers)** to see the extracted content with highlighted matches, or click **Heatmap** for a matplotlib chart of where the matches sit by line number. Click **Excluded Files** for a popup of files NOT searched grouped by reason (unsupported type, oversized, password-protected, etc.) — useful when the file count differs from a manual `find` or `ls`. The **Open Report:** row on the LEFT pane has buttons (**DOCX**, **TXT**, **CSV**, **JSON**, **PDF**, **HTML**) that light up green once a search has produced each format; **View Error Log** appears separately when files could not be read. Right-click in the preview to copy text, double-click a filename to open it. |
 | **Bottom row** | **README**, **User Guide**, **Close** (exits peekdocs), **Tools ▲** (menu — File analysis, Bookmarks, Diff Snapshots, **Indexes**, Schedule Search, Search History, All Collections, View All peekdocs Files, Error Log, System Check, Clear Files, Clean Folder, Appearance, Text Size), **Tooltips: ON/OFF** (toggle tooltips — saved automatically), and **About**. Everything that used to live on the toolbar as separate buttons (View All peekdocs Files, All Collections, Error Log, Text Size, etc.) is now inside the Tools menu. |
 
 **Your first GUI search:**
@@ -442,7 +461,7 @@ The GUI window is organized into these regions, from top to bottom:
 3. Click **Run Search** (or press Enter)
 
 **macOS vs Windows file picker:** On macOS, clicking **File** opens a file picker with a preview panel on the right — you can inspect the file's contents before selecting it. On Windows, the file picker does not include a preview. This is a difference in the operating systems, not peekdocs.
-4. When the search finishes, a result summary appears. Click **DOCX** next to **View Report:** to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, or **PDF** to open the report in other formats. The PDF report also highlights matches in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `peekdocs_errors.log` and see which files had problems and why
+4. When the search finishes, a result summary appears at the top of the right pane. On the left pane, click **DOCX** next to the **Open Report:** label to view your results in a `.docx` file with matches highlighted in yellow. You can also click **TXT**, **CSV**, **JSON**, **PDF**, or **HTML** to open the report in other formats. The PDF and HTML reports also highlight matches in yellow. If any files could not be read, a **View Error Log** button also appears — click it to open `peekdocs_errors.log` and see which files had problems and why
 
 **Don't have Microsoft Word?** The .docx report opens with whatever word processor is installed on your computer. If you have [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) installed and it's set as your default for .docx files, Windows will open it automatically. The .txt report can be opened on any computer with no additional software. You can also enable HTML output in Advanced Search Options for a highlighted report that opens directly in your browser. peekdocs avoids opening reports in Google Docs, Apple Pages, or any cloud-based application that may upload your data.
 
@@ -451,9 +470,9 @@ The Search Wizard has its own **Change Folder** button and operates independentl
 
 **Advanced Search Options:**
 
-Click "Advanced Search Options" to expand a panel with additional settings — AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), timestamp filenames, Delete on Close, and Notify on Search Complete. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are four buttons: **Inspect .peekdocsrc** shows the current saved settings (read-only). **Save Defaults** saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled. **Restore Settings** reloads saved defaults from `~/.peekdocsrc` into the GUI. **Reset** clears all fields and restores the GUI to its default state — but it only affects the current session. Your saved defaults in `~/.peekdocsrc` are not changed unless you also click **Save Defaults** after resetting.
+Click the **▶ Advanced Search Options** header to expand the inline panel in the left pane (the chevron flips to **▼**). The panel carries every search-tuning option: AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, **Use Index**, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), timestamp filenames, **Delete on Close**, **Clear history on close**, Restrict permissions, and Notify on Search Complete. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are three button rows: top row holds **Save Defaults** (saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled), **Restore Saved Defaults** (reloads saved defaults from `~/.peekdocsrc` into the GUI), and **Inspect .peekdocsrc** (shows the current saved settings, read-only). Middle row holds the destructive pair, both red: **Reset All Fields** (clears fields and restores the GUI to its default state — current session only; saved defaults in `~/.peekdocsrc` are unchanged unless you also click Save Defaults after resetting), and **Restore Factory Settings** (deletes `~/.peekdocsrc` entirely and returns everything to first-launch defaults — destructive, this cannot be undone). Bottom row holds **Close** alone (collapses the panel; settings persist for the next search).
 
-> **Output formats — which checkbox applies to which workflow.** The CSV / JSON / PDF / HTML checkboxes here, under "Also output report as ==>", apply to **Standard Search only** — the green Run Standard Search button on the main page. **Search Suites** have their own HTML / CSV / JSON / PDF picker inside the Search Suites popup; changes you make to Advanced Search Options have no effect on suite runs. **Regex Search** always writes just TXT and DOCX, with no per-format selection — the Advanced Search Options checkboxes don't apply. After a Suite or Regex run completes, the Step 4 report buttons on the main page re-point to whatever the run just produced, so a button showing red just means that format was not generated by the most recent search — not that anything is broken.
+> **Output formats — which checkbox applies to which workflow.** The CSV / JSON / PDF / HTML checkboxes inside Advanced Search Options, under "Also ==>", apply to **Standard Search only** — the green Run Standard Search button on the main page. **Search Suites** have their own HTML / CSV / JSON / PDF picker inside the Search Suites popup; changes you make to Advanced Search Options have no effect on suite runs. **Regex Search** always writes just TXT and DOCX, with no per-format selection — the Advanced Search Options checkboxes don't apply. After a Suite or Regex run completes, the **Open Report:** buttons on the main page re-point to whatever the run just produced, so a button showing red just means that format was not generated by the most recent search — not that anything is broken.
 
 **Save Search vs Save Defaults — what's the difference?**
 
@@ -474,7 +493,7 @@ Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for
 
 **Search Wizard:**
 
-Click the **Wizard** button in the Search Bar to open the Search Wizard — a scrollable list of **20 pre-built search-type forms** covering the most common scenarios:
+Open the **Tools ▲** menu (bottom-right corner) and pick **Search Wizard — pick a search type…** to open the Search Wizard — a scrollable list of **20 pre-built search-type forms** covering the most common scenarios:
 
 - Keyword searches (OR / AND, with optional excludes)
 - Files missing required terms (inverse)
@@ -1885,7 +1904,7 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 - CSV (`-o csv`): two columns — `filename` and `folder`
 - JSON (`-o json`): includes `files_without_matches` count and `inverse_files` array
 
-**In the GUI:** Check the **Inverse** checkbox in the Search Bar (next to the Wizard button) before clicking **Run Search**. The results summary will show how many files are missing the search terms.
+**In the GUI:** Expand **▶ Advanced Search Options** (in the left pane) and check the **Inverse** checkbox before clicking **🔍 Run Standard Search**. The results headline on the right pane will show how many files are missing the search terms.
 
 **Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
 
@@ -2486,7 +2505,7 @@ These are your search results. **All result files — TXT, DOCX, CSV, JSON, PDF,
 | `peekdocs_standard_results.json` | Machine-readable format (optional, with `-o json`) | Search folder (or `--output-dir`) |
 
 **Protected from searching:** Yes — all filenames starting with `peekdocs_standard_results`, `peekdocs_regex_results`, or `peekdocs_suite_results` are excluded so peekdocs never searches its own reports (including timestamped versions).
-**How to delete:** Use **Tools → Clear Files → Choose Files** to pick specific result files, or **Tools → Clear Files → Wipe Session** to delete every result file across every folder searched this session in one action (both prompt for confirmation). Or delete them manually. They are recreated on the next search. You can also check **Delete on Close** (on the main screen next to the report buttons, or in Advanced Search Options) to automatically delete all result files when you close peekdocs — see [Delete on Close](#delete-on-close) below.
+**How to delete:** Use **Tools → Clear Files → Choose Files** to pick specific result files, or **Tools → Clear Files → Wipe Session** to delete every result file across every folder searched this session in one action (both prompt for confirmation). Or delete them manually. They are recreated on the next search. You can also check **Delete on Close** inside **Advanced Search Options** (expand the inline panel in the left pane) to automatically delete all result files when you close peekdocs — see [Delete on Close](#delete-on-close) below.
 
 ### Saved and accumulated reports
 
@@ -2600,7 +2619,7 @@ The file is a plain text list of key-value pairs. You can also recreate it from 
 
 ### Delete on Close
 
-Check the **Delete on Close** checkbox to automatically delete all search result files (`peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`) when you close peekdocs. The checkbox appears in two places — on the main screen next to the report buttons, and in Advanced Search Options — both stay in sync.
+Check the **Delete on Close** checkbox inside **Advanced Search Options** (expand the inline panel in the left pane to reach it) to automatically delete all search result files (`peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*`) when you close peekdocs.
 
 You can check or uncheck this at any time. It only matters at the moment you close the app. A typical workflow:
 
@@ -2968,14 +2987,14 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
 1. Open **Advanced Search Options** and check the **Regex** checkbox
 2. In the **Search Terms** field, type: `\bINV-\d+\b`
    - This is a regex pattern: `\b` means "word boundary", `INV-` matches that exact text, and `\d+` means "one or more digits"
-   - You don't need to memorize regex — click the **Wizard** button next to the search box for a list of pre-built patterns you can insert with one click
+   - You don't need to memorize regex — open the **Tools ▲** menu and pick **Search Wizard** for a list of pre-built patterns you can insert with one click
 3. Click **Run Search**
 4. Look at the results preview:
    - Each match shows the filename, line number, and the actual invoice ID found, highlighted in yellow
    - If no matches appear, your documents don't contain text in that format
 5. Open **Advanced Search Options** and uncheck **Regex** when you're done
 
-**Tip:** The Wizard button has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
+**Tip:** The Search Wizard (Tools menu) has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
 
 ### Example 2: Find misspelled words with fuzzy matching
 
