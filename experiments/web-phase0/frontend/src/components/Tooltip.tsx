@@ -55,6 +55,10 @@ export default function Tooltip({
     return <>{children}</>;
   }
 
+  // NB: we deliberately do NOT set the native `title` attribute on
+  // the wrapper — that produces a second OS-native tooltip alongside
+  // the styled popover. The popover itself is the user-visible tip;
+  // it appears on focus too, so keyboard users get coverage.
   return (
     <span
       className="tt-wrap"
@@ -62,7 +66,6 @@ export default function Tooltip({
       onMouseLeave={onLeave}
       onFocus={onEnter}
       onBlur={onLeave}
-      title={text}
     >
       {children}
       {show && <span className={`tt-pop tt-${placement}`}>{text}</span>}
