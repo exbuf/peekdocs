@@ -506,8 +506,11 @@ label {
 
 .tt-pop.tt-bottom { top: 100%; left: 50%; transform: translate(-50%, 6px); }
 .tt-pop.tt-top    { bottom: 100%; left: 50%; transform: translate(-50%, -6px); }
-.tt-pop.tt-right  { left: 100%; top: 50%; transform: translate(6px, -50%); }
-.tt-pop.tt-left   { right: 100%; top: 50%; transform: translate(-6px, -50%); }
+/* Right/left popovers anchor at the trigger's top edge rather than
+   centering vertically — centering would push the popover above the
+   viewport for triggers at the very top of the page (e.g. Step 1). */
+.tt-pop.tt-right  { left: 100%; top: 0;   transform: translate(6px, 0); }
+.tt-pop.tt-left   { right: 100%; top: 0;  transform: translate(-6px, 0); }
 
 /* Help "?" button on the main screen */
 .help-btn {
