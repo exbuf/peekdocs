@@ -865,6 +865,31 @@ label {
   text-transform: uppercase;
 }
 
+/* Cap-explanation strip between the status row and the tabs */
+.preview-cap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.preview-cap-row .muted {
+  flex: 1;
+}
+
+.preview-cap-select {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  flex-shrink: 0;
+}
+
 .results-tabs {
   display: flex;
   background: white;

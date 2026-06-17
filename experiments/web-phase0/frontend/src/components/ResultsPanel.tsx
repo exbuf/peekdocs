@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -21,6 +21,20 @@ interface ResultsPanelProps {
   highlight: HighlightContext;
 }
 
+const CAP_OPTIONS = [100, 500, 1000, 5000, 0] as const; // 0 = no cap
+const CAP_KEY = "peekdocs.previewCap";
+
+function loadCap(): number {
+  try {
+    const raw = localStorage.getItem(CAP_KEY);
+    if (raw === null) return 500;
+    const n = parseInt(raw, 10);
+    return CAP_OPTIONS.includes(n as 100 | 500 | 1000 | 5000 | 0) ? n : 500;
+  } catch {
+    return 500;
+  }
+}
+
 export default function ResultsPanel({
   loading,
   error,
@@ -30,6 +44,15 @@ export default function ResultsPanel({
   const [view, setView] = useState<"matches" | "files" | "excluded" | "chart">(
     "matches"
   );
+  const [previewCap, setPreviewCap] = useState<number>(() => loadCap());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CAP_KEY, String(previewCap));
+    } catch {
+      // ignore
+    }
+  }, [previewCap]);
 
   const matchedFiles = useMemo(() => {
     if (!result) return [];
@@ -88,6 +111,11 @@ export default function ResultsPanel({
     );
   }
 
+  const effectiveCap =
+    previewCap === 0 ? result.matches.length : previewCap;
+  const isCapped =
+    previewCap !== 0 && result.matches.length > previewCap;
+
   return (
     <div className="results-panel">
       <div className="status-row">
@@ -101,6 +129,38 @@ export default function ResultsPanel({
         {result.skipped_files > 0 && (
           <span className="muted small"> · {result.skipped_files} skipped</span>
         )}
+      </div>
+
+      <div className="preview-cap-row">
+        <span className="muted small">
+          {isCapped ? (
+            <>
+              Preview shows the first <strong>{previewCap.toLocaleString()}</strong> of{" "}
+              <strong>{result.matches.length.toLocaleString()}</strong> matches.
+              The cap keeps the browser responsive on big result sets — the full
+              data is always in the DOCX / TXT / CSV / JSON / HTML reports next
+              to your documents. To render more in-browser, raise the cap →
+            </>
+          ) : (
+            <>
+              All <strong>{result.matches.length.toLocaleString()}</strong> matches
+              rendered. The cap (used when results exceed it) keeps the browser
+              responsive on very large result sets. Adjust →
+            </>
+          )}
+        </span>
+        <select
+          className="preview-cap-select"
+          value={previewCap}
+          onChange={(e) => setPreviewCap(parseInt(e.target.value, 10))}
+          aria-label="Preview cap"
+        >
+          <option value={100}>100</option>
+          <option value={500}>500</option>
+          <option value={1000}>1,000</option>
+          <option value={5000}>5,000</option>
+          <option value={0}>No cap</option>
+        </select>
       </div>
 
       <div className="results-tabs">
@@ -133,7 +193,7 @@ export default function ResultsPanel({
       <div className="results-body">
         {view === "matches" && (
           <ul className="match-list">
-            {result.matches.slice(0, 500).map((m, i) => (
+            {result.matches.slice(0, effectiveCap).map((m, i) => (
               <li key={i}>
                 <span className="match-loc">
                   {m.filename}:{m.line_num}
@@ -143,9 +203,10 @@ export default function ResultsPanel({
                 </span>
               </li>
             ))}
-            {result.matches.length > 500 && (
+            {isCapped && (
               <li className="muted small">
-                … {result.matches.length - 500} more (preview capped at 500)
+                … {(result.matches.length - effectiveCap).toLocaleString()} more
+                hidden by the preview cap. The full set is in the report files.
               </li>
             )}
           </ul>
