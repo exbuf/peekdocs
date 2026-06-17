@@ -463,27 +463,27 @@ export default function AdvancedOptions(p: AdvancedOptionsProps) {
               the web backend returns JSON rather than writing files. */}
           <div className="adv-group output-stub">
             <div className="adv-group-label">
-              Output settings <span className="muted">(visual only — backend returns JSON, doesn't write files yet)</span>
+              {t("adv_output_settings_label", "Output settings")} <span className="muted">({t("adv_output_settings_visual_only", "visual only — backend returns JSON, doesn't write files yet")})</span>
             </div>
             <div className="adv-grid">
               <label>
-                Save report as
+                {t("adv_save_report_as_label", "Save report as")}
                 <input type="text" placeholder="my_report" disabled />
               </label>
               <label>
-                Append to
+                {t("adv_append_report_to_label", "Append to")}
                 <input type="text" placeholder="archive" disabled />
               </label>
               <label>
-                Output dir
+                {t("adv_output_dir_label", "Output dir")}
                 <input type="text" placeholder="~/peekdocs_reports" disabled />
               </label>
             </div>
             <div className="adv-checkrow">
-              <label><input type="checkbox" disabled /> Timestamp filename</label>
-              <label><input type="checkbox" disabled /> Clear history on close</label>
-              <label><input type="checkbox" disabled /> Restrict file permissions</label>
-              <label><input type="checkbox" disabled /> Notify when search complete</label>
+              <label><input type="checkbox" disabled /> {t("adv_timestamp_filename_label", "Timestamp filename")}</label>
+              <label><input type="checkbox" disabled /> {t("adv_clear_history_label", "Clear history on close")}</label>
+              <label><input type="checkbox" disabled /> {t("adv_restrict_perms_label", "Restrict file permissions")}</label>
+              <label><input type="checkbox" disabled /> {t("adv_notify_complete_label", "Notify when search complete")}</label>
             </div>
           </div>
 

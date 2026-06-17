@@ -20,6 +20,7 @@ import ScheduleSearchModal from "./components/ScheduleSearchModal";
 import DiffSnapshotsModal from "./components/DiffSnapshotsModal";
 import RegexTesterModal from "./components/RegexTesterModal";
 import WizardModal from "./components/WizardModal";
+import HelpModal from "./components/HelpModal";
 import { runSearch, type SearchRequest, type SearchResponse } from "./api";
 import { setLanguage } from "./i18n";
 
@@ -61,7 +62,8 @@ type ModalKey =
   | "schedule"
   | "diff"
   | "regex-tester"
-  | "wizard";
+  | "wizard"
+  | "help";
 
 export default function App() {
   const [params, setParamsState] = useState<SearchRequest>(INITIAL_PARAMS);
@@ -235,6 +237,7 @@ export default function App() {
             openSuitesModal={() => setOpenModal("suites")}
             openRegexModal={() => setOpenModal("regex-collections")}
             openWizardModal={() => setOpenModal("wizard")}
+            openHelpModal={() => setOpenModal("help")}
             resetToFactory={resetToFactory}
           />
         </div>
@@ -340,6 +343,7 @@ export default function App() {
           onClose={() => setActiveTool(null)}
         />
       )}
+      {openModal === "help" && <HelpModal onClose={() => setOpenModal(null)} />}
     </div>
   );
 }

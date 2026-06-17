@@ -7,6 +7,7 @@ import {
   reportUrl,
 } from "../api";
 import AdvancedOptions from "./AdvancedOptions";
+import Tooltip from "./Tooltip";
 import { useI18n } from "../i18n";
 
 interface SearchPanelProps {
@@ -38,6 +39,7 @@ interface SearchPanelProps {
   openSuitesModal: () => void;
   openRegexModal: () => void;
   openWizardModal: () => void;
+  openHelpModal: () => void;
 
   // Pass-through to AdvancedOptions
   resetToFactory: () => void;
@@ -168,9 +170,9 @@ export default function SearchPanel(p: SearchPanelProps) {
     <div className="left-pane-body">
       {/* Step 1 — folder */}
       <section className="step-row">
-        <span className="step-label" title={tip("Pick the folder to search")}>
-          {t("step_1_label", "Step 1")}
-        </span>
+        <Tooltip text={t("step_1_tooltip", "Search folder — point peekdocs at the folder that holds your documents")} disabled={!p.tooltipsOn} placement="right">
+          <span className="step-label">{t("step_1_label", "Step 1")}</span>
+        </Tooltip>
         <div className="step-body">
           <div className="folder-buttons">
             <button onClick={onBrowse} title={tip("Open native folder picker")}>
@@ -194,7 +196,9 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 2 — search terms only */}
       <section className="step-row">
-        <span className="step-label">{t("step_2_label", "Step 2")}</span>
+        <Tooltip text={t("step_2_tooltip", "Search terms — type what you're looking for")} disabled={!p.tooltipsOn} placement="right">
+          <span className="step-label">{t("step_2_label", "Step 2")}</span>
+        </Tooltip>
         <div className="step-body">
           <div className="search-input-row">
             <input
@@ -270,7 +274,9 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 3 — pointer to Advanced */}
       <section className="step-row">
-        <span className="step-label">{t("step_3_label", "Step 3")}</span>
+        <Tooltip text={t("step_3_tooltip", "Output formats — choose which report files get written next to your documents")} disabled={!p.tooltipsOn} placement="right">
+          <span className="step-label">{t("step_3_label", "Step 3")}</span>
+        </Tooltip>
         <div className="step-body">
           <p className="step3-note">
             Use <strong>Advanced Search Options</strong> below to configure search parameters
@@ -280,33 +286,43 @@ export default function SearchPanel(p: SearchPanelProps) {
 
       {/* Step 4 — Run buttons + report indicators */}
       <section className="step-row">
-        <span className="step-label step-4">{t("step_4_label", "Step 4")}</span>
+        <Tooltip text={t("step_4_tooltip", "Run the search and view results")} disabled={!p.tooltipsOn} placement="right">
+          <span className="step-label step-4">{t("step_4_label", "Step 4")}</span>
+        </Tooltip>
         <div className="step-body">
           <div className="run-buttons">
-            <button
-              className="run-standard"
-              disabled={p.loading || !p.params.directory || p.params.terms.length === 0}
-              onClick={p.onRun}
-              title={tip("Run a Standard Search with the current configuration")}
-            >
-              {p.loading ? "Searching…" : t("run_standard_search_label", "🔍 Run Standard Search")}
-            </button>
-            <button
-              className="run-suites"
-              onClick={p.openSuitesModal}
-              disabled={!p.params.directory}
-              title={tip("Open Search Suites — groups of saved searches")}
-            >
-              {t("search_suites_label", "Search Suites")}
-            </button>
-            <button
-              className="run-regex"
-              onClick={p.openRegexModal}
-              disabled={!p.params.directory}
-              title={tip("Open Regex Search collections")}
-            >
-              {t("regex_search_label", "Regex Search")}
-            </button>
+            <Tooltip text={t("run_standard_search_tooltip", "Run a Standard Search with the current configuration")} disabled={!p.tooltipsOn}>
+              <button
+                className="run-standard"
+                disabled={p.loading || !p.params.directory || p.params.terms.length === 0}
+                onClick={p.onRun}
+              >
+                {p.loading ? "Searching…" : t("run_standard_search_label", "🔍 Run Standard Search")}
+              </button>
+            </Tooltip>
+            <Tooltip text={t("search_suites_tooltip", "Open Search Suites — groups of saved searches")} disabled={!p.tooltipsOn}>
+              <button
+                className="run-suites"
+                onClick={p.openSuitesModal}
+                disabled={!p.params.directory}
+              >
+                {t("search_suites_label", "Search Suites")}
+              </button>
+            </Tooltip>
+            <Tooltip text={t("regex_search_tooltip", "Open Regex Search collections")} disabled={!p.tooltipsOn}>
+              <button
+                className="run-regex"
+                onClick={p.openRegexModal}
+                disabled={!p.params.directory}
+              >
+                {t("regex_search_label", "Regex Search")}
+              </button>
+            </Tooltip>
+            <Tooltip text={t("help_button_tooltip", "Open Getting Started help")} disabled={!p.tooltipsOn}>
+              <button className="help-btn" onClick={p.openHelpModal} aria-label="Help">
+                ?
+              </button>
+            </Tooltip>
           </div>
           <div className="report-indicators">
             <span className="muted small">Open report:</span>

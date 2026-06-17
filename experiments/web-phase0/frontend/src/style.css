@@ -482,6 +482,89 @@ label {
   font-size: 13px;
 }
 
+/* Custom tooltip — replaces native title= for richer styling */
+.tt-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.tt-pop {
+  position: absolute;
+  z-index: 50;
+  background: rgba(33, 37, 41, 0.95);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  max-width: 320px;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tt-pop.tt-bottom { top: 100%; left: 50%; transform: translate(-50%, 6px); }
+.tt-pop.tt-top    { bottom: 100%; left: 50%; transform: translate(-50%, -6px); }
+.tt-pop.tt-right  { left: 100%; top: 50%; transform: translate(6px, -50%); }
+.tt-pop.tt-left   { right: 100%; top: 50%; transform: translate(-6px, -50%); }
+
+/* Help "?" button on the main screen */
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #90caf9;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.help-btn:hover {
+  background: #bbdefb;
+}
+
+/* Getting Started content inside the help modal */
+.help-step {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.help-step:last-child {
+  border-bottom: none;
+}
+
+.help-step-num {
+  background: #2196f3;
+  color: white;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.help-step-body h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.help-step-body p {
+  margin: 0;
+  font-size: 13px;
+  color: #555;
+}
+
 /* Wizard tabs and pattern rows */
 .wizard-tabs {
   display: flex;
