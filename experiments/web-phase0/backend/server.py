@@ -582,6 +582,12 @@ def run_suite(name: str, body: RunSuiteBody) -> dict:
         raise HTTPException(status_code=404, detail=f"directory not found: {body.directory}")
     try:
         result = api_run_suite(name, directory=body.directory)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"suite not found: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {
@@ -623,12 +629,68 @@ class RunRegexCollectionBody(BaseModel):
     directory: str
 
 
+@app.get("/regex-collections/{name}/patterns")
+def get_regex_collection_patterns(name: str) -> dict:
+    """Return the patterns of a saved regex collection so the frontend
+    can render checkboxes for the user to enable/disable."""
+    rc_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+    if not os.path.exists(rc_path):
+        raise HTTPException(status_code=404, detail="no regex collections file yet")
+    with open(rc_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if name not in data:
+        raise HTTPException(status_code=404, detail=f"collection not found: {name}")
+    coll = data[name]
+    patterns = coll if isinstance(coll, list) else coll.get("patterns", [])
+    return {
+        "name": name,
+        "patterns": [
+            {
+                "name": p.get("name", ""),
+                "regex": p.get("regex", ""),
+                "enabled": bool(p.get("enabled", False)),
+            }
+            for p in patterns
+        ],
+    }
+
+
+class UpdatePatternsBody(BaseModel):
+    patterns: List[Dict[str, Any]]
+
+
+@app.put("/regex-collections/{name}/patterns")
+def update_regex_collection_patterns(name: str, body: UpdatePatternsBody) -> dict:
+    rc_path = os.path.join(os.path.expanduser("~"), ".peekdocs_regex_collections.json")
+    if not os.path.exists(rc_path):
+        raise HTTPException(status_code=404, detail="no regex collections file yet")
+    with open(rc_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if name not in data:
+        raise HTTPException(status_code=404, detail=f"collection not found: {name}")
+    if isinstance(data[name], list):
+        data[name] = body.patterns
+    else:
+        data[name]["patterns"] = body.patterns
+    with open(rc_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return {"ok": True}
+
+
 @app.post("/regex-collections/{name}/run")
 def run_regex_collection(name: str, body: RunRegexCollectionBody) -> dict:
     if not os.path.isdir(body.directory):
         raise HTTPException(status_code=404, detail=f"directory not found: {body.directory}")
     try:
         result = api_run_regex_collection(name, directory=body.directory)
+    except ValueError as e:
+        # e.g. "Collection 'X' has no enabled patterns" — client problem,
+        # surface as 400 so the frontend can show the right message.
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"collection not found: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {

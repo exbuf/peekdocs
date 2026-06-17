@@ -213,6 +213,35 @@ export async function listRegexCollections(): Promise<{ collections: string[] }>
   return json<{ collections: string[] }>(res);
 }
 
+export interface RegexPattern {
+  name: string;
+  regex: string;
+  enabled: boolean;
+}
+
+export async function getRegexCollectionPatterns(
+  name: string
+): Promise<{ name: string; patterns: RegexPattern[] }> {
+  const res = await fetch(
+    `${BACKEND}/regex-collections/${encodeURIComponent(name)}/patterns`
+  );
+  return json<{ name: string; patterns: RegexPattern[] }>(res);
+}
+
+export async function updateRegexCollectionPatterns(
+  name: string,
+  patterns: RegexPattern[]
+): Promise<void> {
+  await fetch(
+    `${BACKEND}/regex-collections/${encodeURIComponent(name)}/patterns`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ patterns }),
+    }
+  ).then(json);
+}
+
 export async function runRegexCollection(
   name: string,
   directory: string
