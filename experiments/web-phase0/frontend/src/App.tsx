@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SearchPanel from "./components/SearchPanel";
@@ -45,6 +45,36 @@ const ANALYSIS_TOOLS: Record<string, ToolKind> = {
   "unsearchable-files": "unsearchable-files",
 };
 
+/**
+ * Hook that mirrors useState but persists every change to
+ * localStorage under "peekdocs.<key>". On mount the initial value is
+ * pulled from localStorage if present; otherwise the supplied default
+ * is used. JSON-serializable values only.
+ */
+function usePersistedState<T>(
+  key: string,
+  initial: T
+): [T, Dispatch<SetStateAction<T>>] {
+  const storageKey = `peekdocs.${key}`;
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw === null) return initial;
+      return JSON.parse(raw) as T;
+    } catch {
+      return initial;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(value));
+    } catch {
+      // localStorage full or disabled — ignore silently
+    }
+  }, [storageKey, value]);
+  return [value, setValue];
+}
+
 type ModalKey =
   | null
   | "save"
@@ -66,19 +96,27 @@ type ModalKey =
   | "help";
 
 export default function App() {
-  const [params, setParamsState] = useState<SearchRequest>(INITIAL_PARAMS);
-  const [tooltipsOn, setTooltipsOn] = useState(true);
-  const [lang, setLangState] = useState("en");
+  // Persisted across page reloads via localStorage.
+  const [params, setParamsState] = usePersistedState<SearchRequest>("params", INITIAL_PARAMS);
+  const [tooltipsOn, setTooltipsOn] = usePersistedState<boolean>("tooltipsOn", true);
+  const [lang, setLangState] = usePersistedState<string>("lang", "en");
 
-  const [outputTxt, setOutputTxt] = useState(true);
-  const [outputDocx, setOutputDocx] = useState(true);
-  const [outputCsv, setOutputCsv] = useState(false);
-  const [outputJson, setOutputJson] = useState(false);
-  const [outputPdf, setOutputPdf] = useState(false);
-  const [outputHtml, setOutputHtml] = useState(false);
-  const [deleteOnClose, setDeleteOnClose] = useState(false);
+  const [outputTxt, setOutputTxt] = usePersistedState<boolean>("outputTxt", true);
+  const [outputDocx, setOutputDocx] = usePersistedState<boolean>("outputDocx", true);
+  const [outputCsv, setOutputCsv] = usePersistedState<boolean>("outputCsv", false);
+  const [outputJson, setOutputJson] = usePersistedState<boolean>("outputJson", false);
+  const [outputPdf, setOutputPdf] = usePersistedState<boolean>("outputPdf", false);
+  const [outputHtml, setOutputHtml] = usePersistedState<boolean>("outputHtml", false);
+  const [deleteOnClose, setDeleteOnClose] = usePersistedState<boolean>("deleteOnClose", false);
 
-  const [leftPercent, setLeftPercent] = useState(50);
+  const [leftPercent, setLeftPercent] = usePersistedState<number>("leftPercent", 50);
+
+  // On mount, if a non-English language was persisted, fire setLanguage()
+  // once so the i18n cache fills before the first user interaction.
+  useEffect(() => {
+    if (lang !== "en") setLanguage(lang);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
