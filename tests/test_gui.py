@@ -347,3 +347,255 @@ def test_build_command_whole_word(tmp_path):
     )
     assert cmd is not None
     assert "-W" in cmd
+
+
+# ── End-to-end binding tests: GUI checkbox → StringVar → CLI flag ──
+#
+# These tests guard against the GUI redesign quietly breaking the
+# binding chain when widgets were reparented or relocated. The risk:
+# a checkbox moves to a different container but still LOOKS the same,
+# yet its variable= parameter accidentally points at a stale StringVar
+# (or no StringVar at all), so toggling the box no longer reaches the
+# search-execution code path.
+#
+# Instantiating the full GUI requires a display. Tests skip gracefully
+# when the headless environment can't open a Toplevel.
+
+
+def _instantiate_app_or_skip():
+    """Instantiate PeekDocsApp, or call pytest.skip if no display."""
+    try:
+        from peekdocs.gui._app import PeekDocsApp
+        app = PeekDocsApp()
+        app.update_idletasks()
+        return app
+    except Exception as e:
+        pytest.skip(f"GUI instantiation failed (likely no display): {e}")
+
+
+def test_advanced_panel_vars_drive_cli_flags(tmp_path):
+    """Every Advanced Search Options checkbox is bound to the StringVar
+    that _build_command_from_values reads, and toggling the var to "on"
+    produces the expected CLI flag in the constructed command."""
+    app = _instantiate_app_or_skip()
+    try:
+        # (checkbox attribute name, StringVar attribute name,
+        #  _build_command_from_values keyword arg, expected CLI flag)
+        cases = [
+            ("_adv_cb_and",         "and_mode_var",     "and_mode",     "-a"),
+            ("_adv_cb_rec",         "recursive_var",    "recursive",    "-r"),
+            ("_adv_cb_fuz",         "fuzzy_var",        "fuzzy",        "-z"),
+            ("_adv_cb_wild",        "wildcard_var",     "wildcard",     "-w"),
+            ("_adv_cb_ocr",         "ocr_var",          "ocr",          "-O"),
+            ("_adv_cb_regex",       "regex_var",        "regex",        "-x"),
+            ("_adv_cb_whole_word",  "whole_word_var",   "whole_word",   "-W"),
+            ("_adv_cb_inverse",     "inverse_var",      "inverse",      "--inverse"),
+        ]
+
+        # 1. Every checkbox's `variable=` is bound to the expected
+        #    StringVar. CTkCheckBox stores it as `self._variable`.
+        for cb_name, var_name, _, _ in cases:
+            cb = getattr(app, cb_name, None)
+            var = getattr(app, var_name, None)
+            assert cb is not None, f"missing checkbox {cb_name}"
+            assert var is not None, f"missing var {var_name}"
+            assert cb._variable is var, (
+                f"{cb_name} is bound to {cb._variable!r}, expected {var_name}"
+            )
+
+        # 2. Setting every var to "on" produces every expected CLI flag.
+        for _, var_name, _, _ in cases:
+            getattr(app, var_name).set("on")
+
+        flags_on = {kw: getattr(app, var).get() == "on"
+                    for _, var, kw, _ in cases}
+        cmd_on = _build_command_from_values(
+            search_text="hello",
+            folder=str(tmp_path),
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+            **flags_on,
+        )
+        assert cmd_on is not None
+        for _, _, _, flag in cases:
+            assert flag in cmd_on, (
+                f"expected {flag} in CLI command when corresponding var is 'on'; "
+                f"got {cmd_on!r}"
+            )
+
+        # 3. Setting every var back to "off" removes every flag.
+        for _, var_name, _, _ in cases:
+            getattr(app, var_name).set("off")
+
+        flags_off = {kw: getattr(app, var).get() == "on"
+                     for _, var, kw, _ in cases}
+        cmd_off = _build_command_from_values(
+            search_text="hello",
+            folder=str(tmp_path),
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+            **flags_off,
+        )
+        assert cmd_off is not None
+        for _, _, _, flag in cases:
+            assert flag not in cmd_off, (
+                f"unexpected {flag} in CLI command when corresponding var is 'off'"
+            )
+    finally:
+        try:
+            app.destroy()
+        except Exception:
+            pass
+
+
+def test_use_index_var_toggles_no_index_flag(tmp_path):
+    """The Use Index checkbox in Advanced Search Options binds to
+    index_search_var; when on, --no-index is dropped from the CLI
+    command. Regression guard for moving cb_index_search out of the
+    main options row into the Advanced panel."""
+    app = _instantiate_app_or_skip()
+    try:
+        cb = app.cb_index_search
+        var = app.index_search_var
+        assert cb._variable is var, "cb_index_search not bound to index_search_var"
+
+        # Off: --no-index present
+        var.set("off")
+        cmd_off = _build_command_from_values(
+            search_text="hello",
+            folder=str(tmp_path),
+            and_mode=False, recursive=False, fuzzy=False,
+            wildcard=False, ocr=False, regex=False,
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+            index_search=var.get() == "on",
+        )
+        assert "--no-index" in cmd_off
+
+        # On: --no-index absent
+        var.set("on")
+        cmd_on = _build_command_from_values(
+            search_text="hello",
+            folder=str(tmp_path),
+            and_mode=False, recursive=False, fuzzy=False,
+            wildcard=False, ocr=False, regex=False,
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+            index_search=var.get() == "on",
+        )
+        assert "--no-index" not in cmd_on
+    finally:
+        try:
+            app.destroy()
+        except Exception:
+            pass
+
+
+def test_output_format_vars_drive_cli_flags(tmp_path):
+    """The CSV / JSON / PDF / HTML output checkboxes inside Advanced
+    Search Options bind to their StringVars and drive the corresponding
+    CLI -o flag pieces. Regression guard for removing the Step 3
+    duplicate checkboxes — these vars now have a single source of truth
+    in the Advanced panel."""
+    app = _instantiate_app_or_skip()
+    try:
+        # output_*_var → _build_command_from_values kwarg
+        cases = [
+            ("output_csv_var",  "output_csv",  "csv"),
+            ("output_json_var", "output_json", "json"),
+            ("output_pdf_var",  "output_pdf",  "pdf"),
+            ("output_html_var", "output_html", "html"),
+        ]
+        for var_name, _, _ in cases:
+            assert getattr(app, var_name, None) is not None, (
+                f"missing {var_name} — Advanced output checkboxes should still bind here"
+            )
+            getattr(app, var_name).set("on")
+
+        kwargs = {kw: getattr(app, var).get() == "on" for var, kw, _ in cases}
+        cmd = _build_command_from_values(
+            search_text="hello",
+            folder=str(tmp_path),
+            and_mode=False, recursive=False, fuzzy=False,
+            wildcard=False, ocr=False, regex=False,
+            exclude="", file_types="", proximity="",
+            context_before="", context_after="",
+            **kwargs,
+        )
+        assert cmd is not None
+        # Each format appears as part of the -o argument value.
+        assert "-o" in cmd
+        o_idx = cmd.index("-o")
+        o_arg = cmd[o_idx + 1]
+        for _, _, fmt in cases:
+            assert fmt in o_arg, f"expected '{fmt}' in -o argument, got {o_arg!r}"
+    finally:
+        try:
+            app.destroy()
+        except Exception:
+            pass
+
+
+def test_recent_searches_round_trip_full_config(tmp_path):
+    """Recent Searches snapshot/apply round-trip preserves the full
+    config (terms + folder + every advanced field). Regression guard
+    for the post-redesign behaviour where Recent stores dicts, not
+    just terms strings. Also verifies legacy plain-string entries
+    round-trip as terms-only restores."""
+    app = _instantiate_app_or_skip()
+    try:
+        # Set distinctive values
+        app.folder_entry.delete(0, "end")
+        app.folder_entry.insert(0, str(tmp_path))
+        app.search_entry.delete(0, "end")
+        app.search_entry.insert(0, "alpha beta")
+        app.and_mode_var.set("on")
+        app.recursive_var.set("off")
+        app.regex_var.set("on")
+        app.output_csv_var.set("on")
+        app.exclude_entry.delete(0, "end")
+        app.exclude_entry.insert(0, "draft,obsolete")
+
+        snap = app._snapshot_search_config()
+        # Snapshot captured the values
+        assert snap["terms"] == "alpha beta"
+        assert snap["folder"] == str(tmp_path)
+        assert snap["and_mode"] == "on"
+        assert snap["recursive"] == "off"
+        assert snap["regex"] == "on"
+        assert snap["output_csv"] == "on"
+        assert snap["exclude"] == "draft,obsolete"
+
+        # Mutate everything
+        app.search_entry.delete(0, "end")
+        app.search_entry.insert(0, "gamma")
+        app.and_mode_var.set("off")
+        app.recursive_var.set("on")
+        app.regex_var.set("off")
+        app.output_csv_var.set("off")
+        app.exclude_entry.delete(0, "end")
+
+        # Restore from snapshot — everything comes back
+        app._apply_search_config(snap)
+        assert app.search_entry.get() == "alpha beta"
+        assert app.folder_entry.get() == str(tmp_path)
+        assert app.and_mode_var.get() == "on"
+        assert app.recursive_var.get() == "off"
+        assert app.regex_var.get() == "on"
+        assert app.output_csv_var.get() == "on"
+        assert app.exclude_entry.get() == "draft,obsolete"
+
+        # Legacy plain-string entry: terms only, no other vars touched
+        app.and_mode_var.set("off")
+        app._apply_search_config("just_a_legacy_string")
+        assert app.search_entry.get() == "just_a_legacy_string"
+        assert app.and_mode_var.get() == "off"
+
+        # Helper handles both formats
+        assert app._recent_entry_terms({"terms": "abc"}) == "abc"
+        assert app._recent_entry_terms("legacy") == "legacy"
+    finally:
+        try:
+            app.destroy()
+        except Exception:
+            pass

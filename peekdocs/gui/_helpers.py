@@ -624,6 +624,7 @@ def _build_command_from_values(
     cores="",
     specific_files="",
     append_name="",
+    output_docx=True,
     output_csv=False,
     output_json=False,
     output_pdf=False,
@@ -660,6 +661,9 @@ def _build_command_from_values(
 
     if not index_search:
         cmd.append("--no-index")
+
+    if not output_docx:
+        cmd.append("--no-docx")
 
     if expression:
         cmd.append("-e")
