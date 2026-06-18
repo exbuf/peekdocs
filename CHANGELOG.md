@@ -12,6 +12,302 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-06-18
+
+Major GUI redesign and a batch of new visualizations. The Search tab
+now opens as a horizontal split — scrollable controls on the left,
+results preview on the right, with a draggable sash between — so the
+desktop GUI reads visually the same as the experimental browser GUI
+that prototyped the layout. Seven matplotlib-backed charts surface
+across the Tools menu, Matched Files popup, Search History popup,
+Excluded Files popup, and the results pane itself. Advanced Search
+Options graduates from a separate `CTkToplevel` popup into an inline
+collapsible panel in the left pane. Recent Searches now snapshots the
+full search configuration (terms + folder + every Advanced Search
+Options setting) instead of just the search-terms text — selecting
+one from the popup restores the whole context in a single click; the
+↑ / ↓ arrows in the search bar still copy only the terms. New CLI
+flag `--no-docx` makes the .docx report optional. The 1.1.x → 1.2.0
+bump reflects the new dependency (`matplotlib>=3.7,<4.0`), the new
+CLI flag, and the Recent Searches storage format change — semantic
+versioning correct.
+
+**New dependency:** `matplotlib>=3.7,<4.0` (~10 MB). Required for the
+seven chart popups. Lazy-imported on first chart click, so GUI launch
+time is unaffected if you never open a chart. Stays well under the
+100 MB PyPI package-size cap; airgapped / corporate-installed users
+just need network access for the initial `pipx install` or `pip
+install`. No new dependency in the CLI itself — `peekdocs` (the CLI
+binary) runs without matplotlib installed.
+
+**Recent Searches storage format migration:** entries in older
+`~/.peekdocsrc` files round-trip as terms-only restores (the new
+format is a list of dicts; the legacy format was a list of strings).
+`_recent_entry_terms()` accepts either form, so the popup and the
+↑ / ↓ arrows keep working immediately on upgrade. No active migration
+or rewriting of the config file is performed — entries get upgraded
+in place as soon as you run a search and the new snapshot pushes
+older legacy entries past the 10-entry rolling window. If you want
+the full-context restore right away, run any saved search via the
+Reload popup, then run it once; that entry will be re-captured in the
+new format and any older legacy entries with the same search terms
+will be replaced.
+
+### Added
+
+- **Split-pane Search tab.** `ttk.PanedWindow` with a draggable
+  styled sash divides the Search tab into a left pane (scrollable
+  controls) and a right pane (results preview). Sash opens at the
+  exact 50/50 mark on first paint (the weight=1 default in
+  `ttk.PanedWindow.add` only governs how resize deltas are shared,
+  not the initial position — so `_set_initial_pane_split()` forces it
+  to `winfo_width() // 2` after `deiconify`). Sash is styled
+  peekdocs-blue and 10 px wide with `gripcount=14`, so it's
+  visible and obviously draggable; default ttk renders it as a 4 px
+  hairline that users routinely failed to notice. The right pane
+  shows the search-results headline at the top, the Matched /
+  Excluded Files count buttons, a Preview Size / Preview cap
+  dropdown row, the Results Preview label row, a cap-status line,
+  and the matches themselves. The left pane carries Steps 1–4, the
+  status row, the Open Report buttons, and the collapsible Advanced
+  Search Options panel. The split mirrors the layout the
+  experimental browser GUI prototyped on the
+  `experiment/web-phase0` branch.
+- **Advanced Search Options inline.** Replaces the former
+  `CTkToplevel` popup with a `CTkFrame` collapsible panel gridded
+  into the scrollable left pane. Header reads **▶ Advanced Search
+  Options** when collapsed and **▼ Advanced Search Options** when
+  expanded; clicking the header toggles the body. Inside, every
+  search-tuning option from the old popup is preserved (AND/OR,
+  Recursive, Fuzzy, Wildcard, OCR, Regex, Whole Word, Inverse,
+  Expression, Use Index, file types, exclude terms, proximity /
+  context lines, max matches, max file size, cores, range filters,
+  specific files, save / append report names, output directory,
+  output format checkboxes including the new DOCX toggle, timestamp
+  filenames, Delete on Close, Clear history on close, Restrict
+  permissions, Notify on Search Complete). Save Defaults / Restore
+  Saved Defaults / Inspect .peekdocsrc / Reset All Fields / Restore
+  Factory Settings all live in stacked button rows at the bottom of
+  the panel.
+- **Seven matplotlib chart popups.** Lazy-imported (the matplotlib
+  ~300 ms first-import cost is paid only when a user actually opens a
+  chart). Shared by all entry points via a single
+  `_open_chart_window(title, plot_fn)` helper that handles the
+  themed `Toplevel` + `FigureCanvasTkAgg` + Close button + cleanup.
+  Entry points:
+  - **Top 10 files by match count** — Chart button next to Clear in
+    the results preview pane. Horizontal bar chart of the current
+    search's matched files ranked by hit count.
+  - **Per-file match heatmap** — Heatmap button per row in the
+    Matched Files popup. Histogram of match positions by line
+    number for the selected file, with faint blue ticks at every
+    individual match line so single hits stay visible even when no
+    histogram bin is tall. Useful for triaging which of many
+    matching files to open first (clusters at the top of the
+    document vs. scattered throughout).
+  - **File Age Distribution** — View Chart button in the existing
+    Tools → File Age Distribution popup. Bar chart of files per age
+    bucket (today / week / month / 3 months / 6 months / 1 year /
+    older).
+  - **File Inventory by type** — View Chart button in the existing
+    Tools → File Inventory popup. Horizontal bar of top 15
+    file-type extensions by count.
+  - **Largest Files size distribution** — View Chart button in the
+    existing Tools → Large Files popup. Log-scale histogram with 6
+    evenly-spaced tick labels (so narrow distributions — every file
+    in the 100–200 MB band — get the same labelling treatment as
+    wide ones spanning KB to GB).
+  - **Search History timeline** — View Timeline button in the
+    existing Tools → Search History popup. Twin-y line chart over
+    timestamps: matches in peekdocs-blue on the left axis, elapsed
+    seconds in peekdocs-green on the right axis. Pulls from
+    `~/.peekdocs_history.json`.
+  - **Excluded Files by reason** — View Chart button in the
+    existing Excluded Files popup. Donut chart of skip-reason
+    proportions (too large / password-protected / unsupported
+    binary / read error / …) with the peekdocs colour palette
+    cycled.
+- **Recent Searches — full-config snapshot.** Each entry in the
+  ▼ Recent dropdown now captures the FULL search context: the search
+  terms, the search folder, and every Advanced Search Options setting
+  (AND/OR, Recursive, Whole Word, Regex, Fuzzy, Wildcard, OCR,
+  Expression, Inverse, Use Index, file types, exclude terms,
+  proximity, context lines, CPU cores, max matches, max file size,
+  range, specific files, output formats, output directory,
+  timestamp, delete-on-close, clear-history-on-close, restrict
+  permissions, notify on complete). Selecting an entry from the
+  popup restores all of those settings in a single click. The
+  ↑ / ↓ arrows in the search bar still recall the search-terms text
+  only — useful when you want to reuse just the wording without
+  touching your current Advanced options. Help text in the popup
+  spells out both paths and the contrast.
+- **DOCX checkbox + `--no-docx` CLI flag.** Standard Search now
+  treats the .docx report as optional, alongside the existing
+  CSV / JSON / PDF / HTML format checkboxes inside Advanced Search
+  Options. DOCX defaults ON (preserving 1.1.x behaviour). Uncheck it
+  to skip the .docx report and only keep the .txt report on disk.
+  CLI users get the same toggle as `peekdocs --no-docx <terms>`.
+  TXT remains mandatory — the GUI's preview pane and the Matched
+  Files popup both parse the .txt report, and so does the matplotlib
+  match heatmap, so disabling TXT would break those features. The
+  TXT button's tooltip explains this; the README's "Results are
+  saved to …" paragraph documents the mandatory-TXT / optional-DOCX
+  split.
+- **Match counting in OR mode — explained in the GUI help and
+  README.** Inclusion-exclusion principle (`|A ∪ B| = |A| + |B| −
+  |A ∩ B|`) explained with a worked example
+  (bowling = 342, tunick = 23, bowling OR tunick = 350 → 15
+  overlap) so users don't read OR matches as a counting bug. Lives
+  inside Advanced Search Options → **?** help under the AND Mode
+  section, and in README's Quick Start as a "Why doesn't the OR
+  match count add up?" callout.
+- **Heatmap definition — in-app help + README glossary.** New
+  HEATMAP section in the Matched Files popup's **?** help explains
+  the chart axes, how to read tall-bars-left vs tall-bars-right vs
+  flat profiles, what it's useful for, and the per-match line-number
+  prerequisite. `docs/GLOSSARY.md` gains a parallel Heatmap entry
+  between Headless and Homebrew.
+
+### Changed
+
+- **Status reporting routes to the right pane; status_label stays on
+  the left.** After every search-completion path, the search-results
+  summary (files searched · matches · elapsed time) goes to the new
+  `_results_summary_label` at the top of the right pane (bold blue,
+  wraps as the sash is dragged via a `<Configure>` binding that
+  recomputes wraplength dynamically). The left pane's `status_label`
+  carries a short verb-form status — `"Searching {terms}…"`,
+  `"Search complete."`, `"No matches found."`,
+  `"Cancelling…"`, etc. — and wraps as the pane narrows. Matched /
+  Excluded file count buttons relocated to the right pane below the
+  headline.
+- **Recent Searches button label.** `▼ Recent Searches` →
+  `▼ Recent` (the popup window title stays "Recent Searches"
+  unchanged, so it remains discoverable through search).
+- **Open Report row.** Renamed from "View Report:". TXT is now the
+  leftmost button in the row (it's the always-written report;
+  putting it first matches its always-green status). Open Report row
+  sits below the status row at left-pane row 6 with an "Open
+  Report:" label to the left of TXT.
+- **Square Suites / Regex Search buttons with stacked text.**
+  `Search Suites` (green) and `Regex Search` (orange) reshaped from
+  wide horizontal buttons (240 px) into ~50 × 44 squares with
+  two-line stacked labels (`Search` / `Suites`, `Regex` /
+  `Search`). Run Standard Search font dropped from 24 → 15 to match
+  the row's reduced visual weight. The three Run buttons share the
+  Step 4 row.
+- **App Size + Language pickers moved to the bottom toolbar.** Both
+  use a new `_UpwardOptionMenu` subclass that overrides
+  `_open_dropdown_menu` to position the dropdown ABOVE the button
+  instead of CTk's default below — so the dropdown doesn't overflow
+  the bottom edge of the window when the user clicks them. Page
+  header row at the top of the Search tab is now just the "Main
+  page" label on the left.
+- **Step 3 row.** Now a label-only pointer ("Use 'Advanced Search
+  Options' below to configure search parameters"). The four format
+  checkboxes (CSV / JSON / PDF / HTML) that used to live here are
+  gone — they were always duplicates of the same `output_*_var`
+  StringVars driven by the Advanced Search Options panel below.
+  Selecting a format now happens in one place only.
+- **Tools menu absorbs Search Wizard.** The Wizard hyperlink button
+  on the main page is gone; the Wizard is launched from
+  `Tools ▲ → Search Wizard — pick a search type…`.
+- **Preview cap.** The 500-line cap that the preview pane used to
+  apply silently is now a user-visible dropdown (100 / 500 / 1000 /
+  5000 / No cap) on the Results Preview row, persisted via
+  `~/.peekdocsrc`. The cap is on MATCHES, not lines (matches the
+  browser-GUI convention). Below the dropdown, a status line
+  (`"All N matches rendered below."` or `"Preview shows the first M
+  of N matches…"`) explains what's visible, using inclusion-exclusion
+  vocabulary.
+- **Regex tooltip in Advanced Search Options.** Rewritten to make
+  the single-pattern constraint explicit: the whole search bar is
+  ONE regex pattern; spaces are part of the pattern, not separators
+  between terms. Points multi-pattern users at the orange Regex
+  Search button (which uses a saved collection where each pattern is
+  independent and not subject to `shlex.split()` quirks). Fixes a
+  long-standing surprise around `\d{3}` becoming `d{3}` after shlex
+  stripping.
+- **Advanced Search Options entry alignment.** Every input field in
+  the panel (exclude, file types, range, specific files, cores,
+  max matches, save report as, append report to, output dir) now
+  sits at the same x position (col 1 of `advanced_frame`). Cores to
+  Use, Max Matches + Max File Size, Save Report As, and Append
+  Report To each get their own row instead of pairing horizontally.
+  Use Index moved to col 0 (left-flush with the panel margin)
+  instead of indented under the entry column.
+- **Output formats row — 5-checkbox layout split to 3 + 2.** DOCX,
+  CSV, JSON on the first internal row of `output_frame`; PDF, HTML
+  on the second. The cleanup checkboxes (Add date+time, Delete on
+  Close, Clear history on close, Restrict permissions, Notify on
+  Search Complete) each get their own row instead of pairing.
+  `output_frame` natural width dropped 33% on macOS (512 → 345 px);
+  on Windows the same restructure clears the right-side clipping
+  that occurred at narrow sash positions.
+- **Tooltips on the bottom Advanced checkboxes** (Add date+time,
+  Delete on Close, Clear history on close, Restrict permissions) all
+  anchor `"above"` so they don't get clipped at the bottom of the
+  collapsible panel.
+- **i18n change.** `advanced_label` (English) `"Advanced"` →
+  `"Advanced Search Options"`. `recent_searches_label` (English)
+  `"Recent Searches"` → `"Recent"`. `clear_preview_label`
+  (English) `"Clear Preview"` → `"Clear"`. `adv_also_output_label`
+  (English) `"Also output report as ==>"` → `"Also ==>"`.
+  Other-language values left for native-speaker corrections per
+  CONTRIBUTING_i18n.md.
+
+### Removed
+
+- **Search Options blue bar.** The tinted blue options bar at row 2
+  of the input frame (formerly holding AND/OR, Recursive, Whole
+  Word, Use Index, the `?` help button, the Advanced toggle
+  hyperlink, the Wizard hyperlink, and the Save / Reload group) is
+  gone. Every control inside it was either relocated (Save / Reload
+  next to Recent on Step 2; Use Index into Advanced; Wizard into the
+  Tools menu) or deleted as a duplicate (AND/OR / Recursive / Whole
+  Word lived double-bound to the Advanced panel checkboxes the
+  whole time).
+- **Clear button** next to Recent on Step 2. Select-all + delete in
+  the search bar replaces it.
+- **Step 3 format checkboxes** (CSV / JSON / PDF / HTML) — moved
+  fully to Advanced Search Options (the Step 3 versions were always
+  duplicates sharing the same StringVars).
+- **Delete on Close checkbox** on the main page next to the open-
+  report buttons — the Advanced Search Options version is the single
+  source of truth now.
+- **"What's the difference?" hyperlink** under the three Run
+  buttons — the tooltips on Suites / Regex Search cover the same
+  territory.
+- **Preview pane outer box.** Removed `corner_radius` and
+  `fg_color`, set padding to 0 so the matches text fills the right
+  pane edge to edge.
+
+### Fixed
+
+- **Step 3 row disappearing on Run Standard Search.** Clicking Run
+  Standard Search would turn the button red (correct) AND visually
+  collapse the Step 3 label row above it, making the run row "move
+  up" into Step 3's space. Root cause: `_clear_action_buttons` was
+  calling `self.report_frame.grid_remove()` on every search start,
+  which made sense when `report_frame` held the format checkboxes
+  but became a regression after the row was reduced to a label-only
+  pointer. The `grid_remove()` call and its `grid()` re-show
+  counterpart in `_show_action_buttons` are gone; `report_frame`
+  stays at row 3 throughout the app lifetime.
+- **`preview_frame` losing its `pack()` layout after every search.**
+  Three call sites in `_mixin_search.py` and `_mixin_tools.py`
+  re-attached `preview_frame` with `.grid(row=7, …)` after a search,
+  which switched the geometry manager back to grid and collapsed the
+  frame to a tiny default-sized cell at the top of the right pane.
+  All three call sites now use `.pack(fill="both", expand=True)` and
+  the matching `.grid_remove()` in `_hide_preview` was switched to
+  `.pack_forget()`.
+- **Sash invisibility on first paint.** ttk's default sash colour is
+  the same as the window background, so users routinely didn't
+  realize the panes were draggable. Custom ttk style applied to the
+  PanedWindow: 10 px sash, peekdocs-blue background, darker active
+  state, `gripcount=14`.
+
 ## [1.1.7] — 2026-06-13
 
 Pre-PyPI testing-phase point release adding Brazilian Portuguese (pt-BR) as the seventh UI language. No other behavior changes — the rest of the release is the surrounding paperwork (README intro block, contributor style notes, PyPI keywords). Translation quality remains AI-authored across the non-English surfaces and needs native-speaker review per language.

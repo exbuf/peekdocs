@@ -744,76 +744,76 @@ class BuildMixin:
         self.context_after_entry = ctk.CTkEntry(num_frame, width=60)
         self.context_after_entry.grid(row=0, column=4)
 
-        # Row 4: cores
+        # Row 5: Cores to use (entry alone, gridded directly on
+        # advanced_frame col 1 — same column the other input fields
+        # use, so left edges line up across all rows).
         self._default_cores = max(1, (os.cpu_count() or 1) // 2)
         self._adv_lbl_cores = ctk.CTkLabel(self.advanced_frame, text=_t("adv_cores_to_use_label"))
-        self._adv_lbl_cores.grid(
-            row=5, column=0, padx=(15, 5), pady=5, sticky="e"
-        )
-        cores_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        cores_frame.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
-
-        self.cores_entry = ctk.CTkEntry(cores_frame, width=60)
+        self._adv_lbl_cores.grid(row=5, column=0, padx=(15, 5), pady=5, sticky="e")
+        self.cores_entry = ctk.CTkEntry(self.advanced_frame, width=60)
         self.cores_entry.insert(0, str(self._default_cores))
-        self.cores_entry.grid(row=0, column=0)
+        self.cores_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
-        cores_frame.grid_columnconfigure(1, minsize=110)
-        self._adv_lbl_max_matches = ctk.CTkLabel(cores_frame, text=_t("adv_max_matches_label"))
-        self._adv_lbl_max_matches.grid(row=0, column=1, padx=(20, 5), sticky="e")
-        self.max_matches_entry = ctk.CTkEntry(cores_frame, width=60)
+        # Row 6: Max Matches + Max File Size pair on their own row.
+        # Both entries align with cores_entry above (all at advanced_frame col 1).
+        self._adv_lbl_max_matches = ctk.CTkLabel(self.advanced_frame, text=_t("adv_max_matches_label"))
+        self._adv_lbl_max_matches.grid(row=6, column=0, padx=(15, 5), pady=5, sticky="e")
+        max_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        max_frame.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+        self.max_matches_entry = ctk.CTkEntry(max_frame, width=60)
         self.max_matches_entry.insert(0, "1000")
-        self.max_matches_entry.grid(row=0, column=2)
-
-        self._adv_lbl_max_file_size = ctk.CTkLabel(cores_frame, text=_t("adv_max_file_size_label"))
-        self._adv_lbl_max_file_size.grid(row=0, column=3, padx=(20, 5), sticky="e")
-        self.max_file_size_entry = ctk.CTkEntry(cores_frame, width=60)
+        self.max_matches_entry.grid(row=0, column=0, sticky="w")
+        self._adv_lbl_max_file_size = ctk.CTkLabel(max_frame, text=_t("adv_max_file_size_label"))
+        self._adv_lbl_max_file_size.grid(row=0, column=1, padx=(20, 5), sticky="w")
+        self.max_file_size_entry = ctk.CTkEntry(max_frame, width=60)
         self.max_file_size_entry.insert(0, "100")
-        self.max_file_size_entry.grid(row=0, column=4)
+        self.max_file_size_entry.grid(row=0, column=2, sticky="w")
 
-        # Row 6: range filters
+        # Row 7: range filters
         self._adv_lbl_range = ctk.CTkLabel(self.advanced_frame, text=_t("adv_range_label"))
         self._adv_lbl_range.grid(
-            row=6, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=7, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.range_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
         )
-        self.range_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.range_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
         Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
 
-        # Row 7: specific files
+        # Row 8: specific files
         self._adv_lbl_specific_files = ctk.CTkLabel(self.advanced_frame, text=_t("adv_specific_files_label"))
         self._adv_lbl_specific_files.grid(
-            row=7, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=8, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.specific_files_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
         )
-        self.specific_files_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.specific_files_entry.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-        # Row 7: save as + append to
+        # Row 9: Save Report As (save_name entry alone — directly on
+        # advanced_frame so its left edge aligns with the other inputs).
         self._adv_lbl_save_as = ctk.CTkLabel(self.advanced_frame, text=_t("adv_save_report_as_label"))
         self._adv_lbl_save_as.grid(
-            row=8, column=0, padx=(15, 5), pady=(5, 10), sticky="e"
+            row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="e"
         )
-        save_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        save_frame.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=(5, 10), sticky="w")
+        self.save_name_entry = ctk.CTkEntry(self.advanced_frame, width=140, placeholder_text="Ex: my_report")
+        self.save_name_entry.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=(5, 5), sticky="w")
 
-        self.save_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: my_report")
-        self.save_name_entry.grid(row=0, column=0, padx=(0, 20))
+        # Row 10: Append Report To — its own row.
+        self._adv_lbl_append_to = ctk.CTkLabel(self.advanced_frame, text=_t("adv_append_report_to_label"))
+        self._adv_lbl_append_to.grid(
+            row=10, column=0, padx=(15, 5), pady=(0, 10), sticky="e"
+        )
+        self.append_name_entry = ctk.CTkEntry(self.advanced_frame, width=140, placeholder_text="Ex: combined_report")
+        self.append_name_entry.grid(row=10, column=1, columnspan=2, padx=(0, 15), pady=(0, 10), sticky="w")
 
-        self._adv_lbl_append_to = ctk.CTkLabel(save_frame, text=_t("adv_append_report_to_label"))
-        self._adv_lbl_append_to.grid(row=0, column=1, padx=(0, 5))
-        self.append_name_entry = ctk.CTkEntry(save_frame, width=140, placeholder_text="Ex: combined_report")
-        self.append_name_entry.grid(row=0, column=2)
-
-        # Row 8: output directory
+        # Row 11: output directory
         self._adv_lbl_output_dir = ctk.CTkLabel(self.advanced_frame, text=_t("adv_output_dir_label"))
         self._adv_lbl_output_dir.grid(
-            row=9, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
+            row=11, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
         )
         outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        outdir_frame.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
+        outdir_frame.grid(row=11, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
 
         self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
         self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
@@ -828,21 +828,21 @@ class BuildMixin:
         Tooltip(outdir_browse_btn, "Pick a folder where peekdocs should write its reports, error log, and other output files", anchor="left")
         Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
 
-        # Row 10: Use Index — moved here from the top checkbox grid so
-        # it sits directly under "Output Dir:" as a related output-side
-        # setting. index_search_var already created in _build_search_row.
+        # Row 12: Use Index — left-aligned to the panel's left margin
+        # (col 0, no label) so it sits flush with the other label-left
+        # positions instead of indented under the entry column.
         self.cb_index_search = ctk.CTkCheckBox(
             self.advanced_frame, text=_t("use_index_label"),
             variable=self.index_search_var,
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
-        self.cb_index_search.grid(row=10, column=1, columnspan=2, padx=(0, 15), pady=(2, 6), sticky="w")
+        self.cb_index_search.grid(row=12, column=0, columnspan=3, padx=(15, 15), pady=(2, 6), sticky="w")
         self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
 
         # Row 11: additional output formats
         output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        output_frame.grid(row=11, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
+        output_frame.grid(row=13, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
 
         # The "Also ==>" leading label was removed — DOCX now occupies
         # column 0 and all five checkboxes share one line. DOCX defaults
@@ -892,13 +892,18 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_pdf", self.output_pdf_var),
         )
-        cb_pdf.grid(row=0, column=3, padx=(0, 15))
+        # PDF and HTML wrap onto a second row so the format row only
+        # spans 3 columns. This keeps the output_frame width bounded
+        # by 3 checkboxes (~250-280 px) instead of 5, which matters on
+        # Windows where font widths push the 5-across layout past the
+        # left pane's right edge in tight sash positions.
+        cb_pdf.grid(row=1, column=0, padx=(0, 15), pady=(4, 0))
         cb_html = ctk.CTkCheckBox(
             output_frame, text="HTML", variable=self.output_html_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_html", self.output_html_var),
         )
-        cb_html.grid(row=0, column=4, padx=(0, 0))
+        cb_html.grid(row=1, column=1, padx=(0, 15), pady=(4, 0))
         # Tooltips on the four output checkboxes are attached below in
         # the bulk-tooltip section near the bottom of this method — this
         # file's convention is to declare every widget first, then attach
@@ -910,7 +915,13 @@ class BuildMixin:
             output_frame, text=_t("adv_timestamp_filename_label"), variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        self._adv_cb_ts.grid(row=1, column=0, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        # Each cleanup checkbox gets its own row. Pairing two long
+        # labels at cols 0-2 / 3-5 used to push the frame wider than
+        # narrow left-pane widths could fit (notably on Windows where
+        # font metrics widen these by ~15-20%), clipping the rightmost
+        # widget without exposing a horizontal scrollbar. One per row
+        # keeps the frame width bounded by the longest single label.
+        self._adv_cb_ts.grid(row=2, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         cb_ts = self._adv_cb_ts
         Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Tools → Clear Files → Wipe Session to clean up", anchor="above")
         self.delete_reports_var = ctk.StringVar(value="off")
@@ -920,10 +931,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        # Row 2 of output_frame — Delete on Close + Clear history on close.
-        # Moved off row 1 (which now only carries the timestamp checkbox)
-        # so the close-time cleanup pair gets its own line.
-        self._cb_delete_adv.grid(row=2, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._cb_delete_adv.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         self.clear_history_var = ctk.StringVar(value="off")
         self._adv_cb_clear_hist = ctk.CTkCheckBox(
             output_frame, text=_t("adv_clear_history_label"), variable=self.clear_history_var,
@@ -931,10 +939,8 @@ class BuildMixin:
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
         cb_clear_hist = self._adv_cb_clear_hist
-        cb_clear_hist.grid(row=2, column=3, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_clear_hist.grid(row=4, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
 
-        # Row 3 of output_frame — restrict permissions + notify on complete
-        # (shifted down one row to make room for the close-time pair above).
         self.restrict_permissions_var = ctk.StringVar(value="off")
         self._adv_cb_restrict = ctk.CTkCheckBox(
             output_frame, text=_t("adv_restrict_perms_label"), variable=self.restrict_permissions_var,
@@ -942,7 +948,7 @@ class BuildMixin:
             command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
         )
         cb_restrict = self._adv_cb_restrict
-        cb_restrict.grid(row=3, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
+        cb_restrict.grid(row=5, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
         self.notify_on_complete_var = ctk.StringVar(value="off")
         self._adv_cb_notify_complete = ctk.CTkCheckBox(
             output_frame, text=_t("adv_notify_complete_label"), variable=self.notify_on_complete_var,
@@ -950,13 +956,13 @@ class BuildMixin:
             command=lambda: _save_output_format("notify_on_complete", self.notify_on_complete_var),
         )
         cb_notify_complete = self._adv_cb_notify_complete
-        cb_notify_complete.grid(row=3, column=3, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_notify_complete.grid(row=6, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
         # Separator line below output options
         import tkinter as _tk_sep
         _tk_sep.Frame(self.advanced_frame, height=2, bg="gray60").grid(
-            row=12, column=0, columnspan=3, padx=15, pady=(10, 10), sticky="ew")
+            row=14, column=0, columnspan=3, padx=15, pady=(10, 10), sticky="ew")
 
         # Reset All Fields and Restore Factory Settings moved to a
         # dedicated row in the bottom-button stack below — see
