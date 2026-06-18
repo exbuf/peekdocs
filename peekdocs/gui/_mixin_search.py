@@ -148,6 +148,7 @@ class SearchMixin:
             cores=self.cores_entry.get(),
             specific_files=self.specific_files_entry.get(),
             append_name=self.append_name_entry.get(),
+            output_docx=self.output_docx_var.get() == "on",
             output_csv=self.output_csv_var.get() == "on",
             output_json=self.output_json_var.get() == "on",
             output_pdf=self.output_pdf_var.get() == "on",
@@ -374,7 +375,8 @@ class SearchMixin:
                 context_after=self.context_after_entry.get(),
                 cores=self.cores_entry.get(),
                 specific_files=self.specific_files_entry.get(),
-                output_csv=False,  # Don't write per-folder extras
+                output_docx=False,  # Skip per-folder extras
+                output_csv=False,
                 output_json=False,
                 output_pdf=False,
                 output_html=False,
@@ -1090,6 +1092,7 @@ class SearchMixin:
         ("regex_var",               "regex"),
         ("expression_var",          "expression"),
         ("inverse_var",             "inverse"),
+        ("output_docx_var",         "output_docx"),
         ("output_csv_var",          "output_csv"),
         ("output_json_var",         "output_json"),
         ("output_pdf_var",          "output_pdf"),
@@ -1366,10 +1369,12 @@ class SearchMixin:
         if not has_any_report:
             return
 
-        # Pack report format buttons
+        # Pack report format buttons. TXT first because it's always
+        # written and feeds the GUI's preview pane; DOCX next; then the
+        # optional formats in the same order as the Advanced checkboxes.
         for fmt, btn in [
-            ("docx", self.report_btn_docx),
             ("txt", self.report_btn_txt),
+            ("docx", self.report_btn_docx),
             ("csv", self.report_btn_csv),
             ("json", self.report_btn_json),
             ("pdf", self.report_btn_pdf),

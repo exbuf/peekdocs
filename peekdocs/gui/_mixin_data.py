@@ -51,6 +51,7 @@ class DataMixin:
         settings["regex"] = (self.regex_var.get() == "on")
         settings["ocr"] = (self.ocr_var.get() == "on")
         settings["index_search"] = (self.index_search_var.get() == "on")
+        settings["output_docx"] = (self.output_docx_var.get() == "on")
         settings["output_csv"] = (self.output_csv_var.get() == "on")
         settings["output_json"] = (self.output_json_var.get() == "on")
         settings["output_pdf"] = (self.output_pdf_var.get() == "on")
@@ -182,6 +183,9 @@ class DataMixin:
         self.regex_var.set("on" if config.get("regex") else "off")
         self.ocr_var.set("on" if config.get("ocr") else "off")
         self.index_search_var.set("on" if config.get("index_search") else "off")
+        # output_docx defaults TRUE when the key is absent (preserves
+        # the always-write-DOCX behaviour of older configs).
+        self.output_docx_var.set("on" if config.get("output_docx", True) else "off")
         self.output_csv_var.set("on" if config.get("output_csv") else "off")
         self.output_json_var.set("on" if config.get("output_json") else "off")
         self.output_pdf_var.set("on" if config.get("output_pdf") else "off")
@@ -1053,6 +1057,7 @@ class DataMixin:
             "inverse": self.inverse_var.get() == "on",
             "expression": self.expression_var.get() == "on",
             "whole_word": self.whole_word_var.get() == "on",
+            "output_docx": self.output_docx_var.get() == "on",
             "output_csv": self.output_csv_var.get() == "on",
             "output_json": self.output_json_var.get() == "on",
             "output_pdf": self.output_pdf_var.get() == "on",
@@ -1103,6 +1108,7 @@ class DataMixin:
             self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
         else:
             self.search_entry.configure(placeholder_text="Enter search terms...")
+        self.output_docx_var.set("on" if params.get("output_docx", True) else "off")
         self.output_csv_var.set("on" if params.get("output_csv") else "off")
         self.output_json_var.set("on" if params.get("output_json") else "off")
         self.output_pdf_var.set("on" if params.get("output_pdf") else "off")

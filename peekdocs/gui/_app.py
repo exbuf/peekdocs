@@ -191,8 +191,11 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self._build_index_panel()
         self._build_bottom_row()
 
-        # Show the View Report row on startup (buttons grayed out until a search runs)
-        for btn in (self.report_btn_docx, self.report_btn_txt, self.report_btn_csv,
+        # Show the View Report row on startup (buttons grayed out until a search runs).
+        # TXT comes first because the .txt report is always written (the GUI's
+        # preview pane reads from it); DOCX is optional and can be disabled in
+        # Advanced Search Options under Output formats.
+        for btn in (self.report_btn_txt, self.report_btn_docx, self.report_btn_csv,
                     self.report_btn_json, self.report_btn_pdf, self.report_btn_html):
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="disabled", fg_color="gray60", hover_color="gray60")

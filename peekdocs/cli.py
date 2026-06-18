@@ -127,7 +127,7 @@ BANNER_BOTTOM = (
     '\n'
     '  Config keys (boolean — true/false):\n'
     '    recursive, match_all, regex, fuzzy, wildcard, whole_word, ocr, inverse,\n'
-    '    index_search, output_csv, output_json, output_pdf, output_html, timestamp, quiet\n'
+    '    index_search, output_docx, output_csv, output_json, output_pdf, output_html, timestamp, quiet\n'
     '  Config keys (integer):\n'
     '    cores, context_before, context_after, proximity, max_matches, max_file_size_mb\n'
     '  Config keys (string):\n'
@@ -321,7 +321,7 @@ BANNER_QUICK = (
     'Type peekdocs -h for full help (all flags, file types, examples).\n'
 )
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_docx", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path", "on_match"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -1777,6 +1777,14 @@ def _main_inner(argv=None):
     if no_index:
         args.remove("--no-index")
 
+    # --no-docx skips writing peekdocs_standard_results.docx. The TXT
+    # report is still written (the GUI's preview pane + Matched Files
+    # popup both read from it). Lets users opt out of the bulky
+    # highlighted Word report when they don't need it.
+    no_docx = "--no-docx" in args
+    if no_docx:
+        args.remove("--no-docx")
+
     ts_suffix = ""
     if "--timestamp" in args:
         args.remove("--timestamp")
@@ -2135,16 +2143,21 @@ def _main_inner(argv=None):
         index_meta=idx_meta,
     )
 
-    result_doc = write_docx_report(
-        docx_output_path, output_path,
-        search_terms=search_terms,
-        use_regex=use_regex,
-        use_wildcard=use_wildcard,
-        use_whole_word=use_whole_word,
-        use_fuzzy=use_fuzzy,
-        expression=expression,
-    )
-    txt_size, docx_size = insert_file_sizes(output_path, docx_output_path, result_doc)
+    if no_docx:
+        result_doc = None
+        docx_output_path = None
+        txt_size, docx_size = insert_file_sizes(output_path, None, None)
+    else:
+        result_doc = write_docx_report(
+            docx_output_path, output_path,
+            search_terms=search_terms,
+            use_regex=use_regex,
+            use_wildcard=use_wildcard,
+            use_whole_word=use_whole_word,
+            use_fuzzy=use_fuzzy,
+            expression=expression,
+        )
+        txt_size, docx_size = insert_file_sizes(output_path, docx_output_path, result_doc)
 
     csv_output_path = None
     json_output_path = None
@@ -2234,7 +2247,10 @@ def _main_inner(argv=None):
             for (_fd, fn), count in sorted(file_counts.items(), key=lambda x: x[0][1].lower()):
                 print(f"  {fn}: {count}")
         print(f"Results ==> {output_dir}")
-        print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
+        if docx_output_path:
+            print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)}), {os.path.basename(docx_output_path)} ({fmt_size(docx_size)})")
+        else:
+            print(f"  {os.path.basename(output_path)} ({fmt_size(txt_size)})")
         if csv_output_path:
             print(f"  {os.path.basename(csv_output_path)} ({fmt_size(os.path.getsize(csv_output_path))})")
         if json_output_path:

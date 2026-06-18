@@ -410,13 +410,20 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
 def insert_file_sizes(txt_path, docx_path, result_doc):
     """Insert report file sizes into both txt and docx reports.
 
-    Returns (txt_size, docx_size) in bytes.
+    Returns ``(txt_size, docx_size)`` in bytes. When DOCX generation
+    was skipped (``--no-docx``), pass ``docx_path=None`` and
+    ``result_doc=None`` — the docx update is skipped, the sizes line in
+    the TXT report mentions only the TXT, and ``docx_size`` returns 0.
     """
     txt_size = os.path.getsize(txt_path)
-    docx_size = os.path.getsize(docx_path)
     txt_name = os.path.basename(txt_path)
-    docx_name = os.path.basename(docx_path)
-    sizes_line = f"Report File Sizes ==> {txt_name} ({fmt_size(txt_size)}), {docx_name} ({fmt_size(docx_size)})"
+    if docx_path is None or result_doc is None:
+        docx_size = 0
+        sizes_line = f"Report File Sizes ==> {txt_name} ({fmt_size(txt_size)})"
+    else:
+        docx_size = os.path.getsize(docx_path)
+        docx_name = os.path.basename(docx_path)
+        sizes_line = f"Report File Sizes ==> {txt_name} ({fmt_size(txt_size)}), {docx_name} ({fmt_size(docx_size)})"
 
     # Update txt report
     with open(txt_path, "r", encoding="utf-8") as f:
@@ -430,17 +437,18 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
         f.write(content)
 
     # Update docx report — insert sizes paragraph after timestamp
-    for i, para in enumerate(result_doc.paragraphs):
-        if para.text.startswith("Report Generated On ==>"):
-            new_para = OxmlElement("w:p")
-            run_elem = OxmlElement("w:r")
-            text_elem = OxmlElement("w:t")
-            text_elem.text = sizes_line
-            run_elem.append(text_elem)
-            new_para.append(run_elem)
-            para._p.addnext(new_para)
-            break
-    result_doc.save(docx_path)
+    if docx_path is not None and result_doc is not None:
+        for i, para in enumerate(result_doc.paragraphs):
+            if para.text.startswith("Report Generated On ==>"):
+                new_para = OxmlElement("w:p")
+                run_elem = OxmlElement("w:r")
+                text_elem = OxmlElement("w:t")
+                text_elem.text = sizes_line
+                run_elem.append(text_elem)
+                new_para.append(run_elem)
+                para._p.addnext(new_para)
+                break
+        result_doc.save(docx_path)
 
     return (txt_size, docx_size)
 
@@ -813,13 +821,20 @@ def write_html_report(output_path, matches, search_terms=None,
 
 
 def append_results(append_name, output_dir, txt_path, docx_path):
-    """Append current results to accumulated peekdocs files."""
+    """Append current results to accumulated peekdocs files.
+
+    When DOCX generation was skipped (``--no-docx``), pass
+    ``docx_path=None`` — only the TXT accumulator is updated.
+    """
     append_txt_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.txt")
-    append_docx_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.docx")
     with open(txt_path, "r", encoding="utf-8") as src:
         results_content = src.read()
     with open(append_txt_path, "a", encoding="utf-8") as dst:
         dst.write(results_content)
+    _restrict_file_permissions(append_txt_path)
+    if docx_path is None:
+        return
+    append_docx_path = os.path.join(output_dir, f"peekdocs_accumulated_{append_name}.docx")
     if os.path.exists(append_docx_path):
         existing_doc = Document(append_docx_path)
         new_doc = Document(docx_path)
@@ -834,7 +849,6 @@ def append_results(append_name, output_dir, txt_path, docx_path):
         existing_doc.save(append_docx_path)
     else:
         shutil.copy2(docx_path, append_docx_path)
-    _restrict_file_permissions(append_txt_path)
     _restrict_file_permissions(append_docx_path)
 
 

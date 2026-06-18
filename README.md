@@ -716,9 +716,11 @@ peekdocs --clear-all                # delete all peekdocs output files (results,
 
 **No matches?** First search not turning anything up is common. Try `-r` to include subfolders, `-z` for typo-tolerance, drop `-W` if you had whole-word on (it excludes partial matches like "logger" when searching "log"), or check whether your search terms actually appear in those files by opening one manually. Run `peekdocs --list-files` to confirm peekdocs sees the files you expect.
 
+**Why doesn't the OR match count add up?** OR mode counts each matching line ONCE, even when more than one of your terms appears on it. So if `bowling` alone finds 342 matches and `tunick` alone finds 23, an OR search for `bowling tunick` will return *fewer* than 365 whenever some lines mention both words. For example, if the OR total is 350, that means 15 lines contain both terms — inclusion-exclusion: `|A ∪ B| = |A| + |B| − |A ∩ B|`. To list those overlap lines, re-run with `-a` (AND mode) — it returns exactly the intersection. The same explanation lives inside the GUI under **Advanced Search Options → ? help → Match counting in OR mode**.
+
 If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
 
-Results are saved to `peekdocs_standard_results.txt` and `peekdocs_standard_results.docx` (highlighted) in the current directory — the same folder your terminal is in when you run the search. If you enabled additional formats (CSV, JSON, PDF, HTML), those are saved too.
+Results are saved to `peekdocs_standard_results.txt` in the current directory — the same folder your terminal is in when you run the search. **The .txt report is always written and cannot be disabled** because the GUI's Results Preview pane and the Matched Files popup both parse it; the matplotlib match-heatmap and other downstream views all read from it too. `peekdocs_standard_results.docx` (the highlighted Word report) is written by default but can be skipped by checking off **DOCX** under **Advanced Search Options → Output formats**, or by passing `--no-docx` on the CLI. If you enabled the optional formats (CSV, JSON, PDF, HTML), those are saved too.
 
 **All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten.
 
