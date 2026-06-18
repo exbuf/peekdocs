@@ -1063,19 +1063,26 @@ class BuildMixin:
         self._adv_reset_defaults_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
 
-        # ── Row 3: Close on its own line ─────────────────────────────
+        # ── Row 3: "↑ Collapse" link on its own line ─────────────────
+        # Replaces the older Close button (a hold-over from when
+        # Advanced was a popup window). Styled as a muted-blue
+        # hyperlink to signal it's a navigation shortcut — clicking
+        # it folds the panel back up so the user doesn't have to
+        # scroll all the way to the top to reach the header chevron.
         adv_bottom_row3 = ctk.CTkFrame(self._advanced_body, fg_color="transparent")
         adv_bottom_row3.pack(fill="x", padx=10, pady=(0, 10))
 
-        self._adv_close_btn = ctk.CTkButton(
-            adv_bottom_row3, text=_t("close_button_label"), width=120,
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
-            command=self._close_advanced_window,
-            font=ctk.CTkFont(size=13),
+        self._adv_collapse_link = ctk.CTkLabel(
+            adv_bottom_row3, text="↑ Collapse",
+            font=ctk.CTkFont(size=12, underline=True),
+            text_color=("#1565C0", "#90CAF9"),
+            cursor="hand2",
         )
-        self._adv_close_btn.pack(anchor="center", pady=4)
-        Tooltip(self._adv_close_btn, "Close this panel. Your settings are preserved — they take effect on the next search. To make them permanent across sessions, click Save Defaults first", anchor="above")
+        self._adv_collapse_link.pack(anchor="center", pady=4)
+        self._adv_collapse_link.bind("<Button-1>", lambda _e: self._close_advanced_window())
+        Tooltip(self._adv_collapse_link,
+                "Collapse Advanced Search Options — same as clicking the ▼ header at the top, but reachable from down here without scrolling back up. Your settings are preserved and take effect on the next search; use Save Defaults to make them persistent across sessions.",
+                anchor="above")
 
         # No popup window — sizing is handled by the inline container's
         # natural grid height inside the scrollable left pane.
@@ -1402,7 +1409,7 @@ class BuildMixin:
 
         self._step_3_msg = ctk.CTkLabel(
             self.report_frame,
-            text="Use Advanced Search Options below to configure search parameters",
+            text="Use 'Advanced Search Options' below to configure search parameters",
             font=ctk.CTkFont(size=12),
             text_color=("gray40", "gray70"),
             anchor="w",
@@ -2401,7 +2408,8 @@ class BuildMixin:
             self._adv_cb_notify_complete.configure(text=t("adv_notify_complete_label"))
             self._adv_reset_btn.configure(text=t("adv_reset_all_label"))
             self._adv_save_btn.configure(text=t("adv_save_defaults_label"))
-            self._adv_close_btn.configure(text=t("close_button_label"))
+            # "↑ Collapse" link is hardcoded (navigation marker, not a
+            # translatable button label) — no refresh needed.
             self._adv_restore_btn.configure(text=t("adv_restore_defaults_label"))
             self._adv_reset_defaults_btn.configure(text=t("adv_restore_factory_label"))
         except Exception:

@@ -4944,6 +4944,7 @@ class ToolsMixin:
             "How to Use It",
             "Bookmarks",
             "View Text vs Open File",
+            "Heatmap",
             "Line Numbers",
             "Why Some Files May Be Missing",
         ]:
@@ -5002,6 +5003,29 @@ class ToolsMixin:
         b("Use View Text when you want to quickly scan the matches in")
         b("context. Use Open File when you want to edit, print, or")
         b("share the original document.")
+        blank()
+
+        h("HEATMAP")
+        b("Select a row and click the Heatmap button to open a")
+        b("matplotlib chart showing where the matches sit INSIDE that")
+        b("file, plotted by line number. The x-axis is line number")
+        b("(1 → end of file); the y-axis is how many matches fall in")
+        b("each bin. Tall bars at the LEFT mean the matches cluster")
+        b("near the start of the document; tall bars at the RIGHT")
+        b("mean they cluster near the end; an even spread means the")
+        b("term recurs throughout. A faint blue tick is drawn for")
+        b("every individual match line so single hits are still")
+        b("visible even when no histogram bin is tall.")
+        blank()
+        b("Why it's useful: it lets you triage WHICH matching file to")
+        b("open first. A 200-page report where every match clusters in")
+        b("Chapter 3 is a different read than one where matches are")
+        b("scattered across every chapter.")
+        blank()
+        b("Heatmap needs per-match line numbers, which the search")
+        b("captures by default. If you see \"No line-number data\",")
+        b("re-run the search — some legacy search paths didn't")
+        b("populate them.")
         blank()
 
         h("LINE NUMBERS")
@@ -5350,7 +5374,7 @@ class ToolsMixin:
         win.protocol("WM_DELETE_WINDOW", lambda: (setattr(self, "_suite_popup", None), win.destroy()))
         win.title("Search Suites")
         win.resizable(True, True)
-        win.geometry("880x640")
+        win.geometry("720x640")
 
         _sf = self._scaled_font
 
@@ -5899,9 +5923,9 @@ class ToolsMixin:
         # on the system primary monitor before jumping to the main window's
         # monitor in multi-monitor setups.
         self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 880) // 2
+        x = self.winfo_rootx() + (self.winfo_width() - 720) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 640) // 2
-        win.geometry(f"880x640+{x}+{y}")
+        win.geometry(f"720x640+{x}+{y}")
         win.deiconify()
 
     def _run_suite_searches(self, suite_name, search_names, folder, suite_formats=None, show_completion_popup=False):

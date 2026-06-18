@@ -1332,10 +1332,10 @@ class DataMixin:
         popup, _dark = self._themed_toplevel()
         popup.title(f"Excluded Files ({len(self._excluded_files)})")
         popup.resizable(True, True)
-        popup.geometry("800x500")
+        popup.geometry("560x500")
         popup.transient(self)
         self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 800) // 2
+        x = self.winfo_rootx() + (self.winfo_width() - 560) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 500) // 2
         popup.geometry(f"+{x}+{y}")
         popup.lift()
@@ -1392,20 +1392,27 @@ class DataMixin:
                 listbox.insert("end", f"    {os.path.basename(fp)}")
             listbox.insert("end", "")
 
-        btn_row = tk.Frame(popup)
-        btn_row.pack(pady=(5, 10))
+        # Top action row — View Chart on its own line so it has room
+        # without colliding with the centered Close button below.
+        action_row = tk.Frame(popup)
+        action_row.pack(pady=(5, 4))
         ctk.CTkButton(
-            btn_row, text="View Chart", width=110,
+            action_row, text="View Chart", width=110,
             command=lambda: self._show_excluded_reasons_chart(by_reason, popup),
             font=ctk.CTkFont(size=12),
-        ).pack(side="left", padx=(0, 8))
+        ).pack()
+
+        # Close on its own bottom row, centered — matches the standard
+        # Close-button layout used in the other peekdocs popups.
+        close_row = tk.Frame(popup)
+        close_row.pack(pady=(0, 10))
         ctk.CTkButton(
-            btn_row, text="Close", width=80,
+            close_row, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             font=ctk.CTkFont(size=12),
             command=popup.destroy,
-        ).pack(side="left")
+        ).pack()
         self._apply_dark_theme(popup)
 
     def _show_excluded_reasons_chart(self, by_reason, parent):
