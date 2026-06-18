@@ -1228,13 +1228,17 @@ class BuildMixin:
         self._excluded_files_btn.pack_forget()  # Hidden until search completes
         self._excluded_files_btn_tooltip = Tooltip(self._excluded_files_btn, _t_mf("excluded_files_tooltip"))
 
-        # ── Middle row: Preview Size + Preview cap dropdowns ─────────
+        # ── Top row: Results title + Preview Size + Preview cap ──────
         preview_header_mid = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         preview_header_mid.pack(fill="x", padx=5, pady=(5, 0))
 
-        # Results Preview label + count + Clear were moved down one row
-        # (into preview_label_row, built after the dropdowns below) so
-        # the dropdowns sit alone on this row.
+        # 24pt Results title — left-anchored on the same row as the
+        # Preview Size and Preview cap dropdowns. Mirrors the 24pt
+        # 'Search' title at the top of the left pane.
+        self._preview_label = ctk.CTkLabel(preview_header_mid, text=_t("results_preview_label"),
+                                      font=ctk.CTkFont(size=24, weight="bold"))
+        self._preview_label.pack(side="left")
+        self._preview_label_tooltip = Tooltip(self._preview_label, _t("results_preview_tooltip"))
 
         # Right-side group on this row (right→left pack order):
         # cap_dropdown, cap_label, preview_size_menu, preview_size_lbl.
@@ -1272,16 +1276,12 @@ class BuildMixin:
         self._preview_size_lbl = ctk.CTkLabel(preview_header_mid, text=__import__("peekdocs.i18n", fromlist=["t"]).t("preview_size_label"), font=ctk.CTkFont(size=11))
         self._preview_size_lbl.pack(side="right", padx=(0, 3))
 
-        # ── Label row: Results Preview + count + Clear ───────────────
-        # Pushed down one row from the dropdown row above for breathing
-        # room and to give the label/Clear pair a clean baseline.
+        # ── Label row: Clear + Chart buttons ─────────────────────────
+        # The Results title moved up to the top row alongside the
+        # dropdowns; this row now holds only the action buttons.
         preview_label_row = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         preview_label_row.pack(fill="x", padx=5, pady=(2, 0))
 
-        self._preview_label = ctk.CTkLabel(preview_label_row, text=_t("results_preview_label"),
-                                      font=ctk.CTkFont(size=24, weight="bold"))
-        self._preview_label.pack(side="left")
-        self._preview_label_tooltip = Tooltip(self._preview_label, _t("results_preview_tooltip"))
         # _preview_count_label removed — the same numbers now live in
         # the search-results headline below this row, so showing them
         # twice was redundant. Configure-call sites are guarded with
