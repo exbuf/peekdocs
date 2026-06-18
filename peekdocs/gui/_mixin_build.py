@@ -1273,7 +1273,7 @@ class BuildMixin:
         preview_label_row.pack(fill="x", padx=5, pady=(2, 0))
 
         self._preview_label = ctk.CTkLabel(preview_label_row, text=_t("results_preview_label"),
-                                      font=ctk.CTkFont(size=12, weight="bold"))
+                                      font=ctk.CTkFont(size=24, weight="bold"))
         self._preview_label.pack(side="left")
         self._preview_label_tooltip = Tooltip(self._preview_label, _t("results_preview_tooltip"))
         # _preview_count_label removed — the same numbers now live in
