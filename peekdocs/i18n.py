@@ -134,7 +134,7 @@ _STRINGS = {
         "step_2_tooltip": "Search Terms — type what you're looking for. ▼ Recent, ▶ Save, and ▶ Reload sit just to the right of the search bar. For AND/OR, Recursive, Whole Word, Regex, file types, and every other knob, expand Advanced Search Options below.",
         # Step 3 — run search
         "step_3_label": " Step 3 ",
-        "step_3_tooltip": "View Report — open the highlighted results report. Additional formats (CSV, JSON, PDF, HTML) can be enabled in Advanced Search Options",
+        "step_3_tooltip": "Step 3 is a pointer to the inline Advanced Search Options panel below. Click the ▶ Advanced Search Options header to expand it. Inside: AND/OR mode, Recursive, Whole Word, Regex, Fuzzy, Wildcard, OCR, file-type filters, exclude terms, proximity, context lines, CPU cores, Max Matches, output formats (CSV / JSON / PDF / HTML), and the rest. TXT and DOCX reports are always generated; the optional formats are enabled here.",
         # Step 4 — view report
         "step_4_label": " Step 4 ",
         "step_4_tooltip": "Run Standard Search — click to search all files in the folder",

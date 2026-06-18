@@ -1424,6 +1424,7 @@ class BuildMixin:
         self._step_lbl_3 = _tk_step4.Label(self.report_frame, text=_t("step_3_label"), font=("TkDefaultFont", 14, "bold"),
                                        fg="white", bg="#2196F3")
         self._step_lbl_3.pack(side="left", padx=(0, 8))
+        self._step_lbl_3_tooltip = Tooltip(self._step_lbl_3, _t("step_3_tooltip"))
 
         self._step_3_msg = ctk.CTkLabel(
             self.report_frame,
@@ -1433,6 +1434,7 @@ class BuildMixin:
             anchor="w",
         )
         self._step_3_msg.pack(side="left", padx=(0, 0))
+        self._step_3_msg_tooltip = Tooltip(self._step_3_msg, _t("step_3_tooltip"))
 
         # ── Open-report buttons row (sits below status_row at row 6) ──
         self.report_btn_frame = ctk.CTkFrame(self._input_frame, fg_color="transparent")
@@ -2435,7 +2437,8 @@ class BuildMixin:
         try:
             self._step_1_tooltip.text = t("step_1_tooltip")
             self._step_2_tooltip.text = t("step_2_tooltip")
-            # Step 3 no longer carries a tooltip — it's now a pointer label.
+            self._step_lbl_3_tooltip.text = t("step_3_tooltip")
+            self._step_3_msg_tooltip.text = t("step_3_tooltip")
             self._step_4_tooltip.text = t("step_4_tooltip")
             self._run_search_tooltip.text = t("run_standard_search_tooltip")
             self._suites_tooltip.text = t("search_suites_tooltip")
