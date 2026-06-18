@@ -304,6 +304,12 @@ class BuildMixin:
         )
         self._page_header_lbl.pack(side="left")
 
+        self._left_pane_title = ctk.CTkLabel(
+            self._left_scroll, text="Search",
+            font=ctk.CTkFont(size=24, weight="bold"),
+        )
+        self._left_pane_title.pack(anchor="w", padx=15, pady=(2, 0))
+
         # Combined frame for both input rows — shared grid columns
         # guarantee the labels, entries, and button frames align.
         # Parented to the scrollable container inside the left pane
