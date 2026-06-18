@@ -1063,26 +1063,15 @@ class BuildMixin:
         self._adv_reset_defaults_btn.pack(side="left", padx=(10, 0))
         Tooltip(self._adv_reset_defaults_btn, "Delete ~/.peekdocsrc and return all settings to factory defaults. This erases all saved preferences — search mode, file types, output formats, and everything else. The app will start fresh next time as if newly installed. Your documents and search history are not affected", anchor="above")
 
-        # ── Row 3: "↑ Collapse" link on its own line ─────────────────
-        # Replaces the older Close button (a hold-over from when
-        # Advanced was a popup window). Styled as a muted-blue
-        # hyperlink to signal it's a navigation shortcut — clicking
-        # it folds the panel back up so the user doesn't have to
-        # scroll all the way to the top to reach the header chevron.
-        adv_bottom_row3 = ctk.CTkFrame(self._advanced_body, fg_color="transparent")
-        adv_bottom_row3.pack(fill="x", padx=10, pady=(0, 10))
-
-        self._adv_collapse_link = ctk.CTkLabel(
-            adv_bottom_row3, text="↑ Collapse",
-            font=ctk.CTkFont(size=12, underline=True),
-            text_color=("#1565C0", "#90CAF9"),
-            cursor="hand2",
-        )
-        self._adv_collapse_link.pack(anchor="center", pady=4)
-        self._adv_collapse_link.bind("<Button-1>", lambda _e: self._close_advanced_window())
-        Tooltip(self._adv_collapse_link,
-                "Collapse Advanced Search Options — same as clicking the ▼ header at the top, but reachable from down here without scrolling back up. Your settings are preserved and take effect on the next search; use Save Defaults to make them persistent across sessions.",
-                anchor="above")
+        # The "↑ Collapse" link that used to sit here was removed —
+        # on Windows, collapsing the body while the user was scrolled
+        # deep into it left the scrollable left pane parked past the
+        # new (shorter) content, making the top of the pane look like
+        # it had vanished. Users now collapse by scrolling back up to
+        # the ▶/▼ Advanced Search Options header at the top of the
+        # panel — that path doesn't trigger the layout glitch because
+        # the user is already at the top of the scroll when they
+        # click it.
 
         # No popup window — sizing is handled by the inline container's
         # natural grid height inside the scrollable left pane.
