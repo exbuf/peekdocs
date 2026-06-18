@@ -131,7 +131,7 @@ _STRINGS = {
         "step_1_tooltip": "Search Folder — point peekdocs at the folder containing your documents",
         # Step 2 — search terms
         "step_2_label": " Step 2 ",
-        "step_2_tooltip": "Search Terms — type what you're looking for, then select AND/OR, Recursive (include subfolders), or Whole Word. For advanced options click Advanced",
+        "step_2_tooltip": "Search Terms — type what you're looking for. ▼ Recent, ▶ Save, and ▶ Reload sit just to the right of the search bar. For AND/OR, Recursive, Whole Word, Regex, file types, and every other knob, expand Advanced Search Options below.",
         # Step 3 — run search
         "step_3_label": " Step 3 ",
         "step_3_tooltip": "View Report — open the highlighted results report. Additional formats (CSV, JSON, PDF, HTML) can be enabled in Advanced Search Options",
@@ -155,7 +155,7 @@ _STRINGS = {
         "status_tooltip": "Search status — shows progress during search and results summary when complete",
         # Results Preview pane header + Clear button
         "results_preview_label": "Results Preview:",
-        "results_preview_tooltip": "Live preview of search matches — capped at the first 500 lines so the GUI stays responsive on searches that return tens of thousands of matches. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit)",
+        "results_preview_tooltip": "Live preview of search matches. Render volume is controlled by the Preview cap dropdown on this row (100 / 500 / 1000 / 5000 / No cap; default 500) — the cap counts matches, not lines, and keeps the GUI responsive on large result sets. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit).",
         "clear_preview_label": "Clear",
         "clear_preview_tooltip": "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk",
         # Bottom-row navigation buttons (left group): README / User Guide / Close
@@ -213,7 +213,7 @@ _STRINGS = {
         "whole_word_label": "Whole Word",
         "whole_word_tooltip": "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options",
         "advanced_label": "Advanced Search Options",
-        "advanced_tooltip": "Open the Advanced Search Options panel — AND mode, regex, fuzzy, file types, exclude terms, range filters, and all other search settings",
+        "advanced_tooltip": "Expand or collapse the inline Advanced Search Options panel — AND mode, recursive, whole word, regex, fuzzy, OCR, Use Index, file types, exclude terms, proximity, output formats (DOCX, CSV, JSON, PDF, HTML), Delete on Close, and every other search setting. The header chevron flips between ▶ collapsed and ▼ expanded.",
         "use_index_label": "Use Index",
         "use_index_tooltip": "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app",
         "wizard_label": "Wizard",
@@ -221,7 +221,7 @@ _STRINGS = {
         # Save / Reload buttons. ▶ is appended at runtime as a static
         # affordance — not part of the translation.
         "save_label": "Save",
-        "save_tooltip": "Save the current search settings by name so you can reload it later. You can click this before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name",
+        "save_tooltip": "Save the current search settings by name so you can reload them later via ▶ Reload. You can click ▶ Save before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, folder, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (DOCX/CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name.",
         "reload_label": "Reload",
         "reload_tooltip": "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it",
         # ─── Advanced Search Options panel — labels only ───

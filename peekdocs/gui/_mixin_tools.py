@@ -3245,7 +3245,7 @@ class ToolsMixin:
 
         Distinct from `_show_search_wizard_help`, which documents the
         search-type wizard (the category-cards popup behind the
-        main-screen Search Wizard button). This one documents the
+        Tools → Search Wizard menu entry). This one documents the
         picker-and-combiner popup — categories, checkbox list,
         OR/AND mode, custom regex, Apply target. The AND/OR section
         is the load-bearing part: AND mode's multi-term output is
@@ -3313,7 +3313,7 @@ class ToolsMixin:
         b("opened the Regex Wizard — the main search bar, the Regex")
         b("Tester, or the Regex Search popup's first empty pattern row.")
         blank()
-        b("Don't confuse it with the main-screen Search Wizard button —")
+        b("Don't confuse it with the Tools → Search Wizard menu entry —")
         b("that one opens the category-cards search-type wizard, and")
         b("one of its cards (\"Regex Wizard\") leads here.")
         blank()
@@ -3369,7 +3369,7 @@ class ToolsMixin:
         h("WHERE OR APPLIES")
         b("OR mode works EVERYWHERE. Every place the Regex Wizard's Apply")
         b("button targets accepts a single regex string:")
-        e("  Main search bar (Search Wizard button on the main screen)")
+        e("  Main search bar (Tools → Search Wizard)")
         e("  Regex Tester       (Tools → Regex Tester → Pick from Wizard…)")
         e("  Regex Search popup (Regex Search → Pick from Wizard…)")
         b("Pick OR if you're unsure. It's the safe default.")
@@ -3379,7 +3379,7 @@ class ToolsMixin:
         b("AND mode only works for the main search bar, because that's")
         b("the only context that parses multi-term shapes:")
         blank()
-        b("✓ Main search bar (Search Wizard button on the main screen)")
+        b("✓ Main search bar (Tools → Search Wizard)")
         b("  Apply puts the multi-term string in the search bar and")
         b("  auto-enables AND mode in Advanced Search Options. The")
         b("  search engine then requires every term to match.")
@@ -3736,6 +3736,13 @@ class ToolsMixin:
 
 
     def _show_search_options_help(self):
+        # NOTE: Currently unreachable from the UI. Originally bound to
+        # the `?` button on the options-row blue bar (AND/OR / Recursive
+        # / Whole Word / Use Index) — that bar was removed in 1.2.0 when
+        # those controls were consolidated into Advanced Search Options.
+        # The body still describes the pre-1.2.0 layout where these
+        # controls lived on the main screen; if you ever re-wire this
+        # help, rewrite the body to reflect the inline Advanced panel.
         """Show help for the search options group: AND/OR, Recursive, Whole Word."""
         import tkinter as tk
         win, _dark = self._themed_toplevel()
@@ -4502,7 +4509,8 @@ class ToolsMixin:
         e("\\$[\\d,]+\\.\\d{2}       \u2192  dollar amounts ($1,234.56)")
         e("[A-Z]{2}-\\d{4,}       \u2192  ID codes (AB-12345)")
         e("\\d{2}/\\d{2}/\\d{4}     \u2192  dates (03/15/2026)")
-        b("Tip: Use the Wizard button for pre-built regex patterns.")
+        b("Tip: Tools → Search Wizard has pre-built regex patterns for")
+        b("phone numbers, emails, dates, and other common formats.")
         blank()
 
         s("Whole Word")
@@ -4673,9 +4681,10 @@ class ToolsMixin:
         b("View the current saved settings file (read-only).")
         s("Save As Defaults")
         b("Save all current options as permanent defaults to ~/.peekdocsrc.")
-        b("This includes all settings on this Advanced Search Options screen")
-        b("and on the main screen (search terms, folder, recursive, AND/OR")
-        b("mode, whole word, etc.). These become the defaults every time you")
+        b("This includes every setting on this Advanced Search Options")
+        b("panel (AND/OR mode, recursive, whole word, regex, file types,")
+        b("output formats, and the rest) plus the search terms and folder")
+        b("from the main page. These become the defaults every time you")
         b("launch the app.")
         blank()
         b("Not required for the current search \u2014 your selections take")
@@ -4720,8 +4729,8 @@ class ToolsMixin:
         b("Click Reset All Fields (the red button at the bottom) to")
         b("clear everything and start fresh.")
         blank()
-        b("If Use Index is checked on the main screen, try unchecking")
-        b("it and searching directly. A stale index may not contain")
+        b("If Use Index is checked inside Advanced Search Options, try")
+        b("unchecking it and searching directly. A stale index may not contain")
         b("recently added or changed files. Use Auto-Refresh in Manage")
         b("Indexes to keep the index current automatically:")
         blank()
@@ -4736,10 +4745,10 @@ class ToolsMixin:
 
 
     def _show_save_load_help(self):
-        """Show help for the Save Search and Load Search buttons."""
+        """Show help for the \u25b6 Save and \u25b6 Reload buttons on the Step 2 row."""
         import tkinter as tk
         help_win, _dark = self._themed_toplevel()
-        help_win.title("Save Search & Load Search \u2014 Help")
+        help_win.title("Save & Reload \u2014 Help")
         help_win.geometry("740x680")
         help_win.resizable(True, True)
         help_win.transient(self)
@@ -4770,8 +4779,8 @@ class ToolsMixin:
 
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
-            "What Save Search Does",
-            "What Load Search Does",
+            "What Save Does",
+            "What Reload Does",
             "Where Saved Searches Are Stored",
             "Editing a Saved Search",
             "Deleting a Saved Search",
@@ -4781,39 +4790,42 @@ class ToolsMixin:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
         txt.insert("end", "\n")
 
-        h("WHAT SAVE SEARCH DOES")
-        b("Save Search takes everything you currently have configured")
-        b("on the main screen \u2014 search terms, mode (AND/OR/Boolean/")
-        b("regex/fuzzy/wildcard/whole word), inverse, file type filters,")
-        b("exclude terms, proximity, range filters, context lines,")
-        b("recursive, OCR, max file size, and use-index \u2014 and stores")
-        b("it under a name you choose.")
+        h("WHAT SAVE DOES")
+        b("\u25b6 Save (the button between \u25bc Recent and \u25b6 Reload on the search")
+        b("bar row) takes everything you currently have configured \u2014 search")
+        b("terms and folder on the main page, plus every option inside")
+        b("Advanced Search Options (mode AND/OR/Boolean/regex/fuzzy/wildcard/")
+        b("whole word, inverse, file type filters, exclude terms, proximity,")
+        b("range filters, context lines, recursive, OCR, max file size, and")
+        b("Use Index) \u2014 and stores it under a name you choose.")
         blank()
         b("Once saved, you can reload the exact same configuration")
-        b("later with one click from Load Search. Nothing is \"locked")
+        b("later with one click from \u25b6 Reload. Nothing is \"locked")
         b("in\" \u2014 you can always edit and re-save it.")
         blank()
         b("Saving does NOT run the search. If you want to verify that")
-        b("the search works the way you expect, click Run Search")
-        b("first, check the results, then click Save Search.")
+        b("the search works the way you expect, click Run Standard Search")
+        b("first, check the results, then click ▶ Save.")
         blank()
 
-        h("WHAT LOAD SEARCH DOES")
-        b("Load Search \u25bc opens a popup listing every saved search in")
-        b("the current folder's collection. Click one to load it back")
-        b("into the main screen \u2014 the search terms and all options")
-        b("are restored exactly as they were when you saved.")
+        h("WHAT RELOAD DOES")
+        b("\u25b6 Reload (the button next to \u25bc Recent and \u25b6 Save on the search")
+        b("bar row) opens a popup listing every saved search in the")
+        b("current folder's collection. Click one to load it back into")
+        b("the main page \u2014 the search terms, folder, and every Advanced")
+        b("Search Options field are restored exactly as they were when")
+        b("you saved.")
         blank()
         b("After loading, you can:")
-        b("\u2022 Click Run Search to execute it as-is")
-        b("\u2022 Modify any field and click Run Search to try a variation")
-        b("\u2022 Click Save Search to overwrite the saved version (use")
-        b("  the same name) or save it as a new one (use a new name)")
-        b("\u2022 Delete the saved search from the Load Search popup")
+        b("\u2022 Click Run Standard Search to execute it as-is")
+        b("\u2022 Modify any field and click Run Standard Search to try a variation")
+        b("\u2022 Click \u25b6 Save to overwrite the saved version (use the same")
+        b("  name) or save it as a new one (use a new name)")
+        b("\u2022 Delete the saved search from the Reload popup")
         blank()
         b("Saving does NOT run the search. To verify a search works")
-        b("the way you expect, click Run Search first, check the")
-        b("results, then click Save Search.")
+        b("the way you expect, click Run Standard Search first, check the")
+        b("results, then click \u25b6 Save.")
         blank()
 
         h("WHERE SAVED SEARCHES ARE STORED")
@@ -4821,7 +4833,7 @@ class ToolsMixin:
         b("inside the search folder itself. Each folder has its own")
         b("collection \u2014 the saved searches for ~/Documents/Contracts are")
         b("separate from those in ~/Documents/HR_Files. When you switch")
-        b("folders on the main screen, the Load Search dropdown")
+        b("folders on the main page, the Reload popup")
         b("automatically shows that folder's collection.")
         blank()
         h("WHY PER FOLDER?")
@@ -4850,12 +4862,12 @@ class ToolsMixin:
         blank()
 
         h("EDITING A SAVED SEARCH")
-        b("1. Click Load Search \u25bc and pick the one you want to edit")
+        b("1. Click \u25b6 Reload and pick the one you want to edit")
         b("2. The search bar and Advanced Search Options are filled in")
         b("   with the saved values")
         b("3. Change whatever you need to (terms, filters, options)")
-        b("4. Click Run Search to verify the new version works")
-        b("5. Click Save Search and give it the SAME name \u2014 you'll")
+        b("4. Click Run Standard Search to verify the new version works")
+        b("5. Click \u25b6 Save and give it the SAME name \u2014 you'll")
         b("   be asked to confirm overwriting the existing entry")
         blank()
         b("If you give it a new name instead, you'll end up with two")
@@ -4863,7 +4875,7 @@ class ToolsMixin:
         blank()
 
         h("DELETING A SAVED SEARCH")
-        b("Open Load Search \u25bc. Each entry in the popup has a Delete")
+        b("Open \u25b6 Reload. Each entry in the popup has a Delete")
         b("button next to it. Click Delete to remove that saved search")
         b("from the collection. You'll be asked to confirm.")
         blank()
@@ -4953,7 +4965,7 @@ class ToolsMixin:
 
         h("WHAT THIS POPUP SHOWS")
         b("You opened this popup by clicking the orange Matched Files")
-        b("button on the status line at the bottom of the main window.")
+        b("button in the right pane, just below the results headline.")
         b("It lists every file that matched your search \u2014 one row per")
         b("file \u2014 along with the number of matches in that file and")
         b("the line numbers where the matches were found (up to 10 line")
@@ -5111,7 +5123,7 @@ class ToolsMixin:
 
         h("WHAT THIS POPUP SHOWS")
         b("You opened this popup by clicking the gray Excluded Files")
-        b("button on the status line at the bottom of the main window.")
+        b("button in the right pane, just below the results headline.")
         b("It lists every file that was in your search folder but was")
         b("NOT searched, grouped by the reason it was skipped.")
         blank()
@@ -5296,7 +5308,8 @@ class ToolsMixin:
         b("disabled while this runs. May take a few minutes for large")
         b("folders. This button is red when no index exists and blue")
         b("when one does. When no index exists, the Use Index checkbox")
-        b("on the main screen is automatically unchecked and grayed out.")
+        b("inside Advanced Search Options is automatically unchecked")
+        b("and grayed out.")
         blank()
         s("Delete Index(es)")
         b("Removes the index database. Searches go back to reading")
