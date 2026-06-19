@@ -22,30 +22,47 @@ class Tooltip:
 
     enabled = True
 
-    def __init__(self, widget, text, anchor="right"):
-        """Bind hover tooltip with the given text to a widget."""
+    def __init__(self, widget, text, anchor="right", position_widget=None):
+        """Bind hover tooltip with the given text to a widget.
+
+        position_widget — if supplied, use this widget's bounding box
+        for positioning instead of `widget`. Use with anchor='center'
+        to center the tooltip on a different region than the one that
+        triggers it (e.g., bind to a label but display centered on
+        the surrounding pane)."""
         self.widget = widget
         self.text = text
         self.anchor = anchor
+        self.position_widget = position_widget if position_widget is not None else widget
         self.tip_window = None
         self._hide_id = None
         widget.bind("<Enter>", self._show)
         widget.bind("<Leave>", self._schedule_hide)
-        # Bind to internal children (needed for CTk composite widgets so
-        # the tooltip still fires when the cursor lands on the inner
-        # canvas / label rather than the outer frame).
-        for child in widget.winfo_children():
-            child.bind("<Enter>", self._show)
-            # On macOS, skip the child <Leave> binding. macOS fires
-            # Leave on inner children more aggressively as the cursor
-            # crosses the implicit borders inside a CTk composite, and
-            # each Leave→schedule_hide→Enter cycle was destroying and
-            # recreating the tooltip — reading fresh winfo_rootx/y each
-            # time and producing a visible position-shake. The outer
-            # widget's Leave still fires when the cursor genuinely
-            # leaves the widget, so hide still works correctly.
-            if not _IS_MACOS:
-                child.bind("<Leave>", self._schedule_hide)
+        # Skip the children-bind loop for CTkOptionMenu widgets entirely.
+        # An OptionMenu carries a _dropdown_menu Toplevel child that
+        # lives at screen origin until it's opened, and binding Enter on
+        # it caused tooltips from one OptionMenu to fire when the cursor
+        # hovered a neighbor OptionMenu (e.g., hovering Language fired
+        # the Preview-Size 'Results Preview' tooltip near the Language
+        # picker, flickering, on macOS). The outer Enter on the
+        # OptionMenu surface is enough for those widgets.
+        _is_option_menu = hasattr(widget, "_dropdown_menu")
+        if not _is_option_menu:
+            # Bind to internal children (needed for CTk composite widgets
+            # so the tooltip still fires when the cursor lands on the
+            # inner canvas / label rather than the outer frame).
+            for child in widget.winfo_children():
+                child.bind("<Enter>", self._show)
+                # On macOS, skip the child <Leave> binding. macOS fires
+                # Leave on inner children more aggressively as the cursor
+                # crosses the implicit borders inside a CTk composite,
+                # and each Leave→schedule_hide→Enter cycle was
+                # destroying and recreating the tooltip — reading fresh
+                # winfo_rootx/y each time and producing a visible
+                # position-shake. The outer widget's Leave still fires
+                # when the cursor genuinely leaves, so hide still works.
+                if not _IS_MACOS:
+                    child.bind("<Leave>", self._schedule_hide)
 
     def _show(self, event=None):
         """Display the tooltip window near the widget on mouse enter."""
@@ -55,26 +72,56 @@ class Tooltip:
             self._hide_id = None
         if self.tip_window or not Tooltip.enabled:
             return
+        # Defensive guard: only show if the cursor is genuinely inside
+        # the widget's screen bounding box. Without this, spurious
+        # <Enter> events delivered by Tk (observed on macOS with
+        # CTkOptionMenu widgets, where hovering one OptionMenu would
+        # fire tooltips bound to unrelated widgets elsewhere in the
+        # window) could pop a tooltip with no cursor near it.
+        if event is not None and hasattr(event, "x_root"):
+            try:
+                wx = self.widget.winfo_rootx()
+                wy = self.widget.winfo_rooty()
+                ww = self.widget.winfo_width()
+                wh = self.widget.winfo_height()
+                if not (wx <= event.x_root < wx + ww
+                        and wy <= event.y_root < wy + wh):
+                    return
+            except Exception:
+                pass
         try:
             import tkinter as tk
 
             # Initial x position; y for above-* is computed after the
             # tooltip is rendered so it never overlaps the widget.
+            pw = self.position_widget
             if self.anchor == "left":
-                x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
-                y = self.widget.winfo_rooty() + self.widget.winfo_height() + _TOOLTIP_GAP_PX
+                x = pw.winfo_rootx() + pw.winfo_width() - 310
+                y = pw.winfo_rooty() + pw.winfo_height() + _TOOLTIP_GAP_PX
             elif self.anchor in ("above", "above-left", "above-mid", "above-high"):
-                x = self.widget.winfo_rootx()
+                x = pw.winfo_rootx()
                 if self.anchor == "above-left":
-                    x = self.widget.winfo_rootx() + self.widget.winfo_width() - 310
+                    x = pw.winfo_rootx() + pw.winfo_width() - 310
                 # Placeholder y; will be corrected after tooltip is laid out
-                y = self.widget.winfo_rooty() - 200
+                y = pw.winfo_rooty() - 200
+            elif self.anchor == "center":
+                # Placeholder; corrected after tooltip is laid out so
+                # the final position is at the position_widget's center.
+                x = pw.winfo_rootx() + pw.winfo_width() // 2
+                y = pw.winfo_rooty() + pw.winfo_height() // 2
             else:
-                x = self.widget.winfo_rootx() + 20
-                y = self.widget.winfo_rooty() + self.widget.winfo_height() + _TOOLTIP_GAP_PX
+                x = pw.winfo_rootx() + 20
+                y = pw.winfo_rooty() + pw.winfo_height() + _TOOLTIP_GAP_PX
 
             self.tip_window = tw = tk.Toplevel(self.widget)
             tw.wm_overrideredirect(True)
+            # macOS Cocoa does not auto-raise overrideredirect Toplevels
+            # above the parent window — the tooltip can end up partially
+            # hidden behind the main window. -topmost keeps it above.
+            try:
+                tw.attributes("-topmost", True)
+            except Exception:
+                pass
             # On macOS, hide the window during the placeholder-paint dance
             # so only the final position is ever visible. Harmless on
             # other platforms; gated to Darwin to avoid changing behavior
@@ -105,7 +152,14 @@ class Tooltip:
             if self.anchor in ("above", "above-left", "above-mid", "above-high"):
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
-                y = self.widget.winfo_rooty() - max(tip_h, 60) - 24
+                y = pw.winfo_rooty() - max(tip_h, 60) - 24
+                tw.wm_geometry(f"+{x}+{y}")
+            elif self.anchor == "center":
+                tw.update_idletasks()
+                tip_w = tw.winfo_width()
+                tip_h = tw.winfo_height()
+                x = pw.winfo_rootx() + (pw.winfo_width() - tip_w) // 2
+                y = pw.winfo_rooty() + (pw.winfo_height() - tip_h) // 2
                 tw.wm_geometry(f"+{x}+{y}")
 
             # Reveal the tooltip only after the final geometry is set,

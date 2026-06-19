@@ -1229,7 +1229,10 @@ class BuildMixin:
         self._preview_label = ctk.CTkLabel(preview_header_mid, text=_t("results_preview_label"),
                                       font=ctk.CTkFont(size=24, weight="bold"))
         self._preview_label.pack(side="left")
-        self._preview_label_tooltip = Tooltip(self._preview_label, _t("results_preview_tooltip"))
+        self._preview_label_tooltip = Tooltip(
+            self._preview_label, _t("results_preview_tooltip"),
+            anchor="center", position_widget=self._right_pane,
+        )
 
         # Right-side group on this row (right→left pack order):
         # cap_dropdown, cap_label, preview_size_menu, preview_size_lbl.
