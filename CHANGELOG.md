@@ -12,6 +12,106 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-06-19
+
+Post-1.2.0 GUI polish driven by hover-testing the split-pane redesign
+on both macOS and Windows. The Advanced Search Options panel is
+reorganized so the most-frequently-used controls (Proximity / context
+lines, output format checkboxes, Exclude, File types) sit above the
+scroll fold; the panel's introductory paragraph moves into the `?`
+help popup so it opens directly to controls. The five output-format
+checkboxes (DOCX / CSV / JSON / PDF / HTML) collapse to a single row
+aligned under the search-mode column grid. Use Index and Timestamp
+filename pair on one row; Delete on Close and Clear history on close
+pair on another. Initial sash split biases slightly to the left pane
+(52%) so the format row fits at first paint. Right pane gains a 24pt
+"Results" title on the top row alongside the Preview Size / Preview
+cap dropdowns, mirroring a new 24pt "Search" title on the left pane.
+
+Tooltips received a substantial rewrite to handle Cocoa quirks: a
+`platform.system() == "Darwin"` flag drives several macOS-only
+mitigations including a larger widget-to-tooltip gap, `withdraw` /
+`deiconify` around the placeholder-paint dance, skipping `<Leave>`
+binding on CTk composite children, and skipping the children-bind loop
+entirely for CTkOptionMenu widgets. Cross-platform fixes include
+`-topmost` on the Toplevel so it never sits behind the main window, a
+defensive guard in `_show` that ignores Enter events whose cursor
+position falls outside the bound widget, and a new `above-row` /
+`above-row-left` anchor that top-aligns bottom-toolbar tooltips at a
+common screen Y regardless of text length. The Results Preview
+tooltips on the right pane were removed entirely after their
+interaction proved unreadable. The Step 3 tooltip on the main page,
+which had gone missing during the 1.2.0 redesign, is restored.
+
+Documentation updates: README adds a "Composes with standard Unix
+tools" headline bullet to the Integration block, naming the
+`--stdout`, `--watch`, `--diff --json`, and `--runs --json` modes and
+the exit-code contract. The ? help popups, tooltips, and Getting
+Started body text receive a post-1.2.0 audit to remove stale
+references to the pre-redesign GUI surface (the deleted main-row
+checkboxes, the renamed Save / Reload buttons, the configurable
+preview cap, the now-mandatory TXT report).
+
+### Added
+- `above-row` and `above-row-left` Tooltip anchor variants that
+  top-align bottom-toolbar tooltips at a common screen Y.
+- `position_widget` and `center` anchor on Tooltip (added during the
+  Results Preview centering experiment; left in place for future use).
+
+### Changed
+- Advanced Search Options panel reorganized by frequency of use:
+  Proximity row 2, output-format checkboxes row 3, Exclude row 4,
+  File types row 5, Cores row 6, Max Matches row 7, Range row 8,
+  Specific files row 9, Save row 10, Append row 11, Output Dir row 12,
+  Use Index moved into the output_frame above Timestamp filename.
+- Output-format checkboxes (DOCX / CSV / JSON / PDF / HTML) now share
+  a single row in cb_frame aligned under Inverse / Expression /
+  Whole Word.
+- Use Index + Timestamp filename pair on one row; Delete on Close +
+  Clear history on close pair on another.
+- Right pane "Results Preview" title shortened to "Results", moved to
+  the top row alongside Preview Size and Preview cap dropdowns at
+  24pt bold to mirror a new 24pt "Search" title on the left pane.
+- Initial PanedWindow sash position changed from 50% to 52% favoring
+  the left pane so the five-wide format checkbox row fits at first
+  paint.
+- Advanced Search Options panel intro paragraph moved into the `?`
+  help popup; the panel header shrinks to the `?` button alone.
+- Bottom-toolbar tooltips (README, User Guide, Close, About, App Size,
+  Language, Tools) switched from anchor `above` / `above-left` to the
+  new `above-row` / `above-row-left` for consistent top-alignment.
+- Step 2 tooltip rewritten to describe ▼ Recent / ▶ Save / ▶ Reload
+  and point users at Advanced Search Options for AND/OR / Recursive /
+  Whole Word / Regex; results_preview tooltip text updated to describe
+  the configurable Preview cap dropdown; advanced tooltip updated to
+  describe the inline expand/collapse panel.
+
+### Fixed
+- Tooltips no longer persist on Windows after the cursor leaves a
+  widget (Search Suites / Regex Search buttons most visible). The
+  defensive bounding-box guard in `_schedule_hide` treated genuine
+  widget-exits as internal bounces.
+- Tooltip jitter on macOS damped via four mitigations: larger
+  widget-to-tooltip gap, withdraw/deiconify around the placeholder
+  paint, skipping `<Leave>` on CTk composite children, and skipping
+  the children-bind loop entirely for CTkOptionMenu widgets.
+- Tooltips no longer appear partially behind the main window on macOS
+  (`-topmost` attribute applied to every tooltip Toplevel).
+- Step 3 tooltip restored — was missing after the 1.2.0 redesign
+  turned Step 3 into a pointer to Advanced Search Options.
+- DOCX / CSV / JSON / PDF / HTML checkboxes now correctly left-align
+  in their cells (`sticky="w"` added; previously default-centered).
+- Use Index checkbox displays in the same color as other Advanced
+  panel controls when an index exists (it appeared lighter because
+  the widget was put into `state="disabled"` until an index existed —
+  no code change; documented in CLAUDE.md).
+
+### Removed
+- Two Results-Preview-area tooltips on the right pane (the title-label
+  tooltip and the body-text tooltip). Their interaction was unreadable
+  when the cursor moved between them. The same content remains
+  accessible via the `?` help popups.
+
 ## [1.2.0] — 2026-06-18
 
 Major GUI redesign and a batch of new visualizations. The Search tab
