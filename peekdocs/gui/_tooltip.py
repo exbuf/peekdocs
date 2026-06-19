@@ -190,21 +190,14 @@ class Tooltip:
 
     def _schedule_hide(self, event=None):
         """Schedule tooltip hide with a short delay to prevent flicker on Linux."""
-        # If the cursor is still within the widget's bounding box, this
-        # is an internal Enter/Leave bounce between composite children
-        # — don't schedule a hide. Prevents the destroy/recreate cycle
-        # that causes the tooltip to visibly shake on macOS as fresh
-        # winfo_rootx/y reads land at slightly different pixel offsets.
-        if event is not None and hasattr(event, "x_root"):
-            try:
-                wx = self.widget.winfo_rootx()
-                wy = self.widget.winfo_rooty()
-                ww = self.widget.winfo_width()
-                wh = self.widget.winfo_height()
-                if wx <= event.x_root < wx + ww and wy <= event.y_root < wy + wh:
-                    return
-            except Exception:
-                pass
+        # An earlier defensive guard here checked event.x_root/y_root
+        # against the widget bounding box to skip hide-scheduling for
+        # internal child→child bounces. It backfired: on Windows, Tk
+        # fires <Leave> with the cursor position reported at the
+        # widget's edge inclusively, so the guard treated genuine
+        # widget-exits as bounces and the tooltip persisted indefinitely.
+        # Removed. The Enter-cancellation in _show is sufficient to
+        # prevent destroy/recreate on real internal bounces.
         if self._hide_id is not None:
             self.widget.after_cancel(self._hide_id)
         self._hide_id = self.widget.after(150, self._hide)
