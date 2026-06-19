@@ -4420,6 +4420,11 @@ class ToolsMixin:
         txt.insert("end", "\n")
 
         h("WHAT IS THIS PANEL?")
+        b("All searches are based on this panel and the Search Terms on the")
+        b("main page. Your selections take effect immediately on the next")
+        b("search — no need to press Save Defaults. That button saves")
+        b("your current settings as permanent defaults for future sessions.")
+        blank()
         b("Advanced Search Options is where you configure every search setting")
         b("that isn't on the main page \u2014 the additional search modes (AND, fuzzy,")
         b("wildcard, regex, OCR, expression, inverse), text filters (excluded")
