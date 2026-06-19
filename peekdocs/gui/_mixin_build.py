@@ -926,7 +926,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
-        self.cb_index_search.grid(row=2, column=0, columnspan=3, padx=(0, 15), pady=(8, 0), sticky="w")
+        self.cb_index_search.grid(row=2, column=0, padx=(0, 15), pady=(8, 0), sticky="w")
         self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
 
         self.timestamp_var = ctk.StringVar(value="off")
@@ -934,7 +934,7 @@ class BuildMixin:
             output_frame, text=_t("adv_timestamp_filename_label"), variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        self._adv_cb_ts.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._adv_cb_ts.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=(8, 0), sticky="w")
         cb_ts = self._adv_cb_ts
         Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Tools → Clear Files → Wipe Session to clean up", anchor="above")
         self.delete_reports_var = ctk.StringVar(value="off")
@@ -947,7 +947,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        self._cb_delete_adv.grid(row=4, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._cb_delete_adv.grid(row=3, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
         self.clear_history_var = ctk.StringVar(value="off")
         self._adv_cb_clear_hist = ctk.CTkCheckBox(
             output_frame, text=_t("adv_clear_history_label"), variable=self.clear_history_var,
@@ -955,7 +955,7 @@ class BuildMixin:
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
         cb_clear_hist = self._adv_cb_clear_hist
-        cb_clear_hist.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_clear_hist.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
 
         self.restrict_permissions_var = ctk.StringVar(value="off")
         self._adv_cb_restrict = ctk.CTkCheckBox(
@@ -964,7 +964,7 @@ class BuildMixin:
             command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
         )
         cb_restrict = self._adv_cb_restrict
-        cb_restrict.grid(row=5, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
+        cb_restrict.grid(row=4, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
         self.notify_on_complete_var = ctk.StringVar(value="off")
         self._adv_cb_notify_complete = ctk.CTkCheckBox(
             output_frame, text=_t("adv_notify_complete_label"), variable=self.notify_on_complete_var,
@@ -972,7 +972,7 @@ class BuildMixin:
             command=lambda: _save_output_format("notify_on_complete", self.notify_on_complete_var),
         )
         cb_notify_complete = self._adv_cb_notify_complete
-        cb_notify_complete.grid(row=6, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_notify_complete.grid(row=5, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
         # Separator line below output options
