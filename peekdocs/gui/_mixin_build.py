@@ -1342,7 +1342,11 @@ class BuildMixin:
         )
         self.preview_text.pack(side="left", fill="both", expand=True)
         preview_scroll.config(command=self.preview_text.yview)
-        Tooltip(self.preview_text, "Results Preview: Shows search matches with highlighted terms. Right-click to copy text. Double-click a filename to open it in its default application.")
+        Tooltip(
+            self.preview_text,
+            "Results Preview: Shows search matches with highlighted terms. Right-click to copy text. Double-click a filename to open it in its default application.",
+            anchor="center", position_widget=self._right_pane,
+        )
 
         # Apply dark theme to preview area if in dark mode
         if ctk.get_appearance_mode() == "Dark":
