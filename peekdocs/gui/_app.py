@@ -342,7 +342,7 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             self.update_idletasks()
             w = self._paned.winfo_width()
             if w > 0:
-                self._paned.sashpos(0, int(w * 0.55))
+                self._paned.sashpos(0, int(w * 0.52))
         except Exception:
             pass
 
