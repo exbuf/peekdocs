@@ -725,33 +725,33 @@ class BuildMixin:
         # lives below the Output Dir entry — see the cb_index_search
         # creation after that row.
 
-        # Row 2: exclude
+        # Row 2: proximity + context lines (moved above Exclude per user)
+        self._adv_lbl_word_proximity = ctk.CTkLabel(self.advanced_frame, text=_t("adv_word_proximity_label"))
+        self._adv_lbl_word_proximity.grid(
+            row=2, column=0, padx=(15, 5), pady=5, sticky="e"
+        )
+        num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        num_frame.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+
+        # Row 3: exclude
         self._adv_lbl_exclude = ctk.CTkLabel(self.advanced_frame, text=_t("adv_exclude_label"))
         self._adv_lbl_exclude.grid(
-            row=2, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=3, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.exclude_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: draft,obsolete"
         )
-        self.exclude_entry.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.exclude_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-        # Row 3: file types
+        # Row 4: file types
         self._adv_lbl_file_types = ctk.CTkLabel(self.advanced_frame, text=_t("adv_file_types_label"))
         self._adv_lbl_file_types.grid(
-            row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=4, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.file_types_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: pdf,docx,txt"
         )
-        self.file_types_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
-
-        # Row 3: proximity + context lines
-        self._adv_lbl_word_proximity = ctk.CTkLabel(self.advanced_frame, text=_t("adv_word_proximity_label"))
-        self._adv_lbl_word_proximity.grid(
-            row=4, column=0, padx=(15, 5), pady=5, sticky="e"
-        )
-        num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        num_frame.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+        self.file_types_entry.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
         self.proximity_entry.grid(row=0, column=0)
