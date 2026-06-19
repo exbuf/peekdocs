@@ -334,13 +334,15 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         pass
 
     def _set_initial_pane_split(self):
-        """Place the horizontal sash at the exact 50% mark on first
-        paint so the controls and results panes start equal width."""
+        """Place the initial sash position biased slightly toward the
+        left pane (55%) so the Advanced Search Options panel — which
+        holds 5 output-format checkboxes on one row — fits without HTML
+        running off the right edge at the default split."""
         try:
             self.update_idletasks()
             w = self._paned.winfo_width()
             if w > 0:
-                self._paned.sashpos(0, w // 2)
+                self._paned.sashpos(0, int(w * 0.55))
         except Exception:
             pass
 
