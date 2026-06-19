@@ -875,7 +875,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_docx", self.output_docx_var),
         )
-        cb_docx.grid(row=0, column=0, padx=(0, 15), sticky="w")
+        cb_docx.grid(row=0, column=0, padx=(0, 8), sticky="w")
         Tooltip(cb_docx,
                 "Write the highlighted Word report (.docx). Default ON. "
                 "Uncheck to skip the .docx report and only keep the .txt "
@@ -887,30 +887,27 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_csv", self.output_csv_var),
         )
-        cb_csv.grid(row=0, column=1, padx=(0, 15), sticky="w")
+        cb_csv.grid(row=0, column=1, padx=(0, 8), sticky="w")
         cb_json = ctk.CTkCheckBox(
             output_frame, text="JSON", variable=self.output_json_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_json", self.output_json_var),
         )
-        cb_json.grid(row=0, column=2, padx=(0, 15), sticky="w")
+        cb_json.grid(row=0, column=2, padx=(0, 8), sticky="w")
         cb_pdf = ctk.CTkCheckBox(
             output_frame, text="PDF", variable=self.output_pdf_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_pdf", self.output_pdf_var),
         )
-        # PDF and HTML wrap onto a second row so the format row only
-        # spans 3 columns. This keeps the output_frame width bounded
-        # by 3 checkboxes (~250-280 px) instead of 5, which matters on
-        # Windows where font widths push the 5-across layout past the
-        # left pane's right edge in tight sash positions.
-        cb_pdf.grid(row=1, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
+        # All five format checkboxes share row 0. padx tightened to 8
+        # (from 15) to keep the row inside narrow Windows sash positions.
+        cb_pdf.grid(row=0, column=3, padx=(0, 8), sticky="w")
         cb_html = ctk.CTkCheckBox(
             output_frame, text="HTML", variable=self.output_html_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_html", self.output_html_var),
         )
-        cb_html.grid(row=1, column=1, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_html.grid(row=0, column=4, padx=(0, 0), sticky="w")
         # Tooltips on the four output checkboxes are attached below in
         # the bulk-tooltip section near the bottom of this method — this
         # file's convention is to declare every widget first, then attach
