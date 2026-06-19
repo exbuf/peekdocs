@@ -152,11 +152,18 @@ class Tooltip:
             if self.anchor in ("above", "above-left", "above-mid", "above-high"):
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
-                # 60-px gap (was 24) lifts every 'above' tooltip a uniform
-                # extra distance from its widget so adjacent bottom-toolbar
-                # tooltips with very different text lengths sit at
-                # similar visual heights.
-                y = pw.winfo_rooty() - max(tip_h, 60) - 60
+                # Align tooltip BOTTOM edges at a fixed offset above the
+                # widget rather than tooltip TOPS at a fixed offset.
+                # Adjacent bottom-toolbar tooltips with very different
+                # text lengths (Close ≈ 20px vs Tools ≈ 110px) now sit
+                # with their bottoms at the same screen Y; the tops
+                # extend upward proportionally to the text.
+                # max(tip_h, 20) is a measurement-glitch floor (macOS
+                # winfo_height() occasionally returns 0 during the first
+                # update_idletasks) — it only kicks in for genuinely
+                # broken measurements, so it doesn't misalign normal
+                # tooltips.
+                y = pw.winfo_rooty() - max(tip_h, 20) - 40
                 tw.wm_geometry(f"+{x}+{y}")
             elif self.anchor == "center":
                 tw.update_idletasks()
