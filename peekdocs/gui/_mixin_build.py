@@ -733,25 +733,25 @@ class BuildMixin:
         num_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
         num_frame.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
-        # Row 3: exclude
+        # Row 4: exclude
         self._adv_lbl_exclude = ctk.CTkLabel(self.advanced_frame, text=_t("adv_exclude_label"))
         self._adv_lbl_exclude.grid(
-            row=3, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=4, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.exclude_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: draft,obsolete"
         )
-        self.exclude_entry.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.exclude_entry.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
-        # Row 4: file types
+        # Row 5: file types
         self._adv_lbl_file_types = ctk.CTkLabel(self.advanced_frame, text=_t("adv_file_types_label"))
         self._adv_lbl_file_types.grid(
-            row=4, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=5, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.file_types_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: pdf,docx,txt"
         )
-        self.file_types_entry.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.file_types_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         self.proximity_entry = ctk.CTkEntry(num_frame, width=60)
         self.proximity_entry.grid(row=0, column=0)
@@ -772,17 +772,17 @@ class BuildMixin:
         # use, so left edges line up across all rows).
         self._default_cores = max(1, (os.cpu_count() or 1) // 2)
         self._adv_lbl_cores = ctk.CTkLabel(self.advanced_frame, text=_t("adv_cores_to_use_label"))
-        self._adv_lbl_cores.grid(row=5, column=0, padx=(15, 5), pady=5, sticky="e")
+        self._adv_lbl_cores.grid(row=6, column=0, padx=(15, 5), pady=5, sticky="e")
         self.cores_entry = ctk.CTkEntry(self.advanced_frame, width=60)
         self.cores_entry.insert(0, str(self._default_cores))
-        self.cores_entry.grid(row=5, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+        self.cores_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
         # Row 6: Max Matches + Max File Size pair on their own row.
         # Both entries align with cores_entry above (all at advanced_frame col 1).
         self._adv_lbl_max_matches = ctk.CTkLabel(self.advanced_frame, text=_t("adv_max_matches_label"))
-        self._adv_lbl_max_matches.grid(row=6, column=0, padx=(15, 5), pady=5, sticky="e")
+        self._adv_lbl_max_matches.grid(row=7, column=0, padx=(15, 5), pady=5, sticky="e")
         max_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        max_frame.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
+        max_frame.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
         self.max_matches_entry = ctk.CTkEntry(max_frame, width=60)
         self.max_matches_entry.insert(0, "1000")
         self.max_matches_entry.grid(row=0, column=0, sticky="w")
@@ -795,48 +795,48 @@ class BuildMixin:
         # Row 7: range filters
         self._adv_lbl_range = ctk.CTkLabel(self.advanced_frame, text=_t("adv_range_label"))
         self._adv_lbl_range.grid(
-            row=7, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=8, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.range_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: amount:1000..5000, date:2024-01-01..2024-12-31"
         )
-        self.range_entry.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.range_entry.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
         Tooltip(self.range_entry, "Range filter: field:min..max (comma-separated for multiple). Fields: date, amount, number, percent, age, time, filesize, filedate. Use fn: prefix for filename ranges (e.g. fn:date:2024-01-01..2024-12-31). Open-ended ranges: amount:1000.. or amount:..5000")
 
         # Row 8: specific files
         self._adv_lbl_specific_files = ctk.CTkLabel(self.advanced_frame, text=_t("adv_specific_files_label"))
         self._adv_lbl_specific_files.grid(
-            row=8, column=0, padx=(15, 5), pady=5, sticky="e"
+            row=9, column=0, padx=(15, 5), pady=5, sticky="e"
         )
         self.specific_files_entry = ctk.CTkEntry(
             self.advanced_frame, placeholder_text="Ex: report.pdf,notes.txt"
         )
-        self.specific_files_entry.grid(row=8, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
+        self.specific_files_entry.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="ew")
 
         # Row 9: Save Report As (save_name entry alone — directly on
         # advanced_frame so its left edge aligns with the other inputs).
         self._adv_lbl_save_as = ctk.CTkLabel(self.advanced_frame, text=_t("adv_save_report_as_label"))
         self._adv_lbl_save_as.grid(
-            row=9, column=0, padx=(15, 5), pady=(5, 5), sticky="e"
+            row=10, column=0, padx=(15, 5), pady=(5, 5), sticky="e"
         )
         self.save_name_entry = ctk.CTkEntry(self.advanced_frame, width=140, placeholder_text="Ex: my_report")
-        self.save_name_entry.grid(row=9, column=1, columnspan=2, padx=(0, 15), pady=(5, 5), sticky="w")
+        self.save_name_entry.grid(row=10, column=1, columnspan=2, padx=(0, 15), pady=(5, 5), sticky="w")
 
         # Row 10: Append Report To — its own row.
         self._adv_lbl_append_to = ctk.CTkLabel(self.advanced_frame, text=_t("adv_append_report_to_label"))
         self._adv_lbl_append_to.grid(
-            row=10, column=0, padx=(15, 5), pady=(0, 10), sticky="e"
+            row=11, column=0, padx=(15, 5), pady=(0, 10), sticky="e"
         )
         self.append_name_entry = ctk.CTkEntry(self.advanced_frame, width=140, placeholder_text="Ex: combined_report")
-        self.append_name_entry.grid(row=10, column=1, columnspan=2, padx=(0, 15), pady=(0, 10), sticky="w")
+        self.append_name_entry.grid(row=11, column=1, columnspan=2, padx=(0, 15), pady=(0, 10), sticky="w")
 
         # Row 11: output directory
         self._adv_lbl_output_dir = ctk.CTkLabel(self.advanced_frame, text=_t("adv_output_dir_label"))
         self._adv_lbl_output_dir.grid(
-            row=11, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
+            row=12, column=0, padx=(15, 5), pady=(0, 5), sticky="e"
         )
         outdir_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        outdir_frame.grid(row=11, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
+        outdir_frame.grid(row=12, column=1, columnspan=2, padx=(0, 15), pady=(0, 5), sticky="ew")
 
         self.output_dir_entry = ctk.CTkEntry(outdir_frame, width=300, placeholder_text="Leave empty to write to search folder")
         self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
@@ -860,12 +860,14 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
-        self.cb_index_search.grid(row=12, column=0, columnspan=3, padx=(15, 15), pady=(2, 6), sticky="w")
+        self.cb_index_search.grid(row=13, column=0, columnspan=3, padx=(15, 15), pady=(2, 6), sticky="w")
         self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
 
-        # Row 11: additional output formats
+        # Row 3: additional output formats (positioned right under the
+        # proximity row at the user's request — placed in source after
+        # all other rows are built so its widgets are created last).
         output_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        output_frame.grid(row=13, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
+        output_frame.grid(row=3, column=0, columnspan=3, padx=15, pady=(0, 5), sticky="w")
 
         # The "Also ==>" leading label was removed — DOCX now occupies
         # column 0 and all five checkboxes share one line. DOCX defaults
