@@ -870,12 +870,15 @@ class BuildMixin:
         def _save_output_format(key, var):
             self._save_ui_preference(key, var.get() == "on")
 
+        # Format checkboxes parent to cb_frame (not output_frame) so they
+        # share the search-mode grid's column widths. DOCX/CSV/JSON line
+        # up under Inverse/Expression/Whole Word at cols 0/1/2.
         cb_docx = ctk.CTkCheckBox(
-            output_frame, text="DOCX", variable=self.output_docx_var,
+            cb_frame, text="DOCX", variable=self.output_docx_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_docx", self.output_docx_var),
         )
-        cb_docx.grid(row=0, column=0, padx=(0, 8), sticky="w")
+        cb_docx.grid(row=3, column=0, padx=(0, 15), pady=(8, 0), sticky="w")
         Tooltip(cb_docx,
                 "Write the highlighted Word report (.docx). Default ON. "
                 "Uncheck to skip the .docx report and only keep the .txt "
@@ -883,31 +886,29 @@ class BuildMixin:
                 "so it still works). " + _output_scope_note,
                 anchor="above")
         cb_csv = ctk.CTkCheckBox(
-            output_frame, text="CSV", variable=self.output_csv_var,
+            cb_frame, text="CSV", variable=self.output_csv_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_csv", self.output_csv_var),
         )
-        cb_csv.grid(row=0, column=1, padx=(0, 8), sticky="w")
+        cb_csv.grid(row=3, column=1, padx=(0, 15), pady=(8, 0), sticky="w")
         cb_json = ctk.CTkCheckBox(
-            output_frame, text="JSON", variable=self.output_json_var,
+            cb_frame, text="JSON", variable=self.output_json_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_json", self.output_json_var),
         )
-        cb_json.grid(row=0, column=2, padx=(0, 8), sticky="w")
+        cb_json.grid(row=3, column=2, padx=(0, 15), pady=(8, 0), sticky="w")
         cb_pdf = ctk.CTkCheckBox(
-            output_frame, text="PDF", variable=self.output_pdf_var,
+            cb_frame, text="PDF", variable=self.output_pdf_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_pdf", self.output_pdf_var),
         )
-        # All five format checkboxes share row 0. padx tightened to 8
-        # (from 15) to keep the row inside narrow Windows sash positions.
-        cb_pdf.grid(row=0, column=3, padx=(0, 8), sticky="w")
+        cb_pdf.grid(row=3, column=3, padx=(0, 15), pady=(8, 0), sticky="w")
         cb_html = ctk.CTkCheckBox(
-            output_frame, text="HTML", variable=self.output_html_var,
+            cb_frame, text="HTML", variable=self.output_html_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_html", self.output_html_var),
         )
-        cb_html.grid(row=0, column=4, padx=(0, 0), sticky="w")
+        cb_html.grid(row=3, column=4, padx=(0, 0), pady=(8, 0), sticky="w")
         # Tooltips on the four output checkboxes are attached below in
         # the bulk-tooltip section near the bottom of this method — this
         # file's convention is to declare every widget first, then attach
@@ -923,7 +924,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
         )
-        self.cb_index_search.grid(row=2, column=0, padx=(0, 15), pady=(8, 0), sticky="w")
+        self.cb_index_search.grid(row=0, column=0, padx=(0, 15), pady=(0, 0), sticky="w")
         self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
 
         self.timestamp_var = ctk.StringVar(value="off")
@@ -931,7 +932,7 @@ class BuildMixin:
             output_frame, text=_t("adv_timestamp_filename_label"), variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        self._adv_cb_ts.grid(row=2, column=1, columnspan=2, padx=(0, 15), pady=(8, 0), sticky="w")
+        self._adv_cb_ts.grid(row=0, column=1, columnspan=2, padx=(0, 15), pady=(0, 0), sticky="w")
         cb_ts = self._adv_cb_ts
         Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Tools → Clear Files → Wipe Session to clean up", anchor="above")
         self.delete_reports_var = ctk.StringVar(value="off")
@@ -944,7 +945,7 @@ class BuildMixin:
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        self._cb_delete_adv.grid(row=3, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._cb_delete_adv.grid(row=1, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
         self.clear_history_var = ctk.StringVar(value="off")
         self._adv_cb_clear_hist = ctk.CTkCheckBox(
             output_frame, text=_t("adv_clear_history_label"), variable=self.clear_history_var,
@@ -952,7 +953,7 @@ class BuildMixin:
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
         cb_clear_hist = self._adv_cb_clear_hist
-        cb_clear_hist.grid(row=3, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_clear_hist.grid(row=1, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
 
         self.restrict_permissions_var = ctk.StringVar(value="off")
         self._adv_cb_restrict = ctk.CTkCheckBox(
@@ -961,7 +962,7 @@ class BuildMixin:
             command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
         )
         cb_restrict = self._adv_cb_restrict
-        cb_restrict.grid(row=4, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
+        cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
         self.notify_on_complete_var = ctk.StringVar(value="off")
         self._adv_cb_notify_complete = ctk.CTkCheckBox(
             output_frame, text=_t("adv_notify_complete_label"), variable=self.notify_on_complete_var,
@@ -969,7 +970,7 @@ class BuildMixin:
             command=lambda: _save_output_format("notify_on_complete", self.notify_on_complete_var),
         )
         cb_notify_complete = self._adv_cb_notify_complete
-        cb_notify_complete.grid(row=5, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_notify_complete.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
         # Separator line below output options
