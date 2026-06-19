@@ -429,7 +429,7 @@ A window will appear. From here, everything is point-and-click. The GUI can do e
 
 - **Left pane (scrollable)** — Steps 1–4, the **Search Bar**, the **Open Report:** row, the status row, and the collapsible **Advanced Search Options** panel. Scroll if the window is short.
 - **Right pane** — the results, top to bottom: a Preview Size / Preview cap dropdown row, the **Results Preview** label row (with **Clear** and **Chart** buttons), the search-results **headline** (files searched · matches found · elapsed time), the **Matched Files** / **Excluded Files** count buttons, a cap-status line ("All N matches rendered below…" or "Preview shows the first M of N…"), and the matched lines themselves.
-- The sash opens 50/50 by default; drag it to rebalance, and the layout reflows.
+- The sash opens with a slight bias toward the left pane (52%) so the Advanced Search Options output-format row fits at first paint; drag it to rebalance, and the layout reflows.
 - **Status reporting** stays on the left ("Searching (3 terms)…" / "Search complete." / "Cancelling…"). **Result numbers** stay on the right.
 
 **Charts (matplotlib).** Several popups now have **View Chart** / **Heatmap** / **View Timeline** buttons that open a quick matplotlib chart:
