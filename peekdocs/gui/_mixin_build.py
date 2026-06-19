@@ -1641,7 +1641,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._readme_button.pack(side="left")
-        self._readme_tooltip = Tooltip(self._readme_button, _t("readme_button_tooltip"), anchor="above")
+        self._readme_tooltip = Tooltip(self._readme_button, _t("readme_button_tooltip"), anchor="above-row")
 
         self.help_button = ctk.CTkButton(
             left_frame,
@@ -1654,7 +1654,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.help_button.pack(side="left")
-        self._user_guide_tooltip = Tooltip(self.help_button, _t("user_guide_button_tooltip"), anchor="above")
+        self._user_guide_tooltip = Tooltip(self.help_button, _t("user_guide_button_tooltip"), anchor="above-row")
 
         # Close button packed into the left group (after README and User
         # Guide). Previously gridded at column=1 of bottom_frame, which
@@ -1673,7 +1673,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._close_main_btn.pack(side="left")
-        self._close_main_tooltip = Tooltip(self._close_main_btn, _t("close_button_tooltip"), anchor="above")
+        self._close_main_tooltip = Tooltip(self._close_main_btn, _t("close_button_tooltip"), anchor="above-row")
 
         # Middle group — App Size + Language pickers, centered in the
         # bottom toolbar. The pickers use _UpwardOptionMenu so their
@@ -1700,7 +1700,7 @@ class BuildMixin:
         self._app_size_menu_tooltip = Tooltip(
             self._app_size_menu,
             __import__("peekdocs.i18n", fromlist=["t"]).t("app_size_tooltip"),
-            anchor="above",
+            anchor="above-row",
         )
 
         from peekdocs.i18n import LANGUAGES as _LANGS, current_language as _curlang
@@ -1720,7 +1720,7 @@ class BuildMixin:
         self._lang_picker.pack(side="left")
         Tooltip(self._lang_picker,
                 "Language (experiment scope — currently translates the four main-page Step badges and tooltips, plus the Run Standard Search / Search Suites / Regex Search buttons + their tooltips. Everything else stays English).",
-                anchor="above")
+                anchor="above-row")
 
         # Right group
         right_frame = ctk.CTkFrame(self.bottom_frame, fg_color="transparent")
@@ -1738,7 +1738,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.about_button.pack(side="right", padx=5)
-        self._about_tooltip = Tooltip(self.about_button, _t("about_button_tooltip"), anchor="above-left")
+        self._about_tooltip = Tooltip(self.about_button, _t("about_button_tooltip"), anchor="above-row")
 
         # Tools menu — consolidates utilities, settings, and maintenance
         def _show_tools_menu():
@@ -1814,7 +1814,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._tools_btn.pack(side="right", padx=5)
-        self._tools_tooltip = Tooltip(self._tools_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_tooltip"), anchor="above-left")
+        self._tools_tooltip = Tooltip(self._tools_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_tooltip"), anchor="above-row")
 
         _t_h = __import__("peekdocs.i18n", fromlist=["t"]).t
         hover_label = _t_h("tooltips_on_label") if Tooltip.enabled else _t_h("tooltips_off_label")

@@ -98,7 +98,7 @@ class Tooltip:
             if self.anchor == "left":
                 x = pw.winfo_rootx() + pw.winfo_width() - 310
                 y = pw.winfo_rooty() + pw.winfo_height() + _TOOLTIP_GAP_PX
-            elif self.anchor in ("above", "above-left", "above-mid", "above-high"):
+            elif self.anchor in ("above", "above-left", "above-mid", "above-high", "above-row"):
                 x = pw.winfo_rootx()
                 if self.anchor == "above-left":
                     x = pw.winfo_rootx() + pw.winfo_width() - 310
@@ -152,18 +152,22 @@ class Tooltip:
             if self.anchor in ("above", "above-left", "above-mid", "above-high"):
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
-                # Align tooltip BOTTOM edges at a fixed offset above the
-                # widget rather than tooltip TOPS at a fixed offset.
-                # Adjacent bottom-toolbar tooltips with very different
-                # text lengths (Close ≈ 20px vs Tools ≈ 110px) now sit
-                # with their bottoms at the same screen Y; the tops
-                # extend upward proportionally to the text.
-                # max(tip_h, 20) is a measurement-glitch floor (macOS
-                # winfo_height() occasionally returns 0 during the first
-                # update_idletasks) — it only kicks in for genuinely
-                # broken measurements, so it doesn't misalign normal
-                # tooltips.
-                y = pw.winfo_rooty() - max(tip_h, 20) - 40
+                # Default 'above' — align BOTTOM edges via max(tip_h, 60)
+                # floor. Short tooltips get lifted to a 60-px tip_h
+                # baseline so their bottoms don't crowd the widget.
+                y = pw.winfo_rooty() - max(tip_h, 60) - 24
+                tw.wm_geometry(f"+{x}+{y}")
+            elif self.anchor == "above-row":
+                # Row-aligned 'above' — align TOPS at a fixed offset
+                # above the widget. 150-px floor covers the tallest
+                # bottom-toolbar tooltip (Language ~120px, Tools ~110px),
+                # so every above-row tooltip starts at widget_rooty - 180
+                # regardless of its text length. Short tooltips (Close,
+                # About) get a large gap between their bottom edge and
+                # the widget; that's the trade for row-level alignment.
+                tw.update_idletasks()
+                tip_h = tw.winfo_height()
+                y = pw.winfo_rooty() - max(tip_h, 150) - 30
                 tw.wm_geometry(f"+{x}+{y}")
             elif self.anchor == "center":
                 tw.update_idletasks()
