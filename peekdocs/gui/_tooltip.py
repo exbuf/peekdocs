@@ -98,9 +98,9 @@ class Tooltip:
             if self.anchor == "left":
                 x = pw.winfo_rootx() + pw.winfo_width() - 310
                 y = pw.winfo_rooty() + pw.winfo_height() + _TOOLTIP_GAP_PX
-            elif self.anchor in ("above", "above-left", "above-mid", "above-high", "above-row"):
+            elif self.anchor in ("above", "above-left", "above-mid", "above-high", "above-row", "above-row-left"):
                 x = pw.winfo_rootx()
-                if self.anchor == "above-left":
+                if self.anchor in ("above-left", "above-row-left"):
                     x = pw.winfo_rootx() + pw.winfo_width() - 310
                 # Placeholder y; will be corrected after tooltip is laid out
                 y = pw.winfo_rooty() - 200
@@ -157,7 +157,7 @@ class Tooltip:
                 # baseline so their bottoms don't crowd the widget.
                 y = pw.winfo_rooty() - max(tip_h, 60) - 24
                 tw.wm_geometry(f"+{x}+{y}")
-            elif self.anchor == "above-row":
+            elif self.anchor in ("above-row", "above-row-left"):
                 # Row-aligned 'above' — align TOPS at a fixed offset
                 # above the widget. 150-px floor covers the tallest
                 # bottom-toolbar tooltip (Language ~120px, Tools ~110px),
@@ -165,6 +165,10 @@ class Tooltip:
                 # regardless of its text length. Short tooltips (Close,
                 # About) get a large gap between their bottom edge and
                 # the widget; that's the trade for row-level alignment.
+                # The -left variant additionally right-edge-anchors X so
+                # the tooltip extends leftward — used for buttons on the
+                # right side of the toolbar (Tools, About) so their
+                # tooltips don't extend past the window edge.
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
                 y = pw.winfo_rooty() - max(tip_h, 150) - 30

@@ -1738,7 +1738,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self.about_button.pack(side="right", padx=5)
-        self._about_tooltip = Tooltip(self.about_button, _t("about_button_tooltip"), anchor="above-row")
+        self._about_tooltip = Tooltip(self.about_button, _t("about_button_tooltip"), anchor="above-row-left")
 
         # Tools menu — consolidates utilities, settings, and maintenance
         def _show_tools_menu():
@@ -1814,7 +1814,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13),
         )
         self._tools_btn.pack(side="right", padx=5)
-        self._tools_tooltip = Tooltip(self._tools_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_tooltip"), anchor="above-row")
+        self._tools_tooltip = Tooltip(self._tools_btn, __import__("peekdocs.i18n", fromlist=["t"]).t("tools_button_tooltip"), anchor="above-row-left")
 
         _t_h = __import__("peekdocs.i18n", fromlist=["t"]).t
         hover_label = _t_h("tooltips_on_label") if Tooltip.enabled else _t_h("tooltips_off_label")
