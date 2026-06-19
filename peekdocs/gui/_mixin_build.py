@@ -1229,10 +1229,10 @@ class BuildMixin:
         self._preview_label = ctk.CTkLabel(preview_header_mid, text=_t("results_preview_label"),
                                       font=ctk.CTkFont(size=24, weight="bold"))
         self._preview_label.pack(side="left")
-        self._preview_label_tooltip = Tooltip(
-            self._preview_label, _t("results_preview_tooltip"),
-            anchor="center", position_widget=self._right_pane,
-        )
+        # Tooltip removed at user request — the two Results-Preview
+        # tooltips (this one on the title label and another on the body
+        # text) overlapped each other when the cursor moved between
+        # them, making both unreadable. The ? help popups remain.
 
         # Right-side group on this row (right→left pack order):
         # cap_dropdown, cap_label, preview_size_menu, preview_size_lbl.
@@ -1342,11 +1342,8 @@ class BuildMixin:
         )
         self.preview_text.pack(side="left", fill="both", expand=True)
         preview_scroll.config(command=self.preview_text.yview)
-        Tooltip(
-            self.preview_text,
-            "Results Preview: Shows search matches with highlighted terms. Right-click to copy text. Double-click a filename to open it in its default application.",
-            anchor="center", position_widget=self._right_pane,
-        )
+        # Tooltip removed at user request — see the matching note at
+        # _preview_label.
 
         # Apply dark theme to preview area if in dark mode
         if ctk.get_appearance_mode() == "Dark":
@@ -2443,7 +2440,9 @@ class BuildMixin:
             self._regex_search_tooltip.text = t("regex_search_tooltip")
             # Status / Results Preview / Clear Preview tooltips.
             self._status_label_tooltip.text = t("status_tooltip")
-            self._preview_label_tooltip.text = t("results_preview_tooltip")
+            # _preview_label_tooltip removed; results_preview_tooltip
+            # i18n key is now unreferenced (kept in i18n.py for a future
+            # cleanup pass).
             self._clear_preview_tooltip.text = t("clear_preview_tooltip")
             # Bottom-row tooltips.
             self._readme_tooltip.text = t("readme_button_tooltip")
