@@ -152,7 +152,11 @@ class Tooltip:
             if self.anchor in ("above", "above-left", "above-mid", "above-high"):
                 tw.update_idletasks()
                 tip_h = tw.winfo_height()
-                y = pw.winfo_rooty() - max(tip_h, 60) - 24
+                # 60-px gap (was 24) lifts every 'above' tooltip a uniform
+                # extra distance from its widget so adjacent bottom-toolbar
+                # tooltips with very different text lengths sit at
+                # similar visual heights.
+                y = pw.winfo_rooty() - max(tip_h, 60) - 60
                 tw.wm_geometry(f"+{x}+{y}")
             elif self.anchor == "center":
                 tw.update_idletasks()
