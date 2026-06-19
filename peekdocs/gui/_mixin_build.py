@@ -626,6 +626,7 @@ class BuildMixin:
         # Header with description and ? help button
         adv_header_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
         adv_header_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=(0, 5), sticky="ew")
+        adv_header_frame.grid_columnconfigure(0, weight=1)
         # Header description ("All searches are based on\u2026") moved into
         # _show_advanced_help so the panel opens directly to controls.
         # Advanced help — same blue chip vocabulary as every other ? on the app.
@@ -637,7 +638,7 @@ class BuildMixin:
             corner_radius=15,
             command=self._show_advanced_help,
         )
-        adv_help_btn.grid(row=0, column=0, sticky="w")
+        adv_help_btn.grid(row=0, column=1, sticky="e")
         Tooltip(adv_help_btn, "Help — explains every Advanced Option with examples")
 
         # Build all widgets into advanced_frame
