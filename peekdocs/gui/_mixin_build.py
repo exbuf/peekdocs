@@ -851,18 +851,6 @@ class BuildMixin:
         Tooltip(outdir_browse_btn, "Pick a folder where peekdocs should write its reports, error log, and other output files", anchor="left")
         Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
 
-        # Row 12: Use Index — left-aligned to the panel's left margin
-        # (col 0, no label) so it sits flush with the other label-left
-        # positions instead of indented under the entry column.
-        self.cb_index_search = ctk.CTkCheckBox(
-            self.advanced_frame, text=_t("use_index_label"),
-            variable=self.index_search_var,
-            onvalue="on", offvalue="off",
-            command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
-        )
-        self.cb_index_search.grid(row=13, column=0, columnspan=3, padx=(15, 15), pady=(2, 6), sticky="w")
-        self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
-
         # Row 3: additional output formats (positioned right under the
         # proximity row at the user's request — placed in source after
         # all other rows are built so its widgets are created last).
@@ -935,28 +923,37 @@ class BuildMixin:
         # all tooltips together. Inline Tooltip calls here get shadowed
         # by the later ones; the bottom calls carry the
         # _output_scope_note disclaimer.
+
+        # Use Index — placed inside output_frame at the user's request,
+        # directly above Timestamp filename.
+        self.cb_index_search = ctk.CTkCheckBox(
+            output_frame, text=_t("use_index_label"),
+            variable=self.index_search_var,
+            onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("index_search", self.index_search_var.get() == "on"),
+        )
+        self.cb_index_search.grid(row=2, column=0, columnspan=3, padx=(0, 15), pady=(8, 0), sticky="w")
+        self._cb_index_search_tooltip = Tooltip(self.cb_index_search, _t("use_index_tooltip"))
+
         self.timestamp_var = ctk.StringVar(value="off")
         self._adv_cb_ts = ctk.CTkCheckBox(
             output_frame, text=_t("adv_timestamp_filename_label"), variable=self.timestamp_var,
             onvalue="on", offvalue="off",
         )
-        # Each cleanup checkbox gets its own row. Pairing two long
-        # labels at cols 0-2 / 3-5 used to push the frame wider than
-        # narrow left-pane widths could fit (notably on Windows where
-        # font metrics widen these by ~15-20%), clipping the rightmost
-        # widget without exposing a horizontal scrollbar. One per row
-        # keeps the frame width bounded by the longest single label.
-        self._adv_cb_ts.grid(row=2, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._adv_cb_ts.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         cb_ts = self._adv_cb_ts
         Tooltip(cb_ts, "Keep every search result by appending date+time to filenames (e.g., peekdocs_standard_results_20260327_143022.txt). Without this, each search overwrites the previous results. Useful when you want to compare searches or keep a record. Files accumulate over time — use Delete on Close or Tools → Clear Files → Wipe Session to clean up", anchor="above")
         self.delete_reports_var = ctk.StringVar(value="off")
         from peekdocs.i18n import t as _t
+        # Delete on Close and Clear history on close share row 4 at the
+        # user's request. Watch for label clipping on narrow Windows
+        # panes — these are the two longest cleanup labels in the panel.
         self._cb_delete_adv = ctk.CTkCheckBox(
             output_frame, text=_t("delete_on_close_label"), variable=self.delete_reports_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("delete_reports_on_close", self.delete_reports_var),
         )
-        self._cb_delete_adv.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        self._cb_delete_adv.grid(row=4, column=0, padx=(0, 15), pady=(4, 0), sticky="w")
         self.clear_history_var = ctk.StringVar(value="off")
         self._adv_cb_clear_hist = ctk.CTkCheckBox(
             output_frame, text=_t("adv_clear_history_label"), variable=self.clear_history_var,
@@ -964,7 +961,7 @@ class BuildMixin:
             command=lambda: _save_output_format("clear_history_on_close", self.clear_history_var),
         )
         cb_clear_hist = self._adv_cb_clear_hist
-        cb_clear_hist.grid(row=4, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
+        cb_clear_hist.grid(row=4, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
 
         self.restrict_permissions_var = ctk.StringVar(value="off")
         self._adv_cb_restrict = ctk.CTkCheckBox(
