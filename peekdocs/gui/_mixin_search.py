@@ -1299,6 +1299,8 @@ class SearchMixin:
         if hasattr(self, "_preview_cap_status"):
             self._preview_cap_status.configure(text="")
         # _preview_count_label removed — counts now live in headline.
+        if hasattr(self, "_results_summary_label"):
+            self._results_summary_label.configure(text="")
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
         self._hide_files_list()
