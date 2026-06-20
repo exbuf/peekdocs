@@ -18,7 +18,7 @@ Common questions and solutions for peekdocs issues. If you're stuck, start with 
 
 Use Ctrl-F / Cmd-F to land on the relevant entry — exact entry titles to search for are shown in **bold**:
 
-- **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, or **"ModuleNotFoundError"**.
+- **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, **"ModuleNotFoundError"**, or (Windows pipx upgrades) **"pipx install --force on Windows"**.
 - **GUI doesn't launch or doesn't behave correctly** — Linux / macOS Homebrew Python: **"No module named '_tkinter'"**. Linux only: **"Tools menu requires holding"**, **"Browse button requires double-click"**. Windows/macOS: **"DOCX report won't open"**, **"File picker"**.
 - **Search returns nothing or fewer matches than expected** — **"isn't finding matches I know are there"**, **"Search misses files I recently added"**.
 - **OCR not working** — **"OCR requires the pytesseract"**, **"OCR is enabled but"**.
@@ -270,6 +270,35 @@ The `.docx` report opens in whatever application your computer has associated wi
 **Why doesn't the File picker show a preview on Windows?**
 
 On macOS, clicking the **File** button opens a file picker with a preview panel on the right side — you can inspect a file's contents before selecting it. On Windows, the file picker does not include a preview panel. This is a difference between the operating systems, not a peekdocs issue. Both platforms use the native OS file dialog, and peekdocs has no control over its appearance or features.
+
+**`pipx install --force` on Windows: "Access is denied" / "directory not empty"**
+
+On Windows, `pipx install --force git+https://github.com/exbuf/peekdocs.git` (the upgrade path) can fail with a cascade of `Access to the path … is denied` errors on `.pyd` / `.dll` / `python.exe` files inside the venv. Python on Windows opens compiled extension files (.pyd) and DLLs with exclusive locks; any peekdocs process still holding them — even one you forgot about — blocks the venv from being deleted.
+
+The walkthrough that works:
+
+1. **Close every peekdocs window.** Both the GUI and any terminal that ran `peekdocs` recently. Close any other PowerShell or cmd window that's `cd`'d into the venv folder — a shell with the venv directory as its working directory can hold it open even with no peekdocs running.
+2. **`cd` out of the venv directory** in your current PowerShell:
+   ```powershell
+   cd $env:USERPROFILE
+   ```
+3. **Try pipx's own uninstall first** — it knows how to clean up better than manual deletion:
+   ```powershell
+   pipx uninstall peekdocs
+   ```
+4. **If pipx still complains** ("venv not created in this session" or "Access denied"), delete the directory manually:
+   ```powershell
+   Remove-Item -Recurse -Force "$env:USERPROFILE\pipx\venvs\peekdocs"
+   ```
+   The exact path may differ — run `pipx environment` and look for `PIPX_LOCAL_VENVS=` to confirm.
+5. **Reinstall:**
+   ```powershell
+   pipx install "git+https://github.com/exbuf/peekdocs.git"
+   ```
+
+If `Remove-Item` *still* says "Access denied" after the above (rare but possible — antivirus real-time scanning or Windows Search can hold extension files open even when no peekdocs process is visible in Task Manager), **reboot Windows** and re-run step 4. After a fresh reboot the locks are gone.
+
+This is a Windows + Python venv interaction, not a peekdocs bug — every package that ships compiled `.pyd` files hits it on upgrade. macOS and Linux are not affected because their dynamic-linker semantics let a running process keep using a file that's been unlinked.
 
 ---
 
