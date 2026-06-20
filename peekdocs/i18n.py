@@ -213,7 +213,7 @@ _STRINGS = {
         "whole_word_label": "Whole Word",
         "whole_word_tooltip": "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'. Synced with Whole Word in Advanced Search Options",
         "advanced_label": "Advanced Search Options",
-        "advanced_tooltip": "Expand or collapse the inline Advanced Search Options panel — AND mode, recursive, whole word, regex, fuzzy, OCR, Use Index, file types, exclude terms, proximity, output formats (DOCX, CSV, JSON, PDF, HTML), Delete on Close, and every other search setting. The header chevron flips between ▶ collapsed and ▼ expanded.",
+        "advanced_tooltip": "Expand or collapse the inline Advanced Search Options panel — AND mode, recursive, whole word, regex, fuzzy, OCR, Use Index, file types, exclude terms, proximity, output formats (DOCX, CSV, JSON, PDF, HTML), Delete on Close, and every other search setting. Selections take effect immediately on the next search — no need to press Save Defaults (that button persists settings for future sessions). The header chevron flips between ▶ collapsed and ▼ expanded.",
         "use_index_label": "Use Index",
         "use_index_tooltip": "Use the search index for faster searches. Uncheck to search files directly. Build an index first using Indexes in the Tools menu. When checked, searches are always recursive (all subfolders) regardless of the Recursive checkbox. Indexes persist between sessions unless Delete on Close is checked, which deletes them when you close the app",
         "wizard_label": "Wizard",
