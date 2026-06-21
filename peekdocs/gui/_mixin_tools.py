@@ -6362,6 +6362,25 @@ class ToolsMixin:
             self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
+        # Excluded Files button — same treatment as standard search (see
+        # _mixin_search.py lines 629-641). Suites used to omit this, which
+        # made the right-pane button row inconsistent across search types.
+        # Every sub-search runs against the same folder/recursive setting,
+        # so a single _compute_excluded_files() call is enough.
+        try:
+            _suite_recursive = self.recursive_var.get() == "on"
+            self._excluded_files = self._compute_excluded_files(folder, recursive=_suite_recursive)
+        except Exception:
+            self._excluded_files = []
+        _excl_count = len(self._excluded_files)
+        if _excl_count > 0:
+            self._excluded_files_btn.configure(
+                text=__import__("peekdocs.i18n", fromlist=["t"]).t("excluded_files_format").format(n=_excl_count)
+            )
+            self._excluded_files_btn.pack(side="left", padx=(5, 0))
+        else:
+            self._excluded_files_btn.pack_forget()
+
         # Reuse the existing report-button row (DOCX / TXT / CSV / JSON / PDF /
         # HTML) for suite reports rather than creating a parallel row that
         # overwrites it. Set the mode marker and the timestamp suffix that the
