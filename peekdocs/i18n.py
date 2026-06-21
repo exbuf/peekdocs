@@ -221,7 +221,7 @@ _STRINGS = {
         # Save / Reload buttons. ▶ is appended at runtime as a static
         # affordance — not part of the translation.
         "save_label": "Save",
-        "save_tooltip": "Save the current search settings by name so you can reload them later via ▶ Reload. You can click ▶ Save before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, folder, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (DOCX/CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name.",
+        "save_tooltip": "Save the current search settings by name so you can reload them later via Reload, or use them in a Search Suite. You can click ▶ Save before or after running a search — it saves the settings (search terms and options), not the results. Saves: search terms, folder, AND/OR mode, Recursive, Whole Word, Fuzzy, Wildcard, Regex, Expression, Inverse, OCR, Use Index, file types, exclude terms, proximity, context lines, max matches, max file size, specific files, output formats (DOCX/CSV/JSON/PDF/HTML), range filters, output directory, save name, and append name.",
         "reload_label": "Reload",
         "reload_tooltip": "Load a saved search from the folder's collection into the GUI to review, edit, or re-run it",
         # ─── Advanced Search Options panel — labels only ───
