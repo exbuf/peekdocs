@@ -157,7 +157,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 
 **How to upgrade:**
 
-- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data
+- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data. **Windows note:** if the upgrade fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the recovery walkthrough. macOS and Linux aren't affected.
 - **Manual install:** download the new ZIP, replace the `peekdocs-main` folder, run `pip install -e .` — your data is untouched
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.
