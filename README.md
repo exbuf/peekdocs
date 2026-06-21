@@ -615,7 +615,7 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 How to upgrade depends on which install method you used:
 
 - **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one. **No need to uninstall first.**
-- **pipx (Option B):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. `--force` overwrites cleanly; no separate uninstall step.
+- **pipx (Option B):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. `--force` overwrites cleanly; no separate uninstall step. **Windows note:** if `--force` fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](docs/TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the 5-step recovery walkthrough. macOS and Linux aren't affected — they let a running process keep using a file that's been replaced.
 - **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
 - **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
