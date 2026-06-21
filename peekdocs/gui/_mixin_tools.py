@@ -8769,6 +8769,19 @@ class ToolsMixin:
             self._show_error("Please select a valid folder first.")
             return
 
+        # Clear the right-pane preview at the start of every Regex run.
+        # Regex Search itself displays results in its own popup (see the
+        # popup-vs-preview rationale in the docstring above), but leaving
+        # the previous Standard / Suite results visible while a new regex
+        # run is in progress is misleading — the headline + matched-file
+        # button advertise a result set that no longer reflects what's
+        # about to run. _clear_preview also wipes the headline, the
+        # Matched / Excluded buttons, and the cap-status line; the status
+        # message it sets ('Preview cleared') is immediately overwritten
+        # by the 'Running Regex Search...' message a few lines below.
+        if hasattr(self, "_clear_preview"):
+            self._clear_preview()
+
         mode_label = "screen only, no reports" if screen_only else "with reports"
         # Captured for _show_action_buttons' mtime-vs-cutoff check (see
         # the docstring there) — distinguishes report files written by
