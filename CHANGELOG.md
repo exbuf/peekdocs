@@ -12,31 +12,83 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-06-21
+
+Bug-fix release following close hover-testing of 1.2.1 on macOS and
+Windows. The headline fix restores the progress bar, which was created
+correctly by the 1.2.0 split-pane redesign but rendered invisible
+because its grid call landed at the same row as the relocated
+status_row; the row collision made every Standard, Suite, and Regex
+run feel unresponsive. Two consistency fixes round out the GUI work:
+Search Suites now show the Excluded Files button (previously omitted),
+and the right-pane preview now clears at the start of every Regex run
+so prior Standard / Suite results don't sit there looking authoritative
+while the regex popup is open.
+
+Documentation work includes a new TROUBLESHOOTING entry for the
+Windows-only pipx upgrade failure (cascading "Access is denied" errors
+on locked `.pyd` / `.dll` / `python.exe` files when a peekdocs process
+or a `cd`-into-the-venv terminal is still open), cross-referenced from
+the upgrade bullets in README and USER_GUIDE. A sweep of stale
+"TXT and DOCX always generated" claims across README, USER_GUIDE,
+WALKTHROUGHS, i18n tooltips, and the Getting Started welcome cards
+caught five spots that pre-dated the 1.2.0 `--no-docx` flag.
+
 ### Added
-- TROUBLESHOOTING entry for the Windows-only `pipx install --force` failure
-  mode where the upgrade fails with cascading "Access is denied" errors on
-  `.pyd` / `.dll` / `python.exe` files. Includes the 5-step recovery
-  walkthrough (close peekdocs, `cd` out of the venv, try `pipx uninstall`,
-  fall back to `Remove-Item`, reboot if antivirus still holds the locks)
-  and a note that macOS and Linux aren't affected. Cross-referenced from
-  the "Jump to your problem area" index in TROUBLESHOOTING and from the
-  Option B upgrade bullets in README + USER_GUIDE.
+- TROUBLESHOOTING entry for the Windows-only `pipx install --force`
+  failure mode where the upgrade fails with cascading "Access is
+  denied" errors on `.pyd` / `.dll` / `python.exe` files. Includes the
+  5-step recovery walkthrough (close peekdocs, `cd` out of the venv,
+  try `pipx uninstall`, fall back to `Remove-Item`, reboot if antivirus
+  still holds the locks) and a note that macOS and Linux aren't
+  affected. Cross-referenced from the "Jump to your problem area"
+  index in TROUBLESHOOTING and from the Option B upgrade bullets in
+  README + USER_GUIDE.
+- `--no-docx` row added to the CLI flag table in USER_GUIDE — the flag
+  shipped in 1.2.0 but was never documented in this table.
 
 ### Changed
 - Advanced Search Options tooltip now explicitly states selections take
-  effect immediately on the next search — no need to press Save Defaults
-  (that button persists settings for future sessions).
+  effect immediately on the next search — no need to press Save
+  Defaults (that button persists settings for future sessions).
 - Clear button in the Results pane now also wipes the results-summary
-  headline ("N files searched · N matches · Ns elapsed") along with the
-  preview text, Matched / Excluded buttons, and cap-status line.
+  headline ("N files searched · N matches · Ns elapsed") along with
+  the preview text, Matched / Excluded buttons, and cap-status line.
 - Preview cap dropdown tooltip now enumerates the configurable options
-  (100 / 500 / 1000 / 5000 / No cap) instead of reading as if 500 is hardcoded.
+  (100 / 500 / 1000 / 5000 / No cap) instead of reading as if 500 is
+  hardcoded.
+- Regex Search clears the right-pane preview at run start so prior
+  Standard / Suite results don't sit there looking authoritative while
+  the user reads the regex results popup. Regex Search still never
+  writes to the preview — its results live in the popup as before.
+- Search Suites now populate and display the Excluded Files button in
+  the right pane (same `_compute_excluded_files()` helper Standard
+  Search uses). Previously only Standard Search showed it.
+- Step 3 tooltip on the main page (`step_3_tooltip`) and the Getting
+  Started welcome-card prose rewritten to remove the stale "TXT and
+  DOCX reports are always generated" claim and correctly distinguish
+  TXT (always), DOCX (default-on, `--no-docx` skips), and CSV / JSON /
+  PDF / HTML (default-off, opt-in).
 
 ### Fixed
+- **Progress bar restored.** The 1.2.0 split-pane redesign moved
+  `status_row` from row 4 to row 5 of `_input_frame` but didn't
+  update the `progress_bar.grid(row=5, ...)` calls in
+  `_mixin_search.py` and `_mixin_tools.py`. Both widgets ended up at
+  the same row; Tk stacked them and status_row visually hid the
+  progress bar across all three search types. Renumbered `status_row`
+  to row 6, `report_btn_frame` to row 7, `_advanced_container` to
+  row 8, freeing row 5 for the progress bar to claim.
 - Stale "50/50 by default" sash-split claim updated to "52%, left-pane
   biased" in README and USER_GUIDE.
-- Stale "Save Search / Load Search" button names updated to "▶ Save / ▶
-  Reload" in README to match the 1.2.0 rename.
+- Stale "Save Search / Load Search" button names updated to "▶ Save /
+  ▶ Reload" in README to match the 1.2.0 rename.
+- `WALKTHROUGHS.md` walkthrough 1d and the i18n `step_3_tooltip` no
+  longer claim DOCX is generated "automatically" / "always" — both
+  now match the post-1.2.0 default-on-but-skippable reality.
+- `USER_GUIDE.md` "Report files" prose and `-o` CLI flag description
+  split correctly into TXT (always) vs DOCX (default-on, skippable)
+  instead of grouping them as a single mandatory pair.
 
 ## [1.2.1] — 2026-06-19
 
