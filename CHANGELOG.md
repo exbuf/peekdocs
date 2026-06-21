@@ -12,6 +12,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- TROUBLESHOOTING entry for the Windows-only `pipx install --force` failure
+  mode where the upgrade fails with cascading "Access is denied" errors on
+  `.pyd` / `.dll` / `python.exe` files. Includes the 5-step recovery
+  walkthrough (close peekdocs, `cd` out of the venv, try `pipx uninstall`,
+  fall back to `Remove-Item`, reboot if antivirus still holds the locks)
+  and a note that macOS and Linux aren't affected. Cross-referenced from
+  the "Jump to your problem area" index in TROUBLESHOOTING and from the
+  Option B upgrade bullets in README + USER_GUIDE.
+
+### Changed
+- Advanced Search Options tooltip now explicitly states selections take
+  effect immediately on the next search — no need to press Save Defaults
+  (that button persists settings for future sessions).
+- Clear button in the Results pane now also wipes the results-summary
+  headline ("N files searched · N matches · Ns elapsed") along with the
+  preview text, Matched / Excluded buttons, and cap-status line.
+- Preview cap dropdown tooltip now enumerates the configurable options
+  (100 / 500 / 1000 / 5000 / No cap) instead of reading as if 500 is hardcoded.
+
+### Fixed
+- Stale "50/50 by default" sash-split claim updated to "52%, left-pane
+  biased" in README and USER_GUIDE.
+- Stale "Save Search / Load Search" button names updated to "▶ Save / ▶
+  Reload" in README to match the 1.2.0 rename.
+
 ## [1.2.1] — 2026-06-19
 
 Post-1.2.0 GUI polish driven by hover-testing the split-pane redesign
