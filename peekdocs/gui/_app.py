@@ -205,10 +205,12 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         self.report_frame.grid(
             row=3, column=0, columnspan=3, padx=(10, 5), pady=(5, 5), sticky="w"
         )
-        # row=6: open-report buttons (DOCX/TXT/CSV/JSON/PDF/HTML + Delete on Close).
-        # Sits below status_row (row 5) and above the Advanced container (row 7).
+        # row=7: open-report buttons (DOCX/TXT/CSV/JSON/PDF/HTML + Delete on Close).
+        # Sits below status_row (row 6) and above the Advanced container (row 8).
+        # Row 5 is reserved for the progress bar (only gridded while a search
+        # is running); see peekdocs/gui/_mixin_build.py _build_progress_area.
         self.report_btn_frame.grid(
-            row=6, column=0, columnspan=3, padx=(10, 5), pady=(2, 5), sticky="w"
+            row=7, column=0, columnspan=3, padx=(10, 5), pady=(2, 5), sticky="w"
         )
 
         # Check for first run before loading settings (which creates the config file)

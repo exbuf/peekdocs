@@ -595,13 +595,15 @@ class BuildMixin:
         popup so the panel scrolls with the rest of the left pane."""
         from peekdocs.i18n import t as _t
 
-        # Always-visible inline container in the left pane at row 7.
+        # Always-visible inline container in the left pane at row 8.
         # Holds a clickable header (always shown) and a collapsible body
-        # (the controls + Save/Close/Restore/Inspect buttons). Row 6 is
-        # the open-report buttons row (DOCX/TXT/CSV/JSON/PDF/HTML).
+        # (the controls + Save/Close/Restore/Inspect buttons). Row 7 is
+        # the open-report buttons row (DOCX/TXT/CSV/JSON/PDF/HTML); row
+        # 6 is the status row; row 5 is the progress-bar row (only
+        # gridded while a search is running).
         self._advanced_container = ctk.CTkFrame(self._input_frame, fg_color=("gray92", "gray18"))
         self._advanced_container.grid(
-            row=7, column=0, columnspan=3, padx=10, pady=(8, 5), sticky="ew"
+            row=8, column=0, columnspan=3, padx=10, pady=(8, 5), sticky="ew"
         )
 
         # Header — clickable; chevron + label. Click to toggle body.
@@ -1112,8 +1114,11 @@ class BuildMixin:
 
         import tkinter as _tk_status
         status_row = ctk.CTkFrame(self._input_frame, fg_color="transparent")
-        # row=5: shifted down by 1 to make room for report_frame at row=3 and Run row at row=4
-        status_row.grid(row=5, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
+        # row=6: progress_bar reclaims row=5 (its own dedicated row, only
+        # gridded while a search is running). status_row pushed down to
+        # row=6 so the two don't collide; report_btn_frame and the
+        # advanced_container followed suit (rows 7 and 8 respectively).
+        status_row.grid(row=6, column=0, columnspan=3, padx=(10, 15), pady=(0, 4), sticky="ew")
 
         # status_row holds the label + wrapping message. The Matched /
         # Excluded file buttons moved out to the right pane below the
