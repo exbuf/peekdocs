@@ -1895,6 +1895,12 @@ def _main_inner(argv=None):
             print(f"Searching ({mode}, indexed) on [{HIGHLIGHT}{display_label}{RESET}] ...")
         else:
             print(f"Searching ({mode}) on [{HIGHLIGHT}{display_label}{RESET}] ...")
+        # Cancel hint — Ctrl+C is the universal keyboard interrupt
+        # across macOS Terminal/iTerm, Windows cmd/PowerShell/Windows
+        # Terminal, and any Linux terminal emulator. Suppressed in
+        # stdout-JSON and minimal modes since both go to scripts/pipes
+        # that don't need user-facing affordances.
+        print("(Press Ctrl+C to cancel)")
         if exclude_terms:
             print(f"Excluding [{' '.join(exclude_terms)}]")
 
