@@ -969,7 +969,13 @@ class SearchMixin:
                     if line.startswith("Document:"):
                         in_match_text = False
                         self.preview_text.insert("end", "\n")
-                        self.preview_text.insert("end", line + "\n", "filename")
+                        # Strip the leading "Document: " prefix from the
+                        # rendered line. The prefix stays in the on-disk
+                        # .txt report (PDF, Matched Files popup, heatmap
+                        # all parse it) — only the preview pane drops it
+                        # since the user knows everything here is a file.
+                        display = line[len("Document: "):] if line.startswith("Document: ") else line
+                        self.preview_text.insert("end", display + "\n", "filename")
                     elif line.startswith("(") and not in_match_text:
                         self.preview_text.insert("end", line + "\n", "line_num")
                     elif line.startswith("Files WITHOUT matches:"):
