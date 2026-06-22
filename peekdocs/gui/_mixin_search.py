@@ -1358,12 +1358,12 @@ class SearchMixin:
             ax.invert_yaxis()
             ax.set_xlabel("Matches", fontsize=10)
             title = (
-                f"Matches by file type (alphabetical) — "
+                f"Matches by file type — "
                 f"{total_matches:,} total matches across {total_types} "
                 f"matched type{'s' if total_types != 1 else ''}"
             )
             if searched_types_count is not None:
-                title += f" ({searched_types_count} type{'s' if searched_types_count != 1 else ''} searched in total)"
+                title += f" ({searched_types_count} type{'s' if searched_types_count != 1 else ''} searched)"
             ax.set_title(title, fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
