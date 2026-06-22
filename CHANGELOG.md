@@ -53,6 +53,10 @@ file.
 - USER_GUIDE `--dry-run` flag table entry and preflight bullet
   extended with the "dry-run is the tree walk, not a free preview"
   caveat and the macOS Spotlight / iCloud `stat()`-overhead rationale.
+- Right-pane **Chart** button renamed to **Chart-File Match Count**
+  in all 7 languages to disambiguate which dimension is being charted
+  (top 10 files by match count for the most recent search). Button
+  width bumped from 70 to 180 to fit the longer label.
 
 ### Fixed
 - The `Scanning files...` stderr hint was documented in 1.2.3's docs
