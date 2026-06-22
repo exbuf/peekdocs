@@ -254,6 +254,14 @@ class ToolsMixin:
         chart_btn.pack(side="left", padx=(8, 0))
         Tooltip(chart_btn, "Open a horizontal bar chart of file counts by extension")
 
+        by_type_btn = ctk.CTkButton(
+            save_row, text="View by Type (A-Z)", width=160,
+            command=lambda: self._show_file_inventory_by_type(results, popup),
+            font=ctk.CTkFont(size=12),
+        )
+        by_type_btn.pack(side="left", padx=(8, 0))
+        Tooltip(by_type_btn, "Open a second window listing file types alphabetically with per-type counts and total size")
+
         # Close — centered, on its own row below Save Report.
         close_row = tk.Frame(popup)
         close_row.pack(pady=(5, 10))
@@ -289,6 +297,99 @@ class ToolsMixin:
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
 
         self._open_chart_window("File Inventory by Type", _plot, parent=parent)
+
+    def _show_file_inventory_by_type(self, results, parent):
+        """Second popup: file types sorted alphabetically with counts.
+
+        Same data as the main File Inventory popup's breakdown table, but
+        sorted A-Z instead of by count descending. Positioned to the
+        right of `parent` so the two windows can be compared side by
+        side.
+        """
+        import tkinter as tk
+        fmt = self._format_file_size
+        type_counts = results.get("type_counts", {})
+        if not type_counts:
+            self._show_error("No files to list.")
+            return
+
+        popup, _dark = self._themed_toplevel()
+        popup.withdraw()  # hidden during widget setup; positioned + shown at end
+        popup.title("File Inventory — by Type (A-Z)")
+        popup.resizable(True, True)
+
+        # Position to the right of the parent inventory popup. Falls
+        # back to centered on main if the parent geometry isn't queryable.
+        try:
+            parent.update_idletasks()
+            px = parent.winfo_rootx()
+            py = parent.winfo_rooty()
+            pw = parent.winfo_width()
+            w, h = 520, 580
+            popup.geometry(f"{w}x{h}+{px + pw + 12}+{py}")
+        except Exception:
+            self._center_popup_on_main(popup, 520, 580)
+
+        # Header
+        header_frame = tk.Frame(popup)
+        header_frame.pack(fill="x", padx=10, pady=(10, 2))
+        tk.Label(
+            header_frame,
+            text=f"By Type (A-Z) — {len(type_counts)} file type(s), {results['total_files']} file(s)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left", expand=True)
+
+        tk.Label(
+            popup,
+            text="File types from the parent File Inventory window, sorted alphabetically. "
+                 "Files with no extension are grouped under '(no extension)' at the bottom.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=480, justify="left",
+        ).pack(padx=12, pady=(0, 5))
+
+        # Listbox
+        list_frame = tk.Frame(popup)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+        listbox = tk.Listbox(
+            list_frame, font=("Courier", 11),
+            selectmode=tk.SINGLE, activestyle="none",
+            bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
+            highlightthickness=0, borderwidth=1, relief="sunken",
+            yscrollcommand=scrollbar.set,
+        )
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=listbox.yview)
+
+        listbox.insert("end", f"{'Extension':<20}{'Files':>8}{'Size':>14}")
+        listbox.insert("end", f"{'─' * 20}{'─' * 8}{'─' * 14}")
+
+        # Sort alphabetically (case-insensitive). Files without an
+        # extension surface as empty-string keys from the scanner;
+        # display them as '(no extension)' and push to the end so the
+        # A-Z ordering of real extensions reads cleanly.
+        def _sort_key(item):
+            ext = item[0]
+            is_empty = ext == ""
+            return (is_empty, ext.lower())
+        for ext, count in sorted(type_counts.items(), key=_sort_key):
+            display_ext = ext if ext else "(no extension)"
+            size_str = fmt(results["type_sizes"].get(ext, 0))
+            listbox.insert("end", f"{display_ext:<20}{count:>8}{size_str:>14}")
+
+        listbox.insert("end", f"{'─' * 20}{'─' * 8}{'─' * 14}")
+        listbox.insert("end", f"{'TOTAL':<20}{results['total_files']:>8}{fmt(results['total_size']):>14}")
+
+        close_btn = ctk.CTkButton(
+            popup, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=popup.destroy,
+            font=ctk.CTkFont(size=12),
+        )
+        close_btn.pack(pady=(0, 10))
+
+        popup.deiconify()
 
     def _save_inventory_report(self, results):
         """Save the file inventory as a plain text report."""
