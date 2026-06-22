@@ -1326,6 +1326,30 @@ class SearchMixin:
         total_matches = sum(counts)
         total_types = len(labels)
 
+        # Also compute the count of distinct file types that were
+        # SEARCHED — regardless of whether any file of that type matched.
+        # Re-walk via discover_files; fast because the OS file cache is
+        # warm from the search itself. Fails gracefully if the folder is
+        # unavailable.
+        searched_types_count = None
+        try:
+            folder = self.folder_entry.get().strip()
+            if folder and _os_ft.path.isdir(folder):
+                from peekdocs.scanner import discover_files as _discover
+                use_ocr = self.ocr_var.get() == "on" if hasattr(self, "ocr_var") else False
+                recursive = self.recursive_var.get() == "on" if hasattr(self, "recursive_var") else True
+                file_types_raw = self.file_types_entry.get().strip() if hasattr(self, "file_types_entry") else ""
+                file_types = [t.strip() for t in file_types_raw.split(",") if t.strip()] or None
+                discovered = _discover(folder, recursive, use_ocr, file_types=file_types)
+                if isinstance(discovered, list):
+                    searched_exts = set()
+                    for fp in discovered:
+                        ext = _os_ft.path.splitext(fp)[1].lower() or "(no extension)"
+                        searched_exts.add(ext)
+                    searched_types_count = len(searched_exts)
+        except Exception:
+            searched_types_count = None
+
         def _plot(ax):
             y_pos = list(range(len(labels)))
             ax.barh(y_pos, counts, color="#76BA1B", edgecolor="#5A8E15")
@@ -1333,10 +1357,14 @@ class SearchMixin:
             ax.set_yticklabels(labels, fontsize=9)
             ax.invert_yaxis()
             ax.set_xlabel("Matches", fontsize=10)
-            ax.set_title(
-                f"Matches by file type (alphabetical) — {total_matches:,} total matches across {total_types} type{'s' if total_types != 1 else ''}",
-                fontsize=12, weight="bold",
+            title = (
+                f"Matches by file type (alphabetical) — "
+                f"{total_matches:,} total matches across {total_types} "
+                f"matched type{'s' if total_types != 1 else ''}"
             )
+            if searched_types_count is not None:
+                title += f" ({searched_types_count} type{'s' if searched_types_count != 1 else ''} searched in total)"
+            ax.set_title(title, fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
