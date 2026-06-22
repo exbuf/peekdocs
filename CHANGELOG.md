@@ -12,6 +12,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.3] — 2026-06-22
+
+Minor follow-up to 1.2.2 covering an i18n sweep and three hero-video
+refreshes. Five widget labels on the post-1.2.0 split-pane layout
+were still hardcoded English (`Search` title on the left pane,
+`Open Report:` on the report row, `Chart` and `Preview cap:` on the
+right pane, and the `Browse` button inside Advanced Search Options'
+output-directory entry); all five now flow through the language
+picker. The non-English `results_preview_label` translations had been
+left as stale "X Preview" placeholders that overflowed into the
+neighbouring Preview Size widget on the same row — shortened across
+all six non-English languages so the right-pane title row reads
+cleanly at every language. The Save tooltip on Step 2 was also
+extended to mention that saved searches can be composed into Search
+Suites, not just reloaded.
+
+### Added
+- Four new i18n keys (`search_pane_title`, `open_report_label`,
+  `preview_cap_label`, `chart_button_label`) × 7 languages = 28 new
+  translation entries.
+
+### Changed
+- Five widget labels switched from hardcoded English to i18n lookups:
+  the left-pane 24pt **Search** title, the **Open Report:** row label,
+  the **Chart** button, the **Preview cap:** label, and the **Browse**
+  button inside the Advanced Search Options output-directory entry
+  (the last reuses the existing `browse_button_label` key).
+- Language-refresh callback (`_set_language`) updated to retranslate
+  all five widgets on live language switch.
+- `results_preview_label` shortened across all six non-English
+  languages — the post-1.2.1 "Results Preview → Results" rename had
+  only updated English, leaving the non-English translations as
+  stale long-form strings that visually overlapped the Preview Size
+  text on the same row:
+
+  | Language | Before | After |
+  |---|---|---|
+  | Spanish    | Vista previa de resultados:        | Resultados |
+  | French     | Aperçu des résultats :             | Résultats |
+  | German     | Ergebnisvorschau:                  | Ergebnisse |
+  | Japanese   | 結果プレビュー:                      | 結果 |
+  | Chinese    | 结果预览：                          | 结果 |
+  | Portuguese | Pré-visualização dos resultados:   | Resultados |
+
+- `save_tooltip` first sentence updated to mention Search Suite
+  composition alongside the ▶ Reload workflow.
+- README hero demo video swapped to a new recording (final URL
+  `b04dcd71-c62a-480b-8908-e8a724ead74e`; three intermediate swaps
+  during the recording cycle).
+
 ## [1.2.2] — 2026-06-21
 
 Bug-fix release following close hover-testing of 1.2.1 on macOS and
