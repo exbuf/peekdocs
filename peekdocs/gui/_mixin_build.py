@@ -1301,7 +1301,7 @@ class BuildMixin:
         # Chart — opens a matplotlib popup with the "Top 10 files by
         # match count" bar chart (mirrors the browser GUI's Chart tab).
         self._chart_btn = ctk.CTkButton(
-            preview_label_row, text=_t("chart_button_label"), width=70,
+            preview_label_row, text=_t("chart_button_label"), width=180,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
