@@ -219,6 +219,9 @@ for match in results.matches:
 # Recursive search for "budget"
 peekdocs -r budget
 
+# Preflight: how many files would this search touch, and how big?
+peekdocs --dry-run -r ~/Documents budget
+
 # Regex pattern, piped through jq for the match count
 peekdocs --stdout -x "\d{3}-\d{4}" | jq '.matches_found'
 
@@ -227,6 +230,8 @@ peekdocs --suite "Code hygiene"
 ```
 
 `peekdocs -h` shows every flag, file type, and regex pattern. The [User Guide](docs/USER_GUIDE.md) covers the CLI in full.
+
+> **Pointing peekdocs at your whole home directory or `/` is slow** — even with `--dry-run`. Tree walks across `~/Library`, every git repo, every `node_modules`, every Python venv, and every browser cache can easily mean hundreds of thousands of files; the enumeration phase alone can run 5–10+ minutes before any content is read. Press **Ctrl+C** to cancel at any time. Narrow the path (`peekdocs -r ~/Documents budget`) or restrict file types (`peekdocs -r -t pdf,docx,xlsx ~ budget`) to cut the corpus to seconds. During long runs, peekdocs prints `Scanning files (this may take a while on large folders)...` to stderr while enumerating, then switches to a live `[██░░] 12345/89201 file.pdf` progress bar once content reads begin.
 
 ## Screenshots
 
