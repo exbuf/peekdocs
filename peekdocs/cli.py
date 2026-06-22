@@ -597,6 +597,14 @@ def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
     no index. Returns 0 if files would be searched, 1 if zero, 2 if discovery
     errors out.
     """
+    # Discovery itself is the slow step on huge trees (e.g. recursive
+    # walk of $HOME). discover_files() runs glob.glob() per supported
+    # extension across the whole tree before returning, so it can sit
+    # silently for minutes. Print a hint to stderr so the user knows
+    # something is happening. Emitted only when not in JSON output mode.
+    if not emit_json:
+        import sys as _sys_scan
+        print(f"Scanning files (this may take a while on large folders)...", file=_sys_scan.stderr, flush=True)
     discovered = discover_files(
         cwd, recursive, use_ocr,
         file_types=file_types,
@@ -1960,6 +1968,13 @@ def _main_inner(argv=None):
     spinner_t = threading.Thread(target=_spinner_thread_func, daemon=True)
     if not stdout_json and not minimal:
         spinner_t.start()
+        # The existing spinner only animates while api.search() is
+        # processing files — but api.search() first calls
+        # discover_files() (in scanner.py), which on huge trees like
+        # $HOME can take minutes by itself. Print a one-line hint to
+        # stderr so the user sees something during enumeration before
+        # the search-phase progress bar takes over.
+        print("Scanning files (this may take a while on large folders)...", file=sys.stderr, flush=True)
 
     try:
         from peekdocs.api import search as _api_search
