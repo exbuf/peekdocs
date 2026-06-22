@@ -12,6 +12,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.4] — 2026-06-22
+
+CLI progress-feedback release. Long recursive runs (the classic
+`peekdocs -r budget` launched from a home-directory parent) used to
+sit silent for many minutes between the "Searching..." line and the
+first result. peekdocs now prints two hints during every search: a
+one-line cancel reminder right after the start banner and a
+"Scanning files..." line during the file-enumeration phase before
+the existing live progress bar takes over for content reads. The
+"Document: " prefix on every filename line in the Results pane is
+also stripped — redundant since everything peekdocs searches is a
+file.
+
+### Added
+- `(Press Ctrl+C to cancel)` hint printed to stdout immediately after
+  the "Searching (mode) on [folder] ..." line on every CLI search.
+  Ctrl+C is universal across macOS Terminal / iTerm, Windows cmd /
+  PowerShell / Windows Terminal, and any Linux terminal.
+- `Scanning files (this may take a while on large folders)...`
+  printed to stderr during the file-enumeration phase. The existing
+  search-phase progress bar (`[██░░] N/M file.pdf ⠋`) only animates
+  once content reads begin; the new hint covers the silent
+  `glob.glob()`-per-extension tree walk that precedes it. Fires from
+  both `_dry_run_report` and the main search path.
+- New "Progress feedback during long searches" subsection in USER_GUIDE
+  explaining the two phases and which feedback lands on which stream.
+
+### Changed
+- Results-pane filename lines no longer carry a leading "Document: "
+  prefix. The prefix stays in the on-disk `.txt` report (PDF, Matched
+  Files popup, heatmap chart, and external scripts all parse it); only
+  the right-pane preview render strips it. Suites build their preview
+  lines differently and never had the prefix; Regex Search renders to
+  its own popup.
+- README `CLI at a Glance` adds a `peekdocs --dry-run` preflight
+  example and a callout explaining that home-directory or root-volume
+  searches take 5–10+ minutes even for `--dry-run`, with the `-t`
+  filter workaround.
+- USER_GUIDE `--dry-run` flag table entry and preflight bullet
+  extended with the "dry-run is the tree walk, not a free preview"
+  caveat and the macOS Spotlight / iCloud `stat()`-overhead rationale.
+
+### Fixed
+- The `Scanning files...` stderr hint was documented in 1.2.3's docs
+  follow-up but the cli.py code was never actually committed; it's
+  now in both the `_dry_run_report` and main search paths as the docs
+  describe.
+
 ## [1.2.3] — 2026-06-22
 
 Minor follow-up to 1.2.2 covering an i18n sweep and three hero-video
