@@ -307,7 +307,7 @@ class BuildMixin:
         self._page_header_lbl.pack(side="left")
 
         self._left_pane_title = ctk.CTkLabel(
-            self._left_scroll, text="Search",
+            self._left_scroll, text=_t("search_pane_title"),
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         self._left_pane_title.pack(anchor="w", padx=15, pady=(2, 0))
@@ -840,11 +840,12 @@ class BuildMixin:
         self.output_dir_entry.grid(row=0, column=0, padx=(0, 5), sticky="ew")
         outdir_frame.grid_columnconfigure(0, weight=1)
 
-        outdir_browse_btn = ctk.CTkButton(
-            outdir_frame, text="Browse", width=70,
+        self._outdir_browse_btn = ctk.CTkButton(
+            outdir_frame, text=_t("browse_button_label"), width=70,
             command=self._browse_output_dir,
             font=ctk.CTkFont(size=12),
         )
+        outdir_browse_btn = self._outdir_browse_btn
         outdir_browse_btn.grid(row=0, column=1, padx=(0, 0))
         Tooltip(outdir_browse_btn, "Pick a folder where peekdocs should write its reports, error log, and other output files", anchor="left")
         Tooltip(self.output_dir_entry, "Directory for search output files (reports, error log, CSV, JSON). Leave empty to write to the search folder.")
@@ -1258,7 +1259,7 @@ class BuildMixin:
                 "Preview cap — max matches rendered in this pane. Choose 100 / 500 (default) / 1000 / 5000 / No cap. The full result is always in the report files regardless of this setting.",
                 anchor="left")
         self._preview_cap_lbl = ctk.CTkLabel(
-            preview_header_mid, text="Preview cap:",
+            preview_header_mid, text=_t("preview_cap_label"),
             font=ctk.CTkFont(size=11),
         )
         self._preview_cap_lbl.pack(side="right", padx=(10, 3))
@@ -1300,7 +1301,7 @@ class BuildMixin:
         # Chart — opens a matplotlib popup with the "Top 10 files by
         # match count" bar chart (mirrors the browser GUI's Chart tab).
         self._chart_btn = ctk.CTkButton(
-            preview_label_row, text="Chart", width=70,
+            preview_label_row, text=_t("chart_button_label"), width=70,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1445,7 +1446,7 @@ class BuildMixin:
         # the DOCX button. The format buttons are packed by _app.py
         # using side="left" so they line up to the right of this label.
         self._open_report_lbl = ctk.CTkLabel(
-            self.report_btn_frame, text="Open Report:",
+            self.report_btn_frame, text=_t("open_report_label"),
             font=ctk.CTkFont(size=12),
             text_color=("gray40", "gray70"),
         )
@@ -2333,6 +2334,17 @@ class BuildMixin:
             self._status_label_left.configure(text=t("status_label"))
             self._preview_label.configure(text=t("results_preview_label"))
             self._clear_preview_btn.configure(text=t("clear_preview_label"))
+            # New right-pane / left-pane labels added 2026-06-22.
+            if hasattr(self, "_left_pane_title"):
+                self._left_pane_title.configure(text=t("search_pane_title"))
+            if hasattr(self, "_open_report_lbl"):
+                self._open_report_lbl.configure(text=t("open_report_label"))
+            if hasattr(self, "_preview_cap_lbl"):
+                self._preview_cap_lbl.configure(text=t("preview_cap_label"))
+            if hasattr(self, "_chart_btn"):
+                self._chart_btn.configure(text=t("chart_button_label"))
+            if hasattr(self, "_outdir_browse_btn"):
+                self._outdir_browse_btn.configure(text=t("browse_button_label"))
             # Bottom-row navigation buttons (left + right groups).
             self._readme_button.configure(text=t("readme_button_label"))
             self.help_button.configure(text=t("user_guide_button_label"))
