@@ -93,7 +93,7 @@ peekdocs is a local document search and analysis workbench for Windows, macOS, a
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
-**Typical workflow:** Search 50,000 mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
+**Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
 
 *All steps are GUI-accessible from the main screen, the **Search Suites** popup (opened by the green button next to Run Standard Search), and **Tools → Schedule Search** — the last one generates a cron / Task Scheduler command for you to paste rather than installing the schedule for you.*
 
@@ -341,7 +341,7 @@ peekdocs is built to do exactly that across many kinds of files at once — Word
 
 - **Home user** — Find a tax document from any of the last seven years across mixed folders.
 - **Office worker** — Find all invoices over $10,000 from 2024.
-- **IT consultant** — Search 50,000 client documents for a set of terms.
+- **IT consultant** — Search a folder of client documents for a set of terms.
 - **Sysadmin** — Search 20 GB of log files for a request ID across mixed archives.
 - **Developer** — Run a regex collection against a source tree and generate JSON.
 - **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
@@ -783,7 +783,7 @@ peekdocs is a search tool because it helps you find information across PDFs, Off
 
 **Compared with cloud AI document tools.** Cloud AI tools excel at summarization, question answering, semantic search, and extracting meaning from large document collections — often the right reach for those tasks. peekdocs serves a different purpose: it runs entirely on your computer. For keyword, pattern, date, amount, regex, fuzzy, and proximity searches across mixed-format folders, peekdocs delivers deterministic and repeatable results while keeping your documents local.
 
-peekdocs processes the whole folder in one local pass with no upload step — same engine whether the folder has 50 files or 50,000. It reads 100+ file types natively, including archives (`.zip`, `.7z`, `.rar`) and Outlook email containers (`.pst`, `.msg`, `.mbox`) opened in place, and OCRs scanned PDFs and images when you enable the `-O` flag. The size of the corpus, the connection speed, and the formats involved are not constraints peekdocs has to plan around — it works on whatever's on disk, however large, in any of the formats it supports.
+peekdocs processes the whole folder in one local pass with no upload step — same engine whether the folder has dozens of files or many thousands. It reads 100+ file types natively, including archives (`.zip`, `.7z`, `.rar`) and Outlook email containers (`.pst`, `.msg`, `.mbox`) opened in place, and OCRs scanned PDFs and images when you enable the `-O` flag. The size of the corpus, the connection speed, and the formats involved are not constraints peekdocs has to plan around — it works on whatever's on disk, however large, in any of the formats it supports.
 
 peekdocs's JSON output is also the deterministic keyword-retrieval half of a fully-local privacy-preserving LLM workflow. Use peekdocs to narrow a 10,000-file corpus to the 30 files containing the exact terms, dates, or regex patterns you care about, then feed those 30 (not the 10,000) to a local model — Llama 3, Mistral, Gemma, or whatever you run via [Ollama](https://ollama.com), [llama.cpp](https://github.com/ggml-org/llama.cpp), or [LM Studio](https://lmstudio.ai) — for summarization or Q&A. peekdocs doesn't produce embeddings; it returns precise file paths, line numbers, and optional SHA-256 content fingerprints — the structured inputs a local LLM needs to ground its citations against your actual source files. Nothing leaves your machine.
 
