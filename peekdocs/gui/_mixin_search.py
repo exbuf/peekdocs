@@ -1369,7 +1369,12 @@ class SearchMixin:
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
 
-        self._open_chart_window("Matches by file type", _plot)
+        # Wider geometry so the long composite title
+        # ("Matches by file type — N total matches across M matched
+        # types (K types searched)") fits without being truncated by
+        # matplotlib's default centered-title rendering.
+        self._open_chart_window("Matches by file type", _plot,
+                                geometry="1100x520", figsize=(10.6, 4.8))
 
     def _clear_preview(self):
         """Clear the Results Preview pane and the matched/excluded files buttons.
