@@ -1313,6 +1313,23 @@ class BuildMixin:
                 "Matplotlib renders in a separate window.",
                 anchor="left")
 
+        # Chart-File Type Count — groups the matched files by extension
+        # and renders matches-per-type on a horizontal bar chart, types
+        # listed alphabetically.
+        self._chart_filetype_btn = ctk.CTkButton(
+            preview_label_row, text=_t("chart_filetype_button_label"), width=180,
+            font=ctk.CTkFont(size=11),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_filetype_chart,
+        )
+        self._chart_filetype_btn.pack(side="left", padx=(4, 0))
+        Tooltip(self._chart_filetype_btn,
+                "Open a bar chart grouping the matched files by extension (file type), "
+                "listed alphabetically, with the total match count per type. "
+                "Matplotlib renders in a separate window.",
+                anchor="left")
+
         # Reorder: move the search-results headline and the Matched /
         # Excluded buttons row to sit below the Results Preview label
         # row. They were created earlier (and packed at the top of
@@ -2343,6 +2360,8 @@ class BuildMixin:
                 self._preview_cap_lbl.configure(text=t("preview_cap_label"))
             if hasattr(self, "_chart_btn"):
                 self._chart_btn.configure(text=t("chart_button_label"))
+            if hasattr(self, "_chart_filetype_btn"):
+                self._chart_filetype_btn.configure(text=t("chart_filetype_button_label"))
             if hasattr(self, "_outdir_browse_btn"):
                 self._outdir_browse_btn.configure(text=t("browse_button_label"))
             # Bottom-row navigation buttons (left + right groups).

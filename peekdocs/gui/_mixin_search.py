@@ -1290,6 +1290,54 @@ class SearchMixin:
 
         self._open_chart_window("Top files by match count", _plot)
 
+    def _show_filetype_chart(self):
+        """Match count grouped by file extension, alphabetical.
+
+        Companion to _show_match_chart. Reads the same self.matched_files
+        list (each entry is (filepath, filename, count, lines)), groups
+        by lowercased extension, sums the per-file counts, and renders a
+        horizontal bar chart with types alphabetically on the Y axis.
+        Files with no extension are grouped under '(no extension)'.
+        """
+        import os as _os_ft
+        matched = list(getattr(self, "matched_files", []) or [])
+        if not matched:
+            self._show_error(
+                "No chart data yet. Run a search first — the chart shows "
+                "match counts grouped by file type for the most recent search."
+            )
+            return
+        type_counts = {}
+        try:
+            for _fp, fname, count, _lines in matched:
+                ext = _os_ft.path.splitext(fname)[1].lower()
+                if not ext:
+                    ext = "(no extension)"
+                type_counts[ext] = type_counts.get(ext, 0) + count
+        except (IndexError, TypeError, ValueError):
+            self._show_error("Match data missing the count column — can't render a chart.")
+            return
+        if not type_counts:
+            self._show_error("No matches to chart.")
+            return
+
+        labels = sorted(type_counts.keys(), key=lambda e: (e == "(no extension)", e))
+        counts = [type_counts[e] for e in labels]
+
+        def _plot(ax):
+            y_pos = list(range(len(labels)))
+            ax.barh(y_pos, counts, color="#76BA1B", edgecolor="#5A8E15")
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels, fontsize=9)
+            ax.invert_yaxis()
+            ax.set_xlabel("Matches", fontsize=10)
+            ax.set_title("Matches by file type (alphabetical)", fontsize=12, weight="bold")
+            ax.grid(axis="x", linestyle="--", alpha=0.4)
+            for i, v in enumerate(counts):
+                ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
+
+        self._open_chart_window("Matches by file type", _plot)
+
     def _clear_preview(self):
         """Clear the Results Preview pane and the matched/excluded files buttons.
 
