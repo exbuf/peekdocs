@@ -1323,6 +1323,8 @@ class SearchMixin:
 
         labels = sorted(type_counts.keys(), key=lambda e: (e == "(no extension)", e))
         counts = [type_counts[e] for e in labels]
+        total_matches = sum(counts)
+        total_types = len(labels)
 
         def _plot(ax):
             y_pos = list(range(len(labels)))
@@ -1331,7 +1333,10 @@ class SearchMixin:
             ax.set_yticklabels(labels, fontsize=9)
             ax.invert_yaxis()
             ax.set_xlabel("Matches", fontsize=10)
-            ax.set_title("Matches by file type (alphabetical)", fontsize=12, weight="bold")
+            ax.set_title(
+                f"Matches by file type (alphabetical) — {total_matches:,} total matches across {total_types} type{'s' if total_types != 1 else ''}",
+                fontsize=12, weight="bold",
+            )
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
