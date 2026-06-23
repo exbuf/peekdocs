@@ -320,14 +320,11 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             if current == "Search":
                 # User is already on Search — hide the redundant tab button
                 search_btn.grid_remove()
-                # If the initial sash positioning failed (typically
-                # because the Search tab wasn't mapped yet at the
-                # original 1150ms-after schedule — first-run users
-                # land on Getting Started, so the paned widget had a
-                # width of 0 and the sash got pinned to 0, collapsing
-                # the left pane), retry now that the tab is visible.
-                if not getattr(self, "_initial_sash_set", False):
-                    self.after(50, self._set_initial_pane_split)
+                # The <Configure> handler installed by
+                # _set_initial_pane_split will fire as soon as the paned
+                # gets a non-zero width, so no explicit retry is needed
+                # here — Tk's tab-switch geometry propagation triggers
+                # the Configure event after the paned is mapped.
             else:
                 # On Getting Started — show the button labeled "Done"
                 search_btn.grid()
@@ -349,12 +346,32 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         holds 5 output-format checkboxes on one row — fits without HTML
         running off the right edge at the default split.
 
-        Records success in self._initial_sash_set so _on_tab_changed can
-        retry on the first switch to the Search tab if the initial
-        attempt failed (typical on first run when the Getting Started
-        tab is shown first and the Search tab's paned widget hasn't
-        been mapped yet — winfo_width() returns 0 and sashpos(0, 0)
-        collapses the left pane to zero width).
+        Tries once now (typical when the Search tab is visible at
+        startup), then installs a one-shot <Configure> handler on
+        self._paned so the sash gets positioned the moment the paned
+        actually has a non-zero width. This handles the first-run /
+        factory-reset path: Getting Started is shown first, so the
+        Search tab — and the paned inside it — isn't mapped yet at
+        the 1150 ms-after-deiconify schedule. When the user clicks
+        Done and the tab switch maps the paned for the first time,
+        Tk fires <Configure> with the real width and the handler
+        positions the sash. After success the handler unbinds itself
+        so subsequent user-driven sash drags or resizes aren't reset.
+        """
+        if self._try_apply_sash():
+            return
+        # Width still 0 (paned not mapped yet). Install a one-shot
+        # Configure handler that will fire as soon as it has one.
+        try:
+            self._sash_bind_id = self._paned.bind("<Configure>", self._on_paned_configure, add="+")
+        except Exception:
+            pass
+
+    def _try_apply_sash(self) -> bool:
+        """Apply the 52% sash position if the paned has a real width.
+
+        Returns True on success (records self._initial_sash_set), False
+        if the paned isn't mapped yet (width 0).
         """
         try:
             self.update_idletasks()
@@ -362,8 +379,27 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             if w > 0:
                 self._paned.sashpos(0, int(w * 0.52))
                 self._initial_sash_set = True
+                return True
         except Exception:
             pass
+        return False
+
+    def _on_paned_configure(self, _event=None):
+        """One-shot <Configure> handler that positions the sash the
+        moment self._paned first acquires a non-zero width, then
+        unbinds itself."""
+        if getattr(self, "_initial_sash_set", False):
+            # Already set by a different code path; just clean up.
+            try:
+                self._paned.unbind("<Configure>", getattr(self, "_sash_bind_id", None))
+            except Exception:
+                pass
+            return
+        if self._try_apply_sash():
+            try:
+                self._paned.unbind("<Configure>", getattr(self, "_sash_bind_id", None))
+            except Exception:
+                pass
 
 
 
