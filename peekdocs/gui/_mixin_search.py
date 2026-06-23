@@ -1396,6 +1396,24 @@ class SearchMixin:
         except Exception:
             searched_types_count = None
 
+        # Search-terms prefix for the chart title. Quoted, comma-
+        # separated. Trimmed to ~80 chars to keep the title from
+        # spilling across the whole figure when the user searched for
+        # a long expression. Empty / Expression mode falls back to
+        # plain 'Matches by file type'.
+        try:
+            import shlex as _shlex_ft
+            _terms_raw = self.search_entry.get().strip() if hasattr(self, "search_entry") else ""
+            try:
+                _terms_tokens = _shlex_ft.split(_terms_raw)
+            except ValueError:
+                _terms_tokens = _terms_raw.split()
+            _terms_display = ", ".join(f"'{t}'" for t in _terms_tokens)
+            if len(_terms_display) > 80:
+                _terms_display = _terms_display[:77] + "..."
+        except Exception:
+            _terms_display = ""
+
         def _plot(ax):
             y_pos = list(range(len(labels)))
             ax.barh(y_pos, counts, color="#76BA1B", edgecolor="#5A8E15")
@@ -1403,14 +1421,18 @@ class SearchMixin:
             ax.set_yticklabels(labels, fontsize=9)
             ax.invert_yaxis()
             ax.set_xlabel("Matches", fontsize=10)
-            title = (
-                f"Matches by file type — "
+            line1 = (
+                f"{_terms_display} — Matches by file type"
+                if _terms_display
+                else "Matches by file type"
+            )
+            line2 = (
                 f"{total_matches:,} total matches across {total_types} "
                 f"matched file type{'s' if total_types != 1 else ''}"
             )
             if searched_types_count is not None:
-                title += f" ({searched_types_count} file type{'s' if searched_types_count != 1 else ''} searched)"
-            ax.set_title(title, fontsize=12, weight="bold")
+                line2 += f" ({searched_types_count} file type{'s' if searched_types_count != 1 else ''} searched)"
+            ax.set_title(f"{line1}\n{line2}", fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
