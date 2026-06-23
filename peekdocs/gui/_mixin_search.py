@@ -1449,7 +1449,7 @@ class SearchMixin:
                 f"matched file type{'s' if total_types != 1 else ''}"
             )
             if searched_types_count is not None:
-                line2 += f" ({searched_types_count} file type{'s' if searched_types_count != 1 else ''} searched)"
+                line2 += f" ({searched_types_count} file type{'s' if searched_types_count != 1 else ''} searched, 100+ supported)"
             ax.set_title(f"{line1}\n{line2}", fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
@@ -1467,6 +1467,130 @@ class SearchMixin:
             geometry="1100x520",
             figsize=(10.6, _ft_fig_h),
             scrollable=True,
+        )
+
+    # Extension → human-named category mapping for _show_category_chart.
+    # Kept at module-load scope for cheap lookup and so the order below
+    # is the chart's Y-axis order (most-recognized categories first;
+    # 'Other' last so unknown extensions always sink to the bottom).
+    _CATEGORY_MAP = {
+        "Office": {".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt",
+                   ".odt", ".ods", ".odp", ".rtf",
+                   ".pages", ".numbers", ".key"},
+        "PDF": {".pdf"},
+        "Email": {".eml", ".msg", ".pst", ".mbox"},
+        "E-books": {".epub"},
+        "Images / OCR": {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"},
+        "Archives": {".zip", ".tar", ".gz", ".bz2", ".tgz", ".7z", ".rar"},
+        "Code": {".py", ".c", ".cpp", ".h", ".hpp", ".java", ".js", ".ts",
+                 ".go", ".rs", ".rb", ".sh", ".bat", ".ps1", ".r", ".m",
+                 ".v", ".vhd", ".vhdl", ".sv", ".cir", ".sp", ".spice",
+                 ".tcl", ".pl", ".swift", ".kt", ".cs", ".vb", ".f90", ".f",
+                 ".asm", ".s", ".lua", ".scala"},
+        "Notebooks": {".ipynb"},
+        "Data / Config": {".csv", ".tsv", ".json", ".jsonl", ".ndjson",
+                          ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg",
+                          ".conf", ".sql", ".properties", ".env", ".tf",
+                          ".proto", ".graphql", ".gql", ".gradle", ".cmake",
+                          ".makefile", ".dockerfile"},
+        "Markup / Docs": {".md", ".rst", ".tex", ".html", ".css", ".scss"},
+        "Calendar / Contacts": {".ics", ".vcf"},
+        "Plain text": {".txt", ".log"},
+        "CAD / Engineering": {".dxf", ".vsdx"},
+    }
+
+    def _show_category_chart(self):
+        """Match counts grouped by human-readable category.
+
+        Rolls the per-extension counts from self.matched_files up into
+        named buckets (Office, PDF, Email, Images / OCR, Archives,
+        Code, Data / Config, etc.). Useful when the per-extension
+        chart has 20+ bars and the viewer wants the at-a-glance
+        breakdown by what kind of content peekdocs found in.
+        """
+        import os as _os_cat
+        matched = list(getattr(self, "matched_files", []) or [])
+        if not matched:
+            self._show_error(
+                "No chart data yet. Run a search first — the chart shows "
+                "match counts grouped by file-type category for the "
+                "most recent search."
+            )
+            return
+
+        # Build extension → category lookup (inverted from _CATEGORY_MAP).
+        ext_to_cat = {}
+        for cat_name, exts in self._CATEGORY_MAP.items():
+            for ext in exts:
+                ext_to_cat[ext] = cat_name
+
+        category_counts = {}
+        try:
+            for _fp, fname, count, _lines in matched:
+                ext = _os_cat.path.splitext(fname)[1].lower()
+                cat = ext_to_cat.get(ext, "Other")
+                category_counts[cat] = category_counts.get(cat, 0) + count
+        except (IndexError, TypeError, ValueError):
+            self._show_error("Match data missing the count column — can't render a chart.")
+            return
+        if not category_counts:
+            self._show_error("No matches to chart.")
+            return
+
+        # Sort by match count descending — categories with the most
+        # matches read first; 'Other' falls wherever its count lands
+        # (typically near the bottom since it captures the long tail).
+        ranked = sorted(category_counts.items(), key=lambda kv: kv[1], reverse=True)
+        labels = [k for k, _ in ranked]
+        counts = [v for _, v in ranked]
+        total_matches = sum(counts)
+        total_categories = len(labels)
+
+        # Search-terms prefix — same pattern as the other chart titles.
+        try:
+            import shlex as _shlex_cat
+            _terms_raw = self.search_entry.get().strip() if hasattr(self, "search_entry") else ""
+            try:
+                _terms_tokens = _shlex_cat.split(_terms_raw)
+            except ValueError:
+                _terms_tokens = _terms_raw.split()
+            _terms_display = ", ".join(f"'{t}'" for t in _terms_tokens)
+            if len(_terms_display) > 80:
+                _terms_display = _terms_display[:77] + "..."
+        except Exception:
+            _terms_display = ""
+
+        def _plot(ax):
+            y_pos = list(range(len(labels)))
+            # Distinctive purple/violet so this chart is visually
+            # different from the green Chart-File Type Count and the
+            # blue Top-files chart.
+            ax.barh(y_pos, counts, color="#7E57C2", edgecolor="#5E35B1")
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels, fontsize=10)
+            ax.invert_yaxis()
+            ax.set_xlabel("Matches", fontsize=10)
+            line1 = (
+                f"{_terms_display} — Matches by file-type category"
+                if _terms_display
+                else "Matches by file-type category"
+            )
+            line2 = (
+                f"{total_matches:,} total matches across {total_categories} "
+                f"categor{'ies' if total_categories != 1 else 'y'} "
+                f"({len(self._CATEGORY_MAP) + 1} categories tracked)"
+            )
+            ax.set_title(f"{line1}\n{line2}", fontsize=12, weight="bold")
+            ax.grid(axis="x", linestyle="--", alpha=0.4)
+            for i, v in enumerate(counts):
+                ax.text(v, i, f" {v:,}", va="center", fontsize=10, color="#333333")
+
+        # Categories are bounded (~13) so the default chart height is
+        # plenty; no vertical scroll needed.
+        self._open_chart_window(
+            "Matches by file-type category", _plot,
+            geometry="1000x520",
+            figsize=(9.6, 4.8),
         )
 
     def _clear_preview(self):

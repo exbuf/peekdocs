@@ -1334,6 +1334,25 @@ class BuildMixin:
                 "Matplotlib renders in a separate window.",
                 anchor="left")
 
+        # Chart-File Type Category — rolls the per-extension counts up
+        # into human-named buckets (Office, PDF, Email, Images/OCR,
+        # Archives, Code, Data/Config, etc.) so the chart reads at a
+        # glance for non-developers.
+        self._chart_category_btn = ctk.CTkButton(
+            preview_label_row, text=_t("chart_category_button_label"), width=200,
+            font=ctk.CTkFont(size=11),
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_category_chart,
+        )
+        self._chart_category_btn.pack(side="left", padx=(4, 0))
+        Tooltip(self._chart_category_btn,
+                "Open a bar chart grouping the matched files by category "
+                "(Office, PDF, Email, Images/OCR, Archives, Code, etc.) "
+                "rather than by raw extension. Useful at a glance for "
+                "non-developers. Matplotlib renders in a separate window.",
+                anchor="left")
+
         # Reorder: move the search-results headline and the Matched /
         # Excluded buttons row to sit below the Results Preview label
         # row. They were created earlier (and packed at the top of
@@ -2366,6 +2385,8 @@ class BuildMixin:
                 self._chart_btn.configure(text=t("chart_button_label"))
             if hasattr(self, "_chart_filetype_btn"):
                 self._chart_filetype_btn.configure(text=t("chart_filetype_button_label"))
+            if hasattr(self, "_chart_category_btn"):
+                self._chart_category_btn.configure(text=t("chart_category_button_label"))
             if hasattr(self, "_outdir_browse_btn"):
                 self._outdir_browse_btn.configure(text=t("browse_button_label"))
             # Bottom-row navigation buttons (left + right groups).
