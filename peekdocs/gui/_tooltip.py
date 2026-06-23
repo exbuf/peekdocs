@@ -27,7 +27,12 @@ _HIDE_DELAY_MS = 300 if _IS_MACOS else 150
 class Tooltip:
     """Simple hover tooltip for any widget."""
 
-    enabled = True
+    # Class-level default OFF. _load_settings reads the saved
+    # 'hover_text' preference from ~/.peekdocsrc and flips this on if
+    # the user previously chose to enable tooltips. First-install /
+    # factory-reset users see tooltips off until they click the
+    # Tooltips: OFF button in the bottom toolbar.
+    enabled = False
 
     def __init__(self, widget, text, anchor="right", position_widget=None):
         """Bind hover tooltip with the given text to a widget.

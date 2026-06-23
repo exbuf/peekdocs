@@ -272,8 +272,12 @@ class DataMixin:
         if appearance not in ("System", "Light", "Dark"):
             appearance = "System"
         self._set_appearance_mode(appearance)
-        # Restore hover text preference
-        hover = config.get("hover_text", True)
+        # Restore hover text preference. Default OFF for first-install /
+        # factory-reset state — tooltips can be noisy for first-time
+        # users who haven't asked for them. The Tooltips: ON/OFF button
+        # at the bottom toolbar flips the state; clicking once and then
+        # Save Defaults makes ON sticky for that user.
+        hover = config.get("hover_text", False)
         Tooltip.enabled = bool(hover)
         if hasattr(self, "_hover_toggle_btn"):
             self._hover_toggle_btn.configure(
