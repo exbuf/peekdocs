@@ -1350,7 +1350,30 @@ class DataMixin:
         if not self._excluded_files:
             return
         popup, _dark = self._themed_toplevel()
-        popup.title(f"Excluded Files ({len(self._excluded_files)})")
+        count = len(self._excluded_files)
+
+        # Search-terms prefix — same pattern as Matched Files / Chart-
+        # File Type Count. Quoted, comma-separated, capped at ~80 chars.
+        # Empty search bar falls back to the bare heading.
+        try:
+            import shlex as _shlex_ef
+            _terms_raw = self.search_entry.get().strip() if hasattr(self, "search_entry") else ""
+            try:
+                _terms_tokens = _shlex_ef.split(_terms_raw)
+            except ValueError:
+                _terms_tokens = _terms_raw.split()
+            _terms_display = ", ".join(f"'{t}'" for t in _terms_tokens)
+            if len(_terms_display) > 80:
+                _terms_display = _terms_display[:77] + "..."
+        except Exception:
+            _terms_display = ""
+
+        title_text = f"Excluded Files ({count})"
+        header_text = f"Files Excluded from Search ({count})"
+        if _terms_display:
+            title_text = f"{_terms_display} — {title_text}"
+            header_text = f"{_terms_display} — {header_text}"
+        popup.title(title_text)
         popup.resizable(True, True)
         popup.geometry("560x500")
         popup.transient(self)
@@ -1365,7 +1388,7 @@ class DataMixin:
         header_frame = tk.Frame(popup)
         header_frame.pack(fill="x", padx=10, pady=(10, 2))
         tk.Label(
-            header_frame, text=f"Files Excluded from Search ({len(self._excluded_files)})",
+            header_frame, text=header_text,
             font=("TkDefaultFont", 13, "bold"),
         ).pack(side="left", expand=True)
         help_btn = ctk.CTkButton(

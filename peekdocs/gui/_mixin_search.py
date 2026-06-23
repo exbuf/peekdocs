@@ -1322,6 +1322,22 @@ class SearchMixin:
             self._show_error("Match data missing the count column — can't render a chart.")
             return
 
+        # Search-terms prefix for the chart title — same pattern as
+        # the Chart-File Type Count and Matched Files popup. Quoted,
+        # comma-separated, capped at ~80 chars.
+        try:
+            import shlex as _shlex_mc
+            _terms_raw = self.search_entry.get().strip() if hasattr(self, "search_entry") else ""
+            try:
+                _terms_tokens = _shlex_mc.split(_terms_raw)
+            except ValueError:
+                _terms_tokens = _terms_raw.split()
+            _terms_display = ", ".join(f"'{t}'" for t in _terms_tokens)
+            if len(_terms_display) > 80:
+                _terms_display = _terms_display[:77] + "..."
+        except Exception:
+            _terms_display = ""
+
         def _plot(ax):
             y_pos = list(range(len(labels)))
             ax.barh(y_pos, counts, color="#2196F3", edgecolor="#1976D2")
@@ -1329,7 +1345,9 @@ class SearchMixin:
             ax.set_yticklabels(labels, fontsize=9)
             ax.invert_yaxis()
             ax.set_xlabel("Matches", fontsize=10)
-            ax.set_title("Top 10 files by match count", fontsize=12, weight="bold")
+            base_title = "Top 10 files by match count"
+            title = f"{_terms_display} — {base_title}" if _terms_display else base_title
+            ax.set_title(title, fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
