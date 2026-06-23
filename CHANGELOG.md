@@ -12,6 +12,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.8] — 2026-06-23
+
+Two first-run / factory-reset polish fixes following user testing
+of the 1.2.7 build.
+
+### Fixed
+- **Split-pane sash collapse on first run / factory reset.** First
+  launch puts users on the Getting Started tab; the Search tab's
+  paned widget isn't mapped yet at the 1150 ms-after-deiconify
+  schedule for `_set_initial_pane_split`. `winfo_width()` returned
+  0, `sashpos(0, 0)` collapsed the left pane to zero width, and
+  the right pane took the full screen when the user clicked Done.
+  After three attempts (timer-based retry, event-driven
+  `<Configure>` handler, polling with backoff) — the third
+  approach landed: `_poll_apply_sash` retries `_try_apply_sash`
+  every 250 ms for up to 10 s until the paned has a usable width
+  (≥ 200 px) and self-stops on success. Width threshold of 200 px
+  catches both unmapped width-1 and partially-laid-out narrow
+  widths that would still produce a visibly collapsed split.
+
+### Changed
+- **Tooltips default OFF on first install / factory reset.**
+  First-time users got a noisy hover-popup explaining things they
+  were already looking at. The Tooltips: OFF button at the bottom
+  toolbar flips them on; users who want them on click once and
+  click Save Defaults to make ON sticky. Existing users with
+  `hover_text=true` explicitly saved in `~/.peekdocsrc` still see
+  tooltips ON — their preference persists. Existing users who
+  never explicitly saved a hover_text preference will see tooltips
+  disappear after upgrade (re-enable via the toolbar toggle).
+
+### Docs
+- USER_GUIDE chart entry-point table (lines 450–452) updated to
+  the short chart-button names (`Match Count` / `File Types` /
+  `Categories`); added a row for the previously-undocumented
+  `Categories` button.
+- USER_GUIDE Results-pane description (line 466) updated likewise.
+- USER_GUIDE bottom-row description (line 468) notes Tooltips
+  toggle defaults OFF on first install / factory reset as of 1.2.8.
+- USER_GUIDE config-key table `max_matches` row updated from the
+  old 1,000 default to the 5,000 default (with the 1.2.7
+  provenance call-out).
+
 ## [1.2.7] — 2026-06-23
 
 Max Matches default raised from 1,000 → 5,000 after real-world
