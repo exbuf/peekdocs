@@ -106,6 +106,7 @@ Example with multiple excludes: `peekdocs -n draft,obsolete budget`
 
 **Can I search scanned PDFs or images?**
 Yes — use the `-O` flag. This uses OCR (Optical Character Recognition) to extract text from scanned PDF pages and image files (.jpg, .jpeg, .png, .tiff, .tif, .bmp). Tesseract must be installed on your system — see the [README](../README.md#prerequisites) for installation instructions. OCR is slower than regular text search, so it's opt-in.<br>
+**First OCR run on a folder is dramatically slower than subsequent runs.** Tesseract has to invoke once per image and once per scanned PDF page — a 300-scanned-PDF folder can take 20–30+ seconds the first time. peekdocs caches the OCR-extracted text in the search index after that, so the second and subsequent searches return at normal indexed-search speed (~sub-second). Deleting `.peekdocs.db` or moving the corpus to a fresh machine forces the OCR cost to be paid again. Regular PDFs with an embedded text layer are always searched and never need OCR — only image-only / scanned PDFs do.<br>
 Example: `peekdocs -O budget`
 
 **Can I use regex patterns?**
