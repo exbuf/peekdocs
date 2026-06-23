@@ -12,6 +12,77 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.6] — 2026-06-23
+
+**DOCX is now opt-in for Standard Search.** Following user feedback
+that the CLI was producing a DOCX every time even when only TXT was
+needed, the default flips: `peekdocs <terms>` now writes only the
+`.txt` report. To get the highlighted Word report, pass
+`peekdocs -o docx <terms>` (combinable: `-o docx,csv,html`). The
+existing `--no-docx` flag is kept as a tolerated no-op for one
+release so any scripts that pass it don't break. **Suites and
+Regex collections are unchanged** — both still write TXT + DOCX
+unconditionally (the user explicitly scoped the change to Standard
+Search; Suites' combined DOCX is load-bearing to the workflow,
+Regex's DOCX is a distinct report type).
+
+In the GUI, the **DOCX** checkbox under Advanced Search Options
+default-state flips from ON to OFF. Existing users with
+`output_docx=true` in `~/.peekdocsrc` will still see the checkbox
+come up checked (their preference persisted from before the change).
+
+Also bundles two small GUI polish fixes from the same hover-test
+pass: CSV / JSON / PDF / HTML PHASE markers now flash in the status
+line even though they complete in milliseconds (the recurring timer
+would have missed them), and the output-format checkboxes pack flush
+in a sub-frame instead of inheriting the surrounding column widths
+(JSON used to have a wide gap because col 2 of cb_frame was sized by
+'OCR (images + scanned PDFs)' above).
+
+### Changed
+- **CLI default for DOCX flips to opt-in.** `peekdocs -o docx` now
+  writes the highlighted Word report; bare `peekdocs <terms>` only
+  produces `peekdocs_standard_results.txt`. Help text and `-o`
+  examples updated to show `-o docx,csv,json,pdf,html`. Suites and
+  Regex collections still write TXT + DOCX unconditionally.
+- **GUI DOCX checkbox default flips ON → OFF.** Stored preferences
+  in `~/.peekdocsrc` still take precedence on launch, so users who
+  saved DOCX-on as their default still get DOCX-on. The new default
+  applies only to fresh installs / factory-reset state.
+- **GUI plumbs DOCX through `-o docx`** (replacing the old
+  `--no-docx`-when-unchecked path). _helpers.py's
+  `_build_command_from_values` `output_docx` kwarg default flips
+  True → False to match the GUI checkbox.
+- `--no-docx` flag is now a tolerated no-op (kept for one release
+  so existing scripts don't error). USER_GUIDE flag-table entry
+  marks it as deprecated.
+- Documentation: README and USER_GUIDE updated in eight places to
+  reflect the new opt-in behavior — main results-saved paragraph,
+  FAQ entry, output-formats blockquote, `-o` flag-table entry,
+  `-o` qualifier bullet, and the report-files bullet.
+
+### Fixed
+- **Fast PHASE markers now visible in the GUI status line.** CSV /
+  JSON / PDF / HTML report-writes complete in milliseconds; the
+  recurring 1-second elapsed-timer tick was overwriting their phase
+  before the user could see it. `_update_elapsed` split into
+  `_render_phase_status` (pure render) and `_update_elapsed`
+  (recurring tick that renders + reschedules). The marker callback
+  now schedules an immediate `_render_phase_status` via
+  `self.after(0, ...)` without restarting the timer.
+- **Output-format checkboxes pack flush in their own sub-frame.**
+  DOCX / CSV / JSON / PDF / HTML used to share `cb_frame`'s 3-column
+  grid; col 2's width is sized by the 'OCR (images + scanned PDFs)'
+  checkbox above, so JSON sat in a wide cell with a big visual gap
+  before PDF / HTML. New sub-frame on row 3 ignores the parent's
+  column widths and packs all five buttons flush with 10-px spacing.
+
+### Tests
+- Three CLI tests (`test_search_finds_matches`, `test_search_save_
+  append`, the `--on-match` hook test) updated to add `-o docx` to
+  their `main(...)` invocations since they specifically verify DOCX
+  output. All 652 tests pass.
+
 ## [1.2.5] — 2026-06-23
 
 GUI chart-and-discoverability release. Three new right-pane chart
