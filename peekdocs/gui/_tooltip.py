@@ -15,6 +15,13 @@ import platform
 #      deiconify it only once the final position is set.
 _IS_MACOS = platform.system() == "Darwin"
 _TOOLTIP_GAP_PX = 16 if _IS_MACOS else 5
+# macOS needs a longer hide delay because we bind <Leave> on every
+# inner child of composite CTk widgets (CTkCheckBox / CTkButton each
+# wrap a tk.Canvas + a CTkLabel). The cursor crossing one of those
+# internal borders fires a child Leave; without a big enough window
+# for the matching Enter on the next child to cancel the hide, the
+# tooltip would destroy + recreate on every internal sweep.
+_HIDE_DELAY_MS = 300 if _IS_MACOS else 150
 
 
 class Tooltip:
@@ -53,16 +60,16 @@ class Tooltip:
             # inner canvas / label rather than the outer frame).
             for child in widget.winfo_children():
                 child.bind("<Enter>", self._show)
-                # On macOS, skip the child <Leave> binding. macOS fires
-                # Leave on inner children more aggressively as the cursor
-                # crosses the implicit borders inside a CTk composite,
-                # and each Leave→schedule_hide→Enter cycle was
-                # destroying and recreating the tooltip — reading fresh
-                # winfo_rootx/y each time and producing a visible
-                # position-shake. The outer widget's Leave still fires
-                # when the cursor genuinely leaves, so hide still works.
-                if not _IS_MACOS:
-                    child.bind("<Leave>", self._schedule_hide)
+                # Bind <Leave> on every child too. An earlier mac-only
+                # workaround skipped this to fight jitter, but that
+                # caused the opposite bug: tooltips never hid when the
+                # cursor entered via an inner child (CTkCheckBox /
+                # CTkButton wrap a canvas + label) and exited the
+                # widget without ever touching the outer frame. The
+                # bumped _HIDE_DELAY_MS (300 ms on macOS) absorbs the
+                # internal Enter/Leave bounces that the cancel-on-Enter
+                # path in _show catches in time.
+                child.bind("<Leave>", self._schedule_hide)
 
     def _show(self, event=None):
         """Display the tooltip window near the widget on mouse enter."""
@@ -115,13 +122,6 @@ class Tooltip:
 
             self.tip_window = tw = tk.Toplevel(self.widget)
             tw.wm_overrideredirect(True)
-            # macOS Cocoa does not auto-raise overrideredirect Toplevels
-            # above the parent window — the tooltip can end up partially
-            # hidden behind the main window. -topmost keeps it above.
-            try:
-                tw.attributes("-topmost", True)
-            except Exception:
-                pass
             # On macOS, hide the window during the placeholder-paint dance
             # so only the final position is ever visible. Harmless on
             # other platforms; gated to Darwin to avoid changing behavior
@@ -185,6 +185,15 @@ class Tooltip:
             # so Cocoa never paints the placeholder frame to screen.
             if _IS_MACOS:
                 tw.deiconify()
+            # lift() pushes the tooltip Toplevel above sibling windows.
+            # Replaces the earlier -topmost attribute which didn't
+            # reliably keep wm_overrideredirect Toplevels above the
+            # main window on Cocoa (tooltips would sink behind the app
+            # and stay there). Harmless on Windows/Linux.
+            try:
+                tw.lift()
+            except Exception:
+                pass
         except Exception:
             self.tip_window = None
 
@@ -200,7 +209,7 @@ class Tooltip:
         # prevent destroy/recreate on real internal bounces.
         if self._hide_id is not None:
             self.widget.after_cancel(self._hide_id)
-        self._hide_id = self.widget.after(150, self._hide)
+        self._hide_id = self.widget.after(_HIDE_DELAY_MS, self._hide)
 
     def _hide(self, event=None):
         """Destroy the tooltip window."""
