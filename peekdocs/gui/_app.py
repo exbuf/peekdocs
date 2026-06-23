@@ -346,60 +346,45 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
         holds 5 output-format checkboxes on one row — fits without HTML
         running off the right edge at the default split.
 
-        Tries once now (typical when the Search tab is visible at
-        startup), then installs a one-shot <Configure> handler on
-        self._paned so the sash gets positioned the moment the paned
-        actually has a non-zero width. This handles the first-run /
-        factory-reset path: Getting Started is shown first, so the
-        Search tab — and the paned inside it — isn't mapped yet at
-        the 1150 ms-after-deiconify schedule. When the user clicks
-        Done and the tab switch maps the paned for the first time,
-        Tk fires <Configure> with the real width and the handler
-        positions the sash. After success the handler unbinds itself
-        so subsequent user-driven sash drags or resizes aren't reset.
+        Bulletproof polling approach: tries once now, then keeps
+        retrying every 250 ms (up to 40 attempts = 10 seconds total)
+        until the paned has a usable width (>= 200 px). Handles the
+        first-run / factory-reset path where the Getting Started tab
+        is shown first — by the time the user clicks Done, the polling
+        catches the new width on the next tick. Earlier attempts
+        (timer-based retry, <Configure> handler) didn't reliably catch
+        CTkTabview's geometry handoff on every setup.
         """
+        self._poll_apply_sash()
+
+    def _poll_apply_sash(self, attempts_left: int = 40):
+        """Retry _try_apply_sash every 250 ms until it succeeds or we
+        give up after `attempts_left` attempts (40 × 250 ms = 10 s)."""
+        if getattr(self, "_initial_sash_set", False):
+            return
         if self._try_apply_sash():
             return
-        # Width still 0 (paned not mapped yet). Install a one-shot
-        # Configure handler that will fire as soon as it has one.
-        try:
-            self._sash_bind_id = self._paned.bind("<Configure>", self._on_paned_configure, add="+")
-        except Exception:
-            pass
+        if attempts_left > 0:
+            self.after(250, lambda: self._poll_apply_sash(attempts_left - 1))
 
     def _try_apply_sash(self) -> bool:
-        """Apply the 52% sash position if the paned has a real width.
+        """Apply the 52% sash position if the paned has a usable width.
 
         Returns True on success (records self._initial_sash_set), False
-        if the paned isn't mapped yet (width 0).
+        if the paned isn't mapped yet (width < 200 px — covers both
+        unmapped width=1 and partially-laid-out narrow widths that
+        would produce a collapsed split).
         """
         try:
             self.update_idletasks()
             w = self._paned.winfo_width()
-            if w > 0:
+            if w >= 200:
                 self._paned.sashpos(0, int(w * 0.52))
                 self._initial_sash_set = True
                 return True
         except Exception:
             pass
         return False
-
-    def _on_paned_configure(self, _event=None):
-        """One-shot <Configure> handler that positions the sash the
-        moment self._paned first acquires a non-zero width, then
-        unbinds itself."""
-        if getattr(self, "_initial_sash_set", False):
-            # Already set by a different code path; just clean up.
-            try:
-                self._paned.unbind("<Configure>", getattr(self, "_sash_bind_id", None))
-            except Exception:
-                pass
-            return
-        if self._try_apply_sash():
-            try:
-                self._paned.unbind("<Configure>", getattr(self, "_sash_bind_id", None))
-            except Exception:
-                pass
 
 
 
