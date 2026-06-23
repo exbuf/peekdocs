@@ -879,15 +879,20 @@ class BuildMixin:
         def _save_output_format(key, var):
             self._save_ui_preference(key, var.get() == "on")
 
-        # Format checkboxes parent to cb_frame (not output_frame) so they
-        # share the search-mode grid's column widths. DOCX/CSV/JSON line
-        # up under Inverse/Expression/Whole Word at cols 0/1/2.
+        # Format checkboxes live in their own sub-frame on row 3 of
+        # cb_frame, packed side="left" so they sit flush regardless of
+        # the surrounding column widths. (Earlier they shared cb_frame's
+        # 3-column grid, but col 2's width is sized by 'OCR (images +
+        # scanned PDFs)' above — leaving a big visual gap after JSON
+        # and PDF/HTML looking detached.)
+        formats_row = ctk.CTkFrame(cb_frame, fg_color="transparent")
+        formats_row.grid(row=3, column=0, columnspan=3, pady=(8, 0), sticky="w")
         cb_docx = ctk.CTkCheckBox(
-            cb_frame, text="DOCX", variable=self.output_docx_var,
+            formats_row, text="DOCX", variable=self.output_docx_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_docx", self.output_docx_var),
         )
-        cb_docx.grid(row=3, column=0, padx=(0, 15), pady=(8, 0), sticky="w")
+        cb_docx.pack(side="left", padx=(0, 10))
         Tooltip(cb_docx,
                 "Write the highlighted Word report (.docx). Default ON. "
                 "Uncheck to skip the .docx report and only keep the .txt "
@@ -895,29 +900,29 @@ class BuildMixin:
                 "so it still works). " + _output_scope_note,
                 anchor="above")
         cb_csv = ctk.CTkCheckBox(
-            cb_frame, text="CSV", variable=self.output_csv_var,
+            formats_row, text="CSV", variable=self.output_csv_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_csv", self.output_csv_var),
         )
-        cb_csv.grid(row=3, column=1, padx=(0, 15), pady=(8, 0), sticky="w")
+        cb_csv.pack(side="left", padx=(0, 10))
         cb_json = ctk.CTkCheckBox(
-            cb_frame, text="JSON", variable=self.output_json_var,
+            formats_row, text="JSON", variable=self.output_json_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_json", self.output_json_var),
         )
-        cb_json.grid(row=3, column=2, padx=(0, 15), pady=(8, 0), sticky="w")
+        cb_json.pack(side="left", padx=(0, 10))
         cb_pdf = ctk.CTkCheckBox(
-            cb_frame, text="PDF", variable=self.output_pdf_var,
+            formats_row, text="PDF", variable=self.output_pdf_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_pdf", self.output_pdf_var),
         )
-        cb_pdf.grid(row=3, column=3, padx=(0, 15), pady=(8, 0), sticky="w")
+        cb_pdf.pack(side="left", padx=(0, 10))
         cb_html = ctk.CTkCheckBox(
-            cb_frame, text="HTML", variable=self.output_html_var,
+            formats_row, text="HTML", variable=self.output_html_var,
             onvalue="on", offvalue="off",
             command=lambda: _save_output_format("output_html", self.output_html_var),
         )
-        cb_html.grid(row=3, column=4, padx=(0, 0), pady=(8, 0), sticky="w")
+        cb_html.pack(side="left", padx=(0, 0))
         # Tooltips on the four output checkboxes are attached below in
         # the bulk-tooltip section near the bottom of this method — this
         # file's convention is to declare every widget first, then attach

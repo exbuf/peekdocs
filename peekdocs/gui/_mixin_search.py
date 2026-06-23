@@ -541,38 +541,59 @@ class SearchMixin:
         """Handle one line of subprocess stderr — pluck PHASE markers.
 
         Called from a background thread by _run_peekdocs_cli's stderr
-        reader. We only do an atomic string assignment to
-        self._search_phase here; the elapsed-timer reads it from the
-        main thread. Other stderr content (the 'Scanning files...'
-        hint, warnings, errors) is captured by the helper into stderr
-        for the existing post-search handling — we don't intercept it.
+        reader. Updates self._search_phase (atomic string assignment;
+        the elapsed-timer reads it from the main thread) and also
+        schedules an immediate _update_elapsed via self.after(0, ...)
+        so fast phases (CSV at tens of milliseconds, JSON / PDF / HTML
+        at fractions of a second) are visible in the status line.
+        Without the immediate refresh, the 1-second elapsed-timer tick
+        would miss any phase that completed within the same second.
+        Other stderr content (the 'Scanning files...' hint, warnings,
+        errors) is captured by the helper into stderr for the existing
+        post-search handling — we don't intercept it.
         """
         if not line.startswith("PHASE: "):
             return
         token = line[len("PHASE: "):].strip()
         if token in self._PHASE_LABELS:
             self._search_phase = token
+            try:
+                self.after(0, self._render_phase_status)
+            except Exception:
+                pass
+
+    def _render_phase_status(self):
+        """Compute + render the phase + elapsed status line.
+
+        Pure rendering — no timer scheduling. Called by _update_elapsed
+        on the recurring tick AND by _on_subprocess_stderr_line via
+        self.after(0, ...) the moment a PHASE marker arrives, so fast
+        phases that complete inside one timer interval still flash
+        their label.
+        """
+        if self.search_start_time is None:
+            return
+        elapsed = time.time() - self.search_start_time
+        dots = "." * (int(elapsed) % 4)
+        phase = getattr(self, "_search_phase", "searching")
+        verb = self._PHASE_LABELS.get(phase, "Searching")
+        self.status_label.configure(
+            text=f"{verb}{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
+            text_color=("blue", "#66BBFF"),
+        )
 
     def _update_elapsed(self):
-        """Update the status label with the current phase + elapsed time.
+        """Recurring tick — render the status and reschedule.
 
         Phase comes from CLI 'PHASE: <token>' markers parsed by
-        _on_subprocess_stderr_line — not a heuristic. Reports running
-        long (DOCX with tens of thousands of matches can take a
-        minute) now show 'Writing DOCX report... (Ns elapsed)' instead
-        of stale 'Searching...'.
+        _on_subprocess_stderr_line. Reports running long (DOCX with
+        tens of thousands of matches can take a minute) show
+        'Writing DOCX report... (Ns elapsed)' instead of stale
+        'Searching...'.
         """
         if self.process is None and self.search_start_time is None:
             return
-        if self.search_start_time is not None:
-            elapsed = time.time() - self.search_start_time
-            dots = "." * (int(elapsed) % 4)
-            phase = getattr(self, "_search_phase", "searching")
-            verb = self._PHASE_LABELS.get(phase, "Searching")
-            self.status_label.configure(
-                text=f"{verb}{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
-                text_color=("blue", "#66BBFF"),
-            )
+        self._render_phase_status()
         self.elapsed_timer_id = self.after(1000, self._update_elapsed)
 
 
