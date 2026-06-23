@@ -82,7 +82,7 @@ BANNER_BOTTOM = (
     '── Output ───────────────────────────────────────────────────────\n'
     '  -A 5               Show 5 lines after each match (paragraph in Word/PDF; row in Excel)\n'
     '  -B 5               Show 5 lines before each match (paragraph in Word/PDF; row in Excel)\n'
-    '  -m 5000            Max matches in reports (0 = no limit, default: 1000)\n'
+    '  -m 5000            Max matches in reports (0 = no limit, default: 5000)\n'
     '  -o docx,csv,json,pdf,html  Opt-in output formats (any combination; .txt is always written)\n'
     '  -s my_report       Save/archive the report with a name\n'
     '  -sa my_report      Append results to a named file across searches\n'
@@ -268,7 +268,7 @@ BANNER_QUICK = (
     '  peekdocs -R amount:1000..5000 "" Filter by dollar range\n'
     '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
     '  peekdocs -o docx,csv,json,pdf,html budget  Opt-in output formats (any combination; .txt is always written)\n'
-    '  peekdocs -m 5000 budget          Max matches in reports (0 = no limit, default: 1000)\n'
+    '  peekdocs -m 10000 budget         Max matches in reports (0 = no limit, default: 5000)\n'
     '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
     '  peekdocs --suite "My Suite"      Run a saved search suite by name (auto-locates folder)\n'
@@ -2052,7 +2052,7 @@ def _main_inner(argv=None):
         inverse_files = [f for f in all_files if f not in matched_paths]
 
     # Cap matches for report generation to avoid minutes-long DOCX writes
-    max_matches = parsed.get("max_matches", 1000)
+    max_matches = parsed.get("max_matches", 5000)
     total_match_count = len(matches)
     total_file_count = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
     capped = False

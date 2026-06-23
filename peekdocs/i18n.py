@@ -163,7 +163,7 @@ _STRINGS = {
         "chart_category_button_label": "Categories",
         # Results Preview pane header + Clear button
         "results_preview_label": "Results",
-        "results_preview_tooltip": "Live preview of search matches. Render volume is controlled by the Preview cap dropdown on this row (100 / 500 / 1000 / 5000 / No cap; default 500) — the cap counts matches, not lines, and keeps the GUI responsive on large result sets. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 1000; 0 = no limit).",
+        "results_preview_tooltip": "Live preview of search matches. Render volume is controlled by the Preview cap dropdown on this row (100 / 500 / 1000 / 5000 / No cap; default 500) — the cap counts matches, not lines, and keeps the GUI responsive on large result sets. The full set of matches is always written to the report files (.txt, .docx, .html, .csv, .json, .pdf) regardless of the preview cap. To limit the matches written to the reports themselves, set Max Matches in Advanced Search Options (default 5000; 0 = no limit).",
         "clear_preview_label": "Clear",
         "clear_preview_tooltip": "Clear the Results Preview pane and the Matched Files / Excluded Files buttons — removes all visible match data from the screen. Useful if you've finished reviewing and don't want results visible. Does not delete report files on disk",
         # Bottom-row navigation buttons (left group): README / User Guide / Close

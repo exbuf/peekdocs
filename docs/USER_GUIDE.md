@@ -666,7 +666,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-c N` (cores) | Number of CPU cores for parallel search (default: half of available cores). For small numbers of files (fewer than 10), single-threaded mode is used automatically |
 | `-e` (expression) | Boolean expression search — use AND, OR, NOT, parentheses, and range specs for complex queries. See [Boolean Expression Search](#boolean-expression-search) |
 | `-f` (files) | Search specific files (comma-separated, e.g., `report.pdf,notes.txt`) |
-| `-m N` (max-matches) | Maximum matches included in reports (default: 1,000). Use `0` for no limit |
+| `-m N` (max-matches) | Maximum matches included in reports (default: 5,000 as of 1.2.7). Use `0` for no limit. The cap protects you from minutes-long DOCX renders on huge result sets (python-docx is slow at inserting tens of thousands of highlighted runs) and from massive report files (TXT can hit 100+ MB on >100K matches). 5,000 covers most "find every X" workflows; raise it (or pass `0` = unlimited) when you genuinely want every match — typical use of `0` is jq-pipeline scenarios with `--stdout` JSON or `-o json` |
 | `--max-file-size N` | Skip files larger than N MB (default 100, 0 = no limit) |
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Opt-in output formats — `docx`, `csv`, `json`, `pdf`, `html`, or any combination (`-o docx,csv,html`). The `.txt` report is always written (the GUI Results Preview parses it); everything else, including DOCX as of 1.2.6, is opt-in. Suites and Regex collections write TXT + DOCX regardless of this flag |
@@ -760,7 +760,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-o csv,json` creates both files; `-o csv,json,pdf,html` creates all four
 - `-m` always needs its count immediately after it (e.g., `-m 5000`)
 - `-m 0` disables the match cap entirely — all matches are included in reports
-- `-m` defaults to 1,000 when not specified. This prevents very large result sets from causing slow report generation
+- `-m` defaults to 5,000 when not specified. This prevents very large result sets from causing slow report generation (especially DOCX, which is the bottleneck)
 - `-m` can be set permanently via `--config max_matches=5000` or in the GUI's Advanced Search Options panel
 - `--timestamp` adds a `_YYYYMMDD_HHMMSS` suffix to report filenames so each search produces unique files (e.g., `peekdocs_standard_results_20260327_143022.txt`)
 - `--timestamp` is off by default in the GUI. Check the Timestamp checkbox in Advanced Search Options to enable it — each search then produces uniquely named files instead of overwriting the previous results
@@ -2796,13 +2796,13 @@ The following defaults exist to prevent accidental slowdowns or memory issues on
 
 | Safeguard | Default | Flag | Why it exists | How to remove |
 |-----------|---------|------|---------------|---------------|
-| **Max matches in reports** | 1,000 | `-m N` | Writing 50,000 matches to a .docx file can take minutes and produce a very large report. The total match count is always accurate in the summary — only the report files are capped | Set `-m 0` for unlimited |
+| **Max matches in reports** | 5,000 | `-m N` | Writing 50,000 matches to a .docx file can take minutes and produce a very large report (python-docx is slow at inserting tens of thousands of highlighted runs; TXT can hit 100+ MB on >100K matches). 5,000 covers most 'find every X' workflows; raised from 1,000 in 1.2.7 after real-world demo runs showed the lower cap truncated common searches. The total match count is always accurate in the summary — only the report files are capped | Set `-m 0` for unlimited. Typical use of 0 is jq-pipeline scenarios with `--stdout` JSON or `-o json` where the DOCX render cost doesn't apply |
 | **Max file size** | 100 MB | `--max-file-size N` | Very large files (multi-GB PDFs, massive spreadsheets) can take minutes to parse and may exhaust memory. Skipped files appear in the Excluded Files list after each search so you know what was missed | Set `--max-file-size 0` for no limit. In the GUI, set **Max File Size (MB)** to 0 in Advanced Search Options |
 | **CPU cores** | Half of available | `-c N` | Using all cores speeds up searches but makes your computer unresponsive while searching | Set `-c` to your full core count for maximum speed |
 
 These safeguards exist because a user once searching a folder with multi-GB database exports shouldn't have to wonder why the app froze — the defaults protect against that while being easy to override. If you know your files are manageable, remove the limits entirely.
 
-**Why raising Max File Size can show fewer matched files:** This is counterintuitive but expected. When a very large file (e.g., a 110 MB log file) contains thousands of matches, those matches consume most of the Max Matches budget (default 1,000). Fewer slots remain for matches from other files, so the Matched Files count goes *down* even though you're searching *more* files. Lowering Max File Size to skip the large file frees up those match slots for other files, so you actually see more matched files. If you raise Max File Size and notice fewer matched files, raise Max Matches too (or set it to 0 for unlimited).
+**Why raising Max File Size can show fewer matched files:** This is counterintuitive but expected. When a very large file (e.g., a 110 MB log file) contains thousands of matches, those matches consume most of the Max Matches budget (default 5,000). Fewer slots remain for matches from other files, so the Matched Files count goes *down* even though you're searching *more* files. Lowering Max File Size to skip the large file frees up those match slots for other files, so you actually see more matched files. If you raise Max File Size and notice fewer matched files, raise Max Matches too (or set it to 0 for unlimited).
 
 **Setting permanent defaults with `--config`:** The `--config` flag saves a setting to a configuration file (`~/.peekdocsrc`) so it applies automatically every time you run peekdocs — you don't have to type the flag on every search. For example, if you always want a higher match cap:
 

@@ -229,7 +229,7 @@ def parse_flags(args, config):
             return (2, f"Invalid value for --max-file-size: {args[idx + 1]}. Must be a non-negative integer (0 = no limit).\n")
         args[:] = args[:idx] + args[idx + 2:]
 
-    max_matches = config.get("max_matches", 1000)
+    max_matches = config.get("max_matches", 5000)
     if "-m" in args:
         idx = args.index("-m")
         if idx + 1 >= len(args):

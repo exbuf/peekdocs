@@ -212,7 +212,7 @@ class DataMixin:
         if "proximity" in config:
             self.proximity_entry.insert(0, str(config["proximity"]))
         self.max_matches_entry.delete(0, "end")
-        self.max_matches_entry.insert(0, str(config.get("max_matches", 1000)))
+        self.max_matches_entry.insert(0, str(config.get("max_matches", 5000)))
         self.max_file_size_entry.delete(0, "end")
         self.max_file_size_entry.insert(0, str(config.get("max_file_size_mb", 100)))
         self.file_types_entry.delete(0, "end")
@@ -1095,7 +1095,7 @@ class DataMixin:
         self.cores_entry.delete(0, "end")
         self.cores_entry.insert(0, params.get("cores", "") or str(self._default_cores))
         self.max_matches_entry.delete(0, "end")
-        self.max_matches_entry.insert(0, params.get("max_matches", "") or "1000")
+        self.max_matches_entry.insert(0, params.get("max_matches", "") or "5000")
         self.max_file_size_entry.delete(0, "end")
         self.max_file_size_entry.insert(0, params.get("max_file_size_mb", "") or "100")
         self.specific_files_entry.delete(0, "end")
