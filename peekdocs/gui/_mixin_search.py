@@ -1194,7 +1194,7 @@ class SearchMixin:
             pass
 
     def _open_chart_window(self, title, plot_fn, *, geometry="760x500",
-                           figsize=(7.4, 4.6), parent=None):
+                           figsize=(7.4, 4.6), parent=None, scrollable=False):
         """Generic chart popup: themed Toplevel + matplotlib canvas +
         Close button, with figure-cleanup on close. Shared by every
         chart entry point in the GUI.
@@ -1236,9 +1236,55 @@ class SearchMixin:
             return None
         fig.tight_layout()
 
-        canvas = FigureCanvasTkAgg(fig, master=chart_win)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=8)
+        if scrollable:
+            # Vertical-scroll wrapper. Used by charts whose Y-axis label
+            # count can be large (e.g. matches-by-file-type with 40+
+            # extensions) — without this the bars get crushed together
+            # and the labels overlap. We fix the rendered figure height
+            # to figsize[1] inches × 100 dpi and scroll within a smaller
+            # window.
+            import tkinter as _tk_scroll
+            outer = _tk_scroll.Frame(chart_win)
+            outer.pack(fill="both", expand=True, padx=8, pady=8)
+            scroll_canvas = _tk_scroll.Canvas(outer, highlightthickness=0)
+            v_scroll = _tk_scroll.Scrollbar(outer, orient="vertical",
+                                            command=scroll_canvas.yview)
+            scroll_canvas.configure(yscrollcommand=v_scroll.set)
+            v_scroll.pack(side="right", fill="y")
+            scroll_canvas.pack(side="left", fill="both", expand=True)
+
+            inner = _tk_scroll.Frame(scroll_canvas)
+            inner_id = scroll_canvas.create_window((0, 0), window=inner, anchor="nw")
+
+            canvas = FigureCanvasTkAgg(fig, master=inner)
+            canvas.draw()
+            chart_widget = canvas.get_tk_widget()
+            chart_widget.configure(
+                width=int(figsize[0] * 100), height=int(figsize[1] * 100),
+            )
+            chart_widget.pack(fill="both", expand=True)
+
+            def _on_inner_configure(_event):
+                scroll_canvas.configure(scrollregion=scroll_canvas.bbox("all"))
+            inner.bind("<Configure>", _on_inner_configure)
+
+            def _on_canvas_configure(event):
+                scroll_canvas.itemconfigure(inner_id, width=event.width)
+            scroll_canvas.bind("<Configure>", _on_canvas_configure)
+
+            # Mouse-wheel scroll (binds platform-aware deltas)
+            def _on_mousewheel(event):
+                delta = -1 if event.delta > 0 else 1
+                scroll_canvas.yview_scroll(delta, "units")
+            scroll_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            # Unbind global mousewheel on window destroy so other windows
+            # aren't affected.
+            chart_win.bind("<Destroy>",
+                           lambda _e: scroll_canvas.unbind_all("<MouseWheel>"))
+        else:
+            canvas = FigureCanvasTkAgg(fig, master=chart_win)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=8)
 
         import customtkinter as _ctk_chart
         close_btn = _ctk_chart.CTkButton(
@@ -1360,21 +1406,28 @@ class SearchMixin:
             title = (
                 f"Matches by file type — "
                 f"{total_matches:,} total matches across {total_types} "
-                f"matched type{'s' if total_types != 1 else ''}"
+                f"matched file type{'s' if total_types != 1 else ''}"
             )
             if searched_types_count is not None:
-                title += f" ({searched_types_count} type{'s' if searched_types_count != 1 else ''} searched)"
+                title += f" ({searched_types_count} file type{'s' if searched_types_count != 1 else ''} searched)"
             ax.set_title(title, fontsize=12, weight="bold")
             ax.grid(axis="x", linestyle="--", alpha=0.4)
             for i, v in enumerate(counts):
                 ax.text(v, i, f" {v:,}", va="center", fontsize=9, color="#333333")
 
-        # Wider geometry so the long composite title
-        # ("Matches by file type — N total matches across M matched
-        # types (K types searched)") fits without being truncated by
-        # matplotlib's default centered-title rendering.
-        self._open_chart_window("Matches by file type", _plot,
-                                geometry="1100x520", figsize=(10.6, 4.8))
+        # Wider geometry so the long composite title fits, and a figure
+        # height that grows with the number of matched types so the
+        # horizontal bars don't get crushed together. ~0.35 inches per
+        # type with a 4.8" floor (covers the 1-12 type case at the
+        # previous default height). The window opens at 520px tall and
+        # scrolls vertically whenever the figure is taller than that.
+        _ft_fig_h = max(4.8, 0.35 * total_types)
+        self._open_chart_window(
+            "Matches by file type", _plot,
+            geometry="1100x520",
+            figsize=(10.6, _ft_fig_h),
+            scrollable=True,
+        )
 
     def _clear_preview(self):
         """Clear the Results Preview pane and the matched/excluded files buttons.
