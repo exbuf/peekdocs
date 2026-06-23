@@ -49,7 +49,10 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     doc.save(str(tmp_path / "sample.docx"))
 
     monkeypatch.chdir(tmp_path)
-    result = main(["hello"])
+    # DOCX is opt-in via -o docx as of peekdocs 1.2.6 (the CLI default
+    # is TXT-only). This test exercises the highlighted Word report,
+    # so it explicitly opts in.
+    result = main(["hello", "-o", "docx"])
     captured = capsys.readouterr()
 
     assert result == 0
@@ -1319,7 +1322,10 @@ def test_search_save_append(tmp_path, monkeypatch, capsys):
     txt_file.write_text("Budget overview for Q1\n")
 
     monkeypatch.chdir(tmp_path)
-    result = main(["-sa", "my_report", "budget"])
+    # DOCX is opt-in via -o docx as of peekdocs 1.2.6. This test
+    # exercises both the standard DOCX and the accumulated DOCX, so
+    # it explicitly opts in.
+    result = main(["-sa", "my_report", "-o", "docx", "budget"])
     captured = capsys.readouterr()
 
     assert result == 0
@@ -3828,7 +3834,9 @@ def test_on_match_passes_report_paths_for_standard_search(tmp_path, monkeypatch)
     )
     script.chmod(0o755)
 
-    main(["--on-match", str(script), "TODO"])
+    # DOCX is opt-in via -o docx as of peekdocs 1.2.6 — this test
+    # checks PEEKDOCS_REPORT_DOCX is exported when a DOCX is produced.
+    main(["--on-match", str(script), "-o", "docx", "TODO"])
     out = env_dump.read_text()
     assert "peekdocs_standard_results.txt" in out
     assert "peekdocs_standard_results.docx" in out

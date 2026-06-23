@@ -83,7 +83,7 @@ BANNER_BOTTOM = (
     '  -A 5               Show 5 lines after each match (paragraph in Word/PDF; row in Excel)\n'
     '  -B 5               Show 5 lines before each match (paragraph in Word/PDF; row in Excel)\n'
     '  -m 5000            Max matches in reports (0 = no limit, default: 1000)\n'
-    '  -o csv,json,pdf,html  Additional output formats (any combination)\n'
+    '  -o docx,csv,json,pdf,html  Opt-in output formats (any combination; .txt is always written)\n'
     '  -s my_report       Save/archive the report with a name\n'
     '  -sa my_report      Append results to a named file across searches\n'
     '  --output-dir PATH  Write all output files to a specific folder\n'
@@ -267,7 +267,7 @@ BANNER_QUICK = (
     '  peekdocs -A 5 -B 5 budget        Show 5 lines before and after each match\n'
     '  peekdocs -R amount:1000..5000 "" Filter by dollar range\n'
     '  peekdocs -O budget               Enable OCR for scanned PDFs and images\n'
-    '  peekdocs -o csv,json,pdf,html budget  Additional output formats (any combination)\n'
+    '  peekdocs -o docx,csv,json,pdf,html budget  Opt-in output formats (any combination; .txt is always written)\n'
     '  peekdocs -m 5000 budget          Max matches in reports (0 = no limit, default: 1000)\n'
     '  peekdocs --max-file-size 500     Skip files larger than 500 MB (default 100, 0 = no limit)\n'
     '  peekdocs --index                 Build search index for faster repeated searches\n'
@@ -1785,12 +1785,16 @@ def _main_inner(argv=None):
     if no_index:
         args.remove("--no-index")
 
-    # --no-docx skips writing peekdocs_standard_results.docx. The TXT
-    # report is still written (the GUI's preview pane + Matched Files
-    # popup both read from it). Lets users opt out of the bulky
-    # highlighted Word report when they don't need it.
-    no_docx = "--no-docx" in args
-    if no_docx:
+    # DOCX is opt-in via `-o docx` (peekdocs >= 1.2.6). For Standard
+    # Search, the CLI only writes peekdocs_standard_results.txt
+    # automatically; DOCX joins the output formats list when explicitly
+    # requested. Search Suites and Regex collections still write DOCX
+    # unconditionally (different code paths; cli.py:1580 / :1750).
+    #
+    # --no-docx is kept as a tolerated no-op for one release so any
+    # scripts that pass it don't break — the new default is already
+    # DOCX-off, so the flag is just redundant. Remove in a later release.
+    if "--no-docx" in args:
         args.remove("--no-docx")
 
     ts_suffix = ""
@@ -2169,7 +2173,8 @@ def _main_inner(argv=None):
         index_meta=idx_meta,
     )
 
-    if no_docx:
+    write_docx = "docx" in output_formats
+    if not write_docx:
         result_doc = None
         docx_output_path = None
         txt_size, docx_size = insert_file_sizes(output_path, None, None)

@@ -871,7 +871,7 @@ class BuildMixin:
             "inside the Search Suites popup. Regex Search always writes "
             "just TXT and DOCX, regardless of these checkboxes."
         )
-        self.output_docx_var = ctk.StringVar(value="on")
+        self.output_docx_var = ctk.StringVar(value="off")
         self.output_csv_var = ctk.StringVar(value="off")
         self.output_json_var = ctk.StringVar(value="off")
         self.output_pdf_var = ctk.StringVar(value="off")
@@ -1004,7 +1004,7 @@ class BuildMixin:
         Tooltip(self._adv_cb_rec, "Search subfolders inside the Search Folder")
         Tooltip(self._adv_cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
         Tooltip(self._adv_cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
-        Tooltip(self._adv_cb_ocr, "Extract text from image files (bmp, jpg, jpeg, png, tif, tiff) and image-only / scanned PDFs. Regular PDFs with an embedded text layer are ALWAYS searched regardless of this setting — OCR is only needed for PDFs that are just pictures of pages (e.g., scans, faxes). Requires Tesseract to be installed (see Readme.md). This checkbox is a per-search toggle — it does NOT auto-persist on toggle and resets to OFF each time you launch peekdocs. (Click Save Defaults at the bottom of Advanced Search Options if you want OCR on by default.) Rationale: OCR is expensive — Tesseract can take many seconds per scanned PDF — so leaving it on across sessions would surprise users with much slower runs they didn't ask for.", anchor="above")
+        Tooltip(self._adv_cb_ocr, "Extract text from image files (bmp, jpg, jpeg, png, tif, tiff) and image-only / scanned PDFs. Regular PDFs with an embedded text layer are ALWAYS searched regardless of this setting — OCR is only needed for PDFs that are just pictures of pages (e.g., scans, faxes). Requires Tesseract to be installed (see Readme.md). This checkbox is a per-search toggle — it does NOT auto-persist on toggle and resets to OFF each time you launch peekdocs. (Click Save Defaults at the bottom of Advanced Search Options if you want OCR on by default.) Rationale: OCR is expensive — Tesseract can take many seconds per scanned PDF — so leaving it on across sessions would surprise users with much slower runs they didn't ask for. **First OCR run on a folder is dramatically slower than subsequent runs**: peekdocs has to invoke Tesseract on every image and scanned PDF the first time (e.g., a 300-scanned-PDF folder can take 20-30+ seconds the first run). peekdocs caches the OCR-extracted text in the search index after that, so the second and subsequent searches return at normal indexed-search speed (~sub-second). If you delete the index (.peekdocs.db) or move the corpus to a fresh machine, you pay the cost again the next time OCR runs.", anchor="above")
         Tooltip(self._adv_cb_expr, (
             "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
             "\n"

@@ -653,7 +653,7 @@ def _build_command_from_values(
     cores="",
     specific_files="",
     append_name="",
-    output_docx=True,
+    output_docx=False,
     output_csv=False,
     output_json=False,
     output_pdf=False,
@@ -691,8 +691,8 @@ def _build_command_from_values(
     if not index_search:
         cmd.append("--no-index")
 
-    if not output_docx:
-        cmd.append("--no-docx")
+    # DOCX is opt-in via -o docx as of peekdocs 1.2.6 (the CLI default
+    # is now TXT-only). Plumbed below alongside csv/json/pdf/html.
 
     if expression:
         cmd.append("-e")
@@ -747,6 +747,8 @@ def _build_command_from_values(
         cmd.extend(["-sa", append_name.strip()])
 
     output_parts = []
+    if output_docx:
+        output_parts.append("docx")
     if output_csv:
         output_parts.append("csv")
     if output_json:
