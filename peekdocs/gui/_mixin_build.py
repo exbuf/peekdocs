@@ -680,16 +680,20 @@ class BuildMixin:
             onvalue="on", offvalue="off", command=self._on_wildcard_toggle,
         )
         self._adv_cb_wild.grid(row=1, column=0, padx=(0, 15), pady=0, sticky="w")
-        self._adv_cb_ocr = ctk.CTkCheckBox(
-            cb_frame, text=_t("adv_ocr_label"), variable=self.ocr_var,
-            onvalue="on", offvalue="off",
-        )
-        self._adv_cb_ocr.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
+        # Regex and OCR positions swapped — OCR has a longer label
+        # ('OCR (images + scanned PDFs)') so it sits in the rightmost
+        # column where it can extend without pushing other checkboxes
+        # off-screen on narrow Windows sash positions.
         self._adv_cb_regex = ctk.CTkCheckBox(
             cb_frame, text=_t("adv_regex_label"), variable=self.regex_var,
             onvalue="on", offvalue="off", command=self._on_regex_toggle,
         )
-        self._adv_cb_regex.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
+        self._adv_cb_regex.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
+        self._adv_cb_ocr = ctk.CTkCheckBox(
+            cb_frame, text=_t("adv_ocr_label"), variable=self.ocr_var,
+            onvalue="on", offvalue="off",
+        )
+        self._adv_cb_ocr.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
 
         # Row 2 of the checkbox grid: Inverse, Expression, Whole Word.
         # Moved out of rows 0/1 so the first two rows group naturally
@@ -995,7 +999,7 @@ class BuildMixin:
         Tooltip(self._adv_cb_rec, "Search subfolders inside the Search Folder")
         Tooltip(self._adv_cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
         Tooltip(self._adv_cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
-        Tooltip(self._adv_cb_ocr, "Extract text from scanned PDFs and image files (bmp, jpg, jpeg, png, tif, tiff). Requires Tesseract to be installed (see Readme.md). This checkbox is a per-search toggle — it does NOT auto-persist on toggle and resets to OFF each time you launch peekdocs. (Click Save Defaults at the bottom of Advanced Search Options if you want OCR on by default.) Rationale: OCR is expensive — Tesseract can take many seconds per scanned PDF — so leaving it on across sessions would surprise users with much slower runs they didn't ask for.", anchor="above")
+        Tooltip(self._adv_cb_ocr, "Extract text from image files (bmp, jpg, jpeg, png, tif, tiff) and image-only / scanned PDFs. Regular PDFs with an embedded text layer are ALWAYS searched regardless of this setting — OCR is only needed for PDFs that are just pictures of pages (e.g., scans, faxes). Requires Tesseract to be installed (see Readme.md). This checkbox is a per-search toggle — it does NOT auto-persist on toggle and resets to OFF each time you launch peekdocs. (Click Save Defaults at the bottom of Advanced Search Options if you want OCR on by default.) Rationale: OCR is expensive — Tesseract can take many seconds per scanned PDF — so leaving it on across sessions would surprise users with much slower runs they didn't ask for.", anchor="above")
         Tooltip(self._adv_cb_expr, (
             "Boolean Expression Search — use AND, OR, NOT, and parentheses for complex queries.\n"
             "\n"
