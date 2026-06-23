@@ -12,6 +12,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.10] — 2026-06-23
+
+Docs-only release. The "first OCR run on a folder is dramatically
+slower than subsequent runs (peekdocs caches OCR-extracted text in
+the search index)" explanation was already in the OCR checkbox
+tooltip and the Advanced help ? popup; this release fills in the
+two user-facing spots that were missing it.
+
+### Docs
+- README OCR feature bullet — extended with the "first run is much
+  slower; subsequent searches read from the cached index" note plus
+  the ".peekdocs.db deletion forces the cost again" caveat.
+- TROUBLESHOOTING "Can I search scanned PDFs or images?" answer —
+  full paragraph added on the first-vs-subsequent-run cost
+  difference. Also clarifies that regular PDFs with a text layer
+  never need OCR (only image-only / scanned PDFs do).
+
 ## [1.2.9] — 2026-06-23
 
 User-reported UX gap on the preview cap-status line. After raising
