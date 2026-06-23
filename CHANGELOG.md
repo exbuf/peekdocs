@@ -88,6 +88,17 @@ bypass instructions inside the download tables.
   10.6×4.8 so the long composite title fits.
 
 ### Fixed
+- **Accurate report-writing status in the GUI status line.** The
+  status line used to read `Searching... (Ns elapsed)` for the full
+  subprocess duration — which on big result sets meant 60+ seconds
+  of misleading 'Searching' while the CLI was actually writing the
+  DOCX report (the slow step at tens of thousands of highlighted
+  matches). cli.py now emits stable `PHASE: writing-{txt,docx,csv,
+  json,pdf,html}` markers to stderr before each report-write call;
+  `_run_peekdocs_cli` streams stderr line-by-line on a background
+  thread and invokes a callback per line; the elapsed-timer reads
+  the parsed phase and renders e.g. `Writing DOCX report... (47s
+  elapsed)` instead of stale `Searching...`.
 - **macOS tooltip persistence in Advanced Search Options** —
   tooltips opened, didn't close, and sat behind other windows
   until the app quit. Root cause was the earlier mac-only skip of
