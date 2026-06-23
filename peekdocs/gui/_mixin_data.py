@@ -1131,10 +1131,30 @@ class DataMixin:
 
         popup, _dark = self._themed_toplevel()
         count = len(self.matched_files)
+
+        # Search-terms prefix — quoted, comma-separated, capped at ~80
+        # chars so a long expression doesn't blow out the header. Same
+        # pattern as the Chart-File Type Count title. Empty search bar
+        # (Expression-mode runs where terms live elsewhere) falls back
+        # to the bare 'Matched Files (N)' heading.
+        try:
+            import shlex as _shlex_mf
+            _terms_raw = self.search_entry.get().strip() if hasattr(self, "search_entry") else ""
+            try:
+                _terms_tokens = _shlex_mf.split(_terms_raw)
+            except ValueError:
+                _terms_tokens = _terms_raw.split()
+            _terms_display = ", ".join(f"'{t}'" for t in _terms_tokens)
+            if len(_terms_display) > 80:
+                _terms_display = _terms_display[:77] + "..."
+        except Exception:
+            _terms_display = ""
+
         if self._inverse_results:
-            heading = f"Files Without Matches ({count})"
+            base_heading = f"Files Without Matches ({count})"
         else:
-            heading = f"Matched Files ({count})"
+            base_heading = f"Matched Files ({count})"
+        heading = f"{_terms_display} — {base_heading}" if _terms_display else base_heading
         popup.title(heading)
         popup.resizable(True, True)
         win_h = max(400, min(720, count * 28 + 250))
