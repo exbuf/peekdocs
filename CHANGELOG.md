@@ -12,6 +12,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.7] — 2026-06-23
+
+Max Matches default raised from 1,000 → 5,000 after real-world
+demo runs ('budget' against the 5,400-file mixed corpus hit 46,741
+matches) showed the lower cap was truncating common searches. 5,000
+covers significantly more 'find every X' workflows without uncapping
+into the minutes-long DOCX render zone — unlimited as the default
+was considered and rejected because python-docx is slow at inserting
+tens of thousands of highlighted runs, and a first-time user clicking
+DOCX on a 50K-match search and waiting five minutes would conclude
+the tool is broken. Users who genuinely want every match (typical
+case: jq-pipeline scenarios with `--stdout` JSON or `-o json` where
+the DOCX render cost doesn't apply) set `-m 0` for unlimited.
+
+Bundles the 1.2.6 work (DOCX-opt-in for Standard Search) — that
+release was bumped in pyproject.toml + __init__.py + CHANGELOG but
+never tagged-and-pushed. The 1.2.6 section is preserved below as a
+record of the DOCX-opt-in work.
+
+### Changed
+- **Max Matches default raised 1,000 → 5,000.** Affects fresh
+  installs / factory-reset state; users with a saved
+  `max_matches` in `~/.peekdocsrc` still get whatever they saved.
+  Eight code sites updated (parser, cli, three GUI mixins, i18n);
+  USER_GUIDE flag-table entry + safeguards-table entry + 'why
+  raising Max File Size can show fewer matches' callout updated to
+  the new default; Advanced help ? popup Max Matches section
+  rewritten with the full tradeoff discussion (DOCX bottleneck,
+  TXT size at huge counts, 5,000 sweet spot, unlimited via -m 0,
+  the 1,000 → 5,000 provenance).
+- Max Matches GUI tooltip rewritten with the same rationale — the
+  cap exists to protect from minutes-long DOCX renders on huge
+  result sets and from massive report files; raise it (or 0 = no
+  limit) when you really want every match.
+
 ## [1.2.6] — 2026-06-23
 
 **DOCX is now opt-in for Standard Search.** Following user feedback
