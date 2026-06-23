@@ -528,17 +528,19 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 
 **Direct GUI downloads** (always the latest release):
 
-| Platform | Download | After download [\*](#first-launch-security) |
+| Platform | Download | After download |
 |---|---|---|
-| Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run |
-| macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app` |
-| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux` |
+| Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run. **First launch:** Windows SmartScreen blocks the .exe — click **More info** → **Run anyway**. (peekdocs is unsigned open-source; this is expected.) |
+| macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app`. **First launch:** macOS Gatekeeper shows a dialog with only **Done** / **Move to Trash** (no Open button) — bypass via `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app` in Terminal, then double-click again. Each new download (including upgrades) re-triggers the warning. |
+| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. No first-launch security prompt on Linux. |
+
+Why the warnings appear and the full per-platform bypass walkthrough: [First-launch security warnings](#first-launch-security) below.
 
 **Direct CLI downloads** (always the latest release):
 
-| Platform | Download | After download [\*](#first-launch-security) |
+| Platform | Download | After download |
 |---|---|---|
-| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell needs the `.\` prefix). For global access from any terminal, see **Windows: make `peekdocs` work from any terminal** below the table. PowerShell-specific `--%` token and `.rar`/`.pst` limitations: [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
+| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell needs the `.\` prefix). **First launch:** SmartScreen may block the .exe — click **More info** → **Run anyway**. For global access from any terminal, see **Windows: make `peekdocs` work from any terminal** below the table. PowerShell-specific `--%` token and `.rar`/`.pst` limitations: [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
 | macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Safari auto-unzips → a `peekdocs/` **folder** (the binary is `peekdocs/peekdocs`; the folder also contains `_internal/` with the bundled Python and libraries). `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs && ./peekdocs/peekdocs --version`. For global access from any terminal: `sudo mv peekdocs /usr/local/lib/peekdocs && sudo ln -s /usr/local/lib/peekdocs/peekdocs /usr/local/bin/peekdocs && sudo xattr -dr com.apple.quarantine /usr/local/lib/peekdocs` so `peekdocs "query" /path` works from any terminal session. **The post-move `xattr` matters** — without it Gatekeeper re-verifies on every launch. The folder distribution replaces the older single-binary one because PyInstaller `--onedir` mode skips the per-invocation self-extraction cost (~5–7s for an unsigned `--onefile` CLI on macOS dropped to ~1–2s). |
 | Linux | [**peekdocs-cli-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux) | In the download folder: `cd ~/Downloads && chmod +x peekdocs-cli-linux && ./peekdocs-cli-linux --version`. Optionally `sudo mv peekdocs-cli-linux /usr/local/bin/peekdocs` for global access. |
 
