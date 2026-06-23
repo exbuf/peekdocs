@@ -320,6 +320,14 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
             if current == "Search":
                 # User is already on Search — hide the redundant tab button
                 search_btn.grid_remove()
+                # If the initial sash positioning failed (typically
+                # because the Search tab wasn't mapped yet at the
+                # original 1150ms-after schedule — first-run users
+                # land on Getting Started, so the paned widget had a
+                # width of 0 and the sash got pinned to 0, collapsing
+                # the left pane), retry now that the tab is visible.
+                if not getattr(self, "_initial_sash_set", False):
+                    self.after(50, self._set_initial_pane_split)
             else:
                 # On Getting Started — show the button labeled "Done"
                 search_btn.grid()
@@ -337,14 +345,23 @@ class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
 
     def _set_initial_pane_split(self):
         """Place the initial sash position biased slightly toward the
-        left pane (55%) so the Advanced Search Options panel — which
+        left pane (52%) so the Advanced Search Options panel — which
         holds 5 output-format checkboxes on one row — fits without HTML
-        running off the right edge at the default split."""
+        running off the right edge at the default split.
+
+        Records success in self._initial_sash_set so _on_tab_changed can
+        retry on the first switch to the Search tab if the initial
+        attempt failed (typical on first run when the Getting Started
+        tab is shown first and the Search tab's paned widget hasn't
+        been mapped yet — winfo_width() returns 0 and sashpos(0, 0)
+        collapses the left pane to zero width).
+        """
         try:
             self.update_idletasks()
             w = self._paned.winfo_width()
             if w > 0:
                 self._paned.sashpos(0, int(w * 0.52))
+                self._initial_sash_set = True
         except Exception:
             pass
 
