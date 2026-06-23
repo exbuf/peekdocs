@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 
-def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None):
+def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None, on_stderr_line=None):
     """Run a peekdocs CLI command and return ``(stdout, stderr, returncode)``.
 
     ``on_process_started`` is an optional callback invoked with the
@@ -93,8 +93,37 @@ def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None):
             on_process_started(proc)
         except Exception:
             pass
-    stdout, stderr = proc.communicate()
-    return stdout, stderr, proc.returncode
+    if on_stderr_line is None:
+        stdout, stderr = proc.communicate()
+        return stdout, stderr, proc.returncode
+
+    # Streaming mode: read stderr line-by-line in a background thread
+    # so the caller can react to phase markers (e.g. 'PHASE: writing-docx')
+    # while the subprocess is still running. stdout is collected
+    # synchronously via proc.stdout.read() at the end. Exceptions in
+    # the callback are swallowed so a buggy caller can't deadlock the
+    # subprocess.
+    import threading as _threading
+    stderr_buf = []
+
+    def _stderr_reader():
+        try:
+            for raw_line in proc.stderr:
+                stderr_buf.append(raw_line)
+                line = raw_line.rstrip("\r\n")
+                try:
+                    on_stderr_line(line)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    t = _threading.Thread(target=_stderr_reader, daemon=True)
+    t.start()
+    stdout = proc.stdout.read() if proc.stdout else ""
+    proc.wait()
+    t.join(timeout=2.0)
+    return stdout, "".join(stderr_buf), proc.returncode
 
 
 def themed_ask_string(parent, title, prompt, initial=""):

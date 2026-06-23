@@ -296,6 +296,12 @@ class SearchMixin:
         # whether a report file on disk was written by this run vs a
         # prior session.
         self._last_search_start_time = self.search_start_time
+        # Reset the phase tracker — CLI subprocess will emit
+        # 'PHASE: writing-txt' / 'writing-docx' / 'writing-csv' /
+        # 'writing-json' / 'writing-pdf' / 'writing-html' markers on
+        # stderr; _on_subprocess_stderr_line updates this string and
+        # _update_elapsed reads it for the live status line.
+        self._search_phase = "searching"
         self._start_elapsed_timer()
 
         # Reset the cancel flag for the new run — a prior cancelled run
@@ -518,15 +524,53 @@ class SearchMixin:
 
 
 
+    # Maps CLI-emitted 'PHASE: <token>' markers to user-facing status
+    # verbs. Tokens come from peekdocs/cli.py before each report-write
+    # call. Anything not in the map falls back to 'Searching'.
+    _PHASE_LABELS = {
+        "searching":    "Searching",
+        "writing-txt":  "Writing TXT report",
+        "writing-docx": "Writing DOCX report",
+        "writing-csv":  "Writing CSV report",
+        "writing-json": "Writing JSON report",
+        "writing-pdf":  "Writing PDF report",
+        "writing-html": "Writing HTML report",
+    }
+
+    def _on_subprocess_stderr_line(self, line: str):
+        """Handle one line of subprocess stderr — pluck PHASE markers.
+
+        Called from a background thread by _run_peekdocs_cli's stderr
+        reader. We only do an atomic string assignment to
+        self._search_phase here; the elapsed-timer reads it from the
+        main thread. Other stderr content (the 'Scanning files...'
+        hint, warnings, errors) is captured by the helper into stderr
+        for the existing post-search handling — we don't intercept it.
+        """
+        if not line.startswith("PHASE: "):
+            return
+        token = line[len("PHASE: "):].strip()
+        if token in self._PHASE_LABELS:
+            self._search_phase = token
+
     def _update_elapsed(self):
-        """Update the status label with the current elapsed search time."""
+        """Update the status label with the current phase + elapsed time.
+
+        Phase comes from CLI 'PHASE: <token>' markers parsed by
+        _on_subprocess_stderr_line — not a heuristic. Reports running
+        long (DOCX with tens of thousands of matches can take a
+        minute) now show 'Writing DOCX report... (Ns elapsed)' instead
+        of stale 'Searching...'.
+        """
         if self.process is None and self.search_start_time is None:
             return
         if self.search_start_time is not None:
             elapsed = time.time() - self.search_start_time
             dots = "." * (int(elapsed) % 4)
+            phase = getattr(self, "_search_phase", "searching")
+            verb = self._PHASE_LABELS.get(phase, "Searching")
             self.status_label.configure(
-                text=f"Searching{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
+                text=f"{verb}{dots.ljust(3)}  ({elapsed:.0f}s elapsed)",
                 text_color=("blue", "#66BBFF"),
             )
         self.elapsed_timer_id = self.after(1000, self._update_elapsed)
@@ -553,7 +597,9 @@ class SearchMixin:
             def _capture_process(proc):
                 self.process = proc
             stdout, stderr, returncode = _run_peekdocs_cli(
-                cmd, folder, on_process_started=_capture_process,
+                cmd, folder,
+                on_process_started=_capture_process,
+                on_stderr_line=self._on_subprocess_stderr_line,
             )
             # Include stderr in output if stdout is empty
             if not stdout.strip() and stderr.strip():

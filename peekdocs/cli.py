@@ -2140,6 +2140,11 @@ def _main_inner(argv=None):
     import peekdocs.reporter as _reporter_mod
     _reporter_mod.restrict_permissions = _load_config().get("restrict_permissions", False)
 
+    # PHASE marker — the GUI streams stderr line-by-line and parses
+    # these so the status line transitions from 'Searching...' to
+    # 'Writing TXT report...' etc. without resorting to elapsed-time
+    # heuristics. Format is stable: 'PHASE: <kebab-case-token>'.
+    print("PHASE: writing-txt", file=sys.stderr, flush=True)
     total_bytes, size_str = write_txt_report(
         output_path, matches, all_files, search_terms, command_str,
         report_mode, use_ocr, exclude_terms, use_context,
@@ -2169,6 +2174,7 @@ def _main_inner(argv=None):
         docx_output_path = None
         txt_size, docx_size = insert_file_sizes(output_path, None, None)
     else:
+        print("PHASE: writing-docx", file=sys.stderr, flush=True)
         result_doc = write_docx_report(
             docx_output_path, output_path,
             search_terms=search_terms,
@@ -2185,10 +2191,12 @@ def _main_inner(argv=None):
     pdf_output_path = None
 
     if "csv" in output_formats:
+        print("PHASE: writing-csv", file=sys.stderr, flush=True)
         csv_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.csv")
         write_csv_report(csv_output_path, matches, inverse_files=inverse_files)
 
     if "json" in output_formats:
+        print("PHASE: writing-json", file=sys.stderr, flush=True)
         json_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.json")
         write_json_report(
             json_output_path, matches, search_terms, report_mode,
@@ -2199,6 +2207,7 @@ def _main_inner(argv=None):
         )
 
     if "pdf" in output_formats:
+        print("PHASE: writing-pdf", file=sys.stderr, flush=True)
         pdf_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.pdf")
         try:
             write_pdf_report(
@@ -2214,6 +2223,7 @@ def _main_inner(argv=None):
 
     html_output_path = None
     if "html" in output_formats:
+        print("PHASE: writing-html", file=sys.stderr, flush=True)
         html_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.html")
         try:
             write_html_report(
