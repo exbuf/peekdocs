@@ -647,6 +647,31 @@ class SearchMixin:
             self.after_cancel(self.elapsed_timer_id)
             self.elapsed_timer_id = None
 
+        # Capture the uncapped total match count + Max Matches cap so
+        # the cap-status line under the preview can distinguish
+        # report-truncated vs preview-truncated runs. The CLI prints
+        # 'Found N match(es) ... Reports capped at M' when -m caps
+        # the report; N is the uncapped total. self._total_match_count
+        # / self._report_cap_value default to None when the line
+        # isn't present, so the cap-status helper falls back to its
+        # pre-1.2.8 behavior.
+        import re as _re_cap
+        self._total_match_count = None
+        self._report_cap_value = None
+        _clean_for_cap = _re_cap.sub(r"\033\[[0-9;]*m", "", stdout or "")
+        _m = _re_cap.search(r"Found\s+(\d+)\s+match", _clean_for_cap)
+        if _m:
+            try:
+                self._total_match_count = int(_m.group(1))
+            except ValueError:
+                pass
+        _cm = _re_cap.search(r"Reports capped at\s+([\d,]+)", _clean_for_cap)
+        if _cm:
+            try:
+                self._report_cap_value = int(_cm.group(1).replace(",", ""))
+            except ValueError:
+                pass
+
         self.search_button.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_standard_search_label"), fg_color="#2196F3", hover_color="#1976D2", text_color="white")
         self.search_entry.configure(state="normal")
 
@@ -1114,14 +1139,48 @@ class SearchMixin:
 
     def _update_preview_cap_status(self, matches_rendered, total_matches, cap):
         """Render the browser-GUI-style status line above the preview
-        text — "All N matches rendered…" or "Preview shows the first
-        M of N matches…" depending on whether the cap kicked in."""
+        text. Three cases:
+
+        1. Report-capped: the search engine hit the Max Matches cap
+           before the report was written. The .txt — and therefore
+           total_matches passed in here — only contains the first M
+           of the actual N total. Show 'Report capped at M of N
+           matches — raise Max Matches in Advanced Search Options
+           to see more'. This was the most confusing case in
+           practice: users would set Preview cap to 'No cap' and
+           still see truncated results without understanding why.
+        2. Preview-capped: the report has all matches but the
+           preview render hit the Preview cap. Show 'Preview shows
+           the first M of N matches — raise Preview cap →'.
+        3. Fully rendered: everything in the report is in the
+           preview. Show 'All N matches rendered below.'
+
+        self._total_match_count and self._report_cap_value are set
+        in _search_finished from the CLI stdout. Both default to
+        None when not set; the function falls back to the
+        pre-1.2.8 two-case behavior if so."""
         # (Internal note: snapshot/apply helpers for Recent Searches
         #  are defined just below this method — see _snapshot_search_config.)
         if not hasattr(self, "_preview_cap_status"):
             return
-        capped = bool(cap) and matches_rendered >= cap and total_matches > matches_rendered
-        if capped:
+        report_total = getattr(self, "_total_match_count", None)
+        report_cap = getattr(self, "_report_cap_value", None)
+        report_capped = (
+            report_total is not None
+            and report_cap is not None
+            and report_total > report_cap
+        )
+
+        preview_capped = bool(cap) and matches_rendered >= cap and total_matches > matches_rendered
+
+        if report_capped:
+            text = (
+                f"Report capped at {report_cap:,} of {report_total:,} matches "
+                "(Max Matches limit hit). Raise Max Matches in Advanced "
+                "Search Options to see more, or set it to 0 for unlimited. "
+                "Heads-up: at unlimited, DOCX render can take minutes."
+            )
+        elif preview_capped:
             text = (
                 f"Preview shows the first {matches_rendered:,} of {total_matches:,} matches. "
                 "The cap keeps the GUI responsive on big result sets — the full data is always "
