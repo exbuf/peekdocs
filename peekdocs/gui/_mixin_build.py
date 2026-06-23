@@ -1305,7 +1305,7 @@ class BuildMixin:
         # Chart — opens a matplotlib popup with the "Top 10 files by
         # match count" bar chart (mirrors the browser GUI's Chart tab).
         self._chart_btn = ctk.CTkButton(
-            preview_label_row, text=_t("chart_button_label"), width=180,
+            preview_label_row, text=_t("chart_button_label"), width=110,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1321,7 +1321,7 @@ class BuildMixin:
         # and renders matches-per-type on a horizontal bar chart, types
         # listed alphabetically.
         self._chart_filetype_btn = ctk.CTkButton(
-            preview_label_row, text=_t("chart_filetype_button_label"), width=180,
+            preview_label_row, text=_t("chart_filetype_button_label"), width=105,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
@@ -1339,7 +1339,7 @@ class BuildMixin:
         # Archives, Code, Data/Config, etc.) so the chart reads at a
         # glance for non-developers.
         self._chart_category_btn = ctk.CTkButton(
-            preview_label_row, text=_t("chart_category_button_label"), width=200,
+            preview_label_row, text=_t("chart_category_button_label"), width=110,
             font=ctk.CTkFont(size=11),
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),

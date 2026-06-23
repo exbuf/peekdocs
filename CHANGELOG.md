@@ -12,6 +12,96 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.5] — 2026-06-23
+
+GUI chart-and-discoverability release. Three new right-pane chart
+buttons surface what peekdocs found by extension, file-type
+category, and match count — the differentiator-from-grep story made
+visible. Matched Files / Excluded Files popups and all chart titles
+now lead with the active search terms so it's always clear which
+result set you're looking at. Tools → File Inventory grows a
+View-by-Type (A-Z) companion popup. README first-launch security
+warnings move from a hidden asterisk-footnote into inline per-platform
+bypass instructions inside the download tables.
+
+- **File Types** chart button on the right pane — opens a
+  horizontal bar chart grouping the matched files by extension
+  (alphabetical), with per-type match counts, a 'total matches /
+  matched file types / file types searched, 100+ supported'
+  composite title, and vertical scroll for result sets with many
+  types.
+- **Categories** chart button on the right pane — rolls
+  per-extension counts up into 13 human-named buckets (Office,
+  PDF, Email, Images / OCR, Archives, Code, Notebooks, Data /
+  Config, Markup / Docs, Calendar / Contacts, Plain text, CAD /
+  Engineering, E-books) plus 'Other'. Useful for the at-a-glance
+  "where did my matches come from?" view.
+- **Tools → File Inventory → View by Type (A-Z)** — second popup
+  positioned to the right of the parent inventory window with the
+  same per-extension counts and sizes sorted alphabetically.
+- Search-terms prefix on Matched Files popup, Excluded Files popup,
+  and all three right-pane chart titles. Format: `'budget' —
+  Matched Files (50)` etc. Long expressions trim at 80 chars.
+- README: 'GUI available in 7 languages' framing on the language
+  picker summary; 'Composes with standard Unix tools' integration
+  bullet; `peekdocs --dry-run` preflight example with the
+  large-tree caveat.
+
+### Changed
+- Right-pane Chart button renamed to **Match Count** (was just
+  'Chart') to disambiguate which dimension is being charted now
+  that there are three chart options. The three chart buttons in
+  the Results pane share the row as: **Match Count · File Types ·
+  Categories**, each with a tooltip describing what it shows.
+- OCR checkbox label expanded to **OCR (images + scanned PDFs)**.
+  Regex and OCR grid positions swapped so the longer OCR label
+  lives in the rightmost column where it can extend without
+  pushing other checkboxes off-screen at narrow Windows sash widths.
+- OCR tooltip now states explicitly that OCR is a per-search toggle
+  (resets to OFF each launch; use Save Defaults to make it sticky),
+  spells out the Tesseract-cost rationale, and clarifies that
+  regular PDFs with a text layer are always searched regardless of
+  this setting — OCR only applies to image-only / scanned PDFs.
+- USER_GUIDE Advanced Search Options walkthrough gains a new
+  blockquote listing which checkboxes auto-persist (Recursive,
+  Whole Word, Use Index) versus which require Save Defaults (AND/OR,
+  Fuzzy, Wildcard, Regex, OCR, Expression, Inverse).
+- README download tables — first-launch security bypass instructions
+  now inline in each cell (SmartScreen click-path for Windows,
+  System Settings → Privacy & Security + xattr command for macOS,
+  'no warning' for Linux) instead of behind an easy-to-miss
+  asterisk-footnote link. Adds 'expected for unsigned open-source
+  software, does not indicate the app is unsafe' framing.
+- README tagline rewritten: 'Built for people who prefer private,
+  transparent, deterministic tools. No cloud, no telemetry, no
+  network calls.'
+- Hero demo video URL on README swapped to the final recording.
+- Stale '50,000 files' typical-workflow claims in README
+  genericized to 'a folder of mixed-format documents' /
+  'dozens of files or many thousands' — peekdocs has zero shipped
+  users at this stage, so claiming any specific scale as 'typical'
+  is aspirational. The two benchmark-table rows that report
+  measured 50,000-file timings are unchanged (those are facts).
+- Right-pane chart titles all now split to two lines: search terms
+  on line 1, count breakdown on line 2.
+- Chart-File Type Count window widens to 1100×520 with figsize
+  10.6×4.8 so the long composite title fits.
+
+### Fixed
+- **macOS tooltip persistence in Advanced Search Options** —
+  tooltips opened, didn't close, and sat behind other windows
+  until the app quit. Root cause was the earlier mac-only skip of
+  `<Leave>` bindings on inner children of CTk composite widgets:
+  the cursor could enter via an inner canvas/label and exit
+  without ever touching the outer frame, so the outer `<Leave>`
+  never fired and the hide timer never started. Re-bind `<Leave>`
+  on children, bump macOS hide delay 150 ms → 300 ms so internal
+  Enter/Leave bounces are absorbed by the cancel-on-Enter path,
+  and replace `tw.attributes('-topmost', True)` with `tw.lift()`
+  (the `-topmost` attribute doesn't reliably keep
+  `wm_overrideredirect` Toplevels above the main window on Cocoa,
+  which is what produced the 'sits behind' part of the symptom).
+
 ## [1.2.4] — 2026-06-22
 
 CLI progress-feedback release. Long recursive runs (the classic
