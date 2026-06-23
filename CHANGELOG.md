@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.9] — 2026-06-23
+
+User-reported UX gap on the preview cap-status line. After raising
+Max Matches default to 5,000 in 1.2.7, users could still hit
+truncated previews and not understand why — they'd set Preview cap
+to 'No cap' expecting to see everything, but the .txt report itself
+was already capped at 5,000 by Max Matches before preview rendering
+even started. The old cap-status line only mentioned the preview
+cap, leaving the report cap invisible.
+
+### Changed
+- Preview cap-status line now distinguishes three cases instead of
+  two. Priority order: **report-capped** (Max Matches limit hit;
+  reads "Report capped at 5,000 of 46,741 matches (Max Matches
+  limit hit). Raise Max Matches in Advanced Search Options to see
+  more, or set it to 0 for unlimited. Heads-up: at unlimited, DOCX
+  render can take minutes.") → **preview-capped** (existing
+  "Preview shows the first M of N…" message) → **fully rendered**
+  (existing "All N matches rendered below" message). `_search_finished`
+  now parses `Found N match(es)` and `Reports capped at M` from CLI
+  stdout to populate `self._total_match_count` and
+  `self._report_cap_value`; `_update_preview_cap_status` reads
+  these and adds the report-capped branch. Falls back to the pre-
+  1.2.9 two-case behavior if stdout parsing fails (e.g., older CLI).
+
 ## [1.2.8] — 2026-06-23
 
 Two first-run / factory-reset polish fixes following user testing
