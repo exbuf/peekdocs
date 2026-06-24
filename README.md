@@ -218,7 +218,6 @@ for match in results.matches:
 - [Watch peekdocs in action](#watch-peekdocs-in-action)
 - [Feature Highlights](#feature-highlights)
 - [CLI at a Glance](#cli-at-a-glance)
-- [Screenshots](#screenshots)
 - [Who Is It For?](#who-is-it-for)
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
@@ -259,78 +258,6 @@ peekdocs --suite "Code hygiene"
 `peekdocs -h` shows every flag, file type, and regex pattern. The [User Guide](docs/USER_GUIDE.md) covers the CLI in full.
 
 > **Pointing peekdocs at your whole home directory or `/` is slow** — even with `--dry-run`. Tree walks across `~/Library`, every git repo, every `node_modules`, every Python venv, and every browser cache can easily mean hundreds of thousands of files; the enumeration phase alone can run 5–10+ minutes before any content is read. Press **Ctrl+C** to cancel at any time. Narrow the path (`peekdocs -r ~/Documents budget`) or restrict file types (`peekdocs -r -t pdf,docx,xlsx ~ budget`) to cut the corpus to seconds. During long runs, peekdocs prints `Scanning files (this may take a while on large folders)...` to stderr while enumerating, then switches to a live `[██░░] 12345/89201 file.pdf` progress bar once content reads begin.
-
-## Screenshots
-
-*The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works well across personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
-
-*Hardware and install context: search times shown in these screenshots (0.51s, 0.50s, 0.3s) were measured on the development and test machine — a MacBook Pro with an Apple M4 Pro chip and 24 GB of memory — running peekdocs installed via pipx (Option B), not the standalone download. Times on other configurations will vary; older or lower-spec hardware will be slower on the same workload, and the standalone download (Option A) adds the platform-specific [PyInstaller / Gatekeeper startup tax](docs/GLOSSARY.md#pyinstaller-gatekeeper-startup-tax) per invocation on top of the search time itself.*
-
-#### Watch Search Suites in action
-
-<!--
-  TO UPDATE THIS SEARCH SUITES DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~30-60s) showing the
-     Code Hygiene suite: open Search Suites, select the suite, click
-     Run Search Suite, watch the combined report build, click into the
-     HTML or Matched Files view.
-  2. Open a new Issue on this repo and drag the MP4 into the
-     "Add a description" Write tab; wait for the upload to finish.
-  3. Copy the user-attachments URL GitHub inserts (the
-     "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of the URL below — the src= on the
-     <video> tag and the href on the fallback <a> link.
-  5. Don't submit the issue — discard it. The URL stays live.
--->
-
-<video src="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff"
-       controls
-       poster="docs/images/screenshot-searchsuite-setup.png"
-       width="720"
-       muted
-       playsinline>
-  Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/90a3d63d-ca7c-405c-b3ec-8418857751ff">Download the demo (MP4)</a>.
-</video>
-
-*A walkthrough of a "Code Hygiene" suite running end-to-end: open Search Suites, run the five-search suite, view the combined report — the same workflow the labeled screenshots in section 4 below break down. No audio.*
-
-*peekdocs ships no pre-built suites — "Code Hygiene" was assembled ad-hoc for this demo. You build your own suites from your saved searches (any number of them), then run them on demand from the GUI / CLI or unattended on a schedule via cron (Mac/Linux) or Task Scheduler (Windows). The Search Suites popup also has a **Run Multiple Search Suites…** button at the bottom that opens a checkbox picker over every saved suite — check two or more and run them together as one combined report (saved-search names that appear in multiple picked suites run once). See Schedule Search further down for the schedule-setup flow.*
-
-#### Watch Regex Search in action
-
-<!--
-  TO UPDATE THIS REGEX SEARCH DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~30-60s) showing
-     the Regex Search popup with a saved collection: open Regex
-     Search, pick a collection, check several patterns, click Run,
-     review the per-pattern results.
-  2. Open a new Issue on this repo and drag the MP4 into the
-     "Add a description" Write tab; wait for the upload to finish.
-  3. Copy the user-attachments URL GitHub inserts (the
-     "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of the URL below — the src= on the
-     <video> tag and the href on the fallback <a> link.
-  5. Don't submit the issue — discard it. The URL stays live.
--->
-
-<video src="https://github.com/user-attachments/assets/c1bc333e-96bb-4d44-8c3e-ef5c1edeba90"
-       controls
-       poster="docs/images/screenshot-regex-search.png"
-       width="720"
-       muted
-       playsinline>
-  Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/c1bc333e-96bb-4d44-8c3e-ef5c1edeba90">Download the demo (MP4)</a>.
-</video>
-
-*A walkthrough of a Regex Search collection running end-to-end: open Regex Search, pick a saved collection of named patterns, run, review the per-pattern hits — the same workflow the labeled screenshots in section 3 below break down. No audio.*
-
-*peekdocs ships a seeded **Examples** collection of 17 universal patterns (email, URL, IPv4/v6, ISO date/time, UUID, semver, hex color, Markdown link, TODO/FIXME, JIRA ticket, ISBN, DOI, USD amount, env var) on first GUI launch; you build the rest yourself. The Regex Search popup edits up to 10 patterns at a time, but a collection on disk can hold any number of patterns — grow one by clicking an entry in the list under **Save Collection As** (ADD), and fan out across several at once via **Run Multiple Collections…** at the bottom of the popup. There's no limit on the number of collections. Run any collection from the CLI (`peekdocs --regex-collection NAME`) and Python API (`run_regex_collection()`) so cron / Task Scheduler scheduling works the same way it does for suites.*
-
-### Labeled walkthroughs
-
-Seven annotated screenshot tours — *Same search, three interfaces* / *Advanced Search Options* / *Regex Search* / *Search Suites* / *Diff Snapshots* / *Schedule Search* / *`peekdocs --check`* — live in **[docs/WALKTHROUGHS.md](docs/WALKTHROUGHS.md)**. Useful for slowing down what the videos above show in motion, or for readers who'd rather scan stills than watch a clip.
 
 ## Who Is It For?
 
@@ -671,8 +598,6 @@ After that combination, no trace of peekdocs remains on your machine.
 peekdocs-gui
 ```
 
-See [Screenshots](#screenshots) for what peekdocs looks like in action — both GUI and CLI.
-
 On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
 
 1. Click **Browse** to select a folder (or **Single File** to search a specific file)
@@ -763,6 +688,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | Document | Description |
 |----------|-------------|
 | [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
+| [Walkthroughs](docs/WALKTHROUGHS.md) | Seven annotated screenshot tours — same search across three interfaces, Advanced Search Options, Regex Search, Search Suites, Diff Snapshots, Schedule Search, and `peekdocs --check` |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
 | [Glossary](docs/GLOSSARY.md) | 82 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, and more |
