@@ -779,20 +779,20 @@ class BuildMixin:
         self.cores_entry.insert(0, str(self._default_cores))
         self.cores_entry.grid(row=6, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
 
-        # Row 6: Max Matches + Max File Size pair on their own row.
-        # Both entries align with cores_entry above (all at advanced_frame col 1).
-        self._adv_lbl_max_matches = ctk.CTkLabel(self.advanced_frame, text=_t("adv_max_matches_label"))
-        self._adv_lbl_max_matches.grid(row=7, column=0, padx=(15, 5), pady=5, sticky="e")
-        max_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
-        max_frame.grid(row=7, column=1, columnspan=2, padx=(0, 15), pady=5, sticky="w")
-        self.max_matches_entry = ctk.CTkEntry(max_frame, width=60)
-        self.max_matches_entry.insert(0, "5000")
-        self.max_matches_entry.grid(row=0, column=0, sticky="w")
-        self._adv_lbl_max_file_size = ctk.CTkLabel(max_frame, text=_t("adv_max_file_size_label"))
-        self._adv_lbl_max_file_size.grid(row=0, column=1, padx=(20, 5), sticky="w")
-        self.max_file_size_entry = ctk.CTkEntry(max_frame, width=60)
-        self.max_file_size_entry.insert(0, "100")
-        self.max_file_size_entry.grid(row=0, column=2, sticky="w")
+        # Row 7: Restrict file permissions checkbox — swapped here with
+        # Max Matches (which now lives in output_frame at row 2). Restrict
+        # is a rarely-touched security setting; Max Matches is frequently
+        # tuned, so giving Max Matches the more-discoverable position
+        # closer to the top of the panel respects the frequency-of-use
+        # ordering principle for this panel.
+        self.restrict_permissions_var = ctk.StringVar(value="off")
+        self._adv_cb_restrict = ctk.CTkCheckBox(
+            self.advanced_frame, text=_t("adv_restrict_perms_label"),
+            variable=self.restrict_permissions_var,
+            onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("restrict_permissions", self.restrict_permissions_var.get() == "on"),
+        )
+        self._adv_cb_restrict.grid(row=7, column=0, columnspan=3, padx=(15, 15), pady=5, sticky="w")
 
         # Row 7: range filters
         self._adv_lbl_range = ctk.CTkLabel(self.advanced_frame, text=_t("adv_range_label"))
@@ -969,14 +969,23 @@ class BuildMixin:
         cb_clear_hist = self._adv_cb_clear_hist
         cb_clear_hist.grid(row=1, column=1, columnspan=2, padx=(0, 15), pady=(4, 0), sticky="w")
 
-        self.restrict_permissions_var = ctk.StringVar(value="off")
-        self._adv_cb_restrict = ctk.CTkCheckBox(
-            output_frame, text=_t("adv_restrict_perms_label"), variable=self.restrict_permissions_var,
-            onvalue="on", offvalue="off",
-            command=lambda: _save_output_format("restrict_permissions", self.restrict_permissions_var),
-        )
-        cb_restrict = self._adv_cb_restrict
-        cb_restrict.grid(row=2, column=0, columnspan=3, padx=(0, 0), pady=(4, 0), sticky="w")
+        # Max Matches + Max File Size — swapped here from the original
+        # advanced_frame row 7 position. Restrict permissions took that
+        # spot. Layout: label in col 0, sub-frame in col 1+ with both
+        # entries. Same shape as the previous max_frame layout — just
+        # re-parented to output_frame and gridded at output_frame row 2.
+        self._adv_lbl_max_matches = ctk.CTkLabel(output_frame, text=_t("adv_max_matches_label"))
+        self._adv_lbl_max_matches.grid(row=2, column=0, padx=(0, 5), pady=(4, 0), sticky="w")
+        max_frame = ctk.CTkFrame(output_frame, fg_color="transparent")
+        max_frame.grid(row=2, column=1, columnspan=2, padx=(0, 0), pady=(4, 0), sticky="w")
+        self.max_matches_entry = ctk.CTkEntry(max_frame, width=60)
+        self.max_matches_entry.insert(0, "5000")
+        self.max_matches_entry.grid(row=0, column=0, sticky="w")
+        self._adv_lbl_max_file_size = ctk.CTkLabel(max_frame, text=_t("adv_max_file_size_label"))
+        self._adv_lbl_max_file_size.grid(row=0, column=1, padx=(20, 5), sticky="w")
+        self.max_file_size_entry = ctk.CTkEntry(max_frame, width=60)
+        self.max_file_size_entry.insert(0, "100")
+        self.max_file_size_entry.grid(row=0, column=2, sticky="w")
         self.notify_on_complete_var = ctk.StringVar(value="off")
         self._adv_cb_notify_complete = ctk.CTkCheckBox(
             output_frame, text=_t("adv_notify_complete_label"), variable=self.notify_on_complete_var,
@@ -1038,7 +1047,7 @@ class BuildMixin:
         Tooltip(cb_html, "Also save results as an HTML file (peekdocs_standard_results.html) — opens in any web browser with highlighted matches. The file is stored locally on your computer, not on the internet — nothing is uploaded or made public. " + _output_scope_note)
         self._cb_delete_adv_tooltip = Tooltip(self._cb_delete_adv, __import__("peekdocs.i18n", fromlist=["t"]).t("delete_on_close_tooltip"), anchor="above")
         Tooltip(cb_clear_hist, "Automatically clear your search history and recent searches when you close peekdocs. Search terms, folder paths, and recent searches are stored in plaintext on disk (~/.peekdocs_history.json and ~/.peekdocsrc). If a search term you'd rather not leave on disk has been typed, that exact text is sitting in these files. This checkbox deletes the history file and clears search terms, folder path, and recent searches from your settings. Saved searches, bookmarks, and the rest of your settings are not affected", anchor="above")
-        Tooltip(cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML", anchor="above")
+        Tooltip(self._adv_cb_restrict, "Set report files to owner-only read/write (chmod 600) on Unix/macOS. Prevents other users on shared machines from reading your search results. Leave unchecked if colleagues need to access reports in a shared folder. No effect on Windows (NTFS permissions are managed differently). Applies to all report formats: TXT, DOCX, CSV, JSON, PDF, HTML", anchor="above")
 
         # Bottom buttons — three stacked rows inside the collapsible body:
         #   row 1: Save Defaults / Restore Saved Defaults / Inspect
