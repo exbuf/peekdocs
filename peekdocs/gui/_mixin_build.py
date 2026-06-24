@@ -1248,20 +1248,20 @@ class BuildMixin:
         # _set_results_summary also calls _recalc_summary_wraplength()
         # whenever the highlight text changes, since the chip width can
         # grow with the file count.
+        def _recalc_summary_wraplength(pane_width=None):
+            try:
+                if pane_width is None:
+                    pane_width = self.preview_frame.winfo_width()
+                self._results_summary_highlight.update_idletasks()
+                hl_w = self._results_summary_highlight.winfo_reqwidth()
+                avail = max(120, pane_width - hl_w - 36)
+                self._results_summary_label.configure(wraplength=avail)
+            except Exception:
+                pass
+        self._recalc_summary_wraplength = _recalc_summary_wraplength
         def _on_summary_resize(event):
-            self._recalc_summary_wraplength(event.width)
+            _recalc_summary_wraplength(event.width)
         self.preview_frame.bind("<Configure>", _on_summary_resize, add="+")
-
-    def _recalc_summary_wraplength(self, pane_width=None):
-        try:
-            if pane_width is None:
-                pane_width = self.preview_frame.winfo_width()
-            self._results_summary_highlight.update_idletasks()
-            hl_w = self._results_summary_highlight.winfo_reqwidth()
-            avail = max(120, pane_width - hl_w - 36)
-            self._results_summary_label.configure(wraplength=avail)
-        except Exception:
-            pass
 
         # ── Results button row: Matched / Excluded file count chips ──
         # Sits right under the headline, on the right pane. Both buttons
