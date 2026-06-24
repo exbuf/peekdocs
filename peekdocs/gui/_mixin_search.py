@@ -529,6 +529,7 @@ class SearchMixin:
     # call. Anything not in the map falls back to 'Searching'.
     _PHASE_LABELS = {
         "searching":    "Searching",
+        "ocr-running":  "Running OCR — first run on a folder takes longer; later searches are much faster",
         "writing-txt":  "Writing TXT report",
         "writing-docx": "Writing DOCX report",
         "writing-csv":  "Writing CSV report",

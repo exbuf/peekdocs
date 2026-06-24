@@ -1916,6 +1916,17 @@ def _main_inner(argv=None):
         if exclude_terms:
             print(f"Excluding [{' '.join(exclude_terms)}]")
 
+    # PHASE marker for OCR runs. Fires unconditionally when OCR is on,
+    # before the search engine starts. The GUI elapsed-timer reads the
+    # marker and shows 'Running OCR (first run on a folder takes
+    # longer; later searches are much faster)' so users know why a
+    # long wait is happening instead of staring at 'Searching...' for
+    # 30 seconds with no explanation. If OCR results are already
+    # cached in the index, this marker fires briefly and gets
+    # superseded by the writing-txt marker — harmless.
+    if use_ocr:
+        print("PHASE: ocr-running", file=sys.stderr, flush=True)
+
     # Set up CLI progress bar / spinner
     bar_width = 40
     # Use ASCII fallbacks if the terminal can't handle Unicode (e.g. Windows cp1252)
