@@ -1801,7 +1801,7 @@ class BuildMixin:
         # Tools menu — consolidates utilities, settings, and maintenance
         def _show_tools_menu():
             import tkinter as tk
-            menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 12))
+            menu = tk.Menu(self, tearoff=0, font=("TkDefaultFont", 10))
             def _dark_sep():
                 menu.add_command(label="─" * 50, state="disabled",
                                  font=("TkDefaultFont", 2),
