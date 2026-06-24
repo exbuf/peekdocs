@@ -302,6 +302,10 @@ class SearchMixin:
         # stderr; _on_subprocess_stderr_line updates this string and
         # _update_elapsed reads it for the live status line.
         self._search_phase = "searching"
+        # Timestamp set when the first writing-* marker arrives, so
+        # _search_finished can split elapsed time into search vs
+        # report-writing components for the 'Search complete.' status.
+        self._first_write_time = None
         self._start_elapsed_timer()
 
         # Reset the cancel flag for the new run — a prior cancelled run
@@ -558,10 +562,38 @@ class SearchMixin:
         token = line[len("PHASE: "):].strip()
         if token in self._PHASE_LABELS:
             self._search_phase = token
+            # Stamp the first writing-* marker so _search_finished can
+            # split total elapsed into search-phase vs report-write
+            # phase and surface both in the 'Search complete.' status
+            # line. Anything starting with 'writing-' is a report
+            # phase; the first such marker is the search→reports
+            # boundary.
+            if token.startswith("writing-") and self._first_write_time is None:
+                self._first_write_time = time.time()
             try:
                 self.after(0, self._render_phase_status)
             except Exception:
                 pass
+
+    def _phase_timing_summary(self) -> str:
+        """Return '(search: 0.4s, reports: 2.3s)' when the PHASE markers
+        captured enough info, '' otherwise.
+
+        Reads self._last_search_start_time and self._first_write_time
+        (set by _on_subprocess_stderr_line on the first 'writing-*'
+        marker). Both must be present; otherwise we can't split the
+        elapsed time and return an empty string so the caller skips
+        the append.
+        """
+        start = getattr(self, "_last_search_start_time", None)
+        first_write = getattr(self, "_first_write_time", None)
+        if start is None or first_write is None:
+            return ""
+        search_phase = first_write - start
+        report_phase = time.time() - first_write
+        if search_phase < 0 or report_phase < 0:
+            return ""
+        return f"(search: {search_phase:.1f}s, reports: {report_phase:.1f}s)"
 
     def _render_phase_status(self):
         """Compute + render the phase + elapsed status line.
@@ -746,6 +778,15 @@ class SearchMixin:
 
         if returncode == 0:
             status_text = summary or "Search complete. Matches found."
+            # Append the search-vs-report-write timing breakdown when
+            # the PHASE markers populated _first_write_time. Search
+            # phase = first writing marker - search start; report
+            # phase = now - first writing marker. If no reports were
+            # written (zero-match run, screen-only regex, etc.), skip
+            # the breakdown.
+            split_text = self._phase_timing_summary()
+            if split_text:
+                status_text += f"  {split_text}"
             specific = self.specific_files_entry.get().strip()
             if specific:
                 status_text += f"  [{specific}]"
