@@ -317,6 +317,10 @@ peekdocs-gui
 
 A window will appear. From here, everything is point-and-click. The GUI can do everything the terminal can do; you don't give up any features by using it.
 
+![peekdocs GUI screenshot](images/peekdocs-GUI.png)
+
+*The Search tab mid-run on a `budget` search — left pane carries Steps 1–4 and the Run buttons; right pane carries the search-results headline (yellow chip), Matched / Excluded count buttons, and the matched lines with the search term highlighted in yellow.*
+
 **Layout — left pane controls, right pane results.** The Search tab is split horizontally by a draggable blue sash:
 
 - **Left pane (scrollable)** — Steps 1–4, the **Search Bar**, the **Open Report:** row, the status row, and the collapsible **Advanced Search Options** panel. Scroll if the window is short.
