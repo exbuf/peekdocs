@@ -95,8 +95,6 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
 
-*All steps are GUI-accessible from the main screen, the **Search Suites** popup (opened by the green button next to Run Standard Search), and **Tools → Schedule Search** — the last one generates a cron / Task Scheduler command for you to paste rather than installing the schedule for you.*
-
 ## Watch peekdocs in action
 
 <!--
@@ -680,7 +678,7 @@ On first launch, the GUI opens with a **Getting Started** tab that walks you thr
 3. Click **Run Standard Search**
 4. View results in the preview pane or click **DOCX** to open the highlighted report
 
-The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (Tools menu → **Search Wizard**): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search.
+The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (Tools menu → **Search Wizard**): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search. The **Tools** menu in the upper-right also includes **Schedule Search**, which generates a ready-to-paste cron / Task Scheduler command rather than installing the schedule for you.
 
 The Search tab is split horizontally into a scrollable controls column on the left and a results-preview column on the right, with a draggable sash between them. The right pane carries the search-results headline (files searched · matches · elapsed time), Matched / Excluded count buttons, a Chart popup, and the matches themselves. The left pane carries Steps 1–4, the status row, the report-open buttons, and the collapsible Advanced Search Options panel. The split opens with a slight bias toward the left pane (52%) so the five-wide output-format checkbox row fits at first paint; drag the blue sash to rebalance.
 
