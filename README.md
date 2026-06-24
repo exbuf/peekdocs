@@ -121,6 +121,13 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 *A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio.*
 
+&nbsp;
+
+<p align="center"><b>Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source (MIT License) &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private &nbsp;&nbsp;·&nbsp;&nbsp; Easy to Use</b></p>
+<p align="center"><b>Windows &nbsp;&nbsp;·&nbsp;&nbsp; macOS &nbsp;&nbsp;·&nbsp;&nbsp; Linux &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; GUI &nbsp;&nbsp;·&nbsp;&nbsp; CLI &nbsp;&nbsp;·&nbsp;&nbsp; Python API</b></p>
+
+&nbsp;
+
 ## Feature Highlights
 
 A workbench for document collections: search them, characterize them through built-in analysis tools (duplicates, inventories, age distribution, change tracking), produce highlighted reports you can save or share, monitor folders in real time via the long-running `--watch` CLI mode for matches streaming as JSON Lines, and drive it all through whichever interface fits — GUI, CLI, or Python API.
@@ -166,11 +173,6 @@ A workbench for document collections: search them, characterize them through bui
 &nbsp;
 
 > **Transparency over magic.** If a file wasn't searched, peekdocs tells you why. If OCR couldn't extract text, you'll know. If a report was created, you'll know where it is. peekdocs favors observable behavior over hidden processing.
-
-&nbsp;
-
-<p align="center"><b>Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source (MIT License) &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private &nbsp;&nbsp;·&nbsp;&nbsp; Easy to Use</b></p>
-<p align="center"><b>Windows &nbsp;&nbsp;·&nbsp;&nbsp; macOS &nbsp;&nbsp;·&nbsp;&nbsp; Linux &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; GUI &nbsp;&nbsp;·&nbsp;&nbsp; CLI &nbsp;&nbsp;·&nbsp;&nbsp; Python API</b></p>
 
 &nbsp;
 
