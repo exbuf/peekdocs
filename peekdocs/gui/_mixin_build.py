@@ -1309,11 +1309,16 @@ class BuildMixin:
 
         # Chart — opens a matplotlib popup with the "Top 10 files by
         # match count" bar chart (mirrors the browser GUI's Chart tab).
+        # fg_color uses the hover-gray so the button visibly looks like
+        # a button from the start (matches the post-click appearance);
+        # without it the three chart buttons rendered as flat text until
+        # the user clicked one. hover_color picks up a slightly darker
+        # shade to keep the hover affordance visible.
         self._chart_btn = ctk.CTkButton(
             preview_label_row, text=_t("chart_button_label"), width=110,
             font=ctk.CTkFont(size=11),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            fg_color=("gray85", "gray25"), text_color=("gray20", "gray85"),
+            hover_color=("gray75", "gray35"),
             command=self._show_match_chart,
         )
         self._chart_btn.pack(side="left", padx=(4, 0))
@@ -1328,8 +1333,8 @@ class BuildMixin:
         self._chart_filetype_btn = ctk.CTkButton(
             preview_label_row, text=_t("chart_filetype_button_label"), width=105,
             font=ctk.CTkFont(size=11),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            fg_color=("gray85", "gray25"), text_color=("gray20", "gray85"),
+            hover_color=("gray75", "gray35"),
             command=self._show_filetype_chart,
         )
         self._chart_filetype_btn.pack(side="left", padx=(4, 0))
@@ -1346,8 +1351,8 @@ class BuildMixin:
         self._chart_category_btn = ctk.CTkButton(
             preview_label_row, text=_t("chart_category_button_label"), width=110,
             font=ctk.CTkFont(size=11),
-            fg_color="transparent", text_color=("gray30", "gray70"),
-            hover_color=("gray90", "gray25"),
+            fg_color=("gray85", "gray25"), text_color=("gray20", "gray85"),
+            hover_color=("gray75", "gray35"),
             command=self._show_category_chart,
         )
         self._chart_category_btn.pack(side="left", padx=(4, 0))
