@@ -12,6 +12,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+- **Hero screenshot added to README and USER_GUIDE.** New
+  `docs/images/peekdocs-GUI.png` shows the GUI mid-run on the same
+  `budget` search the hero video demonstrates (yellow chip,
+  10,411-file metric, Matched / Excluded chips, highlighted matches).
+  Solves the PyPI rendering gap (PyPI strips `<video>` tags, so
+  visitors landing on the project page had no imagery above the
+  caption). On the README the still sits below the hero video with
+  an italic subtitle; on the USER_GUIDE it anchors the GUI Mode
+  section right where the prose first mentions the window. The
+  `<video poster=...>` attribute also points at the new image so
+  GitHub viewers see the v1.2.13 still before clicking play.
+- **USER_GUIDE sample-corpus extension count corrected** from 38 to
+  41 — README was already correct; the USER_GUIDE had picked up the
+  file-count number (38) and mis-stated it as the distinct-extension
+  count.
+
 ## [1.2.13] — 2026-06-24
 
 Right-pane headline restyle and a timing-accuracy pass — the
