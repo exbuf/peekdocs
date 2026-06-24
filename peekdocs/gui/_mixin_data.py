@@ -1204,7 +1204,8 @@ class DataMixin:
             list_frame, font=("TkDefaultFont", 12),
             selectmode=tk.SINGLE, activestyle="none",
             bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
-            highlightthickness=0, borderwidth=1, relief="sunken",
+            borderwidth=0, relief="flat",
+            highlightthickness=1, highlightbackground="black", highlightcolor="black",
             yscrollcommand=scrollbar.set,
         )
         listbox.pack(side="left", fill="both", expand=True)
