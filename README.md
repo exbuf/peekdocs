@@ -97,6 +97,32 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 *All steps are GUI-accessible from the main screen, the **Search Suites** popup (opened by the green button next to Run Standard Search), and **Tools → Schedule Search** — the last one generates a cron / Task Scheduler command for you to paste rather than installing the schedule for you.*
 
+## Watch peekdocs in action
+
+<!--
+  TO UPDATE THIS DEMO VIDEO:
+  1. Record the new clip (1280×720 MP4, no audio, ~15-30s).
+  2. Open a new Issue on this repo and drag the MP4 into the
+     "Add a description" Write tab; wait for the upload to finish.
+  3. Copy the user-attachments URL GitHub inserts (the
+     "https://github.com/user-attachments/assets/<uuid>" form).
+  4. Replace both occurrences of the URL below — the src= on the
+     <video> tag and the href on the fallback <a> link.
+  5. Don't submit the issue — discard it. The URL stays live.
+-->
+
+<video src="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935"
+       controls
+       poster="docs/images/screenshot-main-page-TODO.png"
+       width="720"
+       muted
+       playsinline>
+  Your browser does not render embedded video.
+  <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
+</video>
+
+*A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio.*
+
 ## Feature Highlights
 
 A workbench for document collections: search them, characterize them through built-in analysis tools (duplicates, inventories, age distribution, change tracking), produce highlighted reports you can save or share, monitor folders in real time via the long-running `--watch` CLI mode for matches streaming as JSON Lines, and drive it all through whichever interface fits — GUI, CLI, or Python API.
@@ -189,6 +215,7 @@ for match in results.matches:
 
 ## Contents
 
+- [Watch peekdocs in action](#watch-peekdocs-in-action)
 - [Feature Highlights](#feature-highlights)
 - [CLI at a Glance](#cli-at-a-glance)
 - [Screenshots](#screenshots)
@@ -238,32 +265,6 @@ peekdocs --suite "Code hygiene"
 *The examples below lean toward source-code use cases — searching for `TODO`, regex patterns for URLs / UUIDs / version strings, and so on. That bias is deliberate: developers and Python users are the most likely first adopters since they're the ones browsing GitHub and PyPI for a tool like this. peekdocs works well across personal documents, research archives, legal filings, scanned receipts, and anything else made of text — the screenshots just happen to showcase the audience most likely to be reading them.*
 
 *Hardware and install context: search times shown in these screenshots (0.51s, 0.50s, 0.3s) were measured on the development and test machine — a MacBook Pro with an Apple M4 Pro chip and 24 GB of memory — running peekdocs installed via pipx (Option B), not the standalone download. Times on other configurations will vary; older or lower-spec hardware will be slower on the same workload, and the standalone download (Option A) adds the platform-specific [PyInstaller / Gatekeeper startup tax](docs/GLOSSARY.md#pyinstaller-gatekeeper-startup-tax) per invocation on top of the search time itself.*
-
-#### Watch peekdocs in action
-
-<!--
-  TO UPDATE THIS DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~15-30s).
-  2. Open a new Issue on this repo and drag the MP4 into the
-     "Add a description" Write tab; wait for the upload to finish.
-  3. Copy the user-attachments URL GitHub inserts (the
-     "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of the URL below — the src= on the
-     <video> tag and the href on the fallback <a> link.
-  5. Don't submit the issue — discard it. The URL stays live.
--->
-
-<video src="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935"
-       controls
-       poster="docs/images/screenshot-main-page-TODO.png"
-       width="720"
-       muted
-       playsinline>
-  Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
-</video>
-
-*A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio.*
 
 #### Watch Search Suites in action
 
