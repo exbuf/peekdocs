@@ -263,9 +263,7 @@ peekdocs --suite "Code hygiene"
 
 ## Who Is It For?
 
-**You have files. You need to find something in them.**
-
-peekdocs is built to do exactly that across many kinds of files at once — Word, PDF, Excel, email, scanned documents, archives, and 100+ more — entirely on your own computer.
+peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.
 
 **A few examples of what people could do with it:**
 
@@ -277,44 +275,6 @@ peekdocs is built to do exactly that across many kinds of files at once — Word
 - **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
 - **Researcher** — Search 3,000 PDFs and export highlighted results.
 - **Small business owner** — Find vendor contracts expiring in the next 90 days.
-
-The sections below describe who finds it most useful and why.
-
-### Home users and individuals
-
-peekdocs works just as well on personal documents as it does on professional ones. Most people accumulate years of digital files — scanned forms, insurance documents, school papers, family correspondence, statements, warranties, e-books, downloaded receipts — spread across folders, drives, and cloud backups. peekdocs searches all of it locally with whatever words come to mind: a vendor name, a policy number, a year, a phrase from an old letter. Nothing is uploaded; nothing is sent anywhere; the search runs on your computer and the results stay there.
-
-No command-line experience required. The GUI handles everything with a folder picker, a search box, and a Run button — no terminal, no flags, no syntax to learn.
-
-### Core technical users
-
-Developers, sysadmins, engineers, and technical writers — people who work with the tool from a terminal, automate it, or integrate it into pipelines.
-
-| Who | Why they care | What they do with it |
-|-----|--------------|---------------------|
-| **Developers and technical users** | Integrate document search into scripts and CI pipelines with CLI, JSON output, Python API, and regex collections | Search source trees for patterns, analyze logs, scan repos for TODO/FIXME, build automation scripts, generate machine-readable reports |
-| **Engineers** | Search across datasheets, specs, and engineering files, with highlighted reports for design reviews | Search SPICE netlists, Verilog/VHDL, DXF, MATLAB files alongside PDFs, test reports, maintenance records, and standards references |
-| **Technical writers and documentation teams** | Catch inconsistencies across large documentation sets using fuzzy matching, regex workflows, and recursive analysis | Find inconsistent terminology, review documentation trees, verify references across manuals, search exported HTML/Markdown/DOCX collections |
-
-### System administrators and IT staff at small-to-mid-sized organizations
-
-peekdocs is useful for solo IT professionals and small teams who need to search large document collections quickly across mixed Mac, Windows, and Linux environments. Common scenarios include independent IT consultants visiting multiple client sites, [MSP technicians](docs/GLOSSARY.md), financial or accounting offices, school districts or municipal offices, and technical staff managing document-heavy environments.
-
-The common thread: one person owns the problem end-to-end, needs fast local document discovery with exportable reports, and prefers a privacy-first tool that runs entirely offline. Users can build their own search patterns (including regex) for whatever content matters to them.
-
-See [Automation and IT Use](docs/USER_GUIDE.md#automation-and-it-use) in the User Guide. It opens with a [worked example](docs/USER_GUIDE.md#a-worked-example-nightly-source-tree-watch) — a full nightly cron script using `--stdout`, `--hash`, `--diff`, and an alert step — so you can see how the pieces compose before reading the reference material on exit codes, JSON schemas, the `--on-match` hook, headless deployment, and where reports and run logs land on disk.
-
-### Professional and research audiences
-
-Researchers, analysts, consultants, and business users — people who use peekdocs for literature review, due diligence, fact-checking, or finding information across years of mixed-format files.
-
-| Who | Why they care | What they do with it |
-|-----|--------------|---------------------|
-| **Researchers and academics** | Search large research collections accurately, including scanned PDFs and historical documents, with highlighted exportable reports | Literature review across hundreds of PDFs, find themes across research collections, search scanned historical documents, extract references and citations |
-| **Investigators, journalists, and analysts** | Sift through large document archives with precision using Boolean logic, proximity search, regex workflows, and OCR | Review large archives, investigate document collections, contract review, timeline reconstruction, email archive analysis |
-| **Archivists and digital historians** | Search digitized and scanned collections locally without uploading to cloud services, with full OCR and Boolean support | Search digitized archives, historical newspapers, scanned records, museum and university collections, long-term document preservation |
-| **Consultants and independent analysts** | Analyze client documents locally with no cloud exposure, then generate shareable highlighted reports | One-off document analysis, client archive review, research and report generation, technical due diligence |
-| **Business and office users** | Search years of mixed-format files without learning any syntax — just type keywords and click Run | Find contracts, search invoices, review budgets, search years of Word/PDF files, find information across correspondence |
 
 *The audiences and scenarios above describe possible uses of peekdocs. peekdocs is provided "as is" under the [MIT License](LICENSE), without warranty of any kind, express or implied.*
 
