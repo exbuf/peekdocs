@@ -822,7 +822,11 @@ def _parse_summary_text(stdout):
     # 'is this fast?' signal for everyday use. Match count and the
     # report cap follow as secondary information.
     if files_match:
-        file_part = f"{files_match.group(1)} file(s) searched"
+        try:
+            files_n_str = f"{int(files_match.group(1)):,}"
+        except (TypeError, ValueError):
+            files_n_str = files_match.group(1)
+        file_part = f"{files_n_str} file(s) searched"
         if size_match:
             file_part += f" ({size_match.group(1)})"
         parts.append(file_part)
