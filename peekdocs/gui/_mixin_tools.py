@@ -6501,7 +6501,7 @@ class ToolsMixin:
         unique_matched_count = len(self.matched_files)
         if unique_matched_count > 0:
             link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=unique_matched_count)
-            self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
+            self._matched_files_link.configure(text=link_text, fg_color="#81C784", hover_color="#66BB6A")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
         # Excluded Files button — same treatment as standard search (see

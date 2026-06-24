@@ -511,7 +511,7 @@ class SearchMixin:
                 self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
             else:
                 link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=len(self.matched_files))
-                self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
+                self._matched_files_link.configure(text=link_text, fg_color="#81C784", hover_color="#66BB6A")
             self._matched_files_link.pack(side="left", padx=(5, 0))
 
         self._show_preview(combined_stdout)
@@ -786,7 +786,7 @@ class SearchMixin:
                     self._matched_files_link.configure(text=link_text, fg_color="#CC3333", hover_color="#AA2222")
                 else:
                     link_text = __import__("peekdocs.i18n", fromlist=["t"]).t("matched_files_format").format(n=len(self.matched_files))
-                    self._matched_files_link.configure(text=link_text, fg_color="#FF6B35", hover_color="#E55A2B")
+                    self._matched_files_link.configure(text=link_text, fg_color="#81C784", hover_color="#66BB6A")
                 self._matched_files_link.pack(side="left", padx=(5, 0))
         elif returncode == 1:
             # Refresh state from the current checkbox AND clear matched_files

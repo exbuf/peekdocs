@@ -1217,7 +1217,7 @@ class BuildMixin:
 
         self._matched_files_link = ctk.CTkButton(
             _results_button_row, text="", font=ctk.CTkFont(size=10),
-            fg_color="#FF6B35", hover_color="#E55A2B", text_color="white",
+            fg_color="#81C784", hover_color="#66BB6A", text_color="white",
             cursor="hand2", height=22, width=120,
             command=self._show_matched_files_popup,
         )
@@ -1228,7 +1228,7 @@ class BuildMixin:
 
         self._excluded_files_btn = ctk.CTkButton(
             _results_button_row, text="", font=ctk.CTkFont(size=10),
-            fg_color="#666666", hover_color="#555555", text_color="white",
+            fg_color="#E57373", hover_color="#EF5350", text_color="white",
             cursor="hand2", height=22, width=120,
             command=self._show_excluded_files_popup,
         )
