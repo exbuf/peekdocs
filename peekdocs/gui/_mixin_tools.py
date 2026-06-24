@@ -5534,7 +5534,8 @@ class ToolsMixin:
         win.protocol("WM_DELETE_WINDOW", lambda: (setattr(self, "_suite_popup", None), win.destroy()))
         win.title("Search Suites")
         win.resizable(True, True)
-        win.geometry("720x640")
+        # Width reduced 20% from 720 → 576 per UX request; height unchanged.
+        win.geometry("576x640")
 
         _sf = self._scaled_font
 
@@ -5550,11 +5551,18 @@ class ToolsMixin:
             corner_radius=15,
             command=lambda: self._show_search_suites_help(win),
         ).pack(side="right")
+        # Top text — one sentence per row so the narrower popup reads
+        # cleanly without mid-sentence wrapping.
+        _top_lines = (
+            "Group saved searches and run them together.\n"
+            "Results go into a single combined report.\n"
+            "Suites are saved in the Search Folder shown below.\n"
+            "The Search Folder is controlled by the search folder on the main page (Step 1)."
+        )
         tk.Label(
             win,
-            text="Group saved searches and run them together. Results go into a single combined report. "
-                 "Suites are saved in the Search Folder shown below. To change it, update the Search Folder on the main page, then reopen Search Suites.",
-            font=_sf(10), fg="gray", wraplength=850, justify="left", anchor="w",
+            text=_top_lines,
+            font=_sf(10), fg="gray", justify="left", anchor="w",
         ).pack(fill="x", padx=12, pady=(0, 2))
 
         tk.Label(
