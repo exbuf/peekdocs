@@ -1413,8 +1413,8 @@ class BuildMixin:
         # preview_frame) so the buttons could be referenced by their
         # later pack/forget call sites; now we slide them down to the
         # spot the user wants them in.
-        self._results_summary_label.pack_configure(after=preview_label_row)
-        _results_button_row.pack_configure(after=self._results_summary_label)
+        self._results_summary_frame.pack_configure(after=preview_label_row)
+        _results_button_row.pack_configure(after=self._results_summary_frame)
 
         # Cap-status row — sits below the middle row, full width, with
         # the browser-style "All N matches rendered…" / "Preview shows
