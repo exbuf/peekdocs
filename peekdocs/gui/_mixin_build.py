@@ -543,10 +543,30 @@ class BuildMixin:
         Note: the Advanced toggle button itself is created in _build_search_row
         so it appears between the options group and the save group.
         """
+        # Search Wizard button — square, blue (matches Run Standard
+        # Search). Moved from the Tools menu onto the main page so
+        # first-time users discover it without hunting. Sits between
+        # Run Standard Search and Search Suites in the run-buttons
+        # row. Same 44x44 square shape and stacked-label format as
+        # Suites and Regex.
+        from peekdocs.i18n import t as _t
+        self._wizard_btn = ctk.CTkButton(
+            self._run_search_frame,
+            text=self._stack_label("Search Wizard"), width=44, height=44,
+            fg_color="#2196F3", hover_color="#1976D2",
+            text_color="white",
+            command=self._open_search_wizard_guide,
+            font=ctk.CTkFont(size=10, weight="bold"),
+        )
+        self._wizard_btn.pack(side="left", padx=(12, 0))
+        self._wizard_tooltip = Tooltip(self._wizard_btn,
+                                       "Open the Search Wizard — pick a search type (phone, email, dollar range, date, etc.) "
+                                       "and the wizard configures the search bar (Step 2) and Advanced Search Options (Step 3) "
+                                       "for you. Click Apply, then click Run Standard Search on the main page.")
+
         # Search Suites button — square, with the two-word label stacked
         # vertically. Same height as Run Standard Search (44px) so the
         # row baseline is preserved; width matches the height.
-        from peekdocs.i18n import t as _t
         self._suites_btn = ctk.CTkButton(
             self._run_search_frame,
             text=self._stack_label(_t("search_suites_label")), width=44, height=44,
@@ -1833,8 +1853,9 @@ class BuildMixin:
             menu.add_command(label="Regex Tester — paste sample text and watch matches highlight in real time", command=lambda: self._show_regex_tester())
             menu.add_command(label="Schedule Search — generate a command to run searches on a schedule (cron / Task Scheduler)", command=self._open_schedule_search)
             menu.add_command(label="Search History — log of past searches and results", command=self._show_search_history)
-            menu.add_command(label="Search Wizard — pick a search type (phone, email, dollar range, date, etc.) and the wizard configures it for you", command=self._open_search_wizard_guide)
-            # Search Suites moved to main screen next to Wizard
+            # Search Wizard moved to the main page run-buttons row
+            # (between Run Standard Search and Search Suites) — see
+            # _build_advanced_toggle. Same for Search Suites itself.
             _dark_sep()
             # App management (alphabetical)
             menu.add_command(label="All Collections — find saved searches across all folders", command=self._show_all_collections)

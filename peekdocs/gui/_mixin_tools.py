@@ -2812,8 +2812,8 @@ class ToolsMixin:
         ctk.CTkLabel(
             header_frame,
             text="Select one search type (click its radio button \u2014 only one can be active at a time), "
-                 "fill in your values, then click Apply. Apply configures the main search bar and Advanced Search Options for you \u2014 "
-                 "then click Search on the main screen. Close this window at any time to cancel \u2014 nothing changes until you click Apply.",
+                 "fill in your values, then click Apply. Apply configures the search bar (Step 2) and Advanced Search Options (Step 3) for you \u2014 "
+                 "then click Run Standard Search on the Main page. Close this window at any time to cancel \u2014 nothing changes until you click Apply.",
             font=ctk.CTkFont(size=13),
             wraplength=650, justify="center",
         ).pack(expand=True)
