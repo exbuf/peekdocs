@@ -17,7 +17,8 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Useful terminal tips](#useful-terminal-tips)
   - [What's next?](#whats-next)
 - [GUI Mode (Graphical User Interface)](#gui-mode-graphical-user-interface)
-- [Why peekdocs Instead of grep?](#why-peekdocs-instead-of-grep)
+- [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
+- [peekdocs and grep](#peekdocs-and-grep)
 - [Usage](#usage)
   - [Phrase search (quoted terms)](#phrase-search-quoted-terms)
   - [Regex search](#regex-search)
@@ -100,15 +101,6 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Documentation and GUI language](#documentation-and-gui-language)
   - [Sample multilingual files](#sample-multilingual-files)
   - [The automated language test](#the-automated-language-test)
-- [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step)
-  - [Example 1: Find an invoice-ID pattern with regex](#example-1-find-an-invoice-id-pattern-with-regex)
-  - [Example 2: Find misspelled words with fuzzy matching](#example-2-find-misspelled-words-with-fuzzy-matching)
-  - [Example 3: Find dollar amounts in a specific range](#example-3-find-dollar-amounts-in-a-specific-range)
-  - [Example 4: Find files missing required content with inverse search](#example-4-find-files-missing-required-content-with-inverse-search)
-  - [Example 5: Find words near each other with proximity search](#example-5-find-words-near-each-other-with-proximity-search)
-  - [Example 6: Search only specific file types](#example-6-search-only-specific-file-types)
-  - [Example 7: Combine multiple features together](#example-7-combine-multiple-features-together)
-  - [What's next?](#whats-next-1)
 - [Python API Reference](#python-api-reference)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
@@ -494,6 +486,136 @@ The dialog composes the right `peekdocs` CLI command for your choices and puts i
 - **Matches peekdocs's overall posture.** Privacy-first, transparent, MIT "as is", no surprise system modifications.
 
 The trade-offs you accept in return: an extra paste step, no in-app schedule list ("you have 3 scheduled searches"), no in-app edit/disable (changes mean editing the OS scheduler directly), and paste-time errors aren't caught. For a solo-maintained project with a clear no-surprise-system-modifications stance, the trade-off favors keeping peekdocs's surface small and the user firmly in control of what runs on their machine.
+
+## Your First Advanced Search — Step by Step
+
+You know how to do a basic search — type a word, click Run Search, see results. This section walks you through the most useful advanced features one at a time. Each example is a complete walkthrough: what to type, what to check, and what you'll see.
+
+All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a folder with some documents, and follow along.
+
+### Example 1: Find an invoice-ID pattern with regex
+
+**Goal:** Find any document containing an invoice ID (format: `INV-12345`).
+
+1. Open **Advanced Search Options** and check the **Regex** checkbox
+2. In the **Search Terms** field, type: `\bINV-\d+\b`
+   - This is a regex pattern: `\b` means "word boundary", `INV-` matches that exact text, and `\d+` means "one or more digits"
+   - You don't need to memorize regex — click the **Search Wizard** button on the main page for a list of pre-built patterns you can insert with one click
+3. Click **Run Search**
+4. Look at the results preview:
+   - Each match shows the filename, line number, and the actual invoice ID found, highlighted in yellow
+   - If no matches appear, your documents don't contain text in that format
+5. Open **Advanced Search Options** and uncheck **Regex** when you're done
+
+**Tip:** The Search Wizard (button on the main page) has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
+
+### Example 2: Find misspelled words with fuzzy matching
+
+**Goal:** Find documents containing "accommodation" even if it's misspelled (common in scanned/OCR documents).
+
+1. Open **Advanced Search Options** and check the **Fuzzy** checkbox
+2. In the **Search Terms** field, type: `accommodation`
+3. Click **Run Search**
+4. Look at the results preview:
+   - You'll see matches for "accommodation" (exact) but also "accomodation", "accomadation", "acco mmodation" (OCR errors), and other approximate matches
+   - Fuzzy matching uses a similarity score — words that are at least 80% similar to your search term are considered matches
+5. Uncheck **Fuzzy** when you're done
+
+**When to use this:** Searching documents that were scanned (OCR introduces errors), documents written by non-native English speakers, or any collection where spelling is inconsistent.
+
+### Example 3: Find dollar amounts in a specific range
+
+**Goal:** Find documents mentioning dollar amounts between $10,000 and $50,000.
+
+1. In the **Search Terms** field, type: `payment` (or any related keyword, or leave it empty for a range-only search)
+2. Open **Advanced Search Options** and find the **Range** field
+3. In the Range field, type: `amount:10000..50000`
+   - This tells peekdocs: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
+4. Click **Run Search**
+5. Look at the results preview:
+   - Each match shows a line containing both your keyword and a dollar amount in the specified range
+   - Dollar amounts outside the range (like $500 or $100,000) are filtered out
+
+**Other range types you can try:**
+- `date:2025-01-01..2025-12-31` — dates in 2025
+- `percent:5..15` — percentages between 5% and 15%
+- `age:18..65` — ages between 18 and 65
+- `amount:10000..` — amounts of $10,000 or more (open-ended)
+
+### Example 4: Find files missing required content with inverse search
+
+**Goal:** Find which contracts are missing an "Authorized Signature" line.
+
+1. In the **Search Terms** field, type: `Authorized Signature`
+2. Open **Advanced Search Options** and check the **Inverse** checkbox
+   - Normal search finds files WITH your terms. Inverse flips it — it finds files WITHOUT your terms
+3. Click **Run Search**
+4. Look at the results preview:
+   - Instead of showing matches, it lists every file that does NOT contain "Authorized Signature"
+   - These are the files that need attention
+   - If the list is empty (0 matches), every file contains the required text
+5. Uncheck **Inverse** when you're done
+
+**Why this matters:** This is a useful pattern when you want to verify that every file contains something you expect. The report lists exactly which files are missing it.
+
+### Example 5: Find words near each other with proximity search
+
+**Goal:** Find documents where "breach" and "contract" appear within 5 words of each other (not just anywhere in the same file).
+
+1. In the **Search Terms** field, type: `breach contract`
+2. Open **Advanced Search Options** and find the **Proximity** field
+3. In the Proximity field, type: `5`
+   - This means both words must appear within 5 words of each other on the same line
+   - AND mode is applied automatically when you use proximity
+4. Click **Run Search**
+5. Look at the results preview:
+   - You'll only see matches where "breach" and "contract" are close together — like "breach of contract" or "contract breach notification"
+   - Lines where both words appear far apart (like "The contract was signed in January. The breach occurred in March.") are excluded
+6. Clear the Proximity field when you're done
+
+### Example 6: Search only specific file types
+
+**Goal:** Search only PDFs and Word documents, ignoring everything else.
+
+1. In the **Search Terms** field, type your search term
+2. Open **Advanced Search Options** and find the **File types** field
+3. In the File types field, type: `pdf,docx`
+   - No dots, no spaces — just the extensions separated by commas
+   - Other file types in the folder are ignored
+4. Click **Run Search**
+
+**Common combinations:**
+- `pdf,docx,doc` — all Word and PDF documents
+- `xlsx,xls,csv` — all spreadsheet formats
+- `eml,msg,pst` — all email formats
+- `txt,md,log` — all plain text formats
+
+### Example 7: Combine multiple features together
+
+**Goal:** Find invoice IDs in PDF files across all subfolders, showing 2 lines of context before and after each match.
+
+1. In the **Search Terms** field, type: `\bINV-\d+\b`
+2. Open **Advanced Search Options** and set:
+   - Check **Regex**
+   - Check **Recursive** (searches subfolders)
+   - **File types:** `pdf`
+   - **Lines Before:** `2`
+   - **Lines After:** `2`
+3. Click **Run Search**
+4. The results show each invoice-ID match with 2 lines above and below for context, from PDF files only, across all subfolders
+
+**You can mix and match almost any combination of features.** The main restrictions:
+- Regex and Fuzzy can't be used together
+- Regex and Wildcard can't be used together
+- Fuzzy and Wildcard can't be used together
+- Expression mode replaces AND mode, Exclude, and Proximity (use AND/OR/NOT in the expression instead)
+
+### What's next?
+
+Now that you're comfortable with individual advanced searches, you can:
+- **Save searches for reuse** — click **Save Search** to name and store any search you've configured
+
+---
 
 ## peekdocs and grep
 
@@ -2990,136 +3112,6 @@ python tests/language_test.py
 ```
 
 This creates temporary test files, runs peekdocs against each language, prints a summary table, and cleans up after itself.
-
-## Your First Advanced Search — Step by Step
-
-You know how to do a basic search — type a word, click Run Search, see results. This section walks you through the most useful advanced features one at a time. Each example is a complete walkthrough: what to type, what to check, and what you'll see.
-
-All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a folder with some documents, and follow along.
-
-### Example 1: Find an invoice-ID pattern with regex
-
-**Goal:** Find any document containing an invoice ID (format: `INV-12345`).
-
-1. Open **Advanced Search Options** and check the **Regex** checkbox
-2. In the **Search Terms** field, type: `\bINV-\d+\b`
-   - This is a regex pattern: `\b` means "word boundary", `INV-` matches that exact text, and `\d+` means "one or more digits"
-   - You don't need to memorize regex — click the **Search Wizard** button on the main page for a list of pre-built patterns you can insert with one click
-3. Click **Run Search**
-4. Look at the results preview:
-   - Each match shows the filename, line number, and the actual invoice ID found, highlighted in yellow
-   - If no matches appear, your documents don't contain text in that format
-5. Open **Advanced Search Options** and uncheck **Regex** when you're done
-
-**Tip:** The Search Wizard (button on the main page) has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
-
-### Example 2: Find misspelled words with fuzzy matching
-
-**Goal:** Find documents containing "accommodation" even if it's misspelled (common in scanned/OCR documents).
-
-1. Open **Advanced Search Options** and check the **Fuzzy** checkbox
-2. In the **Search Terms** field, type: `accommodation`
-3. Click **Run Search**
-4. Look at the results preview:
-   - You'll see matches for "accommodation" (exact) but also "accomodation", "accomadation", "acco mmodation" (OCR errors), and other approximate matches
-   - Fuzzy matching uses a similarity score — words that are at least 80% similar to your search term are considered matches
-5. Uncheck **Fuzzy** when you're done
-
-**When to use this:** Searching documents that were scanned (OCR introduces errors), documents written by non-native English speakers, or any collection where spelling is inconsistent.
-
-### Example 3: Find dollar amounts in a specific range
-
-**Goal:** Find documents mentioning dollar amounts between $10,000 and $50,000.
-
-1. In the **Search Terms** field, type: `payment` (or any related keyword, or leave it empty for a range-only search)
-2. Open **Advanced Search Options** and find the **Range** field
-3. In the Range field, type: `amount:10000..50000`
-   - This tells peekdocs: "only show matches where a dollar amount between 10,000 and 50,000 appears on the same line"
-4. Click **Run Search**
-5. Look at the results preview:
-   - Each match shows a line containing both your keyword and a dollar amount in the specified range
-   - Dollar amounts outside the range (like $500 or $100,000) are filtered out
-
-**Other range types you can try:**
-- `date:2025-01-01..2025-12-31` — dates in 2025
-- `percent:5..15` — percentages between 5% and 15%
-- `age:18..65` — ages between 18 and 65
-- `amount:10000..` — amounts of $10,000 or more (open-ended)
-
-### Example 4: Find files missing required content with inverse search
-
-**Goal:** Find which contracts are missing an "Authorized Signature" line.
-
-1. In the **Search Terms** field, type: `Authorized Signature`
-2. Open **Advanced Search Options** and check the **Inverse** checkbox
-   - Normal search finds files WITH your terms. Inverse flips it — it finds files WITHOUT your terms
-3. Click **Run Search**
-4. Look at the results preview:
-   - Instead of showing matches, it lists every file that does NOT contain "Authorized Signature"
-   - These are the files that need attention
-   - If the list is empty (0 matches), every file contains the required text
-5. Uncheck **Inverse** when you're done
-
-**Why this matters:** This is a useful pattern when you want to verify that every file contains something you expect. The report lists exactly which files are missing it.
-
-### Example 5: Find words near each other with proximity search
-
-**Goal:** Find documents where "breach" and "contract" appear within 5 words of each other (not just anywhere in the same file).
-
-1. In the **Search Terms** field, type: `breach contract`
-2. Open **Advanced Search Options** and find the **Proximity** field
-3. In the Proximity field, type: `5`
-   - This means both words must appear within 5 words of each other on the same line
-   - AND mode is applied automatically when you use proximity
-4. Click **Run Search**
-5. Look at the results preview:
-   - You'll only see matches where "breach" and "contract" are close together — like "breach of contract" or "contract breach notification"
-   - Lines where both words appear far apart (like "The contract was signed in January. The breach occurred in March.") are excluded
-6. Clear the Proximity field when you're done
-
-### Example 6: Search only specific file types
-
-**Goal:** Search only PDFs and Word documents, ignoring everything else.
-
-1. In the **Search Terms** field, type your search term
-2. Open **Advanced Search Options** and find the **File types** field
-3. In the File types field, type: `pdf,docx`
-   - No dots, no spaces — just the extensions separated by commas
-   - Other file types in the folder are ignored
-4. Click **Run Search**
-
-**Common combinations:**
-- `pdf,docx,doc` — all Word and PDF documents
-- `xlsx,xls,csv` — all spreadsheet formats
-- `eml,msg,pst` — all email formats
-- `txt,md,log` — all plain text formats
-
-### Example 7: Combine multiple features together
-
-**Goal:** Find invoice IDs in PDF files across all subfolders, showing 2 lines of context before and after each match.
-
-1. In the **Search Terms** field, type: `\bINV-\d+\b`
-2. Open **Advanced Search Options** and set:
-   - Check **Regex**
-   - Check **Recursive** (searches subfolders)
-   - **File types:** `pdf`
-   - **Lines Before:** `2`
-   - **Lines After:** `2`
-3. Click **Run Search**
-4. The results show each invoice-ID match with 2 lines above and below for context, from PDF files only, across all subfolders
-
-**You can mix and match almost any combination of features.** The main restrictions:
-- Regex and Fuzzy can't be used together
-- Regex and Wildcard can't be used together
-- Fuzzy and Wildcard can't be used together
-- Expression mode replaces AND mode, Exclude, and Proximity (use AND/OR/NOT in the expression instead)
-
-### What's next?
-
-Now that you're comfortable with individual advanced searches, you can:
-- **Save searches for reuse** — click **Save Search** to name and store any search you've configured
-
----
 
 ## Python API Reference
 
