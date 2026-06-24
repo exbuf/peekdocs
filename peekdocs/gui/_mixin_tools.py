@@ -6391,8 +6391,16 @@ class ToolsMixin:
             pass
         self.progress_bar.grid_remove()
         # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label"), fg_color="#76BA1B", hover_color="#76BA1B",
-                                   text_color="white", command=self._show_search_suites)
+        # Use _stack_label and re-affirm width/height so the button
+        # stays the same 44x44 square shape it started as — without
+        # _stack_label the multi-word 'Search Suites' label fits on
+        # one line and the button auto-grows rectangular.
+        self._suites_btn.configure(
+            text=self._stack_label(__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label")),
+            width=44, height=44,
+            fg_color="#76BA1B", hover_color="#76BA1B",
+            text_color="white", command=self._show_search_suites,
+        )
 
         import re as _re_fin
 
@@ -6813,9 +6821,14 @@ class ToolsMixin:
         self.search_start_time = None
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
-        # Restore the SUITES button (the one we flipped to Cancel at run-start).
-        self._suites_btn.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label"), fg_color="#76BA1B", hover_color="#76BA1B",
-                                   text_color="white", command=self._show_search_suites)
+        # Restore the SUITES button — same _stack_label + 44x44
+        # pattern as the post-suite-finish restore site.
+        self._suites_btn.configure(
+            text=self._stack_label(__import__("peekdocs.i18n", fromlist=["t"]).t("search_suites_label")),
+            width=44, height=44,
+            fg_color="#76BA1B", hover_color="#76BA1B",
+            text_color="white", command=self._show_search_suites,
+        )
         self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_suite_cancelled"), text_color=("blue", "#66BBFF"))
 
     def _update_suite_elapsed(self, suite_name):
@@ -9099,9 +9112,18 @@ class ToolsMixin:
             self.progress_bar.stop()
             self.progress_bar.grid_remove()
             if hasattr(self, "_regex_search_btn"):
+                # Restore the original stacked square layout. Previously
+                # used 'run_regex_search_label' (full 'Run Regex Search'
+                # text) which was wider than the button's square width
+                # and forced auto-grow to a rectangle. _stack_label of
+                # 'regex_search_label' + explicit 44x44 keeps the
+                # button as it started.
                 self._regex_search_btn.configure(
-                    state="normal", fg_color="#FF9800", hover_color="#FF9800",
-                    text_color="white", text=__import__("peekdocs.i18n", fromlist=["t"]).t("run_regex_search_label"),
+                    state="normal",
+                    width=44, height=44,
+                    fg_color="#FF9800", hover_color="#FF9800",
+                    text_color="white",
+                    text=self._stack_label(__import__("peekdocs.i18n", fromlist=["t"]).t("regex_search_label")),
                     command=self._start_regex_search,
                 )
 
@@ -9302,9 +9324,14 @@ class ToolsMixin:
         self.progress_bar.stop()
         self.progress_bar.grid_remove()
         if hasattr(self, "_regex_search_btn"):
+            # Restore stacked square layout — same fix as the post-
+            # regex-finish restore site.
             self._regex_search_btn.configure(
-                state="normal", fg_color="#FF9800", hover_color="#FF9800",
-                text_color="white", text="Run Regex Search",
+                state="normal",
+                width=44, height=44,
+                fg_color="#FF9800", hover_color="#FF9800",
+                text_color="white",
+                text=self._stack_label(__import__("peekdocs.i18n", fromlist=["t"]).t("regex_search_label")),
                 command=self._start_regex_search,
             )
 
