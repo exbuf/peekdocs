@@ -113,7 +113,7 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 <video src="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935"
        controls
-       poster="docs/images/screenshot-main-page-TODO.png"
+       poster="docs/images/peekdocs-GUI.png"
        width="720"
        muted
        playsinline>
@@ -122,6 +122,8 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 </video>
 
 *A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio.*
+
+![peekdocs GUI mid-search — left pane carries Steps 1-4, Run buttons, and Advanced Search Options; right pane carries the yellow files-searched chip, Matched / Excluded chips, and the matches themselves with the search term highlighted in yellow.](docs/images/peekdocs-GUI.png)
 
 &nbsp;
 
