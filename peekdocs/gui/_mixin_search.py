@@ -1398,10 +1398,11 @@ class SearchMixin:
             self._show_preview("")
 
     def _set_results_summary(self, text):
-        """Set the right-pane results headline with the first phrase
-        (file count + size + elapsed) highlighted in a yellow chip and
-        the rest in the normal headline color. Splits on the first
-        " — " separator emitted by _parse_summary_text."""
+        """Set the right-pane results headline. The yellow chip carries
+        the file count + elapsed; the size in parens is lifted out of
+        the chip and prepended to the non-highlighted rest of the line.
+        Splits on the first " — " separator emitted by
+        _parse_summary_text."""
         if not hasattr(self, "_results_summary_highlight"):
             return
         if not text:
@@ -1413,11 +1414,18 @@ class SearchMixin:
             return
         if " — " in text:
             prefix, _, rest = text.partition(" — ")
-            highlight = f" {prefix} "
-            tail = f"— {rest}"
+            tail_lead = f"— {rest}"
         else:
-            highlight = f" {text} "
-            tail = ""
+            prefix, tail_lead = text, ""
+        import re as _re_sz
+        size_match = _re_sz.search(r" \(([\d.]+\s*[KMGT]?B)\)", prefix)
+        if size_match:
+            prefix = prefix.replace(size_match.group(0), "", 1)
+            size_str = f"({size_match.group(1)})"
+            tail = f"{size_str} {tail_lead}".strip()
+        else:
+            tail = tail_lead
+        highlight = f" {prefix} "
         try:
             self._results_summary_highlight.configure(text=highlight, fg_color="#FFEB3B")
             self._results_summary_label.configure(text=tail)
