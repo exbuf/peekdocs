@@ -1194,24 +1194,20 @@ class DataMixin:
             font=("TkDefaultFont", 10), fg="gray", wraplength=460, justify="left",
         ).pack(pady=(0, 8))
 
-        # Black-bg wrapper frame: macOS Aqua ignores Listbox
-        # highlightcolor/highlightbackground, so we paint the border
-        # by letting 1px of this frame's black background show around
-        # the listbox + scrollbar via pack padding.
-        list_frame = tk.Frame(popup, bg="black")
+        list_frame = tk.Frame(popup)
         list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
 
         scrollbar = tk.Scrollbar(list_frame)
-        scrollbar.pack(side="right", fill="y", padx=(0, 1), pady=1)
+        scrollbar.pack(side="right", fill="y")
 
         listbox = tk.Listbox(
             list_frame, font=("TkDefaultFont", 12),
             selectmode=tk.SINGLE, activestyle="none",
             bg="#2b2b2b", fg="white", selectbackground="#1f6aa5",
-            borderwidth=0, relief="flat", highlightthickness=0,
+            highlightthickness=0, borderwidth=1, relief="sunken",
             yscrollcommand=scrollbar.set,
         )
-        listbox.pack(side="left", fill="both", expand=True, padx=(1, 0), pady=1)
+        listbox.pack(side="left", fill="both", expand=True)
         scrollbar.config(command=listbox.yview)
 
         for item in self.matched_files:
