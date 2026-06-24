@@ -311,10 +311,10 @@ cd "/Users/YourName/My Documents"
 Type this and press Enter:
 
 ```bash
-peekdocs budget
+peekdocs budget -o docx
 ```
 
-peekdocs will scan every supported file in the folder and show a summary:
+The `-o docx` flag asks peekdocs to also write a Word report alongside the default TXT report — convenient because Word renders the highlighted matches in yellow. Without `-o docx`, only the TXT file is produced. peekdocs will scan every supported file in the folder and show a summary:
 
 ```
 Files searched: 47 (12.34 MB) — Found 23 match(es).
@@ -508,7 +508,7 @@ Do not type flags (like `-a` or `-r`) into the **Search Bar** — it is only for
 
 **Search Wizard:**
 
-Open the **Tools ▲** menu (bottom-right corner) and pick **Search Wizard — pick a search type…** to open the Search Wizard — a scrollable list of **20 pre-built search-type forms** covering the most common scenarios:
+Click the **Search Wizard** button on the main page (the blue square between **Run Standard Search** and **Search Suites**) to open the Search Wizard — a scrollable list of **20 pre-built search-type forms** covering the most common scenarios:
 
 - Keyword searches (OR / AND, with optional excludes)
 - Files missing required terms (inverse)
@@ -3004,14 +3004,14 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
 1. Open **Advanced Search Options** and check the **Regex** checkbox
 2. In the **Search Terms** field, type: `\bINV-\d+\b`
    - This is a regex pattern: `\b` means "word boundary", `INV-` matches that exact text, and `\d+` means "one or more digits"
-   - You don't need to memorize regex — open the **Tools ▲** menu and pick **Search Wizard** for a list of pre-built patterns you can insert with one click
+   - You don't need to memorize regex — click the **Search Wizard** button on the main page for a list of pre-built patterns you can insert with one click
 3. Click **Run Search**
 4. Look at the results preview:
    - Each match shows the filename, line number, and the actual invoice ID found, highlighted in yellow
    - If no matches appear, your documents don't contain text in that format
 5. Open **Advanced Search Options** and uncheck **Regex** when you're done
 
-**Tip:** The Search Wizard (Tools menu) has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
+**Tip:** The Search Wizard (button on the main page) has patterns for phone numbers, email addresses, dates, dollar amounts, ZIP codes, and more. You don't need to know regex to use them.
 
 ### Example 2: Find misspelled words with fuzzy matching
 
