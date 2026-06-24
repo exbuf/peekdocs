@@ -89,7 +89,9 @@ Feito para quem prefere ferramentas locais, transparentes e determinísticas.
 
 &nbsp;
 
-peekdocs is a local document search and analysis workbench for Windows, macOS, and Linux, available as a point-and-click GUI, a command-line CLI, and a Python API. Search across 100+ file types—including PDFs, Office documents, email archives, ZIP/7z files, source code, and scanned documents via OCR—using keyword, Boolean, fuzzy, wildcard, proximity, range, and advanced regex searches. Generate yellow-highlighted reports, automate recurring searches, perform batch analysis, and save reusable search profiles. Free and open-source under the MIT License.
+### You have files. You need to find something in them.
+
+peekdocs is a local search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, scanned documents, archives, source code — without uploading anything anywhere. GUI, CLI, and Python API. Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
