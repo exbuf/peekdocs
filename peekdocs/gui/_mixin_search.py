@@ -1425,6 +1425,7 @@ class SearchMixin:
             tail = f"{size_str} {tail_lead}".strip()
         else:
             tail = tail_lead
+        prefix = prefix.replace("file(s) searched", "files searched", 1)
         highlight = f" {prefix} "
         try:
             self._results_summary_highlight.configure(text=highlight, fg_color="#FFEB3B")
