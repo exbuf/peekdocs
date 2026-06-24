@@ -1917,15 +1917,19 @@ class SearchMixin:
             btn.pack(side="left", padx=(0, 2))
             btn.configure(state="normal")
             if report_formats.get(fmt):
+                # Light green matching the Matched Files button on the
+                # right pane (visual unity across the GUI).
                 btn.configure(
-                    fg_color="green",
-                    hover_color="darkgreen",
+                    fg_color="#81C784",
+                    hover_color="#66BB6A",
                     text_color="white",
                 )
             else:
+                # Light red matching the Excluded Files button on the
+                # right pane.
                 btn.configure(
-                    fg_color="#CC3333",
-                    hover_color="#AA2222",
+                    fg_color="#E57373",
+                    hover_color="#EF5350",
                     text_color="white",
                 )
         # Delete on Close checkbox removed from this row.
