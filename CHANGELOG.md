@@ -12,6 +12,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Right-pane headline restyle and a timing-accuracy pass — the
+right-pane elapsed figure and the left-pane status breakdown now
+agree on what "search time" means.
+
+### Added
+- **`PHASE: search-done elapsed=X.XX` CLI marker.** The CLI emits
+  the engine-only elapsed value to stderr when the search engine
+  finishes (before report writing). The GUI picks it up via the
+  existing stderr-streaming infrastructure so the right pane shows
+  the search-only elapsed instead of the total subprocess time
+  (which inflates by however long report writing takes).
+- **Yellow highlight chip on the right-pane results headline.** The
+  file count + elapsed (e.g. `10,411 files searched in 3.17s`)
+  renders inside a yellow chip; the size in MB and the rest of the
+  headline (match count, capped-reports note, etc.) follow in the
+  normal blue color and wrap to a second line if the pane is narrow.
+  File count uses thousands-separator commas.
+
+### Changed
+- **Right-pane elapsed time uses the search-engine-only value** from
+  the new `PHASE: search-done` marker. Previously the right pane
+  reported total subprocess time, which inflated the elapsed figure
+  by the report-writing duration (e.g. "in 8.9s" when the engine
+  itself ran in 3.0s).
+- **Left-pane "Search complete." status now shows the phase breakdown**
+  — `Search complete. (search: 3.0s, reports: 5.9s)` — so the search
+  vs. report split is visible at a glance and consistent with the
+  right-pane headline.
+- **Right-pane results headline now leads with files searched + elapsed
+  time**; match count and capped-reports notes follow.
+- **Open Report buttons (TXT, DOCX, CSV, JSON, PDF, HTML)** recolored
+  to the Matched / Excluded chip palette — light Material green
+  (`#81C784` / hover `#66BB6A`) for "open" actions, light Material
+  red (`#E57373` / hover `#EF5350`) for "delete/clear" actions. Was
+  the older orange/gray palette.
+- **Search Suites popup is 20% narrower** (576 px wide, was 720). The
+  four-sentence top blurb now wraps one sentence per line for easier
+  scanning, and adds an explicit note that the Search Folder is
+  controlled by the main page's Step 1.
+- **DOCX cap-status warning** now reads "for large collections" so it
+  doesn't misread as a general warning on small folders.
+
+### Fixed
+- **Search Suites and Regex Search buttons stayed rectangular** after
+  a run completed. Both now restore to their original 44×44 square
+  shape with the stacked-label format used pre-search.
+
+### Docs
+- README hero video (`bc5feeae-a903-4614-9f8d-53bafe215935`) promoted
+  above Feature Highlights with a rewritten 46-second caption matching
+  the new clip (10,411 files / 3.17s / "budget"). Screenshots and
+  Labeled walkthroughs sections removed from the README; WALKTHROUGHS.md
+  surfaced from the Documentation table instead.
+- USER_GUIDE accuracy pass: corrected three stale references to the
+  Search Wizard's location (it's now a main-page button between Run
+  Standard Search and Search Suites, not in the Tools menu); Getting
+  Started Step 3 now uses `peekdocs budget -o docx` so the Step 4
+  open-in-Word flow still works under the 1.2.6 DOCX-opt-in default.
+
 ## [1.2.12] — 2026-06-24
 
 Two small status-line polish fixes — both make GUI behavior easier
