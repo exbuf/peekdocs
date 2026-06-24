@@ -764,6 +764,25 @@ class SearchMixin:
 
         summary = _parse_summary_text(stdout)
 
+        # Replace the 'in X.Xs' total-subprocess elapsed in the right-
+        # pane headline with the search-engine-only elapsed captured
+        # via the CLI's 'PHASE: search-done elapsed=X.XX' marker. The
+        # CLI's 'Elapsed time:' line at end of stdout is TOTAL
+        # subprocess time (engine + report writing), so the right
+        # pane was showing e.g. 'in 8.9s' while the left-pane status
+        # breakdown showed '(search: 3.0s, reports: 5.9s)'. Now both
+        # report the same search-only value; the right pane keeps the
+        # 'in 3.0s' as its headline and the left pane carries the
+        # split-by-phase breakdown.
+        if summary and getattr(self, "_cli_search_elapsed", None) is not None:
+            import re as _re_se
+            summary = _re_se.sub(
+                r"in [\d.]+s",
+                f"in {self._cli_search_elapsed:.2f}s",
+                summary,
+                count=1,
+            )
+
         # Log to search history
         try:
             import re as _re_hist
