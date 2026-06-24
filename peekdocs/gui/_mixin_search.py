@@ -575,24 +575,44 @@ class SearchMixin:
             except Exception:
                 pass
 
-    def _phase_timing_summary(self) -> str:
-        """Return '(search: 0.4s, reports: 2.3s)' when the PHASE markers
-        captured enough info, '' otherwise.
+    def _phase_timing_summary(self, stdout: str = "") -> str:
+        """Return '(search: 0.4s, reports: 2.3s)' for the left-pane
+        status line, or '' if we can't compute the split.
 
-        Reads self._last_search_start_time and self._first_write_time
-        (set by _on_subprocess_stderr_line on the first 'writing-*'
-        marker). Both must be present; otherwise we can't split the
-        elapsed time and return an empty string so the caller skips
-        the append.
+        Search time uses the CLI's authoritative 'Elapsed time: N
+        seconds' line from stdout (so the number reconciles with the
+        right-pane headline). Report time is GUI-measured from the
+        first writing-* PHASE marker to now — closer to what the user
+        perceives as 'time the reports took to write.'
+
+        Falls back to GUI-measured search time (start → first writing
+        marker) if the CLI elapsed line wasn't found.
         """
-        start = getattr(self, "_last_search_start_time", None)
         first_write = getattr(self, "_first_write_time", None)
-        if start is None or first_write is None:
+        if first_write is None:
             return ""
-        search_phase = first_write - start
         report_phase = time.time() - first_write
-        if search_phase < 0 or report_phase < 0:
+        if report_phase < 0:
             return ""
+
+        # Prefer the CLI's authoritative search-elapsed value.
+        search_phase = None
+        if stdout:
+            import re as _re_t
+            _m = _re_t.search(r"Elapsed time:\s*([\d.]+)\s*seconds", stdout)
+            if _m:
+                try:
+                    search_phase = float(_m.group(1))
+                except ValueError:
+                    pass
+        if search_phase is None:
+            start = getattr(self, "_last_search_start_time", None)
+            if start is None:
+                return ""
+            search_phase = first_write - start
+            if search_phase < 0:
+                return ""
+
         return f"(search: {search_phase:.1f}s, reports: {report_phase:.1f}s)"
 
     def _render_phase_status(self):
@@ -778,15 +798,6 @@ class SearchMixin:
 
         if returncode == 0:
             status_text = summary or "Search complete. Matches found."
-            # Append the search-vs-report-write timing breakdown when
-            # the PHASE markers populated _first_write_time. Search
-            # phase = first writing marker - search start; report
-            # phase = now - first writing marker. If no reports were
-            # written (zero-match run, screen-only regex, etc.), skip
-            # the breakdown.
-            split_text = self._phase_timing_summary()
-            if split_text:
-                status_text += f"  {split_text}"
             specific = self.specific_files_entry.get().strip()
             if specific:
                 status_text += f"  [{specific}]"
@@ -794,7 +805,16 @@ class SearchMixin:
                 status_text += f"  ({_skip_count} file(s) skipped — see Error Log)"
             if getattr(self, "_cloud_redirected", False):
                 status_text += f"  Reports saved to {self.results_dir} (cloud folder detected)"
-            self._report_search_result(status_text)
+            # Build the left-pane status message. Append the search-vs-
+            # reports timing breakdown when the PHASE markers populated
+            # _first_write_time. Search time uses the CLI's
+            # authoritative elapsed value so the numbers reconcile
+            # with the right-pane headline.
+            left_status = "Search complete."
+            split_text = self._phase_timing_summary(stdout)
+            if split_text:
+                left_status += f"  {split_text}"
+            self._report_search_result(status_text, status_text=left_status)
             # Post-search save (-s) if user filled in "Save as" field.
             # Uses the same subprocess-or-in-process helper as the main
             # search so the standalone bundled exe doesn't spawn a
