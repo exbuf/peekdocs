@@ -1179,7 +1179,7 @@ class SearchMixin:
                 f"Report capped at {report_cap:,} of {report_total:,} matches "
                 "(Max Matches limit hit). Raise Max Matches in Advanced "
                 "Search Options to see more, or set it to 0 for unlimited. "
-                "Heads-up: at unlimited, DOCX render can take minutes."
+                "Heads-up: at unlimited, DOCX render can take minutes for large collections."
             )
         elif preview_capped:
             text = (
