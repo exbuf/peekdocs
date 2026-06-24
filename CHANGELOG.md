@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.13] — 2026-06-24
+
 Right-pane headline restyle and a timing-accuracy pass — the
 right-pane elapsed figure and the left-pane status breakdown now
 agree on what "search time" means.
