@@ -253,14 +253,14 @@ peekdocs --suite "Code hygiene"
   5. Don't submit the issue — discard it. The URL stays live.
 -->
 
-<video src="https://github.com/user-attachments/assets/b04dcd71-c62a-480b-8908-e8a724ead74e"
+<video src="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935"
        controls
        poster="docs/images/screenshot-main-page-TODO.png"
        width="720"
        muted
        playsinline>
   Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/b04dcd71-c62a-480b-8908-e8a724ead74e">Download the demo (~3 MB MP4)</a>.
+  <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
 </video>
 
 *A ~60-second walkthrough of the same `TODO` search the labeled screenshots below break down — here as it actually unfolds in the GUI: pick a folder, run the search, view the highlighted results in the preview pane, browse the **Matched Files** list, open the auto-generated `.docx` report. No audio.*
