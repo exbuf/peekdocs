@@ -93,13 +93,13 @@ peekdocs is a local document search and analysis workbench for Windows, macOS, a
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
-**Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX report → save the search → add it to a Search Suite → schedule it weekly.
+**Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX or HTML report → save the search → add it to a Search Suite → schedule it weekly.
 
 ## Watch peekdocs in action
 
 <!--
   TO UPDATE THIS DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~15-30s).
+  1. Record the new clip (1280×720 MP4, no audio, ~45s to match the current hero pace).
   2. Open a new Issue on this repo and drag the MP4 into the
      "Add a description" Write tab; wait for the upload to finish.
   3. Copy the user-attachments URL GitHub inserts (the
@@ -603,9 +603,9 @@ On first launch, the GUI opens with a **Getting Started** tab that walks you thr
 1. Click **Browse** to select a folder (or **Single File** to search a specific file)
 2. Type your search terms
 3. Click **Run Standard Search**
-4. View results in the preview pane or click **DOCX** to open the highlighted report
+4. View highlighted matches in the preview pane. To also save a Word report, check **DOCX** in Advanced Search Options before searching (or **HTML**, **PDF**, etc.).
 
-The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (Tools menu → **Search Wizard**): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search. The **Tools** menu in the upper-right also includes **Schedule Search**, which generates a ready-to-paste cron / Task Scheduler command rather than installing the schedule for you.
+The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (blue **Search Wizard** button on the main page, between Run Standard Search and Search Suites): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search. The **Tools** menu in the upper-right also includes **Schedule Search**, which generates a ready-to-paste cron / Task Scheduler command rather than installing the schedule for you.
 
 The Search tab is split horizontally into a scrollable controls column on the left and a results-preview column on the right, with a draggable sash between them. The right pane carries the search-results headline (files searched · matches · elapsed time), Matched / Excluded count buttons, a Chart popup, and the matches themselves. The left pane carries Steps 1–4, the status row, the report-open buttons, and the collapsible Advanced Search Options panel. The split opens with a slight bias toward the left pane (52%) so the five-wide output-format checkbox row fits at first paint; drag the blue sash to rebalance.
 
