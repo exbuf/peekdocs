@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.12] — 2026-06-24
+
+Two small status-line polish fixes — both make GUI behavior easier
+to interpret on first encounter.
+
+### Added
+- **`PHASE: ocr-running` status marker.** When the user enables OCR
+  and runs a search, the GUI status line now reads "Running OCR —
+  first run on a folder takes longer; later searches are much
+  faster... (Ns elapsed)" while Tesseract is extracting text from
+  images and scanned PDFs. Previously the status sat on
+  "Searching..." for the whole 20–30+ second window with no
+  explanation. cli.py emits the marker to stderr when `use_ocr` is
+  True; GUI catches it via the existing stderr-streaming
+  infrastructure (built for the DOCX status fix). When OCR results
+  are already cached in the index, the marker flashes briefly and
+  is superseded immediately by writing-txt — harmless.
+
+### Changed
+- Preview cap-status line — "All N matches rendered below." now
+  reads "All N matches rendered alphabetically below." Adds the
+  alphabetical-ordering hint that explains the Max Matches
+  truncation behavior (cap of 5000 truncates at the first 5000
+  alphabetically).
+
 ## [1.2.11] — 2026-06-24
 
 Visual polish pass on the main page and Advanced Search Options panel.
