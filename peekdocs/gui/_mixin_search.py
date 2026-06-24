@@ -1189,7 +1189,7 @@ class SearchMixin:
             )
         else:
             text = (
-                f"All {total_matches:,} matches rendered below. The cap (used when results exceed it) "
+                f"All {total_matches:,} matches rendered alphabetically below. The cap (used when results exceed it) "
                 "keeps the GUI responsive on very large result sets. Adjust using Preview cap →"
             )
         self._preview_cap_status.configure(text=text)
