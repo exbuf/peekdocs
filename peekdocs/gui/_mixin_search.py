@@ -306,6 +306,10 @@ class SearchMixin:
         # _search_finished can split elapsed time into search vs
         # report-writing components for the 'Search complete.' status.
         self._first_write_time = None
+        # Search-engine-only elapsed value emitted by the CLI's
+        # 'PHASE: search-done elapsed=X.XX' marker. Authoritative
+        # source for the 'search' value in the timing breakdown.
+        self._cli_search_elapsed = None
         self._start_elapsed_timer()
 
         # Reset the cancel flag for the new run — a prior cancelled run
@@ -559,7 +563,23 @@ class SearchMixin:
         """
         if not line.startswith("PHASE: "):
             return
-        token = line[len("PHASE: "):].strip()
+        body = line[len("PHASE: "):].strip()
+        # PHASE: search-done elapsed=X.XX — emitted by cli.py right
+        # after the search engine returns. Carries the search-engine-
+        # only elapsed value so _phase_timing_summary can split
+        # search vs reports accurately (CLI's later 'Elapsed time:'
+        # line is total subprocess time, not search-only).
+        if body.startswith("search-done"):
+            import re as _re_sd
+            m = _re_sd.search(r"elapsed=([\d.]+)", body)
+            if m:
+                try:
+                    self._cli_search_elapsed = float(m.group(1))
+                except ValueError:
+                    pass
+            return
+        # Otherwise it's a phase-label token (searching / writing-* / ocr-running).
+        token = body
         if token in self._PHASE_LABELS:
             self._search_phase = token
             # Stamp the first writing-* marker so _search_finished can
@@ -579,14 +599,16 @@ class SearchMixin:
         """Return '(search: 0.4s, reports: 2.3s)' for the left-pane
         status line, or '' if we can't compute the split.
 
-        Search time uses the CLI's authoritative 'Elapsed time: N
-        seconds' line from stdout (so the number reconciles with the
-        right-pane headline). Report time is GUI-measured from the
-        first writing-* PHASE marker to now — closer to what the user
-        perceives as 'time the reports took to write.'
+        Search time uses the CLI's authoritative 'PHASE: search-done
+        elapsed=X.XX' marker (search_result.elapsed — the engine-only
+        timing). Report time is GUI-measured from the first writing-*
+        PHASE marker to now.
 
-        Falls back to GUI-measured search time (start → first writing
-        marker) if the CLI elapsed line wasn't found.
+        The CLI's 'Elapsed time: N seconds' line at end of stdout is
+        TOTAL subprocess time (including reports), not search-only, so
+        we deliberately don't use it here. Falls back to GUI-measured
+        search time (subprocess start → first writing marker) only if
+        the search-done marker wasn't received (older CLI).
         """
         first_write = getattr(self, "_first_write_time", None)
         if first_write is None:
@@ -595,17 +617,11 @@ class SearchMixin:
         if report_phase < 0:
             return ""
 
-        # Prefer the CLI's authoritative search-elapsed value.
-        search_phase = None
-        if stdout:
-            import re as _re_t
-            _m = _re_t.search(r"Elapsed time:\s*([\d.]+)\s*seconds", stdout)
-            if _m:
-                try:
-                    search_phase = float(_m.group(1))
-                except ValueError:
-                    pass
+        # Prefer the CLI's search-engine-only elapsed value.
+        search_phase = getattr(self, "_cli_search_elapsed", None)
         if search_phase is None:
+            # Fallback for older CLI: GUI wall-clock from subprocess
+            # start to first writing marker. Includes startup overhead.
             start = getattr(self, "_last_search_start_time", None)
             if start is None:
                 return ""

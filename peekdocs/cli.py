@@ -2046,6 +2046,18 @@ def _main_inner(argv=None):
     search_elapsed = search_result.elapsed
     use_index = search_result.used_index
 
+    # Surface the search-engine-only elapsed value to the GUI right
+    # after the engine returns, before report writing starts. The
+    # subsequent `search_elapsed = time.time() - start_time` overwrite
+    # (next non-comment line) inflates the value to include everything
+    # up to that point; the printed 'Elapsed time:' at the end of the
+    # function is the TOTAL subprocess time including reports. Neither
+    # of those matches what the user thinks of as 'how long did the
+    # search take' — `search_result.elapsed` does. Stderr-only so JSON
+    # consumers stay clean.
+    print(f"PHASE: search-done elapsed={search_result.elapsed:.2f}",
+          file=sys.stderr, flush=True)
+
     # Write errors to log immediately; print warnings after results (below)
     if skipped_files:
         error_log_path = os.path.join(output_dir, "peekdocs_errors.log")
