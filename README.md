@@ -263,7 +263,7 @@ peekdocs --suite "Code hygiene"
   <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
 </video>
 
-*A ~60-second walkthrough of the same `TODO` search the labeled screenshots below break down — here as it actually unfolds in the GUI: pick a folder, run the search, view the highlighted results in the preview pane, browse the **Matched Files** list, open the auto-generated `.docx` report. No audio.*
+*A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio.*
 
 #### Watch Search Suites in action
 
