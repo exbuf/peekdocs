@@ -1243,14 +1243,25 @@ class BuildMixin:
             anchor="w", justify="left", wraplength=400,
         )
         self._results_summary_label.pack(side="left", padx=(6, 0), fill="x", expand=True)
-        # Track the pane width so the headline wraps cleanly even when
-        # the user drags the sash narrower.
+        # Track the pane width so the rest-of-headline wraps cleanly
+        # within the space left over after the yellow highlight chip.
+        # _set_results_summary also calls _recalc_summary_wraplength()
+        # whenever the highlight text changes, since the chip width can
+        # grow with the file count.
         def _on_summary_resize(event):
-            try:
-                self._results_summary_label.configure(wraplength=max(200, event.width - 20))
-            except Exception:
-                pass
+            self._recalc_summary_wraplength(event.width)
         self.preview_frame.bind("<Configure>", _on_summary_resize, add="+")
+
+    def _recalc_summary_wraplength(self, pane_width=None):
+        try:
+            if pane_width is None:
+                pane_width = self.preview_frame.winfo_width()
+            self._results_summary_highlight.update_idletasks()
+            hl_w = self._results_summary_highlight.winfo_reqwidth()
+            avail = max(120, pane_width - hl_w - 36)
+            self._results_summary_label.configure(wraplength=avail)
+        except Exception:
+            pass
 
         # ── Results button row: Matched / Excluded file count chips ──
         # Sits right under the headline, on the right pane. Both buttons

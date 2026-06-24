@@ -1421,6 +1421,8 @@ class SearchMixin:
         try:
             self._results_summary_highlight.configure(text=highlight, fg_color="#FFEB3B")
             self._results_summary_label.configure(text=tail)
+            if hasattr(self, "_recalc_summary_wraplength"):
+                self._recalc_summary_wraplength()
         except Exception:
             pass
 
