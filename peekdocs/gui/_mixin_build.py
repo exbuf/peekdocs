@@ -1218,16 +1218,31 @@ class BuildMixin:
 
         # ── Results summary — sits at the very top of the right pane.
         # Empty until a search completes, then carries the headline
-        # numbers (files searched, match count, elapsed time). Status
-        # progress (Searching… / Cancelling… / Search complete) stays on
-        # the left pane's status_label.
+        # numbers. The headline is split into two labels: a yellow
+        # highlight chip carrying the lead phrase (files searched + size
+        # + elapsed) and a normal label carrying the rest (match counts,
+        # capped notes, etc.). Status progress (Searching… / Cancelling…
+        # / Search complete) stays on the left pane's status_label.
+        self._results_summary_frame = ctk.CTkFrame(
+            self.preview_frame, fg_color="transparent"
+        )
+        self._results_summary_frame.pack(fill="x", padx=10, pady=(8, 2))
+        self._results_summary_highlight = ctk.CTkLabel(
+            self._results_summary_frame, text="",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="black",
+            fg_color="transparent",
+            corner_radius=4,
+            anchor="w", justify="left",
+        )
+        self._results_summary_highlight.pack(side="left")
         self._results_summary_label = ctk.CTkLabel(
-            self.preview_frame, text="",
+            self._results_summary_frame, text="",
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color=("#1565C0", "#90CAF9"),
-            anchor="w", justify="left", wraplength=600,
+            anchor="w", justify="left", wraplength=400,
         )
-        self._results_summary_label.pack(fill="x", padx=10, pady=(8, 2))
+        self._results_summary_label.pack(side="left", padx=(6, 0), fill="x", expand=True)
         # Track the pane width so the headline wraps cleanly even when
         # the user drags the sash narrower.
         def _on_summary_resize(event):

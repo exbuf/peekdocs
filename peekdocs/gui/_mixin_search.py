@@ -285,11 +285,7 @@ class SearchMixin:
         # claim.
         self.status_label.configure(text=__import__("peekdocs.i18n", fromlist=["t"]).t("status_searching_format").format(terms=_term_label), text_color=("blue", "#66BBFF"))
         # Wipe last run's headline from the right pane while we start the new one.
-        if hasattr(self, "_results_summary_label"):
-            try:
-                self._results_summary_label.configure(text="")
-            except Exception:
-                pass
+        self._set_results_summary("")
         self.search_start_time = time.time()
         # Captured separately because search_start_time gets nulled at
         # finish; _show_action_buttons needs a stable cutoff to decide
@@ -1401,16 +1397,39 @@ class SearchMixin:
         if path and os.path.exists(path):
             self._show_preview("")
 
+    def _set_results_summary(self, text):
+        """Set the right-pane results headline with the first phrase
+        (file count + size + elapsed) highlighted in a yellow chip and
+        the rest in the normal headline color. Splits on the first
+        " — " separator emitted by _parse_summary_text."""
+        if not hasattr(self, "_results_summary_highlight"):
+            return
+        if not text:
+            try:
+                self._results_summary_highlight.configure(text="", fg_color="transparent")
+                self._results_summary_label.configure(text="")
+            except Exception:
+                pass
+            return
+        if " — " in text:
+            prefix, _, rest = text.partition(" — ")
+            highlight = f" {prefix} "
+            tail = f"— {rest}"
+        else:
+            highlight = f" {text} "
+            tail = ""
+        try:
+            self._results_summary_highlight.configure(text=highlight, fg_color="#FFEB3B")
+            self._results_summary_label.configure(text=tail)
+        except Exception:
+            pass
+
     def _report_search_result(self, results_text, status_text="Search complete."):
         """Route the search-result summary to the right pane's headline
         label and set a short status string on the left status_label.
         Used by every search-completion path so the right pane carries
         the numbers and the left pane keeps narrating progress."""
-        if hasattr(self, "_results_summary_label"):
-            try:
-                self._results_summary_label.configure(text=results_text)
-            except Exception:
-                pass
+        self._set_results_summary(results_text)
         try:
             self.status_label.configure(text=status_text, text_color=("blue", "#66BBFF"))
         except Exception:
@@ -1831,8 +1850,7 @@ class SearchMixin:
         if hasattr(self, "_preview_cap_status"):
             self._preview_cap_status.configure(text="")
         # _preview_count_label removed — counts now live in headline.
-        if hasattr(self, "_results_summary_label"):
-            self._results_summary_label.configure(text="")
+        self._set_results_summary("")
         self._matched_files_link.pack_forget()
         self._excluded_files_btn.pack_forget()
         self._hide_files_list()
