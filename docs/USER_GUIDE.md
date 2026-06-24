@@ -47,19 +47,11 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Sharing collections across machines](#sharing-collections-across-machines)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
 - [Search Index (Optional)](#search-index-optional)
-- [Inverse Search](#inverse-search)
-- [Boolean Expression Search](#boolean-expression-search)
-  - [Why use `-e` instead of `-a` and `-n`?](#why-use--e-instead-of--a-and--n)
-  - [Operators](#operators)
-  - [Combining with other modes](#combining-with-other-modes)
-  - [Multi-word terms](#multi-word-terms)
-  - [Range filters in expressions](#range-filters-in-expressions)
-  - [Limitations](#limitations)
-- [Range Queries](#range-queries)
-  - [Using the `-R` flag](#using-the--r-flag)
-  - [Range specs in boolean expressions](#range-specs-in-boolean-expressions)
-  - [Notes on range queries](#notes-on-range-queries)
-- [Combining Modes](#combining-modes)
+- [Advanced search modes](#advanced-search-modes)
+  - [Inverse Search](#inverse-search)
+  - [Boolean Expression Search](#boolean-expression-search)
+  - [Range Queries](#range-queries)
+  - [Combining Modes](#combining-modes)
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Saved Settings (Optional)](#saved-settings-optional)
 - [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
@@ -1913,7 +1905,11 @@ The index covers the folder and all subfolders. It's stored as `.peekdocs.db` in
 
 **Concurrent access:** The index uses SQLite WAL mode with atomic transactions, busy timeouts, and graceful lock handling. Multiple searches, auto-refresh, and external tools can access the same index without blocking each other. If the process crashes mid-refresh, uncommitted changes are rolled back automatically.
 
-## Inverse Search
+## Advanced search modes
+
+The four sections below cover the non-default search modes you reach for once basic keyword search isn't enough — finding what's *missing* (Inverse), combining clauses with Boolean operators, filtering by numeric / date ranges, and stacking multiple modes in one run.
+
+### Inverse Search
 
 Normal peekdocs shows files that **contain** your search terms. Inverse search (`--inverse`) flips this — it shows files that **do not contain** the search terms. This answers the question: "Which documents are missing required content?"
 
@@ -1944,11 +1940,11 @@ Normal peekdocs shows files that **contain** your search terms. Inverse search (
 
 **Exit codes:** In inverse mode, exit code 0 means files without matches were found (success — missing content detected). Exit code 1 means all files contained the search terms (nothing to report).
 
-## Boolean Expression Search
+### Boolean Expression Search
 
 The `-e` flag enables boolean expression search, allowing you to combine AND, OR, NOT, and parentheses for complex queries that can't be expressed with the `-a` and `-n` flags alone. There is no limit on the number of terms or nesting depth — you can have as many conditions inside parentheses as you need (e.g., `(budget OR revenue OR limit OR expenses) AND approved`). AND, OR, and NOT must be UPPERCASE to distinguish them from search terms.
 
-### Why use `-e` instead of `-a` and `-n`?
+#### Why use `-e` instead of `-a` and `-n`?
 
 The `-a` flag applies one global AND/OR mode to all terms, and `-n` applies one global exclusion list. This means you can't express queries like:
 
@@ -1971,7 +1967,7 @@ peekdocs -e "(budget AND NOT draft) OR (revenue AND NOT obsolete)"
 peekdocs -e "((merger OR acquisition) AND NOT confidential) OR (ipo AND prospectus)"
 ```
 
-### Operators
+#### Operators
 
 | Operator | Meaning | Example |
 |----------|---------|---------|
@@ -1984,7 +1980,7 @@ Operators are case-insensitive (`and`, `And`, `AND` all work).
 
 **Precedence:** NOT binds tightest, then AND, then OR. Use parentheses to override: `a OR b AND c` means `a OR (b AND c)`, while `(a OR b) AND c` requires both.
 
-### Combining with other modes
+#### Combining with other modes
 
 Expression search works with regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) — these control **how** each term is matched, while the expression controls the **logic**:
 
@@ -2002,7 +1998,7 @@ peekdocs -e -z "budgt AND revnue"
 peekdocs -e -B 2 -A 2 "(merger OR acquisition) AND NOT draft"
 ```
 
-### Multi-word terms
+#### Multi-word terms
 
 Use quotes inside the expression for multi-word terms:
 
@@ -2010,7 +2006,7 @@ Use quotes inside the expression for multi-word terms:
 peekdocs -e '"annual report" AND (2023 OR 2024)'
 ```
 
-### Range filters in expressions
+#### Range filters in expressions
 
 Range specs (`field:min..max`) can be embedded directly inside boolean expressions, combining value-based filtering with text matching in a single query:
 
@@ -2036,13 +2032,13 @@ peekdocs -e "budget OR revenue" -R filesize:..1M
 
 All content fields (date, amount, number, percent, age, time) work inside expressions. Metadata fields (filesize, filedate) only work with the `-R` flag, not inside expressions. See [Range Queries](#range-queries) for comprehensive examples of all range types in both `-R` and `-e` modes.
 
-### Limitations
+#### Limitations
 
 - `-e` cannot be combined with `-a` (AND mode), `-n` (exclude), or `-p` (proximity) — these features are built into the expression syntax
 - To search for the literal word "AND", "OR", or "NOT", enclose it in double quotes inside the expression: `peekdocs -e '"AND" OR budget'`
 - Metadata range fields (`filesize`, `filedate`) cannot be used inside expressions — use `-R` for file-level filtering
 
-## Range Queries
+### Range Queries
 
 Range queries filter results by numeric values, dates, times, ages, percentages, and file metadata. Use the `-R` (or `--range`) flag with the syntax `field:min..max`. Both bounds are **inclusive** — `amount:1000..5000` matches $1,000, $5,000, and everything in between.
 
@@ -2083,7 +2079,7 @@ The `fn:` prefix works with all 6 content fields (date, amount, number, percent,
 | `time` | `HH:MM`, `HH:MM:SS`, `HH:MM AM/PM`, `HH:MM:SS AM/PM` | `time:09:00..17:00`, `time:9:00 AM..5:00 PM`, `time:09:00:00..17:00:00` |
 | `filesize` | Plain bytes or with `K`/`M`/`G`/`T` suffix | `filesize:1M..10M`, `filesize:1048576..10485760` |
 
-### Using the `-R` flag
+#### Using the `-R` flag
 
 **Basic range filtering** — use `-R` alone to find values in a range, or combine with search terms:
 
@@ -2215,7 +2211,7 @@ peekdocs -R amount:1000..5000 -W budget
 peekdocs -R amount:1000..5000 -m 50 invoice
 ```
 
-### Range specs in boolean expressions
+#### Range specs in boolean expressions
 
 Range specs can also be embedded directly inside `-e` expressions using the same `field:min..max` syntax. This lets you combine value-based filtering with boolean logic in a single query:
 
@@ -2335,7 +2331,7 @@ peekdocs -R fn:date:2024-01-01..2024-12-31 -R amount:1000..10000 invoice
 peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"
 ```
 
-### Notes on range queries
+#### Notes on range queries
 
 - **Inclusive bounds** — both min and max are inclusive. `amount:1000..5000` matches $1,000, $5,000, and everything in between
 - **Content fields** (date, amount, number, percent, age, time) extract values from document text and filter at the line level
@@ -2354,7 +2350,7 @@ peekdocs -e "budget AND fn:date:2024-01-01..2024-12-31"
 
 In the GUI, enter range filters in the **Range** field in Advanced Search Options, comma-separated for multiple ranges (e.g., `amount:1000..5000, date:2024-01-01..2024-12-31`).
 
-## Combining Modes
+### Combining Modes
 
 You can mix multiple modes together for more powerful searches.
 
