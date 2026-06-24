@@ -70,6 +70,28 @@ agree on what "search time" means.
   Standard Search and Search Suites, not in the Tools menu); Getting
   Started Step 3 now uses `peekdocs budget -o docx` so the Step 4
   open-in-Word flow still works under the 1.2.6 DOCX-opt-in default.
+- README accuracy pass: four stale claims fixed — Typical workflow
+  ("DOCX or HTML report" reflects 1.2.6 opt-in default), Quick Start
+  Step 4 (tells users to enable DOCX in Advanced Search Options
+  before searching rather than assuming it's auto-generated), Quick
+  Start Wizard pointer (main-page button, was Tools menu), and the
+  hero-video update-instructions comment (~45s target instead of the
+  stale 15-30s).
+- README marketability restructure: lifted "You have files. You need
+  to find something in them." to the lead (was buried at line 264);
+  compressed Feature Highlights from 14 multi-line bullets in 4
+  named groups to 6 one-liners with a pointer to Features for
+  detail; trimmed Who Is It For? from 6 audience subsections to
+  one short opener + the existing 8-row examples table.
+- USER_GUIDE marketability restructure: capability-first lead
+  reordering (three operational H2s — Python installation impact,
+  Security Best Practices, Dependencies — moved out of the lead
+  block down to the operational-concerns zone before Files Created
+  by peekdocs); "Your First Advanced Search — Step by Step" (seven
+  worked examples) promoted from 91% of the doc to ~15%, right
+  after GUI Mode; four advanced search-mode H2s (Inverse / Boolean /
+  Range / Combining) nested under one new "Advanced search modes"
+  H2 (TOC entry count for that block: 14 → 6).
 
 ## [1.2.12] — 2026-06-24
 
