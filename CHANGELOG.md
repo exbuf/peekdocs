@@ -12,6 +12,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.11] — 2026-06-24
+
+Visual polish pass on the main page and Advanced Search Options panel.
+Five small UX-focused changes that together make the GUI more
+discoverable without changing how anything works.
+
+### Added
+- **Search Wizard button on the main page.** Promoted from the
+  Tools menu (where first-time users rarely found it) into the
+  run-buttons row between Run Standard Search and Search Suites.
+  Same square 44×44 shape and stacked label as Suites and Regex;
+  blue (`#2196F3` / `#1976D2`) matching Run Standard Search so the
+  two blue buttons read as "the standard-search family." Wizard's
+  intro sentence updated to reference Step 2 (search bar) and
+  Step 3 (Advanced Search Options) by their step numbers, and to
+  point at "Run Standard Search on the Main page" as the next
+  action after Apply.
+
+### Changed
+- **Matched Files button is now light green** (`#81C784`, hover
+  `#66BB6A`); **Excluded Files is light red** (`#E57373`, hover
+  `#EF5350`). Replaces the previous orange/gray pair. Material
+  Design 300-level palette — high enough saturation to stay
+  legible with white text, light enough to read as "soft" rather
+  than "alert." The inverse-search red (`#CC3333` for "files
+  WITHOUT matches") is kept distinct from the new Excluded red so
+  the two reds remain visually different at a glance.
+- **Right-pane chart buttons ship with a visible gray button
+  background.** `Match Count`, `File Types`, and `Categories` used
+  `fg_color="transparent"`, so they rendered as flat text until
+  the user clicked one. New users couldn't tell they were
+  clickable. Now use `("gray85", "gray25")` (the post-click
+  appearance) as their default fg_color; hover-color bumped to
+  `("gray75", "gray35")` so the hover affordance stays visible.
+- **Tools menu font size 12pt → 10pt.** Tools menu items are
+  long descriptive labels ('Collection Summary — one-page overview
+  combining all file-analysis insights' etc.); 12pt made the menu
+  sprawl horizontally. 10pt keeps the descriptive labels intact
+  without the sprawl.
+- **Restrict file permissions and Max Matches / Max File Size
+  swapped positions** in the Advanced Search Options panel. Max
+  Matches now lives inside `output_frame` at row 2 (where Restrict
+  was); Restrict lives in `advanced_frame` at row 7 (where Max
+  Matches was). Max Matches is frequently tuned — especially after
+  the 1.2.7 default raise to 5,000 — so giving it the more-
+  discoverable higher position respects the frequency-of-use
+  ordering principle for this panel; Restrict is a rarely-touched
+  security setting and drops down.
+
 ## [1.2.10] — 2026-06-23
 
 Docs-only release. The "first OCR run on a folder is dramatically
