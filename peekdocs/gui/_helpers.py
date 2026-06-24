@@ -816,23 +816,26 @@ def _parse_summary_text(stdout):
     elapsed_match = re.search(r"Elapsed time:\s*([\d.]+)\s*seconds", clean)
 
     parts = []
-    # Lead with Found count, then files searched
-    if inverse_match:
-        parts.append(f"Found {inverse_match.group(1)} file(s) WITHOUT matches")
-    elif found_match:
-        count = found_match.group(1)
-        in_files = f" in {matched_files_match.group(1)} file(s)" if matched_files_match else ""
-        if capped_match:
-            parts.append(f"Found {count} match(es){in_files} — reports capped at {capped_match.group(1)}")
-        else:
-            parts.append(f"Found {count} match(es){in_files}")
+    # Lead with files searched + elapsed time so the headline metric
+    # ('N files searched in T seconds') reads first — that's the
+    # impressive number for the hero video and the most useful
+    # 'is this fast?' signal for everyday use. Match count and the
+    # report cap follow as secondary information.
     if files_match:
-        file_part = f"— {files_match.group(1)} file(s) searched"
+        file_part = f"{files_match.group(1)} file(s) searched"
         if size_match:
             file_part += f" ({size_match.group(1)})"
         parts.append(file_part)
     if elapsed_match:
         parts.append(f"in {elapsed_match.group(1)}s")
+    if inverse_match:
+        parts.append(f"— found {inverse_match.group(1)} file(s) WITHOUT matches")
+    elif found_match:
+        count = found_match.group(1)
+        in_files = f" in {matched_files_match.group(1)} file(s)" if matched_files_match else ""
+        parts.append(f"— found {count} match(es){in_files}")
+        if capped_match:
+            parts.append(f"— reports capped at {capped_match.group(1)}")
 
     errors_match = re.search(r"(\d+)\s+error\(s\)", clean)
     if errors_match:
