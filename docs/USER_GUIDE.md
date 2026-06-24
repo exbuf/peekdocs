@@ -5,11 +5,6 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
 ## Table of Contents
 
 - [Where to Start](#where-to-start)
-- [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
-- [Security Best Practices](#security-best-practices)
-- [Dependencies](#dependencies)
-  - [What gets installed automatically](#what-gets-installed-automatically)
-  - [What you must install yourself](#what-you-must-install-yourself)
 - [Getting Started with the Terminal](#getting-started-with-the-terminal)
   - [Which installation method did you use?](#which-installation-method-did-you-use)
   - [What is a terminal?](#what-is-a-terminal)
@@ -66,6 +61,11 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
 - [Combining Modes](#combining-modes)
 - [Breaking Down Complex Searches](#breaking-down-complex-searches)
 - [Saved Settings (Optional)](#saved-settings-optional)
+- [Will peekdocs affect my existing Python installation?](#will-peekdocs-affect-my-existing-python-installation)
+- [Security Best Practices](#security-best-practices)
+- [Dependencies](#dependencies)
+  - [What gets installed automatically](#what-gets-installed-automatically)
+  - [What you must install yourself](#what-you-must-install-yourself)
 - [Files Created by peekdocs](#files-created-by-peekdocs)
   - [Search reports](#search-reports)
   - [Saved and accumulated reports](#saved-and-accumulated-reports)
@@ -125,109 +125,6 @@ This is a long reference document. Skip directly to what you need:
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
 - **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
-
-## Will peekdocs affect my existing Python installation?
-
-No. Both installation methods keep peekdocs completely isolated from your existing Python setup, your other Python programs, and your system.
-
-**With pipx** (`pipx install git+https://github.com/exbuf/peekdocs.git`): pipx creates a private workspace for peekdocs behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. peekdocs's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`peekdocs` and `peekdocs-gui`) are added to your PATH so you can type them in any terminal.
-
-**With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything peekdocs installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if peekdocs doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
-
-**What peekdocs will NOT do:**
-
-- It will not upgrade or downgrade your existing Python packages
-- It will not break other Python programs on your computer
-- It will not modify your system Python installation
-- It will not interfere with conda, pyenv, Anaconda, or other Python environments
-- It will not install anything outside its private workspace (except the two command names on your PATH if you use pipx)
-
-**Upgrading to a new version — your data is preserved:**
-
-All your settings, saved searches, indexes, and reports are stored outside the peekdocs installation — either in your home directory or in the folders where your documents are. When you upgrade, none of this is touched:
-
-| Your data | Where it lives | Preserved on upgrade? |
-|-----------|---------------|----------------------|
-| Settings | `~/.peekdocsrc` (home directory) | Yes |
-| Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
-| Search index | `.peekdocs.db` (each search folder) | Yes |
-| Search reports | `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*` (each search folder) | Yes |
-| Saved reports | `peekdocs_report_*`, `peekdocs_accumulated_*` (each search folder) | Yes |
-| Error log | `peekdocs_errors.log` (each search folder) | Yes |
-
-**How to upgrade:**
-
-- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data. **Windows note:** if the upgrade fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the recovery walkthrough. macOS and Linux aren't affected.
-- **Manual install:** download the new ZIP, replace the `peekdocs-main` folder, run `pip install -e .` — your data is untouched
-
-No migration, no export/import, no reconfiguration. Everything just works with the new version.
-
-**Backing up your work — only two files matter:** `~/.peekdocsrc` (your settings) and `.peekdocs_collection.json` (your saved searches, one per folder). You may also want to back up `~/.peekdocs_history.json` (search history) and `~/.peekdocs_bookmarks.json` (bookmarks). Everything else peekdocs creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by peekdocs](#files-created-by-peekdocs) for the complete list of all files and what each one does.
-
-**How to see hidden files:** These files start with a dot, which makes them hidden by default.
-- **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
-- **Windows:** In File Explorer, click the **View** tab and check **Show hidden items**
-- **Linux:** In your file manager, press **Ctrl+H** or use `ls -a` in the terminal
-
-**If you want to uninstall completely:**
-
-- **pipx:** `pipx uninstall peekdocs` — removes the peekdocs code and its private workspace. Your settings (`~/.peekdocsrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
-- **Manual install:** delete the `peekdocs-main` folder you downloaded. Your settings and data in document folders remain.
-
----
-
-## Security Best Practices
-
-peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
-
-Because the documents you search and the reports peekdocs writes may contain text you would rather not share, here are some practices to keep your data safe:
-
-- **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
-- **Be careful with report files.** The `peekdocs_standard_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Tools → Clear Files** (Choose Files for per-file control, or Wipe Session to clear everything from this session) to delete them when you're done.
-- **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
-- **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
-- **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
-- **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient.
-
----
-
-## Dependencies
-
-When you install peekdocs (`pip install git+https://github.com/exbuf/peekdocs.git` or `pipx install git+https://github.com/exbuf/peekdocs.git`), pip automatically downloads and installs everything peekdocs needs to read all 100+ file types. You don't have to install these yourself — they come along for the ride.
-
-### What gets installed automatically
-
-peekdocs has 17 direct dependencies, which pull in about 50 packages total. Here's what they do:
-
-| Category | Packages | What they do |
-|----------|----------|-------------|
-| **Document readers** | python-docx, python-pptx, openpyxl, xlrd, odfpy, striprtf, EbookLib | Read Word, PowerPoint, Excel, LibreOffice, RTF, and ePub files |
-| **PDF** | PyMuPDF | Read PDF files (the largest dependency — about 56 MB) |
-| **Email** | extract-msg, olefile | Read Outlook .msg files and older Microsoft formats (.doc, .xls) |
-| **Archives** | py7zr, rarfile | Read .7z archives (rarfile also needs UnRAR — see below) |
-| **Images/OCR** | Pillow, pytesseract | Process images and call Tesseract for OCR |
-| **Search** | rapidfuzz | Fuzzy (typo-tolerant) matching |
-| **Report output** | fpdf2 | Generate PDF reports |
-| **GUI** | customtkinter | The graphical interface |
-
-**Total installed size:** approximately 244 MB on disk. Most of that is PyMuPDF (PDF reader, 56 MB), cryptography libraries (needed by the email reader, ~37 MB), and Pillow (image processing, 15 MB). The peekdocs code itself is about 2 MB.
-
-### What you must install yourself
-
-Most of these are covered in the [Prerequisites](../README.md#prerequisites) section of the README. Here's the complete list:
-
-| Dependency | Required? | What it's for | How to install |
-|-----------|-----------|--------------|----------------|
-| **Python 3.10+** | Yes | Runs peekdocs | [python.org/downloads](https://www.python.org/downloads/) or your package manager |
-| **tkinter** | For GUI only | The GUI framework (`peekdocs-gui`) | Included with Python on Windows. macOS: `brew install python-tk@3.14` (match the version of your Homebrew `python@<version>`). Linux: `sudo apt install python3-tk` |
-| **Tesseract** | Optional | OCR — reading text from scanned PDFs and images (`-O` flag) | macOS: `brew install tesseract`. Linux: `sudo apt install tesseract-ocr`. Windows: [download installer](https://github.com/UB-Mannheim/tesseract/wiki) |
-| **UnRAR** | Optional | Searching inside .rar archives | macOS: `brew install unrar`. Linux: `sudo apt install unrar`. Windows: comes with [WinRAR](https://www.win-rar.com/) or install standalone unrar |
-
-**If you don't install the optional ones:** peekdocs still works fine — it just can't do OCR or search inside .rar files. If you try to use OCR without Tesseract, peekdocs tells you it's missing and shows install instructions. If you try to search a .rar file without UnRAR, it logs an error and continues with the other files.
-
-**The CLI (`peekdocs`) works without tkinter.** You only need tkinter for the graphical interface (`peekdocs-gui`). If you only use the terminal, you can skip it.
-
----
 
 ## Getting Started with the Terminal
 
@@ -2501,6 +2398,109 @@ Once saved, your settings apply automatically every time you run peekdocs. For e
 If no settings are saved or if a value is invalid, peekdocs uses its built-in defaults. The `search_terms`, `folder`, and `index_search` settings are GUI-only — they pre-fill the GUI fields when it opens but have no effect on CLI searches.
 
 **Advanced:** Your settings are stored in a text file called `.peekdocsrc` in your user folder. You can also edit this file directly if you prefer — each line is a `key = value` pair, and lines starting with `#` are comments.
+
+## Will peekdocs affect my existing Python installation?
+
+No. Both installation methods keep peekdocs completely isolated from your existing Python setup, your other Python programs, and your system.
+
+**With pipx** (`pipx install git+https://github.com/exbuf/peekdocs.git`): pipx creates a private workspace for peekdocs behind the scenes. Your system Python, any other Python programs, and any other virtual environments are completely untouched. peekdocs's dependencies (the libraries it needs, like PyMuPDF, openpyxl, etc.) are installed only inside that private workspace. You won't even see them if you run `pip list` from your normal Python. The only thing that changes system-wide is that two new commands (`peekdocs` and `peekdocs-gui`) are added to your PATH so you can type them in any terminal.
+
+**With manual install** (git clone + virtual environment): The `python -m venv venv` command creates a sandbox folder. Everything peekdocs installs goes into that `venv` folder. When you deactivate the virtual environment or close the terminal, it's as if peekdocs doesn't exist. Your system Python packages are unchanged. Nothing is modified outside the `venv` folder.
+
+**What peekdocs will NOT do:**
+
+- It will not upgrade or downgrade your existing Python packages
+- It will not break other Python programs on your computer
+- It will not modify your system Python installation
+- It will not interfere with conda, pyenv, Anaconda, or other Python environments
+- It will not install anything outside its private workspace (except the two command names on your PATH if you use pipx)
+
+**Upgrading to a new version — your data is preserved:**
+
+All your settings, saved searches, indexes, and reports are stored outside the peekdocs installation — either in your home directory or in the folders where your documents are. When you upgrade, none of this is touched:
+
+| Your data | Where it lives | Preserved on upgrade? |
+|-----------|---------------|----------------------|
+| Settings | `~/.peekdocsrc` (home directory) | Yes |
+| Saved searches | `.peekdocs_collection.json` (each search folder) | Yes |
+| Search index | `.peekdocs.db` (each search folder) | Yes |
+| Search reports | `peekdocs_standard_results.*`, `peekdocs_regex_results.*`, `peekdocs_suite_results.*` (each search folder) | Yes |
+| Saved reports | `peekdocs_report_*`, `peekdocs_accumulated_*` (each search folder) | Yes |
+| Error log | `peekdocs_errors.log` (each search folder) | Yes |
+
+**How to upgrade:**
+
+- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data. **Windows note:** if the upgrade fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the recovery walkthrough. macOS and Linux aren't affected.
+- **Manual install:** download the new ZIP, replace the `peekdocs-main` folder, run `pip install -e .` — your data is untouched
+
+No migration, no export/import, no reconfiguration. Everything just works with the new version.
+
+**Backing up your work — only two files matter:** `~/.peekdocsrc` (your settings) and `.peekdocs_collection.json` (your saved searches, one per folder). You may also want to back up `~/.peekdocs_history.json` (search history) and `~/.peekdocs_bookmarks.json` (bookmarks). Everything else peekdocs creates can be regenerated. Copy these to a safe location before major changes. See [Files Created by peekdocs](#files-created-by-peekdocs) for the complete list of all files and what each one does.
+
+**How to see hidden files:** These files start with a dot, which makes them hidden by default.
+- **macOS:** In Finder, press **Cmd+Shift+.** (period) to toggle hidden files
+- **Windows:** In File Explorer, click the **View** tab and check **Show hidden items**
+- **Linux:** In your file manager, press **Ctrl+H** or use `ls -a` in the terminal
+
+**If you want to uninstall completely:**
+
+- **pipx:** `pipx uninstall peekdocs` — removes the peekdocs code and its private workspace. Your settings (`~/.peekdocsrc`), saved searches, indexes, and reports in your document folders are not deleted — remove those manually if you want a clean slate.
+- **Manual install:** delete the `peekdocs-main` folder you downloaded. Your settings and data in document folders remain.
+
+---
+
+## Security Best Practices
+
+peekdocs runs entirely on your computer. Your documents are never uploaded, transmitted, sent to a server, or shared with any third party. peekdocs never alters, moves, or deletes your files — it only reads them and writes its own report files (`peekdocs_standard_results.txt`, `peekdocs_standard_results.docx`, and optionally CSV, JSON, PDF, and HTML). All processing happens locally on your machine. No internet connection is required or used.
+
+Because the documents you search and the reports peekdocs writes may contain text you would rather not share, here are some practices to keep your data safe:
+
+- **Lock your screen when stepping away.** peekdocs stores search results in plain files on your computer. Anyone with access to your screen can see the results preview, and anyone with access to your folder can open the report files. Lock your screen with **Win+L** (Windows), **Ctrl+Cmd+Q** (macOS), or **Super+L** (Linux). This protects everything — not just peekdocs, but email, browser, and all open files.
+- **Be careful with report files.** The `peekdocs_standard_results.docx` and `.txt` files contain matched text from your documents — including any sensitive content that matched your search. Don't leave them on shared drives or send them via unencrypted email. Use **Tools → Clear Files** (Choose Files for per-file control, or Wipe Session to clear everything from this session) to delete them when you're done.
+- **Network folders work.** peekdocs can search documents on a shared network drive — just map or mount it so it appears as a regular folder on your computer (e.g., `Z:\` on Windows, `/Volumes/ShareName` on macOS, or an NFS/SMB mount on Linux) and point peekdocs at it. Tip: build a search index on your first search — subsequent searches query the local index instead of re-reading files over the network, which is much faster.
+- **Don't store peekdocs results on shared drives.** If your search folder is on a shared network drive, the results files are written there too. Use `--output-dir` (or the Output Dir field in Advanced Search Options) to write results to a private local folder instead.
+- **Review the error log.** `peekdocs_errors.log` may contain filenames that reveal what you were searching. Clear it with **Clear Error Log** when you're done.
+- **Think before you print.** The highlighted `.docx` search reports contain matched text from your documents — which could include sensitive data. Printing creates a physical copy of that data. If you must print, treat the printout as confidential and shred it when done. Consider whether viewing the results on screen is sufficient.
+
+---
+
+## Dependencies
+
+When you install peekdocs (`pip install git+https://github.com/exbuf/peekdocs.git` or `pipx install git+https://github.com/exbuf/peekdocs.git`), pip automatically downloads and installs everything peekdocs needs to read all 100+ file types. You don't have to install these yourself — they come along for the ride.
+
+### What gets installed automatically
+
+peekdocs has 17 direct dependencies, which pull in about 50 packages total. Here's what they do:
+
+| Category | Packages | What they do |
+|----------|----------|-------------|
+| **Document readers** | python-docx, python-pptx, openpyxl, xlrd, odfpy, striprtf, EbookLib | Read Word, PowerPoint, Excel, LibreOffice, RTF, and ePub files |
+| **PDF** | PyMuPDF | Read PDF files (the largest dependency — about 56 MB) |
+| **Email** | extract-msg, olefile | Read Outlook .msg files and older Microsoft formats (.doc, .xls) |
+| **Archives** | py7zr, rarfile | Read .7z archives (rarfile also needs UnRAR — see below) |
+| **Images/OCR** | Pillow, pytesseract | Process images and call Tesseract for OCR |
+| **Search** | rapidfuzz | Fuzzy (typo-tolerant) matching |
+| **Report output** | fpdf2 | Generate PDF reports |
+| **GUI** | customtkinter | The graphical interface |
+
+**Total installed size:** approximately 244 MB on disk. Most of that is PyMuPDF (PDF reader, 56 MB), cryptography libraries (needed by the email reader, ~37 MB), and Pillow (image processing, 15 MB). The peekdocs code itself is about 2 MB.
+
+### What you must install yourself
+
+Most of these are covered in the [Prerequisites](../README.md#prerequisites) section of the README. Here's the complete list:
+
+| Dependency | Required? | What it's for | How to install |
+|-----------|-----------|--------------|----------------|
+| **Python 3.10+** | Yes | Runs peekdocs | [python.org/downloads](https://www.python.org/downloads/) or your package manager |
+| **tkinter** | For GUI only | The GUI framework (`peekdocs-gui`) | Included with Python on Windows. macOS: `brew install python-tk@3.14` (match the version of your Homebrew `python@<version>`). Linux: `sudo apt install python3-tk` |
+| **Tesseract** | Optional | OCR — reading text from scanned PDFs and images (`-O` flag) | macOS: `brew install tesseract`. Linux: `sudo apt install tesseract-ocr`. Windows: [download installer](https://github.com/UB-Mannheim/tesseract/wiki) |
+| **UnRAR** | Optional | Searching inside .rar archives | macOS: `brew install unrar`. Linux: `sudo apt install unrar`. Windows: comes with [WinRAR](https://www.win-rar.com/) or install standalone unrar |
+
+**If you don't install the optional ones:** peekdocs still works fine — it just can't do OCR or search inside .rar files. If you try to use OCR without Tesseract, peekdocs tells you it's missing and shows install instructions. If you try to search a .rar file without UnRAR, it logs an error and continues with the other files.
+
+**The CLI (`peekdocs`) works without tkinter.** You only need tkinter for the graphical interface (`peekdocs-gui`). If you only use the terminal, you can skip it.
+
+---
 
 ## Files Created by peekdocs
 
