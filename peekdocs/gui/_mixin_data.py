@@ -1405,9 +1405,9 @@ class DataMixin:
         )
         help_btn.pack(side="right")
         tk.Label(
-            popup, text="These files were in your search folder but were not searched. "
+            popup, text="These files were in your search folder but were not searched.\n"
                         "Each is shown with the reason why.",
-            font=("TkDefaultFont", 11), fg="gray",
+            font=("TkDefaultFont", 11), fg="gray", justify="left",
         ).pack(pady=(0, 8))
 
         list_frame = tk.Frame(popup)
