@@ -12,6 +12,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.21] — 2026-06-25
+
+GUI polish on the Excluded Files popup and its chart, plus a new
+worked example in the User Guide.
+
+### Changed
+- **Excluded Files popup top text** now wraps to one sentence per
+  row instead of running past the popup edge ("These files were in
+  your search folder but were not searched." / "Each is shown with
+  the reason why.").
+- **Excluded Files by Reason donut chart** redesigned: window
+  bumped from 760×500 to 1100×650; reason labels moved out of the
+  pie into a right-side legend (eliminates the title-vs-radial-
+  label collision that no amount of padding could fix); legend
+  shows full reason text plus per-reason file count; percentages
+  and counts still display inside the wedges as before. The chart
+  helper gained a `skip_tight_layout` opt-out used here so the
+  custom subplots_adjust survives.
+
+### Docs
+- **User Guide gains Example 8** in the *Your First Advanced
+  Search* section — fully worked walkthrough of "find all invoices
+  over $10,000 from 2024" with both **GUI** and **CLI** surfaces
+  (first example to model the cross-surface walkthrough; the
+  other seven are GUI-only). Combines two range filters (amount +
+  filedate) with file-type restriction and recursive search.
+  Includes a *Quicker on-ramp via the Search Wizard* note pointing
+  at the "Find vendor with dollar amounts in range" form for the
+  keyword + amount part, with manual finish-up in Advanced Search
+  Options for the rest.
+- **README's Office-worker example** in the Who Is It For? table
+  now cross-links to the new User Guide Example 8 so readers
+  scanning the example bullets get a one-click path to the actual
+  command and step-by-step.
+
 ## [1.2.20] — 2026-06-25
 
 Docs-only release. Hero asset migrated from inline `<video>` to a
