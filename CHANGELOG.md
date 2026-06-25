@@ -12,6 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.16] — 2026-06-24
+
+Docs-only release.
+
+### Docs
+- **Glossary adds 'Network calls' entry.** Defines what counts as a
+  network call (HTTP / DNS / telemetry / license checks / update
+  checks / crash reports), peekdocs's runtime guarantee against
+  making any, three platform-specific verification paths (Little
+  Snitch on macOS, Resource Monitor on Windows, `lsof -i` on
+  Linux), and the one install-time exception (pipx / pip fetch
+  from PyPI / GitHub) so the no-network claim isn't misread as
+  "never touches the network." README Documentation table term
+  count corrected to 84 (was 82 in copy, but already 83 in
+  reality — the new entry plus the prior drift).
+
 ## [1.2.15] — 2026-06-24
 
 Docs-only release.
