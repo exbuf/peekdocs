@@ -12,6 +12,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.22] — 2026-06-25
+
+Test-fixture and docs accuracy maintenance.
+
+### Fixed
+- **`samples/test-files/sample.bmp` regenerated as a valid 200×60
+  BMP** (was a 0-byte placeholder causing OCR to fail with "image
+  file is truncated"). Post-fix verification: a recursive search
+  across `samples/test-files/` with OCR enabled now succeeds on
+  103 of 104 supported file types — the remaining error is the
+  documented optional `sample.pst` libpff-python dependency.
+
+### Docs
+- **USER_GUIDE — two stale "Tools → Regex Search" references
+  corrected** to point at the main-page Regex Search button
+  (promoted from Tools menu during the 1.2.11 work alongside the
+  Search Wizard).
+
 ## [1.2.21] — 2026-06-25
 
 GUI polish on the Excluded Files popup and its chart, plus a new
