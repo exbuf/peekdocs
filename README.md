@@ -115,11 +115,13 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
   TO UPDATE THIS DEMO GIF:
   1. Record a new screen capture (MP4, no audio, ~45s).
   2. Convert to a looping GIF with ffmpeg:
-       ffmpeg -i hero.mp4 -vf "fps=10,scale=540:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
+       ffmpeg -i hero.mp4 -vf "fps=10,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
   3. Replace docs/images/hero.gif. Target under ~5 MB; current file
-     is ~2 MB at 540p/10fps. Renders on every browser including PyPI
-     (avoids the <video>-tag cross-browser flakiness that pushed us
-     off MP4 in the first place).
+     is ~3.4 MB at 720p/10fps. The <img width="720"> attribute below
+     matches the GIF's native resolution so no browser upscales it.
+     Renders on every browser including PyPI (avoids the
+     <video>-tag cross-browser flakiness that pushed us off MP4
+     in the first place).
 -->
 
 <img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
