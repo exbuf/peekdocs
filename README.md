@@ -112,32 +112,19 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 ## Watch peekdocs in action
 
 <!--
-  TO UPDATE THIS DEMO VIDEO:
-  1. Record the new clip (1280×720 MP4, no audio, ~45s to match the current hero pace).
-  2. Open a new Issue on this repo and drag the MP4 into the
-     "Add a description" Write tab; wait for the upload to finish.
-  3. Copy the user-attachments URL GitHub inserts (the
-     "https://github.com/user-attachments/assets/<uuid>" form).
-  4. Replace both occurrences of the URL below — the src= on the
-     <video> tag and the href on the fallback <a> link.
-  5. Don't submit the issue — discard it. The URL stays live.
+  TO UPDATE THIS DEMO GIF:
+  1. Record a new screen capture (MP4, no audio, ~45s).
+  2. Convert to a looping GIF with ffmpeg:
+       ffmpeg -i hero.mp4 -vf "fps=10,scale=540:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
+  3. Replace docs/images/hero.gif. Target under ~5 MB; current file
+     is ~2 MB at 540p/10fps. Renders on every browser including PyPI
+     (avoids the <video>-tag cross-browser flakiness that pushed us
+     off MP4 in the first place).
 -->
 
-<video src="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935"
-       controls
-       poster="docs/images/peekdocs-GUI.png"
-       width="720"
-       muted
-       preload="auto">
-  Your browser does not render embedded video.
-  <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
-</video>
+![peekdocs GUI mid-search — same budget search the caption describes, looping](docs/images/hero.gif)
 
-*A ~46-second walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. No audio. \* MacBook M4 Pro*
-
-![peekdocs GUI screenshot](docs/images/peekdocs-GUI.png)
-
-*Screenshot of the same `budget` search shown in the video above.*
+*A ~46-second walkthrough as a looping GIF: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
 
 &nbsp;
 
