@@ -690,7 +690,7 @@ Regex is powerful but can look intimidating at first. See the table below for co
 
 #### Common Regex Search Patterns
 
-The first time you open **Regex Search** in the GUI (Tools menu → Regex Search), peekdocs seeds an **"Examples"** collection into `~/.peekdocs_regex_collections.json` with ~17 truly universal patterns — email, URL, IPv4 / IPv6, ISO date and time, UUID, semantic version, hex color, Markdown link, TODO / FIXME, JIRA-style ticket IDs, ISBN-13, DOI, USD amounts, and environment variable references. The collection sits alongside any collections you build yourself; you can run it, modify individual patterns, copy it as the starting point for your own collections, or delete it entirely.
+The first time you open **Regex Search** in the GUI (click the **Regex Search** button on the main page — one of the run buttons next to Run Standard Search), peekdocs seeds an **"Examples"** collection into `~/.peekdocs_regex_collections.json` with ~17 truly universal patterns — email, URL, IPv4 / IPv6, ISO date and time, UUID, semantic version, hex color, Markdown link, TODO / FIXME, JIRA-style ticket IDs, ISBN-13, DOI, USD amounts, and environment variable references. The collection sits alongside any collections you build yourself; you can run it, modify individual patterns, copy it as the starting point for your own collections, or delete it entirely.
 
 The Examples collection is also runnable from the CLI: `peekdocs --regex-collection Examples`.
 
@@ -1390,7 +1390,7 @@ Before the reference material, here is how the pieces compose into something an 
 
 **Setup (done once):**
 
-Build a regex collection through the GUI (Tools → Regex Search → Save Collection As) covering the shapes you care about — `password\s*=\s*['"][^'"]+['"]`, `aws_secret_access_key`, `api_key\s*=`, and whatever else is specific to your stack. Save it as `secrets`.
+Build a regex collection through the GUI (click the **Regex Search** button on the main page, then **Save Collection As**) covering the shapes you care about — `password\s*=\s*['"][^'"]+['"]`, `aws_secret_access_key`, `api_key\s*=`, and whatever else is specific to your stack. Save it as `secrets`.
 
 Capture a baseline so the first nightly diff has something to compare against:
 
