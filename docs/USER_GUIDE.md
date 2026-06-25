@@ -606,6 +606,34 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
 - Fuzzy and Wildcard can't be used together
 - Expression mode replaces AND mode, Exclude, and Proximity (use AND/OR/NOT in the expression instead)
 
+### Example 8: Real-world workflow — invoices over $10,000 from 2024
+
+**Goal:** Year-end review — find every invoice over $10,000 that came in during 2024. This is the "Office worker" task from the [Who Is It For?](../README.md#who-is-it-for) examples table, fully worked. Shows how to combine *two* range filters (amount + filedate) with file-type restriction and recursive search.
+
+**In the GUI:**
+
+1. Click **Browse** and select the top-level folder where your invoices live (subfolders are fine).
+2. In the **Search Bar**, type: `invoice`
+3. Open **Advanced Search Options** and set:
+   - Check **Recursive**
+   - **File types:** `pdf,docx,xlsx`
+   - **Range:** `amount:10000..,filedate:2024-01-01..2024-12-31` (one field, comma-separated; `amount:10000..` is open-ended — no upper limit)
+4. Click **Run Standard Search**.
+
+Right pane shows matching invoice lines with the keyword and dollar amounts highlighted in yellow. Click **Matched Files** for a popup of just the invoice filenames; double-click any file to open it.
+
+**From the CLI:**
+
+```bash
+peekdocs -r invoice -t pdf,docx,xlsx -R amount:10000.. -R filedate:2024-01-01..2024-12-31
+```
+
+`-r` recursive · `-t` file-type restriction · `-R amount:10000..` open-ended amount range · `-R filedate:2024-01-01..2024-12-31` file metadata date range.
+
+**`filedate:` vs `date:`** — this example uses `filedate:`, which filters by *file metadata* (when the invoice was last saved). If you'd rather match on a date appearing in the invoice *text* itself (e.g., a "Date: 2024-XX-XX" line), use `date:` instead — but be aware it's stricter, since the keyword, amount, and date then all have to appear on the same matched line.
+
+**Save the search for reuse:** in the GUI, click **▶ Save** next to the search bar and name it (e.g., `Invoices over 10K — 2024`). It'll appear under **▶ Reload** for any future session in that folder. From the CLI, see the Save / Reload mechanism in [Saved Settings](#saved-settings-optional).
+
 ### What's next?
 
 Now that you're comfortable with individual advanced searches, you can:
