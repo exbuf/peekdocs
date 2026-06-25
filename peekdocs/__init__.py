@@ -10,7 +10,7 @@ try:
     from importlib.metadata import version as _pkg_version
     __version__ = _pkg_version("peekdocs")
 except Exception:
-    __version__ = "1.2.19"
+    __version__ = "1.2.20"
 
 from peekdocs.api import (
     SearchMatch, SearchResult, search,

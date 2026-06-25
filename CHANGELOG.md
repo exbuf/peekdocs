@@ -12,6 +12,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.20] — 2026-06-25
+
+Docs-only release. Hero asset migrated from inline `<video>` to a
+looping GIF to fix cross-browser rendering.
+
+### Docs
+- **Hero swapped from `<video>` to looping GIF (`docs/images/hero.gif`).**
+  The MP4 embedded via `<video>` rendered only in Safari — Chrome
+  and DuckDuckGo showed a small black box that only painted on
+  click, plus a pause-blank quirk that wouldn't yield to any
+  combination of `preload` / `poster` / `playsinline` attributes
+  (likely a Chromium / privacy-browser CORP issue with GitHub's
+  user-attachments redirect chain). Replaced with a 720p / 10fps
+  palette-optimized looping GIF that renders identically on
+  GitHub, PyPI, mobile, Chrome, Firefox, Safari, and DuckDuckGo.
+  Sized to a fixed 720px display width via `<img width="720">`
+  so cross-browser sizing is locked. ~3.4 MB on disk. The
+  previously-separate static screenshot + caption are gone — the
+  GIF's first frame serves the same still-image role.
+- **`peekdocs-GUI.png` still in use by USER_GUIDE's GUI Mode section**
+  as a layout anchor — file stays on disk, no longer referenced
+  from the README.
+- **HTML comment above the hero now teaches the exact ffmpeg
+  one-liner** used to generate the GIF, so future re-records
+  produce a drop-in replacement.
+
 ## [1.2.19] — 2026-06-25
 
 Docs-only release.
