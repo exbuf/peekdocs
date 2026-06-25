@@ -1491,10 +1491,11 @@ class DataMixin:
                 at.set_fontsize(8)
                 at.set_weight("bold")
             ax.set_title(f"Excluded files by reason — {total} file(s)",
-                         fontsize=12, weight="bold")
+                         fontsize=12, weight="bold", pad=24)
 
         self._open_chart_window("Excluded Files by Reason", _plot,
-                                 figsize=(7.4, 5.0), parent=parent)
+                                 geometry="900x600",
+                                 figsize=(8.8, 6.0), parent=parent)
 
     def _show_app_files(self):
         """List all peekdocs-created files in the search folder and subfolders."""
