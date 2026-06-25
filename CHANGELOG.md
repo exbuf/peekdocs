@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.14] — 2026-06-24
+
+Docs-only release. Adds a static hero screenshot so PyPI renders
+imagery above the fold, and fixes a sample-corpus extension count
+contradiction between the README and the USER_GUIDE.
+
 ### Docs
 - **Hero screenshot added to README and USER_GUIDE.** New
   `docs/images/peekdocs-GUI.png` shows the GUI mid-run on the same
