@@ -866,7 +866,7 @@ Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com
 
 ## Glossary
 
-The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 82 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
+The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 84 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
 
 ## For IT and Security Teams
 
