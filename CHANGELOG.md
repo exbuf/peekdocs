@@ -12,6 +12,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.17] — 2026-06-24
+
+Trust / install-safety pass — addresses the friction non-technical
+downloaders feel when GitHub serves them an unsigned binary with a
+SmartScreen / Gatekeeper warning.
+
+### Added
+- **`SHA256SUMS.txt` published with every release.** New step in
+  `.github/workflows/build-release.yml` runs `sha256sum *` over the
+  six binaries in the release job and uploads the resulting
+  `SHA256SUMS.txt` alongside them via the existing
+  `softprops/action-gh-release@v2` glob. Cautious users can now
+  verify their download is byte-for-byte identical to what GitHub
+  Actions built. Effective on this release and later; earlier
+  releases stay checksum-less.
+
+### Docs
+- **`docs/INSTALL_SAFETY.md` — new doc.** Plain-English answer to
+  "is this safe to install?" — targets non-technical downloaders
+  who are hesitant about unsigned GitHub binaries. Covers what
+  peekdocs is and isn't, what the SmartScreen / Gatekeeper warnings
+  actually mean (and why peekdocs doesn't have a code-signing cert),
+  five verification paths in order of effort (checksum match,
+  VirusTotal scan, network monitor, source-code grep, sandbox
+  install), and honest limits (not code-signed, not third-party
+  audited, MIT 'as is', solo-maintained). Linked from a callout at
+  the top of the README's Installation section.
+- **Glossary `Network calls` entry — tightened lead sentence.**
+  Dropped the 'at runtime' qualifier; the followup sentence about
+  the install-time PyPI / GitHub fetch already does the
+  disambiguation work, so the lead can read 'peekdocs makes none.'
+- **README Glossary section term count corrected** from 82 → 84
+  (matches the Documentation table count which was already 84).
+
 ## [1.2.16] — 2026-06-24
 
 Docs-only release.
