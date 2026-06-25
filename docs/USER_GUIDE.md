@@ -632,6 +632,8 @@ peekdocs -r invoice -t pdf,docx,xlsx -R amount:10000.. -R filedate:2024-01-01..2
 
 **`filedate:` vs `date:`** — this example uses `filedate:`, which filters by *file metadata* (when the invoice was last saved). If you'd rather match on a date appearing in the invoice *text* itself (e.g., a "Date: 2024-XX-XX" line), use `date:` instead — but be aware it's stricter, since the keyword, amount, and date then all have to appear on the same matched line.
 
+**Quicker on-ramp via the Search Wizard** — the wizard's *"Find vendor with dollar amounts in range"* form handles the keyword + amount part in one click (fill vendor=`invoice`, lo=`10000`, hi=`99999999` for an effectively open-ended range). Click **Apply**, then open Advanced Search Options and add the **filedate** range, **file types**, and **Recursive** checkbox before running. The wizard doesn't have a single form that combines all five filters Example 8 uses — by design, since one form per combination would be unmanageable; the wizard teaches the building blocks and Advanced Search Options assembles them.
+
 **Save the search for reuse:** in the GUI, click **▶ Save** next to the search bar and name it (e.g., `Invoices over 10K — 2024`). It'll appear under **▶ Reload** for any future session in that folder. From the CLI, see the Save / Reload mechanism in [Saved Settings](#saved-settings-optional).
 
 ### What's next?
