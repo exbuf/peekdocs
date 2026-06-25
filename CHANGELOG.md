@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.18] — 2026-06-25
+
+Docs-only release.
+
+### Docs
+- **Glossary adds 'SLA' entry.** INSTALL_SAFETY.md uses 'no SLA'
+  in its honest-limits section; the term isn't obvious to the
+  non-technical downloaders that doc targets. New entry explains
+  what an SLA is, what it commits a vendor to, and why peekdocs
+  (solo-maintained, MIT, no commercial tier) doesn't have one.
+  README Glossary count bumped to 85 in both the Documentation
+  table and the standalone Glossary section paragraph.
+
 ## [1.2.17] — 2026-06-24
 
 Trust / install-safety pass — addresses the friction non-technical
