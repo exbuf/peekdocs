@@ -33,15 +33,35 @@ For full per-platform install walkthroughs including these warnings, see the [ma
 
 In order of effort, lowest to highest:
 
-### 1. Check the published checksum
+### 1. Check the published checksum *(optional — skip if you don't want to bother)*
 
-Every peekdocs release includes a SHA-256 checksum for each binary on the [Releases page](https://github.com/exbuf/peekdocs/releases/latest). After you download, run a one-liner that computes the SHA-256 of the file you have and compares it to the one published:
+This step is for people who want extra reassurance. **You do not have to do it.** The download works the same whether you check the checksum or not — checksum verification is a separate, opt-in confidence test you can run before you run the program for the first time.
 
-- **Windows (PowerShell):** `Get-FileHash peekdocs-gui-windows.exe -Algorithm SHA256`
-- **macOS:** `shasum -a 256 peekdocs-gui-macos.zip`
-- **Linux:** `sha256sum peekdocs-gui-linux`
+**What's a checksum?** When GitHub Actions builds peekdocs for a release, it computes a unique fingerprint of each binary file — a long string of letters and numbers like `a1b2c3d4e5f6...`. Even a single byte changing in the file would produce a completely different fingerprint. The technique is called SHA-256. peekdocs publishes these fingerprints in a file called `SHA256SUMS.txt` on every release page, starting with v1.2.17.
 
-If the value matches the one on the release page, you have the exact file that was built by GitHub Actions from the source code — not something an attacker substituted in transit.
+**What it proves:** if the fingerprint of the file you downloaded matches the one in `SHA256SUMS.txt`, the file is byte-for-byte identical to what GitHub built. Nothing got corrupted during download, nothing was swapped at a server in between.
+
+**What it does *not* prove:** that the official build itself is safe. The checksum confirms you got the same file GitHub Actions produced; it doesn't pass judgment on whether what GitHub Actions produced is malicious. That kind of judgment comes from the other verification steps below (VirusTotal, network monitoring, reading the source).
+
+**How to do it (four steps):**
+
+1. From the [Releases page](https://github.com/exbuf/peekdocs/releases/latest), download both your platform's binary **and** `SHA256SUMS.txt`. Put them in the same folder.
+
+2. Open a terminal in that folder and run the one-liner for your operating system:
+   - **Windows (PowerShell):** `Get-FileHash peekdocs-gui-windows.exe -Algorithm SHA256`
+   - **macOS:** `shasum -a 256 peekdocs-gui-macos.zip`
+   - **Linux:** `sha256sum peekdocs-gui-linux`
+
+   The command prints a long line of letters and numbers — that's the fingerprint of your downloaded file.
+
+3. Open `SHA256SUMS.txt` in any text editor. Find the line for the same filename. It looks like:
+   ```
+   a1b2c3d4e5f6789... peekdocs-gui-macos.zip
+   ```
+
+4. Compare the two strings. If they match — even just the first 8 or 10 characters in each — your download is verified. If they don't match, something went wrong with the download (rare, but possible on flaky connections); delete the file and download it again.
+
+**Heads up: this only works for v1.2.17 and later.** Earlier releases were published before the checksum step was added to the build workflow, so they don't have `SHA256SUMS.txt`. If you're installing the latest release, you're fine.
 
 ### 2. Scan it with VirusTotal
 
