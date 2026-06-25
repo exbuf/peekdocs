@@ -1447,7 +1447,8 @@ class SearchMixin:
             pass
 
     def _open_chart_window(self, title, plot_fn, *, geometry="760x500",
-                           figsize=(7.4, 4.6), parent=None, scrollable=False):
+                           figsize=(7.4, 4.6), parent=None, scrollable=False,
+                           skip_tight_layout=False):
         """Generic chart popup: themed Toplevel + matplotlib canvas +
         Close button, with figure-cleanup on close. Shared by every
         chart entry point in the GUI.
@@ -1487,7 +1488,8 @@ class SearchMixin:
             plt.close(fig)
             chart_win.destroy()
             return None
-        fig.tight_layout()
+        if not skip_tight_layout:
+            fig.tight_layout()
 
         if scrollable:
             # Vertical-scroll wrapper. Used by charts whose Y-axis label

@@ -1469,6 +1469,13 @@ class DataMixin:
             return
         reasons = sorted(by_reason.keys(), key=lambda r: len(by_reason[r]), reverse=True)
         sizes = [len(by_reason[r]) for r in reasons]
+        # Truncate verbose reason strings — long labels around the donut
+        # crowd each other and overlap the title even at 1000+ px wide.
+        # Full reason text still shows in the per-row Excluded Files list;
+        # the chart's just a proportions overview.
+        def _trunc(s, n=42):
+            return s if len(s) <= n else s[:n - 1] + "…"
+        short_labels = [_trunc(r) for r in reasons]
         # peekdocs palette — recycled if more than 6 reasons appear
         palette = ["#2196F3", "#FF6B35", "#76BA1B", "#FF9800",
                    "#9C27B0", "#1565C0", "#666666", "#CC3333"]
@@ -1478,24 +1485,31 @@ class DataMixin:
         def _plot(ax):
             wedges, texts, autotexts = ax.pie(
                 sizes,
-                labels=reasons,
+                labels=short_labels,
                 colors=colors,
                 autopct=lambda pct: f"{pct:.0f}%\n({int(round(pct * total / 100))})",
                 startangle=90,
                 wedgeprops={"width": 0.42, "edgecolor": "white", "linewidth": 1.5},
                 textprops={"fontsize": 9},
                 pctdistance=0.78,
+                labeldistance=1.08,
             )
             for at in autotexts:
                 at.set_color("white")
                 at.set_fontsize(8)
                 at.set_weight("bold")
             ax.set_title(f"Excluded files by reason — {total} file(s)",
-                         fontsize=12, weight="bold", pad=24)
+                         fontsize=12, weight="bold", y=1.08)
+            # Override the helper's fig.tight_layout() — it doesn't account
+            # for the radial pie labels and collapses the title down into
+            # them. Explicit subplots_adjust reserves the top 12% for the
+            # title and the outer 8% on each side for radial labels.
+            ax.figure.subplots_adjust(top=0.88, bottom=0.04, left=0.08, right=0.92)
 
         self._open_chart_window("Excluded Files by Reason", _plot,
-                                 geometry="900x600",
-                                 figsize=(8.8, 6.0), parent=parent)
+                                 geometry="1100x720",
+                                 figsize=(11.0, 7.2), parent=parent,
+                                 skip_tight_layout=True)
 
     def _show_app_files(self):
         """List all peekdocs-created files in the search folder and subfolders."""
