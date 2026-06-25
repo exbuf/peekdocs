@@ -12,6 +12,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.19] — 2026-06-25
+
+Docs-only release.
+
+### Docs
+- **`docs/SECURITY.md` accuracy pass.** Removed 'HIPAA business
+  associate agreements' from the compliance-attestation
+  parenthetical (violates the standing rule about not naming
+  regulated-industry compliance frameworks in user-facing docs);
+  SOC 2 and ISO 27001 stay since they're general enterprise
+  standards. Refreshed code line counts from the stale ~9,000
+  non-GUI / ~17,000 GUI to the current ~11,000 / ~20,500 — the
+  codebase has grown ~22% since that paragraph was last updated.
+
 ## [1.2.18] — 2026-06-25
 
 Docs-only release.
