@@ -128,7 +128,6 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
        poster="docs/images/peekdocs-GUI.png"
        width="720"
        muted
-       playsinline
        preload="auto">
   Your browser does not render embedded video.
   <a href="https://github.com/user-attachments/assets/bc5feeae-a903-4614-9f8d-53bafe215935">Download the demo (~3 MB MP4)</a>.
