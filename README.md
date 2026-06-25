@@ -650,7 +650,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [Walkthroughs](docs/WALKTHROUGHS.md) | Seven annotated screenshot tours — same search across three interfaces, Advanced Search Options, Regex Search, Search Suites, Diff Snapshots, Schedule Search, and `peekdocs --check` |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
-| [Glossary](docs/GLOSSARY.md) | 84 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, and more |
+| [Glossary](docs/GLOSSARY.md) | 85 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Security architecture](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |
 | [Reporting security issues](SECURITY.md) | Vulnerability-reporting policy — preferred channel, supported versions, scope, expected response timing |
@@ -868,7 +868,7 @@ Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com
 
 ## Glossary
 
-The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 84 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
+The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 85 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
 
 ## For IT and Security Teams
 
