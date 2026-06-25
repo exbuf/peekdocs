@@ -12,6 +12,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.15] — 2026-06-24
+
+Docs-only release.
+
+### Docs
+- **Lead hook line translated into all 6 language sections.** The
+  English lead "You have files. You need to find something in them."
+  introduced in the marketability pass now also opens each language
+  section inside the `<details>` block (Español / Français / Deutsch
+  / 日本語 / 简体中文 / Português brasileiro). Translations are
+  AI-drafted per the existing `CONTRIBUTING_i18n.md` disclosure and
+  want native-speaker review.
+- **6 language sections synced with the post-marketability English
+  prolog.** Each language section: description paragraph compressed
+  to ~50 words (dropped the search-mode enumeration the English
+  version moved to Feature Highlights); "Built for…" line gains the
+  second sentence ("No cloud, no telemetry, no network calls");
+  italic "All steps are GUI-accessible…" line removed (English moved
+  its content to Quick Start); new "**Typical workflow:**" bullet
+  chain added.
+- **Hero video caption footnotes the MacBook M4 Pro hardware** on
+  the 3.17-second claim, so the speed number is anchored to the
+  specific machine it was measured on.
+
 ## [1.2.14] — 2026-06-24
 
 Docs-only release. Adds a static hero screenshot so PyPI renders
