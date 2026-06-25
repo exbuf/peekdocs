@@ -122,7 +122,7 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
      off MP4 in the first place).
 -->
 
-![peekdocs GUI mid-search — same budget search the caption describes, looping](docs/images/hero.gif)
+<img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
 
 *A ~46-second walkthrough as a looping GIF: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
 
