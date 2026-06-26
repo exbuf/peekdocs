@@ -158,7 +158,7 @@ If startup time still matters and you have Python installed (or are willing to i
 
 ```bash
 brew install pipx                                                  # macOS, if you don't have it
-pipx install --force git+https://github.com/exbuf/peekdocs.git
+pipx install peekdocs                                              # from PyPI (released version)
 sudo rm /usr/local/bin/peekdocs                                    # remove the symlink (macOS)
 sudo rm -rf /usr/local/lib/peekdocs                                # remove the unpacked folder (macOS)
 which peekdocs                                                     # now points at the pipx shim
@@ -171,14 +171,14 @@ After the switch, `peekdocs` from any terminal runs the pipx version directly �
 If your system `python3` is still 3.9 and you installed a newer Python alongside it, tell pipx which to use:
 
 ```bash
-pipx install --force --python python3.13 git+https://github.com/exbuf/peekdocs.git
+pipx install --python python3.13 peekdocs
 ```
 
 Replace `3.13` with the version you installed.
 
-### No git? Install from a downloaded ZIP
+### No internet at install time? Install from a downloaded ZIP
 
-Download the ZIP from the **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of the URL:
+Download the ZIP from the **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of fetching from PyPI:
 
 ```bash
 pipx install --force ~/Downloads/peekdocs-main.zip                              # macOS / Linux
@@ -213,7 +213,7 @@ python -m pip install --upgrade pip certifi
 Emergency override (only to confirm cert validation is the cause — don't leave it in your install habit, since it disables a real security check):
 
 ```cmd
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host github.com --trusted-host codeload.github.com git+https://github.com/exbuf/peekdocs.git
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org peekdocs
 ```
 
 `--trusted-host` skips certificate validation for the listed hosts only. If the install succeeds with `--trusted-host` but fails without it, the root cause is certifi / CA bundle, not network reachability — fix pip + certifi as above.
@@ -223,10 +223,10 @@ pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --trus
 On some Windows machines pipx creates the venv but the package files silently fail to land in it. Install directly with pip instead — a different code path that bypasses the issue:
 
 ```powershell
-python -m pip install --user --upgrade git+https://github.com/exbuf/peekdocs.git
+python -m pip install --user --upgrade peekdocs
 ```
 
-`--upgrade` is the pip-side equivalent of pipx's `--force` — overwrites any existing install. Trade-off: no isolated venv (peekdocs's dependencies live alongside any other `pip --user` packages on your Python), which on a personal Windows install is typically fine.
+`--upgrade` overwrites any existing install. Trade-off: no isolated venv (peekdocs's dependencies live alongside any other `pip --user` packages on your Python), which on a personal Windows install is typically fine.
 
 ## CLI-on-Windows footnotes
 
