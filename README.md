@@ -166,7 +166,7 @@ A workbench for document collections: search them, characterize them through bui
 
 1. **No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
 
-2. **Have Python?** A single command installs everything — the GUI, the CLI, and the Python API:
+2. **Have Python 3.10+?** A single command installs everything — the GUI, the CLI, and the Python API:
 
    ```bash
    pipx install --force git+https://github.com/exbuf/peekdocs.git
