@@ -1,5 +1,7 @@
 # peekdocs Library API Reference
 
+<p align="center"><a href="https://github.com/exbuf/peekdocs/releases/latest"><img src="https://img.shields.io/github/v/release/exbuf/peekdocs?label=release&color=blue" alt="Latest release"></a></p>
+
 Use peekdocs — a privacy-first local document search and analysis tool — programmatically from Python code. For CLI and GUI usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
 
 **Prerequisites.** Python 3.10+ with peekdocs installed via pipx or pip — see [Installation](../README.md#installation). Run `peekdocs --check` to verify your install is healthy before scripting against the API.

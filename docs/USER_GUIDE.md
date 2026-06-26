@@ -1,5 +1,7 @@
 # peekdocs User Guide
 
+<p align="center"><a href="https://github.com/exbuf/peekdocs/releases/latest"><img src="https://img.shields.io/github/v/release/exbuf/peekdocs?label=release&color=blue" alt="Latest release"></a></p>
+
 This is the complete reference guide for peekdocs — a privacy-first local document search and analysis tool for Windows, macOS, and Linux, available as a GUI, CLI, and Python API. For a quick overview, see the [README](../README.md). For installation, see [Installation](../README.md#installation).
 
 ## Table of Contents

@@ -1,5 +1,7 @@
 # peekdocs FAQ and Troubleshooting
 
+<p align="center"><a href="https://github.com/exbuf/peekdocs/releases/latest"><img src="https://img.shields.io/github/v/release/exbuf/peekdocs?label=release&color=blue" alt="Latest release"></a></p>
+
 Common questions and solutions for peekdocs issues. If you're stuck, start with **[Where to Start](#where-to-start)** below — it tells you what to run first. For general usage, see the [User Guide](USER_GUIDE.md) or [README](../README.md).
 
 ## Table of Contents
