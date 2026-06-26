@@ -12,6 +12,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.23] — 2026-06-26
+
+GUI tooltip + help clarifications, two new Feature Highlights
+bullets, and auto-updating release-version badges on all four
+top-level doc surfaces.
+
+### Changed
+- **"Reset All Fields" help and tooltip clarified.** Both surfaces
+  now explicitly say the button resets to FACTORY defaults (not the
+  user-saved values from Save Defaults), and point at Restore
+  Settings as the way to reload saved defaults. Each section ends
+  with a cross-reference to the other (Reset All Fields ↔ Restore
+  Factory Settings) so the in-session-vs-on-disk distinction is
+  unambiguous.
+- **Preview cap tooltip now explains *why*** matches are capped at
+  all (Tk text widget gets sluggish past ~10K lines; visual scan of
+  that many matches isn't useful; full result is in the report
+  files regardless).
+
+### Docs
+- **Release-version badge added to the top of README, USER_GUIDE,
+  API, and TROUBLESHOOTING** via shields.io's
+  `github/v/release/exbuf/peekdocs` endpoint. Auto-updates on every
+  tagged release; zero per-release maintenance. Lets external sites
+  (e.g., a maintainer's personal website mirroring the live docs)
+  confirm the displayed docs match the latest release.
+- **Two new Feature Highlights bullets** (caps at 8 total — won't
+  grow further): **Polished GUI** (yellow-highlighted matches,
+  tooltips on every control, dark/light/system theme, adjustable
+  text size, contextual `?` help popups) and **Works in any
+  language** (GUI workflow translated into 7 languages, partial;
+  Unicode-based exact-character matching framed honestly as "like
+  most modern search tools" rather than a peekdocs-specific claim).
+- **README Quick install** bullet 2 now spells out "Have Python
+  3.10+?" so readers with older Pythons see the version requirement
+  at the decision point.
+
 ## [1.2.22] — 2026-06-25
 
 Test-fixture and docs accuracy maintenance.
