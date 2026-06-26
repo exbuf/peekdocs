@@ -1115,7 +1115,7 @@ class BuildMixin:
             font=ctk.CTkFont(size=13, weight="bold"),
         )
         self._adv_reset_btn.pack(side="left", padx=(5, 0))
-        Tooltip(self._adv_reset_btn, "Clear all fields and reset the GUI to its default state. This does not change the config file — only Save Defaults writes to it", anchor="above")
+        Tooltip(self._adv_reset_btn, "Clear all fields and reset to FACTORY defaults — not the values you saved via Save Defaults. Use Restore Settings (next to this button) to reload your saved defaults instead. Either way, ~/.peekdocsrc is not modified — only Save Defaults writes to it.", anchor="above")
 
         self._adv_reset_defaults_btn = ctk.CTkButton(
             adv_bottom_row2, text=_t("adv_restore_factory_label"), width=200,

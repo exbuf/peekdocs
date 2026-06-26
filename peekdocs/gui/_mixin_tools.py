@@ -4826,8 +4826,10 @@ class ToolsMixin:
         s("Restore Settings")
         b("Reload saved defaults from ~/.peekdocsrc into the GUI.")
         s("Reset All Fields")
-        b("Clear all fields and reset to defaults for the current session.")
-        b("Does not modify the saved config file (~/.peekdocsrc).")
+        b("Clear all fields and reset to FACTORY defaults for the current")
+        b("session — not the values you previously saved via Save")
+        b("Defaults. To reload your saved defaults instead, use Restore")
+        b("Settings (above). Reset All Fields does not modify ~/.peekdocsrc.")
         blank()
 
         s("Restore Factory Settings")
