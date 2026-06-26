@@ -1,6 +1,7 @@
 <h1 align="center">👀 peekdocs</h1>
 
 <p align="center">
+  <a href="https://github.com/exbuf/peekdocs/releases/latest"><img src="https://img.shields.io/github/v/release/exbuf/peekdocs?label=release&color=blue" alt="Latest release"></a>&nbsp;&nbsp;
   <a href="https://github.com/exbuf/peekdocs/actions/workflows/test.yml"><img src="https://github.com/exbuf/peekdocs/actions/workflows/test.yml/badge.svg" alt="Tests"></a>&nbsp;&nbsp;
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>&nbsp;&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
