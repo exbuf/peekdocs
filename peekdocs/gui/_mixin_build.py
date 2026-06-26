@@ -1320,7 +1320,7 @@ class BuildMixin:
         )
         self._preview_cap_dropdown.pack(side="right")
         Tooltip(self._preview_cap_dropdown,
-                "Preview cap — max matches rendered in this pane. Choose 100 / 500 (default) / 1000 / 5000 / No cap. The full result is always in the report files regardless of this setting.",
+                "Preview cap — max matches rendered in this pane. Choose 100 / 500 (default) / 1000 / 5000 / No cap. Capping keeps the preview snappy on large searches: Tk's text widget gets sluggish past ~10K lines, and visually scanning that many matches isn't useful anyway. The full result is always in the report files regardless of this setting.",
                 anchor="left")
         self._preview_cap_lbl = ctk.CTkLabel(
             preview_header_mid, text=_t("preview_cap_label"),
