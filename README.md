@@ -146,6 +146,7 @@ A workbench for document collections: search them, characterize them through bui
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into one workflow system.
 - **Same engine across GUI, CLI, and Python API** — schemas are shared, so a search you build in the GUI today drives from a Python script or cron job tomorrow with identical results.
 - **Polished GUI** — yellow-highlighted matches in the preview and the reports, tooltips on every control, dark/light/system theme, adjustable text size, and contextual `?` help popups throughout.
+- **Works in any language** — Unicode-based exact-character matching searches documents in any language (no stemming or word segmentation; works equally for English prose, Chinese text, code identifiers, account numbers); GUI workflow translated into 7 languages (partial, native-reviewed contributions welcome).
 
 *Detail and caveats on each capability live in the [Features](#features) section below.*
 
