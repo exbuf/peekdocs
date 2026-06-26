@@ -145,6 +145,7 @@ A workbench for document collections: search them, characterize them through bui
 - **Built-in analysis and reporting** — Duplicate Finder, File Inventory, Age Distribution, Change Tracking; highlighted reports in DOCX / HTML / PDF and machine-readable CSV / JSON / NDJSON.
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into one workflow system.
 - **Same engine across GUI, CLI, and Python API** — schemas are shared, so a search you build in the GUI today drives from a Python script or cron job tomorrow with identical results.
+- **Polished GUI** — yellow-highlighted matches in the preview and the reports, tooltips on every control, dark/light/system theme, adjustable text size, and contextual `?` help popups throughout.
 
 *Detail and caveats on each capability live in the [Features](#features) section below.*
 
