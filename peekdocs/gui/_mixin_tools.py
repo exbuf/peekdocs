@@ -9088,6 +9088,12 @@ class ToolsMixin:
                     files_searched = max(files_searched, len(result.files_searched))
                     _files_searched_set.update(result.files_searched)
                     file_matches = {}
+                    # Per-pattern flat list (file_dir, filename, line_num, text)
+                    # for the new per-pattern section render in the report.
+                    # No cross-pattern dedup here — each pattern's section
+                    # stands on its own, so duplicates across patterns are
+                    # expected and meaningful.
+                    _pattern_matches = []
                     for match in result.matches:
                         key = match.filename
                         if key not in file_matches:
@@ -9100,6 +9106,9 @@ class ToolsMixin:
                         file_matches[key]["count"] += 1
                         file_matches[key]["lines"].append(match.line_num)
                         file_matches[key]["match_texts"].append(match.text)
+                        _pattern_matches.append(
+                            (match.file_dir, match.filename, match.line_num, match.text)
+                        )
                         if not screen_only and len(all_matches) < 10000:
                             _mk = (match.file_dir, match.filename, match.line_num, match.text)
                             if _mk not in _seen_match_keys:
@@ -9111,6 +9120,7 @@ class ToolsMixin:
                         "match_count": len(result.matches),
                         "file_count": len(file_matches),
                         "files": file_matches,
+                        "matches": _pattern_matches,
                     })
                 except Exception:
                     scan_results.append({
@@ -9165,10 +9175,12 @@ class ToolsMixin:
                         f"Regex Search across {len(active_patterns)} pattern(s):\n"
                         + _pattern_bullets
                     )
-                    # Pass uncapped total + cap value so the report's
-                    # Hits line shows '(of N total — report capped at
-                    # 10,000)' instead of silently truncating.
-                    _uncapped_total = sum(s["match_count"] for s in scan_results)
+                    # Per-pattern section render — each pattern gets its
+                    # own headed block listing every match it found, with
+                    # no cross-pattern dedup or 10,000-row cap. This is
+                    # the natural way to read a regex-collection result
+                    # and answers the 'does the report show everything?'
+                    # question with 'yes, organized by pattern'.
                     output_path = os.path.join(folder, "peekdocs_regex_results.txt")
                     docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
                     write_txt_report(
@@ -9178,8 +9190,8 @@ class ToolsMixin:
                         "ANY", False, [], False, False, True, False,
                         elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
                         recursive=recursive, use_index=False,
-                        total_matches=_uncapped_total, max_matches=10000,
                         bulleted_terms=True,
+                        pattern_sections=scan_results,
                     )
                     result_doc = write_docx_report(
                         docx_path, output_path,

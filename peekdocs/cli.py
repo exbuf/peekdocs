@@ -1707,6 +1707,10 @@ def _main_inner(argv=None):
                 "regex": regex,
                 "match_count": len(result.matches),
                 "file_count": len({m.filename for m in result.matches}),
+                # Per-pattern matches retained so the .txt report can
+                # render them in per-pattern sections (pattern_sections
+                # kwarg to write_txt_report).
+                "matches": match_tuples,
             })
             all_matches.extend(match_tuples)
 
@@ -1756,6 +1760,7 @@ def _main_inner(argv=None):
                     elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
                     recursive=_rc_recursive, use_index=False,
                     bulleted_terms=True,
+                    pattern_sections=all_results,
                 )
                 result_doc = write_docx_report(
                     docx_path, output_path,

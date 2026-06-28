@@ -88,7 +88,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      expression=None, use_whole_word=False,
                      total_matches=None, max_matches=None,
                      range_specs=None, index_meta=None,
-                     bulleted_terms=False):
+                     bulleted_terms=False, pattern_sections=None):
     """Write the .txt result report (e.g. peekdocs_standard_results.txt).
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -130,7 +130,13 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
             f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
         if exclude_terms:
             f.write(f"Exclude Term(s) ==> {' '.join(exclude_terms)}\n")
-        if total_matches is not None and total_matches > len(matches):
+        if pattern_sections is not None:
+            # Per-pattern render: Hits reflects the true sum across all
+            # pattern sections, not the (possibly deduped/capped) flat
+            # `matches` list. Every match shown below.
+            _hits = sum(s.get("match_count", 0) for s in pattern_sections)
+            f.write(f"Hits ==> {_hits} (across {len(pattern_sections)} pattern(s) — see per-pattern sections below)\n")
+        elif total_matches is not None and total_matches > len(matches):
             f.write(f"Hits ==> {len(matches)} (of {total_matches:,} total — report capped at {max_matches:,}; use -m to change)\n")
         else:
             f.write(f"Hits ==> {len(matches)}\n")
@@ -193,20 +199,66 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                 f.write(f"  ({os.path.dirname(fp)})\n\n")
             # Inverse reports only list files missing the term — no match lines
             return (total_bytes, size_str)
-        prev_file = None
-        for file_dir, filename, line_num, text in matches:
-            current_file = os.path.join(file_dir, filename)
-            if use_context and prev_file == current_file:
-                f.write("---\n\n")
-            prev_file = current_file
-            if use_context or "\n" in text:
-                lines = text.split("\n")
-                wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
-                wrapped = "\n".join(wrapped_lines)
-            else:
-                wrapped = textwrap.fill(text, width=80)
-            fc = file_counts.get((file_dir, filename), 1)
-            f.write(f'Document: {filename} ({fc} match{"es" if fc != 1 else ""}), Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
+        if pattern_sections is not None:
+            # Per-pattern render path (regex collections / multi-pattern).
+            # Each pattern gets a clearly-headed section listing every
+            # one of its matches; file-count labels reset per pattern so
+            # 'X matches in Y file(s)' reflects that pattern alone, not
+            # the cumulative across earlier patterns.
+            for _ps_idx, _section in enumerate(pattern_sections):
+                _sec_matches = _section.get("matches") or []
+                _sec_name = _section.get("name", f"Pattern {_ps_idx + 1}")
+                _sec_regex = _section.get("regex", "")
+                _sec_mc = _section.get("match_count", len(_sec_matches))
+                _sec_fc = _section.get("file_count", 0)
+                # Per-pattern file-count map for the 'Document: X (N
+                # matches), Line: ...' label inside this section.
+                _sec_file_counts = {}
+                for _fd, _fn, _ln, _tx in _sec_matches:
+                    _key = (_fd, _fn)
+                    _sec_file_counts[_key] = _sec_file_counts.get(_key, 0) + 1
+                f.write("=" * 72 + "\n")
+                f.write(f"Pattern: {_sec_name}\n")
+                f.write(f"Regex:   {_sec_regex}\n")
+                _files_word = "file" if _sec_fc == 1 else "files"
+                _matches_word = "match" if _sec_mc == 1 else "matches"
+                f.write(f"Hits:    {_sec_mc} {_matches_word} in {_sec_fc} {_files_word}\n")
+                f.write("=" * 72 + "\n\n")
+                if not _sec_matches:
+                    f.write("(no matches for this pattern)\n\n")
+                    continue
+                _prev_file = None
+                for _fd, _fn, _ln, _tx in _sec_matches:
+                    _current_file = os.path.join(_fd, _fn)
+                    if use_context and _prev_file == _current_file:
+                        f.write("---\n\n")
+                    _prev_file = _current_file
+                    if use_context or "\n" in _tx:
+                        _lines = _tx.split("\n")
+                        _wrapped_lines = [textwrap.fill(_l, width=80) if _l else _l for _l in _lines]
+                        _wrapped = "\n".join(_wrapped_lines)
+                    else:
+                        _wrapped = textwrap.fill(_tx, width=80)
+                    _fc = _sec_file_counts.get((_fd, _fn), 1)
+                    f.write(
+                        f'Document: {_fn} ({_fc} match{"es" if _fc != 1 else ""}), Line: {_ln}, Match:\n'
+                        f'({_fd})\n"{_wrapped}"\n\n'
+                    )
+        else:
+            prev_file = None
+            for file_dir, filename, line_num, text in matches:
+                current_file = os.path.join(file_dir, filename)
+                if use_context and prev_file == current_file:
+                    f.write("---\n\n")
+                prev_file = current_file
+                if use_context or "\n" in text:
+                    lines = text.split("\n")
+                    wrapped_lines = [textwrap.fill(line, width=80) if line else line for line in lines]
+                    wrapped = "\n".join(wrapped_lines)
+                else:
+                    wrapped = textwrap.fill(text, width=80)
+                fc = file_counts.get((file_dir, filename), 1)
+                f.write(f'Document: {filename} ({fc} match{"es" if fc != 1 else ""}), Line: {line_num}, Match:\n({file_dir})\n"{wrapped}"\n\n')
 
     _restrict_file_permissions(output_path)
     return (total_bytes, size_str)
