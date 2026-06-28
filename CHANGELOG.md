@@ -12,6 +12,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.25] — 2026-06-28
+
+Suite-run UX polish, button-color consistency across the three
+search-workflow families, and a proactive FAQ pass closing 5 of
+the 14 doc gaps surfaced by the audit.
+
+### Added
+- **"Writing reports..." status** now shows between the last
+  per-search update and the final results line during single-suite
+  AND multi-suite runs. Closes a multi-second silent gap on big
+  suites with all output formats (TXT + DOCX + HTML + CSV + JSON +
+  PDF) enabled.
+
+### Changed
+- **Run Multiple Search Suites…** button in the Search Suites
+  popup is now peekdocs green (`#76BA1B` / hover `#5E9516`),
+  matching the main-page Search Suites button and the Run Selected
+  button inside the multi-suite picker. Three suite-related
+  surfaces now share one consistent "green = suite execution"
+  color.
+- **Run Multiple Collections…** button in the Regex Search popup
+  is now peekdocs orange (`#FF9800` / hover `#F57C00`), matching
+  the main-page Regex Search button. Color logic is now consistent
+  across all three workflow families — **blue** = Standard Search,
+  **green** = Search Suites, **orange** = Regex Search — with
+  matching "Run Multiple..." buttons inheriting the family color.
+
+### Docs
+- **Search Suites `?` help gains a "Can a Suite Include Searches
+  from Different Folders?" section** that directly answers no,
+  explains why (suite references searches by name; names only exist
+  inside one folder's collection), and lists three workarounds:
+  multi-folder Standard Search via +Folder, shell loop with
+  `peekdocs --suite NAME`, Python API `run_suite(name, directory=d)`.
+- **5 high-priority FAQ entries added** from the proactive doc-gap
+  audit. TROUBLESHOOTING.md: *"What happens if I cancel mid-run?"*,
+  *"Why is peekdocs's file count different from `ls -1` / `find`?"*,
+  *"Can peekdocs search inside password-protected ZIPs / PDFs?"*,
+  *"Why does fuzzy search return so many results?"*. USER_GUIDE.md
+  Search Index section: new *"When the index is bypassed
+  automatically"* paragraph naming the four modes (fuzzy / wildcard /
+  regex / expression) that fall back to direct scan and explaining
+  why each does. 9 of the 14 audit gaps remain (5 medium-priority +
+  4 lower-priority) for future passes.
+
 ## [1.2.24] — 2026-06-28
 
 Search Suites UX polish — every fix here is a clarity / phrasing
