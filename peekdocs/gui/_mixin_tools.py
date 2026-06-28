@@ -5720,7 +5720,7 @@ class ToolsMixin:
                 else:
                     # Case 2: saved searches exist but every one is already in this suite
                     self._show_error(
-                        "Every saved search is already in this suite.\n\n"
+                        "Every saved search in this folder is already in this suite.\n\n"
                         "Save another search first (main screen → Save button) before "
                         "adding it here."
                     )
