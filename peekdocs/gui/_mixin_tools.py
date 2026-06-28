@@ -8517,21 +8517,23 @@ class ToolsMixin:
                     _screen_only, collection_name=_cn_label,
                 )
 
-            _mc_btns = tk.Frame(mc_win)
-            _mc_btns.pack(pady=(0, 12))
+            # Run Selected on its own row, Cancel on the row below it —
+            # matches the Add Search to Suite popup pattern and gives
+            # the user a clearly-separated "back out without running"
+            # action below the primary action button.
             ctk.CTkButton(
-                _mc_btns, text="Run Selected", width=130,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                fg_color="#FF9800", hover_color="#F57C00",
-                command=_do_run_multi,
-            ).pack(side="left", padx=5)
-            ctk.CTkButton(
-                _mc_btns, text="Cancel", width=90,
+                mc_win, text="Cancel", width=90,
                 font=ctk.CTkFont(size=12),
                 fg_color="transparent", text_color=("gray30", "gray70"),
                 hover_color=("gray90", "gray25"),
                 command=mc_win.destroy,
-            ).pack(side="left", padx=5)
+            ).pack(side="bottom", pady=(0, 10))
+            ctk.CTkButton(
+                mc_win, text="Run Selected", width=130,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#FF9800", hover_color="#F57C00",
+                command=_do_run_multi,
+            ).pack(side="bottom", pady=(8, 4))
 
             self._apply_dark_theme(mc_win)
 
