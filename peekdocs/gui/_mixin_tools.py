@@ -7931,7 +7931,9 @@ class ToolsMixin:
             win,
             text="Regex searches do not use an index. If searches take a long time it could be due to "
                  "too many results. Check your regex syntax. Results depend on your patterns "
-                 "\u2014 peekdocs does not validate correctness. Regex entries persist between invocations.",
+                 "\u2014 peekdocs does not validate correctness. Regex entries persist between invocations. "
+                 "Reports list every match grouped by pattern (TXT always; DOCX is skipped above "
+                 "25,000 total matches to keep the GUI responsive \u2014 see ? for details).",
             font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
         ).pack(fill="x", padx=15, pady=(10, 0))
 
@@ -9147,12 +9149,16 @@ class ToolsMixin:
 
             elapsed = time.time() - start
 
-            # Write reports in the background thread (not on GUI thread)
+            # Write reports in the background thread (not on GUI thread).
+            # DOCX_MATCH_THRESHOLD: above this, skip the DOCX entirely
+            # because python-docx builds the whole document in memory
+            # before saving \u2014 at 100K+ matches that's enough RAM pressure
+            # to make macOS swap-thrash and freeze the GUI. The TXT
+            # report streams and stays affordable at any size, so users
+            # always get full results. See docs/USER_GUIDE.md \u2014
+            # 'Regex Search reports and the DOCX threshold'.
+            _DOCX_MATCH_THRESHOLD = 25_000
             if not screen_only and all_matches and not getattr(self, "_regex_search_cancelled", False):
-                self.after(0, lambda: self.status_label.configure(
-                    text="Regex Search \u2014 writing reports...",
-                    text_color=("blue", "#66BBFF"),
-                ))
                 try:
                     from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
                     # Dedupe search_terms while preserving order. Multi-
@@ -9183,6 +9189,13 @@ class ToolsMixin:
                     # question with 'yes, organized by pattern'.
                     output_path = os.path.join(folder, "peekdocs_regex_results.txt")
                     docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
+                    _total_for_threshold = sum(s["match_count"] for s in scan_results)
+
+                    # ── Step 1: TXT (streamed, always written) ────────
+                    self.after(0, lambda: self.status_label.configure(
+                        text="Regex Search — writing TXT report...",
+                        text_color=("blue", "#66BBFF"),
+                    ))
                     write_txt_report(
                         output_path, all_matches,
                         sorted(_files_searched_set),
@@ -9193,12 +9206,51 @@ class ToolsMixin:
                         bulleted_terms=True,
                         pattern_sections=scan_results,
                     )
-                    result_doc = write_docx_report(
-                        docx_path, output_path,
-                        search_terms=search_terms,
-                        use_regex=True,
-                    )
-                    insert_file_sizes(output_path, docx_path, result_doc)
+
+                    # Cancel check between TXT and DOCX. DOCX is the
+                    # expensive step; bailing here is what makes Cancel
+                    # actually responsive on big runs.
+                    if getattr(self, "_regex_search_cancelled", False):
+                        return
+
+                    # ── Step 2: DOCX (in-memory, threshold-gated) ─────
+                    result_doc = None
+                    if _total_for_threshold > _DOCX_MATCH_THRESHOLD:
+                        # Too many matches for python-docx's in-memory
+                        # build. Skip DOCX, surface a popup explaining
+                        # why. The TXT was already written above.
+                        _ts_msg = (
+                            f"{_total_for_threshold:,} matches is too many for a "
+                            f"Word report (threshold: {_DOCX_MATCH_THRESHOLD:,}). "
+                            f"The TXT report has every match — open it with "
+                            f"any text editor.\n\nTo get a DOCX too, narrow the "
+                            f"search (fewer patterns, smaller folder, or more "
+                            f"specific regexes) so the total stays under "
+                            f"{_DOCX_MATCH_THRESHOLD:,}."
+                        )
+                        self.after(0, lambda m=_ts_msg: self._show_error(m))
+                    else:
+                        self.after(0, lambda: self.status_label.configure(
+                            text="Regex Search — writing DOCX report...",
+                            text_color=("blue", "#66BBFF"),
+                        ))
+                        result_doc = write_docx_report(
+                            docx_path, output_path,
+                            search_terms=search_terms,
+                            use_regex=True,
+                        )
+
+                    # Cancel check between DOCX and the file-size insert.
+                    if getattr(self, "_regex_search_cancelled", False):
+                        return
+
+                    # ── Step 3: file-size insert (skipped if no DOCX) ─
+                    if result_doc is not None:
+                        self.after(0, lambda: self.status_label.configure(
+                            text="Regex Search — finalizing...",
+                            text_color=("blue", "#66BBFF"),
+                        ))
+                        insert_file_sizes(output_path, docx_path, result_doc)
                 except Exception:
                     pass
 
@@ -10037,6 +10089,7 @@ class ToolsMixin:
             "Checkboxes (Whole Word, Report)",
             "Advanced Search Options",
             "Performance and Index",
+            "Reports and the DOCX Threshold",
             "Disclaimer",
         ]:
             txt.insert("end", f"\u2022 {section}\n", "toc_item")
@@ -10420,6 +10473,46 @@ class ToolsMixin:
         b("limit results. Default is 1000. Set to 0 for unlimited,")
         b("but be aware that very large result sets slow down")
         b("report generation and the Results Preview.")
+        blank()
+
+        h("REPORTS AND THE DOCX THRESHOLD")
+        b("Regex Search writes two reports when matches are found:")
+        b("• peekdocs_regex_results.txt — always written, every match")
+        b("  grouped by pattern, no cap. Open with any text editor.")
+        b("• peekdocs_regex_results.docx — the same content with")
+        b("  yellow highlighting on each match. SKIPPED above 25,000")
+        b("  total matches across all patterns. The TXT report still")
+        b("  has everything; only the DOCX is omitted.")
+        blank()
+        b("Why the threshold? python-docx builds the entire Word")
+        b("document in memory before saving. At 100,000+ matches,")
+        b("that's enough RAM pressure to make macOS swap-thrash and")
+        b("freeze the GUI — you can't even click Cancel because the")
+        b("main thread is starved waiting for memory. The 25,000")
+        b("threshold is a safety net that keeps the GUI responsive")
+        b("on pathological result sets while still producing a DOCX")
+        b("for normal regex runs (which rarely hit five digits of")
+        b("matches).")
+        blank()
+        b("If you see the 'too many matches for a Word report' popup")
+        b("and you really want a DOCX of the highlighted results,")
+        b("three options:")
+        blank()
+        b("• Narrow the search — fewer patterns, smaller folder,")
+        b("  more specific regexes — so the total stays under 25,000.")
+        b("• Run patterns one at a time. Each single-pattern run")
+        b("  produces its own DOCX with that pattern's matches only;")
+        b("  most individual patterns won't trip the threshold.")
+        b("• Read the TXT report. It has every match grouped by")
+        b("  pattern with the same Document / Line / Match format")
+        b("  the DOCX uses — just without the yellow highlighting.")
+        blank()
+        b("Cancellation: clicking Cancel during report writing now")
+        b("stops cleanly between TXT → DOCX → finalize steps. On")
+        b("pre-1.2.26 versions a cancel during the DOCX write would")
+        b("not take effect because there was no cancel check between")
+        b("the writes; the bg thread would keep building the giant")
+        b("Word document until done. Fixed.")
         blank()
 
         h("DISCLAIMER")

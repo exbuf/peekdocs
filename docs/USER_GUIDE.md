@@ -948,6 +948,25 @@ Status messages and warnings go to stderr so the stdout stream stays a clean JSO
 - *No service-manager templates ship in v1.* Restarting `peekdocs --watch` on boot is the operator's responsibility — `systemd`, `launchd`, or Windows Task Scheduler — and the recipes aren't yet documented. A community contribution adding starter templates is welcome.
 - *Per-file extraction errors don't crash the watcher.* A bad file (corrupted PDF, password-protected document, etc.) writes a one-line diagnostic to stderr and the watcher continues with the next event. Search the stderr for `watcher: error scanning` if you suspect coverage gaps.
 
+#### Regex Search reports and the DOCX threshold
+
+Every regex collection run writes two reports when matches are found:
+
+| Report | Path | What's in it | Cap? |
+|---|---|---|---|
+| **TXT** | `peekdocs_regex_results.txt` | Every match grouped by pattern, with per-pattern section headers (`=== Pattern: <name> — N matches in M files ===`), the full bulleted pattern list at the top, and per-line context. Streams to disk while writing. | **None — every match the search produced.** |
+| **DOCX** | `peekdocs_regex_results.docx` | Same content with **yellow highlighting** on each matched substring. Built in memory by `python-docx` before saving. | **Skipped above 25,000 total matches across all patterns.** |
+
+**Why the DOCX threshold exists.** `python-docx` builds the entire Word document in memory before saving — it has no streaming-write mode. At 100,000+ matches that's enough RAM pressure on a typical laptop to make macOS start swapping, which starves the GUI's main thread of memory, which produces a spinning beachball and (eventually) an unresponsive-app force-quit by the OS. The 25,000 threshold is the safety net: normal regex runs (which rarely hit five digits of matches even on big folders) get the highlighted DOCX as before; pathological result sets get the TXT (which has everything) and a popup explaining why the DOCX was skipped.
+
+**Cancellation during report writing.** The Cancel button now has cancel checkpoints between the three writing steps (TXT → DOCX → finalize), so clicking Cancel during the DOCX build actually stops the work instead of letting the background thread run to completion. Status line shows which step is currently running (`Regex Search — writing TXT report...` → `... writing DOCX report...` → `... finalizing...`) so you can see what's blocking.
+
+**If you hit the threshold and need a DOCX anyway** — three options:
+
+1. **Narrow the search.** Fewer patterns, smaller folder, more specific regexes — anything that brings the total under 25,000.
+2. **Run patterns one at a time.** Each single-pattern run produces its own DOCX of that pattern's matches only. Most individual patterns won't trip the threshold.
+3. **Read the TXT report.** It has every match grouped by pattern in the same Document / Line / Match format the DOCX uses — just without the yellow highlighting. Any text editor opens it.
+
 ### Search Suite Use Cases
 
 The `--suite` flag runs a saved search suite from the command line. Suites live in `.peekdocs_collection.json` inside each search folder, but peekdocs keeps a small global index (`~/.peekdocs_suites_index.json`) so the CLI can find a suite by name from any working directory. Concretely:
