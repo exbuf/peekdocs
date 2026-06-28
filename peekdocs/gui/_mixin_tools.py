@@ -6093,6 +6093,7 @@ class ToolsMixin:
         _multi_suite_btn = ctk.CTkButton(
             _multi_suite_frame, text="Run Multiple Search Suites…",
             width=220, font=ctk.CTkFont(size=11),
+            fg_color="#76BA1B", hover_color="#5E9516", text_color="white",
             command=_run_multiple_suites,
         )
         _multi_suite_btn.pack()
