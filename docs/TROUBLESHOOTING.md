@@ -46,11 +46,26 @@ Results are saved to two files in the current directory: `peekdocs_standard_resu
 **What happens when a file can't be read?**
 Some files may fail to read — for example, encrypted PDFs, corrupted documents, password-protected spreadsheets, files with unsupported encoding, or files that are open in another program (especially on Windows, where open files are locked). When this happens, a warning is printed to the screen and the error is logged to `peekdocs_errors.log` with a timestamp. If a file is locked, the warning will suggest closing the program that has it open and trying again. In the GUI, a **View Error Log** button appears after any search where errors were logged — click it to open the log directly. The error log is only created when a file error occurs — if all files are read successfully, no error log is created. The log appends across searches so you have a history of any issues. You can delete `peekdocs_errors.log` at any time — a new one will be created automatically the next time a file error occurs. The error log is automatically excluded from searches so it never appears in your results. If peekdocs itself crashes unexpectedly, a crash report with a diagnosis is also written to this file.
 
+**Why is peekdocs's file count different from `ls -1` or `find . | wc -l`?**
+Three common causes: (1) peekdocs's count is what it actually *searched*, not what's on disk — files it skipped (size limits, password-protected, unsupported types, or its own `peekdocs_*` / `.peekdocs.db` artifacts) don't appear. (2) Symlinks are intentionally not followed, even with `-r`, to prevent infinite loops; `ls` and `find` follow them by default. (3) Recursive (`-r`) descends into every subfolder including `node_modules`, Python venvs, `.git`, and hidden dirs — your shell count may have excluded those via `find . -not -path '*/.*'`. The closest apples-to-apples comparison is `find . -type f -not -path '*/.*' | wc -l` minus the size / password / unsupported-type exclusions. See the **Excluded Files** popup (right-pane button after any GUI search) for a per-file accounting of why each skipped file was skipped.
+
+**Can peekdocs search inside password-protected or encrypted ZIP / 7z / PDF files?**
+No. peekdocs reads files in plaintext (or extracts archives to a temp directory) and has no mechanism to prompt for or accept passwords. Encrypted archives, password-protected PDFs, and DRM-protected ePubs all log to `peekdocs_errors.log` and show up in the **Excluded Files** popup under reason *password-protected* or *encrypted*. Workaround: decrypt the files first into a separate folder (e.g., `7z x archive.7z` with password, or "Save As" an unencrypted PDF copy from your reader), then point peekdocs at that folder. peekdocs never overwrites or modifies your encrypted originals.
+
 **How do I recall a previous command?**
 Press the up arrow key in your terminal to scroll through previous commands. This is a built-in feature of all terminals (macOS, Windows, and Linux) — not specific to peekdocs. You can press up repeatedly to go further back, then press Enter to re-run the command.
 
 **How do I cancel a search in progress?**
 Press Ctrl+C. peekdocs will stop cleanly and print "Search cancelled." This works on macOS, Windows, and Linux.
+
+**What happens if I cancel a search mid-run? Are my reports or the index corrupted?**
+No corruption. peekdocs is designed so cancellation leaves everything in a consistent state:
+- **Report files** — any in-progress `peekdocs_standard_results.*` / `peekdocs_suite_results.*` from the current run is *not* written. Reports from your previous search remain on disk untouched until the next completed search overwrites them.
+- **Search index** — index reads (during search) are read-only and can't damage anything. Index writes (during `--index` rebuild or auto-refresh) use SQLite WAL mode with atomic transactions; a cancel mid-rebuild rolls back the uncommitted changes, so the index reflects either the previous state or the new state, never a half-merged hybrid.
+- **Excluded Files / Error Log** — files processed before the cancel are still recorded; the log is appended atomically per file.
+- **GUI state** — the status line returns to idle, the Cancel button reverts to Run, and you can immediately start a new search. No restart needed.
+
+Cancellation is safe as your default "I'm not sure about this search" escape hatch — there's no penalty for being aggressive with Ctrl+C / Cancel.
 
 **How do I check if peekdocs is installed correctly?**
 Run `peekdocs --check`. This verifies your Python version, checks that all required dependencies are installed, reports whether Tesseract is available for OCR, and checks available disk space. If anything is missing, it tells you exactly how to fix it.
@@ -92,6 +107,14 @@ Each new search you run with the same name is appended to the bottom of the file
 **Can I find approximate matches or handle typos?**
 Yes — use the `-z` flag. This enables fuzzy matching, which finds words that are similar to your search terms even if they're not spelled exactly the same. For example, searching for "budget" with `-z` will also match "budgt", "buget", or "budjet". This is especially useful when searching OCR text (combine with `-O`), which often contains recognition errors.<br>
 Example: `peekdocs -z budget`
+
+**Why does fuzzy search return so many results?**
+Fuzzy matching (`-z` / Fuzzy checkbox) accepts close-but-not-exact matches based on a similarity score (default: ~80% similarity). That's intentionally generous so OCR errors, typos, and minor misspellings get caught — but on a clean corpus it also matches unrelated words that share letters. Three ways to narrow the noise:
+- **Use a longer or more specific term.** `budget` fuzzy-matches `budgets`, `budgeted`, `buget`, `biget` — short terms have more accidental neighbors. `operating budget` generates fewer false positives because the multi-word combination has fewer fuzzy variants.
+- **Switch to Whole Word matching** (`-W`) if you want exact word boundaries. Incompatible with Fuzzy, so you trade fuzzy tolerance for exactness.
+- **Pair with `-n` (Exclude)** to filter out the specific noise terms you keep seeing.
+
+Fuzzy is best when you suspect OCR errors or know your corpus has typos. For clean-text searches where you know the exact term, leave Fuzzy off.
 
 **Can I use wildcards instead of regex?**
 Yes — use the `-w` flag. Wildcards are simpler than regex: `*` matches any characters and `?` matches exactly one character. For example, `budg*` matches "budget", "budgets", and "budgeting", while `te?t` matches "test" and "text". Wildcards match whole words only, so `budg*` won't match the "budg" inside "debugging".<br>

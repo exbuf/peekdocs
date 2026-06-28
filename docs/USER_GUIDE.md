@@ -1935,6 +1935,15 @@ The index covers the folder and all subfolders. It's stored as `.peekdocs.db` in
 
 **Use Index with saved searches:** The index setting is saved per search. When you save a search with Use Index checked, reloading it restores that setting. If no index exists when Use Index is on, peekdocs falls back to direct scanning automatically.
 
+**When the index is bypassed automatically.** Not every search mode can use the FTS5 index. The index stores exact tokens (plus per-line context lookups); search modes that require runtime computation against the raw text fall back to a direct scan even when **Use Index** is checked:
+
+- **Fuzzy** (`-z` / Fuzzy checkbox) — needs rapidfuzz to compare each candidate string at runtime; the index can't pre-compute similarity scores.
+- **Wildcard** (`-w` / Wildcard checkbox) — pattern matching that the index's token store can't shortcut.
+- **Regex** (`-x` / Regex checkbox / Regex Search collections) — runs Python's regex engine against the extracted text directly.
+- **Boolean expression** (`-e` / Expression checkbox) — currently runs against direct-scanned text for correctness on complex operators.
+
+When this happens, the CLI prints `Note: index bypassed — fuzzy search uses direct scan` (or similar) and the GUI status line condenses it to `— index bypassed (fuzzy search)`. The search still produces correct results — it just doesn't benefit from the index's speed. If you checked **Use Index** and saw no speed improvement, this is usually why: one of the modes above is also enabled and overrides the indexed path.
+
 **"Note: index built with max-file-size=N MB; current setting is M MB" — what does that mean?** peekdocs prints this note (and the GUI status line condenses it to `— index settings out of sync (run --index to refresh)`) when your current Max File Size setting doesn't match the value the index was built with. Common cause: the index was built with the default 100 MB limit but Advanced Search Options has Max File Size set to 0 (no limit) — files larger than 100 MB are not in the index even though your current setting would otherwise include them. The search still runs against the existing index; results are correct *for the files that were indexed*. To bring them back in sync: either run `peekdocs --index` (terminal) or click **Build Index(es)** (GUI) to rebuild with the current limit, or change Max File Size back to the value the index was built with. The notice only fires when the two values differ; matching values are silent.
 
 **Subfolders:** One index in your top folder covers everything underneath. You can build separate indexes in subfolders too — they're independent and don't interfere with each other.
