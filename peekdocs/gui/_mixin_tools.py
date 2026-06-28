@@ -6192,7 +6192,7 @@ class ToolsMixin:
                 _total = len(search_names)
                 self.after(0, lambda i=i, n=search_name, t=_total: self.status_label.configure(
                     text_color=("blue", "#66BBFF"),
-                    text=f"Suite [{i}/{t}] {n}..."
+                    text=f"Search [{i}/{t}] {n}..."
                 ))
                 params = get_search_params(folder, search_name)
                 if params is None:
