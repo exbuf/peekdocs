@@ -9786,11 +9786,35 @@ class ToolsMixin:
         # keeping the debounced re-match snappy.
         _SAMPLE_CAP = 50 * 1024
 
+        # Binary container formats (DOCX = ZIP of XML; PDF = binary
+        # stream; XLSX = ZIP; ePub = ZIP; archives; OCR images; etc.)
+        # must skip the UTF-8 fast path even though it 'succeeds' under
+        # errors='replace' — what users actually want for these formats
+        # is the extracted text, not the raw container bytes rendered as
+        # replacement characters.
+        _NEEDS_EXTRACTION = {
+            ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt",
+            ".odt", ".ods", ".odp", ".pdf", ".epub", ".rtf",
+            ".pages", ".numbers", ".key",
+            ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".bz2",
+            ".msg", ".pst",
+            ".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp",
+            ".dxf", ".vsdx",
+        }
+
         def _load_from_file():
             path = filedialog.askopenfilename(parent=win)
             if not path:
                 return
+            _ext = os.path.splitext(path)[1].lower()
+            _force_extract = _ext in _NEEDS_EXTRACTION
             try:
+                if _force_extract:
+                    # Skip the fast path entirely for binary containers;
+                    # falling through to the OSError-style branch via
+                    # raise is the cleanest way to route into the
+                    # extractor without duplicating its body here.
+                    raise UnicodeDecodeError("forced", b"", 0, 1, "binary container")
                 # Plain text fast path — read directly.
                 with open(path, "r", encoding="utf-8", errors="replace") as f:
                     content = f.read(_SAMPLE_CAP + 1)
