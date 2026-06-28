@@ -5710,7 +5710,20 @@ class ToolsMixin:
             already_in = list(data["suites"].get(current_suite[0], []))
             remaining = [s for s in available if s not in already_in]
             if not remaining:
-                self._show_error("No saved searches available to add.\n\nSave a search first (main screen → Save button).")
+                if not available:
+                    # Case 1: no saved searches exist in this folder at all
+                    self._show_error(
+                        "No saved searches yet.\n\n"
+                        "Save a search first (main screen → Save button), then come "
+                        "back to add it to this suite."
+                    )
+                else:
+                    # Case 2: saved searches exist but every one is already in this suite
+                    self._show_error(
+                        "Every saved search is already in this suite.\n\n"
+                        "Save another search first (main screen → Save button) before "
+                        "adding it here."
+                    )
                 return
 
             # Popup to pick a search.
