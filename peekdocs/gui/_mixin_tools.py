@@ -9155,7 +9155,20 @@ class ToolsMixin:
                     search_terms = list(dict.fromkeys(
                         regex for _name, regex in active_patterns
                     ))
-                    command_str = "Regex Search: " + ", ".join(f"{n} ({r})" for n, r in active_patterns)
+                    # Command line as a multi-line bulleted list — comma-
+                    # joining 10+ patterns turned the Command ==> line
+                    # into one wall of characters. Bullets are readable.
+                    _pattern_bullets = "\n".join(
+                        f"  • {n} ({r})" for n, r in active_patterns
+                    )
+                    command_str = (
+                        f"Regex Search across {len(active_patterns)} pattern(s):\n"
+                        + _pattern_bullets
+                    )
+                    # Pass uncapped total + cap value so the report's
+                    # Hits line shows '(of N total — report capped at
+                    # 10,000)' instead of silently truncating.
+                    _uncapped_total = sum(s["match_count"] for s in scan_results)
                     output_path = os.path.join(folder, "peekdocs_regex_results.txt")
                     docx_path = os.path.join(folder, "peekdocs_regex_results.docx")
                     write_txt_report(
@@ -9165,6 +9178,8 @@ class ToolsMixin:
                         "ANY", False, [], False, False, True, False,
                         elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
                         recursive=recursive, use_index=False,
+                        total_matches=_uncapped_total, max_matches=10000,
+                        bulleted_terms=True,
                     )
                     result_doc = write_docx_report(
                         docx_path, output_path,

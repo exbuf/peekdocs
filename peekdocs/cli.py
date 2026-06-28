@@ -1755,6 +1755,7 @@ def _main_inner(argv=None):
                     "ANY", False, [], False, False, True, False,
                     elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
                     recursive=_rc_recursive, use_index=False,
+                    bulleted_terms=True,
                 )
                 result_doc = write_docx_report(
                     docx_path, output_path,

@@ -87,7 +87,8 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                      inverse=False, output_csv=False, output_json=False,
                      expression=None, use_whole_word=False,
                      total_matches=None, max_matches=None,
-                     range_specs=None, index_meta=None):
+                     range_specs=None, index_meta=None,
+                     bulleted_terms=False):
     """Write the .txt result report (e.g. peekdocs_standard_results.txt).
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -117,6 +118,14 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         f.write(f"Translation ==> {translation}\n")
         if expression:
             f.write(f"Search Expression ==> {expression} (mode: {report_mode})\n")
+        elif bulleted_terms and len(search_terms) > 1:
+            # Regex collections / multi-term searches: bullet each term on
+            # its own line for readability. The flat space-joined form
+            # collapses 10+ regex patterns into one wall of characters
+            # that's nearly impossible to scan.
+            f.write(f"Search Term(s) (match: {report_mode}):\n")
+            for _t in search_terms:
+                f.write(f"  • {_t}\n")
         else:
             f.write(f"Search Term(s) ==> {' '.join(search_terms)} (match: {report_mode})\n")
         if exclude_terms:
