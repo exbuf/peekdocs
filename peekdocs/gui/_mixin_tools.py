@@ -7932,8 +7932,9 @@ class ToolsMixin:
             text="Regex searches do not use an index. If searches take a long time it could be due to "
                  "too many results. Check your regex syntax. Results depend on your patterns "
                  "\u2014 peekdocs does not validate correctness. Regex entries persist between invocations. "
-                 "Reports list every match grouped by pattern (TXT always; DOCX is skipped above "
-                 "25,000 total matches to keep the GUI responsive \u2014 see ? for details).",
+                 "Reports list every match grouped by pattern. TXT is always written; DOCX / HTML / "
+                 "CSV / JSON / PDF are opt-in via the 'Also write:' checkboxes below. DOCX and PDF "
+                 "are skipped above 25,000 total matches to keep the GUI responsive \u2014 see ? for details.",
             font=("TkDefaultFont", 10), fg="gray", wraplength=600, justify="left",
         ).pack(fill="x", padx=15, pady=(10, 0))
 
@@ -8510,11 +8511,19 @@ class ToolsMixin:
                     _cn_label = " + ".join(_picked)
                 else:
                     _cn_label = f"{len(_picked)} collections"
+                _fmts_mc = {
+                    "docx": output_docx_var.get(),
+                    "html": output_html_var.get(),
+                    "csv":  output_csv_var.get(),
+                    "json": output_json_var.get(),
+                    "pdf":  output_pdf_var.get(),
+                }
                 mc_win.destroy()
                 win.destroy()
                 self._run_regex_search_per_pattern(
                     _active, _combined, _folder, _recursive,
                     _screen_only, collection_name=_cn_label,
+                    formats=_fmts_mc,
                 )
 
             # Run Selected on its own row, Cancel on the row below it —
@@ -8785,6 +8794,28 @@ class ToolsMixin:
             font=("TkDefaultFont", 11),
         ).pack(anchor="w")
 
+        # Output format checkboxes — 1.2.6 opt-in policy mirrored here so
+        # Regex Search behaves consistently with Standard Search. TXT is
+        # always written; DOCX / HTML / CSV / JSON / PDF are opt-in. The
+        # "Do not save..." (screen-only) checkbox above overrides all of
+        # these — when on, nothing is written regardless of these
+        # selections. Persisted to ~/.peekdocsrc per-key so the user's
+        # preferred output set sticks across sessions.
+        output_docx_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_output_docx", False)))
+        output_html_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_output_html", False)))
+        output_csv_var  = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_output_csv",  False)))
+        output_json_var = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_output_json", False)))
+        output_pdf_var  = tk.BooleanVar(value=bool(_rs_cfg.get("regex_search_output_pdf",  False)))
+        fmt_frame = tk.Frame(win)
+        fmt_frame.pack(fill="x", padx=20, pady=(0, 4))
+        tk.Label(fmt_frame, text="Also write:", font=("TkDefaultFont", 11)).pack(side="left", padx=(0, 6))
+        tk.Checkbutton(fmt_frame, variable=output_docx_var, text="DOCX", font=("TkDefaultFont", 11)).pack(side="left", padx=2)
+        tk.Checkbutton(fmt_frame, variable=output_html_var, text="HTML", font=("TkDefaultFont", 11)).pack(side="left", padx=2)
+        tk.Checkbutton(fmt_frame, variable=output_csv_var,  text="CSV",  font=("TkDefaultFont", 11)).pack(side="left", padx=2)
+        tk.Checkbutton(fmt_frame, variable=output_json_var, text="JSON", font=("TkDefaultFont", 11)).pack(side="left", padx=2)
+        tk.Checkbutton(fmt_frame, variable=output_pdf_var,  text="PDF",  font=("TkDefaultFont", 11)).pack(side="left", padx=2)
+        tk.Label(fmt_frame, text="(TXT always written)", font=("TkDefaultFont", 9), fg="gray").pack(side="left", padx=(8, 0))
+
         def _save_regex_settings():
             """Save all pattern rows and settings to config."""
             try:
@@ -8801,6 +8832,11 @@ class ToolsMixin:
                 config["regex_search_no_report"] = no_report_var.get()
                 config["regex_search_whole_word"] = whole_word_var.get()
                 config["regex_search_active_collection"] = _active_collection_name[0]
+                config["regex_search_output_docx"] = output_docx_var.get()
+                config["regex_search_output_html"] = output_html_var.get()
+                config["regex_search_output_csv"]  = output_csv_var.get()
+                config["regex_search_output_json"] = output_json_var.get()
+                config["regex_search_output_pdf"]  = output_pdf_var.get()
                 _save_config(config)
             except Exception:
                 pass
@@ -8922,10 +8958,18 @@ class ToolsMixin:
 
             screen_only = no_report_var.get()
             collection_name = _active_collection_name[0]
+            _fmts = {
+                "docx": output_docx_var.get(),
+                "html": output_html_var.get(),
+                "csv":  output_csv_var.get(),
+                "json": output_json_var.get(),
+                "pdf":  output_pdf_var.get(),
+            }
             win.destroy()
             self._run_regex_search_per_pattern(
                 active, combined, rs_folder, rs_recursive, screen_only,
                 collection_name=collection_name,
+                formats=_fmts,
             )
 
         ctk.CTkButton(
@@ -8968,7 +9012,7 @@ class ToolsMixin:
         win.deiconify()
 
 
-    def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True, collection_name=""):
+    def _run_regex_search_per_pattern(self, active_patterns, combined_regex, folder, recursive, screen_only=True, collection_name="", formats=None):
         """Run regex search per-pattern via API with status updates.
 
         If screen_only is True, results are shown in a popup with no reports.
@@ -9152,14 +9196,16 @@ class ToolsMixin:
             elapsed = time.time() - start
 
             # Write reports in the background thread (not on GUI thread).
-            # DOCX_MATCH_THRESHOLD: above this, skip the DOCX entirely
-            # because python-docx builds the whole document in memory
-            # before saving \u2014 at 100K+ matches that's enough RAM pressure
-            # to make macOS swap-thrash and freeze the GUI. The TXT
-            # report streams and stays affordable at any size, so users
-            # always get full results. See docs/USER_GUIDE.md \u2014
-            # 'Regex Search reports and the DOCX threshold'.
+            # DOCX_MATCH_THRESHOLD: above this, skip in-memory-build
+            # formats (DOCX, PDF) because python-docx and fpdf2 both
+            # build the whole document in memory before saving \u2014 at
+            # 100K+ matches that's enough RAM pressure to make macOS
+            # swap-thrash and freeze the GUI. TXT / CSV / HTML / JSON
+            # are streamed and stay affordable at any size. See
+            # docs/USER_GUIDE.md \u2014 'Regex Search reports and the DOCX
+            # threshold'.
             _DOCX_MATCH_THRESHOLD = 25_000
+            _fmts_local = formats or {}
             if not screen_only and all_matches and not getattr(self, "_regex_search_cancelled", False):
                 try:
                     from peekdocs.reporter import write_txt_report, write_docx_report, insert_file_sizes
@@ -9209,44 +9255,120 @@ class ToolsMixin:
                         pattern_sections=scan_results,
                     )
 
-                    # Cancel check between TXT and DOCX. DOCX is the
-                    # expensive step; bailing here is what makes Cancel
-                    # actually responsive on big runs.
+                    # Cancel check between TXT and the optional formats.
                     if getattr(self, "_regex_search_cancelled", False):
                         return
 
-                    # ── Step 2: DOCX (in-memory, threshold-gated) ─────
+                    # ── Step 2: optional formats, each gated on its
+                    #            checkbox in the Regex Search popup ──
+                    # DOCX and PDF use in-memory builds → threshold-gated.
+                    # CSV / JSON / HTML stream or build small, no cap.
                     result_doc = None
-                    if _total_for_threshold > _DOCX_MATCH_THRESHOLD:
-                        # Too many matches for python-docx's in-memory
-                        # build. Skip DOCX, surface a popup explaining
-                        # why. The TXT was already written above.
-                        _ts_msg = (
-                            f"{_total_for_threshold:,} matches is too many for a "
-                            f"Word report (threshold: {_DOCX_MATCH_THRESHOLD:,}). "
-                            f"The TXT report has every match — open it with "
-                            f"any text editor.\n\nTo get a DOCX too, narrow the "
-                            f"search (fewer patterns, smaller folder, or more "
-                            f"specific regexes) so the total stays under "
-                            f"{_DOCX_MATCH_THRESHOLD:,}."
-                        )
-                        self.after(0, lambda m=_ts_msg: self._show_error(m))
-                    else:
+                    if _fmts_local.get("docx"):
+                        if _total_for_threshold > _DOCX_MATCH_THRESHOLD:
+                            _ts_msg = (
+                                f"{_total_for_threshold:,} matches is too many "
+                                f"for a Word report (threshold: "
+                                f"{_DOCX_MATCH_THRESHOLD:,}). The TXT report "
+                                f"has every match — open it with any text "
+                                f"editor.\n\nTo get a DOCX too, narrow the "
+                                f"search (fewer patterns, smaller folder, or "
+                                f"more specific regexes) so the total stays "
+                                f"under {_DOCX_MATCH_THRESHOLD:,}."
+                            )
+                            self.after(0, lambda m=_ts_msg: self._show_error(m))
+                        else:
+                            self.after(0, lambda: self.status_label.configure(
+                                text="Regex Search — writing DOCX report...",
+                                text_color=("blue", "#66BBFF"),
+                            ))
+                            result_doc = write_docx_report(
+                                docx_path, output_path,
+                                search_terms=search_terms,
+                                use_regex=True,
+                            )
+                            if getattr(self, "_regex_search_cancelled", False):
+                                return
+
+                    if _fmts_local.get("html"):
                         self.after(0, lambda: self.status_label.configure(
-                            text="Regex Search — writing DOCX report...",
+                            text="Regex Search — writing HTML report...",
                             text_color=("blue", "#66BBFF"),
                         ))
-                        result_doc = write_docx_report(
-                            docx_path, output_path,
-                            search_terms=search_terms,
-                            use_regex=True,
-                        )
+                        from peekdocs.reporter import write_html_report
+                        _html_path = os.path.join(folder, "peekdocs_regex_results.html")
+                        try:
+                            write_html_report(
+                                _html_path, all_matches,
+                                search_terms=search_terms, use_regex=True,
+                            )
+                        except Exception:
+                            pass
+                        if getattr(self, "_regex_search_cancelled", False):
+                            return
 
-                    # Cancel check between DOCX and the file-size insert.
-                    if getattr(self, "_regex_search_cancelled", False):
-                        return
+                    if _fmts_local.get("csv"):
+                        self.after(0, lambda: self.status_label.configure(
+                            text="Regex Search — writing CSV report...",
+                            text_color=("blue", "#66BBFF"),
+                        ))
+                        from peekdocs.reporter import write_csv_report
+                        _csv_path = os.path.join(folder, "peekdocs_regex_results.csv")
+                        try:
+                            write_csv_report(_csv_path, all_matches)
+                        except Exception:
+                            pass
+                        if getattr(self, "_regex_search_cancelled", False):
+                            return
 
-                    # ── Step 3: file-size insert (skipped if no DOCX) ─
+                    if _fmts_local.get("json"):
+                        self.after(0, lambda: self.status_label.configure(
+                            text="Regex Search — writing JSON report...",
+                            text_color=("blue", "#66BBFF"),
+                        ))
+                        from peekdocs.reporter import write_json_report
+                        _json_path = os.path.join(folder, "peekdocs_regex_results.json")
+                        try:
+                            write_json_report(
+                                _json_path, all_matches, search_terms,
+                                "ANY", len(_files_searched_set), elapsed,
+                                directory=folder,
+                            )
+                        except Exception:
+                            pass
+                        if getattr(self, "_regex_search_cancelled", False):
+                            return
+
+                    if _fmts_local.get("pdf"):
+                        if _total_for_threshold > _DOCX_MATCH_THRESHOLD:
+                            _ts_msg = (
+                                f"{_total_for_threshold:,} matches is too many "
+                                f"for a PDF report (threshold: "
+                                f"{_DOCX_MATCH_THRESHOLD:,}). The TXT report "
+                                f"has every match.\n\nTo get a PDF too, narrow "
+                                f"the search so the total stays under "
+                                f"{_DOCX_MATCH_THRESHOLD:,}."
+                            )
+                            self.after(0, lambda m=_ts_msg: self._show_error(m))
+                        else:
+                            self.after(0, lambda: self.status_label.configure(
+                                text="Regex Search — writing PDF report...",
+                                text_color=("blue", "#66BBFF"),
+                            ))
+                            from peekdocs.reporter import write_pdf_report
+                            _pdf_path = os.path.join(folder, "peekdocs_regex_results.pdf")
+                            try:
+                                write_pdf_report(
+                                    _pdf_path, all_matches,
+                                    search_terms=search_terms, use_regex=True,
+                                )
+                            except Exception:
+                                pass
+                            if getattr(self, "_regex_search_cancelled", False):
+                                return
+
+                    # ── Step 3: file-size insert (only when DOCX was
+                    #            actually written and is non-empty). ──
                     if result_doc is not None:
                         self.after(0, lambda: self.status_label.configure(
                             text="Regex Search — finalizing...",
@@ -10478,13 +10600,25 @@ class ToolsMixin:
         blank()
 
         h("REPORTS AND THE DOCX THRESHOLD")
-        b("Regex Search writes two reports when matches are found:")
-        b("• peekdocs_regex_results.txt — always written, every match")
+        b("Regex Search always writes a TXT report. DOCX, HTML, CSV,")
+        b("JSON, and PDF are opt-in via the 'Also write:' checkboxes")
+        b("at the bottom of the popup — matches the 1.2.6 Standard")
+        b("Search behavior where DOCX is also opt-in. Each format:")
+        b("• peekdocs_regex_results.txt — always written. Every match")
         b("  grouped by pattern, no cap. Open with any text editor.")
-        b("• peekdocs_regex_results.docx — the same content with")
+        b("• peekdocs_regex_results.docx — opt-in. Same content with")
         b("  yellow highlighting on each match. SKIPPED above 25,000")
-        b("  total matches across all patterns. The TXT report still")
-        b("  has everything; only the DOCX is omitted.")
+        b("  total matches across all patterns (in-memory build; would")
+        b("  freeze the GUI on huge result sets).")
+        b("• peekdocs_regex_results.html — opt-in. Highlighted browser-")
+        b("  ready report. Streams to disk, no threshold.")
+        b("• peekdocs_regex_results.csv — opt-in. Per-match rows for")
+        b("  spreadsheet import (utf-8-sig BOM for Excel compat).")
+        b("• peekdocs_regex_results.json — opt-in. Machine-readable.")
+        b("• peekdocs_regex_results.pdf — opt-in. Highlighted PDF.")
+        b("  SAME 25,000-match threshold as DOCX (fpdf2 also builds")
+        b("  the whole document in memory before saving).")
+        b("Format choices persist across sessions in ~/.peekdocsrc.")
         blank()
         b("Why the threshold? python-docx builds the entire Word")
         b("document in memory before saving. At 100,000+ matches,")
