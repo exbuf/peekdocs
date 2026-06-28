@@ -5868,6 +5868,11 @@ class ToolsMixin:
             _suite_cfg = _load_cfg_suite()
         except Exception:
             _suite_cfg = {}
+        # DOCX is opt-in as of this release — matches the 1.2.6 Standard
+        # Search policy and the recent Regex Search opt-in conversion.
+        # Default OFF; persists across sessions via the same suite_*
+        # config keys as the other formats. TXT remains always-on.
+        _suite_docx_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_docx", False)))
         _suite_html_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_html", False)))
         _suite_csv_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_csv", False)))
         _suite_json_var = tk.BooleanVar(value=bool(_suite_cfg.get("suite_json", False)))
@@ -5876,6 +5881,8 @@ class ToolsMixin:
         def _save_suite_fmt(key, var):
             self._save_ui_preference(key, bool(var.get()))
 
+        tk.Checkbutton(output_frame, text="DOCX", variable=_suite_docx_var, font=_sf(10),
+                       command=lambda: _save_suite_fmt("suite_docx", _suite_docx_var)).pack(side="left", padx=(0, 5))
         tk.Checkbutton(output_frame, text="HTML", variable=_suite_html_var, font=_sf(10),
                        command=lambda: _save_suite_fmt("suite_html", _suite_html_var)).pack(side="left", padx=(0, 5))
         tk.Checkbutton(output_frame, text="CSV", variable=_suite_csv_var, font=_sf(10),
@@ -5905,6 +5912,7 @@ class ToolsMixin:
                 return
             suite_name = current_suite[0]
             suite_formats = {
+                "docx": _suite_docx_var.get(),
                 "html": _suite_html_var.get(),
                 "csv": _suite_csv_var.get(),
                 "json": _suite_json_var.get(),
@@ -6048,6 +6056,7 @@ class ToolsMixin:
                     )
                     return
                 _formats = {
+                    "docx": _suite_docx_var.get(),
                     "html": _suite_html_var.get(),
                     "csv": _suite_csv_var.get(),
                     "json": _suite_json_var.get(),
@@ -6327,10 +6336,32 @@ class ToolsMixin:
             )
 
             txt_path = os.path.join(output_folder, "peekdocs_suite_results.txt")
-            docx_path = os.path.join(output_folder, "peekdocs_suite_results.docx")
+            docx_path = ""
             _fmts = suite_formats or {}
+            # Threshold parity with Regex Search: skip in-memory-build
+            # formats (DOCX, PDF) above 25K matches. python-docx and
+            # fpdf2 both load the full document into RAM before saving;
+            # for huge suite runs this could otherwise freeze the GUI.
+            _SUITE_DOCX_MATCH_THRESHOLD = 25_000
+            _suite_total_matches = sum(
+                s.get("total_match_count", len(s["matches"])) for s in sections
+            )
             write_suite_txt_report(txt_path, suite_name, sections)
-            write_suite_docx_report(docx_path, txt_path, sections)
+            if _fmts.get("docx", False):
+                if _suite_total_matches > _SUITE_DOCX_MATCH_THRESHOLD:
+                    _ts_msg = (
+                        f"{_suite_total_matches:,} matches is too many for a "
+                        f"Word report (threshold: "
+                        f"{_SUITE_DOCX_MATCH_THRESHOLD:,}). The TXT report "
+                        f"has every match — open it with any text editor.\n\n"
+                        f"To get a DOCX too, narrow the suite (fewer "
+                        f"searches or more specific terms) so the total "
+                        f"stays under {_SUITE_DOCX_MATCH_THRESHOLD:,}."
+                    )
+                    self.after(0, lambda m=_ts_msg: self._show_error(m))
+                else:
+                    docx_path = os.path.join(output_folder, "peekdocs_suite_results.docx")
+                    write_suite_docx_report(docx_path, txt_path, sections)
             html_path = ""
             csv_path = ""
             json_path = ""
@@ -6396,27 +6427,38 @@ class ToolsMixin:
 
             pdf_path = ""
             if _fmts.get("pdf", False):
-                pdf_path = os.path.join(output_folder, "peekdocs_suite_results.pdf")
-                try:
-                    from peekdocs.reporter import write_pdf_report
-                    # Flatten matches across all suite sections — every match
-                    # gets a row in the PDF, with the suite name as the search
-                    # context. (Per-section delimiters are a polish item.)
-                    flat_matches = []
-                    flat_terms = []
-                    for s in sections:
-                        for fd, fn, ln, text in s["matches"]:
-                            flat_matches.append((fd, fn, ln, text))
-                        for t in s.get("search_terms", []):
-                            if t not in flat_terms:
-                                flat_terms.append(t)
-                    write_pdf_report(
-                        pdf_path, flat_matches,
-                        search_terms=flat_terms or [suite_name],
-                        report_mode="ANY",
+                if _suite_total_matches > _SUITE_DOCX_MATCH_THRESHOLD:
+                    _ts_pdf = (
+                        f"{_suite_total_matches:,} matches is too many for a "
+                        f"PDF report (threshold: "
+                        f"{_SUITE_DOCX_MATCH_THRESHOLD:,}). The TXT report "
+                        f"has every match.\n\nTo get a PDF too, narrow the "
+                        f"suite so the total stays under "
+                        f"{_SUITE_DOCX_MATCH_THRESHOLD:,}."
                     )
-                except Exception:
-                    pdf_path = ""
+                    self.after(0, lambda m=_ts_pdf: self._show_error(m))
+                else:
+                    pdf_path = os.path.join(output_folder, "peekdocs_suite_results.pdf")
+                    try:
+                        from peekdocs.reporter import write_pdf_report
+                        # Flatten matches across all suite sections — every match
+                        # gets a row in the PDF, with the suite name as the search
+                        # context. (Per-section delimiters are a polish item.)
+                        flat_matches = []
+                        flat_terms = []
+                        for s in sections:
+                            for fd, fn, ln, text in s["matches"]:
+                                flat_matches.append((fd, fn, ln, text))
+                            for t in s.get("search_terms", []):
+                                if t not in flat_terms:
+                                    flat_terms.append(t)
+                        write_pdf_report(
+                            pdf_path, flat_matches,
+                            search_terms=flat_terms or [suite_name],
+                            report_mode="ANY",
+                        )
+                    except Exception:
+                        pdf_path = ""
 
             total_matches = sum(s.get("total_match_count", len(s["matches"])) for s in sections)
             total_elapsed = time.time() - self.search_start_time
@@ -6949,10 +6991,21 @@ class ToolsMixin:
         b("What Happens When You Run a Suite")
         n("Each search runs independently with its own settings (AND/OR,")
         n("regex, recursive, etc.). Results are organized by search in a")
-        n("combined report. TXT and DOCX are always generated. You can")
-        n("also check HTML, CSV, JSON, or PDF in the suite popup to get")
-        n("additional output formats. These checkboxes are independent")
-        n("from the ones in Advanced Search Options.\n")
+        n("combined report. TXT is always written. DOCX, HTML, CSV, JSON,")
+        n("and PDF are opt-in via the checkboxes in this popup — all")
+        n("default OFF, matching the 1.2.6 Standard Search policy. Check")
+        n("a format and the next suite run produces it; uncheck and the")
+        n("file stops being written. The format checkboxes here are")
+        n("independent from the Advanced Search Options checkboxes")
+        n("(those only apply to Standard Search).\n")
+        n("DOCX and PDF are skipped above 25,000 total matches across")
+        n("the suite's combined search results — python-docx and fpdf2")
+        n("both build the document in memory before saving, so very large")
+        n("result sets would otherwise pressure RAM and freeze the GUI.")
+        n("TXT (which streams to disk) has every match regardless of")
+        n("size. CLI: `peekdocs --suite NAME -o docx` for TXT + DOCX. The")
+        n("CLI suite -o supports docx only; for the other formats, run")
+        n("the suite from this popup.\n")
 
         b("Run Multiple Search Suites")
         n("The Run Multiple Search Suites… button on its own row, just")

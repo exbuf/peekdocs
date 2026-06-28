@@ -112,7 +112,10 @@ BANNER_BOTTOM = (
     '  --no-index         Skip the index for this search (direct scan)\n'
     '\n'
     '── Settings & Info ──────────────────────────────────────────────\n'
-    '  --suite NAME       Run a search suite (group of saved searches) by name\n'
+    '  --suite NAME       Run a search suite (group of saved searches) by name.\n'
+    '                     TXT report always written. Add `-o docx` to also write\n'
+    '                     a DOCX report (suite CLI -o supports docx only; for\n'
+    '                     HTML / CSV / JSON / PDF use the GUI suite popup).\n'
     '  --list-suites      List every known suite and the folder it lives in\n'
     '  --list-suites --rescan   Re-discover suites by scanning ~/Documents and ~/Desktop\n'
     '  --regex-collection NAME  Run a saved regex collection by name\n'
@@ -1489,6 +1492,35 @@ def _main_inner(argv=None):
         if "--timestamp" in args[2:]:
             args.remove("--timestamp")
             suite_ts_suffix = "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # -o format opt-in (1.2.6 policy parity). TXT is always written.
+        # DOCX joins when '-o docx' is passed. Other formats (HTML / CSV
+        # / JSON / PDF) live as inline code in the GUI suite path and
+        # aren't exposed via the CLI suite handler — the GUI is the
+        # surface to reach for those formats on suites for now.
+        _suite_output_formats = []
+        if "-o" in args[2:]:
+            _so_idx = args.index("-o", 2)
+            if _so_idx + 1 >= len(args):
+                print("Error: -o needs a format. CLI suite supports: docx.")
+                return 2
+            _suite_output_formats = [
+                fmt.strip().lower() for fmt in args[_so_idx + 1].split(",")
+                if fmt.strip()
+            ]
+            _suite_valid = {"docx"}
+            for _fmt in _suite_output_formats:
+                if _fmt not in _suite_valid:
+                    print(
+                        f"Error: CLI suite -o supports 'docx' only; "
+                        f"got '{_fmt}'. For other formats (HTML / CSV / "
+                        f"JSON / PDF) run the suite from the GUI Search "
+                        f"Suites popup, which has checkboxes for each."
+                    )
+                    return 2
+            # Strip -o and its argument from args so downstream parsing
+            # doesn't see them.
+            del args[_so_idx:_so_idx + 2]
         cwd = os.getcwd()
         from peekdocs.collection import get_suite, get_search_params, load_collection
 
@@ -1601,18 +1633,24 @@ def _main_inner(argv=None):
             return 2
 
         txt_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.txt")
-        docx_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.docx")
+        docx_path = None
         write_suite_txt_report(txt_path, suite_name, sections)
-        write_suite_docx_report(docx_path, txt_path, sections)
+        if "docx" in _suite_output_formats:
+            docx_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.docx")
+            write_suite_docx_report(docx_path, txt_path, sections)
 
         total_matches = sum(len(s["matches"]) for s in sections)
         total_files = sum(len(s.get("all_files", [])) for s in sections)
         print(f"\nSuite '{suite_name}': {len(sections)} search(es), {total_matches} total match(es)")
         print(f"Reports: {txt_path}")
-        print(f"         {docx_path}")
+        if docx_path:
+            print(f"         {docx_path}")
         from peekdocs.run_log import set_stats as _set_stats_suite, set_report_paths as _set_paths_suite
         _set_stats_suite(match_count=total_matches, file_count=total_files)
-        _set_paths_suite(txt=txt_path, docx=docx_path)
+        if docx_path:
+            _set_paths_suite(txt=txt_path, docx=docx_path)
+        else:
+            _set_paths_suite(txt=txt_path)
         return 0
 
     # ── --regex-collection NAME: run a saved regex collection ──
