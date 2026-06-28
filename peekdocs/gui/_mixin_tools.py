@@ -8781,6 +8781,7 @@ class ToolsMixin:
         _multi_btn = ctk.CTkButton(
             _multi_frame, text="Run Multiple Collections…", width=210,
             font=ctk.CTkFont(size=11),
+            fg_color="#FF9800", hover_color="#F57C00", text_color="white",
             command=_run_multiple_collections,
         )
         _multi_btn.pack()
