@@ -12,6 +12,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.24] — 2026-06-28
+
+Search Suites UX polish — every fix here is a clarity / phrasing
+tightening, no behavior changes.
+
+### Fixed
+- **Suite-run status line now says `Search [i/t] {name}…` instead of
+  `Suite [i/t] {name}…`.** The counter is the search index across the
+  run, but the word "Suite" next to the count visually read as "1 of
+  3 suites." Especially confusing on a multi-suite run via Run
+  Multiple Search Suites (e.g. two suites with 3 total searches
+  looked like "3 of 3 suites" instead of "3 of 3 searches"). The
+  initial line one step earlier still says `Suite: {name} (N
+  searches)…` so the suite context is still established up front.
+
+### Changed
+- **"Add Search to Suite" popup now has a Close button** on its own
+  row at the bottom of the popup, below the Add button. The popup
+  previously only had Add; a user who opened it and decided not to
+  add anything had to hunt for the window close box in the title
+  bar.
+- **"Nothing to add" message split into two precise variants** that
+  each give the right next-step instruction:
+  - *No saved searches yet* → "Save a search first (main screen →
+    Save button), then come back to add it to this suite."
+  - *All saved searches already in suite* → "Every saved search in
+    this folder is already in this suite. Save another search first
+    (main screen → Save button) before adding it here."
+
+  Previously a single message ("No saved searches available to add —
+  save a search first") fired for both cases, even though only the
+  first case actually needed "save a search first" advice.
+
 ## [1.2.23] — 2026-06-26
 
 GUI tooltip + help clarifications, two new Feature Highlights
