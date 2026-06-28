@@ -12,6 +12,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.26] — 2026-06-28
+
+### Fixed
+- **Regex Tester "Load from file…" no longer dumps raw container
+  bytes for DOCX / PDF / XLSX / archives / images.** The UTF-8
+  fast-path read used `errors="replace"`, which silently "succeeds"
+  on binary inputs and produced replacement-character soup (e.g.
+  `PK...word/numbering.xml...`) in the sample area instead of
+  routing the file through the extractor. An extension allowlist
+  now sends binary container formats directly to
+  `scanner._extract_lines`; plain text still takes the fast path.
+
 ## [1.2.25] — 2026-06-28
 
 Suite-run UX polish, button-color consistency across the three
