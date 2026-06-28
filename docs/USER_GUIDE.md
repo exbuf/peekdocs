@@ -950,7 +950,10 @@ Status messages and warnings go to stderr so the stdout stream stays a clean JSO
 
 #### Regex Search reports and the DOCX threshold
 
-Every regex run writes a TXT report. DOCX, HTML, CSV, JSON, and PDF are **opt-in** via the **Also write:** checkboxes at the bottom of the Regex Search popup — matching the 1.2.6 Standard Search behavior where DOCX is also opt-in (not auto-generated). Your selection persists across sessions in `~/.peekdocsrc`.
+Every regex run writes a TXT report. DOCX, HTML, CSV, JSON, and PDF are **opt-in** — matching the 1.2.6 Standard Search behavior where DOCX is also opt-in (not auto-generated). How to opt in depends on the surface:
+
+- **GUI:** the **Also write:** checkboxes at the bottom of the Regex Search popup. Your selection persists across sessions in `~/.peekdocsrc`.
+- **CLI:** pass `-o` with a comma-separated format list. Examples: `peekdocs --regex-collection Examples -o docx` (TXT + DOCX), `peekdocs --regex-collection Examples -o docx,html,csv` (TXT + 3 more). Without `-o`, only TXT is written.
 
 | Report | Path | What's in it | Cap? |
 |---|---|---|---|

@@ -116,6 +116,8 @@ BANNER_BOTTOM = (
     '  --list-suites      List every known suite and the folder it lives in\n'
     '  --list-suites --rescan   Re-discover suites by scanning ~/Documents and ~/Desktop\n'
     '  --regex-collection NAME  Run a saved regex collection by name\n'
+    '                     TXT report always written. Add -o docx,html,csv,json,pdf\n'
+    '                     to opt in to additional formats (any combination).\n'
     '  --regex-collection --list  List all saved regex collections\n'
     '  --watch            Long-running mode: watch a folder, run a regex collection\n'
     '                     on each file create/modify, emit one NDJSON line per match\n'
@@ -203,6 +205,13 @@ BANNER_BOTTOM = (
     '                                            env var). Seeded on first GUI\n'
     '                                            open of Regex Search; modify or\n'
     '                                            delete freely once seeded.\n'
+    '\n'
+    '  Regex collection output: TXT report always written (every match grouped by\n'
+    '  pattern). DOCX / HTML / CSV / JSON / PDF are opt-in via -o; combine any:\n'
+    '    peekdocs --regex-collection Examples                        TXT only\n'
+    '    peekdocs --regex-collection Examples -o docx                TXT + DOCX\n'
+    '    peekdocs --regex-collection Examples -o docx,html,csv       TXT + 3 more\n'
+    '  DOCX and PDF are skipped above 25,000 total matches (in-memory build).\n'
     '\n'
     '  For more patterns, the syntax cheatsheet, or AI-generated regex:\n'
     '    regex101.com           — interactive tester + community pattern library\n'
@@ -292,6 +301,13 @@ BANNER_QUICK = (
     '                                            env var). Seeded on first GUI\n'
     '                                            open of Regex Search; modify or\n'
     '                                            delete freely once seeded.\n'
+    '\n'
+    '  Regex collection output: TXT report always written (every match grouped by\n'
+    '  pattern). DOCX / HTML / CSV / JSON / PDF are opt-in via -o; combine any:\n'
+    '    peekdocs --regex-collection Examples                        TXT only\n'
+    '    peekdocs --regex-collection Examples -o docx                TXT + DOCX\n'
+    '    peekdocs --regex-collection Examples -o docx,html,csv       TXT + 3 more\n'
+    '  DOCX and PDF are skipped above 25,000 total matches (in-memory build).\n'
     '\n'
     '  For more patterns, the syntax cheatsheet, or AI-generated regex:\n'
     '    regex101.com           — interactive tester + community pattern library\n'
@@ -1656,7 +1672,7 @@ def _main_inner(argv=None):
             print(f"Collection '{collection_name}' has no enabled patterns with regex.")
             return 2
 
-        # Parse remaining flags: -r, -d, --stdout, --timestamp
+        # Parse remaining flags: -r, -d, --stdout, --timestamp, -o
         # Note: --stdout was already removed from args and stored in stdout_json
         _rc_recursive = "-r" in args[2:]
         _rc_stdout = stdout_json or "--stdout" in args[2:]
@@ -1672,6 +1688,29 @@ def _main_inner(argv=None):
         if not os.path.isdir(_rc_dir):
             print(f"Error: directory '{_rc_dir}' not found.")
             return 2
+
+        # -o output formats: opt-in like Standard Search since 1.2.6.
+        # TXT is always written; DOCX / HTML / CSV / JSON / PDF are opt-in.
+        # Mirrors the GUI Regex Search popup's 'Also write:' checkboxes
+        # and the Standard Search -o flag from parser.py:249.
+        _rc_output_formats = []
+        if "-o" in args[2:]:
+            _o_idx = args.index("-o", 2)
+            if _o_idx + 1 >= len(args):
+                print("Error: -o needs a comma-separated format list (docx, csv, json, pdf, html).")
+                return 2
+            _valid_formats = {"docx", "csv", "json", "pdf", "html"}
+            _rc_output_formats = [
+                fmt.strip().lower() for fmt in args[_o_idx + 1].split(",")
+                if fmt.strip()
+            ]
+            for _fmt in _rc_output_formats:
+                if _fmt not in _valid_formats:
+                    print(
+                        f"Error: invalid output format '{_fmt}'. "
+                        f"Supported: docx, csv, json, pdf, html."
+                    )
+                    return 2
 
         from peekdocs.api import search as _rc_search
         import re as _rc_re
@@ -1747,13 +1786,25 @@ def _main_inner(argv=None):
                 json_data["matches_per_file"] = list(seen.values())
             sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
         else:
-            # Write reports
+            # Write reports. TXT always; DOCX / HTML / CSV / JSON / PDF
+            # opt-in via -o (1.2.6 policy parity with Standard Search).
+            output_path = None
+            docx_path = None
+            html_path = None
+            csv_path = None
+            json_path = None
+            pdf_path = None
             if all_matches:
                 # write_txt_report, write_docx_report, insert_file_sizes already imported at module level
                 output_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.txt")
-                docx_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.docx")
                 search_terms = [regex for _name, regex in active]
+                # Show the -o invocation in the report header when it was
+                # passed so the saved report self-documents.
                 command_str = f"peekdocs --regex-collection \"{collection_name}\""
+                if _rc_output_formats:
+                    command_str += f" -o {','.join(_rc_output_formats)}"
+                if _rc_recursive:
+                    command_str += " -r"
                 write_txt_report(
                     output_path, all_matches, [], search_terms, command_str,
                     "ANY", False, [], False, False, True, False,
@@ -1762,29 +1813,84 @@ def _main_inner(argv=None):
                     bulleted_terms=True,
                     pattern_sections=all_results,
                 )
-                result_doc = write_docx_report(
-                    docx_path, output_path,
-                    search_terms=search_terms,
-                    use_regex=True,
-                )
-                insert_file_sizes(output_path, docx_path, result_doc)
+                result_doc = None
+                if "docx" in _rc_output_formats:
+                    docx_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.docx")
+                    result_doc = write_docx_report(
+                        docx_path, output_path,
+                        search_terms=search_terms,
+                        use_regex=True,
+                    )
+                    insert_file_sizes(output_path, docx_path, result_doc)
+                if "html" in _rc_output_formats:
+                    from peekdocs.reporter import write_html_report
+                    html_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.html")
+                    try:
+                        write_html_report(
+                            html_path, all_matches,
+                            search_terms=search_terms, use_regex=True,
+                        )
+                    except Exception:
+                        html_path = None
+                if "csv" in _rc_output_formats:
+                    from peekdocs.reporter import write_csv_report
+                    csv_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.csv")
+                    try:
+                        write_csv_report(csv_path, all_matches)
+                    except Exception:
+                        csv_path = None
+                if "json" in _rc_output_formats:
+                    from peekdocs.reporter import write_json_report
+                    json_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.json")
+                    try:
+                        write_json_report(
+                            json_path, all_matches, search_terms,
+                            "ANY", 0, elapsed, directory=_rc_dir,
+                        )
+                    except Exception:
+                        json_path = None
+                if "pdf" in _rc_output_formats:
+                    from peekdocs.reporter import write_pdf_report
+                    pdf_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.pdf")
+                    try:
+                        write_pdf_report(
+                            pdf_path, all_matches,
+                            search_terms=search_terms, use_regex=True,
+                        )
+                    except Exception:
+                        pdf_path = None
 
             if not quiet:
                 print(f"\nCollection '{collection_name}': {len(active)} pattern(s), {total_matches} total match(es) ({elapsed:.1f}s)")
                 if all_matches:
                     print(f"Reports: {output_path}")
-                    print(f"         {docx_path}")
+                    for _p in (docx_path, html_path, csv_path, json_path, pdf_path):
+                        if _p:
+                            print(f"         {_p}")
 
         from peekdocs.run_log import set_stats as _set_stats_rc, set_report_paths as _set_paths_rc
         _set_stats_rc(
             match_count=total_matches,
             file_count=len({(fd, fn) for fd, fn, _ln, _tx in all_matches}),
         )
-        # output_path / docx_path are only bound when reports were written
-        # (which happens only in the non-stdout branch AND when all_matches
-        # is non-empty). Skip set_report_paths otherwise.
+        # output_path is only bound when reports were written (non-stdout
+        # branch AND all_matches non-empty). Other format paths are bound
+        # only when the corresponding -o format was requested AND the
+        # write succeeded — pass each conditionally so the run log
+        # accurately reflects what's on disk.
         if not _rc_stdout and all_matches:
-            _set_paths_rc(txt=output_path, docx=docx_path)
+            _rc_path_args = {"txt": output_path}
+            if docx_path:
+                _rc_path_args["docx"] = docx_path
+            if html_path:
+                _rc_path_args["html"] = html_path
+            if csv_path:
+                _rc_path_args["csv"] = csv_path
+            if json_path:
+                _rc_path_args["json"] = json_path
+            if pdf_path:
+                _rc_path_args["pdf"] = pdf_path
+            _set_paths_rc(**_rc_path_args)
         return 0 if total_matches > 0 else 1
 
     no_index = "--no-index" in args
@@ -1794,8 +1900,9 @@ def _main_inner(argv=None):
     # DOCX is opt-in via `-o docx` (peekdocs >= 1.2.6). For Standard
     # Search, the CLI only writes peekdocs_standard_results.txt
     # automatically; DOCX joins the output formats list when explicitly
-    # requested. Search Suites and Regex collections still write DOCX
-    # unconditionally (different code paths; cli.py:1580 / :1750).
+    # requested. Regex collections also honor -o now (1.2.x follow-up);
+    # Search Suites still write TXT + DOCX unconditionally and use their
+    # own format picker inside the suite popup for HTML / CSV / JSON / PDF.
     #
     # --no-docx is kept as a tolerated no-op for one release so any
     # scripts that pass it don't break — the new default is already
