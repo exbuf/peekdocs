@@ -6298,6 +6298,19 @@ class ToolsMixin:
                     "stdout": stdout,
                 })
 
+            # Per-search loop done. Switch the status from
+            # 'Search [N/N] ...' to 'Writing reports...' before the
+            # combined-report block runs, so the user has feedback
+            # during what can be a multi-second gap on big suites
+            # (especially with HTML / CSV / JSON / PDF formats all
+            # enabled). The elapsed-time updater appends '(Ns)' on
+            # the next tick, matching the format of the per-search
+            # progress line just before this.
+            self.after(0, lambda: self.status_label.configure(
+                text_color=("blue", "#66BBFF"),
+                text="Writing reports...",
+            ))
+
             # Auto-redirect to a safe local folder if the search folder is
             # cloud-synced. `folder` is the search folder (read-only here);
             # `output_folder` is where suite reports get written.
