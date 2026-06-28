@@ -5768,18 +5768,19 @@ class ToolsMixin:
                 pick_win.destroy()
                 _refresh_search_list()
 
-            # Pack the button row BEFORE the listbox so its space is reserved
+            # Pack buttons BEFORE the listbox so their rows are reserved
             # at the bottom; otherwise the listbox's expand=True grows to
             # fill the toplevel and pushes the buttons off the visible area.
-            btn_row = ctk.CTkFrame(pick_win, fg_color="transparent")
-            btn_row.pack(side="bottom", fill="x", pady=(0, 10))
-            ctk.CTkButton(btn_row, text="Close", width=80,
+            # tk packs side='bottom' from the bottom up, so Close (packed
+            # first) ends up on the absolute-bottom row and Add (packed
+            # second) sits just above it on its own row.
+            ctk.CTkButton(pick_win, text="Close", width=80,
                           fg_color="transparent", text_color=("gray30", "gray70"),
                           hover_color=("gray90", "gray25"),
                           font=ctk.CTkFont(size=12),
-                          command=pick_win.destroy).pack(side="right", padx=(0, 10))
-            ctk.CTkButton(btn_row, text="Add", width=80, font=ctk.CTkFont(size=12),
-                          command=_do_add).pack(side="right")
+                          command=pick_win.destroy).pack(side="bottom", pady=(0, 10))
+            ctk.CTkButton(pick_win, text="Add", width=80, font=ctk.CTkFont(size=12),
+                          command=_do_add).pack(side="bottom", pady=(8, 4))
 
             pick_lb = tk.Listbox(pick_win, font=_sf(11), exportselection=False)
             # Populate BEFORE packing so items are in the data model when
