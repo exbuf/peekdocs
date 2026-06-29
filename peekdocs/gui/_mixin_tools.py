@@ -5878,8 +5878,10 @@ class ToolsMixin:
         output_frame.pack(fill="x", padx=12, pady=(8, 2))
         tk.Label(output_frame, text="Suite report formats:", font=_sf(11, "bold")).pack(side="left", padx=(0, 8))
 
-        # TXT and DOCX are always generated
-        tk.Label(output_frame, text="TXT \u2713  DOCX \u2713", font=_sf(10), fg="gray").pack(side="left", padx=(0, 10))
+        # TXT is always generated; DOCX is opt-in via the checkbox
+        # below (matches the 1.2.6 / 1.2.26 policy across Standard,
+        # Suite, and Regex Search).
+        tk.Label(output_frame, text="TXT \u2713", font=_sf(10), fg="gray").pack(side="left", padx=(0, 10))
 
         # Seed each checkbox from ~/.peekdocsrc so the user's last selection
         # persists across popup invocations. Saved on every toggle.
