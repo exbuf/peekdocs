@@ -3246,7 +3246,7 @@ def test_suite_timestamp_creates_unique_reports(tmp_path, monkeypatch, capsys):
     (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
     monkeypatch.chdir(tmp_path)
 
-    result = main(["--suite", "my suite", "--timestamp"])
+    result = main(["--suite", "my suite", "--timestamp", "-o", "docx"])
     assert result == 0
 
     plain_txt = tmp_path / "peekdocs_suite_results.txt"
@@ -3273,7 +3273,7 @@ def test_suite_without_timestamp_uses_plain_filename(tmp_path, monkeypatch, caps
     (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
     monkeypatch.chdir(tmp_path)
 
-    result = main(["--suite", "my suite"])
+    result = main(["--suite", "my suite", "-o", "docx"])
     assert result == 0
     assert (tmp_path / "peekdocs_suite_results.txt").exists()
     assert (tmp_path / "peekdocs_suite_results.docx").exists()
@@ -3296,7 +3296,7 @@ def test_suite_accepts_path_prefixed_name(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(elsewhere)
 
     full = str(docs / "My Suite")
-    result = main(["--suite", full])
+    result = main(["--suite", full, "-o", "docx"])
     assert result == 0
     assert (docs / "peekdocs_suite_results.txt").exists()
     assert (docs / "peekdocs_suite_results.docx").exists()
@@ -3324,7 +3324,7 @@ def test_regex_collection_timestamp_creates_unique_reports(tmp_path, monkeypatch
     (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
     monkeypatch.chdir(tmp_path)
 
-    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "--timestamp"])
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "--timestamp", "-o", "docx"])
     assert result == 0
 
     plain_txt = tmp_path / "peekdocs_regex_results.txt"
@@ -3348,7 +3348,7 @@ def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkey
     (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
     monkeypatch.chdir(tmp_path)
 
-    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r"])
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "-o", "docx"])
     assert result == 0
     assert (tmp_path / "peekdocs_regex_results.txt").exists()
     assert (tmp_path / "peekdocs_regex_results.docx").exists()

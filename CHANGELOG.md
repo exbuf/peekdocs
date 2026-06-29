@@ -12,6 +12,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.28] — 2026-06-28
+
+### Fixed
+- **`--regex-collection -o csv|json|pdf|html` no longer crashes the
+  standard-search path with `UnboundLocalError`.** The 1.2.25 work
+  added `from peekdocs.reporter import write_csv_report` (and
+  siblings) inside `_main_inner` for the regex-collection branch.
+  Those names were already imported at module level, but Python's
+  scoping rules turned the local re-imports into function-local
+  variables, shadowing the module bindings throughout `_main_inner`.
+  Any standard-search invocation with `-o csv`, `-o json`, `-o pdf`,
+  or `-o html` then hit `UnboundLocalError` at the standard-path
+  write call. Removed the four shadowing imports.
+
+### Tests
+- **5 suite/regex-collection CLI tests updated to add `-o docx`**,
+  catching up to the 1.2.6 / 1.2.25 opt-in DOCX policy. The tests
+  still verify their original intent (`--timestamp` produces unique
+  stamped filenames, the plain filename is used without
+  `--timestamp`, path-prefixed `--suite` writes to the suite's
+  folder); they just had to explicitly request DOCX, which is no
+  longer produced by default.
+- Test suite: 652 passing, 0 failing.
+
 ## [1.2.27] — 2026-06-28
 
 ### Changed

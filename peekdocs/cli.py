@@ -1861,7 +1861,6 @@ def _main_inner(argv=None):
                     )
                     insert_file_sizes(output_path, docx_path, result_doc)
                 if "html" in _rc_output_formats:
-                    from peekdocs.reporter import write_html_report
                     html_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.html")
                     try:
                         write_html_report(
@@ -1871,14 +1870,12 @@ def _main_inner(argv=None):
                     except Exception:
                         html_path = None
                 if "csv" in _rc_output_formats:
-                    from peekdocs.reporter import write_csv_report
                     csv_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.csv")
                     try:
                         write_csv_report(csv_path, all_matches)
                     except Exception:
                         csv_path = None
                 if "json" in _rc_output_formats:
-                    from peekdocs.reporter import write_json_report
                     json_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.json")
                     try:
                         write_json_report(
@@ -1888,7 +1885,6 @@ def _main_inner(argv=None):
                     except Exception:
                         json_path = None
                 if "pdf" in _rc_output_formats:
-                    from peekdocs.reporter import write_pdf_report
                     pdf_path = os.path.join(_rc_dir, f"peekdocs_regex_results{_rc_ts_suffix}.pdf")
                     try:
                         write_pdf_report(
