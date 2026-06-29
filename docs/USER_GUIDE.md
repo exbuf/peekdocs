@@ -1293,6 +1293,8 @@ peekdocs has three distinct search modes. They share the same search engine, fla
 
 Within each family, the report files are overwritten on every run unless `--timestamp` is set (or the GUI's Timestamp checkbox is enabled), in which case `_YYYYMMDD_HHMMSS` is appended to every filename. `peekdocs --clear` and the GUI's **Clear Files** match all three families by prefix; saved/accumulated reports (`peekdocs_report_*`, `peekdocs_accumulated_*`) and the search index (`.peekdocs.db`) are separate file families and are not part of this overview.
 
+> **Naming convention — no exceptions.** Every file peekdocs creates is named with the `peekdocs_` prefix (visible outputs: reports, error log, tools-menu outputs, release binaries which use a dash variant `peekdocs-`) or the `.peekdocs` prefix (hidden user-state and per-folder dotfiles: `~/.peekdocsrc`, `~/.peekdocs_history.json`, `.peekdocs_collection.json`, `.peekdocs.db`, etc.). This makes peekdocs files trivially identifiable on disk, lets `peekdocs --clear` / **Clear Files** match by prefix, and means anything in your folders that doesn't start with one of these two prefixes was not created by peekdocs. For the per-file inventory — what each file contains, sensitivity rating, and how to clean it up — see [docs/SECURITY.md](SECURITY.md).
+
 ### Results Preview vs. Reports
 
 When a search completes, you see results in two places:
