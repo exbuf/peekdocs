@@ -3355,6 +3355,57 @@ def test_regex_collection_without_timestamp_uses_plain_filename(tmp_path, monkey
     assert not list(tmp_path.glob("peekdocs_regex_results_*.txt"))
 
 
+def test_suite_warns_on_unsupported_flags(tmp_path, monkeypatch, capsys):
+    """`--suite` warns to stderr when surplus flags (-t, -A, -m, etc.) are passed."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    collection = {
+        "saved_searches": {"t": {"search_text": "TODO", "recursive": True}},
+        "suites": {"My Suite": ["t"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "My Suite", "-t", "py", "-A", "5", "-m", "10"])
+    assert result == 0
+    captured = capsys.readouterr()
+    assert "Warning: --suite ignored these flags: -t -A -m" in captured.err
+    assert "--suite reads only:" in captured.err
+
+
+def test_regex_collection_warns_on_unsupported_flags(tmp_path, monkeypatch, capsys):
+    """`--regex-collection` warns to stderr when surplus flags (-t, -A, -m, etc.) are passed."""
+    (tmp_path / "doc.txt").write_text("TODO: review\n")
+    rc_data = {
+        "my collection": [
+            {"name": "TODOs", "regex": r"TODO\b", "enabled": True},
+        ],
+    }
+    (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--regex-collection", "my collection", "-d", str(tmp_path), "-r", "-t", "py", "-A", "5", "-m", "10"])
+    assert result == 0
+    captured = capsys.readouterr()
+    assert "Warning: --regex-collection ignored these flags: -t -A -m" in captured.err
+    assert "--regex-collection reads only:" in captured.err
+
+
+def test_suite_clean_invocation_no_warning(tmp_path, monkeypatch, capsys):
+    """A clean `--suite NAME` (no surplus flags) produces no warning on stderr."""
+    (tmp_path / "doc.txt").write_text("TODO: x\n")
+    collection = {
+        "saved_searches": {"t": {"search_text": "TODO", "recursive": True}},
+        "suites": {"My Suite": ["t"]},
+    }
+    (tmp_path / ".peekdocs_collection.json").write_text(json.dumps(collection))
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["--suite", "My Suite", "--timestamp", "-o", "docx"])
+    assert result == 0
+    captured = capsys.readouterr()
+    assert "Warning:" not in captured.err
+
+
 # ── --hash (SHA-256 chain-of-custody) ──────────────────────────────────
 
 def _sha256_hex(data: bytes) -> str:

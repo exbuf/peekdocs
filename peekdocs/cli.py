@@ -448,6 +448,39 @@ _OPTIONAL_MODULES = [
 ]
 
 
+def _warn_unsupported_flags(args_tail, command_name, supported, value_taking=()):
+    """Warn to stderr about flags ``command_name`` does not honor.
+
+    ``args_tail`` is what's left after the command's own already-consumed
+    flags have been stripped — typically ``args[2:]`` with `-o VAL` and
+    `--timestamp` already removed. ``supported`` is the set of flag
+    strings the handler reads; ``value_taking`` lists supported flags
+    that swallow a following value (so the value isn't misclassified as
+    an unsupported flag).
+
+    Silent in the well-behaved case. One stderr line per surplus flag.
+    """
+    surplus = []
+    i = 0
+    while i < len(args_tail):
+        tok = args_tail[i]
+        if tok in value_taking:
+            i += 2
+            continue
+        if tok.startswith("-") and tok not in supported:
+            surplus.append(tok)
+        i += 1
+    if surplus:
+        print(
+            f"Warning: {command_name} ignored these flags: {' '.join(surplus)}",
+            file=sys.stderr,
+        )
+        print(
+            f"         {command_name} reads only: {', '.join(sorted(supported))}",
+            file=sys.stderr,
+        )
+
+
 def _get_pkg_version(package):
     """Return the installed version of a package, or '?' if unavailable."""
     try:
@@ -1521,6 +1554,18 @@ def _main_inner(argv=None):
             # Strip -o and its argument from args so downstream parsing
             # doesn't see them.
             del args[_so_idx:_so_idx + 2]
+        # Surplus-flag warning. After --timestamp and -o removal,
+        # args[2:] should be empty for well-formed invocations. Anything
+        # left is a flag the user passed that the suite handler doesn't
+        # read (e.g. -t, -A, -B, -m) — saved searches inside the suite
+        # carry their own params, and surplus CLI flags are silently
+        # dropped without this warning.
+        _warn_unsupported_flags(
+            args[2:],
+            command_name="--suite",
+            supported={"--timestamp", "-o"},
+            value_taking={"-o"},
+        )
         cwd = os.getcwd()
         from peekdocs.collection import get_suite, get_search_params, load_collection
 
@@ -1749,6 +1794,19 @@ def _main_inner(argv=None):
                         f"Supported: docx, csv, json, pdf, html."
                     )
                     return 2
+
+        # Surplus-flag warning. --regex-collection reads only
+        # -r / -d / -o / --timestamp / --stdout; anything else (-t, -A,
+        # -B, -p, -P, -m, --max-file-size, -O, -n, --inverse, -e, -c)
+        # is silently ignored. --stdout / --timestamp were stripped
+        # earlier, so they're listed in supported but won't appear in
+        # args[2:] either way.
+        _warn_unsupported_flags(
+            args[2:],
+            command_name="--regex-collection",
+            supported={"-r", "-d", "-o", "--timestamp", "--stdout"},
+            value_taking={"-d", "-o"},
+        )
 
         from peekdocs.api import search as _rc_search
         import re as _rc_re
