@@ -1,0 +1,54 @@
+{
+  "Log triage": [
+    {
+      "name": "ERROR severity",
+      "regex": "\\bERROR\\b",
+      "enabled": true
+    },
+    {
+      "name": "FATAL severity",
+      "regex": "\\bFATAL\\b",
+      "enabled": true
+    },
+    {
+      "name": "CRITICAL severity",
+      "regex": "\\bCRITICAL\\b",
+      "enabled": true
+    },
+    {
+      "name": "WARN / WARNING severity",
+      "regex": "\\bWARN(?:ING)?\\b",
+      "enabled": true
+    },
+    {
+      "name": "Python traceback head",
+      "regex": "Traceback \\(most recent call last\\):",
+      "enabled": true
+    },
+    {
+      "name": "Java / Scala exception class (case-sensitive)",
+      "regex": "(?-i:\\b[A-Z]\\w*Exception\\b)",
+      "enabled": true
+    },
+    {
+      "name": "HTTP 4xx client error",
+      "regex": "\\bHTTP/\\d(?:\\.\\d)? 4\\d\\d\\b",
+      "enabled": true
+    },
+    {
+      "name": "HTTP 5xx server error",
+      "regex": "\\bHTTP/\\d(?:\\.\\d)? 5\\d\\d\\b",
+      "enabled": true
+    },
+    {
+      "name": "Slow operation (≥1s)",
+      "regex": "\\b(?:elapsed|took|duration)\\s*[=:]\\s*\\d{4,}\\s*ms\\b",
+      "enabled": true
+    },
+    {
+      "name": "Connection failure",
+      "regex": "\\b(?:connection|conn)\\s+(?:refused|reset|timed[- ]out|failed)\\b",
+      "enabled": true
+    }
+  ]
+}

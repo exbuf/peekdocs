@@ -1,0 +1,54 @@
+{
+  "Code patterns": [
+    {
+      "name": "TODO marker",
+      "regex": "\\bTODO\\b",
+      "enabled": true
+    },
+    {
+      "name": "FIXME marker",
+      "regex": "\\bFIXME\\b",
+      "enabled": true
+    },
+    {
+      "name": "HACK marker",
+      "regex": "\\bHACK\\b",
+      "enabled": true
+    },
+    {
+      "name": "XXX marker",
+      "regex": "\\bXXX\\b",
+      "enabled": true
+    },
+    {
+      "name": "Python debug print",
+      "regex": "\\bprint\\(",
+      "enabled": true
+    },
+    {
+      "name": "JavaScript console debug",
+      "regex": "\\bconsole\\.(?:log|debug)\\(",
+      "enabled": true
+    },
+    {
+      "name": "Python breakpoint / pdb drop",
+      "regex": "\\bbreakpoint\\(\\)|\\bpdb\\.set_trace\\(\\)",
+      "enabled": true
+    },
+    {
+      "name": "Deprecated marker",
+      "regex": "\\bdeprecated\\b",
+      "enabled": true
+    },
+    {
+      "name": "UPPER_CASE constants (case-sensitive)",
+      "regex": "(?-i:\\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\\b)",
+      "enabled": true
+    },
+    {
+      "name": "SemVer version string",
+      "regex": "v?\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.]+)?",
+      "enabled": true
+    }
+  ]
+}

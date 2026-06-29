@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "saved_searches": {
+    "TODOs": {
+      "search_text": "TODO",
+      "recursive": true,
+      "whole_word": true
+    },
+    "FIXMEs": {
+      "search_text": "FIXME",
+      "recursive": true,
+      "whole_word": true
+    },
+    "HACK comments": {
+      "search_text": "HACK",
+      "recursive": true,
+      "whole_word": true
+    },
+    "Python debug prints": {
+      "search_text": "print\\(",
+      "recursive": true,
+      "regex": true
+    },
+    "JS console debug": {
+      "search_text": "console\\.(?:log|debug)\\(",
+      "recursive": true,
+      "regex": true
+    },
+    "Deprecated markers": {
+      "search_text": "deprecated",
+      "recursive": true,
+      "whole_word": true
+    }
+  },
+  "suites": {
+    "Code hygiene sweep": [
+      "TODOs",
+      "FIXMEs",
+      "HACK comments",
+      "Python debug prints",
+      "JS console debug",
+      "Deprecated markers"
+    ]
+  }
+}

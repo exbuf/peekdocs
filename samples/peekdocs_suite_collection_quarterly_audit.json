@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "saved_searches": {
+    "Project Apex mentions": {
+      "search_text": "Project Apex",
+      "recursive": true
+    },
+    "Acme Corp mentions": {
+      "search_text": "Acme Corp",
+      "recursive": true
+    },
+    "Old product name (Legacy Reports)": {
+      "search_text": "Legacy Reports",
+      "recursive": true
+    },
+    "Status flags (at risk / blocked / delayed)": {
+      "search_text": "\"at risk\" OR blocked OR delayed",
+      "recursive": true,
+      "expression": true
+    },
+    "Dollar amounts": {
+      "search_text": "\\$[\\d,]+\\.?\\d*",
+      "recursive": true,
+      "regex": true
+    },
+    "Q2 2026 references": {
+      "search_text": "\"Q2 2026\" OR 2026-04 OR 2026-05 OR 2026-06",
+      "recursive": true,
+      "expression": true
+    }
+  },
+  "suites": {
+    "Quarterly content audit": [
+      "Project Apex mentions",
+      "Acme Corp mentions",
+      "Old product name (Legacy Reports)",
+      "Status flags (at risk / blocked / delayed)",
+      "Dollar amounts",
+      "Q2 2026 references"
+    ]
+  }
+}
