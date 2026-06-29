@@ -20,7 +20,7 @@ One `TODO` search shown across the three interfaces peekdocs ships (GUI, CLI, Py
 
 ![peekdocs Python API in a Jupyter notebook](images/screenshot-python-api.png)
 
-**(d) Word report — the shareable artifact.** Every Standard Search produces `peekdocs_standard_results.docx` by default alongside the always-written .txt (uncheck the **DOCX** checkbox in Advanced Search Options, or pass `--no-docx` on the CLI, to skip the Word report) — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in whatever app you've set as your OS default for `.docx` files — the screenshot below is [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free). Optional CSV, JSON, PDF, and HTML outputs are also available (checkboxes under Advanced Search Options) — these apply to Standard Search only. Search Suites have their own format picker inside the Suites popup, and Regex Search always writes just TXT and DOCX.
+**(d) Word report — the shareable artifact.** When you check **DOCX** in Advanced Search Options (or pass `-o docx` on the CLI), Standard Search writes `peekdocs_standard_results.docx` alongside the always-written .txt — yellow-highlighted matches, file paths as section headings, line numbers, surrounding context preserved. Hand it to a colleague who's never heard of peekdocs and they immediately understand what's in it. Opens in whatever app you've set as your OS default for `.docx` files — the screenshot below is [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free). DOCX, CSV, JSON, PDF, and HTML are all opt-in (all default OFF as of 1.2.6); these Advanced Search Options checkboxes apply to Standard Search only. Search Suites and Regex Search each have their own format picker inside their popup (TXT always; DOCX / HTML / CSV / JSON / PDF opt-in per checkbox).
 
 ![TODO results opened in LibreOffice](images/screenshot-TODO-LibreOffice.png)
 
@@ -54,7 +54,7 @@ A four-shot tour through the Regex Search popup using a saved collection of 10 c
 
 Where Regex Collections run many *patterns* at once, Search Suites run many *complete saved Standard Searches* at once — each with its own settings (AND/OR, Whole Word, Recursive, etc.). Demo: a "Code hygiene" suite that runs five common pre-commit checks in one click.
 
-**(a) Setup.** Five saved searches (`TODO`, `FIXME`, `HACK` with Whole Word on; `print(` and `console.log(` with Whole Word off — same kit, different option per search). Run order is top-to-bottom; the Up/Down buttons reorder. HTML output added to the always-on TXT and DOCX defaults.
+**(a) Setup.** Five saved searches (`TODO`, `FIXME`, `HACK` with Whole Word on; `print(` and `console.log(` with Whole Word off — same kit, different option per search). Run order is top-to-bottom; the Up/Down buttons reorder. TXT is always written; DOCX and HTML checked in the Suites popup's format picker (everything else stays opt-in by default).
 
 ![Search Suites setup](images/screenshot-searchsuite-setup.png)
 

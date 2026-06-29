@@ -1992,9 +1992,10 @@ def _main_inner(argv=None):
     # DOCX is opt-in via `-o docx` (peekdocs >= 1.2.6). For Standard
     # Search, the CLI only writes peekdocs_standard_results.txt
     # automatically; DOCX joins the output formats list when explicitly
-    # requested. Regex collections also honor -o now (1.2.x follow-up);
-    # Search Suites still write TXT + DOCX unconditionally and use their
-    # own format picker inside the suite popup for HTML / CSV / JSON / PDF.
+    # requested. Regex collections honor -o as of 1.2.25 (-o docx,csv,
+    # json,pdf,html, any combination). Search Suites honor -o as of
+    # 1.2.26 — CLI suite path supports -o docx only; the other formats
+    # live as inline code in the GUI suite popup's picker for now.
     #
     # --no-docx is kept as a tolerated no-op for one release so any
     # scripts that pass it don't break — the new default is already
