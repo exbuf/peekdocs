@@ -12,6 +12,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.30] — 2026-06-28
+
+### Added
+- **`--suite` and `--regex-collection` now warn on stderr when
+  passed flags they do not honor.** Both handlers walk argv
+  manually looking only for the few flags they read (`--suite`:
+  `--timestamp`, `-o`; `--regex-collection`: `-r`, `-d`, `-o`,
+  `--timestamp`, `--stdout`). Anything else — `-t`, `-A`, `-B`,
+  `-p`, `-P`, `-m`, `--max-file-size`, `-O`, `-n`, `--inverse`,
+  `-e`, `-c` — was silently dropped, so a reasonable invocation
+  like `peekdocs --regex-collection "code patterns" -t py,js -A 5
+  -m 100` ran the collection with none of those filters applied
+  and no signal to the user. The warning prints one stderr line
+  listing the ignored flags plus a second line listing the
+  supported ones; stdout, exit codes, and `--stdout` JSON
+  pipelines are untouched. Three new tests pin the behavior.
+
 ## [1.2.29] — 2026-06-28
 
 ### Docs
