@@ -12,6 +12,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.33] — 2026-06-29
+
+### Docs
+- **`pipx upgrade peekdocs` is now the documented upgrade path**,
+  replacing `pipx install --force git+…`. Surfaced after a Mac
+  install reported the wrong version (1.2.25 under working-tree-
+  loaded 1.2.32 code). Root cause: repeated `pipx install --force`
+  invocations leave the previous release's `.dist-info` directories
+  in the venv's site-packages, and `importlib.metadata.version()`
+  picks them up alphabetically so the oldest wins. `pipx upgrade`
+  replaces package contents in place and doesn't accumulate stale
+  dist-info entries. Updated across README quick-start, README
+  Option B, README Upgrading section, README IT/Security table,
+  USER_GUIDE "tired of activating", three INSTALLATION.md commands,
+  CHANGELOG upgrade-banner, and RELEASE_CHECKLIST. The Windows-
+  lockup troubleshooter now covers both `pipx upgrade` and
+  `pipx install --force`, and gained a stable explicit anchor so
+  the cross-doc links don't rot.
+
+### CI
+- **`auto-tag-on-version-bump.yml` workflow added** (1.2.32). Every
+  push to main that touches `pyproject.toml` is checked against
+  existing tags; if `version = "X.Y.Z"` doesn't have a matching
+  `vX.Y.Z` tag, the workflow creates and pushes it. The tag push
+  then triggers the existing `build-release.yml` to build the
+  Mac/Windows/Linux artifacts and create the GitHub Release.
+  Closes the gap that left v1.2.26 through v1.2.32 untagged on
+  GitHub while `main` advanced.
+
 ## [1.2.32] — 2026-06-29
 
 ### Docs
