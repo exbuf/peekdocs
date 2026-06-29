@@ -9488,12 +9488,12 @@ class ToolsMixin:
                 # main-page DOCX / TXT / CSV / JSON / PDF / HTML buttons
                 # still open peekdocs_standard_results.* from whenever
                 # the user's last standard search was — silently stale
-                # and actively misleading. Regex Search writes only TXT
-                # and DOCX, so the CSV / JSON / PDF / HTML buttons will
-                # flip red (no file); the Advanced Search Options output-
-                # format checkboxes do NOT apply to Regex Search, which
-                # is called out in the Getting Started step 4 disclaimer
-                # and in the format-checkbox tooltips.
+                # and actively misleading. Regex Search reads output
+                # formats from its popup's own 'Also write:' checkboxes
+                # (added in 1.2.25), not from Advanced Search Options;
+                # any format the user didn't check will flip red. The
+                # Regex Search help and the Step 4 disclaimer in
+                # Getting Started both spell this out.
                 self._report_file_prefix = "peekdocs_regex_results"
                 self._last_ts_suffix = ""
                 self._show_action_buttons()
@@ -10628,27 +10628,25 @@ class ToolsMixin:
         blank()
 
         h("ADVANCED SEARCH OPTIONS")
-        b("When 'Do not save regex match contents to reports' is")
-        b("UNCHECKED (normal mode), Regex Search triggers a standard")
-        b("search and respects most Advanced Search Options settings:")
+        b("Regex Search ignores the Advanced Search Options panel on")
+        b("the main screen entirely \u2014 file type filters, exclude")
+        b("terms, max matches, max file size, context lines, proximity,")
+        b("OCR, range filters, and the rest. Everything Regex Search")
+        b("needs comes from this popup:")
         blank()
-        b("\u2022 Max Matches, Max File Size, Context Lines (Before/After)")
-        b("\u2022 Output formats (CSV, JSON, PDF, HTML)")
-        b("\u2022 File type filters, Exclude terms")
-        b("\u2022 Save report as, Delete on Close, Notify on Search Complete")
+        b("\u2022 Folder \u2014 the popup's folder picker")
+        b("\u2022 Recursive \u2014 the popup's checkbox")
+        b("\u2022 Output formats \u2014 the 'Also write:' checkboxes")
+        b("  (TXT is always written; DOCX / HTML / CSV / JSON / PDF")
+        b("  are opt-in per checkbox)")
         blank()
-        b("These settings are overridden by the Regex Search popup:")
+        b("Engine settings are fixed: regex is forced on, fuzzy and")
+        b("wildcard are forced off, and the search index is bypassed")
+        b("(every run scans files directly).")
         blank()
-        b("\u2022 Folder \u2014 uses the popup's folder, not the main screen")
-        b("\u2022 Recursive \u2014 uses the popup's checkbox")
-        b("\u2022 Regex \u2014 forced on")
-        b("\u2022 Fuzzy / Wildcard \u2014 forced off")
-        b("\u2022 Index \u2014 forced off (always scans files directly)")
-        blank()
-        b("When 'Do not save regex match contents to reports' is")
-        b("CHECKED (screen-only mode), the search runs through the")
-        b("API and none of the Advanced Search Options apply. Only")
-        b("the popup's folder and Recursive setting are used.")
+        b("Screen-only mode ('Do not save regex match contents to")
+        b("reports') changes the destination of results \u2014 popup only,")
+        b("no files written \u2014 but does not change what is scanned.")
         blank()
 
         h("PERFORMANCE AND INDEX")
