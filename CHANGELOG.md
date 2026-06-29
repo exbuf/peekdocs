@@ -12,6 +12,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.36] — 2026-06-29
+
+### Changed
+- **`SHA256SUMS.txt` renamed to `peekdocs_SHA256SUMS.txt`** in
+  the release workflow so every shipped artifact follows the
+  peekdocs-prefix naming convention with no exceptions. The
+  release-build glob was also tightened from `sha256sum *` to
+  `sha256sum peekdocs-*` so the checksums file (underscore-
+  prefixed) is naturally excluded from its own hash (binaries
+  use the dash variant `peekdocs-`). Downloaders of releases
+  v1.2.17 through v1.2.35 still find the file under the old
+  name; v1.2.36 onward uses the new name. INSTALL_SAFETY.md
+  walkthrough updated accordingly.
+
+### Docs
+- **Naming convention stated explicitly in README and
+  USER_GUIDE.** The rule "every file peekdocs creates uses the
+  `peekdocs_` prefix (visible) or `.peekdocs` prefix (hidden) —
+  no exceptions" was previously stated comprehensively only in
+  the deep-dive `docs/SECURITY.md`; the two README mentions
+  covered only the visible prefix. Both README's workflow-
+  families overview and USER_GUIDE's file-families section now
+  carry an explicit "Naming convention — no exceptions"
+  blockquote with a cross-link to SECURITY.md for the per-file
+  inventory. The IT/Security Q&A row and the "Not a file
+  manager…" disclaimer bullet in the README were also tightened
+  to cover both prefixes.
+
+### Samples
+- **Five demo scaffolds added under `samples/`** to support
+  filming the Search Suites and Regex Search GUI feature
+  videos. Two regex collections (Code patterns — 10 hygiene-
+  themed patterns; Log triage — 10 log-severity / exception /
+  HTTP-error / slow-op patterns), two suite collections (Code
+  hygiene sweep — 6 saved searches; Quarterly content audit —
+  6 saved searches), and one Python generator script that
+  produces a `.docx` + `.pdf` consulting-doc set for the
+  quarterly-audit demo. Binary outputs from the generator stay
+  off-repo (reproducible from the script).
+
 ## [1.2.35] — 2026-06-29
 
 ### Docs
