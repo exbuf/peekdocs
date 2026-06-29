@@ -1,0 +1,68 @@
+name: Auto-tag on version bump
+
+# Watches main for version bumps in pyproject.toml. When the version
+# changes to one that doesn't yet have a matching git tag, creates
+# and pushes vX.Y.Z. That tag-push then triggers build-release.yml
+# (which builds the Mac/Windows/Linux artifacts and creates the
+# GitHub Release).
+#
+# Why this exists: between v1.2.25 and v1.2.32, "release: 1.2.XX"
+# commits were pushed to main without anyone tagging them — so the
+# build-release workflow (tag-triggered) never ran. Mac/Windows
+# downloads stayed pinned at v1.2.25 while the codebase advanced to
+# v1.2.32. This workflow closes that gap automatically so no future
+# release-commit goes un-built.
+#
+# Only fires when pyproject.toml is in the push (path filter), and
+# is a no-op if the version's tag already exists.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pyproject.toml'
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history so `git tag` sees existing tags and
+          # `git push origin <tag>` works against the remote.
+          fetch-depth: 0
+
+      - name: Read version from pyproject.toml
+        id: version
+        run: |
+          version=$(grep -E '^version = ' pyproject.toml | head -1 | sed -E 's/version = "(.+)"/\1/')
+          if [ -z "$version" ]; then
+            echo "Could not extract version from pyproject.toml" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $version"
+
+      - name: Create and push tag if missing
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag="v${VERSION}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists locally — nothing to do."
+            exit 0
+          fi
+          if git ls-remote --tags origin "refs/tags/$tag" | grep -q "$tag"; then
+            echo "Tag $tag already exists on origin — nothing to do."
+            exit 0
+          fi
+          # Configure git identity (annotated tags require one)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
+          echo "Created and pushed $tag — build-release.yml will now build artifacts."
