@@ -123,13 +123,13 @@ jobs:
       # users can verify their download matches what GitHub Actions
       # actually built. INSTALL_SAFETY.md points readers at this file.
       # The release step's `files: artifacts/*` glob picks up the new
-      # SHA256SUMS.txt automatically — no extra plumbing needed.
+      # peekdocs_SHA256SUMS.txt automatically — no extra plumbing needed.
       - name: Generate SHA-256 checksums
         run: |
           cd artifacts
-          sha256sum * > SHA256SUMS.txt
-          echo "--- SHA256SUMS.txt ---"
-          cat SHA256SUMS.txt
+          sha256sum peekdocs-* > peekdocs_SHA256SUMS.txt
+          echo "--- peekdocs_SHA256SUMS.txt ---"
+          cat peekdocs_SHA256SUMS.txt
 
       # Extract just the [N.N.N] section from CHANGELOG.md for this
       # tag's version. Without this the GitHub Release body was only
