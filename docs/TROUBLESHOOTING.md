@@ -219,8 +219,8 @@ Yes. All user input that reaches the SQLite search index is handled safely. FTS5
 **Is the search case-sensitive?**
 No — all searches are case-insensitive by default.
 
-**Why are my reports capped at 1,000 matches?**
-By default, peekdocs caps reports at 1,000 matches to prevent very large result sets from causing slow report generation (especially the `.docx` report). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 5000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=5000` or in the GUI's Advanced Search Options panel.
+**Why are my reports capped at 5,000 matches?**
+By default, peekdocs caps reports at 5,000 matches (raised from 1,000 in 1.2.7) to prevent very large result sets from causing slow report generation (especially the `.docx` report — python-docx is slow at inserting tens of thousands of highlighted runs). The total match count is always reported accurately in the summary — only the report files are capped. To change the cap, use `-m N` (e.g., `-m 20000`). To remove the cap entirely, use `-m 0`. You can also set it permanently with `--config max_matches=20000` or in the GUI's Advanced Search Options panel.
 
 <a id="cant-find-expected-file"></a>
 **I searched for a term I know is in a file, but the file doesn't appear in my results. What happened?**
