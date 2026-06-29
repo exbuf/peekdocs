@@ -12,6 +12,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.34] — 2026-06-29
+
+### Fixed
+- **Broken `pip install --upgrade peekdocs` instruction** corrected
+  in five user-facing locations. The CLI's ImportError handler,
+  startup dependency check, `--check` missing-deps message, and the
+  GUI System Check tool all told users to run that command if their
+  install was broken — but peekdocs isn't on PyPI, so the command
+  fails with "No matching distribution found." Replaced with
+  `pipx upgrade peekdocs  (or see <readme#installation>)` so the
+  instruction works regardless of which install method the user
+  picked.
+- **Stale "DOCX defaults ON" claim in the on-screen Step 3 tooltip
+  (i18n.py)** — separate surface from the Getting Started ? popup
+  corrected earlier, and was still telling users to "uncheck DOCX
+  (or pass --no-docx) to skip the Word report." Updated to match
+  the current policy (DOCX / CSV / JSON / PDF / HTML all default
+  OFF; opt in via checkbox or `-o`).
+
 ## [1.2.33] — 2026-06-29
 
 ### Docs
