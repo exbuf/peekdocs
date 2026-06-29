@@ -12,6 +12,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.32] — 2026-06-29
+
+### Docs
+- **TROUBLESHOOTING DOCX opt-in sweep follow-up** (042f6f5).
+  The "Where are results saved?" opener still claimed both
+  `peekdocs_standard_results.txt` AND `.docx` are saved by
+  default; rewritten to spell out TXT-always plus DOCX / CSV /
+  JSON / PDF / HTML opt-in. The "DOCX report won't open"
+  troubleshooter led with "no word processor installed" but the
+  more common cause now is "DOCX wasn't checked for this run" —
+  added that as the new first bullet with the red-Open-Report-
+  button hint.
+- **TROUBLESHOOTING "reports capped at 1,000 matches" claim
+  corrected to 5,000** (3c39fca). The default-cap was bumped
+  from 1,000 to 5,000 in 1.2.7; the FAQ entry hadn't caught up.
+  Updated question, body, example `-m` raise-the-cap value, and
+  added a note on the underlying python-docx-render-cost reason
+  the cap exists.
+
+### GUI help text
+- **Regex Search ? help — workbench-doesn't-show-rows-11+
+  disclosure** (d48217b). The "What This Is" section advertised
+  that collections can grow beyond 10 patterns (Save Collection
+  As → ADD, run via CLI / Run Multiple Collections) but glossed
+  over a real gap: Restore From Collection loads only the first
+  10 patterns into the workbench, and there's no GUI surface to
+  view, edit, or remove rows 11+. New paragraph names the
+  asymmetry plainly and points users at
+  `~/.peekdocs_regex_collections.json` for editing beyond the
+  workbench (plain JSON; inline schema description).
+- **Surfaced the multi-collection split workaround** (67b62ab).
+  Follow-up to d48217b. Most users who want to RUN more than 10
+  patterns at once don't need to hand-edit JSON — they can split
+  the patterns across two or more collections of ≤10 each and
+  combine them via Run Multiple Collections… The help now leads
+  with that simpler path and keeps the JSON hand-edit advice for
+  the niche case of preserving a single >10-pattern named
+  collection.
+
 ## [1.2.31] — 2026-06-28
 
 ### Docs
