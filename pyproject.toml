@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "peekdocs"
-version = "1.2.30"
+version = "1.2.31"
 description = "Privacy-first local document search and analysis platform for Windows, macOS, and Linux. Search 100+ file types using keyword, fuzzy, OCR, and advanced regex workflows. Batch analysis, highlighted reports, automated reporting, reusable search profiles. CLI, GUI, and Python API. Free and open-source under the MIT license."
 classifiers = [
     "Development Status :: 5 - Production/Stable",

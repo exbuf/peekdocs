@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.31] — 2026-06-28
+
+### Docs
+- **Nine stale "DOCX defaults ON" / "Suites and Regex always write
+  TXT + DOCX" claims caught and corrected** across GUI help text,
+  a code comment, USER_GUIDE, and WALKTHROUGHS. DOCX has been
+  opt-in for Standard Search since 1.2.6, for Regex Search since
+  1.2.25, and for Search Suites since 1.2.26, but the older
+  always-on framing persisted in several spots. Fixed:
+  - `_mixin_build.py` step-3 tooltip + Getting Started step-3 help
+  - `_mixin_build.py` output-format scope tooltip
+  - `_mixin_build.py` DOCX checkbox inline tooltip (Default OFF,
+    not ON)
+  - `cli.py` code comment on suite-handler `-o` behavior
+  - USER_GUIDE Search Suites table row
+  - USER_GUIDE `-o` flag table row
+  - USER_GUIDE privacy section file-name list
+  - WALKTHROUGHS Standard Search walkthrough (drops `--no-docx`
+    framing; Regex Search has its own picker, doesn't auto-write
+    DOCX)
+  - WALKTHROUGHS Suites walkthrough (TXT always; DOCX is one of
+    the optional checkboxes)
+
 ## [1.2.30] — 2026-06-28
 
 ### Added
