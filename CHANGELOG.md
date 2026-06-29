@@ -12,6 +12,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.35] — 2026-06-29
+
+### Docs
+- **Getting Started tab + first-launch Welcome popup — six
+  accuracy fixes.** Both surfaces had drifted from the current
+  policy / layout: Step 3 listed `CSV / JSON / PDF / HTML (under
+  'Also ==>')` even though DOCX has been in that checkbox row
+  since 1.2.6 and the "Also ==>" label was removed when DOCX moved
+  into column 0; the Highlighted Reports feature card claimed
+  "Every search produces a Word report" (contradicts the opt-in
+  policy); the Search Wizard feature card pointed to "Tools →
+  Search Wizard" even though the wizard was promoted to a main-
+  page button between Run Standard Search and Search Suites; Step
+  4's Search Suites bullet listed the popup picker as `HTML / CSV
+  / JSON / PDF` even though DOCX joined that picker in 1.2.26; and
+  the first-launch Welcome popup's intro paragraph said "Results
+  are saved to a highlighted Word report" and its Step 3
+  walkthrough still mentioned the removed "Also ==>" label. All
+  six now match current behavior.
+
 ## [1.2.34] — 2026-06-29
 
 ### Fixed
