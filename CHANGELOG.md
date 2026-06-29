@@ -12,6 +12,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.27] — 2026-06-28
+
+### Changed
+- **Open Report now uses your OS default app** for every report
+  format (DOCX, PDF, CSV, JSON, plus the formats that already did).
+  Previous behavior maintained a hardcoded allowlist (Microsoft Word
+  / LibreOffice for DOCX, Preview / Acrobat / Skim for PDF, etc.)
+  and blocked anything else with a popup recommending users install
+  Word or LibreOffice. The block fired on macOS systems whose
+  default `.docx` app is Pages, and the popup wording named
+  competing apps directly. Reports now open with whatever app you've
+  set as your OS default for that file type — the standard developer
+  expectation. peekdocs itself still never uploads anything; what
+  happens after the handoff to the OS is the user's chosen default.
+- **Docs updated** in README, USER_GUIDE, TROUBLESHOOTING, and
+  WALKTHROUGHS to drop the "peekdocs avoids opening reports in
+  Google Docs / Apple Pages" promise that the new behavior no longer
+  makes.
+
 ## [1.2.26] — 2026-06-28
 
 ### Fixed
