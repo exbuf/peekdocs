@@ -12,6 +12,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.29] — 2026-06-28
+
+### Docs
+- **Regex Search ? help "Advanced Search Options" section
+  rewritten** to match real behavior. The previous text claimed
+  non-screen-only Regex Search "triggers a standard search and
+  respects most Advanced Search Options settings" (Max Matches,
+  Max File Size, Context Lines, Output formats, File type filters,
+  Exclude terms, Save report as, Delete on Close, Notify on Search
+  Complete) — none of which are actually read. The Regex Search
+  code path calls the in-process API with only `directory`,
+  `recursive`, `use_regex=True`, `use_index=False` in both
+  screen-only and non-screen-only modes. The corrected text states
+  plainly that Regex Search ignores Advanced Search Options
+  entirely and lists the popup's own folder / Recursive / Also-
+  write checkboxes as the only inputs.
+- **Step 4 (tooltip + Getting Started walkthrough)** gains a
+  parallel "Advanced Search Options do NOT apply" disclaimer for
+  Regex Search, matching the disclaimer that already existed for
+  Search Suites.
+- **Step 3 tooltip** "Regex Search always writes just TXT and
+  DOCX" sentence updated; the Regex Search popup gained DOCX /
+  HTML / CSV / JSON / PDF opt-in checkboxes in 1.2.25.
+
 ## [1.2.28] — 2026-06-28
 
 ### Fixed
