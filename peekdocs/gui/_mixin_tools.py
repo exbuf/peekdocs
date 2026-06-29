@@ -7243,7 +7243,7 @@ class ToolsMixin:
         add("")
 
         if not info["all_ok"]:
-            add("Fix missing dependencies with: pip install --upgrade peekdocs", "warn")
+            add("Fix missing dependencies with: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)", "warn")
 
         text.config(state="disabled")
 

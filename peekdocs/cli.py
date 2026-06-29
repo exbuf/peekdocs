@@ -596,10 +596,10 @@ def _diagnose(exc):
         if module:
             return (f"The Python module '{module}' could not be loaded. "
                     "This is usually caused by a missing or incompatible dependency. "
-                    "Try: pip install --upgrade peekdocs")
+                    "Try: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)")
         return ("A required module could not be imported. "
                 "A dependency may be missing or incompatible with your Python version. "
-                "Try reinstalling: pip install --upgrade peekdocs")
+                "Try reinstalling: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)")
 
     if isinstance(exc, MemoryError):
         return ("The system ran out of memory. "
@@ -922,7 +922,7 @@ def _main_inner(argv=None):
         print("Error: Required dependencies are missing:\n")
         for desc, pkg in missing:
             print(f"  {desc} — install with: pip install {pkg}")
-        print(f"\nOr reinstall peekdocs: pip install --upgrade peekdocs\n")
+        print(f"\nOr reinstall peekdocs: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)\n")
         return 2
 
     original_args = list(args)
@@ -1057,7 +1057,7 @@ def _main_inner(argv=None):
         print()
 
         if not info['all_ok']:
-            print("Fix missing dependencies with: pip install --upgrade peekdocs")
+            print("Fix missing dependencies with: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)")
             print()
         else:
             print("All checks passed.")
