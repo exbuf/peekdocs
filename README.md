@@ -172,8 +172,10 @@ A workbench for document collections: search them, characterize them through bui
 2. **Have Python 3.10+?** A single command installs everything — the GUI, the CLI, and the Python API:
 
    ```bash
-   pipx install --force git+https://github.com/exbuf/peekdocs.git
+   pipx install git+https://github.com/exbuf/peekdocs.git
    ```
+
+   *(Already installed? Upgrade with `pipx upgrade peekdocs`.)*
 
 See [Installation](#installation) below for per-platform notes, the `pip` alternative, upgrade, and uninstall.
 
@@ -470,12 +472,12 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
 
 ```bash
-pipx install --force git+https://github.com/exbuf/peekdocs.git    # recommended (isolated venv)
+pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated venv)
 # — or —
-pip install --upgrade git+https://github.com/exbuf/peekdocs.git   # if you prefer pip
+pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 ```
 
-`--force` (pipx) and `--upgrade` (pip) play the same role: they overwrite any existing install cleanly. Without them, pipx silently skips re-install if peekdocs is already present, and pip leaves the existing version in place. The same command is your future upgrade — re-run it whenever you want the latest commit.
+These are the **first-time install** commands. To upgrade later, use `pipx upgrade peekdocs` (or `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`). `pipx upgrade` is cleaner than `pipx install --force` — it replaces the package's contents in place instead of leaving stale `.dist-info` directories around (which can desync the reported version from the running code).
 
 After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you (pip drops the package into whichever Python environment you used). To uninstall completely: `pipx uninstall peekdocs` (or `pip uninstall peekdocs`). See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
 
@@ -501,7 +503,7 @@ Your saved searches, settings, indexes, and reports are stored outside the peekd
 How to upgrade depends on which install method you used:
 
 - **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one. **No need to uninstall first.**
-- **pipx (Option B):** `pipx install --force git+https://github.com/exbuf/peekdocs.git` — same command as the original install. `--force` overwrites cleanly; no separate uninstall step. **Windows note:** if `--force` fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](docs/TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the 5-step recovery walkthrough. macOS and Linux aren't affected — they let a running process keep using a file that's been replaced.
+- **pipx (Option B):** `pipx upgrade peekdocs` — replaces the package contents in place without leaving stale `.dist-info` directories behind. (`pipx install --force git+…` also works but can accumulate stale dist-info entries that desync the reported version from the running code; `pipx uninstall peekdocs && pipx install git+…` is the nuclear option if you ever hit that.) **Windows note:** if either upgrade method fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx upgrade on Windows: locked files](docs/TROUBLESHOOTING.md#pipx-upgrade-windows-locked-files) for the recovery walkthrough. macOS and Linux aren't affected — they let a running process keep using a file that's been replaced.
 - **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
 - **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
@@ -876,7 +878,7 @@ If you're evaluating peekdocs for your organization, here are the answers to the
 | **What does it install?** | Python packages only — no system services, no drivers, no registry entries, no background processes. It runs when launched and stops when closed. |
 | **Can it modify or delete user files?** | No. peekdocs only reads user files. It creates its own report and index files (all prefixed with "peekdocs" for easy identification) but never modifies, moves, or deletes any user documents. |
 | **Is the source code available?** | Yes. Fully open-source under the MIT License. Available for audit at [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs). |
-| **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install --force git+https://github.com/exbuf/peekdocs.git`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
+| **How is it installed?** | Via `pipx` from the public GitHub source (`pipx install git+https://github.com/exbuf/peekdocs.git`; upgrade with `pipx upgrade peekdocs`) — fully auditable, no unsigned executables required. (PyPI upload is planned.) |
 
 *For the deep dive — every file peekdocs writes (path, contents, sensitivity rating, cleanup), plus a documented list of risks that are outside the application's control (process arguments, swap space, force-kill, backup software, etc.) — see **[docs/SECURITY.md](docs/SECURITY.md)**. To report a suspected vulnerability, see **[SECURITY.md](SECURITY.md)** at the repository root.*
 

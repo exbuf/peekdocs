@@ -158,11 +158,13 @@ If startup time still matters and you have Python installed (or are willing to i
 
 ```bash
 brew install pipx                                                  # macOS, if you don't have it
-pipx install --force git+https://github.com/exbuf/peekdocs.git
+pipx install git+https://github.com/exbuf/peekdocs.git
 sudo rm /usr/local/bin/peekdocs                                    # remove the symlink (macOS)
 sudo rm -rf /usr/local/lib/peekdocs                                # remove the unpacked folder (macOS)
 which peekdocs                                                     # now points at the pipx shim
 ```
+
+(For subsequent upgrades, run `pipx upgrade peekdocs` — it's cleaner than `pipx install --force`, which can leave stale `.dist-info` directories around in the venv.)
 
 After the switch, `peekdocs` from any terminal runs the pipx version directly — same code, same features, same exit codes; just no per-invocation extract step and no macOS security round-trip.
 
@@ -171,7 +173,7 @@ After the switch, `peekdocs` from any terminal runs the pipx version directly �
 If your system `python3` is still 3.9 and you installed a newer Python alongside it, tell pipx which to use:
 
 ```bash
-pipx install --force --python python3.13 git+https://github.com/exbuf/peekdocs.git
+pipx install --python python3.13 git+https://github.com/exbuf/peekdocs.git
 ```
 
 Replace `3.13` with the version you installed.
@@ -181,8 +183,8 @@ Replace `3.13` with the version you installed.
 Download the ZIP from the **Code** button on [github.com/exbuf/peekdocs](https://github.com/exbuf/peekdocs) and point pipx at the file instead of the URL:
 
 ```bash
-pipx install --force ~/Downloads/peekdocs-main.zip                              # macOS / Linux
-pipx install --force C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows
+pipx install ~/Downloads/peekdocs-main.zip                              # macOS / Linux
+pipx install C:\Users\YourName\Downloads\peekdocs-main.zip              # Windows
 ```
 
 <a id="windows-cmd-ssl"></a>

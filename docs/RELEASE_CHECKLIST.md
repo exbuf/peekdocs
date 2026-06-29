@@ -108,8 +108,9 @@ binaries by hand, per platform you can reach.
 
 ### Manual smoke test — pipx install path
 
-The README documents `pipx install --force git+https://github.com/exbuf/peekdocs.git`
-as Option B. After a tag is pushed and `main` is updated, this
+The README documents `pipx install git+https://github.com/exbuf/peekdocs.git`
+for first-time installs and `pipx upgrade peekdocs` as the upgrade
+path. After a tag is pushed and `main` is updated, the upgrade
 command pulls the new version.
 
 - [ ] Run on macOS in a clean shell: install command works, no
@@ -142,7 +143,7 @@ command pulls the new version.
 ### PyPI upload (optional)
 
 The GitHub Release covers both documented install paths (standalone
-binaries + `pipx install --force git+…`). PyPI upload is a separate
+binaries + `pipx install git+…` / `pipx upgrade peekdocs`). PyPI upload is a separate
 decision — see the maintainer's PyPI launch posture (currently
 "deferred indefinitely; the GitHub-as-PyPI path is sufficient").
 

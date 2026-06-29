@@ -148,7 +148,7 @@ This matters for how you launch peekdocs:
 
   You'll see `(venv)` appear at the beginning of your command line — that means peekdocs is ready. You need to do this activation step each time you open a new terminal window.
 
-  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install --force git+https://github.com/exbuf/peekdocs.git`. After restarting your terminal, peekdocs works everywhere without activation.
+  **Tired of activating every time?** Consider switching to pipx: `pip install pipx && pipx ensurepath && pipx install git+https://github.com/exbuf/peekdocs.git`. After restarting your terminal, peekdocs works everywhere without activation. (For future upgrades, `pipx upgrade peekdocs`.)
 
 ### What is a terminal?
 
@@ -2619,7 +2619,7 @@ All your settings, saved searches, indexes, and reports are stored outside the p
 
 **How to upgrade:**
 
-- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data. **Windows note:** if the upgrade fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx install --force on Windows](TROUBLESHOOTING.md#pipx-install---force-on-windows-access-is-denied--directory-not-empty) for the recovery walkthrough. macOS and Linux aren't affected.
+- **pipx:** `pipx upgrade peekdocs` — replaces the code, preserves all your data. **Windows note:** if the upgrade fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx upgrade on Windows: locked files](TROUBLESHOOTING.md#pipx-upgrade-windows-locked-files) for the recovery walkthrough. macOS and Linux aren't affected.
 - **Manual install:** download the new ZIP, replace the `peekdocs-main` folder, run `pip install -e .` — your data is untouched
 
 No migration, no export/import, no reconfiguration. Everything just works with the new version.

@@ -20,7 +20,7 @@ Common questions and solutions for peekdocs issues. If you're stuck, start with 
 
 Use Ctrl-F / Cmd-F to land on the relevant entry — exact entry titles to search for are shown in **bold**:
 
-- **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, **"ModuleNotFoundError"**, or (Windows pipx upgrades) **"pipx install --force on Windows"**.
+- **Install or upgrade issues** — search for **"peekdocs: command not found"**, **"ensurepip"**, **"setup.py not found"**, **"pip' is not recognized"**, **"Wrong Python or wrong pip"**, **"ModuleNotFoundError"**, or (Windows pipx upgrades) **"pipx upgrade on Windows"**.
 - **GUI doesn't launch or doesn't behave correctly** — Linux / macOS Homebrew Python: **"No module named '_tkinter'"**. Linux only: **"Tools menu requires holding"**, **"Browse button requires double-click"**. Windows/macOS: **"DOCX report won't open"**, **"File picker"**.
 - **Search returns nothing or fewer matches than expected** — **"isn't finding matches I know are there"**, **"Search misses files I recently added"**.
 - **OCR not working** — **"OCR requires the pytesseract"**, **"OCR is enabled but"**.
@@ -298,9 +298,10 @@ The `.docx` report opens in whatever application your computer has associated wi
 
 On macOS, clicking the **File** button opens a file picker with a preview panel on the right side — you can inspect a file's contents before selecting it. On Windows, the file picker does not include a preview panel. This is a difference between the operating systems, not a peekdocs issue. Both platforms use the native OS file dialog, and peekdocs has no control over its appearance or features.
 
-**`pipx install --force` on Windows: "Access is denied" / "directory not empty"**
+<a id="pipx-upgrade-windows-locked-files"></a>
+**`pipx upgrade` or `pipx install --force` on Windows: "Access is denied" / "directory not empty"**
 
-On Windows, `pipx install --force git+https://github.com/exbuf/peekdocs.git` (the upgrade path) can fail with a cascade of `Access to the path … is denied` errors on `.pyd` / `.dll` / `python.exe` files inside the venv. Python on Windows opens compiled extension files (.pyd) and DLLs with exclusive locks; any peekdocs process still holding them — even one you forgot about — blocks the venv from being deleted.
+On Windows, `pipx upgrade peekdocs` (the recommended upgrade path) and `pipx install --force git+https://github.com/exbuf/peekdocs.git` (the older upgrade form) can both fail with a cascade of `Access to the path … is denied` errors on `.pyd` / `.dll` / `python.exe` files inside the venv. Python on Windows opens compiled extension files (.pyd) and DLLs with exclusive locks; any peekdocs process still holding them — even one you forgot about — blocks the venv from being modified.
 
 The walkthrough that works:
 

@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 **To upgrade to the latest version:**
 
-- **pipx** (recommended, Mac / Linux / Windows): `pipx install --force git+https://github.com/exbuf/peekdocs.git`
+- **pipx** (recommended, Mac / Linux / Windows): `pipx upgrade peekdocs` (or `pipx install git+https://github.com/exbuf/peekdocs.git` for a first-time install)
 - **pip** (advanced): `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`
 - **Standalone download**: grab the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace your existing copy. Your settings and saved searches live in your home directory, not in the executable — nothing is lost on upgrade.
 
