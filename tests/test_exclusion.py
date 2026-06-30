@@ -7,6 +7,8 @@ Search workflows (Standard / Suites / Regex) never find their own
 outputs as user content.
 """
 
+import os
+
 from peekdocs.scanner import is_peekdocs_internal_file, discover_files
 
 
@@ -54,8 +56,8 @@ def test_discover_files_skips_peekdocs_prefixed(tmp_path):
     for fn in skip + keep:
         (tmp_path / fn).write_text("test content\n")
 
-    found = {p for p in discover_files(str(tmp_path), recursive=False, use_ocr=False)}
-    found_names = {p.split("/")[-1] for p in found}
+    found = discover_files(str(tmp_path), recursive=False, use_ocr=False)
+    found_names = {os.path.basename(p) for p in found}
 
     for fn in skip:
         assert fn not in found_names, f"{fn} should be skipped"
