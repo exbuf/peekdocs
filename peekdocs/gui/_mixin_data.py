@@ -1281,14 +1281,14 @@ class DataMixin:
         view_btn = tk.Label(
             btn_frame, text="View Text (with line numbers)",
             font=("TkDefaultFont", 13, "bold"),
-            bg="#888888", fg="white",
+            bg="#76BA1B", fg="white",
             relief="raised", borderwidth=2,
             padx=20, pady=8, cursor="hand2",
         )
         view_btn.pack(side="left", padx=5)
         view_btn.bind("<Button-1>", lambda e: _view_text())
-        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#666666"))
-        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#888888"))
+        view_btn.bind("<Enter>", lambda e: view_btn.configure(bg="#5E9516"))
+        view_btn.bind("<Leave>", lambda e: view_btn.configure(bg="#76BA1B"))
 
         def _show_heatmap():
             selection = listbox.curselection()
