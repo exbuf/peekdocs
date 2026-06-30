@@ -3961,7 +3961,7 @@ class ToolsMixin:
         b("launch. OR mode is the default search mode.")
         blank()
         b("To save your preferred settings for next time, open Advanced")
-        b("Search Options and click 'Save Settings'. Your choices are")
+        b("Search Options and click 'Save As Defaults'. Your choices are")
         b("stored in ~/.peekdocsrc and restored automatically on the")
         b("next launch.")
         blank()
@@ -4049,7 +4049,7 @@ class ToolsMixin:
         txt.insert("end", "TABLE OF CONTENTS\n", "toc_title")
         for section in [
             "What Is peekdocs?", "Who Is It For?", "Getting Started",
-            "Standard Search (green button) vs Regex Search",
+            "Standard Search (blue button) vs Regex Search",
             "Regex Search vs Search Suites",
             "Saving and Loading Searches", "Simple Search",
             "Phrase Search (Quoted Terms)", "AND Mode",
@@ -4124,7 +4124,7 @@ class ToolsMixin:
         b("how many terms are being searched. In the Results Preview, right-click")
         b("to copy text and double-click a filename to open it in your default app.")
         blank()
-        b("After a search, click the orange Matched Files button on the status")
+        b("After a search, click the green Matched Files button on the status")
         b("line to see every file that matched, with match counts and line numbers.")
         b("This is the fastest way to locate all matches in each file:")
         b("\u2022 Single-click a file, then click View Text (with line numbers) \u2014")
@@ -4139,7 +4139,7 @@ class ToolsMixin:
         b("The orange Regex Search button and the main search bar overlap")
         b("in capability. Here's the difference:")
         blank()
-        b("Standard Search (green button, main search bar \u2014 next to Step 2):")
+        b("Standard Search (blue button, main search bar \u2014 next to Step 2):")
         b("\u2022 Supports all 11 search modes: keywords, AND/OR, Boolean,")
         b("  regex, fuzzy, wildcard, whole-word, proximity, inverse, range")
         b("\u2022 Single regex via the Regex checkbox in Advanced Search Options")
@@ -4185,9 +4185,9 @@ class ToolsMixin:
         blank()
         e("  I want to...                          Use")
         e("  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500")
-        e("  Search for a word or phrase            Standard Search (green button)")
-        e("  Use AND, Boolean, fuzzy, proximity     Standard Search (green button)")
-        e("  Search with one regex pattern           Standard Search (green button)")
+        e("  Search for a word or phrase            Standard Search (blue button)")
+        e("  Use AND, Boolean, fuzzy, proximity     Standard Search (blue button)")
+        e("  Search with one regex pattern           Standard Search (blue button)")
         e("  Run multiple regex patterns at once     Regex Search")
         e("  Save and reuse named regex patterns     Regex Search")
         e("  Hide results from report files          Regex Search")
@@ -5139,7 +5139,7 @@ class ToolsMixin:
         txt.insert("end", "\n")
 
         h("WHAT THIS POPUP SHOWS")
-        b("You opened this popup by clicking the orange Matched Files")
+        b("You opened this popup by clicking the green Matched Files")
         b("button in the right pane, just below the results headline.")
         b("It lists every file that matched your search \u2014 one row per")
         b("file \u2014 along with the number of matches in that file and")
@@ -5537,6 +5537,11 @@ class ToolsMixin:
         b("  falls back to direct scanning automatically")
         b("\u2022 Changing Max File Size (in Advanced Search Options) triggers")
         b("  an automatic rebuild on the next indexed search")
+        b("\u2022 Search Suites honor each saved search's Use Index setting")
+        b("  (saved at the time the search was saved), so one suite run")
+        b("  can mix indexed and direct-scan sections")
+        b("\u2022 Regex Search collections never use the index \u2014 every")
+        b("  pattern is evaluated directly against the extracted text")
 
         txt.configure(state="disabled")
         self._apply_dark_theme(help_win)
@@ -6532,7 +6537,7 @@ class ToolsMixin:
         # Unique file count across all sub-searches. The previous formula
         # sum(s["matched_file_count"]) double-counted any file that hit
         # in more than one sub-search (e.g. a file matching both TODO
-        # and FIXME counted twice). The orange Matched Files button and
+        # and FIXME counted twice). The green Matched Files button and
         # the popup both show the deduplicated unique count; the status
         # line should too. The total_matches figure stays a sum because
         # match-locations are genuinely independent across sub-searches.
@@ -10386,14 +10391,14 @@ class ToolsMixin:
         b("with | (e.g., peekdocs -x \"pattern1|pattern2\").")
         blank()
         b("For a detailed comparison of Regex Search vs Standard Search")
-        b("and vs Search Suites, see 'Standard Search (green button) vs")
+        b("and vs Search Suites, see 'Standard Search (blue button) vs")
         b("Regex Search' and 'Regex Search vs Search Suites' in")
         b("the main screen ? help.")
         blank()
         b("Note: Regex Search results appear in a separate popup window,")
         b("not in the main Results Preview pane. This is different from")
         b("Standard Search, which shows results in the Results Preview")
-        b("with an orange Matched Files button on the status line. The")
+        b("with an green Matched Files button on the status line. The")
         b("popup approach is used because Regex Search runs each pattern")
         b("separately and supports screen-only mode (no reports). Use")
         b("View Files in the results popup to see per-file matches and")
