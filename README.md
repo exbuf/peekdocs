@@ -259,7 +259,7 @@ peekdocs is built for anyone who has files and needs to find something in them �
 - **Home user** — Find a tax document from any of the last seven years across mixed folders.
 - **Office worker** — Find all invoices over $10,000 from 2024. *(fully worked, GUI and CLI, in [User Guide → Example 8](docs/USER_GUIDE.md#example-8-real-world-workflow--invoices-over-10000-from-2024))*
 - **IT consultant** — Search a folder of client documents for a set of terms.
-- **Auditor or review specialist** — Sweep a folder of contracts and exhibits for a saved collection of evidentiary patterns; deliver a per-pattern highlighted report.
+- **Auditor or review specialist** — Sweep a folder of contracts and exhibits with a saved collection of evidentiary patterns. Repeatable methodology, OCR for scanned exhibits, SHA-256 reproducibility, no-cloud confidentiality. Handoff is a per-pattern highlighted report.
 - **Sysadmin** — Search 20 GB of log files for a request ID across mixed archives.
 - **Developer** — Run a regex collection against a source tree and generate JSON.
 - **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
