@@ -12,6 +12,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.41] — 2026-06-30
+
+### CI
+- **`auto-tag-on-version-bump.yml` now actually triggers
+  `build-release.yml`.** GitHub Actions has a documented anti-
+  recursion rule that suppresses workflow runs for events fired
+  by `GITHUB_TOKEN`. The tag push from the auto-tag workflow used
+  `GITHUB_TOKEN`, so the tag-triggered build never fired —
+  v1.2.32 through v1.2.40 all needed a manual `git push origin
+  :refs/tags/vX.Y.Z && git tag -d vX.Y.Z && git tag -a … && git
+  push` dance to get binaries built. `repository_dispatch` is on
+  the exception list, so auto-tag now creates the tag *and*
+  fires a `release-build` dispatch event with the tag in
+  `client_payload[tag]`. `build-release.yml` listens for both
+  `push: tags v*` and `repository_dispatch: release-build`, with
+  the checkout step, CHANGELOG-extraction step, and
+  `softprops/action-gh-release` action all falling back to
+  `client_payload.tag` when triggered via dispatch. v1.2.41 is
+  the first version that should fully self-build from a plain
+  `pyproject.toml` bump.
+
+### Docs
+- **Focused pass on stale GUI help text.** Five categories of
+  drift caught in `_mixin_tools.py`: (1) a button label name
+  mismatch ("Save Settings" → "Save As Defaults"), (2) the
+  Matched Files button described as "orange" in three help
+  popups when it's actually green (`#81C784`), (3) the Run
+  Standard Search button described as "green" in six help popup
+  spots when it's actually blue (`#2196F3`), (4) the
+  `_show_index_help` popup gained two bullets that mirror the
+  recent USER_GUIDE clarification — Suites honor each saved
+  search's Use Index flag, Regex Search never uses the index —
+  so readers who reach the Index help from Tools → Indexes
+  get the same answer. No production-code change; only help
+  text catches up.
+- **README opening paragraph rewritten** to surface the
+  differentiator combination (saved-search suites, regex pattern
+  workbench, OCR for scanned documents) in the first sentence
+  rather than burying it in feature sections further down. No
+  peer tools named, per the documented voice rule. Non-English
+  intros (es / fr / de / ja / zh / pt) intentionally untouched
+  per the i18n translation-scope rule.
+
 ## [1.2.40] — 2026-06-30
 
 ### Changed
