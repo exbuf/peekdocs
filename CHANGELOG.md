@@ -12,6 +12,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.37] — 2026-06-30
+
+### Fixed
+- **Search now blanket-skips every `peekdocs_` / `.peekdocs`-
+  prefixed file at discovery time.** Previously the scanner held
+  an enumerated list of seven specific peekdocs prefixes to skip;
+  files peekdocs writes that weren't in the list —
+  `peekdocs_file_age_distribution.txt`, `peekdocs_collection_
+  summary.txt`, the new `peekdocs_SHA256SUMS.txt`, and the
+  `peekdocs_{regex,suite}_collection_*.json` scaffolds — would be
+  searched as user content, inflating match counts and creating
+  self-reference noise. New `is_peekdocs_internal_file(basename)`
+  helper in `scanner.py` returns True for any name starting with
+  `peekdocs_` (visible) or `.peekdocs` (hidden); the scanner's
+  `discover_files` and the GUI's Find Duplicates tool both use
+  it, so the two surfaces agree. Runtime now matches the
+  documented "no exceptions" naming-convention rule and future
+  peekdocs file types inherit the exclusion automatically.
+
+### Scope note
+- `--clear` and the Tools "list peekdocs files" cleanup paths
+  intentionally still enumerate specific prefixes via
+  `RESULT_FILE_PREFIXES`. Those identify peekdocs files to delete
+  or show, where blanket prefix-matching could sweep unrelated
+  content (e.g. `samples/peekdocs_demo_codebase/foo.py`). Search-
+  time exclusion is purely additive — at worst a user-created
+  `peekdocs_*.*` file is silently skipped, never deleted.
+
+### Tests
+- New `tests/test_exclusion.py` (4 tests) pins the helper's behavior
+  and the end-to-end discover_files exclusion. Total suite: 659
+  passing.
+
 ## [1.2.36] — 2026-06-29
 
 ### Changed
