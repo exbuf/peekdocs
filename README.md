@@ -110,6 +110,47 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX or HTML report → save the search → add it to a Search Suite → schedule it weekly.
 
+## Who Is It For?
+
+peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.
+
+**A few examples of what people could do with it:**
+
+- **Home user** — Find a tax document from any of the last seven years across mixed folders.
+- **Office worker** — Find all invoices over $10,000 from 2024. *(fully worked, GUI and CLI, in [User Guide → Example 8](docs/USER_GUIDE.md#example-8-real-world-workflow--invoices-over-10000-from-2024))*
+- **IT consultant** — Search a folder of client documents for a set of terms.
+- **Auditor or review specialist** — Sweep a folder of contracts and exhibits with a saved collection of evidentiary patterns. Repeatable methodology, OCR for scanned exhibits, SHA-256 reproducibility, no-cloud confidentiality. Handoff is a per-pattern highlighted report.
+- **Sysadmin** — Search 20 GB of log files for a request ID across mixed archives.
+- **Developer** — Run a regex collection against a source tree and generate JSON.
+- **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
+- **Researcher** — Search 3,000 PDFs and export highlighted results.
+- **Small business owner** — Find vendor contracts expiring in the next 90 days.
+
+*The audiences and scenarios above describe possible uses of peekdocs. peekdocs is provided "as is" under the [MIT License](LICENSE), without warranty of any kind, express or implied.*
+
+### What makes peekdocs distinctive
+
+The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool.
+
+<details>
+<summary><b>Detailed use cases by role (click to expand)</b></summary>
+
+- **Home users** — tax returns, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Standard Search, done. No configuration, no manual.
+- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates.
+- **Documentation teams and tech writers** — search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search.
+- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
+- **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. OCR reads scanned engineering drawings and handwritten notes. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
+- **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
+- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
+- **Programmers** — peekdocs covers the documents that live outside the source tree: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside `.zip` / `.7z` files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find *"what did the client say about the authentication requirement in 2019"* can pull the answer out of a `.docx` email attachment buried in a `.zip` archive without unpacking anything. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)).
+
+  Also useful for **searching across entire codebases** — find every file that references a function, variable, endpoint, or error message in all source files across all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. peekdocs handles 40+ source-code and shell-script extensions; see [Supported File Types](#supported-file-types) for the full list.
+- **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once.
+- **Auditors and review specialists** — sweep a collection of contracts, financial schedules, vendor correspondence, and scanned exhibits for named patterns (account numbers, party names, dollar thresholds, date ranges, status markers). Suites capture the methodology for a recurring engagement — same searches, same folder, repeatable result. The Regex Search workbench holds named pattern collections that can be reused across engagements. OCR reads scanned exhibits and image-based PDFs. Optional SHA-256 fingerprints (`--hash`) attach to every matched file so the same run can be reproduced and verified later. The highlighted DOCX or HTML report is the handoff artifact — matches highlighted in yellow, grouped by section, ready to attach to a workpaper. peekdocs is a finding tool, not an engagement-management platform: it doesn't track reviewer assignments, redactions, or time. Pair it with whatever case-management workflow your firm already uses.
+- **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. peekdocs reads each format natively.
+
+</details>
+
 ## Watch peekdocs in action
 
 <!--
@@ -206,10 +247,10 @@ for match in results.matches:
 
 ## Contents
 
+- [Who Is It For?](#who-is-it-for)
 - [Watch peekdocs in action](#watch-peekdocs-in-action)
 - [Feature Highlights](#feature-highlights)
 - [CLI at a Glance](#cli-at-a-glance)
-- [Who Is It For?](#who-is-it-for)
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
 - [Installation](#installation)
@@ -249,49 +290,6 @@ peekdocs --suite "Code hygiene"
 `peekdocs -h` shows every flag, file type, and regex pattern. The [User Guide](docs/USER_GUIDE.md) covers the CLI in full.
 
 > **Pointing peekdocs at your whole home directory or `/` is slow** — even with `--dry-run`. Tree walks across `~/Library`, every git repo, every `node_modules`, every Python venv, and every browser cache can easily mean hundreds of thousands of files; the enumeration phase alone can run 5–10+ minutes before any content is read. Press **Ctrl+C** to cancel at any time. Narrow the path (`peekdocs -r ~/Documents budget`) or restrict file types (`peekdocs -r -t pdf,docx,xlsx ~ budget`) to cut the corpus to seconds. During long runs, peekdocs prints `Scanning files (this may take a while on large folders)...` to stderr while enumerating, then switches to a live `[██░░] 12345/89201 file.pdf` progress bar once content reads begin.
-
-## Who Is It For?
-
-peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.
-
-**A few examples of what people could do with it:**
-
-- **Home user** — Find a tax document from any of the last seven years across mixed folders.
-- **Office worker** — Find all invoices over $10,000 from 2024. *(fully worked, GUI and CLI, in [User Guide → Example 8](docs/USER_GUIDE.md#example-8-real-world-workflow--invoices-over-10000-from-2024))*
-- **IT consultant** — Search a folder of client documents for a set of terms.
-- **Auditor or review specialist** — Sweep a folder of contracts and exhibits with a saved collection of evidentiary patterns. Repeatable methodology, OCR for scanned exhibits, SHA-256 reproducibility, no-cloud confidentiality. Handoff is a per-pattern highlighted report.
-- **Sysadmin** — Search 20 GB of log files for a request ID across mixed archives.
-- **Developer** — Run a regex collection against a source tree and generate JSON.
-- **Engineer** — Search 200 datasheets for a part number across PDFs and scanned drawings.
-- **Researcher** — Search 3,000 PDFs and export highlighted results.
-- **Small business owner** — Find vendor contracts expiring in the next 90 days.
-
-*The audiences and scenarios above describe possible uses of peekdocs. peekdocs is provided "as is" under the [MIT License](LICENSE), without warranty of any kind, express or implied.*
-
-### What makes peekdocs distinctive
-
-The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool.
-
-<details>
-<summary><b>Detailed use cases by role (click to expand)</b></summary>
-
-- **Home users** — tax returns, insurance policies, receipts, warranties, estate documents, email archives. Once installed, type your keyword(s), click Run Standard Search, done. No configuration, no manual.
-- **Small businesses** — find information across contracts, invoices, reports, and correspondence. Save searches by name and reload them later. Search across vendor contracts for specific terms, pricing, or expiration dates.
-- **Documentation teams and tech writers** — search for outdated references, inconsistent terminology, deprecated product names, or specific version numbers across an entire documentation set. Verify consistency across Word docs, PDFs, HTML exports, and Markdown files in a single search.
-- **Researchers** — search across hundreds of downloaded journal articles (PDF), interview transcripts, survey responses, field notes, and datasets for a specific term, author, citation, or data point. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
-- **Engineers** — search hundreds of datasheets, design reviews, test reports, and failure analyses for a specific component value, part number, or tolerance. Find which documents reference a standard (MIL-STD-810, IEC 61508, ISO 9001). Search old design reviews and trade studies to find why a decision was made years ago. Locate error codes and symptoms across equipment manuals and maintenance logs. OCR reads scanned engineering drawings and handwritten notes. The highlighted Word report can be attached to a design review or emailed directly. Supported engineering formats: .m (MATLAB), .v .vhd .vhdl .sv (Verilog/VHDL/SystemVerilog), .cir .sp .spice (SPICE netlists), .dxf (AutoCAD interchange), .vsdx (Visio diagrams), .cmake (CMake build files)
-- **Data researchers** — search hundreds of CSV and Excel files for a specific value, account number, or outlier. Cross-reference interview transcripts, survey responses, and field notes for the same keyword to triangulate findings. Literature review: search 500 downloaded PDFs for a method name, author, or statistical technique. Find which analysis scripts reference a specific dataset, parameter, or threshold.
-- **AI/ML engineers** — search training logs for specific metrics, hyperparameters, or error messages across experiment runs. Find every reference to a model name, checkpoint path, or dataset version across scripts, configs, and documentation. peekdocs reads Jupyter notebooks (`.ipynb`), JSONL training data (`.jsonl`), Scala Spark pipelines (`.scala`), and all common config formats. Search across READMEs, docstrings, and markdown files for outdated model names or deprecated API versions.
-- **Programmers** — peekdocs covers the documents that live outside the source tree: legacy specs and requirements in Word/PDF, email archives from past projects, vendor documentation and SDK guides in PDF, archived releases inside `.zip` / `.7z` files, scanned whiteboard photos (OCR), old project logs and meeting notes. A developer who needs to find *"what did the client say about the authentication requirement in 2019"* can pull the answer out of a `.docx` email attachment buried in a `.zip` archive without unpacking anything. One pipx command and you're running in seconds — CLI, GUI, or Python API (see [Option B](#option-b-quick-install-with-pipx-for-python-users)).
-
-  Also useful for **searching across entire codebases** — find every file that references a function, variable, endpoint, or error message in all source files across all folders at once. Use Lines Before/After to see the full function or block surrounding each match, not just the matching line. peekdocs handles 40+ source-code and shell-script extensions; see [Supported File Types](#supported-file-types) for the full list.
-- **More for programmers** — find every TODO, FIXME, and HACK across all your projects at once, not just the one open in your IDE. Pre-upgrade audit: search all repos for a deprecated API or library before upgrading. Search log files for error patterns or request IDs across gigs of `.log` files. Search config files (`.yaml`, `.toml`, `.json`, `.ini`, `.properties`, `.conf`) and build files (`.gradle`, `.cmake`) to find where a setting, port, or environment variable is referenced. Multi-repo search: point peekdocs at a parent folder containing all your repos and search everything at once.
-- **Auditors and review specialists** — sweep a collection of contracts, financial schedules, vendor correspondence, and scanned exhibits for named patterns (account numbers, party names, dollar thresholds, date ranges, status markers). Suites capture the methodology for a recurring engagement — same searches, same folder, repeatable result. The Regex Search workbench holds named pattern collections that can be reused across engagements. OCR reads scanned exhibits and image-based PDFs. Optional SHA-256 fingerprints (`--hash`) attach to every matched file so the same run can be reproduced and verified later. The highlighted DOCX or HTML report is the handoff artifact — matches highlighted in yellow, grouped by section, ready to attach to a workpaper. peekdocs is a finding tool, not an engagement-management platform: it doesn't track reviewer assignments, redactions, or time. Pair it with whatever case-management workflow your firm already uses.
-- **Email archives** — search exported email files (.eml, .msg, .pst, .mbox) for old correspondence, attachments, and contacts. peekdocs reads each format natively.
-
-</details>
-
-The full per-feature breakdown lives in the **[Features](#features)** section below — search modes, reporting, analysis tools, automation, privacy. The [Feature Highlights](#feature-highlights) up top is the executive summary; this is the detailed reference.
 
 ## Features
 
