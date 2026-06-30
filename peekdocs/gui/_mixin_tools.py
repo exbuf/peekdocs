@@ -831,16 +831,15 @@ class ToolsMixin:
                     entries = []
                 walker = [(folder, [], entries)]
 
-            _SKIP_PREFIXES = RESULT_FILE_PREFIXES + (
-                "peekdocs_report_", "peekdocs_accumulated_",
-            )
-            _SKIP_NAMES = {".peekdocs_collection.json", ".peekdocs.db",
-                           ".peekdocs.db-wal", ".peekdocs.db-shm",
-                           ".peekdocsrc", "peekdocs_errors.log"}
+            # Skip peekdocs's own files via the shared naming-convention
+            # helper so this surface agrees with the scanner's
+            # discover_files exclusion (peekdocs_ visible / .peekdocs
+            # hidden prefixes are reserved).
+            from peekdocs.scanner import is_peekdocs_internal_file
 
             for root, dirs, files in walker:
                 for fname in files:
-                    if fname in _SKIP_NAMES or any(fname.startswith(p) for p in _SKIP_PREFIXES):
+                    if is_peekdocs_internal_file(fname):
                         continue
                     filepath = os.path.join(root, fname)
                     try:

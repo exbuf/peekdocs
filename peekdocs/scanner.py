@@ -12,6 +12,22 @@ RESULT_FILE_PREFIXES = (
     "peekdocs_suite_results",
 )
 
+
+def is_peekdocs_internal_file(basename):
+    """Return True if *basename* is a peekdocs-generated file.
+
+    The naming convention documented in README, USER_GUIDE, and
+    SECURITY.md reserves the `peekdocs_` prefix (visible files) and
+    `.peekdocs` prefix (hidden user-state and per-folder dotfiles)
+    for peekdocs's own outputs. All Search workflows
+    (Standard / Suites / Regex) skip such files at discovery time
+    so peekdocs never finds its own reports, state files, or tools-
+    menu outputs as user content. Used by both the scanner's
+    discover_files loop and the GUI's Find Duplicates tool so the
+    two surfaces agree on what counts as a peekdocs file.
+    """
+    return basename.startswith(("peekdocs_", ".peekdocs"))
+
 import csv
 import glob
 import os
@@ -961,34 +977,14 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
     else:
         glob_prefix = os.path.join(cwd, "*")
 
-    # Filenames to exclude from search results
-    _EXCLUDE_NAMES = {".peekdocs_collection.json", ".peekdocs.db", ".peekdocsrc",
-                      "peekdocs_errors.log",
-                      # System/OS files — not real documents
-                      "thumbs.db", "desktop.ini", ".ds_store", ".ds_store?",
-                      ".spotlight-v100", ".trashes", ".fseventsd",
-                      }
-    _EXCLUDE_PREFIXES = RESULT_FILE_PREFIXES + (
-        "peekdocs_report_", "peekdocs_accumulated_",
-        # Legacy report-file naming. Commit 492583a (2026-05-23)
-        # renamed report files from peekdocs_results.* to
-        # peekdocs_{standard,regex,suite}_results.* to stop the three
-        # search modes from overwriting each other's reports. Folders
-        # touched by pre-rename peekdocs versions still contain files
-        # like peekdocs_results.html / .json / .pdf — without this
-        # entry, the scanner re-discovers them as user documents and
-        # searches them as if they were fresh content. Scoped to search
-        # exclusion only — NOT added to RESULT_FILE_PREFIXES because
-        # the cleanup paths shouldn't silently sweep files the user may
-        # have intentionally kept from a pre-rename install.
-        "peekdocs_results",
-        # Integration test output written by samples/test-files/
-        # peekdocs_global_test_{unix,windows}.{sh,ps1}. Scoped to search
-        # exclusion only — NOT added to RESULT_FILE_PREFIXES because the
-        # cleanup paths shouldn't sweep test artifacts the developer
-        # may want to inspect after a run.
-        "peekdocs_global_test_",
-    )
+    # System/OS files to exclude from search results (peekdocs's own
+    # files are caught by the is_peekdocs_internal_file() helper inside
+    # the discovery loop below — no enumeration needed because the
+    # naming convention reserves the peekdocs_ / .peekdocs prefixes).
+    _EXCLUDE_NAMES = {
+        "thumbs.db", "desktop.ini", ".ds_store", ".ds_store?",
+        ".spotlight-v100", ".trashes", ".fseventsd",
+    }
 
     # Filenames that are searchable despite having no standard extension
     _SPECIAL_FILENAMES = {".env", "dockerfile", ".dockerfile"}
@@ -1002,7 +998,7 @@ def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
             basename = os.path.basename(f)
             if basename.lower() in _EXCLUDE_NAMES:
                 continue
-            if any(basename.startswith(p) for p in _EXCLUDE_PREFIXES):
+            if is_peekdocs_internal_file(basename):
                 continue
             if basename.startswith("~$") or basename.startswith("~"):
                 continue  # Word/Excel lock files and temp files
