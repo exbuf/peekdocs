@@ -1,10 +1,21 @@
 name: Build and Release
 
-# Runs when you push a version tag like v1.0.0
+# Runs when:
+#   - a v* tag is pushed manually (covers operator-initiated releases)
+#   - the auto-tag workflow fires a 'release-build' repository_dispatch
+#     event (covers automated post-version-bump releases). The dispatch
+#     event carries the tag name in client_payload.tag so the checkout
+#     step grabs the right ref. We need both paths because a
+#     GITHUB_TOKEN-pushed tag (from auto-tag.yml) doesn't trigger the
+#     `push: tags` event by itself — GitHub's anti-recursion rule
+#     suppresses it. repository_dispatch is on the documented exception
+#     list, which is why auto-tag.yml uses it.
 on:
   push:
     tags:
       - 'v*'
+  repository_dispatch:
+    types: [release-build]
 
 permissions:
   contents: write  # needed to create releases and upload assets
@@ -28,6 +39,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          # When triggered by push, github.ref already points at the
+          # tag. When triggered by repository_dispatch, github.ref is
+          # the default branch (main), so explicitly check out the tag
+          # carried in the client payload.
+          ref: ${{ github.event.client_payload.tag || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -141,8 +158,12 @@ jobs:
       # in CHANGELOG produce an empty file; action-gh-release falls
       # back gracefully to just the auto-generated notes in that case.
       - name: Extract CHANGELOG section for this release
+        env:
+          # Resolve the tag regardless of trigger source.
+          # repository_dispatch: github.ref_name is the default branch.
+          RELEASE_TAG: ${{ github.event.client_payload.tag || github.ref_name }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${RELEASE_TAG#v}"
           awk -v ver="$VERSION" '
             /^## \[/ {
               if (in_section) exit
@@ -158,6 +179,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          # Explicit tag_name so the action targets the right tag
+          # whether we got here via `push: tags` (github.ref_name is
+          # the tag) or `repository_dispatch` (github.ref_name is the
+          # default branch and the tag comes from client_payload).
+          tag_name: ${{ github.event.client_payload.tag || github.ref_name }}
           files: artifacts/*
           body_path: release_notes.md
           # Still appends the auto-generated "Full Changelog: ...compare..."

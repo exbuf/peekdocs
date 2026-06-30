@@ -2,9 +2,8 @@ name: Auto-tag on version bump
 
 # Watches main for version bumps in pyproject.toml. When the version
 # changes to one that doesn't yet have a matching git tag, creates
-# and pushes vX.Y.Z. That tag-push then triggers build-release.yml
-# (which builds the Mac/Windows/Linux artifacts and creates the
-# GitHub Release).
+# and pushes vX.Y.Z, then fires a repository_dispatch event so
+# build-release.yml picks up the new tag and builds artifacts.
 #
 # Why this exists: between v1.2.25 and v1.2.32, "release: 1.2.XX"
 # commits were pushed to main without anyone tagging them — so the
@@ -12,6 +11,17 @@ name: Auto-tag on version bump
 # downloads stayed pinned at v1.2.25 while the codebase advanced to
 # v1.2.32. This workflow closes that gap automatically so no future
 # release-commit goes un-built.
+#
+# Why repository_dispatch instead of letting the tag push trigger
+# build-release.yml directly: GitHub Actions has an anti-recursion
+# rule that suppresses workflow runs for events triggered by
+# GITHUB_TOKEN. The tag-push from this workflow uses GITHUB_TOKEN, so
+# build-release.yml's `push: tags` trigger never fires from it. The
+# two documented exceptions are workflow_dispatch and
+# repository_dispatch — both of those *do* fire downstream workflows
+# even when invoked via GITHUB_TOKEN. So we push the tag (so the
+# Release page reflects it) and *also* fire repository_dispatch to
+# kick off the build with the tag's ref in the client payload.
 #
 # Only fires when pyproject.toml is in the push (path filter), and
 # is a no-op if the version's tag already exists.
@@ -47,9 +57,10 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Detected version: $version"
 
-      - name: Create and push tag if missing
+      - name: Create and push tag if missing, then dispatch build
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="v${VERSION}"
           if git rev-parse "$tag" >/dev/null 2>&1; then
@@ -60,9 +71,19 @@ jobs:
             echo "Tag $tag already exists on origin — nothing to do."
             exit 0
           fi
-          # Configure git identity (annotated tags require one)
+          # Configure git identity (annotated tags require one).
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$tag" -m "Release $tag"
           git push origin "$tag"
-          echo "Created and pushed $tag — build-release.yml will now build artifacts."
+          echo "Created and pushed $tag."
+          # Fire repository_dispatch so build-release.yml picks up the
+          # tag and builds artifacts. The push above wouldn't trigger
+          # build-release directly (GITHUB_TOKEN anti-recursion), but
+          # repository_dispatch is on the documented exception list.
+          # The tag goes into the client payload so build-release can
+          # check out the right ref.
+          gh api "repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type=release-build \
+            -F client_payload[tag]="$tag"
+          echo "Dispatched release-build event for $tag."
