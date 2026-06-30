@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.40] — 2026-06-30
+
+### Changed
+- **Matched Files popup — "View Text (with line numbers)" button
+  is now peekdocs green** (`#76BA1B`, hover `#5E9516`). Was a
+  plain gray (`#888888`). The button is the primary action inside
+  the popup that any of the three Search workflows can open, and
+  the green call-out makes it stand out without falsely signaling
+  the Regex Search workflow (orange is reserved for that). The
+  parallel "View Text" button inside the regex-results sensitive-
+  category dialog stays orange to preserve the workflow color
+  rule (blue = Standard, green = Suites, orange = Regex).
+
 ## [1.2.39] — 2026-06-30
 
 ### Fixed
