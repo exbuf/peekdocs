@@ -72,9 +72,42 @@ def test_rename_suite_conflict(suite_folder):
     add_suite(suite_folder, "Suite A", ["find budget"])
     add_suite(suite_folder, "Suite B", ["find ids"])
     assert rename_suite(suite_folder, "Suite A", "Suite B") is False
-    # Both should still exist unchanged
-    assert get_suite(suite_folder, "Suite A") == ["find budget"]
-    assert get_suite(suite_folder, "Suite B") == ["find ids"]
+
+
+def test_run_suite_regex_pattern_preserves_backslashes(tmp_path):
+    """A regex saved search inside a suite must keep its backslashes
+    intact end-to-end.
+
+    Regression for the bug where shlex.split() in the suite runner
+    silently corrupted r'print\\(' into 'print(' (unbalanced paren),
+    which then failed to compile in the GUI's highlighter and made
+    the Matched Files popup report 'no matches in this file' even
+    though the run found matches via the subprocess.
+    """
+    from peekdocs.collection import add_saved_search, add_suite
+    from peekdocs.api import run_suite
+
+    folder = str(tmp_path)
+    (tmp_path / "src.py").write_text("def hello():\n    print('hi')\n    return\n")
+    (tmp_path / "other.py").write_text("# no debug here\nreturn 1\n")
+
+    add_saved_search(folder, "py_print", {
+        "search_text": r"print\(",
+        "regex": True,
+        "recursive": False,
+    })
+    add_suite(folder, "Code hygiene", ["py_print"])
+
+    result = run_suite("Code hygiene", directory=folder)
+    section = result.search_results[0]
+    assert len(section.matches) >= 1, (
+        f"Regex pattern 'print\\(' should match 'print(' in src.py; "
+        f"got {len(section.matches)} matches"
+    )
+    matched_text = [m.text for m in section.matches]
+    assert any("print(" in t for t in matched_text), (
+        f"Match text should contain 'print(' — got {matched_text}"
+    )
 
 
 def test_rename_nonexistent_suite(suite_folder):

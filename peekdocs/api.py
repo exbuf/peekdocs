@@ -500,12 +500,21 @@ def run_suite(
             skipped.append((search_name, "saved search not found"))
             continue
 
-        # Convert saved-search params to search() kwargs
+        # Convert saved-search params to search() kwargs.
+        # Regex and wildcard patterns are single tokens — shlex would
+        # treat their backslashes as escapes and silently corrupt the
+        # pattern (e.g. r"print\(" -> "print(" with an unbalanced
+        # paren), so we use the raw search_text as one term in those
+        # modes. Plain-text searches still go through shlex so quoted
+        # phrases like '"insecure core"' get respected.
         terms_str = params.get("search_text", "")
-        try:
-            search_terms = shlex.split(terms_str) if terms_str else []
-        except ValueError:
-            search_terms = terms_str.split() if terms_str else []
+        if params.get("regex") or params.get("wildcard"):
+            search_terms = [terms_str] if terms_str else []
+        else:
+            try:
+                search_terms = shlex.split(terms_str) if terms_str else []
+            except ValueError:
+                search_terms = terms_str.split() if terms_str else []
 
         expr = params.get("expression") if params.get("expression") else None
         kwargs = {

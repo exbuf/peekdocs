@@ -1623,13 +1623,21 @@ def _main_inner(argv=None):
 
             print(f"  [{i}/{len(suite_searches)}] Running: {search_name}")
 
-            # Convert saved-search params to api.search() kwargs
+            # Convert saved-search params to api.search() kwargs.
+            # Regex and wildcard patterns are single tokens — shlex
+            # would treat their backslashes as escapes and silently
+            # corrupt the pattern (e.g. r"print\(" -> "print(" with
+            # an unbalanced paren), then api_search would search for
+            # the corrupted literal and miss the intended hits.
             terms_str = params.get("search_text", "")
-            import shlex as _shlex
-            try:
-                search_terms = _shlex.split(terms_str) if terms_str else []
-            except ValueError:
-                search_terms = terms_str.split() if terms_str else []
+            if params.get("regex") or params.get("wildcard"):
+                search_terms = [terms_str] if terms_str else []
+            else:
+                import shlex as _shlex
+                try:
+                    search_terms = _shlex.split(terms_str) if terms_str else []
+                except ValueError:
+                    search_terms = terms_str.split() if terms_str else []
 
             expr = params.get("expression") if params.get("expression") else None
             kwargs = {

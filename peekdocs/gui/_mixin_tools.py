@@ -6294,11 +6294,21 @@ class ToolsMixin:
                         pass
 
                 terms_str = params.get("search_text", "")
-                import shlex as _shlex
-                try:
-                    search_terms = _shlex.split(terms_str) if terms_str else []
-                except ValueError:
-                    search_terms = terms_str.split() if terms_str else []
+                # Regex and wildcard patterns are single tokens — shlex
+                # would treat their backslashes as escapes and silently
+                # corrupt the pattern (e.g. r"print\(" -> "print(" with
+                # an unbalanced paren), which then makes the highlighter
+                # regex compile fail for the whole suite section list
+                # and produces the "no matches highlighted / Matched
+                # Files popup says no matches in this file" UX bug.
+                if params.get("regex") or params.get("wildcard"):
+                    search_terms = [terms_str] if terms_str else []
+                else:
+                    import shlex as _shlex
+                    try:
+                        search_terms = _shlex.split(terms_str) if terms_str else []
+                    except ValueError:
+                        search_terms = terms_str.split() if terms_str else []
                 expr = params.get("expression") if params.get("expression") else None
                 mode = "ALL" if params.get("and_mode") else "ANY"
                 display_terms = search_terms if not expr else [expr]
