@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.38] — 2026-06-30
+
+### Tests
+- **Cross-platform path-separator fix in `test_exclusion.py`.** The
+  new `test_discover_files_skips_peekdocs_prefixed` test (added in
+  1.2.37) extracted basenames with `p.split("/")[-1]`, which on
+  Windows returns the full backslash-separated path (e.g.
+  `C:\Users\runneradmin\...\budget.txt`) instead of `budget.txt`.
+  CI failed on windows-latest / py3.12 while macOS and Linux ran
+  green. Switched to `os.path.basename()` so the test passes on
+  every platform. No production-code change — v1.2.37 binaries
+  remain correct; only the test assertion was platform-buggy.
+
 ## [1.2.37] — 2026-06-30
 
 ### Fixed
