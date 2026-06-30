@@ -12,6 +12,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.39] — 2026-06-30
+
+### Fixed
+- **Suite runs with regex / wildcard saved searches now highlight
+  matches in the Results Preview and the Matched Files popup.**
+  Suite runners were passing every saved-search's `search_text`
+  through `shlex.split()` to build the `display_terms` list. For
+  regex and wildcard saved searches, shlex treats backslashes as
+  escape characters and silently strips them — `r'print\('` became
+  `'print('` (unbalanced paren), `r'console\.(?:log|debug)\('`
+  became `'console.(?:log|debug)('`, etc. The downstream impact in
+  the GUI: the highlighter built a single combined regex via
+  `"|".join(hl_patterns)`, one malformed arm made `re.compile`
+  fail, `hl_re` became `None`, the entire Results Preview showed
+  zero yellow highlights, and the Matched Files popup reported
+  "no matches in this file" on click — even though the subprocess
+  found matches correctly (the command builder already preserved
+  backslashes). Three call sites carried the bug: GUI suite runner
+  (`_mixin_tools.py`), CLI `--suite` handler (`cli.py`), and the
+  Python API `run_suite()` (`api.py`). All three now branch on
+  `params.get('regex')` or `params.get('wildcard')` and treat the
+  search_text as a single literal token in those modes — only
+  shlex-splitting plain-text searches (where quoted phrases like
+  `"insecure core"` still need shlex handling). The Standard
+  Search highlighter (`_mixin_search.py:1067-1069`) already had
+  the correct branch — only the suite paths had drifted.
+
+### Tests
+- New regression test in `tests/test_suites.py` that creates a
+  suite with a single `r'print\('` regex saved search, runs it
+  via `peekdocs.api.run_suite()`, and asserts the run finds
+  matches AND the match text actually contains `print(`. Pinned
+  end-to-end behavior so this bug can't silently re-appear.
+  Suite total: 660 passing.
+
 ## [1.2.38] — 2026-06-30
 
 ### Tests
