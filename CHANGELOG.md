@@ -12,6 +12,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.42] — 2026-06-30
+
+### Docs
+- **README — auditor / review-specialist use case added.** A new
+  bullet in the visible "Who Is It For?" quick-examples list calls
+  out the engagement shape (sweep a folder of contracts and
+  exhibits with a saved collection of evidentiary patterns) plus
+  the four capabilities that map to audit work: repeatable
+  methodology, OCR for scanned exhibits, SHA-256 reproducibility,
+  no-cloud confidentiality. The expandable "Detailed use cases by
+  role" section gains a longer entry covering the full feature
+  mapping (Suites for methodology, Regex Search workbench for
+  reusable pattern collections, `--hash` for fingerprint-based
+  reproducibility, DOCX / HTML reports as handoff artifacts) and —
+  important — an explicit scope statement: peekdocs is a finding
+  tool, not an engagement-management platform; it doesn't track
+  reviewer assignments, redactions, or time. Targets the solo /
+  boutique / small-firm slice; explicitly tells the enterprise-
+  platform tier to pair it with whatever case-management workflow
+  the firm already uses. Honors the documented voice rules — no
+  regulated framework names, no peer-tool comparisons.
+
 ## [1.2.41] — 2026-06-30
 
 ### CI
