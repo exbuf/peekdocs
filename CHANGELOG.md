@@ -12,6 +12,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.56] — 2026-07-01
+
+### Docs
+- **Search Suites demo clip added to the README** (10ca0af).
+  `docs/images/suites-hero.gif` (18 MB, 720p) slots between the
+  Standard Search hero clip and the Regex Search clip added in
+  1.2.55, giving all three main-page modes a matching demo in
+  section order (Standard → Suites → Regex). The clip runs the
+  **Quarterly Content Audit** suite — a saved bundle of standard
+  searches (draft / stale / TODO / owner-missing / outdated-link
+  / deprecated-terminology sweeps) fired together on one click,
+  with results merged into one combined highlighted report.
+  Completes the three-mode primer promised in 3c0392e.
+
 ## [1.2.55] — 2026-07-01
 
 ### Docs
