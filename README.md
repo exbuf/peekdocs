@@ -189,7 +189,7 @@ A workbench for document collections: search them, characterize them through bui
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into one workflow system.
 - **Same engine across GUI, CLI, and Python API** — schemas are shared, so a search you build in the GUI today drives from a Python script or cron job tomorrow with identical results.
 - **Polished GUI** — yellow-highlighted matches in the preview and the reports, tooltips on every control, dark/light/system theme, adjustable text size, and contextual `?` help popups throughout.
-- **Works in any language** — GUI workflow translated into 7 languages (partial, native-reviewed contributions welcome). Like most modern search tools, peekdocs supports Unicode-based exact-character matching for searching documents in any language (no stemming or word segmentation; works equally for English prose, Chinese text, code identifiers, account numbers).
+- **Works in any language** — Like most modern search tools, peekdocs supports Unicode-based exact-character matching for searching documents in any language (no stemming or word segmentation; works equally for English prose, Chinese text, code identifiers, account numbers). The peekdocs GUI itself is also translated into 7 languages — uncommon for a search tool at this scale (partial, native-reviewed contributions welcome).
 
 *Detail and caveats on each capability live in the [Features](#features) section below.*
 
