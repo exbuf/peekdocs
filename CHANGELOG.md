@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.47] — 2026-07-01
+
+### Docs
+- **GLOSSARY SHA-256 reproducibility entry tightened** (5a5566a).
+  The original phrasing implied SHA-256 alone tells you which
+  files changed content across two scans. Actual scope: requires
+  `--hash` on both scans, `peekdocs --diff` to do the comparison,
+  and only works for files that matched in **both** scans. A file
+  that dropped out of the match set (edited to no longer contain
+  the term) shows up as `removed`, not `modified`. That constraint
+  is now stated explicitly, plus a pointer at dedicated file-
+  integrity tools for whole-folder monitoring.
+
 ## [1.2.46] — 2026-07-01
 
 ### Docs
