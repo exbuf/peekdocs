@@ -10,7 +10,7 @@
 <p align="center"><sub><em>Actively maintained — last reviewed June 2026.</em></sub></p>
 
 <details>
-<summary>🌍 <strong><font size="5">🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</font></strong> — GUI available in 7 languages — click for an intro in yours <em>(partial UI translation)</em></summary>
+<summary>🌍 <strong><font size="5">🇪🇸 🇫🇷 🇩🇪 🇯🇵 🇨🇳 🇧🇷</font></strong> — GUI available in 7 languages — click here for an intro in yours</summary>
 
 &nbsp;
 
