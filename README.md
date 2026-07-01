@@ -165,6 +165,12 @@ The hero clip below is a Standard Search. Suites and Regex Search follow.
 
 &nbsp;
 
+<img src="docs/images/suites-hero.gif" width="720" alt="peekdocs Search Suites — running the Quarterly Content Audit suite, one click, one combined highlighted report, looping">
+
+*Search Suites running the **Quarterly Content Audit** suite — a saved bundle of standard searches (draft / stale / TODO / owner-missing / outdated-link / deprecated-terminology sweeps) fired together on one click, results merged into one combined highlighted report. The recurring-workflow-in-one-click mode.*
+
+&nbsp;
+
 <img src="docs/images/regex-hero.gif" width="720" alt="peekdocs Regex Search — a saved collection of regex patterns run against a folder, per-pattern match counts and report sections, looping">
 
 *Regex Search running the **Code patterns** collection (10 patterns — TODO / FIXME / HACK markers, Python and JavaScript debug statements, breakpoint / pdb drops, `@deprecated` markers, UPPER_CASE constants, SemVer version strings) against a source tree in one pass, with per-pattern match counts in the results popup and per-pattern sections in the report — the evidentiary-pattern workbench.*
