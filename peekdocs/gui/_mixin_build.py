@@ -1021,6 +1021,31 @@ class BuildMixin:
         cb_notify_complete.grid(row=3, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w")
         Tooltip(cb_notify_complete, "Fire a native desktop notification (macOS Notification Center / Windows toast / Linux libnotify) when a Standard / Suite / Regex search finishes. Suppressed when the peekdocs window is focused — if you can already see the result, no notification fires. Useful for long scans where you start the search, switch to another app, and want a ping when it's done. Notification carries the match count, file count, and elapsed time. No data leaves the machine — the notification is delivered by the local OS notification daemon. macOS users: install terminal-notifier (`brew install terminal-notifier`) for reliable notifications — the built-in AppleScript path is silently dropped on macOS Sequoia (15+) unless Script Editor is explicitly approved in System Settings → Notifications", anchor="above")
 
+        # Cloud-output guard sticky preference. Default OFF (the
+        # runtime prompt at write time still catches accidental
+        # cloud-synced output for users who leave this off). When ON,
+        # any cloud-synced output_dir is silently redirected to
+        # ~/peekdocs_reports without prompting.
+        self.redirect_cloud_output_var = ctk.StringVar(value="off")
+        self._adv_cb_redirect_cloud = ctk.CTkCheckBox(
+            output_frame,
+            text="Redirect cloud-synced output paths to ~/peekdocs_reports",
+            variable=self.redirect_cloud_output_var,
+            onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference(
+                "redirect_cloud_output",
+                self.redirect_cloud_output_var.get() == "on",
+            ),
+        )
+        self._adv_cb_redirect_cloud.grid(
+            row=4, column=0, columnspan=3, padx=(0, 15), pady=(4, 0), sticky="w",
+        )
+        Tooltip(
+            self._adv_cb_redirect_cloud,
+            "Silently redirect reports to ~/peekdocs_reports when the output directory is inside a cloud-synced folder (iCloud Drive, OneDrive, Google Drive, Dropbox). Reports written to cloud folders sync to the provider's servers. Off by default: peekdocs still catches cloud-synced output at write time with an interactive prompt (Redirect / Write here anyway / Cancel). Turning this on skips the prompt and always redirects, which is what auditors and consultants who need the no-cloud confidentiality guarantee typically want. CLI equivalent: --config redirect_cloud_output=true. One-off override on the CLI: --allow-cloud-output.",
+            anchor="above",
+        )
+
         # Separator line below output options
         import tkinter as _tk_sep
         _tk_sep.Frame(self.advanced_frame, height=2, bg="gray60").grid(

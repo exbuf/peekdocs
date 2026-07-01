@@ -6356,12 +6356,24 @@ class ToolsMixin:
                 text="Writing reports...",
             ))
 
-            # Auto-redirect to a safe local folder if the search folder is
-            # cloud-synced. `folder` is the search folder (read-only here);
-            # `output_folder` is where suite reports get written.
-            from peekdocs.gui._helpers import check_cloud_folder, get_safe_output_dir
-            cloud_warning = check_cloud_folder(folder)
-            output_folder = get_safe_output_dir() if cloud_warning else folder
+            # Cloud-output guard. `folder` is the search folder (also
+            # the intended output folder for suite reports). If it's
+            # inside a cloud-synced tree the guard either redirects
+            # silently (user has redirect_cloud_output on), prompts
+            # the user, or (if the user cancels) aborts the write.
+            from peekdocs.gui._helpers import gui_cloud_guard
+            from peekdocs.cli import _load_config as _load_cfg_guard
+            _redirect_pref = bool(_load_cfg_guard().get("redirect_cloud_output", False))
+            output_folder, _cloud_decision = gui_cloud_guard(
+                self, folder, redirect_to_safe=_redirect_pref,
+            )
+            if output_folder is None:
+                # User picked Cancel — abort the write.
+                self.after(0, lambda: self.status_label.configure(
+                    text_color=("red", "#FF6666"),
+                    text="Search cancelled — output folder is cloud-synced.",
+                ))
+                return
 
             # Generate combined suite reports
             # Set restrictive file permissions if enabled
@@ -9318,6 +9330,28 @@ class ToolsMixin:
                         f"Regex Search across {len(active_patterns)} pattern(s):\n"
                         + _pattern_bullets
                     )
+                    # Cloud-output guard. `folder` is where regex
+                    # reports would be written. Silent redirect if the
+                    # user has redirect_cloud_output on; interactive
+                    # modal otherwise. If the user cancels, abort the
+                    # write block entirely and leave the popup showing
+                    # results without persisting.
+                    from peekdocs.gui._helpers import gui_cloud_guard
+                    from peekdocs.cli import _load_config as _load_cfg_guard
+                    _rs_redirect_pref = bool(
+                        _load_cfg_guard().get("redirect_cloud_output", False)
+                    )
+                    _rs_output_folder, _rs_cloud_decision = gui_cloud_guard(
+                        self, folder, redirect_to_safe=_rs_redirect_pref,
+                    )
+                    if _rs_output_folder is None:
+                        self.after(0, lambda: self.status_label.configure(
+                            text="Regex Search cancelled — output folder is cloud-synced.",
+                            text_color=("red", "#FF6666"),
+                        ))
+                        return
+                    folder = _rs_output_folder
+
                     # Per-pattern section render — each pattern gets its
                     # own headed block listing every match it found, with
                     # no cross-pattern dedup or 10,000-row cap. This is

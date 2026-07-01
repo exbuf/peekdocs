@@ -99,6 +99,11 @@ BANNER_BOTTOM = (
     '  --runs [N]         Show the last N runs from the log (default 20). Add --json for raw JSONL\n'
     '  --diff OLD NEW     Compare two peekdocs JSON outputs (new/removed/changed/modified)\n'
     '  --on-match CMD     Run CMD when search finds matches (notification hook). 30s timeout. See User Guide\n'
+    '  --allow-cloud-output  One-off override: write reports even when output_dir is inside a cloud-\n'
+    '                     synced folder (iCloud / OneDrive / Google Drive / Dropbox). Without this,\n'
+    '                     peekdocs aborts to prevent accidental uploads. Sticky alternative: set\n'
+    '                     redirect_cloud_output=true in ~/.peekdocsrc to always redirect to\n'
+    '                     ~/peekdocs_reports instead.\n'
     '                       written. Suppresses all banners and progress.\n'
     '\n'
     '── Index (optional, for faster repeated searches) ──────────────\n'
@@ -340,7 +345,7 @@ BANNER_QUICK = (
     'Type peekdocs -h for full help (all flags, file types, examples).\n'
 )
 
-CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_docx", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf"}
+CONFIG_BOOL_KEYS = {"recursive", "quiet", "match_all", "regex", "ocr", "fuzzy", "wildcard", "whole_word", "index_search", "output_docx", "output_csv", "output_json", "output_pdf", "output_html", "inverse", "timestamp", "hover_text", "delete_reports_on_close", "clear_history_on_close", "restrict_permissions", "run_log", "suite_html", "suite_csv", "suite_json", "suite_pdf", "redirect_cloud_output"}
 CONFIG_INT_KEYS = {"cores", "context_before", "context_after", "proximity", "max_matches", "max_file_size_mb"}
 CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_files", "save_name", "append_name", "output_dir", "range", "refresh_interval", "text_size", "preview_size", "appearance_mode", "assistant_history", "run_log_path", "on_match"}
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
@@ -487,6 +492,64 @@ def _get_pkg_version(package):
         return pkg_version(package)
     except Exception:
         return "?"
+
+
+def _cli_cloud_guard_or_exit(output_dir, config, allow_cloud, quiet=False):
+    """CLI-side cloud-output guard.
+
+    Runs the central policy check from _helpers.cloud_output_guard and
+    resolves it to a CLI-appropriate action:
+
+      SAFE       — return output_dir unchanged.
+      REDIRECTED — user has redirect_cloud_output set; print a note
+                   (unless --quiet) and return the safe alternative.
+      ALLOWED    — user passed --allow-cloud-output; print a warning
+                   to stderr and return output_dir unchanged.
+      PROMPT     — cloud detected, no policy — print an error to
+                   stderr and return None. Caller should treat None
+                   as "abort with exit code 2".
+    """
+    from peekdocs.gui._helpers import (
+        cloud_output_guard,
+        CLOUD_GUARD_SAFE, CLOUD_GUARD_REDIRECTED,
+        CLOUD_GUARD_ALLOWED, CLOUD_GUARD_PROMPT,
+    )
+    redirect = bool(config.get("redirect_cloud_output", False))
+    final_dir, outcome, service = cloud_output_guard(
+        output_dir, redirect_to_safe=redirect, allow_cloud=allow_cloud,
+    )
+    if outcome == CLOUD_GUARD_SAFE:
+        return final_dir
+    if outcome == CLOUD_GUARD_REDIRECTED:
+        if not quiet:
+            print(
+                f"Note: output directory is inside {service}; "
+                f"redirecting reports to {final_dir} "
+                f"(unset 'redirect_cloud_output' in ~/.peekdocsrc to disable).",
+                file=sys.stderr,
+            )
+        return final_dir
+    if outcome == CLOUD_GUARD_ALLOWED:
+        print(
+            f"Warning: --allow-cloud-output — writing reports to "
+            f"{service}-synced folder {final_dir}. Reports will be "
+            f"uploaded by {service}.",
+            file=sys.stderr,
+        )
+        return final_dir
+    # PROMPT
+    print(
+        f"Error: output directory is inside {service}:\n"
+        f"  {output_dir}\n"
+        f"Reports written there would be uploaded to {service}. "
+        f"To proceed, either:\n"
+        f"  • pass --allow-cloud-output to write anyway (one-off), or\n"
+        f"  • set redirect_cloud_output=true in ~/.peekdocsrc\n"
+        f"    (peekdocs --config redirect_cloud_output=true) to always\n"
+        f"    redirect cloud-synced outputs to ~/peekdocs_reports.",
+        file=sys.stderr,
+    )
+    return None
 
 
 def _check_dependencies():
@@ -932,6 +995,17 @@ def _main_inner(argv=None):
     stdout_json = "--stdout" in args
     if stdout_json:
         args.remove("--stdout")
+
+    # Cloud-output guard: explicit --allow-cloud-output overrides the
+    # cloud-sync-folder detection at every report-write path (Standard
+    # / Suite / Regex Search). Without it and without the sticky
+    # `redirect_cloud_output` config, writing to a cloud-synced
+    # output_dir errors out — the peekdocs no-cloud-confidentiality
+    # claim (README auditor bullet, USER_GUIDE) is a write-time
+    # guarantee, not a search-time one.
+    allow_cloud_output = "--allow-cloud-output" in args
+    if allow_cloud_output:
+        args.remove("--allow-cloud-output")
 
     compute_hashes = "--hash" in args
     if compute_hashes:
@@ -1685,6 +1759,12 @@ def _main_inner(argv=None):
             print("No searches were run.")
             return 2
 
+        # Cloud-output guard: block or redirect writes if the suite's
+        # output folder is inside a cloud-synced directory.
+        cwd = _cli_cloud_guard_or_exit(cwd, config, allow_cloud_output, quiet=quiet)
+        if cwd is None:
+            return 2
+
         txt_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.txt")
         docx_path = None
         write_suite_txt_report(txt_path, suite_name, sections)
@@ -1778,6 +1858,12 @@ def _main_inner(argv=None):
                 _rc_dir = args[_d_idx + 1]
         if not os.path.isdir(_rc_dir):
             print(f"Error: directory '{_rc_dir}' not found.")
+            return 2
+
+        # Cloud-output guard for --regex-collection. Runs before any
+        # writes so a redirect swaps in the safe dir cleanly.
+        _rc_dir = _cli_cloud_guard_or_exit(_rc_dir, config, allow_cloud_output, quiet=quiet)
+        if _rc_dir is None:
             return 2
 
         # -o output formats: opt-in like Standard Search since 1.2.6.
@@ -2089,6 +2175,14 @@ def _main_inner(argv=None):
         output_dir = cwd
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir, exist_ok=True)
+
+    # Cloud-output guard for Standard Search. Runs before any writes so
+    # a redirect swaps in the safe dir cleanly. --dry-run bypasses since
+    # nothing gets written.
+    if not dry_run:
+        output_dir = _cli_cloud_guard_or_exit(output_dir, config, allow_cloud_output, quiet=quiet)
+        if output_dir is None:
+            return 2
 
     # --dry-run: report what would be searched and exit. No content extraction,
     # no pattern matching, no report files, no index hit. Honors the scope
