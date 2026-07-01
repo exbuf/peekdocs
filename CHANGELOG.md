@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.48] — 2026-07-01
+
+### Docs
+- **GLOSSARY — new "File-integrity monitoring (FIM)" entry**
+  (30092e1). Fills in what peekdocs's `--hash` doesn't cover
+  (whole-folder change detection). Three tiers: shell one-liner,
+  purpose-built (`hashdeep` / `restic` / `borgbackup`),
+  enterprise (AIDE / Wazuh / Tripwire). Includes the realistic
+  belt-and-suspenders audit workflow combining a FIM baseline
+  with peekdocs `--hash` for findings provenance. Back-pointer
+  added in the SHA-256 reproducibility entry.
+- **USER_GUIDE — new worked example: audit engagement
+  provenance** (c35b5cb). Parallel to the existing nightly-
+  source-tree-watch example. Walks through baseline → citation
+  → verify → diff with copy-pasteable commands; highlights the
+  MODIFIED diff bucket as the auditor's key signal (same file,
+  same match count, different SHA-256 → someone silently edited
+  around your citation). Names the scope constraint
+  (`--hash` is match-scoped, not folder-scoped), points at the
+  FIM glossary entry for whole-folder coverage, and includes an
+  explicit "not a chain-of-custody system" disclaimer. TOC
+  entry added, plus a new reader-hint ("Running an audit /
+  review engagement?") aimed at readers who came from the
+  README auditor bullet.
+
 ## [1.2.47] — 2026-07-01
 
 ### Docs
