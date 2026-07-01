@@ -144,7 +144,7 @@ peekdocs has three search modes, each with its own big button on the main page, 
 - **Search Suites** *(green button)* — a named group of saved standard searches that run together and produce one combined highlighted report. The recurring-workflow-in-one-click mode.
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
-The hero clip below is a Standard Search. Suites and Regex Search follow.
+The hero clip below is a Standard Search. Suites and Regex Search follow, then a short tour of the settings surface — every knob one click away.
 
 <!--
   TO UPDATE THIS DEMO GIF:
@@ -174,6 +174,12 @@ The hero clip below is a Standard Search. Suites and Regex Search follow.
 <img src="docs/images/regex-hero.gif" width="720" alt="peekdocs Regex Search — a saved collection of regex patterns run against a folder, per-pattern match counts and report sections, looping">
 
 *Regex Search running a user-built collection of 10 patterns (TODO / FIXME / HACK markers, Python and JavaScript debug statements, breakpoint / pdb drops, `@deprecated` markers, UPPER_CASE constants, SemVer version strings) against a source tree in one pass, with per-pattern match counts in the results popup and per-pattern sections in the report — the evidentiary-pattern workbench.*
+
+&nbsp;
+
+<img src="docs/images/discoverability.gif" width="720" alt="peekdocs settings surface — sliding the left curtain open, Advanced Search Options, App Size, Language, Tooltips, Light/Dark, Preview Size, looping">
+
+*A tour of the settings surface — sliding open the left curtain to reveal settings, expanding the Advanced Search Options row, and cycling through App Size, Language (7 UI translations), Tooltips, Light / Dark mode, and Preview Size. Every knob one click away, none of it buried behind a Preferences dialog.*
 
 &nbsp;
 
