@@ -12,6 +12,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.46] — 2026-07-01
+
+### Docs
+- **README language-bullet reordered and rephrased** (46032c5).
+  Leads with the broader Unicode-content-matching claim (applies
+  to every user) before the narrower GUI-translation claim.
+  "Uncommon for a search tool at this scale" replaces the earlier
+  "unlike most search tools" comparative framing, per the voice
+  rule against comparative jabs at peer tools.
+- **GLOSSARY gains "SHA-256 reproducibility" entry** (49e58bb).
+  The term appears in the README auditor bullet, the `--hash`
+  flag documentation, INSTALL_SAFETY.md, and the run-log schema,
+  but no glossary entry tied the pieces together. New entry
+  covers what the hash is, how peekdocs surfaces it (`--hash`),
+  the two workflows it serves (audit chain-of-custody, `--diff`
+  snapshots), and cross-references the release-artifact
+  `peekdocs_SHA256SUMS.txt`.
+
 ## [1.2.45] — 2026-07-01
 
 ### Docs
