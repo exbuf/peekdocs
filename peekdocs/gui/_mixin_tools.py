@@ -6318,22 +6318,27 @@ class ToolsMixin:
                         pass
 
                 terms_str = params.get("search_text", "")
-                # Regex and wildcard patterns are single tokens — shlex
-                # would treat their backslashes as escapes and silently
-                # corrupt the pattern (e.g. r"print\(" -> "print(" with
-                # an unbalanced paren), which then makes the highlighter
-                # regex compile fail for the whole suite section list
-                # and produces the "no matches highlighted / Matched
-                # Files popup says no matches in this file" UX bug.
-                if params.get("regex") or params.get("wildcard"):
+                # Three modes to distinguish for the display-terms build
+                # that feeds the section-render + Matched Files highlighter.
+                # Expression mode stores a boolean flag in params; the
+                # search_text IS the expression string. Regex/wildcard are
+                # single tokens (shlex would eat backslashes — same bug
+                # class that broke highlighting in the earlier r"print\("
+                # incident). Plain text goes through shlex for quoted
+                # phrases.
+                if params.get("expression"):
+                    search_terms = []
+                    expr = terms_str or None
+                elif params.get("regex") or params.get("wildcard"):
                     search_terms = [terms_str] if terms_str else []
+                    expr = None
                 else:
                     import shlex as _shlex
                     try:
                         search_terms = _shlex.split(terms_str) if terms_str else []
                     except ValueError:
                         search_terms = terms_str.split() if terms_str else []
-                expr = params.get("expression") if params.get("expression") else None
+                    expr = None
                 mode = "ALL" if params.get("and_mode") else "ANY"
                 display_terms = search_terms if not expr else [expr]
 

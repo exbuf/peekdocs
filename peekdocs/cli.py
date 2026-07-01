@@ -1698,22 +1698,35 @@ def _main_inner(argv=None):
             print(f"  [{i}/{len(suite_searches)}] Running: {search_name}")
 
             # Convert saved-search params to api.search() kwargs.
-            # Regex and wildcard patterns are single tokens — shlex
-            # would treat their backslashes as escapes and silently
-            # corrupt the pattern (e.g. r"print\(" -> "print(" with
-            # an unbalanced paren), then api_search would search for
-            # the corrupted literal and miss the intended hits.
+            # Three modes to distinguish:
+            #   - Expression mode (params["expression"] == True):
+            #     search_text IS the boolean expression string; goes
+            #     into api_search's `expression=` kwarg, and
+            #     `search_terms` must be empty (the parser handles the
+            #     whole string).
+            #   - Regex / wildcard: single-token pattern; shlex would
+            #     eat backslashes (r"print\(" -> "print(" with an
+            #     unbalanced paren) so we pass search_text through raw.
+            #   - Plain text: shlex-split so quoted phrases work.
+            # Historic bug (repro'd from Quarterly Content Audit demo):
+            # `expr = params.get("expression") if params.get(...)` set
+            # expr to True instead of the search_text, and api_search's
+            # tokenize() then raised AttributeError trying to strip() a
+            # boolean.
             terms_str = params.get("search_text", "")
-            if params.get("regex") or params.get("wildcard"):
+            if params.get("expression"):
+                search_terms = []
+                expr = terms_str or None
+            elif params.get("regex") or params.get("wildcard"):
                 search_terms = [terms_str] if terms_str else []
+                expr = None
             else:
                 import shlex as _shlex
                 try:
                     search_terms = _shlex.split(terms_str) if terms_str else []
                 except ValueError:
                     search_terms = terms_str.split() if terms_str else []
-
-            expr = params.get("expression") if params.get("expression") else None
+                expr = None
             kwargs = {
                 "directory": cwd,
                 "match_all": params.get("and_mode", False),

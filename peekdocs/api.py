@@ -507,16 +507,27 @@ def run_suite(
         # paren), so we use the raw search_text as one term in those
         # modes. Plain-text searches still go through shlex so quoted
         # phrases like '"insecure core"' get respected.
+        # Three modes: expression (search_text is the boolean
+        # expression string, goes to `expression=` kwarg with empty
+        # terms), regex/wildcard (single-token pattern, no shlex),
+        # plain text (shlex-split for quoted phrases). Historic bug:
+        # `expr = params.get("expression") if params.get(...)` treated
+        # the schema's boolean expression flag as the expression string
+        # and passed True to api_search, which raised inside tokenize()
+        # trying to .strip() a boolean.
         terms_str = params.get("search_text", "")
-        if params.get("regex") or params.get("wildcard"):
+        if params.get("expression"):
+            search_terms = []
+            expr = terms_str or None
+        elif params.get("regex") or params.get("wildcard"):
             search_terms = [terms_str] if terms_str else []
+            expr = None
         else:
             try:
                 search_terms = shlex.split(terms_str) if terms_str else []
             except ValueError:
                 search_terms = terms_str.split() if terms_str else []
-
-        expr = params.get("expression") if params.get("expression") else None
+            expr = None
         kwargs = {
             "directory": directory,
             "match_all": params.get("and_mode", False),
