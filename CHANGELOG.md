@@ -12,6 +12,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.43] — 2026-06-30
+
+### Added
+- **Cloud-output guard at every report-write path.** The "no-cloud
+  confidentiality" claim in the README auditor bullet was a
+  search-time guarantee only — peekdocs auto-redirected suite
+  reports if the *search folder* was cloud-synced, but a user
+  picking a cloud-synced *output_dir* explicitly (or running the
+  CLI inside `~/Documents` on a Mac where Documents is iCloud-
+  mirrored) could still leak reports to iCloud / OneDrive / Google
+  Drive / Dropbox. Now every report-write path — CLI Standard /
+  Suite / Regex-collection, GUI Suite runner, GUI Regex Search per-
+  pattern — goes through a central policy check before any writes
+  happen. Four outcomes: SAFE (proceed unchanged), REDIRECTED
+  (sticky config `redirect_cloud_output=true` → silent redirect to
+  `~/peekdocs_reports`), ALLOWED (CLI `--allow-cloud-output` or
+  GUI "Write here anyway" → proceed with warning), PROMPT (no
+  policy: CLI aborts exit 2 with instructions; GUI shows modal
+  with Redirect / Write here anyway / Cancel).
+- **New CLI flag `--allow-cloud-output`** — one-off override that
+  lets the current run write to a cloud-synced output_dir with a
+  stderr warning.
+- **New config key `redirect_cloud_output`** — sticky preference
+  in `~/.peekdocsrc` for users who want silent-strict enforcement
+  (auditors / consultants who need the no-cloud confidentiality
+  guarantee locked in).
+- **New Advanced Search Options checkbox** — "Redirect cloud-synced
+  output paths to ~/peekdocs_reports". Auto-saves the config key on
+  toggle. Off by default (the runtime prompt still catches
+  accidental leaks for users who leave this off).
+
+### Changed
+- **GUI Suite runner cloud handling upgraded.** Previously
+  auto-redirected without asking (always redirected when the search
+  folder was cloud-synced, no user choice). Now goes through the
+  same interactive-modal policy path as other write sites so users
+  who *want* their suite reports in a cloud folder (team handoff,
+  for example) can still get that with one click.
+
+### Tests
+- **18 new tests in `tests/test_cloud_guard.py`**: 11 parametrized
+  detection cases (iCloud / OneDrive / Google Drive / Dropbox
+  variants + control paths), 7 policy-resolution tests, 2 end-to-
+  end CLI tests that patch `detect_cloud_service` to simulate cloud
+  detection on `tmp_path`. Total suite: 678 passing.
+
 ## [1.2.42] — 2026-06-30
 
 ### Docs
