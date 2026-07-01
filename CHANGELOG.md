@@ -12,6 +12,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.53] — 2026-07-01
+
+### Docs
+- **Regex Search popup wording** (427705b) — the "peekdocs does
+  not validate correctness" note now reads "peekdocs does not
+  validate regex pattern correctness", clarifying what
+  "correctness" refers to.
+- **README "Who Is It For?" consolidated into one list**
+  (c9c2fac). The section used to have a 9-bullet visible short
+  list and an 11-bullet `<details>` block with more depth; some
+  roles appeared in both under different phrasings. Merged into
+  a single 12-bullet visible list, one entry per role, each
+  combining the punchy example with the depth. The `<details>`
+  block is gone.
+- **README three-mode primer added before the hero clip**
+  (3c0392e). "Watch peekdocs in action" now leads with a short
+  intro naming Standard Search (blue), Search Suites (green),
+  and Regex Search (orange) so a first-time reader is set up
+  to interpret follow-up demos of Suites and Regex Search
+  when they land.
+
 ## [1.2.52] — 2026-07-01
 
 ### Fixed
