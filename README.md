@@ -165,6 +165,12 @@ The hero clip below is a Standard Search. Suites and Regex Search follow.
 
 &nbsp;
 
+<img src="docs/images/regex-hero.gif" width="720" alt="peekdocs Regex Search — a saved collection of regex patterns run against a folder, per-pattern match counts and report sections, looping">
+
+*Regex Search: a saved collection of named regex patterns run against a folder in a single pass, with per-pattern match counts and per-pattern sections in the report — the evidentiary-pattern workbench.*
+
+&nbsp;
+
 <p align="center"><b>Free &nbsp;&nbsp;·&nbsp;&nbsp; Open-Source (MIT License) &nbsp;&nbsp;·&nbsp;&nbsp; No Cloud &nbsp;&nbsp;·&nbsp;&nbsp; Private &nbsp;&nbsp;·&nbsp;&nbsp; Easy to Use</b></p>
 <p align="center"><b>Windows &nbsp;&nbsp;·&nbsp;&nbsp; macOS &nbsp;&nbsp;·&nbsp;&nbsp; Linux &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; GUI &nbsp;&nbsp;·&nbsp;&nbsp; CLI &nbsp;&nbsp;·&nbsp;&nbsp; Python API</b></p>
 
