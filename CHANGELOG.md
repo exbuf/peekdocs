@@ -12,6 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.49] — 2026-07-01
+
+### Docs
+- **USER_GUIDE — new "How saves persist" blockquote** (570466d).
+  Companion to the existing "Why one canonical file per location?"
+  blockquote (the *where*); this new one covers the *how it gets
+  there safely*. Documents the three save paths (Save Collection
+  As → global file only; ▶ Save on the main page → per-folder file
+  only with the 20-key `SEARCH_PARAM_KEYS` snapshot; Add / Edit /
+  Delete Suite → double-write, per-folder file first as source of
+  truth, then the global suite index as cache). Explains the
+  `--list-suites --rescan` reconciliation path when the two
+  disagree, and the atomic-write pattern
+  (`tempfile.mkstemp` + `os.replace`) that keeps every save
+  crash-safe (no partial JSON left on disk after a crash).
+
 ## [1.2.48] — 2026-07-01
 
 ### Docs
