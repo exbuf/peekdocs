@@ -12,6 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.58] — 2026-07-01
+
+### Docs
+- **Discoverability tour clip added to the README as the fourth
+  demo** (0f14c3e). `docs/images/discoverability.gif` (8.87 MB,
+  720p) sits after the three mode clips (Standard / Suites /
+  Regex) and shows the settings surface: sliding open the left
+  curtain, expanding the Advanced Search Options row, and cycling
+  through App Size, Language (7 UI translations), Tooltips toggle,
+  Light / Dark mode, and Preview Size. The three-mode primer's
+  closing sentence now promises this fourth clip too — "then a
+  short tour of the settings surface — every knob one click away."
+  Rounds out the demo section: viewers see what peekdocs does
+  (three mode clips) and then how it feels to run (discoverability
+  clip).
+
 ## [1.2.57] — 2026-07-01
 
 ### Docs
