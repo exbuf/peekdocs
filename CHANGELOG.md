@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.45] — 2026-07-01
+
+### Docs
+- **README documents the 1.2.43 cloud-output guard.** Two edits:
+  a new Feature Highlights bullet between "Local-only by design"
+  and "Search depth beyond grep" that names the four detected
+  services (iCloud Drive / OneDrive / Google Drive / Dropbox) and
+  the prompt-or-redirect UX; and an updated IT/Security Q&A row
+  ("Does it store what it finds?") replacing the pre-1.2.43
+  "automatically redirects" description with the full write-time
+  guard behavior (GUI modal, CLI exit 2 without
+  `--allow-cloud-output`, sticky checkbox for silent redirect).
+
 ## [1.2.44] — 2026-07-01
 
 ### Docs
