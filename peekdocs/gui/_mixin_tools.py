@@ -6178,6 +6178,25 @@ class ToolsMixin:
         from peekdocs.gui._helpers import _build_command_from_values
         from peekdocs.reporter import write_suite_txt_report, write_suite_docx_report, write_suite_html_report
 
+        # Cloud-output guard runs on the main thread BEFORE the worker
+        # thread is spawned. Tkinter modals from worker threads hang on
+        # wait_window() — GUI state can only be modified from the main
+        # thread. So we resolve the write target here and pass it into
+        # the closure for _run to use unchanged.
+        from peekdocs.gui._helpers import gui_cloud_guard
+        from peekdocs.cli import _load_config as _load_cfg_guard
+        _redirect_pref = bool(_load_cfg_guard().get("redirect_cloud_output", False))
+        _resolved_output_folder, _cloud_decision = gui_cloud_guard(
+            self, folder, redirect_to_safe=_redirect_pref,
+        )
+        if _resolved_output_folder is None:
+            # User picked Cancel — abort before any UI state changes.
+            self.status_label.configure(
+                text_color=("red", "#FF6666"),
+                text="Search cancelled — output folder is cloud-synced.",
+            )
+            return
+
         # Clear stale state from any previous standard search before
         # showing the suite's own progress. Without this, the Results
         # Preview pane keeps the previous standard search's matches
@@ -6356,24 +6375,11 @@ class ToolsMixin:
                 text="Writing reports...",
             ))
 
-            # Cloud-output guard. `folder` is the search folder (also
-            # the intended output folder for suite reports). If it's
-            # inside a cloud-synced tree the guard either redirects
-            # silently (user has redirect_cloud_output on), prompts
-            # the user, or (if the user cancels) aborts the write.
-            from peekdocs.gui._helpers import gui_cloud_guard
-            from peekdocs.cli import _load_config as _load_cfg_guard
-            _redirect_pref = bool(_load_cfg_guard().get("redirect_cloud_output", False))
-            output_folder, _cloud_decision = gui_cloud_guard(
-                self, folder, redirect_to_safe=_redirect_pref,
-            )
-            if output_folder is None:
-                # User picked Cancel — abort the write.
-                self.after(0, lambda: self.status_label.configure(
-                    text_color=("red", "#FF6666"),
-                    text="Search cancelled — output folder is cloud-synced.",
-                ))
-                return
+            # Cloud-output guard was resolved on the main thread before
+            # this worker was spawned — output_folder is the resolved
+            # write target (may be a redirected safe dir if the user's
+            # search folder was cloud-synced).
+            output_folder = _resolved_output_folder
 
             # Generate combined suite reports
             # Set restrictive file permissions if enabled
@@ -9158,6 +9164,28 @@ class ToolsMixin:
             self._clear_preview()
 
         mode_label = "screen only, no reports" if screen_only else "with reports"
+
+        # Cloud-output guard runs on the main thread BEFORE the worker
+        # is spawned. Tkinter modals hang on wait_window() when called
+        # from a worker thread. Skip entirely for screen-only runs
+        # (nothing gets written). If the user cancels the modal, abort
+        # before any UI state changes.
+        _rs_resolved_folder = folder
+        if not screen_only:
+            from peekdocs.gui._helpers import gui_cloud_guard
+            from peekdocs.cli import _load_config as _load_cfg_guard
+            _rs_redirect_pref = bool(
+                _load_cfg_guard().get("redirect_cloud_output", False)
+            )
+            _rs_resolved_folder, _rs_cloud_decision = gui_cloud_guard(
+                self, folder, redirect_to_safe=_rs_redirect_pref,
+            )
+            if _rs_resolved_folder is None:
+                self.status_label.configure(
+                    text="Regex Search cancelled — output folder is cloud-synced.",
+                    text_color=("red", "#FF6666"),
+                )
+                return
         # Captured for _show_action_buttons' mtime-vs-cutoff check (see
         # the docstring there) — distinguishes report files written by
         # this run from stale leftovers in the same folder.
@@ -9330,27 +9358,10 @@ class ToolsMixin:
                         f"Regex Search across {len(active_patterns)} pattern(s):\n"
                         + _pattern_bullets
                     )
-                    # Cloud-output guard. `folder` is where regex
-                    # reports would be written. Silent redirect if the
-                    # user has redirect_cloud_output on; interactive
-                    # modal otherwise. If the user cancels, abort the
-                    # write block entirely and leave the popup showing
-                    # results without persisting.
-                    from peekdocs.gui._helpers import gui_cloud_guard
-                    from peekdocs.cli import _load_config as _load_cfg_guard
-                    _rs_redirect_pref = bool(
-                        _load_cfg_guard().get("redirect_cloud_output", False)
-                    )
-                    _rs_output_folder, _rs_cloud_decision = gui_cloud_guard(
-                        self, folder, redirect_to_safe=_rs_redirect_pref,
-                    )
-                    if _rs_output_folder is None:
-                        self.after(0, lambda: self.status_label.configure(
-                            text="Regex Search cancelled — output folder is cloud-synced.",
-                            text_color=("red", "#FF6666"),
-                        ))
-                        return
-                    folder = _rs_output_folder
+                    # Cloud-output guard was resolved on the main thread
+                    # before this worker was spawned — _rs_resolved_folder
+                    # is the write target (may be a redirected safe dir).
+                    folder = _rs_resolved_folder
 
                     # Per-pattern section render — each pattern gets its
                     # own headed block listing every match it found, with
