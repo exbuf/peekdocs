@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # When triggered by push, github.ref already points at the
           # tag. When triggered by repository_dispatch, github.ref is
@@ -125,7 +125,7 @@ jobs:
       # can read CHANGELOG.md. The other release steps don't need the
       # working copy, but adding checkout at the top keeps the job
       # idiomatic and lets future steps reference any repo file.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
