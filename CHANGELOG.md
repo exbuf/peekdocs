@@ -12,6 +12,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.54] — 2026-07-01
+
+### Fixed
+- **README flag emojis rendered as letter codes on Windows**
+  (10311da). Regional-indicator emoji pairs (🇪🇸 = 🇪 + 🇸)
+  render as their two-letter code on Windows because Segoe UI
+  Emoji doesn't include flag glyphs. User-visible symptom: the
+  top-of-README language row read "ES FR DE JP CN BR" instead
+  of flags. Replaced all seven flag emojis with `<img>` tags
+  pointing at flagcdn.com's PNGs — cross-platform reliable, with
+  alt text (`ES`, `FR`, `DE`, `JP`, `CN`, `BR`) as the graceful
+  fallback if the CDN is ever unreachable. Both the summary line
+  and the six per-language section headers were converted.
+
 ## [1.2.53] — 2026-07-01
 
 ### Docs
