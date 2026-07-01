@@ -9211,6 +9211,18 @@ class ToolsMixin:
             )
 
         def _thread():
+            # `nonlocal folder` — the write block below reassigns
+            # `folder = _rs_resolved_folder` when the cloud-output
+            # guard redirected the write target. Without nonlocal,
+            # Python treats folder as local throughout _thread from
+            # that reassignment, so every earlier read (including
+            # `directory=folder` in the api_search loop) hits
+            # UnboundLocalError, gets swallowed by the exception
+            # handler, and every pattern returns zero matches.
+            # Reported symptom (Regex Search "Code patterns" /
+            # "Common Code Patterns" against demo folder returned 0
+            # matches while the same run via CLI returned 80).
+            nonlocal folder
             from peekdocs.api import search as api_search
             start = time.time()
             scan_results = []
