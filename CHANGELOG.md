@@ -12,6 +12,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.57] — 2026-07-01
+
+### Docs
+- **Demo captions no longer imply the on-screen collections ship
+  with the app** (e9f1698). The Regex Search caption previously
+  named "**Code patterns** collection" and the Search Suites
+  caption named "**Quarterly Content Audit** suite" with bold
+  treatment — both read as if a first-time user could find them
+  already loaded. They can't: both are scaffolds in `samples/`
+  that have to be imported via Restore From Collection / suite
+  import. Rewrites both captions to "a user-built collection /
+  suite of …" so the framing is honest about who built the
+  set; the pattern and search enumerations stay so the clips
+  are still accurately described.
+
 ## [1.2.56] — 2026-07-01
 
 ### Docs
