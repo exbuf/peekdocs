@@ -1042,7 +1042,7 @@ class BuildMixin:
         )
         Tooltip(
             self._adv_cb_redirect_cloud,
-            "Silently redirect reports to ~/peekdocs_reports when the output directory is inside a cloud-synced folder (iCloud Drive, OneDrive, Google Drive, Dropbox). Reports written to cloud folders sync to the provider's servers. Off by default: peekdocs still catches cloud-synced output at write time with an interactive prompt (Redirect / Write here anyway / Cancel). Turning this on skips the prompt and always redirects, which is what auditors and consultants who need the no-cloud confidentiality guarantee typically want. CLI equivalent: --config redirect_cloud_output=true. One-off override on the CLI: --allow-cloud-output.",
+            "Silently redirect reports to ~/peekdocs_reports when the output directory is inside a cloud-synced folder (iCloud Drive, OneDrive, Google Drive, Dropbox). Reports written to cloud folders sync to the provider's servers. Off by default: peekdocs still catches cloud-synced output at write time with an interactive prompt (Redirect / Write here anyway / Cancel). Turning this on skips the prompt and always redirects, which is what auditors and consultants who want the no-cloud confidentiality check always applied typically prefer. CLI equivalent: --config redirect_cloud_output=true. One-off override on the CLI: --allow-cloud-output.",
             anchor="above",
         )
 
@@ -1059,7 +1059,7 @@ class BuildMixin:
         self.advanced_frame.grid_columnconfigure(1, weight=1)
 
         # Tooltips
-        Tooltip(self._adv_cb_and, "All search terms must appear in the same line. For PDF/Word documents, a line is typically a paragraph")
+        Tooltip(self._adv_cb_and, "All search terms must appear in the same indexing unit (a line for text and source code, a paragraph for Word and PDF, a row for Excel).")
         Tooltip(self._adv_cb_rec, "Search subfolders inside the Search Folder")
         Tooltip(self._adv_cb_fuz, "Find approximate matches for typos, misspellings, and for scans (e.g., 'budgt' matches 'budget').\nFuzzy and Regex are mutually exclusive.")
         Tooltip(self._adv_cb_wild, "Use * for any characters and ? for one character (e.g., budg* matches budget, budgets)")
