@@ -37,6 +37,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Command Translation](#command-translation)
 - [Automation and IT Use](#automation-and-it-use)
   - [A worked example: nightly source-tree watch](#a-worked-example-nightly-source-tree-watch)
+  - [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance)
   - [Exit codes](#exit-codes)
   - [JSON output (--stdout) schema](#json-output---stdout-schema)
   - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
@@ -109,6 +110,7 @@ This is a long reference document. Skip directly to what you need:
 - **Want a hands-on walkthrough of advanced features?** See [Your First Advanced Search — Step by Step](#your-first-advanced-search--step-by-step).
 - **Integrating from Python?** Read [Python API Reference](#python-api-reference) and the full [API Reference](API.md).
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
+- **Running an audit / review engagement?** See [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance) for the SHA-256 baseline → citation → verify → diff workflow.
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
 - **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
@@ -1491,7 +1493,75 @@ Each is the same shape: regex collection + nightly diff + conditional alert. The
 
 **What this is not:** a substitute for code review or for any decision-grade analysis. peekdocs is a general-purpose local text-search tool. It gives you the *signal* — "something new appeared since yesterday" — and you decide what to do about it. The exit codes are stable; the JSON shape is versioned (`generator` field); the rest is your wrapper script.
 
-The remainder of this section is the reference material the example above depends on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
+### A worked example: audit engagement provenance
+
+The nightly-watch example above is shaped for security use — "detect new hardcoded credentials tonight." Auditors and review specialists reach for the same primitives (`--hash`, `--diff`, JSON snapshots) but the workflow shape is different: engagement-driven, not schedule-driven, and the burden of proof lands on individual citations rather than aggregate alerts.
+
+The scenario: a client hands you `~/clients/AcmeCorp/engagement_2026_Q2/` — contracts, ledgers, correspondence, scanned exhibits. Over the next several weeks you'll cite specific findings from specific documents in workpapers or a report. You need to be able to prove, later, that each citation refers to the exact file at the exact content state you searched.
+
+**Setup — at engagement start:**
+
+Build the regex collection or search suite that captures your evidentiary patterns (see [Regex Collection Use Cases](#regex-collection-use-cases) and [Suite Use Cases](#search-suite-use-cases)). Save it as `engagement_patterns`.
+
+Then baseline the corpus:
+
+```bash
+# Peekdocs baseline — hashes files that match your engagement patterns
+mkdir -p ~/audit_workpapers/AcmeCorp
+peekdocs --regex-collection "engagement_patterns" \
+    -d ~/clients/AcmeCorp/engagement_2026_Q2 -r --hash --stdout \
+    > ~/audit_workpapers/AcmeCorp/engagement_baseline.json
+
+# Optional folder-wide baseline for whole-corpus integrity coverage
+hashdeep -r ~/clients/AcmeCorp/engagement_2026_Q2 \
+    > ~/audit_workpapers/AcmeCorp/folder_baseline.txt
+```
+
+Archive both files to a read-only location (append-only mount, git-committed workpaper repo, whatever your firm uses). These are your provenance anchors.
+
+**Working the engagement — citations become defensible:**
+
+When you write "See exhibit A, page 4, line 12: '$45,000 late fee applied'," the SHA-256 of `exhibit_A_2024_ledger.pdf` is already in `engagement_baseline.json` alongside its match count and line numbers. The citation is a claim about *which* file, *which* version, and *which* specific line — all three pinned.
+
+**Verifying a citation later** — a reviewer asks "how do we know Exhibit A hasn't been swapped since your search?"
+
+```bash
+# Pull the baseline hash for the file in question
+jq '.matches_per_file[] | select(.filename == "exhibit_A_2024_ledger.pdf")' \
+    ~/audit_workpapers/AcmeCorp/engagement_baseline.json
+
+# Re-hash the file today
+shasum -a 256 ~/clients/AcmeCorp/engagement_2026_Q2/exhibit_A_2024_ledger.pdf
+```
+
+Matching hashes → the file is byte-identical to what you searched. Mismatched hashes → someone edited it; the citation now needs revisiting.
+
+**Detecting content shift during the engagement** — at handoff, or on a mid-engagement re-scan:
+
+```bash
+peekdocs --regex-collection "engagement_patterns" \
+    -d ~/clients/AcmeCorp/engagement_2026_Q2 -r --hash --stdout \
+    > ~/audit_workpapers/AcmeCorp/handoff_snapshot.json
+
+peekdocs --diff \
+    ~/audit_workpapers/AcmeCorp/engagement_baseline.json \
+    ~/audit_workpapers/AcmeCorp/handoff_snapshot.json
+```
+
+Reads out (see [Diff between runs](#diff-between-runs) for the full contract):
+
+- **NEW** — a file that started matching (new content added since baseline)
+- **REMOVED** — a file that stopped matching (deleted, or edited enough to no longer match your patterns)
+- **CHANGED** — same file, different match count
+- **MODIFIED** — same file, *same match count*, different SHA-256 (content changed under the same match pattern — someone silently edited around your citation)
+
+The MODIFIED bucket is the one auditors care about most: it catches "the exhibit was substituted while retaining the keyword you were searching for" — a class of shift that would otherwise be invisible to the search alone.
+
+**Scope note — peekdocs `--hash` vs FIM tools.** peekdocs hashes files that matched your search (**match-scoped**). For whole-corpus integrity coverage across every file regardless of match status, pair peekdocs with a purpose-built file-integrity tool like `hashdeep` (see [File-integrity monitoring (FIM)](GLOSSARY.md#file-integrity-monitoring-fim) in the glossary). Belt-and-suspenders workflow: **FIM baseline** for folder-wide provenance, **peekdocs `--hash`** for finding-specific provenance. The two answer different questions and are complementary, not competing.
+
+**Not a chain-of-custody system.** peekdocs's `--hash` produces content fingerprints, not notarized or tamper-evident evidence. For workflows where opposing counsel will challenge provenance under evidentiary rules, reach for a dedicated forensic suite. peekdocs is what you use *before* handing off to a forensic tool, or *alongside* one for the finding-narrative half of an engagement.
+
+The remainder of this section is the reference material the examples above depend on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
 
 ### Exit codes
 
