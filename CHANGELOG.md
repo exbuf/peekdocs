@@ -12,6 +12,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.55] — 2026-07-01
+
+### Docs
+- **Regex Search demo clip added below the hero clip in the
+  README** (0a93d91). `docs/images/regex-hero.gif` (4.25 MB,
+  720p) lands the Regex Search half of the three-mode primer
+  (3c0392e). Follow-on caption updated (348ddb4) to name the
+  **Code patterns** collection specifically and enumerate the
+  10 patterns on screen — TODO / FIXME / HACK markers, Python
+  and JavaScript debug statements, breakpoint / pdb drops,
+  `@deprecated` markers, UPPER_CASE constants, SemVer version
+  strings. Search Suites clip still to come.
+
 ## [1.2.54] — 2026-07-01
 
 ### Fixed
