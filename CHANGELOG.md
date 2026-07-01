@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.51] — 2026-07-01
+
+### Fixed
+- **Expression-mode saved searches inside a suite crashed with
+  `AttributeError: 'bool' object has no attribute 'strip'`.** The
+  save path (`_mixin_data.py:1062`) stores `expression` as a
+  boolean flag (True/False) — the actual expression string lives
+  in `search_text`. Three consumer paths (`cli.py:1716`,
+  `api.py:519`, `_mixin_tools.py:6336`) treated the boolean *as*
+  the expression string via
+  `expr = params.get("expression") if params.get("expression") else None`,
+  passing `True` to `api_search`'s `expression=` kwarg, which then
+  raised in `expr_parser.tokenize()` trying to `.strip()` a
+  boolean. Symptom the user reported: Quarterly Content Audit
+  suite (which has two expression-mode saved searches) ran the
+  first 3 searches fine, then died silently on search #4; GUI
+  status stuck at "Writing reports…" forever because the worker
+  thread crashed and `_suite_finished` was never called. **Not
+  caused by** the 1.2.43 cloud-guard threading bug (that fix from
+  1.2.50 stays in — that was a real bug, just not the one causing
+  this symptom). Fix pattern at all three sites: three-way branch
+  on mode (expression / regex-or-wildcard / plain text) rather
+  than the previous two-way branch plus a broken expression
+  extraction.
+
 ## [1.2.50] — 2026-07-01
 
 ### Fixed
