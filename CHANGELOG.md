@@ -12,6 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.44] — 2026-07-01
+
+### Docs
+- **README language-toggle blurb** — dropped the
+  `(partial UI translation)` parenthetical. Each language intro
+  already explains its own translation scope. `click here for an
+  intro in yours` reads more like an invitation than the bare
+  `click for`.
+
 ## [1.2.43] — 2026-06-30
 
 ### Added
