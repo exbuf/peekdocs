@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.59] — 2026-07-01
+
+### Changed
+- **Voice audit — cloud-output guard no longer described in
+  warranty-flavored language** (c7d148f). Three sites described
+  the cloud-output guard as a "no-cloud confidentiality
+  **promise / guarantee**" — SLA-adjacent framing that reads as a
+  support commitment. peekdocs is MIT-licensed with zero support
+  obligations; the guard is a *check* the code runs at write
+  time, not a warranty. Rewrites all three sites to "no-cloud
+  confidentiality **check**" language — same meaning, without
+  the SLA valence:
+  - `README.md:197` (Feature Highlights bullet)
+  - `README.md:888` (Security FAQ table row)
+  - `peekdocs/gui/_mixin_build.py:1045` (cloud-redirect checkbox
+    tooltip)
+- **Match-All-Terms tooltip aligned with canonical line-vs-
+  paragraph framing** (c7d148f, `peekdocs/gui/_mixin_build.py:1062`).
+  Previous tooltip said "a line is typically a paragraph" for
+  PDF/Word and omitted Excel entirely. Rewrites to the canonical
+  shape used in five other places (CLI help, User Guide,
+  GLOSSARY, cli.py argparse, expression-mode tooltip): "a line
+  for text and source code, a paragraph for Word and PDF, a
+  row for Excel."
+
 ## [1.2.58] — 2026-07-01
 
 ### Docs
