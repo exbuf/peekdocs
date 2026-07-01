@@ -12,6 +12,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.52] — 2026-07-01
+
+### Fixed
+- **GUI Regex Search returned zero matches for every pattern
+  (regression from 1.2.50's cloud-guard threading fix).** The
+  `folder = _rs_resolved_folder` reassignment added at the top of
+  the write block inside `_thread` made `folder` local throughout
+  the closure per Python's scoping rule, so every earlier read
+  (including `directory=folder` in the `api_search` loop) became
+  a read of a local not yet assigned, raising `UnboundLocalError`
+  that was swallowed by `_thread`'s outer exception handler.
+  Reported symptom: `Code patterns` and `Common Code Patterns`
+  collections returned 0 matches in the GUI against
+  `peekdocs_demo_codebase`, while the same collection via CLI
+  returned 80 matches. Fix: `nonlocal folder` at the top of
+  `_thread` so reads see the enclosing parameter and the write-
+  block reassignment updates it in place with no shadow local.
+  The Suite runner's `_run` closure doesn't have the same bug
+  (it uses a distinct variable name, `output_folder =
+  _resolved_output_folder`).
+
 ## [1.2.51] — 2026-07-01
 
 ### Fixed
