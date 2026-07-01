@@ -12,6 +12,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.50] — 2026-07-01
+
+### Fixed
+- **Search Suite hang on "Writing reports…" (regression from
+  1.2.43).** The GUI Suite runner and Regex Search per-pattern
+  cloud-output guards were installed inside the worker thread
+  that runs those searches. Tkinter modals from worker threads
+  hang on `wait_window()` — user-visible symptom: searches
+  complete in a few seconds, then the report-writing status
+  never finishes. The 6 subprocesses in a suite run fine because
+  `subprocess.Popen` doesn't care about GUI threads; but the
+  cloud-guard modal spawn from the worker thread deadlocks the
+  whole worker. Reported by the user filming the Quarterly
+  Content Audit suite demo. Fix: hoist both guard calls out of
+  the worker thread and run them on the main thread BEFORE
+  spawning the worker. If the user cancels the modal we abort
+  cleanly before any UI state changes (no stale progress bar or
+  status text left behind). Resolved output folder is passed
+  into the worker's closure via a local variable. Regex Search
+  screen-only runs skip the guard entirely — nothing gets
+  written, so there's no output directory to check.
+
 ## [1.2.49] — 2026-07-01
 
 ### Docs
