@@ -8043,7 +8043,7 @@ class ToolsMixin:
             win,
             text="Regex searches do not use an index. If searches take a long time it could be due to "
                  "too many results. Check your regex syntax. Results depend on your patterns "
-                 "\u2014 peekdocs does not validate correctness. Regex entries persist between invocations. "
+                 "\u2014 peekdocs does not validate regex pattern correctness. Regex entries persist between invocations. "
                  "Reports list every match grouped by pattern. TXT is always written; DOCX / HTML / "
                  "CSV / JSON / PDF are opt-in via the 'Also write:' checkboxes below. DOCX and PDF "
                  "are skipped above 25,000 total matches to keep the GUI responsive \u2014 see ? for details.",
