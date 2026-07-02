@@ -206,6 +206,32 @@ A workbench for document collections: search them, characterize them through bui
 
 &nbsp;
 
+## How these compose
+
+The Feature Highlights above list the primitives individually. This section is about what happens when you combine them — three compositions that aren't obvious from the bullet list:
+
+**Live pattern sweep** — `--watch` + `--regex-collection`. Watch a folder and re-run a saved regex collection on every file create/modify, streaming one NDJSON line per match to stdout. Pair with `--on-match CMD` (email, Slack, Desktop notification) for a live pattern sentinel — no cron, no polling.
+
+```bash
+peekdocs --watch --regex-collection "Credential leaks" -r \
+  --on-match "notify-send 'peekdocs match'"
+```
+
+**Provenance audit** — `--diff` + `--hash`. `--hash` bakes a SHA-256 fingerprint of each matched file into the JSON output. Capture a baseline, wait, capture again, `--diff` the two — results bucket into **new / removed / changed / modified**, and "changed" means the file's *content* actually differs, not just its mtime. Match-level *and* content-level change detection in one workflow.
+
+```bash
+peekdocs --hash --stdout budget > baseline.json
+# …weeks later…
+peekdocs --hash --stdout budget > current.json
+peekdocs --diff baseline.json current.json
+```
+
+See the worked example in [USER_GUIDE.md § A worked example: audit engagement provenance](docs/USER_GUIDE.md#a-worked-example-audit-engagement-provenance).
+
+**Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection`. The GUI's Schedule Search (Tools → Schedule Search) generates a copy-paste-ready cron (macOS/Linux) or Task Scheduler (Windows) command that invokes `peekdocs --regex-collection NAME --timestamp` — a dated report every N hours or days, no manual runs. Pair with `--on-match` for notifications when patterns actually appear.
+
+&nbsp;
+
 > **Local-only by design.** No network calls, no telemetry, no cloud, no account. peekdocs runs entirely on your machine with your normal user permissions — no admin or root required, and it works fine on air-gapped systems with no internet connection.
 
 &nbsp;
@@ -262,6 +288,7 @@ for match in results.matches:
 - [Who Is It For?](#who-is-it-for)
 - [Watch peekdocs in action](#watch-peekdocs-in-action)
 - [Feature Highlights](#feature-highlights)
+- [How these compose](#how-these-compose)
 - [CLI at a Glance](#cli-at-a-glance)
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
