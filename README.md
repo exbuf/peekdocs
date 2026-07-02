@@ -144,7 +144,7 @@ peekdocs has three search modes, each with its own big button on the main page, 
 - **Search Suites** *(green button)* — a named group of saved standard searches that run together and produce one combined highlighted report. The recurring-workflow-in-one-click mode.
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
-The hero clip below is a Standard Search. Suites and Regex Search follow, then a short tour of the settings surface — every knob one click away.
+**Start with the short getting-started clip below**, then the hero clip (a Standard Search), Suites, and Regex Search, capped by a tour of the settings surface — every knob one click away.
 
 <!--
   TO UPDATE THIS DEMO GIF:
@@ -158,6 +158,12 @@ The hero clip below is a Standard Search. Suites and Regex Search follow, then a
      <video>-tag cross-browser flakiness that pushed us off MP4
      in the first place).
 -->
+
+<img src="docs/images/getting-started.gif" width="720" alt="peekdocs first-time on-ramp — pointing at a folder, running a first search, opening the highlighted report, looping">
+
+*Getting started with peekdocs — the first-time on-ramp: point at a folder, run a first search, open the highlighted report. The clips that follow drill into the three search modes and the settings surface.*
+
+&nbsp;
 
 <img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
 
