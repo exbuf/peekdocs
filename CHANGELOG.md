@@ -12,6 +12,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.63] — 2026-07-01
+
+### Docs
+- **USER_GUIDE stale-info reconciliation** (87cf236). Three fixes
+  surfaced by a Getting Started audit:
+  - **"GUI is English only" claim replaced with an accurate
+    partial-i18n description** (line 3376, Multilingual Support
+    section). Predated the v1.1.4–v1.1.7 seven-language rollout.
+    New text matches the canonical scope statement in the
+    language-picker tooltip (`peekdocs/gui/_mixin_build.py:1865`)
+    — translated: four main-page Step labels + tooltips, three
+    action buttons + tooltips, and a handful of adjacent
+    bottom-row strings. English-only: help popups, Advanced
+    Search Options labels, Tools menu items, error messages,
+    CLI banner and all `--help` output, every report, every
+    doc file. Closes with the "experiment, not completed
+    effort" framing and points at CONTRIBUTING.md.
+  - **Advanced Search Options cloud-redirect checkbox added to
+    the GUI Mode inventory** (line 382). The **Redirect
+    cloud-synced output paths to ~/peekdocs_reports** sticky
+    checkbox shipped with the cloud-output guard but wasn't in
+    the prose describing what Advanced Search Options contains.
+    Added between "output directory" and "additional output
+    formats" with a parenthetical + cross-link to the
+    Cloud-synced folders section.
+  - **"What's next?" pointers extended** (end of Getting Started
+    with the Terminal). Two bullets added for the automation
+    surface (`--diff` / `--hash` / `--watch`, three worked
+    examples) and the Portable / consulting use workflow.
+    Getting Started now has a guide-internal path to both.
+
 ## [1.2.62] — 2026-07-01
 
 ### Docs
