@@ -12,6 +12,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.66] — 2026-07-02
+
+### Docs
+- **Portable / consulting use section — GUI variants now
+  covered end-to-end** (788487c). Setup paragraph gained bolded
+  CLI-vs-GUI decision guidance so a consultant chooses which
+  binaries to carry before seeing the workflow commands. Gotcha
+  4 (Startup tax and Gatekeeper) expanded from three cost rows
+  to four to name the macOS GUI's larger `.app` bundle (~200 MB
+  vs ~103 MB CLI zip) and higher first-launch cost (3–6 s vs
+  1–3 s), plus the `.app`-bundle form of the quarantine strip
+  (`xattr -d com.apple.quarantine peekdocs-gui.app` on the whole
+  bundle). New intro sentence clarifies that both CLI and GUI
+  inherit the same OS security prompts because peekdocs is
+  unsigned regardless of variant.
+- **Portable / consulting use section — "Preparing the USB —
+  one-time setup" walkthrough added, plus two new gotchas**
+  (6b3b57c). Prior "Setup — done once" one-liner replaced with
+  a full one-time-setup walkthrough:
+  - Explicit "no Python on the USB, no Python on the client"
+    statement at the top — the standalone binaries ARE Python
+    + deps + peekdocs in one executable; a portable-Python
+    distribution is not part of this workflow.
+  - Six-binary + checksums-file listing with per-file sizes.
+  - SHA-256 verification step (macOS/Linux one-liner, Windows
+    PowerShell equivalent).
+  - macOS `.app` pre-unzip guidance with the ExFAT-doesn't-
+    preserve-xattrs rationale.
+  - Recommended USB folder structure (per-OS subdirs +
+    checksums + reports target + wrapper-scripts directory).
+  - Rehearsal step ("run the actual command on a scratch folder
+    matching the client's OS before you're on the clock").
+- **Four gotchas → Six gotchas** in the same section:
+  - **#5 Corporate Windows execution restrictions.** Group
+    Policy and Windows Defender Controlled Folder Access can
+    block `.exe` launches from removable drives; verify with
+    client IT before assuming the workflow works. Fallback
+    options: temporary whitelist / pipx-install on client /
+    launch from a Group-Policy-permitted directory.
+  - **#6 Tesseract for OCR is NOT bundled.** The standalone
+    binaries carry Python + Python dependencies only. Options
+    if OCR is in engagement scope: install Tesseract on the
+    client, pre-OCR docs on own machine, or scope OCR out.
+    Cross-links `peekdocs --check` as the on-site diagnostic
+    for Tesseract presence.
+
 ## [1.2.65] — 2026-07-02
 
 ### Docs
