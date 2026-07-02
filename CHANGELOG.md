@@ -12,6 +12,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.65] — 2026-07-02
+
+### Docs
+- **Complete CLI Reference — 33 rows added covering the
+  automation surface + compositions** (bee6e12,
+  `docs/USER_GUIDE.md`). The existing 164-row Command Examples
+  table covered the core search surface (basic / filter /
+  regex / boolean / range / index / expression / OCR / fuzzy /
+  wildcard) exhaustively but had zero examples for `--watch`,
+  `--diff`, `--hash`, `--suite`, `--on-match`,
+  `--allow-cloud-output`, `--dry-run`, or `--runs`. New rows
+  165–197 grouped into seven feature clusters (Search Suites,
+  Folder Watcher, Content-Fingerprint Diff, Notification Hook,
+  Cloud-Output Guard, Preflight & Structured Logs) plus an
+  explicit **Compositions** cluster naming the three from the
+  README's *How these compose* section (Live pattern sweep,
+  Provenance audit, Scheduled pattern scan) with anchor links
+  to the corresponding worked examples in Automation and IT
+  Use.
+- **Section repositioned as the canonical CLI reference,
+  cross-linked from the README** (bee6e12). With comprehensive
+  coverage now in place, the table earns canonical status:
+  - Renamed `Command Examples` → `Complete CLI Reference` +
+    intro paragraph calling it the canonical reference, stating
+    the 197+ count, listing what it covers, and telling readers
+    to search it with Cmd+F / Ctrl+F.
+  - TOC entry, Getting Started "What's next?" bullet, and the
+    Usage section pointer all updated with the rename (and the
+    stale "150+ commands" bumped to "197+").
+  - README's *How these compose* section gained a closing
+    italic pointer to the Complete CLI Reference — bidirectional
+    discovery loop between the README's composition prose and
+    the USER_GUIDE's one-liner reference.
+
 ## [1.2.64] — 2026-07-02
 
 ### Added
