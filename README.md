@@ -210,12 +210,14 @@ A workbench for document collections: search them, characterize them through bui
 
 The Feature Highlights above list the primitives individually. This section is about what happens when you combine them — three compositions that aren't obvious from the bullet list:
 
-**Live pattern sweep** — `--watch` + `--regex-collection`. Watch a folder and re-run a saved regex collection on every file create/modify, streaming one NDJSON line per match to stdout. Pair with `--on-match CMD` (email, Slack, Desktop notification) for a live pattern sentinel — no cron, no polling.
+**Live pattern sweep** — `--watch` + `--regex-collection`. Watch a folder and re-run a saved regex collection on every file create/modify, emitting one self-contained NDJSON record per match to stdout. Pipe stdout to `jq`, a log shipper, or a shell loop that fires a notification — a live pattern sentinel with no cron and no polling. (Note: `--on-match` fires on batch searches, not from `--watch` mode — for `--watch` the stdout NDJSON stream *is* the notification channel.)
 
 ```bash
-peekdocs --watch --regex-collection "Credential leaks" -r \
-  --on-match "notify-send 'peekdocs match'"
+peekdocs --watch --regex-collection "my patterns" -d ~/docs -r \
+  | jq -c '{file, line, pattern_name}'
 ```
+
+See the worked example in [USER_GUIDE.md § A worked example: real-time pattern monitoring with `--watch`](docs/USER_GUIDE.md#a-worked-example-real-time-pattern-monitoring-with---watch).
 
 **Provenance audit** — `--diff` + `--hash`. `--hash` bakes a SHA-256 fingerprint of each matched file into the JSON output. Capture a baseline, wait, capture again, `--diff` the two — results bucket into **new / removed / changed / modified**, and "changed" means the file's *content* actually differs, not just its mtime. Match-level *and* content-level change detection in one workflow.
 
@@ -228,7 +230,9 @@ peekdocs --diff baseline.json current.json
 
 See the worked example in [USER_GUIDE.md § A worked example: audit engagement provenance](docs/USER_GUIDE.md#a-worked-example-audit-engagement-provenance).
 
-**Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection`. The GUI's Schedule Search (Tools → Schedule Search) generates a copy-paste-ready cron (macOS/Linux) or Task Scheduler (Windows) command that invokes `peekdocs --regex-collection NAME --timestamp` — a dated report every N hours or days, no manual runs. Pair with `--on-match` for notifications when patterns actually appear.
+**Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection`. The GUI's Schedule Search (Tools → Schedule Search) generates a copy-paste-ready cron (macOS/Linux) or Task Scheduler (Windows) command that invokes `peekdocs --regex-collection NAME --timestamp` — a dated report every N hours or days, no manual runs. Pair with `--on-match CMD` for notifications when patterns actually appear (email, Slack, PagerDuty — you write the script; peekdocs invokes it with match count and report paths as env vars).
+
+See the worked example in [USER_GUIDE.md § A worked example: nightly source-tree watch](docs/USER_GUIDE.md#a-worked-example-nightly-source-tree-watch), which layers this composition with the provenance-audit one to build a full "detect + notify + preserve evidence" workflow.
 
 &nbsp;
 

@@ -38,6 +38,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
 - [Automation and IT Use](#automation-and-it-use)
   - [A worked example: nightly source-tree watch](#a-worked-example-nightly-source-tree-watch)
   - [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance)
+  - [A worked example: real-time pattern monitoring with `--watch`](#a-worked-example-real-time-pattern-monitoring-with---watch)
   - [Exit codes](#exit-codes)
   - [JSON output (--stdout) schema](#json-output---stdout-schema)
   - [Scheduled and unattended runs](#scheduled-and-unattended-runs)
@@ -1560,6 +1561,56 @@ The MODIFIED bucket is the one auditors care about most: it catches "the exhibit
 **Scope note — peekdocs `--hash` vs FIM tools.** peekdocs hashes files that matched your search (**match-scoped**). For whole-corpus integrity coverage across every file regardless of match status, pair peekdocs with a purpose-built file-integrity tool like `hashdeep` (see [File-integrity monitoring (FIM)](GLOSSARY.md#file-integrity-monitoring-fim) in the glossary). Belt-and-suspenders workflow: **FIM baseline** for folder-wide provenance, **peekdocs `--hash`** for finding-specific provenance. The two answer different questions and are complementary, not competing.
 
 **Not a chain-of-custody system.** peekdocs's `--hash` produces content fingerprints, not notarized or tamper-evident evidence. For workflows where opposing counsel will challenge provenance under evidentiary rules, reach for a dedicated forensic suite. peekdocs is what you use *before* handing off to a forensic tool, or *alongside* one for the finding-narrative half of an engagement.
+
+### A worked example: real-time pattern monitoring with `--watch`
+
+The nightly-watch and provenance examples above are batch-oriented — cron-scheduled or engagement-driven. When you want the notification to arrive *seconds* after a file changes rather than the next morning, `--watch` is the tool: a long-running process that reacts to filesystem events instead of polling.
+
+**Scenario:** a documentation team maintains a large docs folder on a shared network drive. When a writer saves a page containing patterns the team wants to flag before publish — TODO markers, references to deprecated feature names, links to internal-only URLs — the team lead wants a Desktop notification within seconds so it can be caught in the writer's next session.
+
+**Setup — once:** build the regex collection in the GUI (main page → **Regex Search** → enter your patterns → **Save Collection As**) covering the shapes you care about — `\bTODO\b`, `\bFIXME\b`, `deprecated-feature-name`, `https?://internal-only-host\.example\.com`, or whatever is specific to your stack. Save it as `docs_hygiene`.
+
+**Command:**
+
+```bash
+peekdocs --watch --regex-collection docs_hygiene \
+    -d /Volumes/team-docs -r \
+  | while IFS= read -r line; do
+      file=$(echo "$line" | jq -r .file)
+      pattern=$(echo "$line" | jq -r .pattern_name)
+      osascript -e "display notification \"$pattern in $(basename \"$file\")\" \
+                    with title \"docs hygiene\""
+    done
+```
+
+Leave this running in a terminal, a tmux session, or wrap it in launchd (macOS) / systemd (Linux) for unattended operation.
+
+**What each file save produces:**
+
+The moment a writer saves a matching file, peekdocs sees the FS event, re-scans that one file (not the whole folder), and emits one self-contained NDJSON record per match to stdout:
+
+```json
+{"timestamp":"2026-07-01T14:23:18","file":"/Volumes/team-docs/getting-started.md","line":42,"matched_text":"TODO: rewrite this section","pattern_name":"TODO","pattern_regex":"\\bTODO\\b","collection":"docs_hygiene"}
+```
+
+Each line is a full JSON record on its own — the NDJSON / JSON-Lines shape that `jq`, `grep`, `awk`, and every log shipper (Filebeat, Vector, Fluent Bit, Splunk Universal Forwarder) consume natively.
+
+**Variations:**
+
+- **Slack instead of Desktop notification** — swap the shell loop's action for a `curl -X POST` to your webhook.
+- **Just log to disk** — redirect stdout without a loop: `> /var/log/docs_hygiene.ndjson`.
+- **Filter before notifying** — pipe through `jq 'select(.pattern_name == "deprecated-feature-name")'` between peekdocs and your notification loop.
+
+**Gotchas:**
+
+- **`--on-match` is not fired from `--watch` mode.** The `--on-match` hook fires from batch searches (one hook per invocation). In `--watch`, the stdout NDJSON stream *is* the notification channel — pipe it to whatever downstream you want.
+- **Ctrl-C stops it cleanly.** SIGINT/SIGTERM flush stdout and exit 0.
+- **Refuses to run as root by default.** A privileged watcher can read content the operator may not be authorized to access. Pass `--allow-root` if you have a legitimate reason.
+- **Warns on system-path targets.** Deliberate use is one `--allow-system-paths` flag away.
+- **Reacts to create/modify events, not delete.** Watching for file deletion is out of scope.
+- **Noisy folders fire a lot.** Point `--watch` at a specific subfolder rather than the project root, or filter downstream with `jq`.
+
+**What this is not:** a substitute for pre-commit hooks or CI checks. `--watch` catches patterns *after* a file is saved, not before it's committed. If the goal is to block bad content from entering the repository, use pre-commit hooks. `--watch` is for cases where you want a low-friction signal that surfaces to a reviewer, not a gate.
 
 The remainder of this section is the reference material the examples above depend on: exit-code semantics, the JSON schema for `--stdout`, where reports and logs live on disk, the contract for `--diff` and `--on-match`, the headless deployment guarantee, and the gotchas (notably the `&&` vs `;` exit-code flip) that catch out people the first time they wire a peekdocs CLI into a pipeline.
 
