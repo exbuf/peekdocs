@@ -138,7 +138,7 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 
 peekdocs has three search modes, each with its own big button on the main page, color-coded so you can tell them apart in the clips below:
 
-- **Standard Search** *(blue button)* — the everyday keyword search: type terms, pick a folder, hit Run. Shown in the hero clip below.
+- **Standard Search** *(the large blue **Run** button on the left; the smaller blue square next to it is the **Search Wizard** — a form-builder on-ramp with 20 pre-built search-type forms, not a fourth mode)* — the everyday keyword search: type terms, pick a folder, hit Run. Shown in the hero clip below.
 - **Search Suites** *(green button)* — a named group of saved standard searches that run together and produce one combined highlighted report. The recurring-workflow-in-one-click mode.
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
