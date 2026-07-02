@@ -12,6 +12,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.67] — 2026-07-02
+
+### Changed
+- **`peekdocs -h` / banner examples extended so a consultant with
+  no external docs can compose workflows from the CLI alone**
+  (a98c8c7, `peekdocs/cli.py`). Five additions:
+  - **`--output-dir`** now names the cloud-output guard as a
+    possible reason a write can fail, and points at the one-off
+    override (`--allow-cloud-output`) and the persistent config
+    key (`redirect_cloud_output=true`).
+  - **`--diff`** now flags its NON-standard exit codes (0=no
+    change, 1=actionable change, 2=error — opposite of most CLI
+    tools) and warns about `&&` chains.
+  - **`--on-match`** now enumerates every env var passed to the
+    hook (`PEEKDOCS_MATCH_COUNT`, `PEEKDOCS_FILE_COUNT`,
+    `PEEKDOCS_ELAPSED_SECONDS`, `PEEKDOCS_ARGV`, `PEEKDOCS_CWD`,
+    `PEEKDOCS_REPORT_TXT/DOCX/JSON/CSV/PDF/HTML`) and pins the
+    "batch searches only, NOT `--watch`" scope up front.
+  - **Compositions** — new example section covering the three
+    named workflows from the README's *How these compose*:
+    Live pattern sweep (`--watch` + `--regex-collection`),
+    Provenance audit (`--diff` + `--hash` three-command
+    sequence), Scheduled pattern scan (cron +
+    `--regex-collection` + `--timestamp`).
+  - **Portable use** — new example section for the USB-carried
+    workflow: `--check`, `--output-dir` + `--no-index` +
+    `--timestamp`, `--hash` provenance snapshot back to the USB,
+    and the cleanup story.
+
+### Docs
+- **Portable use section restructured to serve non-consultant
+  audiences too** (a98c8c7, `docs/USER_GUIDE.md`). The USB
+  workflow's three properties (zero install on host, zero
+  footprint with `--no-index` + `--output-dir` back to USB,
+  zero Python dependency) apply to more than IT consultants —
+  section broadened accordingly:
+  - Section renamed: `Portable / consulting use` → `Portable use`.
+  - Intro rewritten to name both audiences: IT consultants +
+    personal users (evaluation, locked-down machines, privacy,
+    air-gapped/shared, cross-machine mobility). Inline note tells
+    personal-use readers to read "engagement" as generic "session"
+    downstream.
+  - **Common engagement types** split into **Common use cases —
+    IT consultants** (5 existing) + **Common use cases —
+    personal and evaluation** (5 new: evaluation-before-commit,
+    locked-down machines, privacy/minimalism, air-gapped/shared,
+    cross-machine mobility).
+  - Common-thread paragraph rewritten to unify what all use
+    cases share: "the host machine isn't yours to install into"
+    for one reason or another.
+  - Downstream "client machine/drive/site/engagement" language
+    swapped for generic "host machine/drive" and "session" in
+    the load-bearing prose. Consulting-flavored language kept
+    where it describes real consultant concerns rather than
+    universal ones.
+- **Six cross-references updated** (a98c8c7) — README's IT
+  consultant bullet, USER_GUIDE's TOC + Where to Start bullet +
+  Getting Started "What's next?" bullet, and both CLI banner
+  section headers. Anchor migrated from
+  `#portable--consulting-use--running-peekdocs-from-a-usb-stick`
+  to `#portable-use--running-peekdocs-from-a-usb-stick`.
+
 ## [1.2.66] — 2026-07-02
 
 ### Docs
