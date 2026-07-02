@@ -12,6 +12,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.68] — 2026-07-02
+
+### Docs
+- **Two accuracy/consistency fixes from a comprehensive README +
+  USER_GUIDE audit** (6e0f062). README came back completely
+  clean; USER_GUIDE had two small items:
+  - **PDF framing aligned with the canonical line/paragraph/row
+    rule** (`docs/USER_GUIDE.md:735`). The `-P` (line-proximity)
+    row in Flag Use Summary said "for PDF, a line is a text
+    block (variable)" while every other place in the doc uses
+    "paragraph" for PDF. Merged Word and PDF into one clause
+    matching the tooltip and the four other canonical sites.
+  - **Composition rows 196–197 relabeled to make variant
+    relationship unambiguous** (`docs/USER_GUIDE.md:1327-1328`).
+    The Compositions cluster in the Complete CLI Reference has
+    three named compositions plus two variant rows for the
+    Scheduled pattern scan. Row labels now explicitly say
+    "Scheduled pattern scan — variant with… (extends row 195)"
+    instead of the generic "Scheduled scan with…" — a reader
+    scanning the table no longer risks counting five compositions
+    where there are three.
+
 ## [1.2.67] — 2026-07-02
 
 ### Changed
