@@ -144,6 +144,8 @@ peekdocs has three search modes, each with its own big button on the main page, 
 
 **Start with the short getting-started clip below**, then the hero clip (a Standard Search), Suites, and Regex Search, capped by a tour of the settings surface — every knob one click away.
 
+*Prefer to pause, rewind, or scrub to a specific moment? Every clip below is also available as a pausable MP4 on the maintainer's [personal site](https://robertdschoening.com/peekdocs).*
+
 <!--
   TO UPDATE THIS DEMO GIF:
   1. Record a new screen capture (MP4, no audio, ~45s).
