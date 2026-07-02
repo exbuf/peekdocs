@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.60] — 2026-07-01
+
+### Docs
+- **"How these compose" section added to the README** (e8d10fd).
+  Feature Highlights lists eight-ish workflow primitives as
+  individual bullets; first-time readers don't stumble into the
+  combinations on their own. New H2 section between Feature
+  Highlights and the design-principle blockquotes names three
+  compositions worth knowing about, each with a working CLI
+  example verified against the actual flag surface:
+  - **Live pattern sweep** — `--watch` + `--regex-collection`,
+    streaming NDJSON matches with `--on-match` for notifications.
+  - **Provenance audit** — `--diff` + `--hash`, layering
+    content-hash change detection on top of match-level diffing.
+    Cross-links to the worked example in
+    `docs/USER_GUIDE.md § A worked example: audit engagement
+    provenance` (line 1496+).
+  - **Scheduled pattern scan** — cron / Task Scheduler +
+    `--regex-collection` via Tools → Schedule Search's generated
+    command, `--timestamp` for dated output.
+
+  TOC entry added between Feature Highlights and CLI at a Glance.
+
 ## [1.2.59] — 2026-07-01
 
 ### Changed
