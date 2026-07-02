@@ -311,6 +311,8 @@ Progress output goes to stdout (the spinner / progress bar) and stderr (the "Sca
 - See the [Command Examples](#command-examples) table for 150+ example commands
 - Try the GUI for a visual interface: just type `peekdocs-gui`
 - Read [Your First Advanced Search](#your-first-advanced-search--step-by-step) for guided walkthroughs of regex, fuzzy, range queries, and more
+- Ready for automation? Read [Automation and IT Use](#automation-and-it-use) for `--diff`, `--hash`, `--watch`, cron pairings, and three worked examples (nightly source-tree watch, audit engagement provenance, real-time pattern monitoring)
+- Running peekdocs from a USB stick at a client site? See [Portable / consulting use](#portable--consulting-use--running-peekdocs-from-a-usb-stick)
 
 ---
 
@@ -379,7 +381,7 @@ The Search Wizard has its own **Change Folder** button and operates independentl
 
 **Advanced Search Options:**
 
-Click the **▶ Advanced Search Options** header to expand the inline panel in the left pane (the chevron flips to **▼**). The panel carries every search-tuning option: AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, **Use Index**, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, additional output formats (CSV, JSON, PDF, HTML), timestamp filenames, **Delete on Close**, **Clear history on close**, Restrict permissions, and Notify on Search Complete. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are two button rows: top row holds **Save Defaults** (saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled), **Restore Saved Defaults** (reloads saved defaults from `~/.peekdocsrc` into the GUI), and **Inspect .peekdocsrc** (shows the current saved settings, read-only). Bottom row holds the destructive pair, both red: **Reset All Fields** (clears fields and restores the GUI to its default state — current session only; saved defaults in `~/.peekdocsrc` are unchanged unless you also click Save Defaults after resetting), and **Restore Factory Settings** (deletes `~/.peekdocsrc` entirely and returns everything to first-launch defaults — destructive, this cannot be undone). To collapse the panel, click the **▼ Advanced Search Options** header at the top of the panel (the chevron flips back to **▶**). Your settings persist for the next search either way.
+Click the **▶ Advanced Search Options** header to expand the inline panel in the left pane (the chevron flips to **▼**). The panel carries every search-tuning option: AND mode, recursive search, fuzzy matching, wildcards, OCR, regex, whole-word matching, expression mode, inverse search, **Use Index**, exclude terms, file type filtering, proximity, context lines, CPU cores, max matches, range filters, specific files, save as, append to, output directory, **Redirect cloud-synced output paths to `~/peekdocs_reports`** (the sticky cloud-output guard — silently redirects report writes when the output folder is inside OneDrive / Google Drive / iCloud Drive / Dropbox; see [Cloud-synced folders](#cloud-synced-folders)), additional output formats (CSV, JSON, PDF, HTML), timestamp filenames, **Delete on Close**, **Clear history on close**, Restrict permissions, and Notify on Search Complete. Every terminal flag is available in the GUI. You don't need any of them for a basic search. Hover over any option to see a description of what it does. At the bottom of the panel are two button rows: top row holds **Save Defaults** (saves your current search terms, folder, and all options as defaults to `~/.peekdocsrc` — the next time you open the GUI, everything will be pre-filled), **Restore Saved Defaults** (reloads saved defaults from `~/.peekdocsrc` into the GUI), and **Inspect .peekdocsrc** (shows the current saved settings, read-only). Bottom row holds the destructive pair, both red: **Reset All Fields** (clears fields and restores the GUI to its default state — current session only; saved defaults in `~/.peekdocsrc` are unchanged unless you also click Save Defaults after resetting), and **Restore Factory Settings** (deletes `~/.peekdocsrc` entirely and returns everything to first-launch defaults — destructive, this cannot be undone). To collapse the panel, click the **▼ Advanced Search Options** header at the top of the panel (the chevron flips back to **▶**). Your settings persist for the next search either way.
 
 > **Which checkboxes auto-save vs require Save Defaults.** Most Advanced Search Options checkboxes only persist across sessions if you click **Save Defaults** at the bottom of the panel. Three checkboxes are treated as session defaults and auto-save on every toggle: **Recursive**, **Whole Word**, and **Use Index**. The rest (**AND/OR mode**, **Fuzzy**, **Wildcard**, **Regex**, **OCR**, **Expression**, **Inverse**) are per-search toggles — they apply to the next search but reset to OFF the next time you launch peekdocs unless you click **Save Defaults** after flipping them. **OCR** specifically is non-persisting by design: Tesseract can take many seconds per scanned PDF, so silently leaving OCR on across sessions would surprise users with much slower runs they didn't ask for. If you regularly search scanned documents, click **Save Defaults** with OCR checked once, and it'll be on at every launch.
 
@@ -3373,7 +3375,27 @@ This is not a special feature unique to peekdocs. All modern search tools are bu
 
 ### Documentation and GUI language
 
-The peekdocs GUI, help screens, documentation, and reports are all in **English only**. There are no translations of the interface into other languages. This is a practical limitation of being a solo-developer project — maintaining translations across every update is not feasible. The GUI labels are short and largely self-explanatory (Browse, Run Search, Save, Reload), so most non-English speakers can navigate the interface without difficulty.
+The peekdocs GUI ships partial UI translation in **seven languages** — English, Español, Français, Deutsch, 日本語, 简体中文, and Português brasileiro. The **Language** dropdown on the main screen's bottom row (next to Tools, Tooltips, and About) switches it in place; the choice persists to `~/.peekdocsrc` and is restored on the next launch.
+
+Translation scope is deliberately narrow — an experiment, not a completed effort — covering the strings a non-English speaker sees on first launch:
+
+**Translated:**
+- The four main-page Step labels (Step 1 – Step 4) and their hover tooltips
+- The three action buttons (**Run Standard Search**, **Search Suites**, **Regex Search**) and their tooltips
+- A handful of adjacent bottom-row controls: the **Tools** and **About** button labels, the **Tooltips: ON/OFF** button tooltip, the **Preview Size** dropdown tooltip, the Language picker's own label
+
+**English-only:**
+- Every help popup (the `?` buttons throughout the GUI)
+- Advanced Search Options — checkbox labels, section headers, save/restore buttons
+- The Tools menu items and every popup they open (File Inventory, Duplicate Finder, Search Suites, Regex Search, Schedule Search, etc.)
+- Error messages, status text, dialogs, confirmation prompts
+- The CLI banner, all CLI `--help` output, all CLI subcommand help
+- Every report — TXT, DOCX, HTML, PDF, CSV, JSON. Report *contents* naturally reflect your documents' languages (Unicode-based search finds any language), but section headings, chart legends, and boilerplate remain English
+- This User Guide and every other doc file
+
+Translation coverage is partial because a solo-developer project can't sustainably maintain every string across every release. The translated surface is the everyday search workflow — main-page Step-and-action strings — chosen because it's what a non-English speaker sees first. The rest stays English so the release cadence isn't gated on translator throughput.
+
+Native-reviewed contributions welcome — see [CONTRIBUTING.md](../CONTRIBUTING.md) for the translation-file location and the review process.
 
 ### Sample multilingual files
 
