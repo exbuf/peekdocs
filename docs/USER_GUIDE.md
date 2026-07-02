@@ -49,7 +49,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Headless servers and containers](#headless-servers-and-containers)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
-  - [Portable / consulting use — running peekdocs from a USB stick](#portable--consulting-use--running-peekdocs-from-a-usb-stick)
+  - [Portable use — running peekdocs from a USB stick](#portable-use--running-peekdocs-from-a-usb-stick)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
 - [Search Index (Optional)](#search-index-optional)
 - [Advanced search modes](#advanced-search-modes)
@@ -114,7 +114,7 @@ This is a long reference document. Skip directly to what you need:
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
 - **Running an audit / review engagement?** See [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance) for the SHA-256 baseline → citation → verify → diff workflow.
 - **Want real-time notifications when patterns appear in a shared folder?** See [A worked example: real-time pattern monitoring with `--watch`](#a-worked-example-real-time-pattern-monitoring-with---watch) — long-running `--watch` mode streaming NDJSON matches to a notification pipeline.
-- **Running peekdocs from a USB stick at a client site?** See [Portable / consulting use](#portable--consulting-use--running-peekdocs-from-a-usb-stick) — standalone-binary workflow, `--output-dir` to the USB, four gotchas that catch people out the first time.
+- **Running peekdocs from a USB stick — client site, locked-down laptop, or "try before you install"?** See [Portable use](#portable-use--running-peekdocs-from-a-usb-stick) — standalone-binary workflow that fits IT consultants and personal / evaluation use both, with a shared setup and six gotchas.
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
 - **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
@@ -312,7 +312,7 @@ Progress output goes to stdout (the spinner / progress bar) and stderr (the "Sca
 - Try the GUI for a visual interface: just type `peekdocs-gui`
 - Read [Your First Advanced Search](#your-first-advanced-search--step-by-step) for guided walkthroughs of regex, fuzzy, range queries, and more
 - Ready for automation? Read [Automation and IT Use](#automation-and-it-use) for `--diff`, `--hash`, `--watch`, cron pairings, and three worked examples (nightly source-tree watch, audit engagement provenance, real-time pattern monitoring)
-- Running peekdocs from a USB stick at a client site? See [Portable / consulting use](#portable--consulting-use--running-peekdocs-from-a-usb-stick)
+- Running peekdocs from a USB stick — consulting engagement, locked-down laptop, or evaluation before install? See [Portable use](#portable-use--running-peekdocs-from-a-usb-stick)
 
 ---
 
@@ -2086,11 +2086,18 @@ Saved searches and suites are per-folder (`<search-folder>/.peekdocs_collection.
 
 There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you need to enforce defaults across a fleet, push `~/.peekdocsrc` via your config-management tool.
 
-### Portable / consulting use — running peekdocs from a USB stick
+### Portable use — running peekdocs from a USB stick
 
-peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. That makes them portable in the "carry on a USB stick, run against a client machine's drive without installing anything" sense. This section covers the engagement types this workflow fits, the workflow shape itself, and the operational gotchas that catch people out the first time.
+peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. That makes them portable in the "carry on a USB stick, run without installing anything" sense — no admin rights, no PATH manipulation, no dependency setup, and (with `--no-index` + `--output-dir` back to the USB) no artifacts left on the host machine.
 
-#### Common engagement types
+Two audiences reach for this workflow most:
+
+- **IT consultants** running peekdocs against client machines during engagements, where the client's install permissions and IT-policy friction make "just install it" impractical.
+- **Personal users** who prefer zero install — evaluators trying peekdocs before committing to a `pipx install`, users on locked-down machines (work / school / library / kiosk), privacy-minded users who prefer portable tools generally, or air-gapped / shared-machine environments where installs aren't appropriate.
+
+This section covers both. Use-case bullets are split by audience below, but the workflow, gotchas, and cleanup story are shared — the mechanics don't care which audience you're in. Wherever "engagement" appears below, read it as generic "session" if the personal-use interpretation fits your situation better.
+
+#### Common use cases — IT consultants
 
 1. **Legacy knowledge extraction.** Client has years of documents on a file server nobody remembers organizing. The engagement calls for finding "everything the organization has said about system X / vendor Y / technology Z" — old contracts, deprecated SOPs, undocumented dependencies. peekdocs covers Word, PDF, Excel, email, and OCR'd scans in one pass; native tools like `grep` and `findstr` miss the binary formats.
 
@@ -2102,11 +2109,23 @@ peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.
 
 5. **Post-incident analytical triage** (analytical, not evidentiary). After a security event, before the forensic team images the drives, the consultant answers "which documents mention the affected system, where do they live, how many are there?" peekdocs handles the analytical scoping; forensic tools handle the evidentiary side. See the "Not a forensic acquisition tool" note further down.
 
-The common thread across these engagements: unfamiliar corpus, mixed file formats, short window, and often a client-site machine the consultant can't install software on. USB deployment sidesteps the install-friction (IT policy, ticketing, security review) that makes "just install it" impractical on many client sites.
+#### Common use cases — personal and evaluation
+
+1. **Evaluation before commit.** Trying peekdocs against a real corpus before deciding whether to `pipx install`. Run it for a few hours or a few days from the USB; if it earns the install, do it later. Nothing to uninstall if it doesn't.
+
+2. **Locked-down machines.** A work laptop with restricted admin rights, a school or library computer, a shared workshop machine, or borrowed hardware. USB launch sidesteps the "you don't have permission to install this" wall — peekdocs runs with your user account's own read permissions and doesn't need to write outside the USB (or wherever `--output-dir` points).
+
+3. **Privacy or minimalism preference.** Users who prefer portable / live-boot workflows generally, don't want yet-another-app on their host machine, or run peekdocs occasionally enough that carrying it beats installing it.
+
+4. **Air-gapped or shared environments.** Machines that shouldn't have arbitrary installs — restricted workstations, kiosks, workshop demo hardware, or a home computer shared by a household who each want their own tool inventories separate. Same install-friction as the consultant scenario, different context.
+
+5. **Cross-machine mobility.** Multi-computer workflows (home desktop + travel laptop + workstation-at-office) where carrying peekdocs on a USB is simpler than duplicating installs across every device you touch.
+
+The common thread across all of these — consultant or personal — is that **the host machine isn't yours to install into** for one reason or another: the install permissions aren't available (locked-down machine), the commitment isn't yet warranted (evaluation), the operational model favors portability (privacy / mobility / shared-machine), or the machine belongs to someone else (consultant engagement). USB deployment sidesteps all of those.
 
 **Preparing the USB — one-time setup:**
 
-Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest). These are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. **You do not carry Python on the USB and you do not install Python on the client machine.** The whole point of the standalone binaries is that they are self-contained; a separate portable-Python distribution is not part of this workflow.
+Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest). These are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. **You do not carry Python on the USB and you do not install Python on the host machine.** The whole point of the standalone binaries is that they are self-contained; a separate portable-Python distribution is not part of this workflow.
 
 Six binaries plus one checksums file:
 
@@ -2129,7 +2148,7 @@ Get-FileHash peekdocs-cli-windows.exe -Algorithm SHA256
 
 Checksums are the honest defense against "did my USB get tampered with between download and deployment" — treat this as habit, not paranoia.
 
-**On macOS, unzip the `.app` bundles on your own Mac before copying to USB.** Two reasons: (a) skips unzip friction on the client machine, (b) ExFAT-formatted USB drives (typical cross-platform) don't preserve macOS extended attributes anyway, so the quarantine flag from the browser download often doesn't survive the copy to USB — running the pre-unzipped `.app` from the USB may not trigger Gatekeeper at all. The app is still unsigned, so aggressive corporate SIP/notarization policies will block launch regardless.
+**On macOS, unzip the `.app` bundles on your own Mac before copying to USB.** Two reasons: (a) skips unzip friction on the host machine, (b) ExFAT-formatted USB drives (typical cross-platform) don't preserve macOS extended attributes anyway, so the quarantine flag from the browser download often doesn't survive the copy to USB — running the pre-unzipped `.app` from the USB may not trigger Gatekeeper at all. The app is still unsigned, so aggressive corporate SIP/notarization policies will block launch regardless.
 
 **Recommended USB structure:**
 
@@ -2149,7 +2168,7 @@ Checksums are the honest defense against "did my USB get tampered with between d
   scripts/                          (optional per-engagement wrappers)
 ```
 
-**Verify each binary once from a matched-OS machine** before the engagement, not at the client site:
+**Verify each binary once from a matched-OS machine** before the session, not at the host machine:
 
 ```bash
 ./peekdocs-cli-linux --check
@@ -2159,9 +2178,9 @@ Checksums are the honest defense against "did my USB get tampered with between d
 
 **Rehearse the actual command on a scratch folder** matching the client's OS if possible. Catches "client paths have spaces" or "the client's SmartScreen is more aggressive than mine" issues before you're on the clock.
 
-**Typical engagement workflow — reports back to the USB, not the client drive:**
+**Typical workflow — reports back to the USB, not the host drive:**
 
-At the client site, plug in the USB and run peekdocs against the client drive, redirecting reports to the USB with `--output-dir`:
+At the host machine, plug in the USB and run peekdocs against the host drive, redirecting reports to the USB with `--output-dir`:
 
 ```bash
 # Windows — from Command Prompt at the USB root:
@@ -2179,9 +2198,9 @@ E:\peekdocs-cli-windows.exe -r "quarterly forecast" ^
 
 The flags that matter for this workflow:
 
-- **`--output-dir`** → reports go to the USB, not the client drive. Zero-artifact engagement.
+- **`--output-dir`** → reports go to the USB, not the host drive. Zero-artifact session.
 - **`--timestamp`** → filenames get a UTC stamp so multiple runs never overwrite each other.
-- **`--no-index`** → skip building `.peekdocs.db` on the client drive. Slower on repeated searches, but leaves nothing behind. If you're doing many searches on the same folder, drop `--no-index` and use `peekdocs --index-clear` from that folder at the end of the engagement to delete the index.
+- **`--no-index`** → skip building `.peekdocs.db` on the host drive. Slower on repeated searches, but leaves nothing behind. If you're doing many searches on the same folder, drop `--no-index` and use `peekdocs --index-clear` from that folder at the end of the session to delete the index.
 - **`-o docx,csv,json`** → Word for readability, CSV for spreadsheet handoff, JSON for archival, diffing, and provenance (pair with `--hash` for the provenance workflow — see [audit engagement provenance](#a-worked-example-audit-engagement-provenance)).
 
 #### Six gotchas worth knowing
@@ -2190,7 +2209,7 @@ The flags that matter for this workflow:
 
 **2. Cloud-output guard becomes a feature.** If the folder you pointed `--output-dir` at turns out to be inside OneDrive / Google Drive / iCloud Drive / Dropbox on the client machine, peekdocs refuses to write reports there by default. For consultant work this is exactly the confidentiality control you want — a client's OneDrive-synced Documents folder would otherwise silently upload your reports to Microsoft's servers. The CLI exits code 2 with a clear message; the GUI shows a modal (redirect / write anyway / cancel). To confirm intent for one run, pass `--allow-cloud-output`; to permanently redirect to `~/peekdocs_reports` without prompting, set `redirect_cloud_output=true` in `~/.peekdocsrc`.
 
-**3. Zero-artifact hygiene.** Every file peekdocs creates carries the `peekdocs_` (visible outputs) or `.peekdocs` (hidden state) prefix, with no exceptions. If you did *not* pass `--no-index`, one command finds and removes everything peekdocs left on the client drive before you unplug:
+**3. Zero-artifact hygiene.** Every file peekdocs creates carries the `peekdocs_` (visible outputs) or `.peekdocs` (hidden state) prefix, with no exceptions. If you did *not* pass `--no-index`, one command finds and removes everything peekdocs left on the host drive before you unplug:
 
 ```bash
 # macOS / Linux:
@@ -2211,7 +2230,7 @@ Cost per launch:
 - **macOS (CLI):** ≈ 1–3 s. Gatekeeper adds a first-launch bump since peekdocs is unsigned — right-click → **Open**, or `xattr -d com.apple.quarantine peekdocs-cli-macos` to strip the quarantine flag.
 - **macOS (GUI):** ≈ 3–6 s. The `.app` bundle is roughly twice the CLI zip's size (~200 MB vs ~103 MB) and tkinter/customtkinter add initialization overhead. Same Gatekeeper story, applied to the whole `.app` bundle: right-click → **Open** on the `.app`, or `xattr -d com.apple.quarantine peekdocs-gui.app` to strip the whole bundle in one shot.
 
-Fine for ad-hoc searches; noticeable in rapid CLI shell loops or if you're relaunching the GUI many times per engagement. Batch-style CLI workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. The GUI is designed for longer interactive sessions — start it once at engagement start, work in it, close it at handoff. If the client machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives ≈ 0.2 s launches for both `peekdocs` (CLI) and `peekdocs-gui` — but that's a footprint on the client machine, which may not fit your engagement scope.
+Fine for ad-hoc searches; noticeable in rapid CLI shell loops or if you're relaunching the GUI many times per session. Batch-style CLI workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. The GUI is designed for longer interactive sessions — start it once at session start, work in it, close it at handoff. If the host machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives ≈ 0.2 s launches for both `peekdocs` (CLI) and `peekdocs-gui` — but that's a footprint on the host machine, which may not fit your scope.
 
 **5. Corporate Windows execution restrictions.** Corporate Windows machines often block `.exe` execution from removable drives via Group Policy or Windows Defender Controlled Folder Access. Verify with the client's IT team before assuming USB launch works. If blocked, options are: request a temporary whitelist, use `pipx install git+https://github.com/exbuf/peekdocs.git` on the client (adds a footprint on the client machine), or run peekdocs from a Downloads folder or network share that Group Policy permits.
 
