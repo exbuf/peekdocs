@@ -12,6 +12,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.62] — 2026-07-01
+
+### Docs
+- **New section: "Portable / consulting use — running peekdocs
+  from a USB stick"** (fc9fd98, ad3766b, `docs/USER_GUIDE.md`).
+  Documents the IT-consultant workflow of carrying peekdocs's
+  standalone binaries on a USB stick and running against a
+  client machine's drive without installing anything. Contents:
+  - **Common engagement types** — legacy knowledge extraction,
+    migration / cutover planning, due-diligence sweeps,
+    response-to-inquiry discovery, post-incident analytical
+    triage (with an explicit boundary against evidentiary /
+    forensic work).
+  - **Typical engagement command** — Windows and macOS/Linux
+    forms with `--output-dir` back to the USB, `--timestamp`,
+    `--no-index`, `-o docx,csv,json`. Cross-linked to the
+    audit-provenance worked example for the `--hash` pairing.
+  - **Four gotchas** — permissions (no privilege escalation),
+    cloud-output guard as a *feature* (confidentiality control
+    on OneDrive / Google Drive / iCloud / Dropbox targets),
+    zero-artifact hygiene (`peekdocs_` / `.peekdocs` prefix
+    cleanup commands for Windows PowerShell and macOS/Linux
+    `find`), startup tax + Gatekeeper (per-OS launch times +
+    quarantine-strip bypass).
+  - **What this is not** — not a forensic acquisition tool
+    (names FTK Imager / X-Ways / Autopsy as the right scope for
+    that need), not for adversarial endpoint-detection
+    environments, not a substitute for written authorization.
+  - Cross-linked from USER_GUIDE TOC and the "Where to Start"
+    navigation bullet at the top of the guide.
+
 ## [1.2.61] — 2026-07-01
 
 ### Added
