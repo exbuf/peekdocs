@@ -49,6 +49,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Headless servers and containers](#headless-servers-and-containers)
   - [Service accounts and file permissions](#service-accounts-and-file-permissions)
   - [Sharing collections across machines](#sharing-collections-across-machines)
+  - [Portable / consulting use — running peekdocs from a USB stick](#portable--consulting-use--running-peekdocs-from-a-usb-stick)
   - [Useful CLI references for IT](#useful-cli-references-for-it)
 - [Search Index (Optional)](#search-index-optional)
 - [Advanced search modes](#advanced-search-modes)
@@ -113,6 +114,7 @@ This is a long reference document. Skip directly to what you need:
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
 - **Running an audit / review engagement?** See [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance) for the SHA-256 baseline → citation → verify → diff workflow.
 - **Want real-time notifications when patterns appear in a shared folder?** See [A worked example: real-time pattern monitoring with `--watch`](#a-worked-example-real-time-pattern-monitoring-with---watch) — long-running `--watch` mode streaming NDJSON matches to a notification pipeline.
+- **Running peekdocs from a USB stick at a client site?** See [Portable / consulting use](#portable--consulting-use--running-peekdocs-from-a-usb-stick) — standalone-binary workflow, `--output-dir` to the USB, four gotchas that catch people out the first time.
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
 - **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
@@ -2039,6 +2041,77 @@ To ship a curated set of patterns to a fleet, distribute this file via your conf
 Saved searches and suites are per-folder (`<search-folder>/.peekdocs_collection.json`), so they travel with the data: copy the documents folder and the collection file goes with it.
 
 There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you need to enforce defaults across a fleet, push `~/.peekdocsrc` via your config-management tool.
+
+### Portable / consulting use — running peekdocs from a USB stick
+
+peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. That makes them portable in the "carry on a USB stick, run against a client machine's drive without installing anything" sense. This section covers the workflow shape and the operational gotchas that catch people out the first time.
+
+**Setup — done once:**
+
+Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and drop them onto the USB stick. Total footprint ≈ 300 MB for all three CLI binaries; another ≈ 500 MB if you want the GUI variants too. Optionally include an empty `peekdocs_reports/` folder on the USB for output.
+
+Verify each binary once, from a machine of the matching OS:
+
+```bash
+./peekdocs-cli-linux --check
+```
+
+**Typical engagement workflow — reports back to the USB, not the client drive:**
+
+At the client site, plug in the USB and run peekdocs against the client drive, redirecting reports to the USB with `--output-dir`:
+
+```bash
+# Windows — from Command Prompt at the USB root:
+E:\peekdocs-cli-windows.exe -r "quarterly forecast" ^
+    -d C:\Users\ClientName\Documents ^
+    --output-dir E:\peekdocs_reports ^
+    --timestamp -o docx,csv,json --no-index
+
+# macOS / Linux:
+./peekdocs-cli-macos -r "quarterly forecast" \
+    -d ~/Documents \
+    --output-dir /Volumes/CONSULT_USB/peekdocs_reports \
+    --timestamp -o docx,csv,json --no-index
+```
+
+The flags that matter for this workflow:
+
+- **`--output-dir`** → reports go to the USB, not the client drive. Zero-artifact engagement.
+- **`--timestamp`** → filenames get a UTC stamp so multiple runs never overwrite each other.
+- **`--no-index`** → skip building `.peekdocs.db` on the client drive. Slower on repeated searches, but leaves nothing behind. If you're doing many searches on the same folder, drop `--no-index` and use `peekdocs --index-clear` from that folder at the end of the engagement to delete the index.
+- **`-o docx,csv,json`** → Word for readability, CSV for spreadsheet handoff, JSON for archival, diffing, and provenance (pair with `--hash` for the provenance workflow — see [audit engagement provenance](#a-worked-example-audit-engagement-provenance)).
+
+#### Four gotchas worth knowing
+
+**1. Permissions.** peekdocs runs as the invoking user — no privilege escalation. Reading privileged locations (`C:\Windows`, `/private/var/db`, other users' home directories, Exchange server files) requires launching the binary from an elevated shell (Windows: right-click → Run as administrator; macOS/Linux: `sudo`). Without elevation, peekdocs skips unreadable files and logs them to `peekdocs_errors.log` but continues the rest of the search. See [Service accounts and file permissions](#service-accounts-and-file-permissions) for the full behavior.
+
+**2. Cloud-output guard becomes a feature.** If the folder you pointed `--output-dir` at turns out to be inside OneDrive / Google Drive / iCloud Drive / Dropbox on the client machine, peekdocs refuses to write reports there by default. For consultant work this is exactly the confidentiality control you want — a client's OneDrive-synced Documents folder would otherwise silently upload your reports to Microsoft's servers. The CLI exits code 2 with a clear message; the GUI shows a modal (redirect / write anyway / cancel). To confirm intent for one run, pass `--allow-cloud-output`; to permanently redirect to `~/peekdocs_reports` without prompting, set `redirect_cloud_output=true` in `~/.peekdocsrc`.
+
+**3. Zero-artifact hygiene.** Every file peekdocs creates carries the `peekdocs_` (visible outputs) or `.peekdocs` (hidden state) prefix, with no exceptions. If you did *not* pass `--no-index`, one command finds and removes everything peekdocs left on the client drive before you unplug:
+
+```bash
+# macOS / Linux:
+find /path/to/client/folder -name "peekdocs_*" -o -name ".peekdocs*" -delete
+
+# Windows PowerShell:
+Get-ChildItem C:\path\to\client\folder -Recurse -Include "peekdocs_*",".peekdocs*" | Remove-Item -Force
+```
+
+Alternatively, `peekdocs --clear-all` from the search folder removes all peekdocs artifacts (results, saved reports, error log, index) in one shot.
+
+**4. Startup tax and Gatekeeper.** PyInstaller bundles unpack their contents to a temp directory on every invocation. Cost per launch:
+
+- **Linux:** ≈ 0.5 s
+- **Windows:** ≈ 1–2 s (SmartScreen may add a first-run prompt)
+- **macOS:** ≈ 1–3 s (Gatekeeper adds a first-launch bump since peekdocs is unsigned — right-click → **Open**, or `xattr -d com.apple.quarantine peekdocs-cli-macos` to strip the quarantine flag)
+
+Fine for ad-hoc searches; noticeable in rapid shell loops. Batch-style workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. If the client machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives the ≈ 0.2 s launch time — but that's a footprint on the client machine, which may not fit your engagement scope.
+
+#### What this is not
+
+- **Not a forensic acquisition tool.** peekdocs reads files; it does not image drives, capture memory, preserve deleted content, or produce court-admissible acquisition logs. For those needs, reach for FTK Imager, X-Ways, Autopsy, or another forensic suite. peekdocs is what you use *after* an image has been mounted, or on a live system when the engagement is analytical rather than evidentiary.
+- **Not for adversarial environments.** Client machines with active endpoint-detection software may flag peekdocs's PyInstaller bundle as unrecognized, or may block USB execution altogether. Coordinate with the client's IT team before the engagement.
+- **Not a substitute for authorization.** Running peekdocs against a client's drive without explicit written authorization can breach engagement terms. peekdocs is a tool; scope of use is between you and the client.
 
 ### Useful CLI references for IT
 
