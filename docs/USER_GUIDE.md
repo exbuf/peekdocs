@@ -2106,7 +2106,7 @@ The common thread across these engagements: unfamiliar corpus, mixed file format
 
 **Setup — done once:**
 
-Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and drop them onto the USB stick. Total footprint ≈ 300 MB for all three CLI binaries; another ≈ 500 MB if you want the GUI variants too. Optionally include an empty `peekdocs_reports/` folder on the USB for output.
+Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and drop them onto the USB stick. Total footprint ≈ 300 MB for all three CLI binaries; another ≈ 500 MB if you want the GUI variants too. **Carry the CLI for scriptable/repeatable engagements** (wrapper script drives the whole run; easy to demonstrate transparency to the client — "here's exactly what I ran"). **Carry the GUI for interactive exploration** on the client's machine — drag-select folders, browse the Matched Files popup, review matches side-by-side with source documents, or let the client watch you work in a familiar-looking window rather than a terminal. Both is fine if you'll do a mix. Optionally include an empty `peekdocs_reports/` folder on the USB for output.
 
 Verify each binary once, from a machine of the matching OS:
 
@@ -2157,13 +2157,16 @@ Get-ChildItem C:\path\to\client\folder -Recurse -Include "peekdocs_*",".peekdocs
 
 Alternatively, `peekdocs --clear-all` from the search folder removes all peekdocs artifacts (results, saved reports, error log, index) in one shot.
 
-**4. Startup tax and Gatekeeper.** PyInstaller bundles unpack their contents to a temp directory on every invocation. Cost per launch:
+**4. Startup tax and Gatekeeper.** PyInstaller bundles unpack their contents to a temp directory on every invocation. The GUI variants unpack more (larger bundle, tkinter/customtkinter init on top) and inherit the same OS security prompts on first launch — Gatekeeper on macOS, SmartScreen on Windows — because peekdocs is unsigned regardless of CLI vs GUI.
 
-- **Linux:** ≈ 0.5 s
-- **Windows:** ≈ 1–2 s (SmartScreen may add a first-run prompt)
-- **macOS:** ≈ 1–3 s (Gatekeeper adds a first-launch bump since peekdocs is unsigned — right-click → **Open**, or `xattr -d com.apple.quarantine peekdocs-cli-macos` to strip the quarantine flag)
+Cost per launch:
 
-Fine for ad-hoc searches; noticeable in rapid shell loops. Batch-style workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. If the client machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives the ≈ 0.2 s launch time — but that's a footprint on the client machine, which may not fit your engagement scope.
+- **Linux (CLI):** ≈ 0.5 s. **GUI** adds tkinter/customtkinter initialization overhead on top.
+- **Windows (CLI or GUI):** ≈ 1–2 s. The two Windows binaries are near-identical size (~78 MB each), so startup cost is close to parity. SmartScreen may add a first-run prompt for either variant — **More info → Run anyway**.
+- **macOS (CLI):** ≈ 1–3 s. Gatekeeper adds a first-launch bump since peekdocs is unsigned — right-click → **Open**, or `xattr -d com.apple.quarantine peekdocs-cli-macos` to strip the quarantine flag.
+- **macOS (GUI):** ≈ 3–6 s. The `.app` bundle is roughly twice the CLI zip's size (~200 MB vs ~103 MB) and tkinter/customtkinter add initialization overhead. Same Gatekeeper story, applied to the whole `.app` bundle: right-click → **Open** on the `.app`, or `xattr -d com.apple.quarantine peekdocs-gui.app` to strip the whole bundle in one shot.
+
+Fine for ad-hoc searches; noticeable in rapid CLI shell loops or if you're relaunching the GUI many times per engagement. Batch-style CLI workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. The GUI is designed for longer interactive sessions — start it once at engagement start, work in it, close it at handoff. If the client machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives ≈ 0.2 s launches for both `peekdocs` (CLI) and `peekdocs-gui` — but that's a footprint on the client machine, which may not fit your engagement scope.
 
 #### What this is not
 
