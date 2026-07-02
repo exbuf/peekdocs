@@ -240,6 +240,8 @@ See the worked example in [USER_GUIDE.md § A worked example: audit engagement p
 
 See the worked example in [USER_GUIDE.md § A worked example: nightly source-tree watch](docs/USER_GUIDE.md#a-worked-example-nightly-source-tree-watch), which layers this composition with the provenance-audit one to build a full "detect + notify + preserve evidence" workflow.
 
+*For every flag and composition above as a copy-pasteable one-liner, see the [Complete CLI Reference](docs/USER_GUIDE.md#complete-cli-reference) in USER_GUIDE — 197+ commands, grouped by feature, searchable with `Cmd+F` / `Ctrl+F`.*
+
 &nbsp;
 
 > **Local-only by design.** No network calls, no telemetry, no cloud, no account. peekdocs runs entirely on your machine with your normal user permissions — no admin or root required, and it works fine on air-gapped systems with no internet connection.

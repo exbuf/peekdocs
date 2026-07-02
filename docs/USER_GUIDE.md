@@ -29,7 +29,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Notes](#notes)
   - [Regex Collection Use Cases](#regex-collection-use-cases)
   - [Search Suite Use Cases](#search-suite-use-cases)
-  - [Command Examples](#command-examples)
+  - [Complete CLI Reference](#complete-cli-reference)
 - [Output](#output)
   - [Search Modes and Their Reports](#search-modes-and-their-reports)
   - [Results Preview vs. Reports](#results-preview-vs-reports)
@@ -308,7 +308,7 @@ Progress output goes to stdout (the spinner / progress bar) and stderr (the "Sca
 ### What's next?
 
 - See the [Flag Use Summary](#flag-use-summary) for a complete table of all options
-- See the [Command Examples](#command-examples) table for 150+ example commands
+- See the [Complete CLI Reference](#complete-cli-reference) — the canonical one-liner-per-feature reference (197+ commands, every documented flag)
 - Try the GUI for a visual interface: just type `peekdocs-gui`
 - Read [Your First Advanced Search](#your-first-advanced-search--step-by-step) for guided walkthroughs of regex, fuzzy, range queries, and more
 - Ready for automation? Read [Automation and IT Use](#automation-and-it-use) for `--diff`, `--hash`, `--watch`, cron pairings, and three worked examples (nightly source-tree watch, audit engagement provenance, real-time pattern monitoring)
@@ -677,7 +677,7 @@ For a more detailed peekdocs feature tour, see [Why peekdocs?](../README.md#why-
 
 ## Usage
 
-If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see [CONTRIBUTING.md](../CONTRIBUTING.md#development-setup)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run peekdocs with your search terms. See the [Command Examples](#command-examples) table for usage.
+If you installed with pipx (Option A), peekdocs is always ready — just open any terminal. If you used the manual install (Option B), activate the virtual environment first each time you open a new terminal (`source venv/bin/activate` on Mac/Linux or `venv\Scripts\activate` on Windows — see [CONTRIBUTING.md](../CONTRIBUTING.md#development-setup)) — you'll see `(venv)` appear in your prompt. Then navigate to the folder containing your documents and run peekdocs with your search terms. See the [Complete CLI Reference](#complete-cli-reference) for the canonical one-liner-per-feature reference.
 
 ### Phrase search (quoted terms)
 
@@ -1058,7 +1058,9 @@ The `if __name__ == "__main__":` guard is **required** on macOS and Windows — 
 
 The CLI equivalent is the shell-loop pattern shown above (`for s in ... ; do peekdocs --suite "$s" ; done`), which produces one report per suite rather than one combined report. The GUI multi-run is the only path that fuses several suites into a single combined report; if you need that from the CLI, fall back to the Python API and aggregate the `SuiteResult` objects yourself.
 
-### Command Examples
+### Complete CLI Reference
+
+This is the canonical CLI reference — every documented flag with a copy-pasteable one-liner, grouped by feature. 197+ commands total, covering the core search surface (basic, filter, regex, boolean, range, index), the automation surface (`--suite`, `--watch`, `--diff`, `--hash`, `--on-match`, cloud-output guard, `--dry-run`, `--runs`), and the three named compositions from the README's [How these compose](../README.md#how-these-compose) section. Search this table with your terminal's find (Cmd+F / Ctrl+F) for a flag or feature name — the whole CLI is here in one place.
 
 | # | Search Type | Command |
 |---|-------------|---------|
@@ -1284,6 +1286,46 @@ The CLI equivalent is the shell-loop pattern shown above (`for s in ... ; do pee
 | 162 | Show version | `peekdocs -v` |
 | 163 | Show help | `peekdocs -h` |
 | 164 | Show help (no arguments) | `peekdocs` |
+| | **Search Suites (CLI)** | |
+| 165 | List all known suites | `peekdocs --list-suites` |
+| 166 | Rescan for suites in ~/Documents and ~/Desktop | `peekdocs --list-suites --rescan` |
+| 167 | Run a saved suite by name (auto-locates folder) | `peekdocs --suite "My Suite"` |
+| 168 | Run a suite by full path | `peekdocs --suite ~/Documents/Contracts/"Q4 Review"` |
+| 169 | Run a suite with UTC-stamped filenames | `peekdocs --suite "My Suite" --timestamp` |
+| 170 | Suite run with TXT + DOCX report | `peekdocs --suite "My Suite" -o docx` |
+| | **Folder Watcher (`--watch`)** — long-running mode, NDJSON to stdout | |
+| 171 | Watch a folder with a saved regex collection | `peekdocs --watch --regex-collection "Examples" -d ~/downloads` |
+| 172 | Watch recursively into subfolders | `peekdocs --watch --regex-collection "Examples" -d ~/repo -r` |
+| 173 | Pipe NDJSON matches to `jq` for shaping | `peekdocs --watch --regex-collection "Examples" -d ~/docs -r \| jq -c '{file,line,pattern_name}'` |
+| 174 | Redirect the NDJSON stream to a log file | `peekdocs --watch --regex-collection "Examples" -d ~/docs -r > /var/log/matches.ndjson` |
+| 175 | Watch, filter for one pattern via `jq`, then notify | `peekdocs --watch --regex-collection "docs_hygiene" -r \| jq -c 'select(.pattern_name=="deprecated-feature")' \| while read l; do notify-send "$(echo $l \| jq -r .file)"; done` |
+| | **Content-Fingerprint Diff (`--diff` + `--hash`)** | |
+| 176 | Capture a hashed baseline (single search) | `peekdocs --hash --stdout budget > baseline.json` |
+| 177 | Capture a hashed baseline (regex collection, recursive) | `peekdocs --regex-collection "patterns" --hash --stdout -r > baseline.json` |
+| 178 | Compare two snapshots (new / removed / changed / modified) | `peekdocs --diff baseline.json current.json` |
+| 179 | Diff as machine-readable JSON | `peekdocs --diff baseline.json current.json --json` |
+| 180 | Count new files across the diff | `peekdocs --diff baseline.json current.json --json \| jq '.new \| length'` |
+| 181 | Filter the diff for large delta changes | `peekdocs --diff baseline.json current.json --json \| jq '.changed[] \| select(.delta > 5)'` |
+| | **Notification Hook (`--on-match`)** — fires on exit 0, batch searches only (not `--watch`) | |
+| 182 | Fire a shell script when matches are found | `peekdocs --regex-collection "patterns" --on-match /usr/local/bin/notify.sh` |
+| 183 | Persist a hook default across every future run | `peekdocs --config on_match=/usr/local/bin/notify.sh` |
+| 184 | Disable the hook for one run | `peekdocs --on-match "" --regex-collection "patterns"` |
+| 185 | Substitute a different hook for one run | `peekdocs --on-match /tmp/alt-notify.sh --regex-collection "patterns"` |
+| | **Cloud-Output Guard** — override / configure the sticky redirect | |
+| 186 | One-off override: write into a cloud-synced folder anyway | `peekdocs --output-dir ~/OneDrive --allow-cloud-output budget` |
+| 187 | Persistent redirect (silent, never prompts) | `peekdocs --config redirect_cloud_output=true` |
+| | **Preflight and Structured Logs** | |
+| 188 | Dry-run: count files that would be searched, no content read | `peekdocs --dry-run budget` |
+| 189 | Dry-run as JSON | `peekdocs --dry-run --stdout budget` |
+| 190 | Last 20 search runs (readable table) | `peekdocs --runs` |
+| 191 | Last 100 runs | `peekdocs --runs 100` |
+| 192 | Raw JSONL for piping into a log analyzer | `peekdocs --runs --json` |
+| | **Compositions — the pairings from the README's "How these compose" section** | |
+| 193 | **Live pattern sweep** — `--watch` + `--regex-collection` + downstream notify (see [worked example](#a-worked-example-real-time-pattern-monitoring-with---watch)) | `peekdocs --watch --regex-collection "docs_hygiene" -r \| while read l; do osascript -e "display notification \"$(echo $l \| jq -r .pattern_name)\""; done` |
+| 194 | **Provenance audit** — `--diff` + `--hash` baseline → current → compare (see [worked example](#a-worked-example-audit-engagement-provenance)) | `peekdocs --regex-collection "engagement" --hash --stdout -r > base.json && peekdocs --regex-collection "engagement" --hash --stdout -r > now.json && peekdocs --diff base.json now.json` |
+| 195 | **Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection` + `--timestamp` (see [worked example](#a-worked-example-nightly-source-tree-watch)) | `peekdocs --regex-collection "patterns" -r --timestamp --output-dir /var/log/peekdocs` |
+| 196 | Scheduled scan with match-only notification | `peekdocs --regex-collection "patterns" -r --timestamp --on-match /usr/local/bin/alert.sh` |
+| 197 | Scheduled scan with hash provenance for later diffing | `peekdocs --regex-collection "patterns" -r --hash --stdout --timestamp > /var/log/peekdocs/scan_$(date +%Y%m%d).json` |
 
 ## Output
 
