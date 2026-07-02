@@ -12,6 +12,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.64] — 2026-07-02
+
+### Added
+- **`docs/images/getting-started.gif`** (09e35a2, 12.7 MB) — the
+  first-time on-ramp clip, positioned as the very first video
+  in the "Watch peekdocs in action" section before the four
+  mode/discoverability clips. Three-mode primer's closing
+  sentence updated to lead readers into the new sequence
+  (getting-started → hero → Suites → Regex → settings tour).
+
+### Docs
+- **"Who Is It For?" list reorganized for GitHub/PyPI adopters**
+  (183a5e9). The list opened with "Home user" (least likely
+  PyPI/GitHub discoverer) and buried the technical roles
+  (AI/ML engineer, Engineer, Developer) at positions #10–12.
+  Reordered so Developer / programmer, Sysadmin, AI/ML engineer,
+  and IT consultant land at the top; less technical roles
+  (Small business owner, Office worker) at the bottom. Dropped
+  two bullets — **Home user** (its "everybody is a home user"
+  framing now lives in the section's opening paragraph; tax-
+  search scenario folded into Small business owner) and
+  **Email archives** (was a file type, not a role; already in
+  the intro's file-type list). Enhanced two one-liners:
+  **Sysadmin** gained `--watch` NDJSON streaming and native
+  archive-format handling detail; **IT consultant** gained
+  the standalone-binary-on-USB workflow and a cross-link to
+  the Portable / consulting use section.
+- **"Blue button" disambiguation in three-mode primer**
+  (9609db7). Standard Search was described as "(blue button)"
+  but the Step 4 row has two blue buttons — the large Run
+  Standard Search button and the smaller Search Wizard square
+  next to it. Rewrote the parenthetical to distinguish by
+  size + position and briefly identify the Wizard as a form-
+  builder on-ramp with 20 pre-built search-type forms, not a
+  fourth mode.
+- **Pausable MP4 versions of the demo clips linked from the
+  README** (4acebe6). One-sentence italic note between the
+  primer's closing line and the first clip points readers at
+  the maintainer's personal site (robertdschoening.com/peekdocs)
+  where every clip is also available as a pausable, seekable
+  MP4. Bidirectional discovery: the repo's homepageUrl has
+  always pointed at the personal site; this closes the loop.
+
 ## [1.2.63] — 2026-07-01
 
 ### Docs
