@@ -12,6 +12,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.61] — 2026-07-01
+
+### Added
+- **`CODE_OF_CONDUCT.md`** (118c866). Contributor Covenant 2.1,
+  with the maintainer email as the enforcement contact. Closes
+  the last GitHub community-standards gap (CONTRIBUTING.md and
+  SECURITY.md already existed).
+
+### Docs
+- **Getting Started section reconciled against current CLI
+  output** (118c866, `docs/USER_GUIDE.md`). Four fixes so the
+  walkthrough matches what a new user will actually see:
+  - New bullet in "Where to Start" pointing to the third worked
+    example (real-time pattern monitoring with `--watch`) added
+    in c71a821 — was cross-linked from the README but not from
+    USER_GUIDE's top-of-guide navigation.
+  - `samples/engineering_test` extension count corrected from
+    "41 extensions" to "38 extensions" (verified by enumeration).
+  - Example CLI output at Step 3 rewritten to match current
+    output shape: ordering swapped from
+    `Files searched: X — Found N` to
+    `Found N match(es) in M file(s). Files searched: X (Y KB).`,
+    and the per-file match count breakdown added.
+  - Regex example at line 263 swapped from `\d{3}-\d{2}-\d{4}`
+    ("a 9-digit ID with dashes") to `\bJIRA-\d+\b` ("a JIRA
+    ticket ID like `JIRA-1234`"). The prior pattern was
+    technically not naming SSN, but it's recognizably SSN-shaped
+    to a US reader — a boundary case under the "no PII categories
+    in docs" voice rule. The JIRA pattern is a better fit for the
+    peekdocs audience.
+- **README freshness marker bumped** (118c866, `README.md:10`) —
+  "Actively maintained — last reviewed June 2026" → July 2026.
+
+### Changed
+- **GitHub repo topics extended** (live via `gh repo edit`, not
+  in the repo tree). Added 8 topics — `batch-analysis`,
+  `cross-platform`, `local-only`, `mit-license`, `no-cloud`,
+  `ocr`, `regex`, `report-generation` — bringing the total from
+  10 to 18 of 20 allowed. Improves discoverability via GitHub's
+  topic-based search and trending pages.
+
 ## [1.2.60] — 2026-07-01
 
 ### Docs
