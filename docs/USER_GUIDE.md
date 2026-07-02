@@ -732,7 +732,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--no-docx` | **No-op as of 1.2.6** — DOCX is opt-in via `-o docx`, so this flag is no longer needed. Kept as a tolerated no-op for one release so any existing scripts that pass it don't error. Remove from your scripts; will be removed in a future release |
 | `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#prerequisites)) |
 | `-p N` (word-proximity) | Word proximity — find terms within N words of each other (same line) |
-| `-P N` (line-proximity) | Line proximity — a genuinely useful feature, especially for programmers searching code. Find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx), a line is a paragraph; for Excel, a line is a row; for PDF, a line is a text block (variable). Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
+| `-P N` (line-proximity) | Line proximity — a genuinely useful feature, especially for programmers searching code. Find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx) and PDF, a line is a paragraph; for Excel, a line is a row. Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
 | `-qq` (minimal) | Minimal output — show only the Found/Elapsed summary lines (no banner, no file list, no warnings, no report paths). Useful for scripting |
 | `-R SPEC` / `--range` | Range filter — filter by value ranges in content or file metadata. Repeatable. See [Range Queries](#range-queries) |
@@ -1324,8 +1324,8 @@ This is the canonical CLI reference — every documented flag with a copy-pastea
 | 193 | **Live pattern sweep** — `--watch` + `--regex-collection` + downstream notify (see [worked example](#a-worked-example-real-time-pattern-monitoring-with---watch)) | `peekdocs --watch --regex-collection "docs_hygiene" -r \| while read l; do osascript -e "display notification \"$(echo $l \| jq -r .pattern_name)\""; done` |
 | 194 | **Provenance audit** — `--diff` + `--hash` baseline → current → compare (see [worked example](#a-worked-example-audit-engagement-provenance)) | `peekdocs --regex-collection "engagement" --hash --stdout -r > base.json && peekdocs --regex-collection "engagement" --hash --stdout -r > now.json && peekdocs --diff base.json now.json` |
 | 195 | **Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection` + `--timestamp` (see [worked example](#a-worked-example-nightly-source-tree-watch)) | `peekdocs --regex-collection "patterns" -r --timestamp --output-dir /var/log/peekdocs` |
-| 196 | Scheduled scan with match-only notification | `peekdocs --regex-collection "patterns" -r --timestamp --on-match /usr/local/bin/alert.sh` |
-| 197 | Scheduled scan with hash provenance for later diffing | `peekdocs --regex-collection "patterns" -r --hash --stdout --timestamp > /var/log/peekdocs/scan_$(date +%Y%m%d).json` |
+| 196 | Scheduled pattern scan — variant with match-only notification (extends row 195) | `peekdocs --regex-collection "patterns" -r --timestamp --on-match /usr/local/bin/alert.sh` |
+| 197 | Scheduled pattern scan — variant with hash provenance for later diffing (extends row 195) | `peekdocs --regex-collection "patterns" -r --hash --stdout --timestamp > /var/log/peekdocs/scan_$(date +%Y%m%d).json` |
 
 ## Output
 
