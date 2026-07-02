@@ -7,7 +7,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
-<p align="center"><sub><em>Actively maintained — last reviewed June 2026.</em></sub></p>
+<p align="center"><sub><em>Actively maintained — last reviewed July 2026.</em></sub></p>
 
 <details>
 <summary>🌍 <strong><img src="https://flagcdn.com/w40/es.png" width="32" alt="ES"> <img src="https://flagcdn.com/w40/fr.png" width="32" alt="FR"> <img src="https://flagcdn.com/w40/de.png" width="32" alt="DE"> <img src="https://flagcdn.com/w40/jp.png" width="32" alt="JP"> <img src="https://flagcdn.com/w40/cn.png" width="32" alt="CN"> <img src="https://flagcdn.com/w40/br.png" width="32" alt="BR"></strong> — GUI available in 7 languages — click here for an intro in yours</summary>

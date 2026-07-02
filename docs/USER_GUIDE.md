@@ -112,6 +112,7 @@ This is a long reference document. Skip directly to what you need:
 - **Integrating from Python?** Read [Python API Reference](#python-api-reference) and the full [API Reference](API.md).
 - **Setting up automation or scheduled scans?** Start with [Automation and IT Use](#automation-and-it-use), especially the [worked example](#a-worked-example-nightly-source-tree-watch).
 - **Running an audit / review engagement?** See [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance) for the SHA-256 baseline → citation → verify → diff workflow.
+- **Want real-time notifications when patterns appear in a shared folder?** See [A worked example: real-time pattern monitoring with `--watch`](#a-worked-example-real-time-pattern-monitoring-with---watch) — long-running `--watch` mode streaming NDJSON matches to a notification pipeline.
 - **Looking up a flag or term?** See [Flag Use Summary](#flag-use-summary) and the [Glossary](#glossary).
 - **Hit an error?** First run `peekdocs --check` (CLI) or open **Tools → System Check** in the GUI — both run the same diagnostic. If that's clean and you're still stuck, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common questions and fixes across Windows, macOS, and Linux.
 
@@ -121,7 +122,7 @@ If you've never used a terminal before, this section walks you through everythin
 
 **Prefer not to use the terminal?** That's completely fine — run `peekdocs-gui` for a point-and-click interface instead. See [GUI Mode](#gui-mode-graphical-user-interface).
 
-**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 41 extensions in total) — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
+**Want to try peekdocs on a sample corpus first?** Clone the repo and `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total) — no setup beyond installing peekdocs. Once you've seen it work, point peekdocs at your own folders.
 
 ### Which installation method did you use?
 
@@ -203,13 +204,16 @@ peekdocs budget -o docx
 The `-o docx` flag asks peekdocs to also write a Word report alongside the default TXT report — convenient because Word renders the highlighted matches in yellow. Without `-o docx`, only the TXT file is produced. peekdocs will scan every supported file in the folder and show a summary:
 
 ```
-Files searched: 47 (12.34 MB) — Found 23 match(es).
+Found 23 match(es) in 15 file(s). Files searched: 47 (12.34 MB).
 Elapsed time: 0.18 seconds, Cores used: 4 of 8
+  invoice_2024_q1.docx: 3
+  budget_notes.md: 5
+  quarterly_forecast.xlsx: 15
 Results ==> /Users/YourName/Documents
   peekdocs_standard_results.txt (5.67 KB), peekdocs_standard_results.docx (42.31 KB)
 ```
 
-That's it — you just searched 47 files in 0.18 seconds. Your results are saved in two files.
+That's it — you just searched 47 files in 0.18 seconds. Your results are saved in two files, with per-file match counts summarized in the terminal.
 
 ### Step 4: Open your results
 
@@ -256,9 +260,9 @@ peekdocs -r budget
 peekdocs -t pdf,docx budget
 ```
 
-**Search for a regex pattern (e.g., a 9-digit ID with dashes):**
+**Search for a regex pattern (e.g., a JIRA ticket ID like `JIRA-1234`):**
 ```bash
-peekdocs -x "\d{3}-\d{2}-\d{4}"
+peekdocs -x "\bJIRA-\d+\b"
 ```
 
 **Find files that are MISSING a required term:**
