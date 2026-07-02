@@ -2044,7 +2044,21 @@ There is no system-wide config file today; `~/.peekdocsrc` is per-user. If you n
 
 ### Portable / consulting use — running peekdocs from a USB stick
 
-peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. That makes them portable in the "carry on a USB stick, run against a client machine's drive without installing anything" sense. This section covers the workflow shape and the operational gotchas that catch people out the first time.
+peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.zip`, `peekdocs-cli-linux`) are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. That makes them portable in the "carry on a USB stick, run against a client machine's drive without installing anything" sense. This section covers the engagement types this workflow fits, the workflow shape itself, and the operational gotchas that catch people out the first time.
+
+#### Common engagement types
+
+1. **Legacy knowledge extraction.** Client has years of documents on a file server nobody remembers organizing. The engagement calls for finding "everything the organization has said about system X / vendor Y / technology Z" — old contracts, deprecated SOPs, undocumented dependencies. peekdocs covers Word, PDF, Excel, email, and OCR'd scans in one pass; native tools like `grep` and `findstr` miss the binary formats.
+
+2. **Migration / cutover planning.** The client is moving from one system to another — SharePoint to a new DMS, a legacy line-of-business app to a modern one, one vendor to another — and needs every document that references the old system, old URLs, old paths, old names before cutover. A regex collection covering the "before" strings produces a report of everything that will need updating.
+
+3. **Due-diligence document sweeps.** M&A, divestiture, or vendor-risk review — the buyer or reviewer asks for every document referencing a specific technology, supplier, or party. A search suite delivers a dated report per term; `--hash` pins each finding's content to a SHA-256 for later provenance (see [audit engagement provenance](#a-worked-example-audit-engagement-provenance)).
+
+4. **Response-to-inquiry document discovery.** The client faces an audit, a subpoena, or an internal review and needs to find responsive documents fast. Regex collections for the case-specific terms plus `-B` / `-A` context lines produce workpaper-quality reports.
+
+5. **Post-incident analytical triage** (analytical, not evidentiary). After a security event, before the forensic team images the drives, the consultant answers "which documents mention the affected system, where do they live, how many are there?" peekdocs handles the analytical scoping; forensic tools handle the evidentiary side. See the "Not a forensic acquisition tool" note further down.
+
+The common thread across these engagements: unfamiliar corpus, mixed file formats, short window, and often a client-site machine the consultant can't install software on. USB deployment sidesteps the install-friction (IT policy, ticketing, security review) that makes "just install it" impractical on many client sites.
 
 **Setup — done once:**
 
