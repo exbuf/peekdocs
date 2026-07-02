@@ -2104,15 +2104,60 @@ peekdocs's standalone binaries (`peekdocs-cli-windows.exe`, `peekdocs-cli-macos.
 
 The common thread across these engagements: unfamiliar corpus, mixed file formats, short window, and often a client-site machine the consultant can't install software on. USB deployment sidesteps the install-friction (IT policy, ticketing, security review) that makes "just install it" impractical on many client sites.
 
-**Setup — done once:**
+**Preparing the USB — one-time setup:**
 
-Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and drop them onto the USB stick. Total footprint ≈ 300 MB for all three CLI binaries; another ≈ 500 MB if you want the GUI variants too. **Carry the CLI for scriptable/repeatable engagements** (wrapper script drives the whole run; easy to demonstrate transparency to the client — "here's exactly what I ran"). **Carry the GUI for interactive exploration** on the client's machine — drag-select folders, browse the Matched Files popup, review matches side-by-side with source documents, or let the client watch you work in a familiar-looking window rather than a terminal. Both is fine if you'll do a mix. Optionally include an empty `peekdocs_reports/` folder on the USB for output.
+Grab the standalone binaries for the platforms you may encounter (Windows / macOS / Linux) from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest). These are PyInstaller bundles — Python, every dependency, and peekdocs itself in one executable. **You do not carry Python on the USB and you do not install Python on the client machine.** The whole point of the standalone binaries is that they are self-contained; a separate portable-Python distribution is not part of this workflow.
 
-Verify each binary once, from a machine of the matching OS:
+Six binaries plus one checksums file:
+
+- `peekdocs-cli-windows.exe` (~78 MB), `peekdocs-cli-macos.zip` (~103 MB), `peekdocs-cli-linux` (~114 MB)
+- `peekdocs-gui-windows.exe` (~78 MB), `peekdocs-gui-macos.zip` (~200 MB), `peekdocs-gui-linux` (~114 MB)
+- `peekdocs_SHA256SUMS.txt` (~530 bytes)
+
+**Carry the CLI for scriptable/repeatable engagements** (wrapper script drives the whole run; easy to demonstrate transparency to the client — "here's exactly what I ran"). **Carry the GUI for interactive exploration** on the client's machine — drag-select folders, browse the Matched Files popup, review matches side-by-side with source documents, or let the client watch you work in a familiar-looking window rather than a terminal. Both is fine if you'll do a mix — total footprint ≈ 800 MB for all six binaries.
+
+**Verify SHA-256 before copying to USB:**
+
+```bash
+# macOS / Linux — verify all six binaries at once
+shasum -a 256 -c peekdocs_SHA256SUMS.txt
+
+# Windows PowerShell — verify one at a time and compare
+Get-FileHash peekdocs-cli-windows.exe -Algorithm SHA256
+# then compare against the corresponding SHA256SUMS.txt entry
+```
+
+Checksums are the honest defense against "did my USB get tampered with between download and deployment" — treat this as habit, not paranoia.
+
+**On macOS, unzip the `.app` bundles on your own Mac before copying to USB.** Two reasons: (a) skips unzip friction on the client machine, (b) ExFAT-formatted USB drives (typical cross-platform) don't preserve macOS extended attributes anyway, so the quarantine flag from the browser download often doesn't survive the copy to USB — running the pre-unzipped `.app` from the USB may not trigger Gatekeeper at all. The app is still unsigned, so aggressive corporate SIP/notarization policies will block launch regardless.
+
+**Recommended USB structure:**
+
+```
+/peekdocs-usb/
+  windows/
+    peekdocs-cli-windows.exe
+    peekdocs-gui-windows.exe
+  macos/
+    peekdocs-cli-macos              (unzipped single binary)
+    peekdocs-gui-macos.app/         (unzipped .app bundle)
+  linux/
+    peekdocs-cli-linux
+    peekdocs-gui-linux
+  peekdocs_SHA256SUMS.txt
+  peekdocs_reports/                 (empty; --output-dir target)
+  scripts/                          (optional per-engagement wrappers)
+```
+
+**Verify each binary once from a matched-OS machine** before the engagement, not at the client site:
 
 ```bash
 ./peekdocs-cli-linux --check
 ```
+
+`--check` confirms Python deps and Tesseract availability. Missing Tesseract is not fatal (exit 0) but flags the limitation — see Gotcha 6 below.
+
+**Rehearse the actual command on a scratch folder** matching the client's OS if possible. Catches "client paths have spaces" or "the client's SmartScreen is more aggressive than mine" issues before you're on the clock.
 
 **Typical engagement workflow — reports back to the USB, not the client drive:**
 
@@ -2139,7 +2184,7 @@ The flags that matter for this workflow:
 - **`--no-index`** → skip building `.peekdocs.db` on the client drive. Slower on repeated searches, but leaves nothing behind. If you're doing many searches on the same folder, drop `--no-index` and use `peekdocs --index-clear` from that folder at the end of the engagement to delete the index.
 - **`-o docx,csv,json`** → Word for readability, CSV for spreadsheet handoff, JSON for archival, diffing, and provenance (pair with `--hash` for the provenance workflow — see [audit engagement provenance](#a-worked-example-audit-engagement-provenance)).
 
-#### Four gotchas worth knowing
+#### Six gotchas worth knowing
 
 **1. Permissions.** peekdocs runs as the invoking user — no privilege escalation. Reading privileged locations (`C:\Windows`, `/private/var/db`, other users' home directories, Exchange server files) requires launching the binary from an elevated shell (Windows: right-click → Run as administrator; macOS/Linux: `sudo`). Without elevation, peekdocs skips unreadable files and logs them to `peekdocs_errors.log` but continues the rest of the search. See [Service accounts and file permissions](#service-accounts-and-file-permissions) for the full behavior.
 
@@ -2167,6 +2212,10 @@ Cost per launch:
 - **macOS (GUI):** ≈ 3–6 s. The `.app` bundle is roughly twice the CLI zip's size (~200 MB vs ~103 MB) and tkinter/customtkinter add initialization overhead. Same Gatekeeper story, applied to the whole `.app` bundle: right-click → **Open** on the `.app`, or `xattr -d com.apple.quarantine peekdocs-gui.app` to strip the whole bundle in one shot.
 
 Fine for ad-hoc searches; noticeable in rapid CLI shell loops or if you're relaunching the GUI many times per engagement. Batch-style CLI workflows benefit from `--suite` (many saved searches in one invocation) or `--regex-collection` (many patterns in one invocation) so the startup tax is amortized. The GUI is designed for longer interactive sessions — start it once at engagement start, work in it, close it at handoff. If the client machine has Python 3.10+ available, `pipx install git+https://github.com/exbuf/peekdocs.git` gives ≈ 0.2 s launches for both `peekdocs` (CLI) and `peekdocs-gui` — but that's a footprint on the client machine, which may not fit your engagement scope.
+
+**5. Corporate Windows execution restrictions.** Corporate Windows machines often block `.exe` execution from removable drives via Group Policy or Windows Defender Controlled Folder Access. Verify with the client's IT team before assuming USB launch works. If blocked, options are: request a temporary whitelist, use `pipx install git+https://github.com/exbuf/peekdocs.git` on the client (adds a footprint on the client machine), or run peekdocs from a Downloads folder or network share that Group Policy permits.
+
+**6. Tesseract for OCR is NOT bundled.** The standalone binaries carry Python + Python dependencies only. If OCR of scanned PDFs or image files is in scope for the engagement, options are: install Tesseract on the client (footprint, may need admin), pre-OCR documents on your own machine before the engagement (produce searchable copies), or scope OCR out of the engagement. `peekdocs --check` reports Tesseract's presence — run it on the client machine during setup to know where you stand.
 
 #### What this is not
 
