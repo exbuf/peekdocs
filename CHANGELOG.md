@@ -12,6 +12,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.71] — 2026-07-03
+
+### Added
+- **Proactive Tesseract check when the OCR checkbox is toggled
+  on** (892e9b8, `peekdocs/gui/_mixin_build.py`). Before this
+  release the GUI's OCR checkbox had no toggle handler — a user
+  could enable OCR, set up a search, run it, and only discover
+  Tesseract wasn't installed after the search finished (image
+  files silently skipped, message buried in `peekdocs_errors.log`
+  or in the results-preview area). Now, checking the OCR box
+  fires an immediate detection check via `shutil.which("tesseract")`;
+  if Tesseract isn't found, a modal (askyesno) shows per-OS
+  install instructions:
+  - **macOS:** `brew install tesseract`
+  - **Windows:** Download from
+    `https://github.com/UB-Mannheim/tesseract/wiki`
+  - **Linux:** `sudo apt install tesseract-ocr` (or distro
+    equivalent)
+  Default "No" unchecks OCR automatically for the safer path.
+  "Yes" lets the user proceed with OCR enabled anyway — image
+  files will be skipped at scan time but other file types
+  still search normally. Mirrors the proactive check the CLI
+  already does at `parser.py:28`.
+
+### Fixed
+- **False-success handling in `_search_finished` when a
+  pre-search error meets a stale results file** (892e9b8,
+  `peekdocs/gui/_mixin_search.py`). When the CLI aborted at
+  parser level (Tesseract missing, `pytesseract`/`Pillow`
+  Python packages missing) BEFORE the search ran, and a
+  `peekdocs_standard_results.txt` from a previous OCR-off
+  search happened to sit in the results dir, the GUI's
+  returncode-2 handler misread the stale file as "this search
+  partially succeeded" and showed *"Search complete (with
+  warnings)"*. Now the returncode-2 branch pattern-matches
+  stdout for known pre-search error markers (`"Tesseract OCR
+  is not installed"`, `"OCR requires the pytesseract"`, `"OCR
+  requires the Pillow"`) and — when any of those are present
+  — skips the stale-results interpretation entirely and shows
+  the CLI's actual error message via `_show_error`. Genuine
+  degraded-success cases (search ran, DOCX generation failed)
+  still take the existing branch; the fix is narrow to known
+  pre-search errors only.
+
 ## [1.2.70] — 2026-07-03
 
 ### Docs
