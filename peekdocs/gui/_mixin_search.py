@@ -911,12 +911,28 @@ class SearchMixin:
             self._matched_files_link.pack(side="left", padx=(5, 0))
             self._show_action_buttons(inverse=self._inverse_results)
         elif returncode == 2:
+            # Detect known pre-search errors (CLI aborted at parser.py
+            # BEFORE running the search) so a stale results file from a
+            # previous OCR-off run isn't misread as "success with
+            # warnings." Without this check, a user who toggles OCR on
+            # after a prior successful search sees the misleading
+            # "Search complete (with warnings)" state instead of the
+            # actual Tesseract-missing install instructions.
+            stdout_clean = stdout.strip() if stdout else ""
+            _pre_search_error_markers = (
+                "Tesseract OCR is not installed",
+                "OCR requires the pytesseract",
+                "OCR requires the Pillow",
+            )
+            _is_pre_search_error = any(m in stdout_clean for m in _pre_search_error_markers)
+
             # Check if results were produced despite the error (e.g., .docx generation failed)
             ts = getattr(self, '_last_ts_suffix', '')
             results_fn = f"peekdocs_standard_results_{ts}.txt" if ts else "peekdocs_standard_results.txt"
             results_path = os.path.join(self.results_dir or folder, results_fn)
-            if os.path.exists(results_path):
-                # Search succeeded but something else failed (likely report generation)
+            if not _is_pre_search_error and os.path.exists(results_path):
+                # Search ran and produced results, but something downstream
+                # failed (e.g., .docx generation). Show as degraded success.
                 self._report_search_result(
                     summary or "Search complete (with warnings — check error log).",
                     status_text="Search complete (with warnings).",
@@ -929,7 +945,11 @@ class SearchMixin:
                 self._show_action_buttons(inverse=self._inverse_results)
                 self._show_preview(stdout)
             else:
-                error_msg = stdout.strip() if stdout.strip() else "Search failed (exit code 2). No output captured."
+                # Either a pre-search error (CLI aborted before scanning)
+                # or no results file exists at all. Show the CLI's actual
+                # error message so the user sees install instructions and
+                # doesn't chase a phantom "success" state.
+                error_msg = stdout_clean if stdout_clean else "Search failed (exit code 2). No output captured."
                 self._show_error(error_msg)
                 self._show_action_buttons()
         else:

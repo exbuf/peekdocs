@@ -714,7 +714,7 @@ class BuildMixin:
         self._adv_cb_regex.grid(row=1, column=1, padx=(0, 15), pady=0, sticky="w")
         self._adv_cb_ocr = ctk.CTkCheckBox(
             cb_frame, text=_t("adv_ocr_label"), variable=self.ocr_var,
-            onvalue="on", offvalue="off",
+            onvalue="on", offvalue="off", command=self._on_ocr_toggle,
         )
         self._adv_cb_ocr.grid(row=1, column=2, padx=(0, 15), pady=0, sticky="w")
 
@@ -2946,6 +2946,59 @@ class BuildMixin:
             self.search_entry.configure(placeholder_text="Enter search terms...")
         if hasattr(self, "_sync_and_or_colors"):
             self._sync_and_or_colors()
+
+
+
+    def _on_ocr_toggle(self):
+        """Handle OCR checkbox toggle. When turned ON, verify Tesseract is
+        installed and warn the user if not — OCR searches without Tesseract
+        skip every image file and scanned PDF at scan time, so catching
+        this at checkbox-time is far kinder than at search-finish. Mirrors
+        the proactive check the CLI already does at parser.py:28."""
+        if self.ocr_var.get() != "on":
+            return
+
+        import shutil
+        if shutil.which("tesseract"):
+            return  # Tesseract is on PATH — nothing to warn about.
+
+        # Tesseract not detected. Warn with per-OS install instructions
+        # and let the user decide whether to proceed or uncheck. Lazy
+        # imports keep the module load cheap on GUIs that never enable
+        # OCR.
+        import platform
+        from tkinter import messagebox
+
+        system = platform.system()
+        if system == "Darwin":
+            install_hint = "  Install:  brew install tesseract"
+        elif system == "Windows":
+            install_hint = (
+                "  Install:  Download from\n"
+                "            https://github.com/UB-Mannheim/tesseract/wiki"
+            )
+        else:  # Linux and other Unix
+            install_hint = (
+                "  Install:  sudo apt install tesseract-ocr\n"
+                "            (or your distro's equivalent)"
+            )
+
+        proceed = messagebox.askyesno(
+            "Tesseract OCR not detected",
+            (
+                "OCR won't work — Tesseract is not installed or not on your PATH.\n\n"
+                "Tesseract is a separate open-source tool that peekdocs uses to "
+                "extract text from scanned PDFs and image files. It doesn't ship "
+                "with peekdocs.\n\n"
+                f"{install_hint}\n\n"
+                "After installing, restart peekdocs so the new PATH is picked up.\n\n"
+                "Proceed with OCR enabled anyway? (Image files and scanned PDFs "
+                "will be skipped, but other file types will still search normally.)"
+            ),
+            parent=self,
+        )
+        if not proceed:
+            self.ocr_var.set("off")
         self._save_ui_preference("match_all", self.and_mode_var.get() == "on")
 
 
