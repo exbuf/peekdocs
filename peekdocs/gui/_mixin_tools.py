@@ -3323,8 +3323,11 @@ class ToolsMixin:
         b("  when the OCR option is enabled. It must be installed")
         b("  separately: macOS: brew install tesseract | Windows:")
         b("  download from github.com/UB-Mannheim/tesseract | Linux:")
-        b("  sudo apt install tesseract-ocr. See the User Guide")
-        b("  'Prerequisites' section for full details.")
+        b("  sudo apt install tesseract-ocr. If you check the OCR box")
+        b("  in Advanced Search Options without Tesseract installed,")
+        b("  peekdocs shows a modal with the platform-specific install")
+        b("  command (as of 1.2.71). See the User Guide 'Prerequisites'")
+        b("  section for full details.")
         blank()
 
         txt.configure(state="disabled")
