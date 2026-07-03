@@ -12,6 +12,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.70] — 2026-07-03
+
+### Docs
+- **Linux GUI first-launch deep-dive section added to
+  `docs/INSTALLATION.md`** (c521609). New section
+  `### Linux GUI first-launch — chmod, the ./ prefix, and
+  common startup issues` inserted between the macOS Gatekeeper
+  deep-dive and the CLI startup-time section (anchor
+  `#linux-gui-first-launch`). Structure mirrors the macOS
+  Gatekeeper section for parity:
+  - Step-by-step (confirm download size, optional SHA-256
+    verify, `chmod +x` with explanation, run with `./`)
+  - Six common-issue troubleshooting entries (permission
+    denied, cannot execute binary file / ARM architecture,
+    nothing happens with SSH X11 forwarding + `$DISPLAY`
+    check, window flashes closed with `tee` capture, `libxcb`
+    shared library errors with per-distro apt/dnf/pacman
+    commands, SELinux Access denied with restorecon and
+    permissive-mode diagnostics)
+  - Why `./` prefix is required (`$PATH` explanation)
+  - Optional install to `~/.local/bin` (per-user) or
+    `/usr/local/bin` (system-wide) with `$PATH` check
+  - Five notes: no Linux Gatekeeper equivalent, executable
+    bit doesn't survive re-download, PyInstaller per-launch
+    unpack cost, Wayland via XWayland, no AppImage / Flatpak /
+    Snap today
+- **README Linux GUI paragraph now cross-links to the deep-
+  dive** (c521609, `README.md`), matching the pattern the
+  macOS row already uses to reach its Gatekeeper deep-dive.
+  README's Linux install row stays terse; first-time Linux
+  downloaders reach the walkthrough in one click.
+
 ## [1.2.69] — 2026-07-02
 
 ### Fixed
