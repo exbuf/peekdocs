@@ -126,6 +126,133 @@ If you're on Sequoia or Sonoma and the right-click menu doesn't show **Open** in
 - **The Gatekeeper bypass is per-download, not per-app.** Once you've taught macOS to trust the copy of `peekdocs-gui.app` you have right now, every subsequent double-click on *that file* works without prompts. But **every fresh download triggers Gatekeeper again** — including upgrading to a new release. The quarantine flag (`com.apple.quarantine` xattr) is attached by your browser to each downloaded file, regardless of whether you previously approved a different copy of the same app, because peekdocs isn't signed with an Apple Developer ID (which would let macOS auto-trust approved bundle IDs across downloads). So plan on running through Path 1 or Path 2 once each time you upgrade. The Terminal one-liner is the fastest path if you upgrade often.
 - **No installation, no system changes.** The `.app` is a fully self-contained bundle. Drag it to `/Applications` if you want it in Launchpad, or leave it in Downloads. There's nothing to uninstall later — just delete the `.app` and (if you want a clean wipe) `~/.peekdocsrc`.
 
+<a id="linux-gui-first-launch"></a>
+### Linux GUI first-launch — `chmod`, the `./` prefix, and common startup issues
+
+peekdocs Linux binaries are unsigned PyInstaller bundles (~114 MB for the GUI). There's no Gatekeeper or SmartScreen equivalent on Linux — the friction is minimal: telling Linux you actually want to run the file (the executable bit) plus a small chance of one distro-specific dependency you'll need to install. This section walks through the whole path from the downloaded file to a running GUI, with troubleshooting for what can go wrong.
+
+#### Step-by-step: from download to running
+
+Assumes the file landed in `~/Downloads` (default for most browsers).
+
+**1. Confirm the file downloaded fully.**
+
+```bash
+cd ~/Downloads
+ls -lh peekdocs-gui-linux
+```
+
+You should see something like `-rw-r--r-- 1 you you 114M ... peekdocs-gui-linux`. If the size is noticeably smaller than ~114 MB, the download was truncated — redownload and re-check.
+
+**2. Verify SHA-256 (optional but worth the habit).**
+
+```bash
+wget https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs_SHA256SUMS.txt
+sha256sum -c peekdocs_SHA256SUMS.txt --ignore-missing 2>&1 | grep peekdocs-gui-linux
+```
+
+Should print `peekdocs-gui-linux: OK`. If it says `FAILED`, the file was corrupted mid-transfer — redownload. This step is especially valuable if you're carrying the binary on a USB stick or if the network path between you and GitHub isn't fully trusted.
+
+**3. Set the executable bit.**
+
+```bash
+chmod +x peekdocs-gui-linux
+```
+
+Linux — unlike Windows — doesn't decide runnability from the filename extension. It checks a bit in the file's permission mask. Files downloaded from a browser arrive without the executable bit set, as a safety default. `chmod +x` flips that bit, telling the kernel "yes, treat this as a program." One-time per downloaded file; every fresh download (including upgrades) needs `chmod +x` again.
+
+**4. Run it.**
+
+```bash
+./peekdocs-gui-linux
+```
+
+The `./` prefix is required — see [Why `./` before the binary name](#linux-why-dot-slash) below. On a modern desktop with a graphical session, a peekdocs window should appear in about 0.5–1 second. First launch may be slightly slower (~1–2s) because PyInstaller unpacks the bundle to `/tmp/_MEIxxxxxx` before starting; subsequent launches are faster because the unpacked cache stays until reboot.
+
+#### Common startup issues
+
+**"Permission denied" from `./peekdocs-gui-linux`**
+You skipped step 3 (`chmod +x`) or the executable bit didn't stick. Verify with `ls -l peekdocs-gui-linux` — the leftmost column should include an `x` (e.g., `-rwxr-xr-x`). If not, run `chmod +x peekdocs-gui-linux` again.
+
+**"cannot execute binary file" or "Exec format error"**
+The binary was built for x86-64 Linux. If your machine is ARM (Raspberry Pi, ARM-based laptops) or you're running a 32-bit distro, the x86-64 standalone won't run. Install via pipx from source instead: `pipx install git+https://github.com/exbuf/peekdocs.git`. Requires Python 3.10+ on the system.
+
+**Nothing happens, no error, no window**
+Either you're not in a graphical session (headless server, TTY console, or SSH without X11 forwarding), or an early error was suppressed. Check the display with `echo $DISPLAY` — if it's empty, you're not in an X11/Wayland session and a GUI app can't render. If you're SSH'd in, reconnect with `ssh -Y user@host` (`-Y` is more permissive than `-X` for X11 forwarding; both add `$DISPLAY` on the remote side).
+
+**Window flashes open and closes immediately**
+A Python traceback is being written to stderr faster than you can read it. Rerun and capture the output:
+
+```bash
+./peekdocs-gui-linux 2>&1 | tee /tmp/peekdocs-launch.log
+```
+
+Then read `/tmp/peekdocs-launch.log` for the error. Most common: a missing GUI-toolkit shared library (see next item).
+
+**"ImportError" or "cannot load libxcb-cursor.so.0" (or similar libxcb libraries)**
+Older or minimal distros may be missing the X11 client libraries that tkinter / customtkinter transitively use. peekdocs's PyInstaller bundle deliberately doesn't ship these because they must match your host system's X server. Install them from your distro's package manager:
+
+```bash
+# Debian, Ubuntu, Mint, Pop!_OS:
+sudo apt install libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
+
+# Fedora, RHEL, CentOS, Rocky:
+sudo dnf install libxcb-cursor libxcb-icccm libxcb-image libxcb-keysyms
+
+# Arch, Manjaro:
+sudo pacman -S libxcb
+```
+
+**SELinux "Access denied" (Fedora, RHEL, CentOS, Rocky)**
+SELinux under its default policy sometimes blocks executables in `~/Downloads`. Two options: (1) move the binary to `~/.local/bin/` where SELinux's context is more permissive, or (2) explicitly restore the context: `restorecon -v peekdocs-gui-linux`. If either fails and you want to confirm SELinux is the cause, temporarily test with `sudo setenforce 0`, then re-enable with `sudo setenforce 1`. **Do not** leave SELinux in permissive mode as a workaround.
+
+<a id="linux-why-dot-slash"></a>
+#### Why `./` before the binary name
+
+`./peekdocs-gui-linux` means "run the file called `peekdocs-gui-linux` in *this* folder." Without the `./`, your shell searches `$PATH` — a colon-separated list of directories the shell considers safe places to look for programs. The current directory (`.`) isn't on `$PATH` by default on modern Linux, macOS, and PowerShell (a security precaution — prevents accidentally running a malicious binary someone dropped into a folder you happened to `cd` into).
+
+Once you install the binary to a folder that *is* on `$PATH` (see next section), the `./` prefix becomes unnecessary and `peekdocs-gui` works from any directory.
+
+#### Optional: install for easy launch from anywhere
+
+**Per-user (recommended for personal use)**:
+
+```bash
+mkdir -p ~/.local/bin
+mv ~/Downloads/peekdocs-gui-linux ~/.local/bin/peekdocs-gui
+```
+
+`~/.local/bin` is on the default `$PATH` on modern distros (Ubuntu 22.04+, Fedora 34+, Debian 12+, Mint 21+). Confirm:
+
+```bash
+echo $PATH | grep -q ".local/bin" && echo "on PATH" || echo "not on PATH"
+```
+
+If it prints `not on PATH`, add it once:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+(Use `~/.zshrc` if you're on Zsh.) After that, `peekdocs-gui` from any terminal launches the app.
+
+**System-wide (all users on the machine)**:
+
+```bash
+sudo mv ~/Downloads/peekdocs-gui-linux /usr/local/bin/peekdocs-gui
+```
+
+`/usr/local/bin` is on every user's `$PATH` by default; no shell-config edit needed. Root permissions required because `/usr/local/bin` is owned by root.
+
+#### Notes
+
+- **No first-launch security prompt.** Unlike macOS (Gatekeeper) or Windows (SmartScreen), Linux doesn't put unsigned binaries through a "click to allow" gate. The kernel simply refuses to execute files without the executable bit set — that's `chmod +x`'s job, no policy override needed.
+- **The executable bit does not survive a fresh download.** Upgrading to a new release means running `chmod +x` on the new file. If you moved the binary to `~/.local/bin/peekdocs-gui` and want to upgrade, `chmod +x` the new download *before* replacing the old one.
+- **PyInstaller unpack cost is per launch.** Every invocation of the `--onefile` bundle self-extracts to `/tmp/_MEIxxxxxx` before starting. On modern SSDs this adds ~0.5–1 second to launch time. If you launch peekdocs many times per day (unusual for GUI use), consider installing via `pipx install git+https://github.com/exbuf/peekdocs.git` — pipx gives ~0.2s launch time because there's no unpack step.
+- **Wayland vs X11.** peekdocs works under both. tkinter's Wayland support runs via XWayland (a compatibility layer), so behavior may differ subtly from a native X11 session (window decorations, tooltip positioning, HiDPI scaling). Anything that looks off is worth reporting.
+- **AppImage / Flatpak / Snap.** peekdocs doesn't ship as any of these today — the standalone binary is a plain PyInstaller bundle. If you want tighter sandboxing, the pipx-from-source route runs inside a Python virtual environment.
+
 <a id="macos-cli-startup-slowness"></a>
 ### CLI standalone startup time — what to expect per platform
 
