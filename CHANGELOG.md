@@ -12,6 +12,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.69] — 2026-07-02
+
+### Fixed
+- **README release badge was rendering as "release: invalid"**
+  (3089566, `README.md:4`). A shields.io routing bug: passing
+  a `label=release` (lowercase) query param that matches the
+  endpoint's default label made shields.io return "invalid"
+  instead of the tag name. Confirmed by curl — `?label=release`
+  → invalid, `?label=Release` → v1.2.68, `?color=blue` alone
+  → v1.2.68, `?label=release&color=blue` → invalid. Fix:
+  dropped the redundant `label=release&` from the URL,
+  keeping `?color=blue`. The default label is already
+  "release," so removing the parameter preserves the exact
+  same visual and works around the shields.io conflict. The
+  badge worked earlier in the evening — likely a recent
+  shields.io deploy regression.
+
 ## [1.2.68] — 2026-07-02
 
 ### Docs
