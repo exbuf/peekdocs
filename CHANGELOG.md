@@ -12,6 +12,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.72] — 2026-07-04
+
+### Docs
+- **OCR modal behavior documented in the two surfaces where a
+  user learning about OCR would look** (78e23d5). Search Wizard
+  `?` help panel's Tesseract footnote now mentions the new modal
+  ("checking the OCR box in Advanced Search Options without
+  Tesseract installed shows a modal with the platform-specific
+  install command"). USER_GUIDE's `-O` flag row (line 733) now
+  documents both surfaces' proactive checks — GUI (as of 1.2.71)
+  fires a modal, CLI aborts with the same install commands.
+  README deliberately not touched — its existing "requires
+  Tesseract" mentions remain accurate and adding modal-behavior
+  detail bloats a top-of-funnel surface.
+- **README INSTALL_SAFETY.md pointer reframed** (c4a0e94, line
+  438). Prior wording *"Cautious about installing?"* implied
+  verification is for paranoid users only and discouraged normal
+  downloaders from clicking through. New wording *"Want to
+  verify the download?"* invites verification as a normal
+  action. Same target link, same enumeration of five methods
+  (checksum, VirusTotal, network monitor, source-code grep,
+  sandbox install), but leads with the checksum-check commands
+  (the most common actual use) rather than treating all five
+  as equal peers.
+
 ## [1.2.71] — 2026-07-03
 
 ### Added
