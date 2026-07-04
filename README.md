@@ -435,7 +435,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 [Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
 
-> **Cautious about installing?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — plain-English explanation of what peekdocs does and doesn't do, what the SmartScreen / Gatekeeper warnings actually mean, and five ways to verify the download yourself before you run it (checksum match, VirusTotal scan, network monitor, source-code grep, sandbox install).
+> **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
 
 ### Prerequisites
 
