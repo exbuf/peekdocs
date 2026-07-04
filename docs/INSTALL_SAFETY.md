@@ -47,6 +47,8 @@ This step is for people who want extra reassurance. **You do not have to do it.*
 
 1. From the [Releases page](https://github.com/exbuf/peekdocs/releases/latest), download both your platform's binary **and** `peekdocs_SHA256SUMS.txt`. Put them in the same folder.
 
+   **Important — same release for both files.** peekdocs cuts releases frequently (multiple per day during active development), and the `releases/latest/download/...` URLs auto-track whichever release is current at click time. If a new release lands between your two downloads, the hashes are from different builds and the check will fail with a misleading *"did NOT match"* result — even though nothing is actually wrong. Two ways to avoid this: (a) download both files back-to-back in one session, or (b) lock to a specific tagged release by replacing `latest` in both URLs with the version you want, e.g. `releases/download/v1.2.72/peekdocs_SHA256SUMS.txt` and `releases/download/v1.2.72/peekdocs-gui-windows.exe`. The tag lock is the belt-and-suspenders approach — even if 20 more releases follow, your two files stay synchronized.
+
 2. Open a terminal in that folder and run the one-liner for your operating system:
    - **Windows (PowerShell):** `Get-FileHash peekdocs-gui-windows.exe -Algorithm SHA256`
    - **macOS:** `shasum -a 256 peekdocs-gui-macos.zip`
