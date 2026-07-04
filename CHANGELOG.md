@@ -12,6 +12,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.73] — 2026-07-04
+
+### Docs
+- **`docs/INSTALL_SAFETY.md` — same-release caveat added to the
+  checksum-verification walkthrough** (ee2a9a5). Real user hit
+  the trap: downloaded `peekdocs-gui-windows.exe` on 2026-07-03,
+  then downloaded `peekdocs_SHA256SUMS.txt` on 2026-07-04 —
+  between the two downloads three releases had been cut
+  (v1.2.70, 1.2.71, 1.2.72), so the hashes were from different
+  builds and the check failed with a misleading *"did NOT
+  match"* result even though nothing was actually wrong. New
+  heads-up between step 1 and step 2 explains the pitfall
+  (fast-cadence + `releases/latest/download/...` auto-tracking)
+  and offers two mitigations: (a) download both files
+  back-to-back in one session, or (b) lock to a specific
+  tagged release URL by replacing `latest` with the version
+  tag (e.g., `releases/download/v1.2.72/...`). Tag lock is the
+  belt-and-suspenders approach, immune to any number of future
+  release bumps.
+
 ## [1.2.72] — 2026-07-04
 
 ### Docs
