@@ -468,6 +468,8 @@ The GUI and CLI standalones are **separate downloads**. Grab whichever fits how 
 | macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app`. **First launch:** macOS Gatekeeper shows a dialog with only **Done** / **Move to Trash** (no Open button). Two ways to bypass — both expected for unsigned open-source software, neither indicates the app is unsafe: (1) **System Settings UI:** open **System Settings → Privacy & Security**, scroll down to the message `"peekdocs-gui.app" was blocked because it is not from an identified developer`, click **Open Anyway**, then re-launch the app and click **Open** in the confirmation dialog. (2) **Terminal one-liner:** `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`, then double-click. Each new download (including upgrades) re-triggers the warning. |
 | Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. No first-launch security prompt on Linux. |
 
+> **What "unsigned" means.** peekdocs skips the paid Apple / Microsoft code-signing certificates that would let an OS auto-trust the binary — a common choice for small open-source projects. Effect: a one-time first-launch OS warning per fresh download that you can click through. Nothing about the warning indicates the app is unsafe, just that the OS hasn't been told to trust it in advance.
+
 Why the warnings appear and the full per-platform bypass walkthrough: [First-launch security warnings](#first-launch-security) below.
 
 **Direct CLI downloads** (always the latest release):
