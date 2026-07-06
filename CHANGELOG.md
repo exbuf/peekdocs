@@ -12,6 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.80] — 2026-07-06
+
+### Fixed
+- **PyInstaller-frozen GUI now streams stderr phase markers in
+  real time.** User reported on 1.2.79 that the standalone `.exe`
+  and the pipx install find identical results, but the `.exe`
+  status line skipped the report-writing progression
+  ("building txt report", "building docx report") that the pipx
+  install showed. Root cause: the frozen path in
+  `peekdocs.gui._cli_runner._run_peekdocs_cli` redirected stderr
+  into a plain `io.StringIO()` that was only readable after
+  `_cli_main` returned, so every `print("PHASE: ...",
+  file=sys.stderr, flush=True)` in `cli.py` got buffered and the
+  GUI never saw intermediate markers. Fix: new
+  `_StderrLineStreamer(io.StringIO)` subclass that intercepts
+  writes, buffers partial lines, and forwards completed
+  newline-terminated lines to `on_stderr_line` synchronously —
+  matches the subprocess path's background-reader behavior.
+  `getvalue()` at the end still returns the full transcript, so
+  any completion-time consumer of the buffered stderr keeps
+  working. 7 new tests cover the streaming logic including CRLF
+  handling and callback-exception swallowing.
+
 ## [1.2.79] — 2026-07-06
 
 ### Added
