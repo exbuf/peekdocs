@@ -700,7 +700,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values, and the `peekdocs.errors` exception hierarchy (`QueryError`, `RangeError`, `NameNotFoundError` — each inheriting from a stdlib base for back-compat). Public surface ships type hints verified in CI by mypy across the public API + core CLI modules (12 files, listed in `pyproject.toml`). |
 | [Architecture](docs/ARCHITECTURE.md) | Contributor-facing map of the codebase — layer diagram, module responsibilities, design invariants, extension points, historical decisions, known weaknesses |
-| [Glossary](docs/GLOSSARY.md) | 85 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, and more |
+| [Glossary](docs/GLOSSARY.md) | 92 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, the `peekdocs.errors` exception hierarchy, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Security architecture](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |
 | [Reporting security issues](SECURITY.md) | Vulnerability-reporting policy — preferred channel, supported versions, scope, expected response timing |
@@ -918,7 +918,7 @@ Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com
 
 ## Glossary
 
-The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 85 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
+The full glossary of peekdocs terms (FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP technician, and 92 entries in all — including a list of common Python networking libraries peekdocs deliberately does *not* use) lives in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
 
 ## For IT and Security Teams
 

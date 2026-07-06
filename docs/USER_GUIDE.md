@@ -732,7 +732,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Opt-in output formats — `docx`, `csv`, `json`, `pdf`, `html`, or any combination (`-o docx,csv,html`). The `.txt` report is always written (the GUI Results Preview parses it); everything else, including DOCX as of 1.2.6, is opt-in. `--regex-collection` honors the full format list (1.2.25); `--suite` honors `-o docx` only (1.2.26) — the other formats are GUI-only |
 | `--no-docx` | **No-op as of 1.2.6** — DOCX is opt-in via `-o docx`, so this flag is no longer needed. Kept as a tolerated no-op for one release so any existing scripts that pass it don't error. Remove from your scripts; will be removed in a future release |
-| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#prerequisites)). GUI (as of 1.2.71): checking the OCR box in Advanced Search Options without Tesseract installed shows a modal with per-OS install commands (macOS `brew`, Windows installer, Linux `apt`) — proceed with OCR anyway (image files skipped at scan time) or cancel to uncheck. CLI: `-O` without Tesseract aborts with the same install commands. |
+| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#prerequisites)). GUI (as of 1.2.71): checking the OCR box in Advanced Search Options without Tesseract installed shows a modal with per-OS install commands (macOS `brew`, Windows installer, Linux `apt`) — proceed with OCR anyway (image files skipped at scan time) or cancel to uncheck. As of 1.2.77 the check also probes well-known install locations (Homebrew's `/opt/homebrew/bin` on Apple Silicon and `/usr/local/bin` on Intel, MacPorts `/opt/local/bin`, Program Files on Windows) — before that, macOS GUI launches inherited a stripped `PATH` that omitted Homebrew, so users who had run `brew install tesseract` saw the modal anyway. CLI: `-O` without Tesseract aborts with the same install commands. |
 | `-p N` (word-proximity) | Word proximity — find terms within N words of each other (same line) |
 | `-P N` (line-proximity) | Line proximity — a genuinely useful feature, especially for programmers searching code. Find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx) and PDF, a line is a paragraph; for Excel, a line is a row. Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
@@ -3553,6 +3553,8 @@ The `peekdocs.api` module ships Python type hints on every public function (`sea
 
 A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
 
+**Exception handling.** The `peekdocs.errors` module ships a small hierarchy for library callers: `PeekdocsError` root, with `QueryError` (invalid mode combinations, empty terms, malformed regex, boolean-expression syntax), `RangeError` (malformed `-R` range spec), and `NameNotFoundError` (missing suite or regex collection) as subclasses. Each inherits from the closest stdlib exception (`ValueError` or `KeyError`), so existing consumer code that catches those types keeps working — the hierarchy is a non-breaking upgrade. New code can `from peekdocs.errors import QueryError` (or `from peekdocs import QueryError` — the top-level package re-exports the four names) and catch by peekdocs type for the most specific handling. See [API.md § Error Handling](API.md#error-handling) for the full table and both catch patterns.
+
 **Important:** All scripts that use the peekdocs API must include the `if __name__ == "__main__":` guard because peekdocs uses multiprocessing. Without it, macOS and Windows will crash with a `RuntimeError`. See the API Reference for details.
 
 **Field naming note.** `SearchMatch.line_num` is the field on the Python dataclass. The JSON output (`--stdout`, `-o json`) and CSV output (`-o csv`) name the same field `line_number`. See the [JSON output schema](#json-output---stdout-schema) section for the full output field list.
@@ -3568,42 +3570,53 @@ pytest tests/ -v
 
 ## Project Structure
 
-The peekdocs codebase is organized as follows. The package itself lives in `peekdocs/`; tests, docs, and sample files live alongside it.
+The peekdocs codebase is organized as follows. The package itself lives in `peekdocs/`; tests, docs, and sample files live alongside it. This is a high-level overview; for the full contributor map with responsibilities per module, see [docs/ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```
 peekdocs/
 ├── peekdocs/
-│   ├── __init__.py      # Package init, re-exports library API
-│   ├── __main__.py      # Enables python -m peekdocs
-│   ├── api.py           # Public library API (search(), run_suite(), run_regex_collection(), list functions)
-│   ├── cli.py           # CLI entry point (calls api.search internally)
-│   ├── collection.py    # Saved search collections
-│   ├── constants.py     # Shared constants and defaults
-│   ├── expr_parser.py   # Boolean expression parser (AND/OR/NOT)
-│   ├── gui/             # Optional GUI package (peekdocs-gui)
-│   │   ├── _app.py      #   Main app class
-│   │   ├── _helpers.py   #   Free functions (no GUI dependency)
-│   │   ├── _tooltip.py   #   Tooltip widget
-│   │   ├── _mixin_build.py  #   UI construction
-│   │   ├── _mixin_search.py #   Search execution
-│   │   ├── _mixin_tools.py  #   Tools, regex search, wizard, help
-│   │   └── _mixin_data.py   #   Settings, history, bookmarks, index
-│   ├── indexer.py       # Optional SQLite FTS5 search index
-│   ├── parser.py        # Command-line flag parsing
-│   ├── reporter.py      # Report generation (txt, docx, csv, json, pdf, html)
-│   ├── scanner.py       # File processing and discovery
-│   ├── translator.py    # Plain-English translation of commands and regex
-│   └── wizard_patterns.py # Regex Wizard pattern presets
-├── tests/
-│   ├── test_api.py        # Library API test suite
-│   ├── test_cli.py        # CLI test suite
-│   ├── test_expr_parser.py # Boolean expression parser tests
-│   ├── test_collection.py # Saved search collection tests
-│   ├── test_gui.py        # GUI test suite
-│   ├── test_translator.py # Translator test suite
-│   └── test_wizard.py     # Wizard patterns test suite
-├── pyproject.toml       # Project metadata and dependencies
-├── requirements.txt     # Pip requirements
+│   ├── __init__.py        # Package init, re-exports the library API + errors
+│   ├── __main__.py        # Enables python -m peekdocs → cli.main()
+│   ├── api.py             # Public library API (search, run_suite,
+│   │                      #   run_regex_collection, list_*, dataclasses)
+│   ├── errors.py          # Public exception hierarchy (PeekdocsError root,
+│   │                      #   QueryError, RangeError, NameNotFoundError)
+│   ├── cli.py             # CLI entry point + main flag dispatch
+│   ├── commands/          # Extracted per-subcommand handlers:
+│   │                      #   check, diff, runs, list_files, list_suites, clear
+│   ├── paths.py           # Shared helpers: resource_path, find_tesseract,
+│   │                      #   format_bytes
+│   ├── gui/               # Optional GUI package (peekdocs-gui)
+│   │   ├── _app.py            #   PeekDocsApp — inherits all mixins
+│   │   ├── _cli_runner.py     #   Subprocess plumbing + command build + parsing
+│   │   ├── _cloud_guard.py    #   Cloud-folder detection + policy guard
+│   │   ├── _dialogs.py        #   Themed askstring + OS file-open shim
+│   │   ├── _error_guard.py    #   gui_guard / gui_race_guard context managers
+│   │   ├── _helpers.py        #   Re-export shim (backwards-compat)
+│   │   ├── _tooltip.py        #   Tooltip widget
+│   │   └── _mixin_*.py        #   Nine feature-based mixins (build, search,
+│   │                          #   data, tools, wizard, regex_search, suites,
+│   │                          #   file_analysis, help_panels)
+│   ├── scanner.py         # File discovery + text extraction (100+ types)
+│   ├── parser.py          # CLI flag parsing + OCR/fuzzy preflight
+│   ├── reporter.py        # Report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
+│   ├── indexer.py         # Optional SQLite FTS5 search index
+│   ├── watcher.py         # Long-running folder watcher (--watch)
+│   ├── expr_parser.py     # Boolean expression parser (AND / OR / NOT)
+│   ├── range_query.py     # -R range filters (amount, date, filesize, ...)
+│   ├── diff.py            # --diff snapshot comparison
+│   ├── run_log.py         # ~/.peekdocs_runs.log JSONL append + --runs reader
+│   ├── notifier.py        # Cross-platform desktop notifications
+│   ├── translator.py      # Plain-English translation of search parameters
+│   ├── collection.py      # Search suite + regex collection persistence
+│   ├── suite_index.py     # Global suite discovery cache
+│   ├── i18n.py            # 7-language UI translation
+│   ├── constants.py       # SUPPORTED_TYPES, OCR_IMAGE_TYPES, category groups
+│   ├── regex_examples.py  # Bundled universal-pattern regex collection
+│   └── wizard_patterns.py # Search Wizard forms + Regex Wizard patterns
+├── tests/                 # 23 test files, 718 collected — see docs/SMOKE_TEST.md
+├── pyproject.toml         # Project metadata, deps, [tool.mypy] config
+├── CHANGELOG.md
 └── README.md
 ```
 
