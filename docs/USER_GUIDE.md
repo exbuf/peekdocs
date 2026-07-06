@@ -3547,7 +3547,7 @@ peekdocs includes a Python API that lets you call the search engine directly fro
 
 For full documentation, parameters, return types, and examples, see the [peekdocs Library API Reference](API.md).
 
-The `peekdocs.api` module ships Python type hints on every public function (`search`, `list_suites`, `run_suite`, `list_regex_collections`, `run_regex_collection`) and every public dataclass (`SearchMatch`, `SearchResult`, `SuiteSearchResult`, `SuiteResult`, `PatternResult`, `CollectionResult`). Modern IDEs (PyCharm, VS Code with Pylance) provide autocomplete and inline type checking without additional stubs; `mypy` verification works out of the box against the shipped `.py` files — no separate `.pyi` stubs required.
+The `peekdocs.api` module ships Python type hints on every public function (`search`, `list_suites`, `run_suite`, `list_regex_collections`, `run_regex_collection`) and every public dataclass (`SearchMatch`, `SearchResult`, `SuiteSearchResult`, `SuiteResult`, `PatternResult`, `CollectionResult`). Modern IDEs (PyCharm, VS Code with Pylance) provide autocomplete and inline type checking without additional stubs; `mypy` verification works out of the box against the shipped `.py` files — no separate `.pyi` stubs required. A mypy check runs in CI on every push and PR to `main`, so the type contract stays honest — signature drift between the code and its documented types would fail the build.
 
 A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
 

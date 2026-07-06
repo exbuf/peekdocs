@@ -181,6 +181,7 @@ Tests live in `tests/`, run with `pytest`. ~15 test files, ~8K LOC.
 - **GUI.** Integration + smoke coverage. `test_gui.py`, `test_headless.py` (verifies CLI import path works without Tk).
 - **Feature-specific.** `test_watcher.py`, `test_wizard.py`, `test_suites.py`, `test_collection.py`, `test_suite_index.py`, `test_cloud_guard.py`, `test_exclusion.py`.
 - **Standalone binary.** `test_smoke_cli.py` runs against the built `.exe` on Windows CI. Catches PyInstaller-specific regressions the in-process tests would miss.
+- **Type-check gate.** `mypy` runs on `peekdocs/api.py` and `peekdocs/paths.py` (the public API surface) on every push and PR to `main`. Config lives under `[tool.mypy]` in `pyproject.toml`. Guards against signature drift — for example, a callback typed `Callable[[int, int], None]` (2-arg) when the actual call site passes 3 arguments would fail the build. Scope is narrow by design: the rest of the codebase is untyped and out of scope until the type-hint coverage broadens (tracked in *Known weaknesses* below).
 
 Philosophy: unit test the search engine (deterministic, high-value); integration test the interfaces; smoke test the binaries. GUI has less unit coverage than the core — the mixin architecture makes isolated testing awkward without instantiating `PeekDocsApp`.
 
