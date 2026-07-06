@@ -2220,21 +2220,18 @@ class DataMixin:
     def _show_license(self):
         """Open a scrollable window showing the bundled LICENSE text.
 
-        Locates LICENSE via :func:`peekdocs.paths.resource_path`, which
-        handles both PyInstaller bundle (``sys._MEIPASS``) and source
-        checkout cases transparently. Falls back to a helpful "not
-        found" message pointing at the GitHub URL if the file isn't
-        present on disk (custom builds, non-standard installs).
+        Uses :func:`peekdocs.paths.read_bundled_text` which handles
+        every install method: PyInstaller frozen builds (``.exe`` /
+        ``.app``), source checkouts, and pip / pipx installs (where
+        LICENSE lives in the ``.dist-info/licenses/`` directory per
+        PEP 639). Falls back to a helpful "not found" message pointing
+        at the GitHub URL if the file isn't findable anywhere (custom
+        builds, broken installs).
         """
         import tkinter as tk
-        from peekdocs.paths import resource_path
+        from peekdocs.paths import read_bundled_text
 
-        try:
-            with open(resource_path("LICENSE"), "r", encoding="utf-8") as f:
-                license_text = f.read()
-        except (OSError, UnicodeDecodeError):
-            license_text = None
-
+        license_text = read_bundled_text("LICENSE")
         if license_text is None:
             license_text = (
                 "LICENSE file not found in this build.\n\n"

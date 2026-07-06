@@ -140,6 +140,66 @@ _TESSERACT_FALLBACK_PATHS = {
 }
 
 
+def read_bundled_text(name: str) -> str | None:
+    """Return the text of a bundled resource, or ``None`` if unavailable.
+
+    Universal helper that finds LICENSE, NOTICE, and
+    THIRD_PARTY_NOTICES.md across every peekdocs install method:
+
+    1. **Frozen** (PyInstaller ``.exe`` / ``.app``) — reads via
+       :func:`resource_path`, which searches ``_MEIPASS`` and the
+       macOS ``.app`` bundle's ``Contents/Resources/`` fallback.
+    2. **Source checkout / editable install** — same
+       :func:`resource_path` path resolves to the repo root.
+    3. **pip / pipx install** — falls back to
+       ``importlib.metadata.distribution("peekdocs").read_text(...)``
+       which finds files in the ``.dist-info/`` directory. Tries
+       PEP 639's ``licenses/<name>`` location first (setuptools ≥ 77
+       with ``license-files`` in pyproject.toml) then the legacy
+       ``<name>`` directly in ``.dist-info/`` for older wheels.
+
+    Returns the file contents on success, or ``None`` when the
+    resource isn't findable anywhere. Callers should render their own
+    "resource missing" fallback (typically a GitHub URL pointing at
+    the source-of-truth file on ``main``).
+
+    This helper exists because ``resource_path`` deliberately does
+    **not** chase into ``.dist-info/`` (see its docstring's "does not
+    handle" section). Consolidating the fallback here keeps the
+    knowledge in one place — the About viewer's LICENSE lookup, and
+    any future NOTICE / third-party-notices viewer, all use the same
+    universal find path.
+    """
+    # Try resource_path first — covers PyInstaller frozen builds and
+    # source checkouts.
+    path = resource_path(name)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except (OSError, UnicodeDecodeError):
+        pass
+
+    # Fall back to importlib.metadata for pip / pipx installs.
+    # Lazy-import to avoid the metadata module cost on the frozen path.
+    try:
+        from importlib.metadata import distribution
+        dist = distribution("peekdocs")
+        # PEP 639 layout (setuptools ≥ 77): licenses/<name>
+        text = dist.read_text(f"licenses/{name}")
+        if text is not None:
+            return text
+        # Legacy layout: <name> directly in .dist-info/
+        text = dist.read_text(name)
+        if text is not None:
+            return text
+    except Exception:
+        # Package metadata unavailable (very rare — most likely a
+        # broken install). Fall through to returning None.
+        pass
+
+    return None
+
+
 def format_bytes(n: int) -> str:
     """Format a byte count as a human-readable SI-decimal (1000-based) size.
 

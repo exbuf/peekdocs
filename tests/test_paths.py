@@ -171,6 +171,119 @@ def test_resource_path_root_wins_over_resources_when_both_exist(tmp_path, monkey
         assert f.read() == "from frameworks"
 
 
+# ── read_bundled_text — universal LICENSE / NOTICE lookup ──────
+
+
+def test_read_bundled_text_finds_via_resource_path(tmp_path, monkeypatch):
+    """When the file exists at the resource_path location (source
+    checkout or PyInstaller bundle), read_bundled_text returns its
+    contents without needing importlib.metadata."""
+    monkeypatch.setattr(paths.sys, "_MEIPASS", str(tmp_path), raising=False)
+    (tmp_path / "LICENSE").write_text("MIT License\n\nCopyright...")
+
+    result = paths.read_bundled_text("LICENSE")
+    assert result is not None
+    assert result.startswith("MIT License")
+
+
+def test_read_bundled_text_falls_back_to_dist_info_pep639(monkeypatch):
+    """pipx / pip install path: LICENSE isn't at resource_path but IS
+    at `.dist-info/licenses/LICENSE` (PEP 639, setuptools ≥ 77).
+    read_bundled_text should return the dist-info content."""
+    from unittest.mock import MagicMock
+
+    # Force resource_path to return a nonexistent path.
+    monkeypatch.setattr(
+        paths.sys, "_MEIPASS",
+        "/nonexistent/frozen/root",
+        raising=False,
+    )
+
+    # Mock importlib.metadata.distribution
+    mock_dist = MagicMock()
+    mock_dist.read_text = lambda name: (
+        "MIT License from dist-info/licenses/"
+        if name == "licenses/LICENSE"
+        else None
+    )
+    import importlib.metadata
+
+    def _fake_distribution(name):
+        assert name == "peekdocs"
+        return mock_dist
+
+    monkeypatch.setattr(importlib.metadata, "distribution", _fake_distribution)
+
+    result = paths.read_bundled_text("LICENSE")
+    assert result == "MIT License from dist-info/licenses/"
+
+
+def test_read_bundled_text_falls_back_to_dist_info_legacy(monkeypatch):
+    """Older wheels put LICENSE directly in `.dist-info/` (pre-PEP-639
+    layout). read_bundled_text should try that after the PEP 639
+    location misses."""
+    from unittest.mock import MagicMock
+
+    monkeypatch.setattr(
+        paths.sys, "_MEIPASS",
+        "/nonexistent/frozen/root",
+        raising=False,
+    )
+
+    mock_dist = MagicMock()
+    # Only the legacy location has content
+    mock_dist.read_text = lambda name: (
+        "Legacy dist-info LICENSE" if name == "LICENSE" else None
+    )
+    import importlib.metadata
+    monkeypatch.setattr(
+        importlib.metadata, "distribution",
+        lambda _n: mock_dist,
+    )
+
+    result = paths.read_bundled_text("LICENSE")
+    assert result == "Legacy dist-info LICENSE"
+
+
+def test_read_bundled_text_returns_none_when_nowhere(monkeypatch):
+    """When neither resource_path nor importlib.metadata locates the
+    file, return None so the caller renders its fallback message."""
+    monkeypatch.setattr(
+        paths.sys, "_MEIPASS",
+        "/nonexistent/frozen/root",
+        raising=False,
+    )
+
+    import importlib.metadata
+
+    def _no_dist(_n):
+        raise importlib.metadata.PackageNotFoundError("peekdocs")
+
+    monkeypatch.setattr(importlib.metadata, "distribution", _no_dist)
+
+    result = paths.read_bundled_text("LICENSE")
+    assert result is None
+
+
+def test_read_bundled_text_real_pipx_install():
+    """Integration check: on the actual installed peekdocs package,
+    read_bundled_text('LICENSE') returns the real MIT text. This test
+    passes when peekdocs is installed via pipx / pip / editable and
+    the .dist-info/ directory is present alongside site-packages/.
+    Skipped otherwise."""
+    import importlib.metadata
+
+    try:
+        importlib.metadata.distribution("peekdocs")
+    except importlib.metadata.PackageNotFoundError:
+        pytest.skip("peekdocs is not installed as a distribution")
+
+    result = paths.read_bundled_text("LICENSE")
+    # Either resource_path (source checkout) or dist-info found it.
+    assert result is not None
+    assert "MIT License" in result
+
+
 # ── format_bytes ───────────────────────────────────────────────
 
 
