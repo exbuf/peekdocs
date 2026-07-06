@@ -99,3 +99,37 @@ include = ["peekdocs*"]
 [project.scripts]
 peekdocs = "peekdocs.cli:main"
 peekdocs-gui = "peekdocs.gui:main"
+
+# ── mypy — type-checker configuration ─────────────────────────
+#
+# Scope: peekdocs's public API surface — the files that consumers
+# import when they embed peekdocs in their own Python code. Not
+# the whole codebase; adding hints everywhere is a separate
+# effort tracked in docs/ARCHITECTURE.md's known-weaknesses list.
+#
+# Files intentionally in scope:
+#   peekdocs/api.py    — the public library API (search, run_suite,
+#                        run_regex_collection, list_*, dataclasses)
+#   peekdocs/paths.py  — small resource_path helper
+#
+# The `files` list is authoritative — mypy will only check these
+# unless the caller passes explicit paths. CI runs `mypy` bare
+# (no path args), so this list determines what gets checked.
+#
+# `ignore_missing_imports = true` handles third-party libraries
+# without stubs (fitz/PyMuPDF, odfpy, openpyxl, ebooklib, olefile,
+# xlrd, pypff, rarfile, pytesseract). Those show up transitively
+# via scanner.py imports. Installing stubs for all of them (many
+# of which don't ship them) would be a lot of yak-shaving for
+# marginal type-safety gain.
+[tool.mypy]
+python_version = "3.10"
+files = ["peekdocs/api.py", "peekdocs/paths.py"]
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# Do NOT set disallow_untyped_defs — the checked files reference
+# helpers in scanner.py / indexer.py that are intentionally
+# untyped for now. Blanket require-hints would surface those as
+# errors even though they're outside the checked scope.

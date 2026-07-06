@@ -90,3 +90,31 @@ jobs:
       - name: --check must report 0 (CLI fully usable without GUI dep)
         run: |
           python -m peekdocs --check
+
+  # Type-check peekdocs's public API surface with mypy. Scope is
+  # deliberately narrow — peekdocs/api.py and peekdocs/paths.py,
+  # the files that external consumers import. Rest of the codebase
+  # is untyped (tracked in docs/ARCHITECTURE.md's known-weaknesses
+  # list). See pyproject.toml's [tool.mypy] section for the config.
+  #
+  # Fast enough to run on every push (~5-10s). Single OS + single
+  # Python version — mypy's checks don't need the pytest matrix.
+  typecheck:
+    name: mypy (public API)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install peekdocs and mypy
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install mypy
+
+      - name: Run mypy against the typed public surface
+        run: mypy
