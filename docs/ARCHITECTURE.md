@@ -91,7 +91,12 @@ The engine and output layers know nothing about which surface invoked them. That
 | `_mixin_build.py` | UI construction — widget layout, tooltips, checkboxes, buttons, toggle handlers. |
 | `_mixin_data.py` | Settings, history, bookmarks, About dialog, index management, `~/.peekdocsrc` I/O. |
 | `_mixin_search.py` | Search execution, multi-folder handling, results rendering, cancel/retry logic, `_search_finished` dispatch. |
-| `_mixin_tools.py` | Tools menu features: Search Wizard, Regex Search dialog, File Analysis (Duplicate Finder, File Inventory, etc.), help panels, Schedule Search, Diff Snapshots. **Largest file in the codebase (~10K LOC)** — grew organically; split candidate (see [Known weaknesses](#known-weaknesses)). |
+| `_mixin_tools.py` | Miscellaneous Tools menu features that didn't cluster with a feature domain: System Check, Diff Snapshots, Schedule Search. Formerly ~10K LOC as the "and this feature too" bucket; split across five feature mixins in the mixin-tools-split refactor. Now ~870 LOC. |
+| `_mixin_wizard.py` | Search Wizard (the 20-form category-cards popup) and Regex Wizard (the categorized regex-pattern picker with 35 patterns across 6 categories). |
+| `_mixin_regex_search.py` | Regex Search feature end-to-end: per-pattern search execution, cancel handler, Regex Tester dialog, and the "?" help panels for both. |
+| `_mixin_suites.py` | Search Suites: picker popup, per-search execution loop, combined-report assembly, cancel/elapsed handling, completion popup. |
+| `_mixin_file_analysis.py` | Nine folder-scanning tools: File Inventory, Duplicate Finder, Large Files, Empty Files, Recent Changes, File Age Distribution, Protected Files, Unsearchable Files, Collection Summary. Also owns the shared `_format_file_size` helper and Categories-view helpers. |
+| `_mixin_help_panels.py` | Eight orphan "?"-help popups that don't belong to a specific feature mixin: search options help, search primer, Advanced Options deep dive, save/load help, matched/excluded files help, index help, three-mode side-by-side compare. |
 | `_helpers.py` | Standalone free functions used across mixins — cloud-output guard, CLI runner (subprocess vs in-process), path resolution. |
 | `_tooltip.py` | Custom `Tooltip` widget for CTk buttons (customtkinter doesn't ship one). |
 | `__init__.py` | `peekdocs-gui` console script entry → instantiate `PeekDocsApp`. |
@@ -152,7 +157,7 @@ These are load-bearing. Every code change must preserve them.
 
 ## Historical decisions
 
-**GUI mixin architecture.** Chosen to keep composition simple without introducing dependency-injection framework overhead. Four mixins group by lifecycle stage (`_build`, `_data`, `_search`, `_tools`) rather than by feature. Cost: `_mixin_tools.py` grew to 10K LOC as the "and this feature too" bucket. Under active reconsideration — see [Known weaknesses](#known-weaknesses).
+**GUI mixin architecture.** Chosen to keep composition simple without introducing dependency-injection framework overhead. The original four mixins grouped by lifecycle stage (`_build`, `_data`, `_search`, `_tools`) rather than by feature; `_mixin_tools.py` grew to 10K LOC as the "and this feature too" bucket. Split across five feature mixins (`_mixin_wizard`, `_mixin_regex_search`, `_mixin_suites`, `_mixin_file_analysis`, `_mixin_help_panels`) in the mixin-tools-split refactor, reducing the bucket file to ~870 LOC. `PeekDocsApp` inherits from all nine mixins; the pattern still routes everything through `self` so cross-mixin calls resolve via MRO without needing signature changes.
 
 **PyInstaller `--onefile` vs `--onedir`.** macOS CLI uses `--onedir` to skip the 5–7 s per-invocation self-extraction cost that stacks with Gatekeeper checks on unsigned binaries. Windows / Linux CLI use `--onefile` because the extraction cost is smaller (~2 s on Windows, ~0.5 s on Linux) and a single .exe / binary is the conventional CLI shape on those platforms. Windows GUI is `--onefile`; macOS GUI is `--onedir` inside the `.app` bundle.
 
@@ -183,10 +188,7 @@ Philosophy: unit test the search engine (deterministic, high-value); integration
 
 These are documented candidly here so anyone reading the code understands the shape and the reasons.
 
-- **`_mixin_tools.py` at ~10K LOC.** Split candidate. Feature-based sub-modules (`regex_search_dialog.py`, `search_wizard.py`, `file_analysis_tools.py`, `help_panels.py`, `schedule_search.py`, `diff_snapshots.py`) would clarify boundaries. Currently grouped by mixin lifecycle stage, not by feature — every additional Tools menu feature grows this file.
-- **Mixin architecture may be over-abstracted.** Explicit composition (helper classes + method calls) might read more directly than mixins at this codebase scale. Refactor would touch every file in `gui/`.
-- **`sys._MEIPASS` handling reinvented per-consumer.** A small `resource_path()` helper would DRY this up.
-- **Type hints are sparse.** Public API (`api.py`) and dataclass fields deserve them.
+- **Mixin architecture may be over-abstracted.** Explicit composition (helper classes + method calls) might read more directly than mixins at this codebase scale. The mixin-tools-split refactor removed the "10K-LOC bucket file" symptom but kept the mixin pattern itself. Full conversion to explicit composition would touch every file in `gui/`.
 - **No formal error taxonomy.** Users see raw `pytesseract`, PDF library, archive-extraction errors in the error log. A `PeekDocsError` hierarchy would improve error-log signal and let callers branch on error type.
 - **State management in GUI is manual sync.** Tkinter `StringVar`s scattered across mixins; toggle-handler methods coordinate changes. Grows fragile with feature count.
 - **No plugin architecture** (see Historical decisions).
