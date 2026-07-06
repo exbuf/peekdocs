@@ -12,6 +12,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.81] — 2026-07-06
+
+### Fixed
+- **About → View License now finds LICENSE in the macOS `.app`
+  bundle.** User reported on 1.2.80 that both the standalone macOS
+  `.app` and Windows `.exe` showed "LICENSE file not found in this
+  build" instead of the actual MIT text. Diagnosed by inspecting
+  the released binaries: LICENSE ships correctly at
+  `peekdocs-gui.app/Contents/Resources/LICENSE`, but
+  `sys._MEIPASS` on a PyInstaller `--onedir --windowed` `.app`
+  bundle points at `Contents/Frameworks/` (runtime + libs), so
+  the traditional `os.path.join(sys._MEIPASS, "LICENSE")` lookup
+  missed the file entirely. Extended
+  `peekdocs.paths.resource_path()` to search a small ordered
+  candidate list — `_MEIPASS/relative_path` first (works on
+  Windows, Linux, macOS CLI), then
+  `_MEIPASS/../Resources/relative_path` (macOS `.app` fallback)
+  — and return the first candidate that exists on disk. If
+  neither exists, returns the traditional path so the caller's
+  own "not found" fallback still runs cleanly. 4 new tests cover
+  the multi-candidate lookup logic.
+
 ## [1.2.80] — 2026-07-06
 
 ### Fixed
