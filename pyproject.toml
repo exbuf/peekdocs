@@ -109,14 +109,25 @@ peekdocs-gui = "peekdocs.gui:main"
 # known-weaknesses list.
 #
 # Files intentionally in scope:
-#   peekdocs/api.py       — the public library API (search,
-#                           run_suite, run_regex_collection, list_*,
-#                           dataclasses)
-#   peekdocs/paths.py     — resource_path + find_tesseract helpers
-#   peekdocs/reporter.py  — TXT / DOCX / CSV / JSON / PDF / HTML
-#                           report writers (consumed by cli.py and
-#                           anyone extending output formats)
-#   peekdocs/cli.py       — main() entrypoint + top-level helpers
+#   peekdocs/api.py               — the public library API (search,
+#                                   run_suite, run_regex_collection,
+#                                   list_*, dataclasses)
+#   peekdocs/paths.py             — resource_path + find_tesseract +
+#                                   format_bytes helpers
+#   peekdocs/reporter.py          — TXT / DOCX / CSV / JSON / PDF /
+#                                   HTML report writers (consumed by
+#                                   cli.py and anyone extending output
+#                                   formats)
+#   peekdocs/cli.py               — main() entrypoint + top-level
+#                                   helpers
+#   peekdocs/errors.py            — public exception hierarchy
+#                                   (PeekdocsError root + QueryError,
+#                                   RangeError, NameNotFoundError
+#                                   subclasses; each inherits from
+#                                   its closest stdlib base)
+#   peekdocs/commands/check.py    — `peekdocs --check` handler
+#   peekdocs/commands/diff.py     — `peekdocs --diff` handler
+#   peekdocs/commands/runs.py     — `peekdocs --runs` handler
 #
 # The `files` list is authoritative — mypy will only check these
 # unless the caller passes explicit paths. CI runs `mypy` bare
@@ -142,10 +153,10 @@ files = [
 ]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
-# all. Scope of this mypy check is deliberately just api.py + paths.py
-# — the two files with hints. Following imports would surface issues
-# in the untyped rest of the codebase (which is a known-weaknesses
-# item, tracked separately) AND choke on third-party stub files that
+# all. Scope of this mypy check is deliberately the eight files listed
+# above. Following imports would surface issues in the untyped rest of
+# the codebase (which is a known-weaknesses item, tracked separately)
+# AND choke on third-party stub files that
 # use Python 3.12+ `type` statement syntax (numpy's own stubs at
 # site-packages/numpy/__init__.pyi:737 are the canonical example —
 # they hit an unrecoverable syntax error under python_version = "3.10"

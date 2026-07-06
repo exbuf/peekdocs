@@ -12,6 +12,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **`peekdocs.errors` — public exception hierarchy for library
+  consumers.** New module exports `PeekdocsError` (root),
+  `QueryError` (bad search input — invalid mode combinations, empty
+  terms, malformed regex, boolean-expression syntax), `RangeError`
+  (malformed `-R` range spec), and `NameNotFoundError` (missing
+  suite or regex collection). Each subclass inherits from the
+  closest stdlib exception (`ValueError` / `KeyError`) so existing
+  consumer code that catches those types keeps working — this is a
+  non-breaking upgrade for anyone already handling errors from
+  `peekdocs.api`. Re-exported from the top-level `peekdocs` package
+  for import convenience. Raise sites in `api.py`, `range_query.py`,
+  and `expr_parser.py` (32 total) now raise the typed subclasses
+  instead of raw stdlib exceptions.
+- **`peekdocs/commands/` package** — extracted first three
+  self-contained CLI subcommand handlers (`--check`, `--diff`,
+  `--runs`) from `cli.py`'s `_main_inner` mega-dispatcher into
+  focused per-subcommand modules. Establishes the extraction
+  pattern for future subcommand splits; `cli.py` reduced by 142
+  LOC. Standard search + `--suite` + `--regex-collection` remain in
+  `cli._main_inner` because they share flag-parsing plumbing that
+  spans several output-format branches — factoring that shared
+  surface cleanly is its own larger refactor.
+
+### Changed
+- **Byte-formatter consolidation.** Three drifting implementations
+  (SI 1000-based in reports + CLI, IEC 1024-based in the GUI file-
+  analysis dialogs) collapsed to a single `peekdocs.paths.format_bytes`
+  helper — SI decimal is now the peekdocs convention across every
+  user-visible surface. A 2 100 000-byte file used to show as
+  "2.10 MB" in reports and "2.00 MiB" in the dupe finder; both now
+  render identically. `reporter.fmt_size` becomes a thin re-export
+  for back-compat with `peekdocs.reporter.fmt_size` importers.
+- **Type-check gate widened to eight files.** `peekdocs.errors` and
+  the three extracted `commands/` modules are now in mypy scope,
+  bringing the CI-typed public surface to `api.py`, `paths.py`,
+  `reporter.py`, `cli.py`, `errors.py`, `commands/check.py`,
+  `commands/diff.py`, and `commands/runs.py`. Docs updated on
+  three surfaces (README, USER_GUIDE, ARCHITECTURE) to reflect the
+  wider scope.
+
+### Fixed
+- **Stale numeric claims across docs.** Test count (`~630` → 695
+  in `docs/SMOKE_TEST.md` and `CLAUDE.md`); sample-corpus extension
+  count (`41` → 38 in `README.md`, excluding auto-generated
+  peekdocs report files); `_mixin_tools.py` LOC (`~870` → 873 in
+  `docs/ARCHITECTURE.md`). Discovered in the docs-vs-code audit
+  agent pass; a five-minute pre-release grep over `[0-9]{3,4}
+  test`, `~[0-9]{3} LOC`, and `[0-9]+ extensions` would catch this
+  whole class next time.
+
 ## [1.2.78] — 2026-07-06
 
 ### Added

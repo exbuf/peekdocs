@@ -698,7 +698,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
 | [Walkthroughs](docs/WALKTHROUGHS.md) | Seven annotated screenshot tours — same search across three interfaces, Advanced Search Options, Regex Search, Search Suites, Diff Snapshots, Schedule Search, and `peekdocs --check` |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
-| [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values. Public surface (`peekdocs.api`) ships type hints verified in CI by mypy on every push, alongside `paths.py`, `reporter.py`, and `cli.py`. |
+| [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values, and the `peekdocs.errors` exception hierarchy (`QueryError`, `RangeError`, `NameNotFoundError` — each inheriting from a stdlib base for back-compat). Public surface ships type hints verified in CI by mypy across the public API + core CLI modules (8 files, listed in `pyproject.toml`). |
 | [Architecture](docs/ARCHITECTURE.md) | Contributor-facing map of the codebase — layer diagram, module responsibilities, design invariants, extension points, historical decisions, known weaknesses |
 | [Glossary](docs/GLOSSARY.md) | 85 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
