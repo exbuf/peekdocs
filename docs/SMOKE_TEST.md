@@ -4,7 +4,7 @@ A short, runnable checklist for verifying peekdocs behaves correctly on Windows,
 
 ## What CI already covers
 
-`.github/workflows/test.yml` runs the full pytest suite (~630 tests) on **Windows + macOS + Linux × Python 3.10 / 3.11 / 3.12 / 3.13 / 3.14** with `fail-fast: false`. Every internal Python code path is exercised cross-platform on every push and pull request. `build-release.yml` additionally builds the PyInstaller standalones on all three OSes on every release tag.
+`.github/workflows/test.yml` runs the full pytest suite (~695 tests) on **Windows + macOS + Linux × Python 3.10 / 3.11 / 3.12 / 3.13 / 3.14** with `fail-fast: false`. Every internal Python code path is exercised cross-platform on every push and pull request. `build-release.yml` additionally builds the PyInstaller standalones on all three OSes on every release tag.
 
 That coverage is the heavy lifting. **You can trust that the search engine, indexer, reporter, scanner, expression parser, and API behave identically across the matrix.**
 

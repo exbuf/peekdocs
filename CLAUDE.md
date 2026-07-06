@@ -47,5 +47,5 @@ pytest tests/test_cli.py::test_query -v
   - `scanner.py` — file processing and discovery (100+ file types)
   - `reporter.py` — report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   - `indexer.py` — optional SQLite FTS5 search index
-- `tests/` — Pytest test suite (630 tests).
+- `tests/` — Pytest test suite (695 tests).
 - `pyproject.toml` — Project metadata, dependencies, and console script configuration. Uses setuptools as build backend.

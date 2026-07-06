@@ -91,7 +91,7 @@ The engine and output layers know nothing about which surface invoked them. That
 | `_mixin_build.py` | UI construction — widget layout, tooltips, checkboxes, buttons, toggle handlers. |
 | `_mixin_data.py` | Settings, history, bookmarks, About dialog, index management, `~/.peekdocsrc` I/O. |
 | `_mixin_search.py` | Search execution, multi-folder handling, results rendering, cancel/retry logic, `_search_finished` dispatch. |
-| `_mixin_tools.py` | Miscellaneous Tools menu features that didn't cluster with a feature domain: System Check, Diff Snapshots, Schedule Search. Formerly ~10K LOC as the "and this feature too" bucket; split across five feature mixins in the mixin-tools-split refactor. Now ~870 LOC. |
+| `_mixin_tools.py` | Miscellaneous Tools menu features that didn't cluster with a feature domain: System Check, Diff Snapshots, Schedule Search. Formerly ~10K LOC as the "and this feature too" bucket; split across five feature mixins in the mixin-tools-split refactor. Now 873 LOC. |
 | `_mixin_wizard.py` | Search Wizard (the 20-form category-cards popup) and Regex Wizard (the categorized regex-pattern picker with 35 patterns across 6 categories). |
 | `_mixin_regex_search.py` | Regex Search feature end-to-end: per-pattern search execution, cancel handler, Regex Tester dialog, and the "?" help panels for both. |
 | `_mixin_suites.py` | Search Suites: picker popup, per-search execution loop, combined-report assembly, cancel/elapsed handling, completion popup. |
@@ -157,7 +157,7 @@ These are load-bearing. Every code change must preserve them.
 
 ## Historical decisions
 
-**GUI mixin architecture.** Chosen to keep composition simple without introducing dependency-injection framework overhead. The original four mixins grouped by lifecycle stage (`_build`, `_data`, `_search`, `_tools`) rather than by feature; `_mixin_tools.py` grew to 10K LOC as the "and this feature too" bucket. Split across five feature mixins (`_mixin_wizard`, `_mixin_regex_search`, `_mixin_suites`, `_mixin_file_analysis`, `_mixin_help_panels`) in the mixin-tools-split refactor, reducing the bucket file to ~870 LOC. `PeekDocsApp` inherits from all nine mixins; the pattern still routes everything through `self` so cross-mixin calls resolve via MRO without needing signature changes.
+**GUI mixin architecture.** Chosen to keep composition simple without introducing dependency-injection framework overhead. The original four mixins grouped by lifecycle stage (`_build`, `_data`, `_search`, `_tools`) rather than by feature; `_mixin_tools.py` grew to 10K LOC as the "and this feature too" bucket. Split across five feature mixins (`_mixin_wizard`, `_mixin_regex_search`, `_mixin_suites`, `_mixin_file_analysis`, `_mixin_help_panels`) in the mixin-tools-split refactor, reducing the bucket file to 873 LOC. `PeekDocsApp` inherits from all nine mixins; the pattern still routes everything through `self` so cross-mixin calls resolve via MRO without needing signature changes.
 
 **PyInstaller `--onefile` vs `--onedir`.** macOS CLI uses `--onedir` to skip the 5–7 s per-invocation self-extraction cost that stacks with Gatekeeper checks on unsigned binaries. Windows / Linux CLI use `--onefile` because the extraction cost is smaller (~2 s on Windows, ~0.5 s on Linux) and a single .exe / binary is the conventional CLI shape on those platforms. Windows GUI is `--onefile`; macOS GUI is `--onedir` inside the `.app` bundle.
 
