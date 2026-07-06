@@ -136,23 +136,9 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 - [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users)
 - [Prerequisites](#prerequisites)
 - [Upgrading](#upgrading)
+- [Uninstalling](#uninstalling)
 
 > **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
-
-### Prerequisites
-
-*Using Option A (standalone download)? Skip this section — no prerequisites needed.*
-
-| Requirement | Why | How |
-|---|---|---|
-| **Python 3.10+** | Required for Option B and source install | macOS: `brew install python` (or [python.org](https://www.python.org/downloads/)). Windows: [python.org](https://www.python.org/downloads/), check "Add Python to PATH". Linux: `sudo apt install python3-venv python3-pip python3-tk`. Per-platform deep dives in [docs/INSTALLATION.md](docs/INSTALLATION.md) |
-| **Tkinter** | GUI only (CLI works without it) | Windows: included. macOS Homebrew: `brew install python-tk@<version>`. Linux: covered by `python3-tk` above |
-| **pipx** | Recommended over `pip` for Option B | `pip install pipx` (Windows) · `brew install pipx` (macOS) · `sudo apt install pipx` (Linux). Then `pipx ensurepath` and reopen your terminal |
-| **Tesseract** (optional) | OCR for scanned PDFs and images | `brew install tesseract` · Windows [installer](https://github.com/UB-Mannheim/tesseract/wiki) · `sudo apt install tesseract-ocr` |
-| **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
-| **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
-
-**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
 ### Option A: Standalone Download (no Python needed)
 
@@ -245,6 +231,21 @@ After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder,
 - **Windows / python.org macOS installer:** already included — nothing to do
 
 **Niche cases** (macOS python3.13 selection, no-git ZIP install, Windows pipx fallback, source install for contributors) are documented in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+### Prerequisites
+
+*Using Option A (standalone download)? Skip this section — no prerequisites needed.*
+
+| Requirement | Why | How |
+|---|---|---|
+| **Python 3.10+** | Required for Option B and source install | macOS: `brew install python` (or [python.org](https://www.python.org/downloads/)). Windows: [python.org](https://www.python.org/downloads/), check "Add Python to PATH". Linux: `sudo apt install python3-venv python3-pip python3-tk`. Per-platform deep dives in [docs/INSTALLATION.md](docs/INSTALLATION.md) |
+| **Tkinter** | GUI only (CLI works without it) | Windows: included. macOS Homebrew: `brew install python-tk@<version>`. Linux: covered by `python3-tk` above |
+| **pipx** | Recommended over `pip` for Option B | `pip install pipx` (Windows) · `brew install pipx` (macOS) · `sudo apt install pipx` (Linux). Then `pipx ensurepath` and reopen your terminal |
+| **Tesseract** (optional) | OCR for scanned PDFs and images | `brew install tesseract` · Windows [installer](https://github.com/UB-Mannheim/tesseract/wiki) · `sudo apt install tesseract-ocr` |
+| **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
+| **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
+
+**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
 ### Upgrading
 
