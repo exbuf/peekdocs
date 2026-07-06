@@ -110,6 +110,279 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX or HTML report → save the search → add it to a Search Suite → schedule it weekly.
 
+<!--
+  TO UPDATE THIS DEMO GIF:
+  1. Record a new screen capture (MP4, no audio, ~45s).
+  2. Convert to a looping GIF with ffmpeg:
+       ffmpeg -i hero.mp4 -vf "fps=10,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
+  3. Replace docs/images/hero.gif. Target under ~5 MB; current file
+     is ~3.4 MB at 720p/10fps. The <img width="720"> attribute below
+     matches the GIF's native resolution so no browser upscales it.
+     Renders on every browser including PyPI (avoids the
+     <video>-tag cross-browser flakiness that pushed us off MP4
+     in the first place).
+-->
+
+<img src="docs/images/getting-started.gif" width="720" alt="peekdocs first-time on-ramp — pointing at a folder, running a first search, opening the highlighted report, looping">
+
+*Getting started with peekdocs — the first-time on-ramp: point at a folder, run a first search, open the highlighted report. The clips that follow drill into the three search modes and the settings surface.*
+
+&nbsp;
+## Installation
+
+[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
+
+> **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
+
+### Prerequisites
+
+*Using Option A (standalone download)? Skip this section — no prerequisites needed.*
+
+| Requirement | Why | How |
+|---|---|---|
+| **Python 3.10+** | Required for Option B and source install | macOS: `brew install python` (or [python.org](https://www.python.org/downloads/)). Windows: [python.org](https://www.python.org/downloads/), check "Add Python to PATH". Linux: `sudo apt install python3-venv python3-pip python3-tk`. Per-platform deep dives in [docs/INSTALLATION.md](docs/INSTALLATION.md) |
+| **Tkinter** | GUI only (CLI works without it) | Windows: included. macOS Homebrew: `brew install python-tk@<version>`. Linux: covered by `python3-tk` above |
+| **pipx** | Recommended over `pip` for Option B | `pip install pipx` (Windows) · `brew install pipx` (macOS) · `sudo apt install pipx` (Linux). Then `pipx ensurepath` and reopen your terminal |
+| **Tesseract** (optional) | OCR for scanned PDFs and images | `brew install tesseract` · Windows [installer](https://github.com/UB-Mannheim/tesseract/wiki) · `sudo apt install tesseract-ocr` |
+| **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
+| **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
+
+**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
+
+### Option A: Standalone Download (no Python needed)
+
+Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster — especially on macOS.)
+
+The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
+
+*Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
+
+**Direct GUI downloads** (always the latest release):
+
+| Platform | Download | After download |
+|---|---|---|
+| Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run. **First launch:** Windows SmartScreen blocks the .exe with "Windows protected your PC" — click **More info** (small link near the top of the dialog) → **Run anyway** (the button that appears). This is expected for unsigned open-source software and does not indicate the app is unsafe. |
+| macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app`. **First launch:** macOS Gatekeeper shows a dialog with only **Done** / **Move to Trash** (no Open button). Two ways to bypass — both expected for unsigned open-source software, neither indicates the app is unsafe: (1) **System Settings UI:** open **System Settings → Privacy & Security**, scroll down to the message `"peekdocs-gui.app" was blocked because it is not from an identified developer`, click **Open Anyway**, then re-launch the app and click **Open** in the confirmation dialog. (2) **Terminal one-liner:** `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`, then double-click. Each new download (including upgrades) re-triggers the warning. |
+| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. No first-launch security prompt on Linux. |
+
+> **What "unsigned" means.** peekdocs skips the paid Apple / Microsoft code-signing certificates that would let an OS auto-trust the binary — a common choice for small open-source projects. Effect: a one-time first-launch OS warning per fresh download that you can click through. Nothing about the warning indicates the app is unsafe, just that the OS hasn't been told to trust it in advance.
+
+Why the warnings appear and the full per-platform bypass walkthrough: [First-launch security warnings](#first-launch-security) below.
+
+**Direct CLI downloads** (always the latest release):
+
+| Platform | Download | After download |
+|---|---|---|
+| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell needs the `.\` prefix). **First launch:** SmartScreen may block the .exe — click **More info** → **Run anyway**. For global access from any terminal, see **Windows: make `peekdocs` work from any terminal** below the table. PowerShell-specific `--%` token and `.rar`/`.pst` limitations: [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
+| macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Safari auto-unzips → a `peekdocs/` **folder** (the binary is `peekdocs/peekdocs`; the folder also contains `_internal/` with the bundled Python and libraries). `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs && ./peekdocs/peekdocs --version`. For global access from any terminal: `sudo mv peekdocs /usr/local/lib/peekdocs && sudo ln -s /usr/local/lib/peekdocs/peekdocs /usr/local/bin/peekdocs && sudo xattr -dr com.apple.quarantine /usr/local/lib/peekdocs` so `peekdocs "query" /path` works from any terminal session. **The post-move `xattr` matters** — without it Gatekeeper re-verifies on every launch. The folder distribution replaces the older single-binary one because PyInstaller `--onedir` mode skips the per-invocation self-extraction cost (~5–7s for an unsigned `--onefile` CLI on macOS dropped to ~1–2s). |
+| Linux | [**peekdocs-cli-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux) | In the download folder: `cd ~/Downloads && chmod +x peekdocs-cli-linux && ./peekdocs-cli-linux --version`. Optionally `sudo mv peekdocs-cli-linux /usr/local/bin/peekdocs` for global access. |
+
+> **Running the CLI from the download folder — the `./` / `.\` prefix rule.** When you run a downloaded executable from the same folder you're sitting in, most shells require an explicit prefix telling them "look here, not on `PATH`":
+> - **macOS:** `./peekdocs/peekdocs --version` — the unzip produces a folder; the launcher is one level inside (forward slash + dot, then into the folder)
+> - **Linux:** `./peekdocs-cli-linux --version` (forward slash + dot)
+> - **Windows PowerShell:** `.\peekdocs-cli-windows.exe --version` (backslash + dot)
+> - **Windows cmd.exe:** `peekdocs-cli-windows.exe --version` (bare name works; cmd.exe includes the current directory in its search by default)
+>
+> The reason: shells search `$PATH` (`$env:Path` on Windows) for executables, and the current directory isn't on `PATH` by default on macOS / Linux / PowerShell (a security default — prevents accidentally running a malicious binary in a folder you `cd`'d into). The `./` or `.\` prefix overrides that. Once you've installed the binary to a folder that *is* on `PATH` (`/usr/local/bin` on macOS / Linux, `$HOME\bin` on Windows after the steps below), the prefix becomes unnecessary and `peekdocs ...` works from any directory.
+
+**Windows: make `peekdocs` work from any terminal.** Rename the CLI to `peekdocs.exe`, move it to a folder on your user `PATH`, and add the folder to `PATH`. Run this in PowerShell from the download folder:
+
+```powershell
+Rename-Item peekdocs-cli-windows.exe peekdocs.exe
+New-Item -ItemType Directory -Force -Path "$HOME\bin" | Out-Null
+Move-Item peekdocs.exe "$HOME\bin\"
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$HOME\bin", "User")
+```
+
+Open a fresh PowerShell window afterward; `peekdocs --version` then works from any directory.
+
+Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
+
+<a id="first-launch-security"></a>**\* First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
+
+- **Windows (SmartScreen):** Click **More info** → **Run anyway**.
+- **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. The bypass:
+  1. Click **Done** to dismiss the warning.
+  2. Open **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**.
+  3. Re-launch the app and click **Open** in the final confirm dialog.
+
+  From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app. The one-line terminal alternative is faster if you upgrade often: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
+- **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`). Full walkthrough (SHA-256 verify, `libxcb` troubleshooting, SELinux notes, install-to-`~/.local/bin`): [docs/INSTALLATION.md → Linux GUI first-launch](docs/INSTALLATION.md#linux-gui-first-launch).
+
+**Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#uninstalling) below for full removal instructions.
+
+**No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together — nothing external to upgrade, conflict, or break.
+
+**Safe for your computer.** No installation option (standalone, pipx, or source) modifies your existing Python, installs system services, writes to the registry, or interferes with any other program.
+
+---
+
+*Done with Option A? Skip ahead to [Quick Start](#quick-start). If you have Python installed, Option B below is the better path — one command, faster startup, and you get the CLI and Python API alongside the GUI.*
+
+### Option B: Quick Install with pipx (for Python users)
+
+If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
+
+```bash
+pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated venv)
+# — or —
+pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
+```
+
+These are the **first-time install** commands. To upgrade later, use `pipx upgrade peekdocs` (or `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`). `pipx upgrade` is cleaner than `pipx install --force` — it replaces the package's contents in place instead of leaving stale `.dist-info` directories around (which can desync the reported version from the running code).
+
+After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you (pip drops the package into whichever Python environment you used). To uninstall completely: `pipx uninstall peekdocs` (or `pip uninstall peekdocs`). See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
+
+**GUI prerequisite** — only if you'll use `peekdocs-gui`:
+
+- **macOS Homebrew Python:** `brew install python-tk@3.14` (match your `python@<version>`)
+- **Linux:** `sudo apt install python3-tk`
+- **Windows / python.org macOS installer:** already included — nothing to do
+
+**Niche cases** (macOS python3.13 selection, no-git ZIP install, Windows pipx fallback, source install for contributors) are documented in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+### Upgrading
+
+Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. These files are **never overwritten** by an upgrade:
+
+- `~/.peekdocsrc` — your saved settings and preferences
+- `~/.peekdocs_history.json` — your search history
+- `~/.peekdocs_bookmarks.json` — your bookmarks
+- `.peekdocs_collection.json` (in each search folder) — your saved searches and search suites
+- `.peekdocs.db` (in each search folder) — your search index
+- `peekdocs_report_*`, `peekdocs_accumulated_*` files — your saved reports
+
+How to upgrade depends on which install method you used:
+
+- **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one. **No need to uninstall first.**
+- **pipx (Option B):** `pipx upgrade peekdocs` — replaces the package contents in place without leaving stale `.dist-info` directories behind. (`pipx install --force git+…` also works but can accumulate stale dist-info entries that desync the reported version from the running code; `pipx uninstall peekdocs && pipx install git+…` is the nuclear option if you ever hit that.) **Windows note:** if either upgrade method fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx upgrade on Windows: locked files](docs/TROUBLESHOOTING.md#pipx-upgrade-windows-locked-files) for the recovery walkthrough. macOS and Linux aren't affected — they let a running process keep using a file that's been replaced.
+- **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
+- **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+### Uninstalling
+
+peekdocs doesn't use a system installer — no registry entries, no system services, no kernel extensions. "Uninstalling" just means deleting the executable (standalone) or the Python package (pipx / pip). Your settings, history, bookmarks, saved searches, and indexes are stored in your home directory and search folders — **they persist after uninstall** so you can reinstall later and pick up where you left off. To wipe those too, see the *factory reset* paragraph at the end of this section.
+
+How to uninstall depends on which install method you used:
+
+- **Standalone (Option A):**
+  - **Windows:** delete `peekdocs-gui-windows.exe` and/or `peekdocs-cli-windows.exe` from wherever you saved them (Downloads, Desktop, a folder on `PATH`, etc.).
+  - **macOS:** drag `peekdocs-gui.app` from Finder to the Trash. If you put `peekdocs-cli` on `PATH` (e.g., `/usr/local/bin/peekdocs`), `sudo rm /usr/local/bin/peekdocs`.
+  - **Linux:** delete `peekdocs-gui-linux` and/or `peekdocs-cli-linux` from wherever you put them. If either is on `PATH`, e.g. `sudo rm /usr/local/bin/peekdocs`.
+- **pipx (Option B):** `pipx uninstall peekdocs` — removes the isolated venv cleanly.
+- **pip:** `pip uninstall peekdocs` — removes the package from whichever Python environment you installed into.
+- **Source install:** `pip uninstall peekdocs` from inside the venv you used. Then `rm -rf` the cloned repo folder if you no longer need it.
+
+**Factory reset (complete wipe).** The files listed under [Upgrading](#upgrading) above are intentionally preserved by uninstall. If you also want those gone — settings, search history, bookmarks, saved searches, indexes, saved reports — delete them manually:
+
+```bash
+# macOS / Linux
+rm -f ~/.peekdocsrc ~/.peekdocs_history.json ~/.peekdocs_bookmarks.json
+rm -rf ~/peekdocs_reports
+# Plus, in each folder you ever searched:
+# rm -f .peekdocs_collection.json .peekdocs.db .peekdocs.db-wal .peekdocs.db-shm
+```
+
+```powershell
+# Windows PowerShell
+Remove-Item $HOME\.peekdocsrc, $HOME\.peekdocs_history.json, $HOME\.peekdocs_bookmarks.json -ErrorAction SilentlyContinue
+Remove-Item $HOME\peekdocs_reports -Recurse -ErrorAction SilentlyContinue
+# Plus, in each folder you ever searched, remove .peekdocs_collection.json and .peekdocs.db*
+```
+
+After that combination, no trace of peekdocs remains on your machine.
+
+
+## Quick Start
+
+**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total). No setup beyond installing peekdocs.
+
+### GUI
+
+```bash
+peekdocs-gui
+```
+
+On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
+
+1. Click **Browse** to select a folder (or **Single File** to search a specific file)
+2. Type your search terms
+3. Click **Run Standard Search**
+4. View highlighted matches in the preview pane. To also save a Word report, check **DOCX** in Advanced Search Options before searching (or **HTML**, **PDF**, etc.).
+
+The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (blue **Search Wizard** button on the main page, between Run Standard Search and Search Suites): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search. The **Tools** menu in the upper-right also includes **Schedule Search**, which generates a ready-to-paste cron / Task Scheduler command rather than installing the schedule for you.
+
+The Search tab is split horizontally into a scrollable controls column on the left and a results-preview column on the right, with a draggable sash between them. The right pane carries the search-results headline (files searched · matches · elapsed time), Matched / Excluded count buttons, a Chart popup, and the matches themselves. The left pane carries Steps 1–4, the status row, the report-open buttons, and the collapsible Advanced Search Options panel. The split opens with a slight bias toward the left pane (52%) so the five-wide output-format checkbox row fits at first paint; drag the blue sash to rebalance.
+
+**If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
+
+### Terminal
+
+If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the source install for contributors, navigate to the cloned repo folder and activate the virtual environment first:
+
+```bash
+cd /path/to/peekdocs                 # the folder containing pyproject.toml
+source venv/bin/activate             # macOS/Linux (you'll see (venv) in your prompt)
+venv\Scripts\activate                # Windows
+```
+
+**Tip:** Type `peekdocs` with no arguments to see a handy cheat sheet of all search modes, common options, and cleanup commands — right above your command prompt. Type `peekdocs -h` for the full reference with all flags, file types, and regex patterns.
+
+Then navigate to your documents and search:
+
+```bash
+cd /path/to/your/documents
+peekdocs budget                      # search for "budget"
+peekdocs budget revenue              # OR search (any term)
+peekdocs -a budget revenue           # AND search (both terms)
+peekdocs -r budget                   # include subfolders
+peekdocs -t pdf,docx budget          # only PDFs and Word docs
+peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (9-digit ID with dashes)
+peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
+peekdocs -R amount:1000..5000 budget # range query
+peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
+peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
+peekdocs --open docx budget          # search and auto-open the .docx report
+peekdocs --open html budget          # auto-generate HTML and open in your browser
+peekdocs --open csv budget           # auto-generate CSV and open in Excel/LibreOffice
+peekdocs --open pdf budget           # auto-generate PDF and open in a PDF viewer
+peekdocs --open json budget          # auto-generate JSON and open in a text editor
+peekdocs -sa archive --open docx budget  # append to accumulated report and open it
+peekdocs -sa archive --open html budget  # append and open accumulated report in browser
+peekdocs --clear                    # delete peekdocs_*_results* files in current directory
+peekdocs --clear-all                # delete all peekdocs output files (results, saved reports, index)
+```
+
+**No matches?** First search not turning anything up is common. Try `-r` to include subfolders, `-z` for typo-tolerance, drop `-W` if you had whole-word on (it excludes partial matches like "logger" when searching "log"), or check whether your search terms actually appear in those files by opening one manually. Run `peekdocs --list-files` to confirm peekdocs sees the files you expect.
+
+**Why doesn't the OR match count add up?** OR mode counts each matching line ONCE, even when more than one of your terms appears on it. So if `bowling` alone finds 342 matches and `tunick` alone finds 23, an OR search for `bowling tunick` will return *fewer* than 365 whenever some lines mention both words. For example, if the OR total is 350, that means 15 lines contain both terms — inclusion-exclusion: `|A ∪ B| = |A| + |B| − |A ∩ B|`. To list those overlap lines, re-run with `-a` (AND mode) — it returns exactly the intersection. The same explanation lives inside the GUI under **Advanced Search Options → ? help → Match counting in OR mode**.
+
+If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
+
+Results are saved to `peekdocs_standard_results.txt` in the current directory — the same folder your terminal is in when you run the search. **The .txt report is always written and cannot be disabled** because the GUI's Results Preview pane and the Matched Files popup both parse it; the matplotlib match-heatmap and other downstream views all read from it too. Every other format is opt-in: `peekdocs_standard_results.docx` (the highlighted Word report) is produced when **DOCX** is checked under **Advanced Search Options → Output formats** in the GUI, or when `-o docx` is passed on the CLI. CSV / JSON / PDF / HTML work the same way — opt in via the GUI checkbox or `-o csv,json,pdf,html`. A typical CLI invocation that produces TXT + DOCX is `peekdocs -o docx <terms>`; to also write HTML, `peekdocs -o docx,html <terms>`.
+
+**All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten.
+
+The `.docx` report opens in whatever app you've set as your OS default for `.docx` files — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are common choices. The `.txt` report works on any computer with no extra software.
+
+To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
+
+Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
+
+### Python API
+
+```python
+from peekdocs import search
+
+if __name__ == "__main__":
+    result = search(["budget", "revenue"], directory="/path/to/docs")
+
+    print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
+    for match in result.matches:
+        print(f"  {match.filename}:{match.line_num}: {match.text}")
+```
+
+The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multiprocessing` internally, and on macOS and Windows child processes re-import the calling script. Without the guard, the script will crash with `RuntimeError` on those platforms. See the [API Reference](docs/API.md) for all parameters and options.
 ## Who Is It For?
 
 peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.
@@ -142,28 +415,10 @@ peekdocs has three search modes, each with its own big button on the main page, 
 - **Search Suites** *(green button)* — a named group of saved standard searches that run together and produce one combined highlighted report. The recurring-workflow-in-one-click mode.
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
-**Start with the short getting-started clip below**, then the hero clip (a Standard Search), Suites, and Regex Search, capped by a tour of the settings surface — every knob one click away.
+The hero clip below shows a Standard Search; the Suites and Regex Search clips follow, capped by a tour of the settings surface — every knob one click away.
 
 *Prefer to pause, rewind, or scrub to a specific moment? Every clip below is also available as a pausable MP4 on the maintainer's [personal site](https://robertdschoening.com/peekdocs).*
 
-<!--
-  TO UPDATE THIS DEMO GIF:
-  1. Record a new screen capture (MP4, no audio, ~45s).
-  2. Convert to a looping GIF with ffmpeg:
-       ffmpeg -i hero.mp4 -vf "fps=10,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
-  3. Replace docs/images/hero.gif. Target under ~5 MB; current file
-     is ~3.4 MB at 720p/10fps. The <img width="720"> attribute below
-     matches the GIF's native resolution so no browser upscales it.
-     Renders on every browser including PyPI (avoids the
-     <video>-tag cross-browser flakiness that pushed us off MP4
-     in the first place).
--->
-
-<img src="docs/images/getting-started.gif" width="720" alt="peekdocs first-time on-ramp — pointing at a folder, running a first search, opening the highlighted report, looping">
-
-*Getting started with peekdocs — the first-time on-ramp: point at a folder, run a first search, open the highlighted report. The clips that follow drill into the three search modes and the settings surface.*
-
-&nbsp;
 
 <img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
 
@@ -431,261 +686,6 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 **Note:** Apple Numbers (.numbers) and Keynote (.key) files created with recent versions of iWork use a protobuf-based internal format. peekdocs extracts whatever readable text exists inside these files, which may be partial. Older iWork files extract fully. Apple Pages (.pages) is fully supported.
 
-## Installation
-
-[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
-
-> **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
-
-### Prerequisites
-
-*Using Option A (standalone download)? Skip this section — no prerequisites needed.*
-
-| Requirement | Why | How |
-|---|---|---|
-| **Python 3.10+** | Required for Option B and source install | macOS: `brew install python` (or [python.org](https://www.python.org/downloads/)). Windows: [python.org](https://www.python.org/downloads/), check "Add Python to PATH". Linux: `sudo apt install python3-venv python3-pip python3-tk`. Per-platform deep dives in [docs/INSTALLATION.md](docs/INSTALLATION.md) |
-| **Tkinter** | GUI only (CLI works without it) | Windows: included. macOS Homebrew: `brew install python-tk@<version>`. Linux: covered by `python3-tk` above |
-| **pipx** | Recommended over `pip` for Option B | `pip install pipx` (Windows) · `brew install pipx` (macOS) · `sudo apt install pipx` (Linux). Then `pipx ensurepath` and reopen your terminal |
-| **Tesseract** (optional) | OCR for scanned PDFs and images | `brew install tesseract` · Windows [installer](https://github.com/UB-Mannheim/tesseract/wiki) · `sudo apt install tesseract-ocr` |
-| **UnRAR** (optional) | Search inside `.rar` archives | `brew install unrar` · WinRAR · `sudo apt install unrar` |
-| **libpff-python** (optional) | Search inside Outlook `.pst` archives (no Windows wheel) | macOS/Linux: `pip install libpff-python`. Windows: convert `.pst` to `.mbox` — see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
-
-**Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
-
-### Option A: Standalone Download (no Python needed)
-
-Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster — especially on macOS.)
-
-The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
-
-*Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
-
-**Direct GUI downloads** (always the latest release):
-
-| Platform | Download | After download |
-|---|---|---|
-| Windows | [**peekdocs-gui-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-windows.exe) | Double-click to run. **First launch:** Windows SmartScreen blocks the .exe with "Windows protected your PC" — click **More info** (small link near the top of the dialog) → **Run anyway** (the button that appears). This is expected for unsigned open-source software and does not indicate the app is unsafe. |
-| macOS | [**peekdocs-gui-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-macos.zip) | Unzip, open `peekdocs-gui.app`. **First launch:** macOS Gatekeeper shows a dialog with only **Done** / **Move to Trash** (no Open button). Two ways to bypass — both expected for unsigned open-source software, neither indicates the app is unsafe: (1) **System Settings UI:** open **System Settings → Privacy & Security**, scroll down to the message `"peekdocs-gui.app" was blocked because it is not from an identified developer`, click **Open Anyway**, then re-launch the app and click **Open** in the confirmation dialog. (2) **Terminal one-liner:** `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`, then double-click. Each new download (including upgrades) re-triggers the warning. |
-| Linux | [**peekdocs-gui-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-gui-linux) | In the download folder (typically `~/Downloads`): `cd ~/Downloads && chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. No first-launch security prompt on Linux. |
-
-> **What "unsigned" means.** peekdocs skips the paid Apple / Microsoft code-signing certificates that would let an OS auto-trust the binary — a common choice for small open-source projects. Effect: a one-time first-launch OS warning per fresh download that you can click through. Nothing about the warning indicates the app is unsafe, just that the OS hasn't been told to trust it in advance.
-
-Why the warnings appear and the full per-platform bypass walkthrough: [First-launch security warnings](#first-launch-security) below.
-
-**Direct CLI downloads** (always the latest release):
-
-| Platform | Download | After download |
-|---|---|---|
-| Windows | [**peekdocs-cli-windows.exe**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-windows.exe) | `cd $HOME\Downloads`, then `peekdocs-cli-windows.exe --version` (cmd.exe — bare name works) or `.\peekdocs-cli-windows.exe --version` (PowerShell needs the `.\` prefix). **First launch:** SmartScreen may block the .exe — click **More info** → **Run anyway**. For global access from any terminal, see **Windows: make `peekdocs` work from any terminal** below the table. PowerShell-specific `--%` token and `.rar`/`.pst` limitations: [docs/INSTALLATION.md → CLI on Windows footnotes](docs/INSTALLATION.md#cli-on-windows-footnotes). |
-| macOS | [**peekdocs-cli-macos.zip**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-macos.zip) | Safari auto-unzips → a `peekdocs/` **folder** (the binary is `peekdocs/peekdocs`; the folder also contains `_internal/` with the bundled Python and libraries). `cd ~/Downloads && xattr -dr com.apple.quarantine peekdocs && ./peekdocs/peekdocs --version`. For global access from any terminal: `sudo mv peekdocs /usr/local/lib/peekdocs && sudo ln -s /usr/local/lib/peekdocs/peekdocs /usr/local/bin/peekdocs && sudo xattr -dr com.apple.quarantine /usr/local/lib/peekdocs` so `peekdocs "query" /path` works from any terminal session. **The post-move `xattr` matters** — without it Gatekeeper re-verifies on every launch. The folder distribution replaces the older single-binary one because PyInstaller `--onedir` mode skips the per-invocation self-extraction cost (~5–7s for an unsigned `--onefile` CLI on macOS dropped to ~1–2s). |
-| Linux | [**peekdocs-cli-linux**](https://github.com/exbuf/peekdocs/releases/latest/download/peekdocs-cli-linux) | In the download folder: `cd ~/Downloads && chmod +x peekdocs-cli-linux && ./peekdocs-cli-linux --version`. Optionally `sudo mv peekdocs-cli-linux /usr/local/bin/peekdocs` for global access. |
-
-> **Running the CLI from the download folder — the `./` / `.\` prefix rule.** When you run a downloaded executable from the same folder you're sitting in, most shells require an explicit prefix telling them "look here, not on `PATH`":
-> - **macOS:** `./peekdocs/peekdocs --version` — the unzip produces a folder; the launcher is one level inside (forward slash + dot, then into the folder)
-> - **Linux:** `./peekdocs-cli-linux --version` (forward slash + dot)
-> - **Windows PowerShell:** `.\peekdocs-cli-windows.exe --version` (backslash + dot)
-> - **Windows cmd.exe:** `peekdocs-cli-windows.exe --version` (bare name works; cmd.exe includes the current directory in its search by default)
->
-> The reason: shells search `$PATH` (`$env:Path` on Windows) for executables, and the current directory isn't on `PATH` by default on macOS / Linux / PowerShell (a security default — prevents accidentally running a malicious binary in a folder you `cd`'d into). The `./` or `.\` prefix overrides that. Once you've installed the binary to a folder that *is* on `PATH` (`/usr/local/bin` on macOS / Linux, `$HOME\bin` on Windows after the steps below), the prefix becomes unnecessary and `peekdocs ...` works from any directory.
-
-**Windows: make `peekdocs` work from any terminal.** Rename the CLI to `peekdocs.exe`, move it to a folder on your user `PATH`, and add the folder to `PATH`. Run this in PowerShell from the download folder:
-
-```powershell
-Rename-Item peekdocs-cli-windows.exe peekdocs.exe
-New-Item -ItemType Directory -Force -Path "$HOME\bin" | Out-Null
-Move-Item peekdocs.exe "$HOME\bin\"
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$HOME\bin", "User")
-```
-
-Open a fresh PowerShell window afterward; `peekdocs --version` then works from any directory.
-
-Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
-
-<a id="first-launch-security"></a>**\* First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
-
-- **Windows (SmartScreen):** Click **More info** → **Run anyway**.
-- **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. The bypass:
-  1. Click **Done** to dismiss the warning.
-  2. Open **System Settings → Privacy & Security**, scroll down to *"peekdocs-gui.app was blocked..."*, and click **Open Anyway**.
-  3. Re-launch the app and click **Open** in the final confirm dialog.
-
-  From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app. The one-line terminal alternative is faster if you upgrade often: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
-- **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`). Full walkthrough (SHA-256 verify, `libxcb` troubleshooting, SELinux notes, install-to-`~/.local/bin`): [docs/INSTALLATION.md → Linux GUI first-launch](docs/INSTALLATION.md#linux-gui-first-launch).
-
-**Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#uninstalling) below for full removal instructions.
-
-**No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together — nothing external to upgrade, conflict, or break.
-
-**Safe for your computer.** No installation option (standalone, pipx, or source) modifies your existing Python, installs system services, writes to the registry, or interferes with any other program.
-
----
-
-*Done with Option A? Skip ahead to [Quick Start](#quick-start). If you have Python installed, Option B below is the better path — one command, faster startup, and you get the CLI and Python API alongside the GUI.*
-
-### Option B: Quick Install with pipx (for Python users)
-
-If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
-
-```bash
-pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolated venv)
-# — or —
-pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
-```
-
-These are the **first-time install** commands. To upgrade later, use `pipx upgrade peekdocs` (or `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`). `pipx upgrade` is cleaner than `pipx install --force` — it replaces the package's contents in place instead of leaving stale `.dist-info` directories around (which can desync the reported version from the running code).
-
-After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder, every time — even after restarting your computer. pipx manages the underlying virtual environment for you (pip drops the package into whichever Python environment you used). To uninstall completely: `pipx uninstall peekdocs` (or `pip uninstall peekdocs`). See the [User Guide](docs/USER_GUIDE.md#will-peekdocs-affect-my-existing-python-installation) for what is and isn't preserved across upgrades.
-
-**GUI prerequisite** — only if you'll use `peekdocs-gui`:
-
-- **macOS Homebrew Python:** `brew install python-tk@3.14` (match your `python@<version>`)
-- **Linux:** `sudo apt install python3-tk`
-- **Windows / python.org macOS installer:** already included — nothing to do
-
-**Niche cases** (macOS python3.13 selection, no-git ZIP install, Windows pipx fallback, source install for contributors) are documented in [docs/INSTALLATION.md](docs/INSTALLATION.md).
-
-### Upgrading
-
-Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. These files are **never overwritten** by an upgrade:
-
-- `~/.peekdocsrc` — your saved settings and preferences
-- `~/.peekdocs_history.json` — your search history
-- `~/.peekdocs_bookmarks.json` — your bookmarks
-- `.peekdocs_collection.json` (in each search folder) — your saved searches and search suites
-- `.peekdocs.db` (in each search folder) — your search index
-- `peekdocs_report_*`, `peekdocs_accumulated_*` files — your saved reports
-
-How to upgrade depends on which install method you used:
-
-- **Standalone (Option A):** download the new file from the [Releases page](https://github.com/exbuf/peekdocs/releases/latest) and replace the old one. **No need to uninstall first.**
-- **pipx (Option B):** `pipx upgrade peekdocs` — replaces the package contents in place without leaving stale `.dist-info` directories behind. (`pipx install --force git+…` also works but can accumulate stale dist-info entries that desync the reported version from the running code; `pipx uninstall peekdocs && pipx install git+…` is the nuclear option if you ever hit that.) **Windows note:** if either upgrade method fails with "Access is denied" on `.pyd` / `.dll` / `python.exe` files, the existing venv is being held open by a running peekdocs process (or a terminal sitting inside the venv folder). See [pipx upgrade on Windows: locked files](docs/TROUBLESHOOTING.md#pipx-upgrade-windows-locked-files) for the recovery walkthrough. macOS and Linux aren't affected — they let a running process keep using a file that's been replaced.
-- **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
-- **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
-
-### Uninstalling
-
-peekdocs doesn't use a system installer — no registry entries, no system services, no kernel extensions. "Uninstalling" just means deleting the executable (standalone) or the Python package (pipx / pip). Your settings, history, bookmarks, saved searches, and indexes are stored in your home directory and search folders — **they persist after uninstall** so you can reinstall later and pick up where you left off. To wipe those too, see the *factory reset* paragraph at the end of this section.
-
-How to uninstall depends on which install method you used:
-
-- **Standalone (Option A):**
-  - **Windows:** delete `peekdocs-gui-windows.exe` and/or `peekdocs-cli-windows.exe` from wherever you saved them (Downloads, Desktop, a folder on `PATH`, etc.).
-  - **macOS:** drag `peekdocs-gui.app` from Finder to the Trash. If you put `peekdocs-cli` on `PATH` (e.g., `/usr/local/bin/peekdocs`), `sudo rm /usr/local/bin/peekdocs`.
-  - **Linux:** delete `peekdocs-gui-linux` and/or `peekdocs-cli-linux` from wherever you put them. If either is on `PATH`, e.g. `sudo rm /usr/local/bin/peekdocs`.
-- **pipx (Option B):** `pipx uninstall peekdocs` — removes the isolated venv cleanly.
-- **pip:** `pip uninstall peekdocs` — removes the package from whichever Python environment you installed into.
-- **Source install:** `pip uninstall peekdocs` from inside the venv you used. Then `rm -rf` the cloned repo folder if you no longer need it.
-
-**Factory reset (complete wipe).** The files listed under [Upgrading](#upgrading) above are intentionally preserved by uninstall. If you also want those gone — settings, search history, bookmarks, saved searches, indexes, saved reports — delete them manually:
-
-```bash
-# macOS / Linux
-rm -f ~/.peekdocsrc ~/.peekdocs_history.json ~/.peekdocs_bookmarks.json
-rm -rf ~/peekdocs_reports
-# Plus, in each folder you ever searched:
-# rm -f .peekdocs_collection.json .peekdocs.db .peekdocs.db-wal .peekdocs.db-shm
-```
-
-```powershell
-# Windows PowerShell
-Remove-Item $HOME\.peekdocsrc, $HOME\.peekdocs_history.json, $HOME\.peekdocs_bookmarks.json -ErrorAction SilentlyContinue
-Remove-Item $HOME\peekdocs_reports -Recurse -ErrorAction SilentlyContinue
-# Plus, in each folder you ever searched, remove .peekdocs_collection.json and .peekdocs.db*
-```
-
-After that combination, no trace of peekdocs remains on your machine.
-
-
-## Quick Start
-
-**Want a quick demo first?** Clone this repo and try peekdocs on the bundled samples: `cd samples/engineering_test && peekdocs BUILD -r` returns 29 hits across multiple source-code and engineering file types (the corpus spans 38 extensions in total). No setup beyond installing peekdocs.
-
-### GUI
-
-```bash
-peekdocs-gui
-```
-
-On first launch, the GUI opens with a **Getting Started** tab that walks you through your first search. Close it when you're ready to dive in, or skip it and follow these four steps:
-
-1. Click **Browse** to select a folder (or **Single File** to search a specific file)
-2. Type your search terms
-3. Click **Run Standard Search**
-4. View highlighted matches in the preview pane. To also save a Word report, check **DOCX** in Advanced Search Options before searching (or **HTML**, **PDF**, etc.).
-
-The search bar covers the common case — type your keywords and click **Run Standard Search**. For more advanced searches, you have two choices: configure **Advanced Search Options** yourself (regex, fuzzy, Boolean, range queries, and all other settings) — click the **▶ Advanced Search Options** header to expand the inline panel in the left pane — or let the **Search Wizard** do it for you (blue **Search Wizard** button on the main page, between Run Standard Search and Search Suites): pick a search type from 20 pre-built forms, fill in your values, and click Apply. The wizard also has a separate regex pattern builder with 35 named patterns across 6 categories; it configures Advanced Search Options automatically. The green **Search Suites** button (run a group of saved searches together) lives on the main screen next to Run Standard Search. The **Tools** menu in the upper-right also includes **Schedule Search**, which generates a ready-to-paste cron / Task Scheduler command rather than installing the schedule for you.
-
-The Search tab is split horizontally into a scrollable controls column on the left and a results-preview column on the right, with a draggable sash between them. The right pane carries the search-results headline (files searched · matches · elapsed time), Matched / Excluded count buttons, a Chart popup, and the matches themselves. The left pane carries Steps 1–4, the status row, the report-open buttons, and the collapsible Advanced Search Options panel. The split opens with a slight bias toward the left pane (52%) so the five-wide output-format checkbox row fits at first paint; drag the blue sash to rebalance.
-
-**If buttons overlap or text looks too large**, use the **Text Size** dropdown on the bottom-right toolbar to adjust (Normal is recommended).
-
-### Terminal
-
-If you used Option A (standalone download) or Option B (pipx), peekdocs is always ready — just open any terminal. If you used the source install for contributors, navigate to the cloned repo folder and activate the virtual environment first:
-
-```bash
-cd /path/to/peekdocs                 # the folder containing pyproject.toml
-source venv/bin/activate             # macOS/Linux (you'll see (venv) in your prompt)
-venv\Scripts\activate                # Windows
-```
-
-**Tip:** Type `peekdocs` with no arguments to see a handy cheat sheet of all search modes, common options, and cleanup commands — right above your command prompt. Type `peekdocs -h` for the full reference with all flags, file types, and regex patterns.
-
-Then navigate to your documents and search:
-
-```bash
-cd /path/to/your/documents
-peekdocs budget                      # search for "budget"
-peekdocs budget revenue              # OR search (any term)
-peekdocs -a budget revenue           # AND search (both terms)
-peekdocs -r budget                   # include subfolders
-peekdocs -t pdf,docx budget          # only PDFs and Word docs
-peekdocs -x "\d{3}-\d{2}-\d{4}"     # regex (9-digit ID with dashes)
-peekdocs -e "(budget OR revenue) AND NOT draft"   # Boolean expression
-peekdocs -R amount:1000..5000 budget # range query
-peekdocs -R date:2024-01-01..2024-12-31 invoice  # date range (also accepts 01/01/2024 format)
-peekdocs -P 3 budget acme            # line proximity (terms within 3 lines)
-peekdocs --open docx budget          # search and auto-open the .docx report
-peekdocs --open html budget          # auto-generate HTML and open in your browser
-peekdocs --open csv budget           # auto-generate CSV and open in Excel/LibreOffice
-peekdocs --open pdf budget           # auto-generate PDF and open in a PDF viewer
-peekdocs --open json budget          # auto-generate JSON and open in a text editor
-peekdocs -sa archive --open docx budget  # append to accumulated report and open it
-peekdocs -sa archive --open html budget  # append and open accumulated report in browser
-peekdocs --clear                    # delete peekdocs_*_results* files in current directory
-peekdocs --clear-all                # delete all peekdocs output files (results, saved reports, index)
-```
-
-**No matches?** First search not turning anything up is common. Try `-r` to include subfolders, `-z` for typo-tolerance, drop `-W` if you had whole-word on (it excludes partial matches like "logger" when searching "log"), or check whether your search terms actually appear in those files by opening one manually. Run `peekdocs --list-files` to confirm peekdocs sees the files you expect.
-
-**Why doesn't the OR match count add up?** OR mode counts each matching line ONCE, even when more than one of your terms appears on it. So if `bowling` alone finds 342 matches and `tunick` alone finds 23, an OR search for `bowling tunick` will return *fewer* than 365 whenever some lines mention both words. For example, if the OR total is 350, that means 15 lines contain both terms — inclusion-exclusion: `|A ∪ B| = |A| + |B| − |A ∩ B|`. To list those overlap lines, re-run with `-a` (AND mode) — it returns exactly the intersection. The same explanation lives inside the GUI under **Advanced Search Options → ? help → Match counting in OR mode**.
-
-If you used the manual install, you'll see `(venv)` before each command in your terminal — that's normal and means the virtual environment is active.
-
-Results are saved to `peekdocs_standard_results.txt` in the current directory — the same folder your terminal is in when you run the search. **The .txt report is always written and cannot be disabled** because the GUI's Results Preview pane and the Matched Files popup both parse it; the matplotlib match-heatmap and other downstream views all read from it too. Every other format is opt-in: `peekdocs_standard_results.docx` (the highlighted Word report) is produced when **DOCX** is checked under **Advanced Search Options → Output formats** in the GUI, or when `-o docx` is passed on the CLI. CSV / JSON / PDF / HTML work the same way — opt in via the GUI checkbox or `-o csv,json,pdf,html`. A typical CLI invocation that produces TXT + DOCX is `peekdocs -o docx <terms>`; to also write HTML, `peekdocs -o docx,html <terms>`.
-
-**All result files are overwritten each time you run a new search.** To keep previous results, use `-s my_report` to save a named copy (saved as `peekdocs_report_my_report.txt/.docx` so peekdocs never searches its own reports), or `--timestamp` to add a date/time stamp to each filename so nothing is ever overwritten.
-
-The `.docx` report opens in whatever app you've set as your OS default for `.docx` files — Microsoft Word or [LibreOffice](https://www.libreoffice.org/download/download-libreoffice/) (free) are common choices. The `.txt` report works on any computer with no extra software.
-
-To clean up output files: `peekdocs --clear` (deletes results files) or `peekdocs --clear-all` (deletes results, saved reports, error log, and index). Neither touches your saved searches or settings.
-
-Run `peekdocs -h` for the full flag reference with examples. The complete flag list with detailed descriptions is in the [User Guide](docs/USER_GUIDE.md#flag-use-summary). All flags can be combined freely except: regex (`-x`), fuzzy (`-z`), and wildcard (`-w`) are mutually exclusive (pick one); and expression mode (`-e`) cannot be combined with AND (`-a`), exclude (`-n`), or proximity (`-p`) since those are built into the expression syntax.
-
-### Python API
-
-```python
-from peekdocs import search
-
-if __name__ == "__main__":
-    result = search(["budget", "revenue"], directory="/path/to/docs")
-
-    print(f"Found {len(result.matches)} matches in {len(result.files_searched)} files")
-    for match in result.matches:
-        print(f"  {match.filename}:{match.line_num}: {match.text}")
-```
-
-The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multiprocessing` internally, and on macOS and Windows child processes re-import the calling script. Without the guard, the script will crash with `RuntimeError` on those platforms. See the [API Reference](docs/API.md) for all parameters and options.
 
 ---
 
