@@ -27,10 +27,15 @@ from peekdocs.gui._helpers import (
 from peekdocs.gui._mixin_build import BuildMixin
 from peekdocs.gui._mixin_search import SearchMixin
 from peekdocs.gui._mixin_tools import ToolsMixin
+from peekdocs.gui._mixin_wizard import WizardMixin
+from peekdocs.gui._mixin_regex_search import RegexSearchMixin
+from peekdocs.gui._mixin_suites import SuitesMixin
+from peekdocs.gui._mixin_file_analysis import FileAnalysisMixin
+from peekdocs.gui._mixin_help_panels import HelpPanelsMixin
 from peekdocs.gui._mixin_data import DataMixin
 
 
-class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, DataMixin, ctk.CTk):
+class PeekDocsApp(BuildMixin, SearchMixin, ToolsMixin, WizardMixin, RegexSearchMixin, SuitesMixin, FileAnalysisMixin, HelpPanelsMixin, DataMixin, ctk.CTk):
     def __init__(self):
         """Initialize the main application window, widgets, and saved settings."""
         super().__init__()
