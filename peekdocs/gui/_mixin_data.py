@@ -2227,35 +2227,20 @@ class DataMixin:
     def _show_license(self):
         """Open a scrollable window showing the bundled LICENSE text.
 
-        Locates LICENSE via the PyInstaller runtime dir (sys._MEIPASS)
-        when running from a standalone binary, or two parents up from
-        peekdocs/gui/_mixin_data.py when running from a pip / pipx
-        install. Falls back to a helpful "not found" message pointing
-        at the GitHub URL if neither location has the file.
+        Locates LICENSE via :func:`peekdocs.paths.resource_path`, which
+        handles both PyInstaller bundle (``sys._MEIPASS``) and source
+        checkout cases transparently. Falls back to a helpful "not
+        found" message pointing at the GitHub URL if the file isn't
+        present on disk (custom builds, non-standard installs).
         """
-        import os
-        import sys
         import tkinter as tk
+        from peekdocs.paths import resource_path
 
-        # Try each candidate path in order until one resolves.
-        candidates = []
-        if hasattr(sys, "_MEIPASS"):
-            # PyInstaller bundle — LICENSE is at the top of the extracted
-            # bundle because build_app.py includes it via --add-data.
-            candidates.append(os.path.join(sys._MEIPASS, "LICENSE"))
-        # Source-repo path: this file is peekdocs/gui/_mixin_data.py, so
-        # LICENSE is two parents up (gui/ → peekdocs/ → repo root).
-        _here = os.path.dirname(os.path.abspath(__file__))
-        candidates.append(os.path.normpath(os.path.join(_here, "..", "..", "LICENSE")))
-
-        license_text = None
-        for path in candidates:
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    license_text = f.read()
-                    break
-            except (OSError, UnicodeDecodeError):
-                continue
+        try:
+            with open(resource_path("LICENSE"), "r", encoding="utf-8") as f:
+                license_text = f.read()
+        except (OSError, UnicodeDecodeError):
+            license_text = None
 
         if license_text is None:
             license_text = (

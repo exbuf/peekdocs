@@ -1,5 +1,7 @@
 """Public library API for peekdocs — call search() programmatically."""
 
+from __future__ import annotations
+
 import multiprocessing
 import os
 import platform
@@ -8,6 +10,7 @@ import signal
 import sys
 import time
 from dataclasses import dataclass
+from typing import Any, Callable
 
 # On Linux, the default multiprocessing start method is "fork", which can
 # deadlock when a multiprocessing.Pool is created from within a thread (e.g.
@@ -33,14 +36,14 @@ class SearchMatch:
     line_num: int
     text: str
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         """Allow tuple unpacking: fd, fn, ln, tx = match."""
         return iter((self.file_dir, self.filename, self.line_num, self.text))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return 4
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Any:
         return (self.file_dir, self.filename, self.line_num, self.text)[index]
 
 
@@ -48,40 +51,40 @@ class SearchMatch:
 class SearchResult:
     """Complete result of a search operation."""
 
-    matches: list          # List[SearchMatch]
-    files_searched: list   # List[str] — absolute paths
-    skipped_files: list    # List[Tuple[str, str]] — (filename, error_msg)
-    elapsed: float         # seconds
-    used_index: bool       # whether the indexed path was used
-    index_bypass_reason: str = ""  # non-empty when user requested index but it was bypassed
-    index_stale_notice: str = ""   # non-empty when index metadata doesn't match current params
+    matches: list[SearchMatch]
+    files_searched: list[str]           # absolute paths
+    skipped_files: list[tuple[str, str]]  # (filename, error_msg)
+    elapsed: float                       # seconds
+    used_index: bool                     # whether the indexed path was used
+    index_bypass_reason: str = ""        # non-empty when user requested index but it was bypassed
+    index_stale_notice: str = ""         # non-empty when index metadata doesn't match current params
 
 
 def search(
-    search_terms,
+    search_terms: list[str],
     *,
-    directory=None,
-    match_all=False,
-    recursive=False,
-    use_regex=False,
-    use_fuzzy=False,
-    use_wildcard=False,
-    use_whole_word=False,
-    use_ocr=False,
-    exclude_terms=None,
-    file_types=None,
-    file_names=None,
-    context_before=0,
-    context_after=0,
-    proximity=0,
-    line_proximity=0,
-    cores=None,
-    use_index=None,
-    progress=None,
-    expression=None,
-    range_filters=None,
-    max_file_size_mb=100,
-):
+    directory: str | None = None,
+    match_all: bool = False,
+    recursive: bool = False,
+    use_regex: bool = False,
+    use_fuzzy: bool = False,
+    use_wildcard: bool = False,
+    use_whole_word: bool = False,
+    use_ocr: bool = False,
+    exclude_terms: list[str] | None = None,
+    file_types: list[str] | None = None,
+    file_names: list[str] | None = None,
+    context_before: int = 0,
+    context_after: int = 0,
+    proximity: int = 0,
+    line_proximity: int = 0,
+    cores: int | None = None,
+    use_index: bool | None = None,
+    progress: Callable[[int, int], None] | None = None,
+    expression: str | None = None,
+    range_filters: list[str] | None = None,
+    max_file_size_mb: int = 100,
+) -> SearchResult:
     """Search documents and return structured results.
 
     Parameters
@@ -388,26 +391,26 @@ def search(
 class SuiteSearchResult:
     """Result for a single saved search within a suite run."""
 
-    search_name: str        # name of the saved search
-    search_terms: list      # list of search terms or [expression]
-    matches: list           # List[SearchMatch]
-    files_searched: list    # List[str]
-    elapsed: float          # seconds
-    mode: str               # "ALL" or "ANY"
+    search_name: str                 # name of the saved search
+    search_terms: list[str]          # list of search terms or [expression]
+    matches: list[SearchMatch]
+    files_searched: list[str]
+    elapsed: float                   # seconds
+    mode: str                        # "ALL" or "ANY"
 
 
 @dataclass
 class SuiteResult:
     """Complete result of running a search suite."""
 
-    suite: str              # suite name
-    search_results: list    # List[SuiteSearchResult]
-    total_matches: int      # sum of all search match counts
-    elapsed: float          # total seconds
-    skipped_searches: list  # List[Tuple[str, str]] — (name, reason)
+    suite: str                                 # suite name
+    search_results: list[SuiteSearchResult]
+    total_matches: int                         # sum of all search match counts
+    elapsed: float                             # total seconds
+    skipped_searches: list[tuple[str, str]]    # (name, reason)
 
 
-def list_suites(directory=None):
+def list_suites(directory: str | None = None) -> dict[str, list[str]]:
     """Return a dict of suite names to their search name lists for a directory.
 
     Parameters
@@ -429,12 +432,12 @@ def list_suites(directory=None):
 
 
 def run_suite(
-    name,
+    name: str,
     *,
-    directory=None,
-    progress=None,
-    max_file_size_mb=100,
-):
+    directory: str | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
+    max_file_size_mb: int = 100,
+) -> SuiteResult:
     """Run a saved search suite by name.
 
     Each saved search in the suite is executed with its original settings
@@ -598,25 +601,25 @@ def _collections_path():
 class PatternResult:
     """Result for a single regex pattern within a collection run."""
 
-    name: str               # pattern label (e.g. "Passwords")
-    regex: str              # the regex string
-    matches: list           # List[SearchMatch]
-    files_matched: int      # number of distinct files with matches
+    name: str                       # pattern label (e.g. "Passwords")
+    regex: str                      # the regex string
+    matches: list[SearchMatch]
+    files_matched: int              # number of distinct files with matches
 
 
 @dataclass
 class CollectionResult:
     """Complete result of running a regex collection."""
 
-    collection: str         # collection name
-    pattern_results: list   # List[PatternResult]
-    total_matches: int      # sum of all pattern match counts
-    files_searched: list    # List[str] — absolute paths (from last pattern run)
-    elapsed: float          # seconds
-    skipped_patterns: list  # List[Tuple[str, str]] — (name, error_msg)
+    collection: str                          # collection name
+    pattern_results: list[PatternResult]
+    total_matches: int                       # sum of all pattern match counts
+    files_searched: list[str]                # absolute paths (from last pattern run)
+    elapsed: float                           # seconds
+    skipped_patterns: list[tuple[str, str]]  # (name, error_msg)
 
 
-def list_regex_collections():
+def list_regex_collections() -> list[str]:
     """Return a list of saved regex collection names.
 
     Returns
@@ -637,13 +640,13 @@ def list_regex_collections():
 
 
 def run_regex_collection(
-    name,
+    name: str,
     *,
-    directory=None,
-    recursive=False,
-    progress=None,
-    max_file_size_mb=100,
-):
+    directory: str | None = None,
+    recursive: bool = False,
+    progress: Callable[[int, int, str], None] | None = None,
+    max_file_size_mb: int = 100,
+) -> CollectionResult:
     """Run a saved regex collection by name.
 
     Each enabled pattern in the collection is executed separately as an
