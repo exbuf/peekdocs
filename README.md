@@ -123,6 +123,8 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
      in the first place).
 -->
 
+*Prefer to pause, rewind, or scrub to a specific moment? All five clips in this README are also available as pausable MP4s on the maintainer's [personal site](https://robertdschoening.com/peekdocs).*
+
 <img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
 
 *A ~46-second walkthrough as a looping GIF: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
@@ -416,9 +418,6 @@ peekdocs has three search modes, each with its own big button on the main page, 
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
 The hero clip below shows a Standard Search; the Suites and Regex Search clips follow, capped by a tour of the settings surface — every knob one click away.
-
-*Prefer to pause, rewind, or scrub to a specific moment? Every clip below is also available as a pausable MP4 on the maintainer's [personal site](https://robertdschoening.com/peekdocs).*
-
 
 <img src="docs/images/getting-started.gif" width="720" alt="peekdocs first-time on-ramp — pointing at a folder, running a first search, opening the highlighted report, looping">
 
