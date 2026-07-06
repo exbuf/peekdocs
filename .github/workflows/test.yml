@@ -91,11 +91,11 @@ jobs:
         run: |
           python -m peekdocs --check
 
-  # Type-check peekdocs's public API surface with mypy. Scope is
-  # deliberately narrow — peekdocs/api.py and peekdocs/paths.py,
-  # the files that external consumers import. Rest of the codebase
-  # is untyped (tracked in docs/ARCHITECTURE.md's known-weaknesses
-  # list). See pyproject.toml's [tool.mypy] section for the config.
+  # Type-check peekdocs's public + top-level surface with mypy. Scope
+  # widened past api.py + paths.py to also cover reporter.py + cli.py.
+  # Rest of the codebase is untyped (tracked in
+  # docs/ARCHITECTURE.md's known-weaknesses list). See pyproject.toml's
+  # [tool.mypy] section for the config.
   #
   # Fast enough to run on every push (~5-10s). Single OS + single
   # Python version — mypy's checks don't need the pytest matrix.
@@ -118,3 +118,45 @@ jobs:
 
       - name: Run mypy against the typed public surface
         run: mypy
+
+  # OCR integration test: real Tesseract, real image, real pytesseract
+  # shell-out. The pytest matrix above already runs tests/test_paths.py
+  # which covers Tesseract *detection* (mocked shutil.which +
+  # os.path.isfile), but nothing there exercises the actual
+  # pytesseract.image_to_string call. The 1.2.77 release bug landed
+  # because "detection succeeds via fallback path" didn't imply "OCR
+  # execution succeeds" — pytesseract has its own PATH lookup that
+  # needed pinning via pytesseract.pytesseract.tesseract_cmd.
+  #
+  # This job apt-installs Tesseract, then runs
+  # tests/test_ocr_integration.py end-to-end so a regression on the
+  # detection → cmd-pin → OCR-run contract fails CI, not a user report.
+  ocr-integration:
+    name: OCR integration (real Tesseract)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install system Tesseract + Tk runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr python3-tk
+
+      - name: Install peekdocs + pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+
+      - name: Confirm Tesseract is on PATH
+        run: |
+          which tesseract
+          tesseract --version | head -1
+
+      - name: Run OCR integration test
+        run: pytest tests/test_ocr_integration.py -v
