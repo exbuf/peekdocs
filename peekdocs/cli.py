@@ -1156,68 +1156,12 @@ def _main_inner(argv: list[str] | None = None) -> int:
         return handle_check()
 
     if args and args[0] == "--list-files":
-        cwd = os.getcwd()
-        found = []
-        for f in sorted(os.listdir(cwd)):
-            if (f.startswith(RESULT_FILE_PREFIXES) or
-                f.startswith("peekdocs_report_") or
-                f.startswith("peekdocs_accumulated_") or
-                f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal",
-                       ".peekdocs.db-shm", ".peekdocs_collection.json")):
-                size = os.path.getsize(os.path.join(cwd, f))
-                if size >= 1_000_000:
-                    size_str = f"{size / 1_000_000:.2f} MB"
-                elif size >= 1_000:
-                    size_str = f"{size / 1_000:.2f} KB"
-                else:
-                    size_str = f"{size} bytes"
-                found.append((f, size_str))
-        if found:
-            print(f"\npeekdocs files in {cwd}:\n")
-            for f, size_str in found:
-                print(f"  {f}  ({size_str})")
-            print(f"\n{len(found)} file(s). Use --clear to delete results, --clear-all to delete everything.")
-        else:
-            print(f"\nNo peekdocs files found in {cwd}.")
-        print()
-        return 0
+        from peekdocs.commands.list_files import handle_list_files
+        return handle_list_files()
 
     if args and args[0] in ("--clear", "--clear-all"):
-        cwd = os.getcwd()
-        clear_all = args[0] == "--clear-all"
-        deleted = []
-
-        # Always delete results files
-        for f in os.listdir(cwd):
-            if f.startswith(RESULT_FILE_PREFIXES):
-                os.remove(os.path.join(cwd, f))
-                deleted.append(f)
-
-        if clear_all:
-            # Also delete saved reports, error log, and index
-            for f in os.listdir(cwd):
-                if f.startswith(("peekdocs_report_", "peekdocs_accumulated_")):
-                    os.remove(os.path.join(cwd, f))
-                    deleted.append(f)
-            for f in ("peekdocs_errors.log", ".peekdocs.db", ".peekdocs.db-wal", ".peekdocs.db-shm"):
-                path = os.path.join(cwd, f)
-                if os.path.exists(path):
-                    os.remove(path)
-                    deleted.append(f)
-
-        if deleted:
-            print(f"Deleted {len(deleted)} file(s) from {cwd}:")
-            for f in sorted(deleted):
-                print(f"  {f}")
-        else:
-            print("No peekdocs output files found in the current directory.")
-        if not clear_all:
-            print("\nTo also delete saved reports, error log, and index: peekdocs --clear-all")
-        else:
-            print("\nPreserved (not deleted): saved searches (.peekdocs_collection.json),")
-            print("settings (~/.peekdocsrc), and bookmarks. Remove manually if needed.")
-            print()
-        return 0
+        from peekdocs.commands.clear import handle_clear
+        return handle_clear(args)
 
     if args and args[0] == "--index":
         cwd = os.getcwd()
@@ -1409,25 +1353,8 @@ def _main_inner(argv: list[str] | None = None) -> int:
         return handle_runs(args)
 
     if args and args[0] == "--list-suites":
-        from peekdocs.suite_index import list_suites_global, rescan
-        if "--rescan" in args[1:]:
-            rescan()
-        entries = list_suites_global()
-        if not entries:
-            print("No suites found.")
-            print()
-            print("Create one in the GUI (Tools → Search Suites), or run a search")
-            print("first so peekdocs learns which folders to look in.")
-            return 0
-        name_w = max(len(e["name"]) for e in entries)
-        name_w = max(name_w, len("Suite"))
-        print(f"{'Suite'.ljust(name_w)}  Searches  Folder")
-        print(f"{'-' * name_w}  --------  ------")
-        for e in entries:
-            print(f"{e['name'].ljust(name_w)}  {str(e['search_count']).rjust(8)}  {e['folder']}")
-        print()
-        print(f"{len(entries)} suite(s).  Run with:  peekdocs --suite \"<name>\"")
-        return 0
+        from peekdocs.commands.list_suites import handle_list_suites
+        return handle_list_suites(args)
 
     # ── --watch: long-running folder-watcher mode ──
     # Accepts --watch anywhere in args (not necessarily args[0]) so it

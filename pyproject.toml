@@ -153,6 +153,9 @@ files = [
     "peekdocs/commands/check.py",
     "peekdocs/commands/diff.py",
     "peekdocs/commands/runs.py",
+    "peekdocs/commands/list_files.py",
+    "peekdocs/commands/list_suites.py",
+    "peekdocs/commands/clear.py",
     "peekdocs/gui/_error_guard.py",
 ]
 ignore_missing_imports = true
