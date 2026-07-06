@@ -2181,7 +2181,7 @@ class DataMixin:
         about_win, _dark = self._themed_toplevel()
         about_win.title("About peekdocs")
         about_win.resizable(False, False)
-        about_win.geometry("300x245")
+        about_win.geometry("300x265")
         # Center on parent
         self.update_idletasks()
         x = self.winfo_rootx() + (self.winfo_width() - 300) // 2
@@ -2202,14 +2202,102 @@ class DataMixin:
                  font=("TkDefaultFont", 9), fg="gray", justify="center",
                  wraplength=280).pack(pady=(5, 5))
 
+        _button_frame = ctk.CTkFrame(about_win, fg_color="transparent")
+        _button_frame.pack(pady=(0, 10))
+
         ctk.CTkButton(
-            about_win, text="Close", width=80,
+            _button_frame, text="View License", width=100,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=self._show_license,
+            font=ctk.CTkFont(size=12),
+        ).pack(side="left", padx=(0, 8))
+
+        ctk.CTkButton(
+            _button_frame, text="Close", width=80,
             fg_color="transparent", text_color=("gray30", "gray70"),
             hover_color=("gray90", "gray25"),
             command=about_win.destroy,
             font=ctk.CTkFont(size=12),
-        ).pack(pady=(0, 10))
+        ).pack(side="left")
         self._apply_dark_theme(about_win)
+
+
+
+    def _show_license(self):
+        """Open a scrollable window showing the bundled LICENSE text.
+
+        Locates LICENSE via the PyInstaller runtime dir (sys._MEIPASS)
+        when running from a standalone binary, or two parents up from
+        peekdocs/gui/_mixin_data.py when running from a pip / pipx
+        install. Falls back to a helpful "not found" message pointing
+        at the GitHub URL if neither location has the file.
+        """
+        import os
+        import sys
+        import tkinter as tk
+
+        # Try each candidate path in order until one resolves.
+        candidates = []
+        if hasattr(sys, "_MEIPASS"):
+            # PyInstaller bundle — LICENSE is at the top of the extracted
+            # bundle because build_app.py includes it via --add-data.
+            candidates.append(os.path.join(sys._MEIPASS, "LICENSE"))
+        # Source-repo path: this file is peekdocs/gui/_mixin_data.py, so
+        # LICENSE is two parents up (gui/ → peekdocs/ → repo root).
+        _here = os.path.dirname(os.path.abspath(__file__))
+        candidates.append(os.path.normpath(os.path.join(_here, "..", "..", "LICENSE")))
+
+        license_text = None
+        for path in candidates:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    license_text = f.read()
+                    break
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        if license_text is None:
+            license_text = (
+                "LICENSE file not found in this build.\n\n"
+                "peekdocs is MIT-licensed. The full text is at:\n"
+                "  https://github.com/exbuf/peekdocs/blob/main/LICENSE\n"
+            )
+
+        license_win, _ = self._themed_toplevel()
+        license_win.title("peekdocs — License")
+        license_win.geometry("560x420")
+
+        # Center on parent, matching show_about's pattern.
+        self.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - 560) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - 420) // 2
+        license_win.geometry(f"+{x}+{y}")
+
+        _text_frame = tk.Frame(license_win)
+        _text_frame.pack(fill="both", expand=True, padx=15, pady=(15, 5))
+
+        _scrollbar = tk.Scrollbar(_text_frame)
+        _scrollbar.pack(side="right", fill="y")
+
+        _text_widget = tk.Text(
+            _text_frame, wrap="word",
+            font=("Courier", 10),
+            yscrollcommand=_scrollbar.set,
+        )
+        _text_widget.insert("1.0", license_text)
+        _text_widget.configure(state="disabled")  # read-only
+        _text_widget.pack(side="left", fill="both", expand=True)
+        _scrollbar.configure(command=_text_widget.yview)
+
+        ctk.CTkButton(
+            license_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=license_win.destroy,
+            font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+        self._apply_dark_theme(license_win)
 
 
 

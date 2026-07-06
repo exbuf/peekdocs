@@ -89,6 +89,15 @@ def build_gui():
         "--windowed",                          # no console window (GUI app)
         "--onedir" if is_mac else "--onefile",  # .app bundle or single .exe
         "--add-data", f"{ctk_path}{sep}customtkinter",  # customtkinter assets
+        # MIT license + Apache-convention NOTICE + per-dependency license
+        # listing bundled at the top of the app so users who download the
+        # standalone GUI have the license text without needing to visit
+        # GitHub. PEP 639 already ships these into pipx installs via the
+        # wheel's .dist-info directory; this closes the gap for the
+        # standalone-binary path.
+        "--add-data", f"LICENSE{sep}.",
+        "--add-data", f"NOTICE{sep}.",
+        "--add-data", f"THIRD_PARTY_NOTICES.md{sep}.",
         "--noconfirm",                         # overwrite without asking
     ]
 
@@ -129,11 +138,22 @@ def build_cli():
     # (Windows ~2-4s, Linux ~0.5-1.5s) and a single .exe / binary is
     # the conventional CLI shape on those platforms.
     is_mac = sys.platform == "darwin"
+    # --add-data path separator differs by platform (Windows uses `;`
+    # instead of `:`). Mirrors the GUI build's `sep` handling above.
+    sep = ";" if sys.platform == "win32" else ":"
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--name", "peekdocs",
         "--console",                           # console app
         "--onedir" if is_mac else "--onefile",
+        # MIT license + NOTICE + per-dependency license listing bundled at
+        # the top of the CLI so users have the license text alongside the
+        # binary. PEP 639 already ships these into pipx installs via the
+        # wheel's .dist-info directory; this closes the gap for the
+        # standalone-binary path.
+        "--add-data", f"LICENSE{sep}.",
+        "--add-data", f"NOTICE{sep}.",
+        "--add-data", f"THIRD_PARTY_NOTICES.md{sep}.",
         "--noconfirm",                         # overwrite without asking
     ]
 
