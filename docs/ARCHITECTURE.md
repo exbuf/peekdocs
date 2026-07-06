@@ -177,7 +177,7 @@ These are load-bearing. Every code change must preserve them.
 
 ## Testing strategy
 
-Tests live in `tests/`, run with `pytest`. ~15 test files, ~8K LOC.
+Tests live in `tests/`, run with `pytest`. 22 test files, ~8.8K LOC, 711 collected.
 
 - **Core engine.** Strong unit coverage. `test_api.py`, `test_cli.py`, `test_expr_parser.py`, `test_range_query.py`, `test_translator.py`.
 - **GUI.** Integration + smoke coverage. `test_gui.py`, `test_headless.py` (verifies CLI import path works without Tk).

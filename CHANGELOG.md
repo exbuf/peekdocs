@@ -54,8 +54,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   wider scope.
 
 ### Fixed
-- **Stale numeric claims across docs.** Test count (`~630` → 695
-  in `docs/SMOKE_TEST.md` and `CLAUDE.md`); sample-corpus extension
+- **Stale numeric claims across docs.** Test count (`~630` → 711
+  in `docs/SMOKE_TEST.md` and `CLAUDE.md`; the review pass that
+  synced these caught a second wave of drift when today's
+  `test_errors.py` + `test_paths.py` additions bumped the total
+  from 695 to 711 mid-session — the docs now name 711); sample-corpus extension
   count (`41` → 38 in `README.md`, excluding auto-generated
   peekdocs report files); `_mixin_tools.py` LOC (`~870` → 873 in
   `docs/ARCHITECTURE.md`). Discovered in the docs-vs-code audit

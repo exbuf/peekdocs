@@ -57,5 +57,5 @@ pytest tests/test_cli.py::test_query -v
   - `reporter.py` — report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   - `indexer.py` — optional SQLite FTS5 search index
   - `range_query.py`, `expr_parser.py`, `diff.py`, `watcher.py`, `run_log.py`, `notifier.py`, `translator.py`, `collection.py`, `suite_index.py`, `i18n.py`, `regex_examples.py`, `wizard_patterns.py`, `constants.py` — engine + persistence + platform utilities
-- `tests/` — Pytest test suite (703 tests).
+- `tests/` — Pytest test suite (22 test files, 711 tests).
 - `pyproject.toml` — Project metadata, dependencies, console script configuration, and `[tool.mypy]` config (8 files in the typed public surface). Uses setuptools as build backend.
