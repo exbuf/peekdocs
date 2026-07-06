@@ -12,6 +12,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.76] — 2026-07-06
+
+### Changed
+- **`_mixin_tools.py` split from ~10,873 LOC into six feature-
+  based mixin files** (merge `9072d1f`, branch
+  `refactor/mixin-tools-split`). The single largest architectural
+  weakness identified in `docs/ARCHITECTURE.md` (the 10K-LOC
+  "and this feature too" bucket file) is now gone. Five commits
+  extracted 80 methods across five feature domains; the sixth
+  commit updated the architecture doc:
+  - `_mixin_wizard.py` (889 LOC, 4 methods) — Search Wizard +
+    Regex Wizard picker
+  - `_mixin_file_analysis.py` (2,825 LOC, 46 methods) — nine
+    folder-analysis tools (File Inventory, Duplicate Finder,
+    Large Files, Empty Files, Recent Changes, File Age
+    Distribution, Protected Files, Unsearchable Files,
+    Collection Summary)
+  - `_mixin_regex_search.py` (3,126 LOC, 7 methods) — Regex
+    Search + Regex Tester + both help panels
+  - `_mixin_suites.py` (1,598 LOC, 7 methods) — Search Suites
+    picker + execution + completion popup
+  - `_mixin_help_panels.py` (1,829 LOC, 8 methods) — orphan
+    `?`-help popups (search options, save/load, matched files,
+    excluded files, index, three-mode compare, etc.)
+  - `_mixin_tools.py` reduced to 873 LOC (4 misc methods —
+    System Check, Diff Snapshots, Schedule Search)
+  Cumulative reduction: **10,873 → 873 LOC (−92%)**.
+  Zero behavior changes: PeekDocsApp still inherits from all
+  mixins, cross-mixin calls resolve via Python MRO, all 678
+  tests pass at every commit on the branch. Pre-refactor
+  state preserved as tag `pre-mixin-split-1.2.75` on origin.
+  Full commit-by-commit walkthrough in the merge commit body.
+- **`docs/ARCHITECTURE.md` updated to reflect the split**
+  (20e5e36). GUI package table now lists all nine feature-based
+  mixins with their responsibilities. Historical decisions
+  section notes the split preserved the mixin pattern (nine
+  mixins in PeekDocsApp's MRO; cross-mixin calls still route
+  through `self`). Known weaknesses list cleaned up: three
+  items removed since they were fixed
+  (`_mixin_tools.py` 10K-LOC bucket, `sys._MEIPASS` reinvention,
+  sparse public-API type hints).
+- **README + USER_GUIDE surface the ARCHITECTURE.md deep dive
+  and the public-API type hints** (810bd98). README's
+  Documentation table gained an `Architecture` row between
+  API Reference and Glossary. USER_GUIDE's Python API section
+  gained a type-hint note enumerating the typed surface
+  (`search`, `list_suites`, `run_suite`, `list_regex_collections`,
+  `run_regex_collection` + all 6 dataclasses) so IDEs and mypy
+  work out of the box against the shipped `.py` files.
+
 ## [1.2.75] — 2026-07-06
 
 ### Docs
