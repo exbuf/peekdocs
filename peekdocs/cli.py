@@ -1152,60 +1152,8 @@ def _main_inner(argv: list[str] | None = None) -> int:
         print('-------------------------------------------------------------------------')
 
     if args and args[0] == "--check":
-        info = run_system_check()
-        print(f"peekdocs {info['peekdocs_version']}")
-        print(f"Python {info['python_version_full']}")
-        print(f"OS: {info['os_system']} {info['os_release']}")
-        print()
-
-        v = info['python_version_tuple']
-        py_min = info['tested_python_min']
-        py_max = info['tested_python_max']
-        if info['python_status'] == "below_min":
-            print(f"Python version:  {v[0]}.{v[1]} (BELOW minimum {py_min[0]}.{py_min[1]}) — upgrade Python to {py_min[0]}.{py_min[1]} or later")
-        elif info['python_status'] == "above_max":
-            print(f"Python version:  {v[0]}.{v[1]} (above maximum tested {py_max[0]}.{py_max[1]}) — should work, but not yet verified")
-        else:
-            print(f"Python version:  {v[0]}.{v[1]} (ok)")
-        print()
-
-        print("Required dependencies:")
-        for desc, pkg, status, ver in info['required_deps']:
-            if status == "ok":
-                print(f"  {desc} ({pkg}): ok (v{ver})")
-            else:
-                print(f"  {desc} ({pkg}): MISSING — install with: pip install {pkg}")
-        print()
-
-        print("Optional dependencies:")
-        for desc, pkg, status, ver in info['optional_deps']:
-            if status == "ok":
-                print(f"  {desc} ({pkg}): ok (v{ver})")
-            else:
-                print(f"  {desc} ({pkg}): not installed — install with: pip install {pkg}")
-        print()
-
-        if info['tesseract_installed']:
-            print("Tesseract OCR:   installed (OCR available with -O flag)")
-        else:
-            print("Tesseract OCR:   not installed (optional — needed only for -O flag)")
-
-        print(f"SQLite version:  {info['sqlite_version']}")
-        print()
-
-        print(f"Disk space:      {info['disk_free_human']} free")
-        if info['disk_low']:
-            print("  Warning: Low disk space. Reports may fail to write.")
-        print()
-
-        if not info['all_ok']:
-            print("Fix missing dependencies with: pipx upgrade peekdocs  (or see https://github.com/exbuf/peekdocs#installation)")
-            print()
-        else:
-            print("All checks passed.")
-            print()
-
-        return 0 if info['all_ok'] else 2
+        from peekdocs.commands.check import handle_check
+        return handle_check()
 
     if args and args[0] == "--list-files":
         cwd = os.getcwd()
@@ -1452,103 +1400,13 @@ def _main_inner(argv: list[str] | None = None) -> int:
     # ── --list-suites [--rescan]: show all suites and where they live ──
     # ── --diff OLD.json NEW.json [--json]: compare two JSON outputs ──
     if args and args[0] == "--diff":
-        if len(args) < 3:
-            print("Error: --diff requires two JSON file paths.", file=sys.stderr)
-            print("Usage: peekdocs --diff peekdocs_snapshot_old.json peekdocs_snapshot_new.json [--json]\n", file=sys.stderr)
-            return 2
-        old_path = args[1]
-        new_path = args[2]
-        emit_json = "--json" in args[3:]
-
-        # Friendly hint when the input is obviously a source document
-        # (.odt, .docx, .pdf, etc.) rather than a peekdocs JSON snapshot.
-        # --diff compares two scan results, not two documents.
-        _doc_exts = {".odt", ".ods", ".odp", ".doc", ".docx", ".xls", ".xlsx",
-                     ".ppt", ".pptx", ".pdf", ".rtf", ".pages", ".numbers",
-                     ".key", ".txt", ".md", ".html", ".htm"}
-
-        def _diff_input_hint(path):
-            ext = os.path.splitext(path)[1].lower()
-            if ext in _doc_exts:
-                print(
-                    f"\nHint: '{os.path.basename(path)}' looks like a document, not a peekdocs JSON snapshot.\n"
-                    "      --diff compares two scan results, not two source documents.\n"
-                    "      Produce a snapshot first, e.g.:\n"
-                    "          peekdocs <terms> -r --stdout > peekdocs_snapshot_yesterday.json\n"
-                    "          peekdocs <terms> -r --stdout > peekdocs_snapshot_today.json\n"
-                    "          peekdocs --diff peekdocs_snapshot_yesterday.json peekdocs_snapshot_today.json\n"
-                    "      To compare two documents directly, use a document comparison tool\n"
-                    "      (LibreOffice: Edit → Track Changes → Compare Document).",
-                    file=sys.stderr,
-                )
-            else:
-                print(
-                    "\nHint: --diff expects JSON files produced by peekdocs --stdout or -o json.",
-                    file=sys.stderr,
-                )
-
-        from peekdocs.diff import load_json, compute_diff, format_human, is_actionable
-        old_data, err = load_json(old_path)
-        if err:
-            print(f"Error reading old file: {err}", file=sys.stderr)
-            _diff_input_hint(old_path)
-            return 2
-        new_data, err = load_json(new_path)
-        if err:
-            print(f"Error reading new file: {err}", file=sys.stderr)
-            _diff_input_hint(new_path)
-            return 2
-
-        diff = compute_diff(old_data, new_data)
-        if emit_json:
-            sys.stdout.write(json.dumps(diff, indent=2, ensure_ascii=False) + "\n")
-        else:
-            sys.stdout.write(format_human(diff, old_path, new_path))
-        # Exit 1 if anything actionable changed (new files, more matches,
-        # content modified). Exit 0 if only removals or all unchanged.
-        return 1 if is_actionable(diff) else 0
+        from peekdocs.commands.diff import handle_diff
+        return handle_diff(args)
 
     # ── --runs [N] [--json]: show recent run-log entries ──
     if args and args[0] == "--runs":
-        from peekdocs.run_log import read_recent, log_path
-        emit_json = "--json" in args[1:]
-        limit = 20
-        for tok in args[1:]:
-            if tok == "--json":
-                continue
-            try:
-                limit = max(0, int(tok))
-                break
-            except ValueError:
-                print(f"Error: --runs argument must be a positive integer. Got: {tok}\n")
-                return 2
-        entries = read_recent(limit=limit if limit > 0 else 0)
-        if emit_json:
-            for e in entries:
-                sys.stdout.write(json.dumps(e, ensure_ascii=False) + "\n")
-            return 0
-        if not entries:
-            print(f"No run log entries found. Log file: {log_path()}")
-            print("(The log is written automatically after every search; use --no-log to skip a single run.)")
-            return 0
-        print(f"Run log: {log_path()}")
-        print()
-        print(f"{'Time':<19}  {'Exit':>4}  {'Matches':>8}  {'Files':>6}  {'Errors':>6}  {'Elapsed':>8}  Command")
-        print(f"{'-'*19}  {'-'*4}  {'-'*8}  {'-'*6}  {'-'*6}  {'-'*8}  {'-'*40}")
-        for e in entries:
-            ts = (e.get("timestamp") or "")[:19]
-            ec = e.get("exit_code", "")
-            mc = e.get("match_count", 0)
-            fc = e.get("file_count", 0)
-            er = e.get("error_count", 0)
-            el = e.get("elapsed_seconds", 0)
-            cmd = " ".join(e.get("argv", []))
-            if len(cmd) > 80:
-                cmd = cmd[:77] + "..."
-            print(f"{ts:<19}  {str(ec):>4}  {mc:>8}  {fc:>6}  {er:>6}  {el:>8.2f}  {cmd}")
-        print()
-        print(f"{len(entries)} run(s). --runs N for more, --runs --json for raw JSON Lines.")
-        return 0
+        from peekdocs.commands.runs import handle_runs
+        return handle_runs(args)
 
     if args and args[0] == "--list-suites":
         from peekdocs.suite_index import list_suites_global, rescan

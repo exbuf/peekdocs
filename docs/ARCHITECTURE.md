@@ -61,7 +61,8 @@ The engine and output layers know nothing about which surface invoked them. That
 | Module | Responsibility |
 |--------|---------------|
 | `api.py` | Public Python API. External code that embeds peekdocs imports this file. Wraps the engine into `search()`, `run_suite()`, `run_regex_collection()`. |
-| `cli.py` | Argparse CLI entry point + all flag dispatch. Called directly by the `peekdocs` console script; invoked as subprocess by the GUI. |
+| `cli.py` | Argparse CLI entry point + all flag dispatch. Called directly by the `peekdocs` console script; invoked as subprocess by the GUI. Delegates diagnostic subcommands to `commands/*.py` (see below). |
+| `commands/` | Subcommand handlers extracted from `cli.py`. Each file owns one subcommand and exposes a `handle_*(args) -> int` function that `cli._main_inner` dispatches to. Currently: `check.py`, `diff.py`, `runs.py`. Standard search + `--suite` + `--regex-collection` remain in `cli._main_inner` — they share the flag-parsing + report-writing plumbing, and factoring that shared surface out cleanly is its own larger refactor. |
 | `scanner.py` | File discovery + text extraction across 100+ file types. Lazy imports keep memory bounded; per-file try/except captures errors without aborting the search. |
 | `parser.py` | Query preprocessing: Tesseract check for `-O`, OCR flag handling, fuzzy setup, `-e` expression handoff. |
 | `expr_parser.py` | Boolean expression tokenizer + evaluator (AND / OR / NOT / parentheses). Independent of search — just returns a match predicate. |
