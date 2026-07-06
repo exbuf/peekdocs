@@ -10,7 +10,7 @@
 <p align="center"><sub><em>Actively maintained — last reviewed July 2026.</em></sub></p>
 
 <details>
-<summary>🌍 <strong><img src="https://flagcdn.com/w40/es.png" width="32" alt="ES"> <img src="https://flagcdn.com/w40/fr.png" width="32" alt="FR"> <img src="https://flagcdn.com/w40/de.png" width="32" alt="DE"> <img src="https://flagcdn.com/w40/jp.png" width="32" alt="JP"> <img src="https://flagcdn.com/w40/cn.png" width="32" alt="CN"> <img src="https://flagcdn.com/w40/br.png" width="32" alt="BR"></strong> — GUI in 7 languages - click here</summary>
+<summary>🌍 <strong><img src="https://flagcdn.com/w40/es.png" width="32" alt="ES"> <img src="https://flagcdn.com/w40/fr.png" width="32" alt="FR"> <img src="https://flagcdn.com/w40/de.png" width="32" alt="DE"> <img src="https://flagcdn.com/w40/jp.png" width="32" alt="JP"> <img src="https://flagcdn.com/w40/cn.png" width="32" alt="CN"> <img src="https://flagcdn.com/w40/br.png" width="32" alt="BR"></strong> — GUI in 7 languages - click here for intro</summary>
 
 &nbsp;
 
