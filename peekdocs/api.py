@@ -80,7 +80,7 @@ def search(
     line_proximity: int = 0,
     cores: int | None = None,
     use_index: bool | None = None,
-    progress: Callable[[int, int], None] | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
     expression: str | None = None,
     range_filters: list[str] | None = None,
     max_file_size_mb: int = 100,

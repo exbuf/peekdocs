@@ -79,6 +79,7 @@ The engine and output layers know nothing about which surface invoked them. That
 | `regex_examples.py` | Bundled universal-pattern regex collection (email, URL, IPv4, ISO date, semver, JIRA ticket, etc.). |
 | `wizard_patterns.py` | Search Wizard's 20 pre-built forms and 35 regex patterns across 6 categories. |
 | `constants.py` | `SUPPORTED_TYPES`, `OCR_IMAGE_TYPES`, category groups used across scanner, reporter, GUI. |
+| `paths.py` | `resource_path()` helper for locating bundled files (LICENSE, NOTICE, customtkinter assets). Handles the `sys._MEIPASS` case for PyInstaller bundles and the repo-root case for source checkouts. See docstring for the pip/pipx install caveat. |
 | `__init__.py` | Package version resolution + public API re-exports. |
 | `__main__.py` | `python -m peekdocs` entry point → `cli.main()`. |
 

@@ -26,7 +26,7 @@ import sys
 def resource_path(relative_path: str) -> str:
     """Return the absolute path to a resource that ships with peekdocs.
 
-    Handles two install modes transparently:
+    Handles two install modes:
 
     * **PyInstaller standalone binary** — uses ``sys._MEIPASS`` (the
       temporary extraction directory for ``--onefile`` bundles, or the
@@ -35,15 +35,20 @@ def resource_path(relative_path: str) -> str:
       this location via ``--add-data``.
     * **Source checkout / editable install** — uses the repository root,
       which is one directory above this file (``peekdocs/paths.py`` →
-      ``peekdocs/`` → repo root).
+      ``peekdocs/`` → repo root). This is the ``pip install -e .``
+      case and the plain ``python -m peekdocs`` from a git clone.
 
-    Note: pipx / pip installs ship LICENSE via PEP 639 into the wheel's
-    ``.dist-info/`` directory, which is *not* next to the peekdocs
-    package. Callers that need to support that install path should fall
-    back to ``importlib.metadata.distribution("peekdocs")`` when the
-    path returned here doesn't exist. This helper deliberately doesn't
-    perform that lookup because it's only needed for a subset of
-    resources (LICENSE, NOTICE) and adds import cost every call site.
+    **Does NOT handle** the regular pip / pipx install case. In that
+    case the peekdocs package sits inside site-packages/, and LICENSE
+    ships alongside it in a sibling ``peekdocs-<version>.dist-info/``
+    directory (per PEP 639's ``license-files`` mechanism). The path
+    returned here would point at ``site-packages/LICENSE``, which
+    doesn't exist. Callers that need to support pip / pipx installs
+    should check ``os.path.exists`` on the return value and fall back
+    to ``importlib.metadata.distribution("peekdocs")._path`` to locate
+    the dist-info directory. This helper deliberately doesn't perform
+    that lookup itself because it's only needed for a subset of
+    resources (LICENSE, NOTICE) and adds import cost per call site.
 
     Parameters
     ----------
