@@ -12,6 +12,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Tesseract detection now checks well-known install locations
+  in addition to `PATH`.** macOS GUI launches (Finder / Dock /
+  Spotlight) inherit a stripped `PATH` that omits Homebrew's
+  `/opt/homebrew/bin` (Apple Silicon) and `/usr/local/bin`
+  (Intel), so `shutil.which("tesseract")` used to return `None`
+  even when Tesseract was correctly installed. Users would
+  install Tesseract via `brew install tesseract`, see the
+  "Tesseract not detected" modal anyway, and have no path
+  forward without launching peekdocs from a terminal. The new
+  `peekdocs.paths.find_tesseract()` helper falls back to the
+  standard Homebrew and MacPorts locations on macOS, standard
+  Program Files locations on Windows, and standard `/usr/bin` /
+  `/usr/local/bin` on Linux. The scanner's OCR call also pins
+  `pytesseract.pytesseract.tesseract_cmd` to the located
+  absolute path so the actual OCR execution doesn't fall back
+  to PATH lookup. The four detection sites (parser, CLI
+  `--check`, GUI OCR-toggle modal, scanner) share the single
+  helper.
+
 ## [1.2.76] — 2026-07-06
 
 ### Changed

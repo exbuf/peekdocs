@@ -2958,9 +2958,9 @@ class BuildMixin:
         if self.ocr_var.get() != "on":
             return
 
-        import shutil
-        if shutil.which("tesseract"):
-            return  # Tesseract is on PATH — nothing to warn about.
+        from peekdocs.paths import find_tesseract
+        if find_tesseract():
+            return  # Tesseract found (PATH or well-known fallback path).
 
         # Tesseract not detected. Warn with per-OS install instructions
         # and let the user decide whether to proceed or uncheck. Lazy
@@ -2986,12 +2986,12 @@ class BuildMixin:
         proceed = messagebox.askyesno(
             "Tesseract OCR not detected",
             (
-                "OCR won't work — Tesseract is not installed or not on your PATH.\n\n"
+                "OCR won't work — Tesseract is not installed.\n\n"
                 "Tesseract is a separate open-source tool that peekdocs uses to "
                 "extract text from scanned PDFs and image files. It doesn't ship "
                 "with peekdocs.\n\n"
                 f"{install_hint}\n\n"
-                "After installing, restart peekdocs so the new PATH is picked up.\n\n"
+                "After installing, restart peekdocs so the new install is picked up.\n\n"
                 "Proceed with OCR enabled anyway? (Image files and scanned PDFs "
                 "will be skipped, but other file types will still search normally.)"
             ),

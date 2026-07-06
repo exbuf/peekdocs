@@ -475,6 +475,7 @@ def _save_config(settings):
 # Re-export from scanner so tests can monkeypatch via peekdocs.cli
 from peekdocs.scanner import _process_file, _ocr_image, discover_files, _extract_lines, _search_file_lines, RESULT_FILE_PREFIXES  # noqa: E402
 from peekdocs.parser import parse_flags  # noqa: E402
+from peekdocs.paths import find_tesseract  # noqa: E402
 from peekdocs.indexer import (  # noqa: E402
     index_exists, build_index, refresh_index, clear_index,
     index_status, search_with_index,
@@ -678,7 +679,7 @@ def run_system_check():
         "os_release": platform.release(),
         "required_deps": required,
         "optional_deps": optional,
-        "tesseract_installed": shutil.which("tesseract") is not None,
+        "tesseract_installed": find_tesseract() is not None,
         "sqlite_version": sqlite3.sqlite_version,
         "disk_free_bytes": free,
         "disk_free_human": fmt_size(free),

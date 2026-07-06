@@ -132,6 +132,17 @@ def _whole_word_pattern(term):
 def _ocr_image(image):
     """Run OCR on a PIL Image and return extracted text."""
     import pytesseract
+    from peekdocs.paths import find_tesseract
+
+    # pytesseract shells out to the ``tesseract`` binary and by default
+    # relies on the current process's PATH to find it. That breaks under
+    # macOS GUI launches (Finder / Dock / Spotlight give a stripped PATH
+    # that omits /opt/homebrew/bin) even when Tesseract is installed via
+    # Homebrew. find_tesseract() checks well-known install locations too,
+    # so we pin pytesseract to the absolute path we located.
+    tesseract_path = find_tesseract()
+    if tesseract_path:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
     return pytesseract.image_to_string(image)
 
 

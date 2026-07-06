@@ -1613,9 +1613,21 @@ def test_config_flag_invalid_key(tmp_path, monkeypatch, capsys):
 
 
 def test_ocr_no_tesseract(tmp_path, monkeypatch, capsys):
-    """Using -O without Tesseract installed prints install instructions."""
+    """Using -O without Tesseract installed prints install instructions.
+
+    ``find_tesseract`` checks well-known install locations in addition to
+    PATH (added to fix macOS GUI-launch bug where /opt/homebrew/bin is
+    off the app's stripped PATH). The test must therefore neutralize both
+    the PATH lookup and the fallback probe — otherwise a dev machine
+    with Homebrew Tesseract at /opt/homebrew/bin/tesseract passes the
+    check and the test fails."""
+    from peekdocs import paths
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("shutil.which", lambda cmd: None)
+    paths.find_tesseract.cache_clear()
+    monkeypatch.setattr(paths, "find_tesseract", lambda: None)
+    # parser.py binds find_tesseract at import time; patch its local ref too.
+    import peekdocs.parser as parser_module
+    monkeypatch.setattr(parser_module, "find_tesseract", lambda: None)
     (tmp_path / "doc.txt").write_text("hello world")
     result = main(["-O", "hello"])
     captured = capsys.readouterr()

@@ -19,7 +19,10 @@ The ``resource_path`` helper below is a single source of truth.
 """
 from __future__ import annotations
 
+import functools
 import os
+import platform
+import shutil
 import sys
 
 
@@ -71,3 +74,71 @@ def resource_path(relative_path: str) -> str:
     # is one parent directory up.
     _here = os.path.dirname(os.path.abspath(__file__))
     return os.path.normpath(os.path.join(_here, "..", relative_path))
+
+
+# Well-known Tesseract install locations by OS. Consulted only when
+# ``shutil.which("tesseract")`` returns None — which is common when
+# peekdocs runs from a macOS ``.app`` bundle launched via Finder / Dock
+# / Spotlight, because macOS gives GUI-launched processes a stripped
+# PATH (``/usr/bin:/bin:/usr/sbin:/sbin``) that omits Homebrew's
+# ``/opt/homebrew/bin`` and MacPorts' ``/opt/local/bin``. Same category
+# of problem on Windows for third-party installs outside the default
+# PATH. On Linux, GUIs launched via ``.desktop`` files typically get
+# the user's PATH from the login shell, so the fallback is mostly
+# defensive there.
+_TESSERACT_FALLBACK_PATHS = {
+    "Darwin": (
+        "/opt/homebrew/bin/tesseract",   # Apple Silicon Homebrew
+        "/usr/local/bin/tesseract",      # Intel Homebrew
+        "/opt/local/bin/tesseract",      # MacPorts
+    ),
+    "Windows": (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ),
+    "Linux": (
+        "/usr/bin/tesseract",
+        "/usr/local/bin/tesseract",
+    ),
+}
+
+
+@functools.lru_cache(maxsize=1)
+def find_tesseract() -> str | None:
+    """Return the absolute path to the ``tesseract`` executable, or None.
+
+    Search order:
+
+    1. ``shutil.which("tesseract")`` — the fast path when the current
+       process's PATH is correctly configured.
+    2. Well-known install locations for the current OS — the fallback
+       for macOS GUI launches (which get a stripped PATH from Finder /
+       Dock / Spotlight and miss Homebrew's ``/opt/homebrew/bin``) and
+       for Windows installs outside the default PATH.
+
+    Result is cached for the process lifetime. If the user installs
+    Tesseract after this function returns None once, they need to
+    restart peekdocs to pick it up — same behavior the previous
+    ``shutil.which`` call had, and consistent with the "restart peekdocs
+    so the new PATH is picked up" advice in the OCR-toggle modal.
+
+    Returns
+    -------
+    str or None
+        Absolute path to the ``tesseract`` executable if found, else
+        ``None``. Callers should pass the returned path to
+        ``pytesseract.pytesseract.tesseract_cmd`` before calling
+        ``pytesseract.image_to_string`` — that's necessary because
+        pytesseract itself relies on the process PATH by default, so
+        it hits the same GUI-launch trap that motivated this helper.
+    """
+    on_path = shutil.which("tesseract")
+    if on_path:
+        return on_path
+
+    fallbacks = _TESSERACT_FALLBACK_PATHS.get(platform.system(), ())
+    for candidate in fallbacks:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+
+    return None

@@ -2,9 +2,9 @@
 
 import os
 import re
-import shutil
 
 from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, _default_cores
+from peekdocs.paths import find_tesseract
 
 
 def parse_flags(args, config):
@@ -25,7 +25,7 @@ def parse_flags(args, config):
     if "--ocr" in args:
         args.remove("--ocr")
 
-    if use_ocr and not shutil.which("tesseract"):
+    if use_ocr and not find_tesseract():
         return (2,
             "Tesseract OCR is not installed. The -O flag requires Tesseract.\n\n"
             "Install Tesseract:\n"
