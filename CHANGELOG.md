@@ -12,6 +12,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.82] — 2026-07-06
+
+### Fixed
+- **About → View License now finds LICENSE in pipx / pip installs.**
+  User reported on 1.2.81 that the pipx install on macOS showed
+  "LICENSE file not found in this build" — same fallback text as
+  the 1.2.80 `.app` bug, but different root cause. pipx installs
+  place LICENSE in the sibling `.dist-info/licenses/` directory
+  (PEP 639's `license-files` mechanism via setuptools ≥ 77), not
+  inside the peekdocs package itself. `resource_path` deliberately
+  doesn't chase into `.dist-info/` per its docstring, so the About
+  viewer hit the fallback. New universal
+  `peekdocs.paths.read_bundled_text(name)` helper tries three
+  sources in order — `resource_path`, PEP 639
+  `.dist-info/licenses/<name>`, legacy pre-PEP-639
+  `.dist-info/<name>` — covering LICENSE, NOTICE, and
+  THIRD_PARTY_NOTICES.md across every install method (pipx, pip,
+  editable, PyInstaller `.exe`, `.app`, source checkout).
+
 ## [1.2.81] — 2026-07-06
 
 ### Fixed
