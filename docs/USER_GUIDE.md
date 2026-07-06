@@ -732,7 +732,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `-n` (not) | Exclude lines matching specified terms (comma-separated, e.g., `-n draft,obsolete`) |
 | `-o` (output) | Opt-in output formats — `docx`, `csv`, `json`, `pdf`, `html`, or any combination (`-o docx,csv,html`). The `.txt` report is always written (the GUI Results Preview parses it); everything else, including DOCX as of 1.2.6, is opt-in. `--regex-collection` honors the full format list (1.2.25); `--suite` honors `-o docx` only (1.2.26) — the other formats are GUI-only |
 | `--no-docx` | **No-op as of 1.2.6** — DOCX is opt-in via `-o docx`, so this flag is no longer needed. Kept as a tolerated no-op for one release so any existing scripts that pass it don't error. Remove from your scripts; will be removed in a future release |
-| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#prerequisites)). GUI (as of 1.2.71): checking the OCR box in Advanced Search Options without Tesseract installed shows a modal with per-OS install commands (macOS `brew`, Windows installer, Linux `apt`) — proceed with OCR anyway (image files skipped at scan time) or cancel to uncheck. As of 1.2.77 the check also probes well-known install locations (Homebrew's `/opt/homebrew/bin` on Apple Silicon and `/usr/local/bin` on Intel, MacPorts `/opt/local/bin`, Program Files on Windows) — before that, macOS GUI launches inherited a stripped `PATH` that omitted Homebrew, so users who had run `brew install tesseract` saw the modal anyway. CLI: `-O` without Tesseract aborts with the same install commands. |
+| `-O` (OCR) | Enable OCR for scanned PDFs and image files (requires [Tesseract](../README.md#3-prerequisites)). GUI (as of 1.2.71): checking the OCR box in Advanced Search Options without Tesseract installed shows a modal with per-OS install commands (macOS `brew`, Windows installer, Linux `apt`) — proceed with OCR anyway (image files skipped at scan time) or cancel to uncheck. As of 1.2.77 the check also probes well-known install locations (Homebrew's `/opt/homebrew/bin` on Apple Silicon and `/usr/local/bin` on Intel, MacPorts `/opt/local/bin`, Program Files on Windows) — before that, macOS GUI launches inherited a stripped `PATH` that omitted Homebrew, so users who had run `brew install tesseract` saw the modal anyway. CLI: `-O` without Tesseract aborts with the same install commands. |
 | `-p N` (word-proximity) | Word proximity — find terms within N words of each other (same line) |
 | `-P N` (line-proximity) | Line proximity — a genuinely useful feature, especially for programmers searching code. Find terms within N lines of each other. Works on all file types, but what a "line" means varies by format: for plain text and source code, a line is a literal line; for Word (.docx) and PDF, a line is a paragraph; for Excel, a line is a row. Most reliable and intuitive for plain text and source code files. `-P` implies AND across lines — if combined with `-a`, the `-a` is automatically handled |
 | `-q` (quiet) | Suppress the output banner (file list, warnings, and report paths still shown) |
@@ -797,7 +797,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 - `-c` always needs its core count immediately after it (e.g., `-c 4`)
 - `-c` defaults to half of available CPU cores when not specified
 - For small numbers of files (fewer than 10), single-threaded mode is used automatically regardless of `-c`
-- `-O` requires Tesseract to be installed on your system (see the [README](../README.md#prerequisites) for installation instructions)
+- `-O` requires Tesseract to be installed on your system (see the [README](../README.md#3-prerequisites) for installation instructions)
 - `-O` enables OCR for PDF pages that have no extractable text and adds image file types (.jpg, .jpeg, .png, .tiff, .tif, .bmp) to the search
 - `-O` makes searches slower — only use it when you need to search scanned or image-based documents
 - For a backlog of image-only scanned PDFs, [ocrmypdf](https://github.com/ocrmypdf/OCRmyPDF) (free, open-source, runs locally) adds a text layer once instead of OCR'ing on every search. peekdocs itself never modifies your PDFs; ocrmypdf is a separate tool you opt into for permanent conversion. See the [README scanning tips](../README.md#preparing-your-documents-for-searching) for install lines per platform
@@ -3011,7 +3011,7 @@ peekdocs has 17 direct dependencies, which pull in about 50 packages total. Here
 
 ### What you must install yourself
 
-Most of these are covered in the [Prerequisites](../README.md#prerequisites) section of the README. Here's the complete list:
+Most of these are covered in the [Prerequisites](../README.md#3-prerequisites) section of the README. Here's the complete list:
 
 | Dependency | Required? | What it's for | How to install |
 |-----------|-----------|--------------|----------------|

@@ -132,21 +132,21 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 &nbsp;
 ## Installation
 
-- [Option A: Standalone Download](#option-a-standalone-download-no-python-needed)
-- [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users)
-- [Prerequisites](#prerequisites)
-- [Upgrading](#upgrading)
-- [Uninstalling](#uninstalling)
+1. [Option A: Standalone Download](#1-option-a-standalone-download-no-python-needed)
+2. [Option B: pipx (for Python users)](#2-option-b-quick-install-with-pipx-for-python-users)
+3. [Prerequisites](#3-prerequisites)
+4. [Upgrading](#4-upgrading)
+5. [Uninstalling](#5-uninstalling)
 
 > **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
 
-### Option A: Standalone Download (no Python needed)
+### 1. Option A: Standalone Download (no Python needed)
 
-Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster — especially on macOS.)
+Pick this if you don't have Python installed or don't want to install it. No setup — just download and run. (If you already have Python set up, [Option B](#2-option-b-quick-install-with-pipx-for-python-users) is one command, gives you the CLI and Python API alongside the GUI, and starts noticeably faster — especially on macOS.)
 
 The GUI and CLI standalones are **separate downloads**. Grab whichever fits how you'll use peekdocs — or both. The GUI is the click-driven interface for interactive search and report viewing; the CLI is for scripting from the terminal, running on a schedule (cron / Task Scheduler), and piping JSON output into other tools. They're independent — installing one doesn't require the other.
 
-*Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
+*Why two binaries instead of one?* Each standalone is built with PyInstaller, which freezes its own Python interpreter and every dependency into a single executable. A PyInstaller bundle has one entry point — it can't be both a GUI launcher and a CLI without one carrying the other's weight (the CLI would haul tkinter / customtkinter it never uses; the GUI would carry CLI-only argument-parsing surface). Splitting them keeps each binary small and lets each ship independently. The [pipx / pip install path](#2-option-b-quick-install-with-pipx-for-python-users) doesn't have this constraint — it drops both `peekdocs` and `peekdocs-gui` console scripts into one shared venv from a single command.
 
 **Direct GUI downloads** (always the latest release):
 
@@ -200,7 +200,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
   From then on a regular double-click on *that copy* works. **Each new download (including upgrades) re-triggers the warning** — the trust is per downloaded file, not per app. The one-line terminal alternative is faster if you upgrade often: `xattr -dr com.apple.quarantine ~/Downloads/peekdocs-gui.app`. Full walkthrough: [docs/INSTALLATION.md → macOS first-launch Gatekeeper](docs/INSTALLATION.md#macos-gatekeeper). *Note: Safari auto-unzips downloaded `.zip` files, so you'll see `peekdocs-gui.app` directly in Downloads rather than the `peekdocs-gui-macos.zip` you clicked — no extra unzip step.*
 - **Linux:** Open a terminal in the folder where the file landed (typically `~/Downloads`), then `chmod +x peekdocs-gui-linux && ./peekdocs-gui-linux`. The `./` prefix is required because the current directory is not on `$PATH` by default — `./` tells the shell "run the file in *this* folder." If you moved the file elsewhere, `cd` there first or run it by absolute path (`/path/to/peekdocs-gui-linux`). Full walkthrough (SHA-256 verify, `libxcb` troubleshooting, SELinux notes, install-to-`~/.local/bin`): [docs/INSTALLATION.md → Linux GUI first-launch](docs/INSTALLATION.md#linux-gui-first-launch).
 
-**Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#uninstalling) below for full removal instructions.
+**Upgrading.** No need to uninstall the old version first — just download the new version from the same direct download links above and overwrite the existing file (GUI, CLI, or both — whichever you use). Your settings and saved searches live in your home directory, not in the executable — nothing is lost. See [Uninstalling](#5-uninstalling) below for full removal instructions.
 
 **No dependency breakage.** The standalone bundles Python, all libraries, and peekdocs into a single file frozen at versions that were tested together — nothing external to upgrade, conflict, or break.
 
@@ -210,7 +210,7 @@ Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/lat
 
 *Done with Option A? Skip ahead to [Quick Start](#quick-start). If you have Python installed, Option B below is the better path — one command, faster startup, and you get the CLI and Python API alongside the GUI.*
 
-### Option B: Quick Install with pipx (for Python users)
+### 2. Option B: Quick Install with pipx (for Python users)
 
 If you already have Python set up — or you want the CLI and Python API alongside the GUI — one command installs everything. Works the same on every OS.
 
@@ -232,7 +232,7 @@ After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder,
 
 **Niche cases** (macOS python3.13 selection, no-git ZIP install, Windows pipx fallback, source install for contributors) are documented in [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-### Prerequisites
+### 3. Prerequisites
 
 *Using Option A (standalone download)? Skip this section — no prerequisites needed.*
 
@@ -247,7 +247,7 @@ After install, `peekdocs` and `peekdocs-gui` work from any terminal, any folder,
 
 **Everything else installs automatically.** `pipx install` (or `pip install`) downloads the 18 Python libraries peekdocs needs (PDF reader, Word/Excel/PowerPoint parsers, email reader, and more) plus their transitive dependencies — typically around 200 packages and a few hundred megabytes of disk space. See [Dependencies](docs/USER_GUIDE.md#dependencies) for the full list and what each one does.
 
-### Upgrading
+### 4. Upgrading
 
 Your saved searches, settings, indexes, and reports are stored outside the peekdocs installation — in your home directory and your document folders. Upgrading replaces only the code. These files are **never overwritten** by an upgrade:
 
@@ -265,7 +265,7 @@ How to upgrade depends on which install method you used:
 - **Source install:** `cd peekdocs && git pull && pip install -e .` (see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup)).
 - **Niche paths** (no-git ZIP, Windows pip fallback): see [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-### Uninstalling
+### 5. Uninstalling
 
 peekdocs doesn't use a system installer — no registry entries, no system services, no kernel extensions. "Uninstalling" just means deleting the executable (standalone) or the Python package (pipx / pip). Your settings, history, bookmarks, saved searches, and indexes are stored in your home directory and search folders — **they persist after uninstall** so you can reinstall later and pick up where you left off. To wipe those too, see the *factory reset* paragraph at the end of this section.
 
@@ -279,7 +279,7 @@ How to uninstall depends on which install method you used:
 - **pip:** `pip uninstall peekdocs` — removes the package from whichever Python environment you installed into.
 - **Source install:** `pip uninstall peekdocs` from inside the venv you used. Then `rm -rf` the cloned repo folder if you no longer need it.
 
-**Factory reset (complete wipe).** The files listed under [Upgrading](#upgrading) above are intentionally preserved by uninstall. If you also want those gone — settings, search history, bookmarks, saved searches, indexes, saved reports — delete them manually:
+**Factory reset (complete wipe).** The files listed under [Upgrading](#4-upgrading) above are intentionally preserved by uninstall. If you also want those gone — settings, search history, bookmarks, saved searches, indexes, saved reports — delete them manually:
 
 ```bash
 # macOS / Linux
@@ -516,7 +516,7 @@ See the worked example in [USER_GUIDE.md § A worked example: nightly source-tre
 
 **Quick install**
 
-1. **No Python?** [Download the standalone app](#option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
+1. **No Python?** [Download the standalone app](#1-option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
 
 2. **Have Python 3.10+?** A single command installs everything — the GUI, the CLI, and the Python API:
 
@@ -563,7 +563,7 @@ for match in results.matches:
 - [Features](#features)
 - [Supported File Types](#supported-file-types)
 - [Installation](#installation)
-- [Prerequisites](#prerequisites)
+3. [Prerequisites](#3-prerequisites)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Why peekdocs?](#why-peekdocs)
@@ -618,7 +618,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 
 #### Search & discovery
 
-- **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more. **Note:** `.pst` requires `libpff-python` (no Windows wheel) and `.rar` requires the `unrar` tool — see [Prerequisites](#prerequisites)
+- **100+ file types** — Word, PDF, Excel, PowerPoint, emails (.eml, .msg, .pst, .mbox), archives (.zip, .7z, .rar), source code (Python, C/C++, Java, Go, Rust, and more), engineering files (MATLAB, Verilog, VHDL, SPICE, DXF, Visio), Apple Pages/Numbers/Keynote, calendars (.ics), contacts (.vcf), e-books, HTML, and more. **Note:** `.pst` requires `libpff-python` (no Windows wheel) and `.rar` requires the `unrar` tool — see [Prerequisites](#3-prerequisites)
 - **Search modes** — plain keywords, AND/OR, Boolean expressions, regex, wildcards, fuzzy matching, whole-word, word proximity, line proximity
 - **Range queries** — filter by dollar amounts, dates, percentages, ages, file sizes
 - **OCR** — search scanned PDFs and images (requires Tesseract)
@@ -679,7 +679,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 | **Documents** | .doc .docx .epub .html .key .md .odp .odt .pages .pdf .ppt .pptx .rst .rtf .tex |
 | **Spreadsheets** | .csv .numbers .ods .tsv .xls .xlsx |
 | **Email** | .eml .mbox .msg .pst (`.pst` requires `libpff-python` — no Windows wheel; see [Troubleshooting](docs/TROUBLESHOOTING.md)) |
-| **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip (`.rar` requires the `unrar` tool — see [Prerequisites](#prerequisites)) |
+| **Archives** | .7z .bz2 .gz .rar .tar .tgz .zip (`.rar` requires the `unrar` tool — see [Prerequisites](#3-prerequisites)) |
 | **Calendar/Contacts** | .ics .vcf |
 | **Source Code** | .asm .bat .c .cmake .cpp .cs .css .f .f90 .go .gradle .h .hpp .java .js .kt .lua .pl .ps1 .py .r .rb .rs .s .scala .scss .sh .swift .tcl .ts .vb |
 | **Engineering** | .cir .dxf .m .sp .spice .sv .v .vhd .vhdl .vsdx |
@@ -867,9 +867,9 @@ If you'd rather avoid indexing entirely, add `--no-index` to your CLI command or
 - **High-DPI displays (4K monitors)** — if buttons overlap or text looks too large, use the **Text Size** dropdown on the bottom-right toolbar to adjust. Normal is recommended for most screens
 - **Antivirus software (Windows)** — some antivirus programs flag Python scripts as suspicious. If peekdocs is blocked, add your Python installation or the peekdocs folder to your antivirus allow list
 - **Files locked by other programs (Windows)** — Windows locks files that are open in another program. If peekdocs reports "permission denied" on a file, close the program that has it open and search again. Errors are logged to `peekdocs_errors.log`
-- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#option-a-standalone-download-no-python-needed) (no Python, no network needed beyond the initial download) or the [ZIP-based pipx install](docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip) documented in `docs/INSTALLATION.md`
+- **Corporate firewalls** — if `pip` or `pipx` can't download packages, use the [Standalone Download](#1-option-a-standalone-download-no-python-needed) (no Python, no network needed beyond the initial download) or the [ZIP-based pipx install](docs/INSTALLATION.md#no-git-install-from-a-downloaded-zip) documented in `docs/INSTALLATION.md`
 - **macOS file picker vs Windows** — on macOS, the file picker includes a preview panel; on Windows, it does not — this is an OS difference, not peekdocs
-- **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#prerequisites))
+- **Linux GUI requires python3-tk** — the CLI works without it, but `peekdocs-gui` needs tkinter. Install with `sudo apt install python3-tk` (see [Prerequisites](#3-prerequisites))
 
 ### File Handling
 
