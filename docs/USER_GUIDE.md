@@ -462,6 +462,8 @@ The Search Wizard shows the current **Search Folder** at the top of the window w
 
 The **Tools** button (top-right of the Search tab) opens a menu of built-in utilities that go beyond search. All folder-based tools respect the current **Search Folder** and **Recursive** checkbox setting.
 
+**File sizes** in every Tools output (File Inventory, Duplicate Finder, Large Files, Collection Summary, etc.) use **SI-decimal (1000-based)** units — 1 KB = 1,000 bytes, 1 MB = 1,000,000 bytes — matching the size format used in every peekdocs report. Prior to v1.2.79 the GUI used IEC-binary (1024-based) units while reports used SI-decimal, so the same file could appear as "2.10 MB" in a report and "2.00 MiB" in Duplicate Finder; both surfaces now agree.
+
 | Tool | What it does |
 |------|-------------|
 | **Collection Summary** | One-page consolidated overview of the search folder, built in a single fast pass. Sections include: overview (total file count, total size, subfolder count, oldest and newest file), searchability breakdown (searchable count + percentage, plus the Unsearchable Files category counts), top 10 file types by count (with sizes), an ASCII histogram of the same six modification-age buckets used by File Age Distribution, recent activity (files modified in the last 30 / 90 days), top 10 largest files, and the empty-file count. Honors the Max File Size and OCR settings from Advanced Search Options. Duplicate detection and password-protected detection are deliberately skipped to keep the summary fast — the report points to the dedicated Duplicate Finder and Protected Files tools for those. Click **Save Report** to export as a plain-text file. |

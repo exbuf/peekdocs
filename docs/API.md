@@ -17,6 +17,7 @@ Every search workflow available in the CLI and GUI is also available in the Pyth
 | Named regex collection | `run_regex_collection("name")` | `--regex-collection "name"` | Regex Search → Restore |
 | List suites | `list_suites(directory)` | — | Tools → Search Suites |
 | List regex collections | `list_regex_collections()` | `--regex-collection --list` | Regex Search → Restore |
+| Public exceptions | `peekdocs.errors.*` (`QueryError`, `RangeError`, `NameNotFoundError`) — see [Error Handling](#error-handling) | — | — |
 
 ### Quick examples
 

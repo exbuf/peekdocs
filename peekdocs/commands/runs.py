@@ -30,7 +30,7 @@ def handle_runs(args: list[str]) -> int:
             limit = max(0, int(tok))
             break
         except ValueError:
-            print(f"Error: --runs argument must be a positive integer. Got: {tok}\n")
+            print(f"Error: --runs argument must be a positive integer. Got: {tok}\n", file=sys.stderr)
             return 2
 
     entries = read_recent(limit=limit if limit > 0 else 0)
