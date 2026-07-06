@@ -699,6 +699,7 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 | [Walkthroughs](docs/WALKTHROUGHS.md) | Seven annotated screenshot tours — same search across three interfaces, Advanced Search Options, Regex Search, Search Suites, Diff Snapshots, Schedule Search, and `peekdocs --check` |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()` function, parameters, return values |
+| [Architecture](docs/ARCHITECTURE.md) | Contributor-facing map of the codebase — layer diagram, module responsibilities, design invariants, extension points, historical decisions, known weaknesses |
 | [Glossary](docs/GLOSSARY.md) | 85 peekdocs terms: FTS5, regex modes, deterministic, exit codes, Tesseract, jq, SIEM, MSP, network calls, and more |
 | [FAQ & Troubleshooting](docs/TROUBLESHOOTING.md) | Common questions and solutions for Windows, macOS, and Linux |
 | [Security architecture](docs/SECURITY.md) | Deep dive for IT and Security teams — data architecture, per-file sensitivity notes, and limitations outside the application's control |

@@ -3547,6 +3547,8 @@ peekdocs includes a Python API that lets you call the search engine directly fro
 
 For full documentation, parameters, return types, and examples, see the [peekdocs Library API Reference](API.md).
 
+The `peekdocs.api` module ships Python type hints on every public function (`search`, `list_suites`, `run_suite`, `list_regex_collections`, `run_regex_collection`) and every public dataclass (`SearchMatch`, `SearchResult`, `SuiteSearchResult`, `SuiteResult`, `PatternResult`, `CollectionResult`). Modern IDEs (PyCharm, VS Code with Pylance) provide autocomplete and inline type checking without additional stubs; `mypy` verification works out of the box against the shipped `.py` files — no separate `.pyi` stubs required.
+
 A complete working example is available at [`samples/api_example.py`](../samples/api_example.py).
 
 **Important:** All scripts that use the peekdocs API must include the `if __name__ == "__main__":` guard because peekdocs uses multiprocessing. Without it, macOS and Windows will crash with a `RuntimeError`. See the API Reference for details.
