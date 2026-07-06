@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.77] — 2026-07-06
+
 ### Fixed
 - **Tesseract detection now checks well-known install locations
   in addition to `PATH`.** macOS GUI launches (Finder / Dock /
