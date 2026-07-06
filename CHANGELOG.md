@@ -12,6 +12,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.75] — 2026-07-06
+
+### Docs
+- **Glossary — "Provenance audit" entry added** (674250b,
+  `docs/GLOSSARY.md`). The named workflow ("Provenance audit —
+  `--diff` + `--hash`") appeared in three surfaces (README's
+  *How these compose*, USER_GUIDE's Complete CLI Reference row
+  194, USER_GUIDE's worked-example section) without a dedicated
+  glossary entry. Entry covers mechanism (baseline / current /
+  diff sequence, new-removed-changed-**modified** buckets),
+  match-scoped vs folder-scoped (cross-refs FIM entry as the
+  folder-scoped complement), placement in the trio of named
+  compositions (cross-refs Live pattern sweep and Scheduled
+  pattern scan), and use cases (audit engagements, due-diligence
+  sweeps). Placed between `pipx` and `Proximity search` —
+  alphabetically "Prov" comes before "Prox" (V < X).
+
 ## [1.2.74] — 2026-07-06
 
 ### Added
