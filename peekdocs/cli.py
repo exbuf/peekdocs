@@ -1,4 +1,5 @@
 """Command-line interface for PeekDocs."""
+from __future__ import annotations
 
 import json
 import logging
@@ -14,6 +15,7 @@ import time
 import traceback
 from datetime import datetime
 from importlib.metadata import version as pkg_version
+from typing import Any
 
 logging.getLogger("pymupdf").setLevel(logging.ERROR)
 
@@ -403,17 +405,17 @@ CONFIG_STR_KEYS = {"file_types", "search_terms", "folder", "exclude", "specific_
 CONFIG_ALL_KEYS = CONFIG_BOOL_KEYS | CONFIG_INT_KEYS | CONFIG_STR_KEYS
 
 
-def _config_path():
+def _config_path() -> str:
     """Return the path to ~/.peekdocsrc."""
     return os.path.join(os.path.expanduser("~"), ".peekdocsrc")
 
 
-def _load_config():
+def _load_config() -> dict[str, Any]:
     """Load defaults from ~/.peekdocsrc if it exists."""
     path = _config_path()
     if not os.path.exists(path):
         return {}
-    config = {}
+    config: dict[str, Any] = {}
     with open(path) as f:
         for line in f:
             line = line.strip()
@@ -449,7 +451,7 @@ def _load_config():
     return config
 
 
-def _save_config(settings):
+def _save_config(settings: dict[str, Any]) -> None:
     """Write settings dict to ~/.peekdocsrc with restricted permissions."""
     path = _config_path()
     with open(path, "w", encoding="utf-8") as f:
@@ -506,7 +508,12 @@ _OPTIONAL_MODULES = [
 ]
 
 
-def _warn_unsupported_flags(args_tail, command_name, supported, value_taking=()):
+def _warn_unsupported_flags(
+    args_tail: list[str],
+    command_name: str,
+    supported: set[str] | frozenset[str],
+    value_taking: tuple[str, ...] | set[str] | frozenset[str] = (),
+) -> None:
     """Warn to stderr about flags ``command_name`` does not honor.
 
     ``args_tail`` is what's left after the command's own already-consumed
@@ -539,7 +546,7 @@ def _warn_unsupported_flags(args_tail, command_name, supported, value_taking=())
         )
 
 
-def _get_pkg_version(package):
+def _get_pkg_version(package: str) -> str:
     """Return the installed version of a package, or '?' if unavailable."""
     try:
         return pkg_version(package)
@@ -547,7 +554,12 @@ def _get_pkg_version(package):
         return "?"
 
 
-def _cli_cloud_guard_or_exit(output_dir, config, allow_cloud, quiet=False):
+def _cli_cloud_guard_or_exit(
+    output_dir: str,
+    config: dict[str, Any],
+    allow_cloud: bool,
+    quiet: bool = False,
+) -> str | None:
     """CLI-side cloud-output guard.
 
     Runs the central policy check from _helpers.cloud_output_guard and
@@ -568,9 +580,14 @@ def _cli_cloud_guard_or_exit(output_dir, config, allow_cloud, quiet=False):
         CLOUD_GUARD_ALLOWED, CLOUD_GUARD_PROMPT,
     )
     redirect = bool(config.get("redirect_cloud_output", False))
-    final_dir, outcome, service = cloud_output_guard(
+    # cloud_output_guard is untyped upstream (mypy scope stops at this
+    # file's boundary), so widen the destructured names explicitly.
+    _guard_result = cloud_output_guard(
         output_dir, redirect_to_safe=redirect, allow_cloud=allow_cloud,
     )
+    final_dir: str = _guard_result[0]
+    outcome: str = _guard_result[1]
+    service: str = _guard_result[2]
     if outcome == CLOUD_GUARD_SAFE:
         return final_dir
     if outcome == CLOUD_GUARD_REDIRECTED:
@@ -605,12 +622,12 @@ def _cli_cloud_guard_or_exit(output_dir, config, allow_cloud, quiet=False):
     return None
 
 
-def _check_dependencies():
+def _check_dependencies() -> list[tuple[str, str, str, str]]:
     """Check that all required modules can be imported.
 
     Returns list of (module_display, package, status, version) tuples.
     """
-    results = []
+    results: list[tuple[str, str, str, str]] = []
     for module_name, package, description in _REQUIRED_MODULES:
         try:
             __import__(module_name)
@@ -621,9 +638,9 @@ def _check_dependencies():
     return results
 
 
-def _check_optional_dependencies():
+def _check_optional_dependencies() -> list[tuple[str, str, str, str]]:
     """Check optional modules. Returns list of (description, package, status, version) tuples."""
-    results = []
+    results: list[tuple[str, str, str, str]] = []
     for module_name, package, description in _OPTIONAL_MODULES:
         try:
             __import__(module_name)
@@ -634,10 +651,10 @@ def _check_optional_dependencies():
     return results
 
 
-def _dep_versions_str():
+def _dep_versions_str() -> str:
     """Return a formatted string of all dependency versions for crash reports."""
     import sqlite3
-    lines = []
+    lines: list[str] = []
     for desc, pkg, status, ver in _check_dependencies():
         lines.append(f"  {pkg}: {ver}" if status == "ok" else f"  {pkg}: MISSING")
     for desc, pkg, status, ver in _check_optional_dependencies():
@@ -647,7 +664,7 @@ def _dep_versions_str():
     return "\n".join(lines)
 
 
-def run_system_check():
+def run_system_check() -> dict[str, Any]:
     """Gather installation health data for the --check CLI command and the GUI System Check.
 
     Returns a dict with structured results suitable for either text or UI display.
@@ -689,7 +706,7 @@ def run_system_check():
     }
 
 
-def _check_python_version():
+def _check_python_version() -> str | None:
     """Return a warning string if Python version is outside tested range, or None."""
     v = sys.version_info[:2]
     if v < TESTED_PYTHON_MIN:
@@ -702,7 +719,7 @@ def _check_python_version():
     return None
 
 
-def _diagnose(exc):
+def _diagnose(exc: BaseException) -> str:
     """Return a plain-English diagnosis based on the exception type and message."""
     name = type(exc).__name__
     msg = str(exc).lower()
@@ -757,8 +774,15 @@ def _diagnose(exc):
             "Please report this at https://github.com/exbuf/peekdocs/issues")
 
 
-def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
-                    max_file_size_mb, emit_json):
+def _dry_run_report(
+    cwd: str,
+    recursive: bool,
+    use_ocr: bool,
+    file_types: list[str] | str | None,
+    file_names: list[str] | str | None,
+    max_file_size_mb: int | None,
+    emit_json: bool,
+) -> int:
     """Print/emit a scope report of what a real search would touch.
 
     Walks discovery only — no content read, no pattern matching, no reports,
@@ -781,14 +805,14 @@ def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
     # discover_files returns (exit_code, message) on error
     if isinstance(discovered, tuple):
         print(f"Error: {discovered[1]}")
-        return discovered[0]
+        return int(discovered[0])
 
     # Apply max-file-size filter the way the real search does
     max_bytes = max_file_size_mb * 1024 * 1024 if max_file_size_mb and max_file_size_mb > 0 else 0
-    files_kept = []
+    files_kept: list[str] = []
     skipped_too_large = 0
     total_bytes = 0
-    by_ext = {}
+    by_ext: dict[str, dict[str, int]] = {}
     for fp in discovered:
         try:
             size = os.path.getsize(fp)
@@ -805,9 +829,9 @@ def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
         by_ext[ext]["count"] += 1
         by_ext[ext]["bytes"] += size
 
-    ext_rows = sorted(
+    ext_rows: list[dict[str, Any]] = sorted(
         ({"ext": ext, "count": v["count"], "bytes": v["bytes"]} for ext, v in by_ext.items()),
-        key=lambda r: (-r["count"], r["ext"]),
+        key=lambda r: (-int(r["count"]), r["ext"]),
     )
 
     if emit_json:
@@ -856,7 +880,7 @@ def _dry_run_report(cwd, recursive, use_ocr, file_types, file_names,
     return 0 if files_kept else 1
 
 
-def main(argv=None):
+def main(argv: list[str] | None = None) -> int:
     # Force UTF-8 output to prevent UnicodeEncodeError when printing
     # Unicode characters (progress bars, CJK filenames, etc.) on a
     # console or pipe whose default encoding is narrower than UTF-8
@@ -955,7 +979,7 @@ def main(argv=None):
     return exit_code
 
 
-def _extract_on_match(args):
+def _extract_on_match(args: list[str]) -> tuple[str, bool]:
     """Return (command, explicit_flag_present) without mutating *args*.
 
     `peekdocs --on-match "/path/to/script"` → ("/path/to/script", True)
@@ -970,9 +994,9 @@ def _extract_on_match(args):
     return ("", False)
 
 
-def _strip_on_match(args):
+def _strip_on_match(args: list[str]) -> list[str]:
     """Return a copy of *args* with `--on-match` and its value removed."""
-    out = []
+    out: list[str] = []
     i = 0
     while i < len(args):
         if args[i] == "--on-match":
@@ -983,7 +1007,7 @@ def _strip_on_match(args):
     return out
 
 
-def _handle_unexpected_exception(exc, argv):
+def _handle_unexpected_exception(exc: BaseException, argv: list[str] | None) -> int:
     """Crash-report path, extracted so main() can wrap with run logging."""
     error_log_path = os.path.join(os.getcwd(), "peekdocs_errors.log")
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1010,7 +1034,7 @@ def _handle_unexpected_exception(exc, argv):
     return 2
 
 
-def _main_inner(argv=None):
+def _main_inner(argv: list[str] | None = None) -> int:
     if argv is None:
         args = sys.argv[1:]
     else:
@@ -1043,7 +1067,7 @@ def _main_inner(argv=None):
 
     original_args = list(args)
 
-    config = {}  # CLI uses only explicit flags; config is for GUI only
+    config: dict[str, Any] = {}  # CLI uses only explicit flags; config is for GUI only
 
     stdout_json = "--stdout" in args
     if stdout_json:
@@ -1636,7 +1660,7 @@ def _main_inner(argv=None):
             allow_root=_watch_allow_root,
             allow_system_paths=_watch_allow_system_paths,
         )
-        return run_watch(_watch_cfg)
+        return int(run_watch(_watch_cfg))
 
     # ── --suite NAME: run a search suite ──
     if args and args[0] == "--suite":
@@ -1827,9 +1851,10 @@ def _main_inner(argv=None):
 
         # Cloud-output guard: block or redirect writes if the suite's
         # output folder is inside a cloud-synced directory.
-        cwd = _cli_cloud_guard_or_exit(cwd, config, allow_cloud_output, quiet=quiet)
-        if cwd is None:
+        _guarded_cwd = _cli_cloud_guard_or_exit(cwd, config, allow_cloud_output, quiet=quiet)
+        if _guarded_cwd is None:
             return 2
+        cwd = _guarded_cwd
 
         txt_path = os.path.join(cwd, f"peekdocs_suite_results{suite_ts_suffix}.txt")
         docx_path = None
@@ -1928,9 +1953,10 @@ def _main_inner(argv=None):
 
         # Cloud-output guard for --regex-collection. Runs before any
         # writes so a redirect swaps in the safe dir cleanly.
-        _rc_dir = _cli_cloud_guard_or_exit(_rc_dir, config, allow_cloud_output, quiet=quiet)
-        if _rc_dir is None:
+        _guarded_rc_dir = _cli_cloud_guard_or_exit(_rc_dir, config, allow_cloud_output, quiet=quiet)
+        if _guarded_rc_dir is None:
             return 2
+        _rc_dir = _guarded_rc_dir
 
         # -o output formats: opt-in like Standard Search since 1.2.6.
         # TXT is always written; DOCX / HTML / CSV / JSON / PDF are opt-in.
@@ -2034,11 +2060,11 @@ def _main_inner(argv=None):
             }
             if compute_hashes:
                 # Deduplicate by (folder, filename) so each matched file is hashed once.
-                seen = {}
+                seen: dict[tuple[str, str], dict[str, Any]] = {}
                 for fd, fn, _ln, _tx in all_matches:
-                    key = (fd, fn)
-                    if key not in seen:
-                        seen[key] = {"filename": fn, "folder": fd, "sha256": _sha256_of_file(os.path.join(fd, fn))}
+                    dedup_key = (fd, fn)
+                    if dedup_key not in seen:
+                        seen[dedup_key] = {"filename": fn, "folder": fd, "sha256": _sha256_of_file(os.path.join(fd, fn))}
                 json_data["matches_per_file"] = list(seen.values())
             sys.stdout.write(json.dumps(json_data, indent=2, ensure_ascii=False) + "\n")
         else:
@@ -2061,10 +2087,11 @@ def _main_inner(argv=None):
                     command_str += f" -o {','.join(_rc_output_formats)}"
                 if _rc_recursive:
                     command_str += " -r"
+                _cpu_total = os.cpu_count() or 1
                 write_txt_report(
                     output_path, all_matches, [], search_terms, command_str,
                     "ANY", False, [], False, False, True, False,
-                    elapsed, max(1, os.cpu_count() // 2), os.cpu_count() or 1,
+                    elapsed, max(1, _cpu_total // 2), _cpu_total,
                     recursive=_rc_recursive, use_index=False,
                     bulleted_terms=True,
                     pattern_sections=all_results,
@@ -2199,7 +2226,7 @@ def _main_inner(argv=None):
     parsed = parse_flags(args, config)
     if isinstance(parsed, tuple):
         print(f"Error: {parsed[1]}")
-        return parsed[0]
+        return int(parsed[0])
 
     search_terms = parsed["search_terms"]
     match_all = parsed["match_all"]
@@ -2320,7 +2347,7 @@ def _main_inner(argv=None):
 
     spinner_lock = threading.Lock()
     spinner_stop = threading.Event()
-    spinner_state = {"done": 0, "total": 0, "filename": ""}
+    spinner_state: dict[str, Any] = {"done": 0, "total": 0, "filename": ""}
 
     def _render_progress(done, total_count, filename, spinner=""):
         if total_count == 0:
@@ -2462,7 +2489,7 @@ def _main_inner(argv=None):
         from peekdocs.reporter import _strip_highlights, _sha256_of_file
         elapsed = time.time() - start_time
         if inverse_files is not None:
-            inverse_entries = [
+            inverse_entries: list[dict[str, Any]] = [
                 {"filename": os.path.basename(fp), "folder": os.path.dirname(fp)}
                 for fp in inverse_files
             ]
@@ -2481,13 +2508,13 @@ def _main_inner(argv=None):
                 "inverse_files": inverse_entries,
             }
         else:
-            file_counts = {}
+            file_counts: dict[tuple[str, str], int] = {}
             for file_dir, filename, _ln, _tx in matches:
-                key = (file_dir, filename)
-                if key not in file_counts:
-                    file_counts[key] = 0
-                file_counts[key] += 1
-            per_file_entries = [
+                counts_key = (file_dir, filename)
+                if counts_key not in file_counts:
+                    file_counts[counts_key] = 0
+                file_counts[counts_key] += 1
+            per_file_entries: list[dict[str, Any]] = [
                 {"filename": fn, "folder": fd, "matches": count}
                 for (fd, fn), count in file_counts.items()
             ]
@@ -2533,7 +2560,7 @@ def _main_inner(argv=None):
 
     # Generate reports
     output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.txt")
-    docx_output_path = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.docx")
+    docx_output_path: str | None = os.path.join(output_dir, f"peekdocs_standard_results{ts_suffix}.docx")
 
     idx_meta = index_status(cwd) if use_index else None
 
@@ -2577,6 +2604,7 @@ def _main_inner(argv=None):
         txt_size, docx_size = insert_file_sizes(output_path, None, None)
     else:
         print("PHASE: writing-docx", file=sys.stderr, flush=True)
+        assert docx_output_path is not None  # set unconditionally at line 2563
         result_doc = write_docx_report(
             docx_output_path, output_path,
             search_terms=search_terms,
@@ -2647,6 +2675,7 @@ def _main_inner(argv=None):
     matched_file_count = len({os.path.join(fd, fn) for fd, fn, _ln, _tx in matches})
     print()
     if inverse:
+        assert inverse_files is not None  # inverse=True path always populates this
         print(f"Found {HIGHLIGHT}{len(inverse_files)}{RESET} file(s) WITHOUT matches. Files searched: {len(all_files)} ({size_str}).")
     elif capped:
         print(f"Found {HIGHLIGHT}{total_match_count}{RESET} match(es) in {total_file_count} file(s). Files searched: {len(all_files)} ({size_str}). Reports capped at {max_matches:,}.")
@@ -2667,16 +2696,19 @@ def _main_inner(argv=None):
         print("  Check that you're in the right folder.")
     if not minimal:
         if inverse:
+            assert inverse_files is not None  # inverse=True path always populates this
             for f in inverse_files:
                 print(f"  {os.path.basename(f)}")
         else:
-            # Per-file match counts
+            # Per-file match counts (reusing the outer `file_counts` name;
+            # re-init here since we hit this path even when the earlier
+            # branch didn't run).
             file_counts = {}
             for fd, fn, _ln, _tx in matches:
-                key = (fd, fn)
-                if key not in file_counts:
-                    file_counts[key] = 0
-                file_counts[key] += 1
+                fc_key = (fd, fn)
+                if fc_key not in file_counts:
+                    file_counts[fc_key] = 0
+                file_counts[fc_key] += 1
             for (_fd, fn), count in sorted(file_counts.items(), key=lambda x: x[0][1].lower()):
                 print(f"  {fn}: {count}")
         print(f"Results ==> {output_dir}")

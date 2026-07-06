@@ -1,4 +1,5 @@
 """Report generation for peekdocs (TXT, DOCX, CSV, JSON, PDF, append)."""
+from __future__ import annotations
 
 import csv
 import json
@@ -10,15 +11,24 @@ import sys
 import textwrap
 from copy import deepcopy
 from datetime import datetime
+from typing import Any
 
+
+# Match "tuple" used throughout the reporter: (file_dir, filename,
+# line_num, text). Accepts both plain 4-tuples (from cli.py) and
+# SearchMatch dataclasses (from api.py). SearchMatch defines __iter__ +
+# __getitem__ + __len__ so it unpacks and indexes identically to a plain
+# tuple at runtime, but mypy sees them as distinct types. The reporter is
+# a polymorphic consumer — Any is honest about that.
+Match = Any
 
 # Module-level flag — when True, report files are set to owner-only
 # read/write (chmod 600) after creation.  The GUI sets this based on
 # the "Restrict file permissions" checkbox.
-restrict_permissions = False
+restrict_permissions: bool = False
 
 
-def _restrict_file_permissions(filepath):
+def _restrict_file_permissions(filepath: str) -> None:
     """Set owner-only read/write permissions on a file (Unix/macOS).
 
     Only applies when ``restrict_permissions`` is True.  On Windows
@@ -42,7 +52,7 @@ from peekdocs.scanner import _wildcard_to_regex
 from peekdocs.translator import translate_search
 
 
-def fmt_size(b):
+def fmt_size(b: int) -> str:
     """Format byte count as human-readable string."""
     if b >= 1_000_000:
         return f"{b / 1_000_000:.2f} MB"
@@ -51,12 +61,12 @@ def fmt_size(b):
     return f"{b} bytes"
 
 
-def _strip_highlights(text):
+def _strip_highlights(text: str) -> str:
     """Remove ** highlight markers from text."""
     return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
 
 
-def _sha256_of_file(path):
+def _sha256_of_file(path: str) -> str | None:
     """Return the SHA-256 hex digest of *path*'s raw bytes, or None on read error.
 
     Reads the file in 64 KiB chunks so multi-GB files don't load into memory.
@@ -76,19 +86,42 @@ def _sha256_of_file(path):
         return None
 
 
-def write_txt_report(output_path, matches, all_files, search_terms, command_str,
-                     report_mode, use_ocr, exclude_terms, use_context,
-                     use_fuzzy, use_regex, use_wildcard,
-                     search_elapsed, cores, cpu_count,
-                     inverse_files=None, recursive=False,
-                     file_types=None, proximity=None,
-                     context_before=0, context_after=0,
-                     specific_files=None, use_index=False,
-                     inverse=False, output_csv=False, output_json=False,
-                     expression=None, use_whole_word=False,
-                     total_matches=None, max_matches=None,
-                     range_specs=None, index_meta=None,
-                     bulleted_terms=False, pattern_sections=None):
+def write_txt_report(
+    output_path: str,
+    matches: list[Match],
+    all_files: list[str],
+    search_terms: list[str],
+    command_str: str,
+    report_mode: str,
+    use_ocr: bool,
+    exclude_terms: list[str] | None,
+    use_context: bool,
+    use_fuzzy: bool,
+    use_regex: bool,
+    use_wildcard: bool,
+    search_elapsed: float,
+    cores: int,
+    cpu_count: int,
+    inverse_files: list[str] | None = None,
+    recursive: bool = False,
+    file_types: list[str] | str | None = None,
+    proximity: int | None = None,
+    context_before: int = 0,
+    context_after: int = 0,
+    specific_files: list[str] | str | None = None,
+    use_index: bool = False,
+    inverse: bool = False,
+    output_csv: bool = False,
+    output_json: bool = False,
+    expression: str | None = None,
+    use_whole_word: bool = False,
+    total_matches: int | None = None,
+    max_matches: int | None = None,
+    range_specs: list[Any] | None = None,
+    index_meta: dict[str, Any] | None = None,
+    bulleted_terms: bool = False,
+    pattern_sections: list[dict[str, Any]] | None = None,
+) -> tuple[int, str]:
     """Write the .txt result report (e.g. peekdocs_standard_results.txt).
 
     Returns (total_bytes, size_str) for use in console summary.
@@ -183,7 +216,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
         else:
             size_str = f"{total_bytes} bytes"
         f.write(f"Files searched ==> {len(all_files)} ({size_str})\n")
-        ext_counts = {}
+        ext_counts: dict[str, int] = {}
         for fp in all_files:
             ext = os.path.splitext(fp)[1].lower()
             ext_counts[ext] = ext_counts.get(ext, 0) + 1
@@ -213,7 +246,7 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
                 _sec_fc = _section.get("file_count", 0)
                 # Per-pattern file-count map for the 'Document: X (N
                 # matches), Line: ...' label inside this section.
-                _sec_file_counts = {}
+                _sec_file_counts: dict[tuple[str, str], int] = {}
                 for _fd, _fn, _ln, _tx in _sec_matches:
                     _key = (_fd, _fn)
                     _sec_file_counts[_key] = _sec_file_counts.get(_key, 0) + 1
@@ -264,10 +297,16 @@ def write_txt_report(output_path, matches, all_files, search_terms, command_str,
     return (total_bytes, size_str)
 
 
-def write_docx_report(docx_path, txt_path, search_terms=None,
-                      use_regex=False, use_wildcard=False,
-                      use_whole_word=False, use_fuzzy=False,
-                      expression=None):
+def write_docx_report(
+    docx_path: str,
+    txt_path: str,
+    search_terms: list[str] | None = None,
+    use_regex: bool = False,
+    use_wildcard: bool = False,
+    use_whole_word: bool = False,
+    use_fuzzy: bool = False,
+    expression: str | None = None,
+) -> Any:
     """Create the .docx result report from the .txt report with yellow highlighting.
 
     Highlights matched terms directly using the search parameters rather than
@@ -468,7 +507,7 @@ def write_docx_report(docx_path, txt_path, search_terms=None,
     return result_doc
 
 
-def insert_file_sizes(txt_path, docx_path, result_doc):
+def insert_file_sizes(txt_path: str, docx_path: str | None, result_doc: Any) -> tuple[int, int]:
     """Insert report file sizes into both txt and docx reports.
 
     Returns ``(txt_size, docx_size)`` in bytes. When DOCX generation
@@ -514,7 +553,11 @@ def insert_file_sizes(txt_path, docx_path, result_doc):
     return (txt_size, docx_size)
 
 
-def write_csv_report(output_path, matches, inverse_files=None):
+def write_csv_report(
+    output_path: str,
+    matches: list[Match],
+    inverse_files: list[str] | None = None,
+) -> None:
     """Write the .csv result report."""
     if os.path.exists(output_path):
         os.remove(output_path)
@@ -534,9 +577,17 @@ def write_csv_report(output_path, matches, inverse_files=None):
     _restrict_file_permissions(output_path)
 
 
-def write_json_report(output_path, matches, search_terms, report_mode,
-                      files_count, search_elapsed, inverse_files=None,
-                      directory=None, compute_hashes=False):
+def write_json_report(
+    output_path: str,
+    matches: list[Match],
+    search_terms: list[str],
+    report_mode: str,
+    files_count: int,
+    search_elapsed: float,
+    inverse_files: list[str] | None = None,
+    directory: str | None = None,
+    compute_hashes: bool = False,
+) -> None:
     """Write the .json result report.
 
     If *compute_hashes* is True, each entry in ``matches_per_file`` /
@@ -548,7 +599,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
 
     from peekdocs.cli import VERSION as _ver_j
     if inverse_files is not None:
-        inverse_entries = [
+        inverse_entries: list[dict[str, Any]] = [
             {
                 "filename": os.path.basename(fp),
                 "folder": os.path.dirname(fp),
@@ -577,7 +628,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
             if key not in file_counts:
                 file_counts[key] = 0
             file_counts[key] += 1
-        matches_per_file = [
+        matches_per_file: list[dict[str, Any]] = [
             {"filename": fn, "folder": fd, "matches": count}
             for (fd, fn), count in file_counts.items()
         ]
@@ -612,7 +663,7 @@ def write_json_report(output_path, matches, search_terms, report_mode,
     _restrict_file_permissions(output_path)
 
 
-def _pdf_safe(text):
+def _pdf_safe(text: str) -> str:
     """Replace Unicode characters that Helvetica can't render."""
     replacements = {
         '\u2018': "'", '\u2019': "'",   # smart single quotes
@@ -629,7 +680,7 @@ def _pdf_safe(text):
     return text.encode('latin-1', errors='replace').decode('latin-1')
 
 
-def _pdf_insert_highlighted(pdf, text, search_terms, highlight_re=None):
+def _pdf_insert_highlighted(pdf: Any, text: str, search_terms: list[str], highlight_re: Any = None) -> None:
     """Insert text with search terms highlighted in orange background."""
     import re as _re
     if not search_terms and not highlight_re:
@@ -669,11 +720,18 @@ def _pdf_insert_highlighted(pdf, text, search_terms, highlight_re=None):
     pdf.ln(5)
 
 
-def write_pdf_report(output_path, matches, search_terms=None,
-                     report_mode="ANY", inverse_files=None,
-                     use_regex=False, use_wildcard=False,
-                     use_whole_word=False, use_fuzzy=False,
-                     expression=None):
+def write_pdf_report(
+    output_path: str,
+    matches: list[Match],
+    search_terms: list[str] | None = None,
+    report_mode: str = "ANY",
+    inverse_files: list[str] | None = None,
+    use_regex: bool = False,
+    use_wildcard: bool = False,
+    use_whole_word: bool = False,
+    use_fuzzy: bool = False,
+    expression: str | None = None,
+) -> None:
     """Write the .pdf result report with highlighted matches."""
     from fpdf import FPDF
     import re as _re_pdf
@@ -770,11 +828,18 @@ def write_pdf_report(output_path, matches, search_terms=None,
     _restrict_file_permissions(output_path)
 
 
-def write_html_report(output_path, matches, search_terms=None,
-                      report_mode="ANY", inverse_files=None,
-                      use_regex=False, use_wildcard=False,
-                      use_whole_word=False, use_fuzzy=False,
-                      expression=None):
+def write_html_report(
+    output_path: str,
+    matches: list[Match],
+    search_terms: list[str] | None = None,
+    report_mode: str = "ANY",
+    inverse_files: list[str] | None = None,
+    use_regex: bool = False,
+    use_wildcard: bool = False,
+    use_whole_word: bool = False,
+    use_fuzzy: bool = False,
+    expression: str | None = None,
+) -> None:
     """Write the .html result report with highlighted matches."""
     import html as html_mod
     import re as _re_html
@@ -881,7 +946,7 @@ def write_html_report(output_path, matches, search_terms=None,
     _restrict_file_permissions(output_path)
 
 
-def append_results(append_name, output_dir, txt_path, docx_path):
+def append_results(append_name: str, output_dir: str, txt_path: str, docx_path: str | None) -> None:
     """Append current results to accumulated peekdocs files.
 
     When DOCX generation was skipped (``--no-docx``), pass
@@ -916,7 +981,11 @@ def append_results(append_name, output_dir, txt_path, docx_path):
 # ── Suite Reports ──────────────────────────────────────────────
 
 
-def write_suite_txt_report(output_path, suite_name, sections):
+def write_suite_txt_report(
+    output_path: str,
+    suite_name: str,
+    sections: list[dict[str, Any]],
+) -> tuple[int, str]:
     """Write a combined TXT report for a search suite.
 
     *sections* is a list of dicts, each with:
@@ -986,7 +1055,11 @@ def write_suite_txt_report(output_path, suite_name, sections):
     return (total_bytes, size_str)
 
 
-def write_suite_docx_report(docx_path, txt_path, sections):
+def write_suite_docx_report(
+    docx_path: str,
+    txt_path: str,
+    sections: list[dict[str, Any]],
+) -> None:
     """Create a combined DOCX suite report with per-section highlighting.
 
     Reads the suite TXT report and applies yellow highlighting for each
@@ -1072,7 +1145,11 @@ def write_suite_docx_report(docx_path, txt_path, sections):
     _restrict_file_permissions(docx_path)
 
 
-def write_suite_html_report(output_path, suite_name, sections):
+def write_suite_html_report(
+    output_path: str,
+    suite_name: str,
+    sections: list[dict[str, Any]],
+) -> None:
     """Write a combined HTML report for a search suite with highlighted matches."""
     import html as html_mod
     import re as _re_sh

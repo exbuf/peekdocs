@@ -102,15 +102,21 @@ peekdocs-gui = "peekdocs.gui:main"
 
 # ── mypy — type-checker configuration ─────────────────────────
 #
-# Scope: peekdocs's public API surface — the files that consumers
-# import when they embed peekdocs in their own Python code. Not
-# the whole codebase; adding hints everywhere is a separate
-# effort tracked in docs/ARCHITECTURE.md's known-weaknesses list.
+# Scope: peekdocs's public + top-level surfaces — the files that
+# consumers directly touch (import the API, run the CLI, read
+# generated reports). Not the whole codebase; adding hints
+# everywhere is a separate effort tracked in docs/ARCHITECTURE.md's
+# known-weaknesses list.
 #
 # Files intentionally in scope:
-#   peekdocs/api.py    — the public library API (search, run_suite,
-#                        run_regex_collection, list_*, dataclasses)
-#   peekdocs/paths.py  — small resource_path helper
+#   peekdocs/api.py       — the public library API (search,
+#                           run_suite, run_regex_collection, list_*,
+#                           dataclasses)
+#   peekdocs/paths.py     — resource_path + find_tesseract helpers
+#   peekdocs/reporter.py  — TXT / DOCX / CSV / JSON / PDF / HTML
+#                           report writers (consumed by cli.py and
+#                           anyone extending output formats)
+#   peekdocs/cli.py       — main() entrypoint + top-level helpers
 #
 # The `files` list is authoritative — mypy will only check these
 # unless the caller passes explicit paths. CI runs `mypy` bare
@@ -124,7 +130,7 @@ peekdocs-gui = "peekdocs.gui:main"
 # marginal type-safety gain.
 [tool.mypy]
 python_version = "3.10"
-files = ["peekdocs/api.py", "peekdocs/paths.py"]
+files = ["peekdocs/api.py", "peekdocs/paths.py", "peekdocs/reporter.py", "peekdocs/cli.py"]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
 # all. Scope of this mypy check is deliberately just api.py + paths.py
