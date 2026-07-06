@@ -18,7 +18,9 @@ Each tool follows the same shape:
 
 Shared utilities:
 
-* ``_format_file_size`` — bytes → human-readable string (KB / MB / GB / TB).
+* ``_format_file_size`` — bytes → human-readable SI string (KB / MB / GB).
+  Delegates to :func:`peekdocs.paths.format_bytes` for consistency across
+  the CLI, report, and GUI surfaces.
 * ``_show_category_files_help`` — "?" help popup for File Inventory's
   Categories view.
 * ``_show_sensitive_category_files`` — display files in a specific
@@ -2588,16 +2590,17 @@ class FileAnalysisMixin:
 
 
     @staticmethod
-    def _format_file_size(size_bytes):
-        """Format bytes as a human-readable string."""
-        if size_bytes < 1024:
-            return f"{size_bytes} B"
-        elif size_bytes < 1024 * 1024:
-            return f"{size_bytes / 1024:.1f} KB"
-        elif size_bytes < 1024 * 1024 * 1024:
-            return f"{size_bytes / (1024 * 1024):.1f} MB"
-        else:
-            return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+    def _format_file_size(size_bytes: int) -> str:
+        """Format bytes as a human-readable string.
+
+        Thin delegate to :func:`peekdocs.paths.format_bytes` (SI decimal).
+        Was previously IEC binary (1024-based) — switched to SI to match
+        the report / CLI surfaces. The numeric difference is under 8% at
+        GB scale and consistency across peekdocs's user-facing surfaces
+        matters more than strict binary accuracy for file-size display.
+        """
+        from peekdocs.paths import format_bytes
+        return format_bytes(size_bytes)
 
 
 

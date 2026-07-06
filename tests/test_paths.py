@@ -105,3 +105,47 @@ def test_resource_path_returns_absolute_path():
     check."""
     result = paths.resource_path("no-such-file.txt")
     assert os.path.isabs(result)
+
+
+# ── format_bytes ───────────────────────────────────────────────
+
+
+def test_format_bytes_base_tier_uses_bytes_word():
+    """Below 1000 bytes → literal 'bytes' with no decimals. Reports show
+    this format for tiny files."""
+    assert paths.format_bytes(0) == "0 bytes"
+    assert paths.format_bytes(1) == "1 bytes"
+    assert paths.format_bytes(999) == "999 bytes"
+
+
+def test_format_bytes_kb_tier():
+    """1 KB (1000 bytes) up to 1 MB — 'KB' with two decimals."""
+    assert paths.format_bytes(1_000) == "1.00 KB"
+    assert paths.format_bytes(1_500) == "1.50 KB"
+    assert paths.format_bytes(999_999) == "1000.00 KB"
+
+
+def test_format_bytes_mb_tier():
+    """1 MB up to 1 GB — 'MB' with two decimals."""
+    assert paths.format_bytes(1_000_000) == "1.00 MB"
+    assert paths.format_bytes(2_100_000) == "2.10 MB"
+    assert paths.format_bytes(999_999_999) == "1000.00 MB"
+
+
+def test_format_bytes_gb_tier():
+    """1 GB and above — 'GB' with two decimals. The tier that reporter's
+    old fmt_size lacked; large disk-usage displays used to overflow into
+    thousand-MB territory."""
+    assert paths.format_bytes(1_000_000_000) == "1.00 GB"
+    assert paths.format_bytes(3_500_000_000) == "3.50 GB"
+
+
+def test_reporter_fmt_size_delegates_to_format_bytes():
+    """Back-compat: reporter.fmt_size is a thin re-export. Anyone
+    importing it from peekdocs.reporter (cli.py + external consumers)
+    keeps working after the consolidation."""
+    from peekdocs.reporter import fmt_size
+
+    assert fmt_size(0) == paths.format_bytes(0)
+    assert fmt_size(1_500) == paths.format_bytes(1_500)
+    assert fmt_size(3_500_000_000) == paths.format_bytes(3_500_000_000)

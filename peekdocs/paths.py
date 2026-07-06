@@ -103,6 +103,46 @@ _TESSERACT_FALLBACK_PATHS = {
 }
 
 
+def format_bytes(n: int) -> str:
+    """Format a byte count as a human-readable SI-decimal (1000-based) size.
+
+    Tiers: ``bytes`` (< 1 KB), ``KB``, ``MB``, ``GB``. Two decimal places
+    above the base tier. Single source of truth for peekdocs's user-facing
+    byte formatting — before this helper, three separate implementations
+    lived in ``reporter.py``, ``cli.py``, and ``gui/_mixin_file_analysis.py``
+    and drifted (the GUI used IEC-binary 1024-based sizes, the others used
+    SI-decimal; the reporter didn't have a GB tier at all). A user could
+    see "2.10 MB" in a report and "2.00 MiB" in the GUI dupe finder for
+    the same file. Consolidated here for consistency.
+
+    SI decimal is the peekdocs convention because report output (the
+    externally visible surface) has always used it. GUI file-analysis
+    dialogs switched from IEC binary to match; the numeric difference is
+    tiny (< 5% for MB, < 8% for GB) and consistency across surfaces
+    wins over strict binary accuracy.
+
+    Parameters
+    ----------
+    n :
+        Non-negative byte count. Passing a negative value is not
+        expected in normal usage; the returned string will contain the
+        sign but the tier logic still works.
+
+    Returns
+    -------
+    str
+        Human-readable size string. Examples: ``"342 bytes"``,
+        ``"12.34 KB"``, ``"1.20 MB"``, ``"3.50 GB"``.
+    """
+    if n >= 1_000_000_000:
+        return f"{n / 1_000_000_000:.2f} GB"
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.2f} MB"
+    if n >= 1_000:
+        return f"{n / 1_000:.2f} KB"
+    return f"{n} bytes"
+
+
 @functools.lru_cache(maxsize=1)
 def find_tesseract() -> str | None:
     """Return the absolute path to the ``tesseract`` executable, or None.

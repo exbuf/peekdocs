@@ -850,17 +850,8 @@ def _dry_run_report(
         sys.stdout.write(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
         return 0 if files_kept else 1
 
-    def _fmt_size(n):
-        if n >= 1_000_000_000:
-            return f"{n / 1_000_000_000:.2f} GB"
-        if n >= 1_000_000:
-            return f"{n / 1_000_000:.2f} MB"
-        if n >= 1_000:
-            return f"{n / 1_000:.2f} KB"
-        return f"{n} B"
-
     print()
-    print(f"Dry run — would search {len(files_kept):,} file(s) ({_fmt_size(total_bytes)}) in {cwd}")
+    print(f"Dry run — would search {len(files_kept):,} file(s) ({fmt_size(total_bytes)}) in {cwd}")
     if recursive:
         print("  (recursive: subfolders included)")
     if skipped_too_large:
@@ -870,7 +861,7 @@ def _dry_run_report(
         print("By extension:")
         ext_w = max(len(r["ext"]) for r in ext_rows)
         for row in ext_rows[:30]:
-            print(f"  {row['ext'].ljust(ext_w)}   {row['count']:>6}   {_fmt_size(row['bytes']):>10}")
+            print(f"  {row['ext'].ljust(ext_w)}   {row['count']:>6}   {fmt_size(row['bytes']):>10}")
         if len(ext_rows) > 30:
             print(f"  ... and {len(ext_rows) - 30} more extension(s)")
     print()

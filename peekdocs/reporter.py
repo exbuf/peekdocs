@@ -48,17 +48,20 @@ from docx.oxml import OxmlElement
 from docx.enum.text import WD_COLOR_INDEX
 from docx.shared import Pt, RGBColor, Inches
 
+from peekdocs.paths import format_bytes
 from peekdocs.scanner import _wildcard_to_regex
 from peekdocs.translator import translate_search
 
 
 def fmt_size(b: int) -> str:
-    """Format byte count as human-readable string."""
-    if b >= 1_000_000:
-        return f"{b / 1_000_000:.2f} MB"
-    elif b >= 1_000:
-        return f"{b / 1_000:.2f} KB"
-    return f"{b} bytes"
+    """Format byte count as human-readable string.
+
+    Thin re-export of :func:`peekdocs.paths.format_bytes` — kept under this
+    name because ``fmt_size`` is imported from :mod:`peekdocs.reporter`
+    by the CLI and by a small handful of external consumers. See the
+    canonical helper for the tier and unit conventions.
+    """
+    return format_bytes(b)
 
 
 def _strip_highlights(text: str) -> str:
