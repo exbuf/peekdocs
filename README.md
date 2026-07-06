@@ -132,7 +132,10 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 &nbsp;
 ## Installation
 
-[Prerequisites](#prerequisites) · [Option A: Standalone Download](#option-a-standalone-download-no-python-needed) · [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users) · [Upgrading](#upgrading)
+- [Option A: Standalone Download](#option-a-standalone-download-no-python-needed)
+- [Option B: pipx (for Python users)](#option-b-quick-install-with-pipx-for-python-users)
+- [Prerequisites](#prerequisites)
+- [Upgrading](#upgrading)
 
 > **Want to verify the download?** See [docs/INSTALL_SAFETY.md](docs/INSTALL_SAFETY.md) — per-OS checksum-check commands, plus VirusTotal scan, network monitor, source-code grep, and sandbox install as additional confidence steps. Also covers what the SmartScreen / Gatekeeper warnings actually mean and what peekdocs does and doesn't do at runtime.
 
