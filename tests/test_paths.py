@@ -107,6 +107,70 @@ def test_resource_path_returns_absolute_path():
     assert os.path.isabs(result)
 
 
+# ── resource_path — PyInstaller-frozen candidate lookup ─────────
+
+
+def test_resource_path_prefers_meipass_root_when_present(tmp_path, monkeypatch):
+    """Traditional PyInstaller layout: --add-data files land at
+    _MEIPASS/relative_path. This should be the first hit."""
+    monkeypatch.setattr(paths.sys, "_MEIPASS", str(tmp_path), raising=False)
+    license_at_root = tmp_path / "LICENSE"
+    license_at_root.write_text("mit text")
+
+    result = paths.resource_path("LICENSE")
+    assert result == str(license_at_root)
+
+
+def test_resource_path_finds_macos_app_bundle_resources(tmp_path, monkeypatch):
+    """macOS .app bundle regression from 1.2.80: `sys._MEIPASS` points
+    at `Contents/Frameworks/` but --add-data payloads land in
+    `Contents/Resources/`. resource_path must find them via the
+    `../Resources/` fallback."""
+    contents = tmp_path / "peekdocs-gui.app" / "Contents"
+    frameworks = contents / "Frameworks"
+    resources = contents / "Resources"
+    frameworks.mkdir(parents=True)
+    resources.mkdir(parents=True)
+
+    monkeypatch.setattr(paths.sys, "_MEIPASS", str(frameworks), raising=False)
+    license_at_resources = resources / "LICENSE"
+    license_at_resources.write_text("mit text from resources")
+
+    result = paths.resource_path("LICENSE")
+    # normpath collapses "..", so a straight equality check works.
+    assert result == os.path.normpath(str(license_at_resources))
+
+
+def test_resource_path_returns_meipass_root_when_no_candidate_exists(tmp_path, monkeypatch):
+    """When neither `_MEIPASS/foo` nor `_MEIPASS/../Resources/foo`
+    exists, return the traditional `_MEIPASS/foo` path so the caller's
+    os.path.exists() check hits False and its own fallback runs."""
+    monkeypatch.setattr(paths.sys, "_MEIPASS", str(tmp_path), raising=False)
+
+    result = paths.resource_path("NONEXISTENT")
+    assert result == os.path.join(str(tmp_path), "NONEXISTENT")
+    assert not os.path.exists(result)
+
+
+def test_resource_path_root_wins_over_resources_when_both_exist(tmp_path, monkeypatch):
+    """If both `_MEIPASS/foo` and `_MEIPASS/../Resources/foo` exist
+    (shouldn't happen in practice, but be defined), the traditional
+    root wins because it's the first candidate in the list."""
+    contents = tmp_path / "app" / "Contents"
+    frameworks = contents / "Frameworks"
+    resources = contents / "Resources"
+    frameworks.mkdir(parents=True)
+    resources.mkdir(parents=True)
+
+    monkeypatch.setattr(paths.sys, "_MEIPASS", str(frameworks), raising=False)
+    (frameworks / "LICENSE").write_text("from frameworks")
+    (resources / "LICENSE").write_text("from resources")
+
+    result = paths.resource_path("LICENSE")
+    with open(result) as f:
+        assert f.read() == "from frameworks"
+
+
 # ── format_bytes ───────────────────────────────────────────────
 
 

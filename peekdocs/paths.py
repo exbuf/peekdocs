@@ -31,11 +31,28 @@ def resource_path(relative_path: str) -> str:
 
     Handles two install modes:
 
-    * **PyInstaller standalone binary** — uses ``sys._MEIPASS`` (the
-      temporary extraction directory for ``--onefile`` bundles, or the
-      bundle root for ``--onedir``). ``build_app.py`` copies LICENSE,
-      NOTICE, THIRD_PARTY_NOTICES.md, and customtkinter assets into
-      this location via ``--add-data``.
+    * **PyInstaller standalone binary** — searches ``sys._MEIPASS`` and
+      a small set of well-known candidate locations relative to it.
+      ``build_app.py`` copies LICENSE, NOTICE, THIRD_PARTY_NOTICES.md,
+      and customtkinter assets into the bundle via ``--add-data``, but
+      *where* PyInstaller physically places them depends on the build
+      mode:
+
+      - ``--onefile`` (Windows / Linux CLI + GUI): everything extracts
+        to ``sys._MEIPASS``, so ``_MEIPASS/relative_path`` is correct.
+      - ``--onedir`` non-``.app`` (Linux CLI, direct-dir builds):
+        same — bundle root == ``sys._MEIPASS``.
+      - ``--onedir --windowed`` macOS ``.app`` bundle: ``sys._MEIPASS``
+        points at ``Contents/Frameworks/`` (runtime + libraries),
+        while ``--add-data`` payloads land in
+        ``Contents/Resources/``. Traditional
+        ``os.path.join(_MEIPASS, relative_path)`` misses the file
+        entirely; the fallback candidate
+        ``os.path.join(_MEIPASS, "..", "Resources", relative_path)``
+        finds it. This is the 1.2.80 bug that made
+        "About → View License" report "LICENSE file not found" on
+        macOS.
+
     * **Source checkout / editable install** — uses the repository root,
       which is one directory above this file (``peekdocs/paths.py`` →
       ``peekdocs/`` → repo root). This is the ``pip install -e .``
@@ -62,13 +79,33 @@ def resource_path(relative_path: str) -> str:
     Returns
     -------
     str
-        Absolute path. The file may or may not actually exist — the
-        caller is responsible for existence checks and fallback behavior.
-        Callers that need to handle "resource missing" should use
-        ``os.path.exists`` on the return value.
+        Absolute path. When PyInstaller-bundled, the returned path is
+        the first candidate that exists on disk. If none exist, the
+        traditional ``_MEIPASS/relative_path`` is returned so the
+        caller's "not found" fallback logic still works cleanly.
     """
     if hasattr(sys, "_MEIPASS"):
-        return os.path.join(sys._MEIPASS, relative_path)
+        # PyInstaller places data files at different locations depending
+        # on --onefile vs --onedir vs macOS .app bundle. Try each in the
+        # order most likely to succeed and return the first hit.
+        candidates = [
+            # Traditional --onefile / --onedir bundle root (Windows /
+            # Linux, and macOS non-.app builds).
+            os.path.join(sys._MEIPASS, relative_path),
+            # macOS .app bundle: --add-data lands in
+            # Contents/Resources/, while _MEIPASS is Contents/Frameworks/.
+            # os.path.normpath collapses the "..".
+            os.path.normpath(
+                os.path.join(sys._MEIPASS, "..", "Resources", relative_path)
+            ),
+        ]
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                return candidate
+        # No candidate exists on disk. Return the traditional path so
+        # the caller's os.path.exists() check hits False and its
+        # "resource missing" fallback runs.
+        return candidates[0]
 
     # Source checkout: this file is peekdocs/paths.py, so the repo root
     # is one parent directory up.
