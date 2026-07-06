@@ -49,7 +49,8 @@ DO_NOT_SEARCH_docsearch_suite_*
 # PyInstaller
 *.spec
 
-# Sample/test data files
+# Sample/test data files (local-only demo docs used while iterating;
+# not shipped in the sdist/wheel and not tracked in the public repo).
 dashboard.html
 employee_data.csv
 financial_summary.pdf
@@ -57,6 +58,27 @@ meeting_notes.odt
 project_log.txt
 quarterly_report.docx
 sales_data.xlsx
+
+# Ad-hoc dev artifacts at repo root — bag of transient debug/scratch
+# files the maintainer generates while iterating. Extend as new
+# patterns emerge; safer than blanket rules that could accidentally
+# hide a real deliverable.
+diff.txt
+diff_*.txt
+
+# Local WIP demo videos in docs/images/ — .mp4 recordings kept
+# locally for editing before promotion to a tracked .gif. The gif
+# is what actually ships in README / USER_GUIDE.
+docs/images/*.mp4
+
+# Local sample corpora under samples/ that the maintainer uses for
+# GUI screen-tests. The tracked samples/multilingual/ and
+# samples/engineering_test/ folders stay in git for the demo hooks
+# in README; these `demo_*` and `demo_files/` folders are personal
+# fixtures. Extend the pattern if a new demo_ folder shows up.
+samples/demo_files/
+samples/peekdocs_demo_*/
+samples/test-files/peekdocs_*_results.txt
 
 # Debug/temp files
 test_gui_debug.py
