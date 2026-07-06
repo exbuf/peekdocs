@@ -108,7 +108,7 @@ peekdocs is a local search workbench that does exactly that across 100+ file typ
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
-**Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a highlighted DOCX or HTML report → save the search → add it to a Search Suite → schedule it weekly.
+**Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a TXT report — plus optional JSON, CSV, or yellow-highlighted DOCX, PDF, or HTML → save the search → add it to a Search Suite → schedule it weekly.
 
 <!--
   TO UPDATE THIS DEMO GIF:
