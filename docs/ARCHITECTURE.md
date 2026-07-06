@@ -99,7 +99,10 @@ The engine and output layers know nothing about which surface invoked them. That
 | `_mixin_suites.py` | Search Suites: picker popup, per-search execution loop, combined-report assembly, cancel/elapsed handling, completion popup. |
 | `_mixin_file_analysis.py` | Nine folder-scanning tools: File Inventory, Duplicate Finder, Large Files, Empty Files, Recent Changes, File Age Distribution, Protected Files, Unsearchable Files, Collection Summary. Also owns the shared `_format_file_size` helper and Categories-view helpers. |
 | `_mixin_help_panels.py` | Eight orphan "?"-help popups that don't belong to a specific feature mixin: search options help, search primer, Advanced Options deep dive, save/load help, matched/excluded files help, index help, three-mode side-by-side compare. |
-| `_helpers.py` | Standalone free functions used across mixins — cloud-output guard, CLI runner (subprocess vs in-process), path resolution. |
+| `_cli_runner.py` | Subprocess plumbing for spawning the CLI (and the in-process `main()` call path used inside PyInstaller bundles), plus CLI-command construction from GUI form values and result-file parsing. |
+| `_cloud_guard.py` | Cloud-synced folder detection (OneDrive / Google Drive / iCloud / Dropbox) and the report-write policy guard (`cloud_output_guard`, `gui_cloud_guard`, `CLOUD_GUARD_*` outcome sentinels). Enforces the "peekdocs won't silently upload reports" claim at every write site — CLI, GUI, and Python API. |
+| `_dialogs.py` | Themed `askstring` replacement (`themed_ask_string`) + OS file-open shim (`safe_open_file`). |
+| `_helpers.py` | Re-export shim for the three focused files above, plus the tiny `_build_wizard_regex` helper. Split into `_cli_runner.py`, `_cloud_guard.py`, and `_dialogs.py` in v1.2.79 to break up the 850-LOC grab-bag identified in the code-health review; existing imports through `_helpers` continue to work. New code should import from the specific submodules. |
 | `_tooltip.py` | Custom `Tooltip` widget for CTk buttons (customtkinter doesn't ship one). |
 | `__init__.py` | `peekdocs-gui` console script entry → instantiate `PeekDocsApp`. |
 

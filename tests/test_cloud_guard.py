@@ -91,7 +91,7 @@ def test_cli_regex_collection_blocks_cloud_without_flag(tmp_path, monkeypatch, c
     (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
 
     # Patch detect_cloud_service to force cloud detection on tmp_path.
-    with patch("peekdocs.gui._helpers.detect_cloud_service", return_value="iCloud Drive"):
+    with patch("peekdocs.gui._cloud_guard.detect_cloud_service", return_value="iCloud Drive"):
         rc = main(["--regex-collection", "c", "-d", str(tmp_path), "-r"])
     assert rc == 2
     captured = capsys.readouterr()
@@ -109,7 +109,7 @@ def test_cli_regex_collection_allowed_with_flag(tmp_path, monkeypatch, capsys):
     rc_data = {"c": [{"name": "T", "regex": r"TODO", "enabled": True}]}
     (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(rc_data))
 
-    with patch("peekdocs.gui._helpers.detect_cloud_service", return_value="Dropbox"):
+    with patch("peekdocs.gui._cloud_guard.detect_cloud_service", return_value="Dropbox"):
         rc = main([
             "--regex-collection", "c", "-d", str(tmp_path), "-r",
             "--allow-cloud-output",
