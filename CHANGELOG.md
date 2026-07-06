@@ -12,6 +12,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.74] — 2026-07-06
+
+### Added
+- **LICENSE now travels with standalone binaries + "View License"
+  button in the About dialog** (a3e5153). Closes the "MIT license
+  doesn't ship with the standalone binary" gap uncovered by a
+  distribution-mechanics question. The pipx install path already
+  shipped LICENSE / NOTICE / THIRD_PARTY_NOTICES.md via PEP 639
+  (`pyproject.toml:59` — `license-files = [...]`) into the
+  wheel's `.dist-info` directory. The standalone-binary path
+  didn't. Two coordinated changes:
+  - **`build_app.py`** — both `build_gui()` and `build_cli()`
+    now pass three `--add-data` flags copying LICENSE, NOTICE,
+    and THIRD_PARTY_NOTICES.md to the bundle root. `--onefile`
+    modes (Windows GUI/CLI, Linux GUI/CLI) extract the files to
+    `_MEIxxxxxx/` at launch (accessible via `sys._MEIPASS` while
+    the process runs); `--onedir` modes (macOS GUI/CLI) keep
+    them permanently at the bundle root.
+  - **`peekdocs/gui/_mixin_data.py`** — About dialog's single
+    Close button becomes a two-button row: **View License** +
+    Close. New `_show_license` method opens a themed 560×420
+    toplevel with a scrollable read-only `Text` widget in Courier
+    10, showing the bundled LICENSE text. Path resolution tries
+    `sys._MEIPASS/LICENSE` (PyInstaller bundle) first, then
+    `<repo root>/LICENSE` (pip/pipx source install), then a
+    fallback message pointing at the GitHub URL if neither
+    resolves. Dialog height bumped 245px → 265px to give the
+    button row breathing room.
+  - **Net effect**: copyright holder → binary → running user,
+    the license text travels through the whole loop with no
+    external network access required to read it.
+
 ## [1.2.73] — 2026-07-04
 
 ### Docs
