@@ -190,7 +190,7 @@ Philosophy: unit test the search engine (deterministic, high-value); integration
 These are documented candidly here so anyone reading the code understands the shape and the reasons.
 
 - **Mixin architecture may be over-abstracted.** Explicit composition (helper classes + method calls) might read more directly than mixins at this codebase scale. The mixin-tools-split refactor removed the "10K-LOC bucket file" symptom but kept the mixin pattern itself. Full conversion to explicit composition would touch every file in `gui/`.
-- **No formal error taxonomy.** Users see raw `pytesseract`, PDF library, archive-extraction errors in the error log. A `PeekDocsError` hierarchy would improve error-log signal and let callers branch on error type.
+- **Partial error taxonomy.** The library-API surface has a proper hierarchy — `peekdocs.errors.PeekdocsError` root with `QueryError`, `RangeError`, and `NameNotFoundError` subclasses, each inheriting from the closest stdlib exception for back-compat with existing consumer code. What's still not typed: file-parse failures (raw exceptions from `pytesseract`, PDF library, archive extraction) still land in the error log as their upstream types. A full taxonomy would add `ExtractionError` / `OCRUnavailable` / `IndexCorruptError` subclasses covering the scanner and indexer surfaces.
 - **State management in GUI is manual sync.** Tkinter `StringVar`s scattered across mixins; toggle-handler methods coordinate changes. Grows fragile with feature count.
 - **No plugin architecture** (see Historical decisions).
 - **No async model unification** (see Historical decisions).

@@ -10,6 +10,8 @@ import datetime
 import os
 import re
 
+from peekdocs.errors import RangeError
+
 
 CONTENT_FIELDS = {"date", "amount", "number", "percent", "age", "time"}
 METADATA_FIELDS = {"filesize", "filedate"}
@@ -40,7 +42,7 @@ def parse_range(spec_str):
     Raises *ValueError* for invalid syntax or unknown field names.
     """
     if ":" not in spec_str:
-        raise ValueError(f"Invalid range spec (missing ':'): {spec_str}")
+        raise RangeError(f"Invalid range spec (missing ':'): {spec_str}")
 
     # Check for fn:/fc: target prefix
     target = "content"
@@ -51,19 +53,19 @@ def parse_range(spec_str):
         target = "filename" if prefix == "fn" else "content"
         working = working[first_colon + 1:]
         if ":" not in working:
-            raise ValueError(f"Invalid range spec (missing ':'): {spec_str}")
+            raise RangeError(f"Invalid range spec (missing ':'): {spec_str}")
 
     field, _, rest = working.partition(":")
     field = field.strip().lower()
     if field not in ALL_FIELDS:
-        raise ValueError(
+        raise RangeError(
             f"Unknown range field '{field}'. "
             f"Valid fields: {', '.join(sorted(ALL_FIELDS))}"
         )
     # Metadata fields auto-assign target; fn:/fc: prefixes are invalid for them
     if field in METADATA_FIELDS:
         if prefix in ("fn", "fc"):
-            raise ValueError(
+            raise RangeError(
                 f"Cannot use '{prefix}:' prefix with metadata field '{field}'. "
                 f"Metadata fields (filesize, filedate) don't need a target prefix."
             )
@@ -72,12 +74,12 @@ def parse_range(spec_str):
         target = "filename"
 
     if ".." not in rest:
-        raise ValueError(f"Invalid range spec (missing '..'): {spec_str}")
+        raise RangeError(f"Invalid range spec (missing '..'): {spec_str}")
     min_val, _, max_val = rest.partition("..")
     min_val = min_val.strip()
     max_val = max_val.strip()
     if not min_val and not max_val:
-        raise ValueError(f"Range must have at least a min or max value: {spec_str}")
+        raise RangeError(f"Range must have at least a min or max value: {spec_str}")
     return RangeSpec(field=field, min_val=min_val, max_val=max_val, target=target)
 
 
@@ -261,7 +263,7 @@ def _parse_date(s):
             return datetime.datetime.strptime(s, fmt).date()
         except ValueError:
             pass
-    raise ValueError(f"Cannot parse date: {s}")
+    raise RangeError(f"Cannot parse date: {s}")
 
 
 def _parse_number(s):
@@ -277,7 +279,7 @@ def _parse_time(s):
             return datetime.datetime.strptime(s.strip(), fmt).time()
         except ValueError:
             pass
-    raise ValueError(f"Cannot parse time: {s}")
+    raise RangeError(f"Cannot parse time: {s}")
 
 
 _SIZE_SUFFIXES = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -287,7 +289,7 @@ def _parse_filesize(s):
     """Parse a filesize string like ``"1M"`` or ``"500K"`` into bytes (int)."""
     s = s.strip().upper()
     if not s:
-        raise ValueError("Empty filesize")
+        raise RangeError("Empty filesize")
     if s[-1] in _SIZE_SUFFIXES:
         return int(float(s[:-1]) * _SIZE_SUFFIXES[s[-1]])
     return int(float(s))

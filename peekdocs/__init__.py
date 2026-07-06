@@ -19,3 +19,6 @@ from peekdocs.api import (
     PatternResult, CollectionResult,
     list_regex_collections, run_regex_collection,
 )
+from peekdocs.errors import (
+    PeekdocsError, QueryError, RangeError, NameNotFoundError,
+)

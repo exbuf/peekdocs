@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Union
 
+from peekdocs.errors import QueryError
+
 
 # ─── AST Node Types ──────────────────────────────────────
 
@@ -82,10 +84,10 @@ _KEYWORDS = {"AND": TokenType.AND, "OR": TokenType.OR, "NOT": TokenType.NOT}
 def tokenize(expression):
     """Tokenize a boolean expression string into a list of Tokens.
 
-    Raises ValueError on empty expression or unterminated quotes.
+    Raises :class:`~peekdocs.errors.QueryError` (also a ``ValueError``) on empty expression or unterminated quotes.
     """
     if not expression or not expression.strip():
-        raise ValueError("Empty expression.")
+        raise QueryError("Empty expression.")
 
     tokens = []
     i = 0
@@ -114,7 +116,7 @@ def tokenize(expression):
         if ch == '"':
             j = s.index('"', i + 1) if '"' in s[i + 1:] else -1
             if j == -1:
-                raise ValueError(f"Unterminated quote starting at position {i}.")
+                raise QueryError(f"Unterminated quote starting at position {i}.")
             tokens.append(Token(TokenType.TERM, s[i + 1:j]))
             i = j + 1
             continue
@@ -143,12 +145,12 @@ def tokenize(expression):
 def parse_expression(expression):
     """Parse a boolean expression string into an AST.
 
-    Raises ValueError on syntax errors.
+    Raises :class:`~peekdocs.errors.QueryError` (also a ``ValueError``) on syntax errors.
     """
     tokens = tokenize(expression)
     ast, pos = _parse_or(tokens, 0)
     if pos < len(tokens):
-        raise ValueError(
+        raise QueryError(
             f"Unexpected token '{tokens[pos].value}' at position {pos}."
         )
     return ast
@@ -186,7 +188,7 @@ def _parse_not(tokens, pos):
 def _parse_primary(tokens, pos):
     """primary := LPAREN expression RPAREN | TERM"""
     if pos >= len(tokens):
-        raise ValueError("Unexpected end of expression.")
+        raise QueryError("Unexpected end of expression.")
 
     tok = tokens[pos]
 
@@ -194,11 +196,11 @@ def _parse_primary(tokens, pos):
         pos += 1  # consume (
         node, pos = _parse_or(tokens, pos)
         if pos >= len(tokens) or tokens[pos].type != TokenType.RPAREN:
-            raise ValueError("Missing closing parenthesis.")
+            raise QueryError("Missing closing parenthesis.")
         pos += 1  # consume )
         # Check for adjacent term without operator
         if pos < len(tokens) and tokens[pos].type == TokenType.TERM:
-            raise ValueError(
+            raise QueryError(
                 f"Missing operator before '{tokens[pos].value}'. "
                 "Use AND or OR between terms."
             )
@@ -207,12 +209,12 @@ def _parse_primary(tokens, pos):
     if tok.type == TokenType.RANGE:
         pos += 1
         if pos < len(tokens) and tokens[pos].type in (TokenType.TERM, TokenType.RANGE):
-            raise ValueError(
+            raise QueryError(
                 f"Missing operator between '{tok.value}' and '{tokens[pos].value}'. "
                 "Use AND or OR between terms."
             )
         if pos < len(tokens) and tokens[pos].type == TokenType.LPAREN:
-            raise ValueError(
+            raise QueryError(
                 f"Missing operator after '{tok.value}'. "
                 "Use AND or OR before '('."
             )
@@ -222,25 +224,25 @@ def _parse_primary(tokens, pos):
         pos += 1
         # Check for adjacent term without operator
         if pos < len(tokens) and tokens[pos].type in (TokenType.TERM, TokenType.RANGE):
-            raise ValueError(
+            raise QueryError(
                 f"Missing operator between '{tok.value}' and '{tokens[pos].value}'. "
                 "Use AND or OR between terms."
             )
         # Check for adjacent ( without operator
         if pos < len(tokens) and tokens[pos].type == TokenType.LPAREN:
-            raise ValueError(
+            raise QueryError(
                 f"Missing operator after '{tok.value}'. "
                 "Use AND or OR before '('."
             )
         return TermNode(tok.value), pos
 
     if tok.type == TokenType.RPAREN:
-        raise ValueError("Unexpected closing parenthesis.")
+        raise QueryError("Unexpected closing parenthesis.")
 
     if tok.type in (TokenType.AND, TokenType.OR):
-        raise ValueError(f"Unexpected operator '{tok.value}' without left operand.")
+        raise QueryError(f"Unexpected operator '{tok.value}' without left operand.")
 
-    raise ValueError(f"Unexpected token '{tok.value}'.")
+    raise QueryError(f"Unexpected token '{tok.value}'.")
 
 
 # ─── AST Evaluator ───────────────────────────────────────

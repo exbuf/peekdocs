@@ -23,6 +23,7 @@ if platform.system() == "Linux":
         pass  # Already set — ignore
 
 from peekdocs.constants import _default_cores
+from peekdocs.errors import NameNotFoundError, QueryError
 from peekdocs.indexer import index_exists, refresh_index, search_with_index
 from peekdocs.scanner import _process_file, _ocr_image, discover_files
 
@@ -156,11 +157,11 @@ def search(
     # ── Validate parameters ─────────────────────────────────────
     if expression is not None:
         if match_all:
-            raise ValueError("Cannot combine expression with match_all. Use AND/OR in the expression.")
+            raise QueryError("Cannot combine expression with match_all. Use AND/OR in the expression.")
         if exclude_terms:
-            raise ValueError("Cannot combine expression with exclude_terms. Use NOT in the expression.")
+            raise QueryError("Cannot combine expression with exclude_terms. Use NOT in the expression.")
         if proximity > 0:
-            raise ValueError("Cannot combine expression with proximity search.")
+            raise QueryError("Cannot combine expression with proximity search.")
         from peekdocs.expr_parser import parse_expression, extract_terms
         expression_ast = parse_expression(expression)
         if not search_terms:
@@ -170,25 +171,25 @@ def search(
                 try:
                     re.compile(term)
                 except re.error as e:
-                    raise ValueError(f"Invalid regex pattern '{term}' in expression: {e}")
+                    raise QueryError(f"Invalid regex pattern '{term}' in expression: {e}")
     else:
         expression_ast = None
         if not search_terms and not range_filters:
-            raise ValueError("No search terms provided.")
+            raise QueryError("No search terms provided.")
     if use_fuzzy and use_regex:
-        raise ValueError("Cannot combine fuzzy and regex search modes.")
+        raise QueryError("Cannot combine fuzzy and regex search modes.")
     if use_wildcard and use_regex:
-        raise ValueError("Cannot combine wildcard and regex search modes.")
+        raise QueryError("Cannot combine wildcard and regex search modes.")
     if use_wildcard and use_fuzzy:
-        raise ValueError("Cannot combine wildcard and fuzzy search modes.")
+        raise QueryError("Cannot combine wildcard and fuzzy search modes.")
     if expression is None and use_regex:
         for term in search_terms:
             try:
                 re.compile(term)
             except re.error as e:
-                raise ValueError(f"Invalid regex pattern '{term}': {e}")
+                raise QueryError(f"Invalid regex pattern '{term}': {e}")
     if proximity > 0 and len(search_terms) < 2:
-        raise ValueError("Proximity search requires at least 2 search terms.")
+        raise QueryError("Proximity search requires at least 2 search terms.")
 
     # ── Resolve defaults ────────────────────────────────────────
     if directory is None:
@@ -483,12 +484,12 @@ def run_suite(
     suite_searches = get_suite(directory, name)
     if suite_searches is None:
         available = sorted(data.get("suites", {}).keys())
-        raise KeyError(
+        raise NameNotFoundError(
             f"Suite '{name}' not found in {directory}. "
             f"Available: {', '.join(available) if available else '(none)'}"
         )
     if not suite_searches:
-        raise ValueError(f"Suite '{name}' has no searches.")
+        raise QueryError(f"Suite '{name}' has no searches.")
 
     start_time = time.time()
     search_results = []
@@ -699,7 +700,7 @@ def run_regex_collection(
 
     if name not in all_collections:
         available = sorted(all_collections.keys())
-        raise KeyError(
+        raise NameNotFoundError(
             f"Collection '{name}' not found. "
             f"Available: {', '.join(available) if available else '(none)'}"
         )
@@ -711,7 +712,7 @@ def run_regex_collection(
         if p.get("enabled") and p.get("regex", "").strip()
     ]
     if not active:
-        raise ValueError(f"Collection '{name}' has no enabled patterns.")
+        raise QueryError(f"Collection '{name}' has no enabled patterns.")
 
     start_time = time.time()
     pattern_results = []

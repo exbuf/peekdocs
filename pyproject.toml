@@ -130,7 +130,7 @@ peekdocs-gui = "peekdocs.gui:main"
 # marginal type-safety gain.
 [tool.mypy]
 python_version = "3.10"
-files = ["peekdocs/api.py", "peekdocs/paths.py", "peekdocs/reporter.py", "peekdocs/cli.py"]
+files = ["peekdocs/api.py", "peekdocs/paths.py", "peekdocs/reporter.py", "peekdocs/cli.py", "peekdocs/errors.py"]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
 # all. Scope of this mypy check is deliberately just api.py + paths.py

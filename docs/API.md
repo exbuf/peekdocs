@@ -374,8 +374,8 @@ Each `SuiteSearchResult` has fields: `search_name`, `search_terms`, `matches` (l
 | Exception | When |
 |-----------|------|
 | `FileNotFoundError` | No collection file exists in the directory |
-| `KeyError` | Named suite not found (message lists available suites) |
-| `ValueError` | Suite has no searches |
+| `NameNotFoundError` (also a `KeyError`) | Named suite not found (message lists available suites) |
+| `QueryError` (also a `ValueError`) | Suite has no searches |
 
 ## Regex Collections
 
@@ -467,8 +467,8 @@ Each `PatternResult` has fields: `name`, `regex`, `matches` (list of `SearchMatc
 | Exception | When |
 |-----------|------|
 | `FileNotFoundError` | No collections file exists (`~/.peekdocs_regex_collections.json`) |
-| `KeyError` | Named collection not found (message lists available names) |
-| `ValueError` | Collection has no enabled patterns |
+| `NameNotFoundError` (also a `KeyError`) | Named collection not found (message lists available names) |
+| `QueryError` (also a `ValueError`) | Collection has no enabled patterns |
 
 ## Notes
 
@@ -477,19 +477,39 @@ Each `PatternResult` has fields: `name`, `regex`, `matches` (list of `SearchMatc
 
 ## Error Handling
 
-`search()` raises `ValueError` for invalid parameter combinations (e.g. combining regex + fuzzy) and `FileNotFoundError` if specified files are not found.
+peekdocs ships a small exception hierarchy under `peekdocs.errors` for library callers. All library-raised errors descend from `PeekdocsError`, and each subclass also inherits from the closest stdlib exception so existing consumer code that catches `ValueError` / `KeyError` keeps working.
+
+| Exception | Raised when | Also a |
+|-----------|-------------|--------|
+| `PeekdocsError` | Root — catch to handle any library-raised error | `Exception` |
+| `QueryError` | Invalid parameter combinations (regex + fuzzy, expression + match_all), empty terms, invalid regex patterns, boolean-expression syntax errors | `ValueError` |
+| `RangeError` | Malformed `-R` range specifier (missing `:`, missing `..`, unparseable date/time/filesize) | `ValueError` |
+| `NameNotFoundError` | Named suite or regex collection doesn't exist | `KeyError` |
+| `FileNotFoundError` | Specified files, collection file, or directory not found | `OSError` |
+
+The sharp path — catch peekdocs types directly for the most specific handling:
 
 ```python
 from peekdocs import search
+from peekdocs.errors import QueryError
 
 def main():
     try:
         result = search([r"[invalid"], use_regex=True)
-    except ValueError as e:
+    except QueryError as e:
         print(f"Invalid search: {e}")
 
 if __name__ == "__main__":
     main()
+```
+
+The back-compat path — existing code that catches `ValueError` still works because `QueryError` inherits from it:
+
+```python
+try:
+    result = search([r"[invalid"], use_regex=True)
+except ValueError as e:                  # still catches QueryError
+    print(f"Invalid search: {e}")
 ```
 
 **Stuck on something `try/except` won't catch?** If your script crashes with `ModuleNotFoundError`, hangs without finishing, or behaves differently than the CLI, first run `peekdocs --check` from your terminal — it verifies your Python version, dependencies, Tesseract availability, SQLite, and free disk space, and tells you exactly what's missing. If that's clean, see [FAQ & Troubleshooting](TROUBLESHOOTING.md) for common Python-API and install pitfalls (especially the `multiprocessing` / `__main__` guard issue if your script crashes on Mac or Windows).
