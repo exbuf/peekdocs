@@ -126,6 +126,14 @@ peekdocs-gui = "peekdocs.gui:main"
 python_version = "3.10"
 files = ["peekdocs/api.py", "peekdocs/paths.py"]
 ignore_missing_imports = true
+# follow_imports = "silent" — follow imports (so calls into imported
+# code get analyzed with type info) but suppress errors from the
+# imported files themselves. Necessary because numpy's stubs use
+# Python 3.12+ `type` statement syntax that fails under our
+# python_version = "3.10" target, and matplotlib transitively pulls
+# numpy in. Without this, CI fails with a numpy/__init__.pyi:737
+# syntax error on a stub file we didn't write and don't care about.
+follow_imports = "silent"
 warn_return_any = true
 warn_unused_ignores = true
 warn_redundant_casts = true
