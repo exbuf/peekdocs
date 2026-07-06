@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.79] — 2026-07-06
+
 ### Added
 - **`peekdocs.errors` — public exception hierarchy for library
   consumers.** New module exports `PeekdocsError` (root),
