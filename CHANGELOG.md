@@ -12,6 +12,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.78] — 2026-07-06
+
+### Added
+- **OCR integration test with real Tesseract on CI.** New
+  `tests/test_ocr_integration.py` generates a small PNG containing
+  known text via Pillow, runs `peekdocs.api.search()` with
+  `use_ocr=True` on that directory, and asserts the extracted
+  text lands in `SearchResult.matches`. Exercises the full
+  `find_tesseract → cmd-pin → pytesseract.image_to_string →
+  SearchResult` contract with a real Tesseract binary — the
+  gap that let the 1.2.77 detection-vs-execution bug slip past
+  the mocked unit tests. A new `ocr-integration` job in
+  `.github/workflows/test.yml` `apt install`s Tesseract on
+  Ubuntu and runs just this file. Skipped locally when Tesseract
+  isn't installed, so no dev-machine friction.
+
+### Changed
+- **Type hint coverage widened to `cli.py` and `reporter.py`.**
+  The mypy CI gate introduced in 1.2.76 for `api.py` + `paths.py`
+  now also enforces signatures on `peekdocs/cli.py` (the CLI
+  entrypoint and its 22 top-level helpers) and
+  `peekdocs/reporter.py` (18 report-writer functions consumed
+  by `cli.py` and by anyone extending output formats). All four
+  files are listed in `pyproject.toml`'s `[tool.mypy]` block;
+  signature drift on any of them fails the build. Docs updated
+  in `README.md`, `USER_GUIDE.md`, and `ARCHITECTURE.md` to
+  name the widened scope.
+
 ## [1.2.77] — 2026-07-06
 
 ### Fixed
