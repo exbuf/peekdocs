@@ -35,11 +35,15 @@ pytest tests/test_cli.py::test_query -v
 
 - `peekdocs/` — Main package.
   - `cli.py` — argparse CLI entry point (`peekdocs` console script). Delegates diagnostic subcommands to `commands/*.py`.
-  - `commands/` — Extracted CLI subcommand handlers (Phase 1): `check.py`, `diff.py`, `runs.py`. Each exposes `handle_*(args) -> int`. Standard search, `--suite`, and `--regex-collection` remain in `cli._main_inner` for now.
+  - `commands/` — Extracted CLI subcommand handlers. Each exposes `handle_*(args) -> int` and is dispatched to from `cli._main_inner`. Phase 1 (v1.2.78): `check.py`, `diff.py`, `runs.py`. Phase 2 (v1.2.79): `list_files.py`, `list_suites.py`, `clear.py`. Standard search, `--suite`, `--regex-collection`, `--watch`, and the `--index-*` cluster remain in `cli._main_inner` for now (share flag-parsing plumbing).
   - `gui/` — customtkinter GUI package (`peekdocs-gui` console script), split into feature-based mixins after the v1.2.76 mixin-tools-split refactor:
     - `_app.py` — `PeekDocsApp` class inheriting all mixins
-    - `_helpers.py` — free functions (importable without customtkinter)
-    - `_tooltip.py` — `Tooltip` widget
+    - `_cli_runner.py` — Subprocess plumbing (spawns the CLI or calls `main()` in-process under PyInstaller), plus command construction and result-file parsing
+    - `_cloud_guard.py` — Cloud-synced folder detection (OneDrive / Google Drive / iCloud / Dropbox) and the report-write policy guard
+    - `_dialogs.py` — Themed `askstring` replacement + OS file-open shim
+    - `_error_guard.py` — `gui_guard` / `gui_race_guard` context managers for controlled exception swallowing
+    - `_helpers.py` — Re-export shim for the four files above (backwards-compat for ~30 existing import sites); new code should import from the specific submodule
+    - `_tooltip.py` — `Tooltip` widget for CTk buttons
     - `_mixin_build.py` — UI construction, widget layout, tooltips
     - `_mixin_search.py` — search execution, multi-folder handling, results rendering
     - `_mixin_data.py` — settings, history, bookmarks, About dialog, `~/.peekdocsrc` I/O
@@ -57,5 +61,5 @@ pytest tests/test_cli.py::test_query -v
   - `reporter.py` — report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   - `indexer.py` — optional SQLite FTS5 search index
   - `range_query.py`, `expr_parser.py`, `diff.py`, `watcher.py`, `run_log.py`, `notifier.py`, `translator.py`, `collection.py`, `suite_index.py`, `i18n.py`, `regex_examples.py`, `wizard_patterns.py`, `constants.py` — engine + persistence + platform utilities
-- `tests/` — Pytest test suite (22 test files, 711 tests).
-- `pyproject.toml` — Project metadata, dependencies, console script configuration, and `[tool.mypy]` config (8 files in the typed public surface). Uses setuptools as build backend.
+- `tests/` — Pytest test suite (23 test files, 718 tests).
+- `pyproject.toml` — Project metadata, dependencies, console script configuration, and `[tool.mypy]` config (12 files in the typed public surface). Uses setuptools as build backend.

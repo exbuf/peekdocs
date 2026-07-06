@@ -160,7 +160,7 @@ files = [
 ]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
-# all. Scope of this mypy check is deliberately the eight files listed
+# all. Scope of this mypy check is deliberately the 12 files listed
 # above. Following imports would surface issues in the untyped rest of
 # the codebase (which is a known-weaknesses item, tracked separately)
 # AND choke on third-party stub files that

@@ -26,15 +26,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   for import convenience. Raise sites in `api.py`, `range_query.py`,
   and `expr_parser.py` (32 total) now raise the typed subclasses
   instead of raw stdlib exceptions.
-- **`peekdocs/commands/` package** — extracted first three
-  self-contained CLI subcommand handlers (`--check`, `--diff`,
-  `--runs`) from `cli.py`'s `_main_inner` mega-dispatcher into
-  focused per-subcommand modules. Establishes the extraction
-  pattern for future subcommand splits; `cli.py` reduced by 142
-  LOC. Standard search + `--suite` + `--regex-collection` remain in
-  `cli._main_inner` because they share flag-parsing plumbing that
-  spans several output-format branches — factoring that shared
-  surface cleanly is its own larger refactor.
+- **`peekdocs/commands/` package** — extracted six self-contained
+  CLI subcommand handlers from `cli.py`'s `_main_inner`
+  mega-dispatcher into focused per-subcommand modules. Phase 1:
+  `--check`, `--diff`, `--runs`. Phase 2: `--list-files`,
+  `--list-suites`, `--clear` / `--clear-all`. Establishes the
+  extraction pattern for future subcommand splits; `cli.py` reduced
+  by 215 LOC cumulative (2781 → 2566, -8%). Standard search +
+  `--suite` + `--regex-collection` + `--watch` + the `--index-*`
+  cluster remain in `cli._main_inner` because they share
+  flag-parsing plumbing that spans several output-format branches
+  — factoring that shared surface cleanly is its own larger
+  refactor. See `commands/__init__.py` for the "adding a new
+  subcommand" pattern + the circular-import defense (lazy imports
+  of `peekdocs.cli` symbols inside handler bodies).
+- **`peekdocs.gui._error_guard` — controlled exception swallowing.**
+  New module ships two context managers replacing the ~149
+  ambient `except Exception: pass` sites across the GUI mixins:
+  `gui_guard(operation)` swallows AND logs the exception name +
+  traceback tail to `peekdocs_errors.log` with the operation
+  label; `gui_race_guard()` swallows silently for known Tk
+  timing races (grab_set-on-not-yet-viewable, focus_set on
+  destroyed widget) where a companion retry-with-`after()`
+  handles correctness. Four persistence sites in `_mixin_data.py`
+  (factory-reset rc-file remove, config write, history-file
+  clear, bookmarks save) converted as pattern demonstration; the
+  remaining conversion is one-at-a-time future work.
+- **API reference row for public exceptions** in `docs/API.md`
+  quick-reference table (was previously implicit; scanners of the
+  top-of-page table now find `peekdocs.errors` there).
+- **GLOSSARY.md entries** for `PeekdocsError`, `QueryError`,
+  `RangeError`, `NameNotFoundError` — each row names the module,
+  the raise sites, and the stdlib back-compat inheritance.
 
 ### Changed
 - **Byte-formatter consolidation.** Three drifting implementations
@@ -45,26 +68,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   "2.10 MB" in reports and "2.00 MiB" in the dupe finder; both now
   render identically. `reporter.fmt_size` becomes a thin re-export
   for back-compat with `peekdocs.reporter.fmt_size` importers.
-- **Type-check gate widened to eight files.** `peekdocs.errors` and
-  the three extracted `commands/` modules are now in mypy scope,
-  bringing the CI-typed public surface to `api.py`, `paths.py`,
-  `reporter.py`, `cli.py`, `errors.py`, `commands/check.py`,
-  `commands/diff.py`, and `commands/runs.py`. Docs updated on
-  three surfaces (README, USER_GUIDE, ARCHITECTURE) to reflect the
-  wider scope.
+- **Type-check gate widened to 12 files.** All six `commands/`
+  handlers plus `peekdocs.errors` plus `gui/_error_guard.py` are
+  now in mypy scope, bringing the CI-typed public surface to
+  `api.py`, `paths.py`, `reporter.py`, `cli.py`, `errors.py`,
+  `commands/check.py`, `commands/diff.py`, `commands/runs.py`,
+  `commands/list_files.py`, `commands/list_suites.py`,
+  `commands/clear.py`, and `gui/_error_guard.py`. Docs updated on
+  four surfaces (README, USER_GUIDE, ARCHITECTURE, CLAUDE) to
+  reflect the wider scope.
+- **`gui/_helpers.py` split into three focused modules.** The
+  former 850-LOC grab-bag identified in the code-health review
+  became `_cli_runner.py` (subprocess + command build + result
+  parsing, 478 LOC), `_cloud_guard.py` (cloud-folder detection +
+  policy guard, 267 LOC), and `_dialogs.py` (themed `askstring`
+  + OS file-open shim, 105 LOC). `_helpers.py` shrinks from 850
+  to 71 LOC as a re-export shim so existing imports through
+  `peekdocs.gui._helpers` continue to work — the ~30 import sites
+  across the CLI and GUI mixins don't need to change. New code
+  should import from the specific submodule.
 
 ### Fixed
-- **Stale numeric claims across docs.** Test count (`~630` → 711
-  in `docs/SMOKE_TEST.md` and `CLAUDE.md`; the review pass that
-  synced these caught a second wave of drift when today's
-  `test_errors.py` + `test_paths.py` additions bumped the total
-  from 695 to 711 mid-session — the docs now name 711); sample-corpus extension
-  count (`41` → 38 in `README.md`, excluding auto-generated
-  peekdocs report files); `_mixin_tools.py` LOC (`~870` → 873 in
-  `docs/ARCHITECTURE.md`). Discovered in the docs-vs-code audit
-  agent pass; a five-minute pre-release grep over `[0-9]{3,4}
-  test`, `~[0-9]{3} LOC`, and `[0-9]+ extensions` would catch this
-  whole class next time.
+- **Stale numeric claims across docs.** Test count (`~630` → 718
+  in `docs/SMOKE_TEST.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`;
+  the count moved from 695 → 703 → 710 → 718 across three
+  sync-and-add cycles as new test files landed); sample-corpus
+  extension count (`41` → 38 in `README.md`, excluding
+  auto-generated peekdocs report files); `_mixin_tools.py` LOC
+  (`~870` → 873 in `docs/ARCHITECTURE.md`); test-file count
+  (`~15` → 23). Discovered in the docs-vs-code audit agent pass;
+  a five-minute pre-release grep over `[0-9]{3,4} test`,
+  `~[0-9]{3} LOC`, and `[0-9]+ extensions` would catch this whole
+  class next time.
+- **`commands/runs.py` int-parse error routes to stderr.** Was
+  going to stdout, carried forward verbatim from the pre-refactor
+  code. Now consistent with `--diff`'s error-message convention.
 
 ## [1.2.78] — 2026-07-06
 

@@ -62,7 +62,7 @@ The engine and output layers know nothing about which surface invoked them. That
 |--------|---------------|
 | `api.py` | Public Python API. External code that embeds peekdocs imports this file. Wraps the engine into `search()`, `run_suite()`, `run_regex_collection()`. |
 | `cli.py` | Argparse CLI entry point + all flag dispatch. Called directly by the `peekdocs` console script; invoked as subprocess by the GUI. Delegates diagnostic subcommands to `commands/*.py` (see below). |
-| `commands/` | Subcommand handlers extracted from `cli.py`. Each file owns one subcommand and exposes a `handle_*(args) -> int` function that `cli._main_inner` dispatches to. Currently: `check.py`, `diff.py`, `runs.py`. Standard search + `--suite` + `--regex-collection` remain in `cli._main_inner` — they share the flag-parsing + report-writing plumbing, and factoring that shared surface out cleanly is its own larger refactor. |
+| `commands/` | Subcommand handlers extracted from `cli.py`. Each file owns one subcommand and exposes a `handle_*(args) -> int` function that `cli._main_inner` dispatches to. Currently six handlers: `check.py`, `diff.py`, `runs.py` (Phase 1, v1.2.78), `list_files.py`, `list_suites.py`, `clear.py` (Phase 2, v1.2.79). Standard search + `--suite` + `--regex-collection` + `--watch` + the `--index-*` cluster remain in `cli._main_inner` — they share flag-parsing + report-writing plumbing, and factoring that shared surface out cleanly is its own larger refactor. See `commands/__init__.py` for the "adding a new subcommand" pattern + the circular-import defense (lazy imports of `peekdocs.cli` symbols inside handler bodies). |
 | `scanner.py` | File discovery + text extraction across 100+ file types. Lazy imports keep memory bounded; per-file try/except captures errors without aborting the search. |
 | `parser.py` | Query preprocessing: Tesseract check for `-O`, OCR flag handling, fuzzy setup, `-e` expression handoff. |
 | `expr_parser.py` | Boolean expression tokenizer + evaluator (AND / OR / NOT / parentheses). Independent of search — just returns a match predicate. |
@@ -102,6 +102,7 @@ The engine and output layers know nothing about which surface invoked them. That
 | `_cli_runner.py` | Subprocess plumbing for spawning the CLI (and the in-process `main()` call path used inside PyInstaller bundles), plus CLI-command construction from GUI form values and result-file parsing. |
 | `_cloud_guard.py` | Cloud-synced folder detection (OneDrive / Google Drive / iCloud / Dropbox) and the report-write policy guard (`cloud_output_guard`, `gui_cloud_guard`, `CLOUD_GUARD_*` outcome sentinels). Enforces the "peekdocs won't silently upload reports" claim at every write site — CLI, GUI, and Python API. |
 | `_dialogs.py` | Themed `askstring` replacement (`themed_ask_string`) + OS file-open shim (`safe_open_file`). |
+| `_error_guard.py` | Two context managers for controlled exception swallowing in the GUI: `gui_guard(operation)` swallows AND logs to `peekdocs_errors.log` with the operation name + traceback tail (for persistence writes, best-effort widget updates); `gui_race_guard()` swallows silently (for known Tk timing races where a companion retry pattern handles correctness). Replaces the ambient `except Exception: pass` pattern site-by-site over time; see *Known weaknesses*. |
 | `_helpers.py` | Re-export shim for the three focused files above, plus the tiny `_build_wizard_regex` helper. Split into `_cli_runner.py`, `_cloud_guard.py`, and `_dialogs.py` in v1.2.79 to break up the 850-LOC grab-bag identified in the code-health review; existing imports through `_helpers` continue to work. New code should import from the specific submodules. |
 | `_tooltip.py` | Custom `Tooltip` widget for CTk buttons (customtkinter doesn't ship one). |
 | `__init__.py` | `peekdocs-gui` console script entry → instantiate `PeekDocsApp`. |
@@ -180,13 +181,13 @@ These are load-bearing. Every code change must preserve them.
 
 ## Testing strategy
 
-Tests live in `tests/`, run with `pytest`. 22 test files, ~8.8K LOC, 711 collected.
+Tests live in `tests/`, run with `pytest`. 23 test files, ~8.8K LOC, 718 collected.
 
 - **Core engine.** Strong unit coverage. `test_api.py`, `test_cli.py`, `test_expr_parser.py`, `test_range_query.py`, `test_translator.py`.
 - **GUI.** Integration + smoke coverage. `test_gui.py`, `test_headless.py` (verifies CLI import path works without Tk).
 - **Feature-specific.** `test_watcher.py`, `test_wizard.py`, `test_suites.py`, `test_collection.py`, `test_suite_index.py`, `test_cloud_guard.py`, `test_exclusion.py`.
 - **Standalone binary.** `test_smoke_cli.py` runs against the built `.exe` on Windows CI. Catches PyInstaller-specific regressions the in-process tests would miss.
-- **Type-check gate.** `mypy` runs on the public API surface + top-level modules on every push and PR to `main` — currently `api.py`, `paths.py`, `reporter.py`, `cli.py`, `errors.py`, plus the extracted subcommand modules under `commands/` (8 files total). Authoritative list lives in `[tool.mypy]` in `pyproject.toml`. Guards against signature drift — for example, a callback typed `Callable[[int, int], None]` (2-arg) when the actual call site passes 3 arguments would fail the build. Coverage widens with each pass; the scanner, indexer, GUI mixins, and internal helper modules remain out of scope for now (tracked in *Known weaknesses* below).
+- **Type-check gate.** `mypy` runs on the public API surface + top-level modules on every push and PR to `main` — currently `api.py`, `paths.py`, `reporter.py`, `cli.py`, `errors.py`, the six extracted subcommand modules under `commands/`, and `gui/_error_guard.py` (12 files total). Authoritative list lives in `[tool.mypy]` in `pyproject.toml`. Guards against signature drift — for example, a callback typed `Callable[[int, int], None]` (2-arg) when the actual call site passes 3 arguments would fail the build. Coverage widens with each pass; the scanner, indexer, GUI mixins (except `_error_guard`), and internal helper modules remain out of scope for now (tracked in *Known weaknesses* below).
 
 Philosophy: unit test the search engine (deterministic, high-value); integration test the interfaces; smoke test the binaries. GUI has less unit coverage than the core — the mixin architecture makes isolated testing awkward without instantiating `PeekDocsApp`.
 
