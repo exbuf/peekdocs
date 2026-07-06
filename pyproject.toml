@@ -128,6 +128,9 @@ peekdocs-gui = "peekdocs.gui:main"
 #   peekdocs/commands/check.py    — `peekdocs --check` handler
 #   peekdocs/commands/diff.py     — `peekdocs --diff` handler
 #   peekdocs/commands/runs.py     — `peekdocs --runs` handler
+#   peekdocs/gui/_error_guard.py  — gui_guard / gui_race_guard
+#                                   context managers for controlled
+#                                   swallowing of GUI exceptions
 #
 # The `files` list is authoritative — mypy will only check these
 # unless the caller passes explicit paths. CI runs `mypy` bare
@@ -150,6 +153,7 @@ files = [
     "peekdocs/commands/check.py",
     "peekdocs/commands/diff.py",
     "peekdocs/commands/runs.py",
+    "peekdocs/gui/_error_guard.py",
 ]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at

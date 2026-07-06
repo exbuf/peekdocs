@@ -19,6 +19,7 @@ from peekdocs.gui._helpers import (
     _parse_inverse_files,
     _build_wizard_regex,
 )
+from peekdocs.gui._error_guard import gui_guard
 import json
 import webbrowser
 from tkinter import filedialog, messagebox
@@ -315,11 +316,9 @@ class DataMixin:
             return
         import os
         rc_path = os.path.expanduser("~/.peekdocsrc")
-        try:
+        with gui_guard("factory-reset: remove ~/.peekdocsrc"):
             if os.path.exists(rc_path):
                 os.remove(rc_path)
-        except Exception:
-            pass
         # Reset GUI fields to factory defaults
         if hasattr(self, "_reset_all_fields"):
             self._reset_all_fields()
@@ -437,7 +436,7 @@ class DataMixin:
             self._preview_size_var.set(str(scaled_size))
             self._apply_preview_font(scaled_size)
         # Auto-save so it persists between app invocations
-        try:
+        with gui_guard("save text_size preference"):
             from peekdocs.cli import _load_config, _save_config
             cfg = _load_config()
             if value == "Normal":
@@ -445,8 +444,6 @@ class DataMixin:
             else:
                 cfg["text_size"] = value
             _save_config(cfg)
-        except Exception:
-            pass
         # Re-sync input field widths after scaling change
         self.after(200, self._sync_input_widths)
 
@@ -572,11 +569,9 @@ class DataMixin:
                                "Delete all search history? This cannot be undone.",
                                parent=popup):
             history_path = os.path.join(os.path.expanduser("~"), ".peekdocs_history.json")
-            try:
+            with gui_guard("clear search history: remove ~/.peekdocs_history.json"):
                 if os.path.exists(history_path):
                     os.remove(history_path)
-            except Exception:
-                pass
             popup.destroy()
             self.status_label.configure(
                 text="Search history cleared.", text_color=("blue", "#66BBFF"))
@@ -726,11 +721,9 @@ class DataMixin:
         """Save bookmarks to disk."""
         import json
         path = self._get_bookmarks_path()
-        try:
+        with gui_guard(f"save bookmarks to {path}"):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(bookmarks, f, indent=2)
-        except Exception:
-            pass
 
 
 
