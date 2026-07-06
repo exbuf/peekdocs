@@ -126,14 +126,19 @@ peekdocs-gui = "peekdocs.gui:main"
 python_version = "3.10"
 files = ["peekdocs/api.py", "peekdocs/paths.py"]
 ignore_missing_imports = true
-# follow_imports = "silent" — follow imports (so calls into imported
-# code get analyzed with type info) but suppress errors from the
-# imported files themselves. Necessary because numpy's stubs use
-# Python 3.12+ `type` statement syntax that fails under our
-# python_version = "3.10" target, and matplotlib transitively pulls
-# numpy in. Without this, CI fails with a numpy/__init__.pyi:737
-# syntax error on a stub file we didn't write and don't care about.
-follow_imports = "silent"
+# follow_imports = "skip" — don't follow imports into other files at
+# all. Scope of this mypy check is deliberately just api.py + paths.py
+# — the two files with hints. Following imports would surface issues
+# in the untyped rest of the codebase (which is a known-weaknesses
+# item, tracked separately) AND choke on third-party stub files that
+# use Python 3.12+ `type` statement syntax (numpy's own stubs at
+# site-packages/numpy/__init__.pyi:737 are the canonical example —
+# they hit an unrecoverable syntax error under python_version = "3.10"
+# because PEP 695 `type X = Y` didn't exist in 3.10). "skip" means
+# mypy doesn't try to parse imported files at all, avoiding both
+# problems. Trade-off: calls into imported code lose type info, but
+# for our narrow public-API-signature scope this is fine.
+follow_imports = "skip"
 warn_return_any = true
 warn_unused_ignores = true
 warn_redundant_casts = true
