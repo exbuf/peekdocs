@@ -16,11 +16,63 @@ module owns:
 """
 from __future__ import annotations
 
+import io
 import os
 import re
 import shlex
 import subprocess
 import sys
+
+
+class _StderrLineStreamer(io.StringIO):
+    """StringIO subclass that also streams completed lines to a callback.
+
+    Used only inside the PyInstaller-frozen path of
+    :func:`_run_peekdocs_cli` so that phase markers written to stderr by
+    the CLI (``print("PHASE: writing-docx", file=sys.stderr, flush=True)``
+    and similar) reach the GUI's status-line callback in real time,
+    matching the subprocess path's streaming behavior.
+
+    Without this class, the frozen path's stderr redirected to a plain
+    ``io.StringIO()`` that was only readable after ``_cli_main`` returned
+    — so the GUI status line skipped every intermediate PHASE marker and
+    the ``.exe`` user saw a static "Searching..." while the pipx / pip
+    user saw the report-writing progression. Reported by a user on
+    1.2.79. See :func:`_run_peekdocs_cli` for context.
+
+    Buffering strategy: accumulate writes in ``_pending``; each time a
+    newline arrives, split, emit all-but-last as completed lines, keep
+    the tail (possibly empty) as pending. This handles partial writes,
+    multi-line writes, and the trailing-newline print() case correctly.
+    Callback exceptions are swallowed so a buggy status-line updater
+    can't break the search.
+
+    ``getvalue()`` still returns the full stderr content at the end
+    because the underlying ``io.StringIO`` buffer receives every write
+    unchanged before the streaming logic runs.
+    """
+
+    def __init__(self, on_line):
+        super().__init__()
+        self._on_line = on_line
+        self._pending = ""
+
+    def write(self, s):
+        # Preserve full-content semantics for getvalue().
+        result = super().write(s)
+        # Additionally, forward completed lines to the callback.
+        self._pending += s
+        if "\n" in self._pending:
+            parts = self._pending.split("\n")
+            # All but last are complete lines; last is partial (or "").
+            for line in parts[:-1]:
+                try:
+                    self._on_line(line.rstrip("\r"))
+                except Exception:
+                    # A buggy callback must not break the search.
+                    pass
+            self._pending = parts[-1]
+        return result
 
 
 def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None, on_stderr_line=None):
@@ -56,6 +108,11 @@ def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None, on_stderr_
       caller cannot kill an in-flight search; the GUI's Cancel button
       becomes a no-op for the duration of the search. Acceptable
       trade-off for the standalone build's first release.
+    * ``on_stderr_line`` streaming works on **both** paths as of 1.2.80.
+      Subprocess uses a background reader thread; frozen mode uses a
+      :class:`_StderrLineStreamer` in place of the plain ``StringIO`` so
+      the CLI's ``print(..., file=sys.stderr, flush=True)`` phase markers
+      reach the callback synchronously as they're written.
     * Working directory is restored on the way out even if the CLI
       raises.
     * SystemExit from the CLI is caught and converted to a return code.
@@ -63,13 +120,21 @@ def _run_peekdocs_cli(cmd, folder, env=None, on_process_started=None, on_stderr_
     if getattr(sys, "frozen", False):
         # PyInstaller bundle: run in-process. The CLI module already
         # accepts an argv list and returns an exit code.
-        import io
         import contextlib
         from peekdocs.cli import main as _cli_main
 
         cli_argv = list(cmd[3:])  # drop [sys.executable, "-m", "peekdocs"]
         buf_out = io.StringIO()
-        buf_err = io.StringIO()
+        # Match the subprocess path: when the caller provided a status-
+        # line callback, stream completed stderr lines to it in real
+        # time instead of only exposing them at the end. Fixes the
+        # 1.2.79 report where the .exe skipped the "building txt report"
+        # step in the status line while the pipx install showed it.
+        buf_err = (
+            _StderrLineStreamer(on_stderr_line)
+            if on_stderr_line is not None
+            else io.StringIO()
+        )
         old_cwd = os.getcwd()
         rc = 0
         try:
