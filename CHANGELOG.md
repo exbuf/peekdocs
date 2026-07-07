@@ -12,6 +12,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.83] — 2026-07-06
+
+### Changed
+- **README top-of-file restructure.** Installation moved from line
+  434 to ~line 159; Quick Start follows immediately. The hero clip
+  (46-second walkthrough: 10,411 files searched in 3.17s, File
+  Types + Categories charts) is now the above-the-fold visual, and
+  the Contents (TOC) moved from line 556 — where it navigated
+  nothing — to right before Installation, rebuilt in document
+  order. Installation subsections reordered to Option A → Option B
+  → Prerequisites → Upgrading → Uninstalling with a numbered nav
+  list matching numbered headings (anchor fragments rewritten
+  across README, USER_GUIDE, and TROUBLESHOOTING). A follow-up
+  cold-read audit fixed seven orphaned references the moves left
+  behind (stale "below" pointers, a stranded duplicate
+  Quick-install block, a footnote marker with no referent, and a
+  "(one-time, per platform)" claim its own section's body text
+  contradicted — now "(per download, per platform)").
+- **Repo-root hygiene.** 18 stray local files (old sample docs,
+  logs, search outputs, legacy `docsearch_*` artifacts) and four
+  build directories deleted; `.gitignore` extended with annotated
+  blocks for dev-scratch patterns, local WIP demo videos, and
+  personal sample corpora. None of it ever shipped (sdist audit
+  confirmed setuptools' `packages.find` scope holds) — this is
+  maintainer-workbench discipline, not a shipping fix.
+
 ## [1.2.82] — 2026-07-06
 
 ### Fixed
