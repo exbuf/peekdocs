@@ -168,15 +168,10 @@ ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
 # all. Scope of this mypy check is deliberately the 14 files listed
 # above. Following imports would surface issues in the untyped rest of
-# the codebase (which is a known-weaknesses item, tracked separately)
-# AND choke on third-party stub files that
-# use Python 3.12+ `type` statement syntax (numpy's own stubs at
-# site-packages/numpy/__init__.pyi:737 are the canonical example —
-# they hit an unrecoverable syntax error under python_version = "3.10"
-# because PEP 695 `type X = Y` didn't exist in 3.10). "skip" means
-# mypy doesn't try to parse imported files at all, avoiding both
-# problems. Trade-off: calls into imported code lose type info, but
-# for our narrow public-API-signature scope this is fine.
+# the codebase (which is a known-weaknesses item, tracked separately).
+# Note: "skip" does NOT skip third-party *stub* (.pyi) files — mypy
+# still parses those unless follow_imports_for_stubs is set. numpy is
+# the case that bites us (see the [[tool.mypy.overrides]] block below).
 follow_imports = "skip"
 warn_return_any = true
 warn_unused_ignores = true
@@ -185,3 +180,18 @@ warn_redundant_casts = true
 # helpers in scanner.py / indexer.py that are intentionally
 # untyped for now. Blanket require-hints would surface those as
 # errors even though they're outside the checked scope.
+
+# scanner.py does `from PIL import Image`, and Pillow's stubs reference
+# numpy in some signatures — which pulls numpy's own stubs into mypy's
+# graph. Recent numpy stubs (>= 2.5) use PEP 695 `type X = Y` syntax,
+# which mypy rejects as a syntax error under python_version = "3.10"
+# (site-packages/numpy/__init__.pyi:737 is the canonical offender).
+# The top-level follow_imports = "skip" does not help here because it
+# doesn't apply to stub files by default. Setting
+# follow_imports_for_stubs = true for numpy makes "skip" cover its
+# .pyi too, so mypy treats numpy as Any and never parses the stub.
+# Scoped to numpy so we don't blind mypy to any other library's stubs.
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
