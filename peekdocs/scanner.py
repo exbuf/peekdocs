@@ -1,4 +1,7 @@
 """File processing and discovery for peekdocs."""
+from __future__ import annotations
+
+from typing import Any, Callable
 
 # Filename prefixes for the three kinds of result reports peekdocs writes.
 # Used everywhere that needs to discover, list, or clean up result files:
@@ -13,7 +16,7 @@ RESULT_FILE_PREFIXES = (
 )
 
 
-def is_peekdocs_internal_file(basename):
+def is_peekdocs_internal_file(basename: str) -> bool:
     """Return True if *basename* is a peekdocs-generated file.
 
     The naming convention documented in README, USER_GUIDE, and
@@ -72,7 +75,12 @@ from peekdocs.constants import SUPPORTED_TYPES, OCR_IMAGE_TYPES, FUZZY_THRESHOLD
 from peekdocs.range_query import line_matches_content_ranges, file_matches_metadata_ranges, file_matches_filename_ranges
 
 
-def apply_context(all_lines, match_indices, before, after):
+def apply_context(
+    all_lines: list[tuple[int, str]],
+    match_indices: set[int] | list[int],
+    before: int,
+    after: int,
+) -> list[list[tuple[int, str, bool]]]:
     """Expand match indices with before/after context and return merged groups."""
     if not match_indices:
         return []
@@ -84,12 +92,12 @@ def apply_context(all_lines, match_indices, before, after):
         end = min(total - 1, idx + after)
         ranges.append((start, end))
 
-    merged = []
+    merged: list[tuple[int, int]] = []
     for start, end in ranges:
         if merged and start <= merged[-1][1] + 1:
             merged[-1] = (merged[-1][0], max(merged[-1][1], end))
         else:
-            merged.append([start, end])
+            merged.append((start, end))
 
     groups = []
     for start, end in merged:
@@ -103,7 +111,7 @@ def apply_context(all_lines, match_indices, before, after):
     return groups
 
 
-def _wildcard_to_regex(term):
+def _wildcard_to_regex(term: str) -> str:
     """Convert a wildcard pattern (* and ?) to a regex pattern.
 
     * matches zero or more non-whitespace characters (including punctuation).
@@ -115,7 +123,7 @@ def _wildcard_to_regex(term):
     return r'\b' + escaped
 
 
-def _whole_word_pattern(term):
+def _whole_word_pattern(term: str) -> str:
     """Build a regex pattern for whole-word matching.
 
     Only adds \\b where the term starts/ends with a word character.
@@ -129,7 +137,7 @@ def _whole_word_pattern(term):
     return prefix + escaped + suffix
 
 
-def _ocr_image(image):
+def _ocr_image(image: Any) -> str:
     """Run OCR on a PIL Image and return extracted text."""
     import pytesseract
     from peekdocs.paths import find_tesseract
@@ -143,10 +151,16 @@ def _ocr_image(image):
     tesseract_path = find_tesseract()
     if tesseract_path:
         pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    return pytesseract.image_to_string(image)
+    # image_to_string is untyped upstream; str() is a no-op on the str
+    # it returns but satisfies our declared return type.
+    return str(pytesseract.image_to_string(image))
 
 
-def _extract_lines(filepath, use_ocr=False, ocr_func=None):
+def _extract_lines(
+    filepath: str,
+    use_ocr: bool = False,
+    ocr_func: Callable[[Any], str] | None = None,
+) -> list[tuple[int, str]]:
     """Extract text lines from a file.
 
     Returns a list of (line_num, text) tuples. The meaning of line_num
@@ -275,7 +289,7 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
             if msg.is_multipart():
                 for part in msg.walk():
                     if part.get_content_type() == "text/plain":
-                        payload = part.get_payload(decode=True)
+                        payload: Any = part.get_payload(decode=True)
                         if payload:
                             body = payload.decode("utf-8", errors="replace")
                             break
@@ -303,9 +317,9 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
                                 self.text_parts = []
                             def handle_data(self, data):
                                 self.text_parts.append(data)
-                        parser = _PagesTextExtractor()
-                        parser.feed(data)
-                        for line in "".join(parser.text_parts).split("\n"):
+                        pages_parser = _PagesTextExtractor()
+                        pages_parser.feed(data)
+                        for line in "".join(pages_parser.text_parts).split("\n"):
                             stripped = line.strip()
                             if stripped:
                                 line_num += 1
@@ -321,9 +335,9 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
             def handle_data(self, data):
                 self.text_parts.append(data)
         with open(filepath, encoding="utf-8", errors="replace") as htmlfile:
-            parser = _HTMLTextExtractor()
-            parser.feed(htmlfile.read())
-        lines = "".join(parser.text_parts).split("\n")
+            html_parser = _HTMLTextExtractor()
+            html_parser.feed(htmlfile.read())
+        lines = "".join(html_parser.text_parts).split("\n")
         all_lines = [(line_num, line.strip()) for line_num, line in enumerate(lines, start=1)]
 
     elif ext == ".pptx":
@@ -379,27 +393,27 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
     elif ext == ".eml":
         # Standard email format (RFC 822) — one email per file
         with open(filepath, "rb") as f:
-            msg = email_mod.message_from_bytes(f.read())
+            eml_msg = email_mod.message_from_bytes(f.read())
         line_num = 0
         # Include key headers as searchable lines
         for hdr in ("From", "To", "Cc", "Subject", "Date"):
-            val = msg.get(hdr)
-            if val:
+            eml_val = eml_msg.get(hdr)
+            if eml_val:
                 line_num += 1
-                all_lines.append((line_num, f"{hdr}: {val}"))
+                all_lines.append((line_num, f"{hdr}: {eml_val}"))
         # Extract body text
-        if msg.is_multipart():
-            for part in msg.walk():
-                ctype = part.get_content_type()
+        if eml_msg.is_multipart():
+            for eml_part in eml_msg.walk():
+                ctype = eml_part.get_content_type()
                 if ctype == "text/plain":
-                    payload = part.get_payload(decode=True)
+                    payload = eml_part.get_payload(decode=True)
                     if payload:
                         text = payload.decode("utf-8", errors="replace")
                         for line in text.split("\n"):
                             line_num += 1
                             all_lines.append((line_num, line.rstrip("\r")))
         else:
-            payload = msg.get_payload(decode=True)
+            payload = eml_msg.get_payload(decode=True)
             if payload:
                 text = payload.decode("utf-8", errors="replace")
                 for line in text.split("\n"):
@@ -632,7 +646,12 @@ def _extract_lines(filepath, use_ocr=False, ocr_func=None):
     return all_lines
 
 
-def _search_file_lines(all_lines, file_dir, filename, config):
+def _search_file_lines(
+    all_lines: list[tuple[int, str]],
+    file_dir: str,
+    filename: str,
+    config: dict[str, Any],
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]]]:
     """Search extracted lines for matches.
 
     Args:
@@ -841,7 +860,7 @@ def _search_file_lines(all_lines, file_dir, filename, config):
     # appear within N lines of each other in the same file
     if line_proximity > 0 and len(search_terms) > 1 and matches:
         # Build a map: for each term, which line numbers matched it?
-        term_lines = {}
+        term_lines: dict[str, set[int]] = {}
         for term in search_terms:
             term_lower = term.lower()
             term_lines[term] = set()
@@ -902,7 +921,9 @@ def _search_file_lines(all_lines, file_dir, filename, config):
 _DEFAULT_MAX_FILE_SIZE_MB = 100
 
 
-def _process_file(args_tuple):
+def _process_file(
+    args_tuple: tuple[str, dict[str, Any]],
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]]]:
     """Process a single file and return (matches, skipped) for that file."""
     filepath, config = args_tuple
     filename = os.path.basename(filepath)
@@ -954,7 +975,7 @@ def _process_file(args_tuple):
     )
 
 
-def _friendly_file_error(exc, filename):
+def _friendly_file_error(exc: BaseException, filename: str) -> str:
     """Return a user-friendly error message for file processing failures."""
     if isinstance(exc, PermissionError):
         return (f"Permission denied — '{filename}' may be open in another program. "
@@ -977,7 +998,13 @@ def _friendly_file_error(exc, filename):
     return str(exc)
 
 
-def discover_files(cwd, recursive, use_ocr, file_types=None, file_names=None):
+def discover_files(
+    cwd: str,
+    recursive: bool,
+    use_ocr: bool,
+    file_types: list[str] | set[str] | None = None,
+    file_names: list[str] | None = None,
+) -> list[str] | tuple[int, str]:
     """Find all searchable files in cwd, applying type/name filters.
 
     Returns a sorted list of file paths on success, or (exit_code, message)

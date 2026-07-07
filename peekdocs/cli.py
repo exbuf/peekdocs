@@ -778,8 +778,8 @@ def _dry_run_report(
     cwd: str,
     recursive: bool,
     use_ocr: bool,
-    file_types: list[str] | str | None,
-    file_names: list[str] | str | None,
+    file_types: list[str] | None,
+    file_names: list[str] | None,
     max_file_size_mb: int | None,
     emit_json: bool,
 ) -> int:
@@ -1606,20 +1606,20 @@ def _main_inner(argv: list[str] | None = None) -> int:
                 rf = params["range_filters"]
                 kwargs["range_filters"] = rf if isinstance(rf, list) else [r.strip() for r in rf.split(",") if r.strip()]
 
-            result = api_search(search_terms if not expr else [], **kwargs)
+            suite_sr = api_search(search_terms if not expr else [], **kwargs)
 
             mode = "ALL" if params.get("and_mode") else "ANY"
             display_terms = search_terms if not expr else [expr]
             sections.append({
                 "search_name": search_name,
                 "search_terms": display_terms,
-                "matches": [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches],
-                "all_files": result.files_searched,
-                "elapsed": result.elapsed,
+                "matches": [(m.file_dir, m.filename, m.line_num, m.text) for m in suite_sr.matches],
+                "all_files": suite_sr.files_searched,
+                "elapsed": suite_sr.elapsed,
                 "report_mode": mode,
                 "params": params,
             })
-            print(f"           {len(result.matches)} match(es) in {len(result.files_searched)} file(s)")
+            print(f"           {len(suite_sr.matches)} match(es) in {len(suite_sr.files_searched)} file(s)")
 
         if not sections:
             print("No searches were run.")
@@ -1791,19 +1791,19 @@ def _main_inner(argv: list[str] | None = None) -> int:
             if not quiet:
                 print(f"  [{i}/{len(active)}] {name}")
 
-            result = _rc_search(
+            rc_sr = _rc_search(
                 [regex],
                 directory=_rc_dir,
                 recursive=_rc_recursive,
                 use_regex=True,
                 use_index=False,
             )
-            match_tuples = [(m.file_dir, m.filename, m.line_num, m.text) for m in result.matches]
+            match_tuples = [(m.file_dir, m.filename, m.line_num, m.text) for m in rc_sr.matches]
             all_results.append({
                 "name": name,
                 "regex": regex,
-                "match_count": len(result.matches),
-                "file_count": len({m.filename for m in result.matches}),
+                "match_count": len(rc_sr.matches),
+                "file_count": len({m.filename for m in rc_sr.matches}),
                 # Per-pattern matches retained so the .txt report can
                 # render them in per-pattern sections (pattern_sections
                 # kwarg to write_txt_report).
@@ -1812,8 +1812,8 @@ def _main_inner(argv: list[str] | None = None) -> int:
             all_matches.extend(match_tuples)
 
             if not quiet:
-                file_count = len({m.filename for m in result.matches})
-                print(f"           {len(result.matches)} match(es) in {file_count} file(s)")
+                file_count = len({m.filename for m in rc_sr.matches})
+                print(f"           {len(rc_sr.matches)} match(es) in {file_count} file(s)")
 
         elapsed = time.time() - start_time
         total_matches = sum(r["match_count"] for r in all_results)

@@ -131,6 +131,10 @@ peekdocs-gui = "peekdocs.gui:main"
 #   peekdocs/gui/_error_guard.py  — gui_guard / gui_race_guard
 #                                   context managers for controlled
 #                                   swallowing of GUI exceptions
+#   peekdocs/scanner.py           — file discovery + text extraction
+#                                   for 100+ types; feeds every search
+#   peekdocs/indexer.py           — SQLite FTS5 index build / refresh /
+#                                   search paths
 #
 # The `files` list is authoritative — mypy will only check these
 # unless the caller passes explicit paths. CI runs `mypy` bare
@@ -157,10 +161,12 @@ files = [
     "peekdocs/commands/list_suites.py",
     "peekdocs/commands/clear.py",
     "peekdocs/gui/_error_guard.py",
+    "peekdocs/scanner.py",
+    "peekdocs/indexer.py",
 ]
 ignore_missing_imports = true
 # follow_imports = "skip" — don't follow imports into other files at
-# all. Scope of this mypy check is deliberately the 12 files listed
+# all. Scope of this mypy check is deliberately the 14 files listed
 # above. Following imports would surface issues in the untyped rest of
 # the codebase (which is a known-weaknesses item, tracked separately)
 # AND choke on third-party stub files that

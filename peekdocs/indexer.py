@@ -1,4 +1,5 @@
 """SQLite FTS5 index for peekdocs."""
+from __future__ import annotations
 
 import os
 import re
@@ -6,6 +7,7 @@ import sqlite3
 import time
 from datetime import datetime
 from importlib.metadata import version as pkg_version
+from typing import Any, Callable
 
 from peekdocs.constants import INDEX_FILENAME
 from peekdocs.scanner import _extract_lines, _ocr_image, _search_file_lines, discover_files
@@ -14,17 +16,17 @@ from peekdocs.scanner import _extract_lines, _ocr_image, _search_file_lines, dis
 # ─── Database setup ───────────────────────────────────────
 
 
-def _db_path(directory):
+def _db_path(directory: str) -> str:
     """Return the path to the index database in the given directory."""
     return os.path.join(directory, INDEX_FILENAME)
 
 
-def index_exists(directory):
+def index_exists(directory: str) -> bool:
     """Return True if an index database exists in directory."""
     return os.path.exists(_db_path(directory))
 
 
-def _connect(directory):
+def _connect(directory: str) -> sqlite3.Connection:
     """Open a connection to the index database with WAL mode and foreign keys."""
     path = _db_path(directory)
     conn = sqlite3.connect(path, timeout=10)
@@ -33,7 +35,7 @@ def _connect(directory):
     return conn
 
 
-def _create_schema(conn):
+def _create_schema(conn: sqlite3.Connection) -> None:
     """Create the database schema if it doesn't exist."""
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS meta (
@@ -77,7 +79,7 @@ def _create_schema(conn):
     """)
 
 
-def _validate_db(directory):
+def _validate_db(directory: str) -> bool:
     """Check if the index database is valid. Returns True if ok, False if corrupt.
 
     The connection is always closed on the way out, including on the
@@ -106,7 +108,7 @@ def _validate_db(directory):
                 pass
 
 
-def _handle_corrupt_db(directory):
+def _handle_corrupt_db(directory: str) -> bool:
     """Delete a corrupt database and print a warning. Returns True if deleted."""
     import sys
     clear_index(directory)
@@ -128,7 +130,13 @@ def _handle_corrupt_db(directory):
 # ─── Index building ──────────────────────────────────────
 
 
-def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
+def _index_single_file(
+    conn: sqlite3.Connection,
+    filepath: str,
+    use_ocr: bool,
+    ocr_func: Callable[[Any], str] | None,
+    max_file_size_mb: int = 100,
+) -> int:
     """Extract and index a single file into the database."""
     filename = os.path.basename(filepath)
     file_dir = os.path.dirname(filepath)
@@ -172,8 +180,13 @@ def _index_single_file(conn, filepath, use_ocr, ocr_func, max_file_size_mb=100):
     return len(lines_to_insert)
 
 
-def build_index(directory, recursive=False, use_ocr=False, progress_callback=None,
-                max_file_size_mb=100):
+def build_index(
+    directory: str,
+    recursive: bool = False,
+    use_ocr: bool = False,
+    progress_callback: Callable[[int, int, str], None] | None = None,
+    max_file_size_mb: int = 100,
+) -> dict[str, Any]:
     """Build or rebuild the full FTS5 index for files in directory.
 
     Args:
@@ -301,7 +314,12 @@ def build_index(directory, recursive=False, use_ocr=False, progress_callback=Non
 # ─── Incremental updates ─────────────────────────────────
 
 
-def refresh_index(directory, recursive, use_ocr, max_file_size_mb=100):
+def refresh_index(
+    directory: str,
+    recursive: bool,
+    use_ocr: bool,
+    max_file_size_mb: int = 100,
+) -> dict[str, Any]:
     """Incrementally update the index: add new files, re-index changed files, remove deleted.
 
     Returns:
@@ -378,7 +396,7 @@ def refresh_index(directory, recursive, use_ocr, max_file_size_mb=100):
 # ─── Index management ────────────────────────────────────
 
 
-def clear_index(directory):
+def clear_index(directory: str) -> bool:
     """Delete the index database file. Returns True if deleted, False if not found.
 
     On Windows under Python 3.11+, ``sqlite3.Connection.close()`` releases
@@ -428,7 +446,7 @@ def clear_index(directory):
     return True
 
 
-def index_status(directory):
+def index_status(directory: str) -> dict[str, Any] | None:
     """Return index metadata as a dict, or None if no index exists."""
     if not index_exists(directory):
         return None
@@ -459,7 +477,7 @@ def index_status(directory):
 # ─── Search via index ─────────────────────────────────────
 
 
-def _can_use_fts5_fast_path(config):
+def _can_use_fts5_fast_path(config: dict[str, Any]) -> bool:
     """Determine if the search can be executed directly against FTS5.
 
     FTS5 fast path is used for simple keyword searches (OR/AND)
@@ -480,7 +498,7 @@ def _can_use_fts5_fast_path(config):
     return True
 
 
-def _build_fts5_query(search_terms, match_all):
+def _build_fts5_query(search_terms: list[str], match_all: bool) -> str | None:
     """Build an FTS5 MATCH query string.
 
     FTS5 is used as a candidate filter — results are post-filtered
@@ -501,7 +519,12 @@ def _build_fts5_query(search_terms, match_all):
         return " OR ".join(parts)
 
 
-def search_with_index(directory, config, file_types=None, file_names=None):
+def search_with_index(
+    directory: str,
+    config: dict[str, Any],
+    file_types: list[str] | set[str] | None = None,
+    file_names: list[str] | None = None,
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]], list[str]]:
     """Search using the FTS5 index.
 
     Args:
@@ -524,7 +547,7 @@ def search_with_index(directory, config, file_types=None, file_names=None):
 
     # Get list of indexed files (for report generation)
     file_filter_sql = ""
-    file_filter_params = []
+    file_filter_params: list[Any] = []
     if file_types:
         placeholders = ",".join("?" * len(file_types))
         file_filter_sql += f" AND extension IN ({placeholders})"
@@ -602,7 +625,7 @@ def search_with_index(directory, config, file_types=None, file_names=None):
     return matches, skipped, all_indexed_files
 
 
-def _can_use_direct_scan(config):
+def _can_use_direct_scan(config: dict[str, Any]) -> bool:
     """Determine if the search can use a direct paragraph scan.
 
     Direct scan reads all stored paragraphs and filters with Python substring
@@ -625,7 +648,12 @@ def _can_use_direct_scan(config):
     return True
 
 
-def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
+def _direct_scan_search(
+    conn: sqlite3.Connection,
+    config: dict[str, Any],
+    file_filter_sql: str,
+    file_filter_params: list[Any],
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]]]:
     """Scan all stored paragraphs with Python matching.
 
     Bypasses FTS5 entirely to avoid token-vs-substring mismatches.
@@ -670,7 +698,12 @@ def _direct_scan_search(conn, config, file_filter_sql, file_filter_params):
     return matches, []
 
 
-def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
+def _fts5_fast_search(
+    conn: sqlite3.Connection,
+    config: dict[str, Any],
+    file_filter_sql: str,
+    file_filter_params: list[Any],
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]]]:
     """Execute search directly against FTS5 index.
 
     FTS5 returns candidates; Python post-filters for exact semantics.
@@ -810,7 +843,12 @@ def _fts5_fast_search(conn, config, file_filter_sql, file_filter_params):
     return matches, []
 
 
-def _parse_cache_search(conn, config, file_filter_sql, file_filter_params):
+def _parse_cache_search(
+    conn: sqlite3.Connection,
+    config: dict[str, Any],
+    file_filter_sql: str,
+    file_filter_params: list[Any],
+) -> tuple[list[tuple[str, str, int, str]], list[tuple[str, str]]]:
     """Read stored text from DB and apply Python matching logic.
 
     Used for regex, fuzzy, wildcards, proximity, and context modes.
