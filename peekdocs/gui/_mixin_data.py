@@ -2241,11 +2241,13 @@ class DataMixin:
 
         license_win, _ = self._themed_toplevel()
         license_win.title("peekdocs — License")
-        license_win.geometry("560x420")
+        # 700px wide so the MIT text's ~75-char lines render unwrapped
+        # in Courier 10 (was 560, which soft-wrapped the long lines).
+        license_win.geometry("700x420")
 
         # Center on parent, matching show_about's pattern.
         self.update_idletasks()
-        x = self.winfo_rootx() + (self.winfo_width() - 560) // 2
+        x = self.winfo_rootx() + (self.winfo_width() - 700) // 2
         y = self.winfo_rooty() + (self.winfo_height() - 420) // 2
         license_win.geometry(f"+{x}+{y}")
 
