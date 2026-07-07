@@ -114,9 +114,9 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
   TO UPDATE THIS DEMO GIF:
   1. Record a new screen capture (MP4, no audio, ~45s).
   2. Convert to a looping GIF with ffmpeg:
-       ffmpeg -i hero.mp4 -vf "fps=10,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero.gif
-  3. Replace docs/images/hero.gif. Target under ~5 MB; current file
-     is ~3.4 MB at 720p/10fps. The <img width="720"> attribute below
+       ffmpeg -i hero2.mp4 -vf "fps=10,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 hero2.gif
+  3. Replace docs/images/hero2.gif. Current file is ~11 MB at
+     720p/10fps. The <img width="720"> attribute below
      matches the GIF's native resolution so no browser upscales it.
      Renders on every browser including PyPI (avoids the
      <video>-tag cross-browser flakiness that pushed us off MP4
@@ -125,9 +125,9 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 *Prefer to pause, rewind, or scrub to a specific moment? All five clips in this README are also available as pausable MP4s on the maintainer's [personal site](https://robertdschoening.com/peekdocs).*
 
-<img src="docs/images/hero.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
+<img src="docs/images/hero2.gif" width="720" alt="peekdocs GUI mid-search — same budget search the caption describes, looping">
 
-*A ~46-second walkthrough as a looping GIF: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
+*A looping walkthrough: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
 
 &nbsp;
 ## Contents
