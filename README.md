@@ -641,7 +641,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into a workflow system: define a search by name; group related searches into a suite; reuse pattern sets via Regex Collections; schedule a suite to run on a cadence; audit every run via Search History; compare today's run against last week's via Diff Snapshots.
 - **Search History** — automatic diary of every search you run: date, terms, match count, file count, elapsed time
 - **Diff Snapshots** — compare two saved scans to see what files are new, changed, removed, or unchanged between them
-- **Schedule Search** — generates a ready-to-paste cron (Mac/Linux) or Task Scheduler (Windows) command to run any saved search suite or regex collection on a schedule. Step-by-step instructions walk you through pasting it into the scheduler
+- **Schedule Search** — generates a ready-to-paste cron (Mac/Linux) or Task Scheduler (Windows) command to run any saved search suite or regex collection on a schedule. Step-by-step instructions walk you through pasting it into the scheduler. By design it hands the command to your OS scheduler rather than installing the schedule itself — so it keeps running when the app is closed, and nothing is written to your system behind your back ([why](docs/USER_GUIDE.md#why-schedule-search-generates-a-command-instead-of-installing-the-task))
 - **Indexes** — build, refresh, or delete the optional search index that makes repeated searches dramatically faster
 - **Three interfaces** — terminal CLI, point-and-click GUI (`peekdocs-gui`), Python API
 - **Cross-platform** — Windows, macOS, Linux

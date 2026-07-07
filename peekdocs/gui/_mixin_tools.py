@@ -464,6 +464,83 @@ class ToolsMixin:
 
         txt.configure(state="disabled")
 
+    def _show_schedule_search_help(self, parent):
+        """Help popup for Schedule Search."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("Schedule Search — Help")
+        help_win.geometry("680x600")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=18, pady=12, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("h", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=4)
+        txt.tag_configure("b", font=("TkDefaultFont", 12), spacing1=2)
+        txt.tag_configure("code", font=("Courier", 11),
+                          lmargin1=24, lmargin2=24, spacing1=2)
+
+        def h(t): txt.insert("end", t + "\n", "h")
+        def b(t): txt.insert("end", t + "\n", "b")
+        def c(t): txt.insert("end", t + "\n", "code")
+        def blank(): txt.insert("end", "\n")
+
+        h("What does Schedule Search do?")
+        b("It builds the exact command to run a saved Search Suite or Regex")
+        b("Collection automatically on a schedule — daily, weekly, or monthly.")
+        b("Pick what to run, the folder, and how often; this dialog generates")
+        b("the command and the step-by-step setup instructions for your OS.")
+        blank()
+
+        h("Why doesn't peekdocs just run the schedule itself?")
+        b("By design, peekdocs hands the command to your operating system's")
+        b("own scheduler — cron/launchd on Mac and Linux, Task Scheduler on")
+        b("Windows — rather than running the schedule from inside the app.")
+        b("Three reasons:")
+        blank()
+        b("• The app isn't running when it's closed. A scheduled search has")
+        b("  to fire on its own, across reboots, whether or not peekdocs is")
+        b("  open. Only the OS scheduler can guarantee that. Running it from")
+        b("  the app would require an always-on background process, which")
+        b("  peekdocs deliberately does not have.")
+        b("• It stays out of your system. Registering a schedule for you")
+        b("  means silently editing your crontab or Windows Task Scheduler.")
+        b("  A privacy-first tool should not write to your system scheduler")
+        b("  behind your back.")
+        b("• It's transparent. You see the exact command that will run and")
+        b("  stay in control of it — nothing is hidden inside the app.")
+        blank()
+        b("So the split is simple: your OS owns the scheduling; peekdocs")
+        b("owns building the correct command for it.")
+        blank()
+
+        h("How to set it up")
+        b("1. Choose a Search Suite or Regex Collection, the folder, and how")
+        b("   often to run.")
+        b("2. Copy the generated command.")
+        b("3. Follow the numbered instructions shown in the dialog for your")
+        b("   operating system to register it with cron (Mac/Linux) or")
+        b("   Task Scheduler (Windows).")
+        blank()
+        b("Results are appended to a JSON file in the search folder, so each")
+        b("run adds to the record rather than overwriting it. Pair this with")
+        b("Diff Snapshots to answer “what is new since last time?”")
+        blank()
+
+        h("Same idea on the CLI")
+        b("Schedule Search only assembles a normal peekdocs command — you can")
+        b("write it by hand and schedule it however you prefer. See the User")
+        b("Guide → Automation and IT Use for the full pattern, including")
+        b("diff-flavored exit codes for cron and CI pipelines.")
+
+        txt.configure(state="disabled")
+
     def _open_schedule_search(self):
         """Open the Schedule Search dialog — generates cron or schtasks commands."""
         import tkinter as tk
@@ -495,10 +572,20 @@ class ToolsMixin:
         ).pack(side="bottom", pady=(0, 10))
 
         # ── Title & subtitle ──
+        header = tk.Frame(body)
+        header.pack(fill="x", padx=15, pady=(10, 0))
         tk.Label(
-            body, text="Schedule Search",
+            header, text="Schedule Search",
             font=("TkDefaultFont", 13, "bold"),
-        ).pack(anchor="w", padx=15, pady=(10, 0))
+        ).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
+            command=lambda: self._show_schedule_search_help(win),
+        ).pack(side="right")
         tk.Label(
             body,
             text="Generate a command to run a peekdocs search automatically on a schedule. "
