@@ -12,6 +12,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.85] — 2026-07-07
+
+### Changed
+- **Type-check gate widened to `scanner.py` + `indexer.py` — the
+  engine is now type-checked end to end.** The two largest
+  untyped modules (scanner: file discovery + extraction for 100+
+  formats; indexer: SQLite FTS5 build / refresh / search) carry
+  full top-level signatures and sit in the mypy CI gate (14
+  files, was 12). The whole engine path — api → cli/commands →
+  scanner → indexer → reporter — is now covered; only GUI mixins
+  and small helpers remain deliberately out of scope. The
+  checker forced real internal fixes: a mixed tuple/list ranges
+  list in `apply_context`, variable reuse across scanner's
+  per-format extraction branches, and a `result` variable in
+  `cli._main_inner` that held an index-stats dict and a
+  `SearchResult` at different points. Also removed a latent
+  footgun: `_dry_run_report`'s file-filter params claimed to
+  accept a bare `str`, which `discover_files` would have
+  iterated character-wise.
+- **Asset sweep.** Orphaned `hero.gif` (3.2 MB, replaced by
+  hero2) and never-embedded `screenshot-getting-started.png`
+  removed; RELEASE_CHECKLIST updated to track only embedded
+  assets.
+
 ## [1.2.84] — 2026-07-07
 
 ### Changed
