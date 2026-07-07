@@ -215,7 +215,7 @@ Open a fresh PowerShell window afterward; `peekdocs --version` then works from a
 
 Or browse the [**Releases page**](https://github.com/exbuf/peekdocs/releases/latest) for older versions, the full asset list (all six GUI + CLI binaries side by side), or release notes. *On the GitHub repo page, "Releases" is in the right sidebar under "About" — it's easy to miss if you're not looking for it.*
 
-<a id="first-launch-security"></a>**\* First-launch security warnings (one-time, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
+<a id="first-launch-security"></a>**First-launch security warnings (per download, per platform).** Free, open-source software that hasn't paid for an OS-vendor code-signing certificate triggers a warning on first launch. This is normal and does not mean the software is unsafe.
 
 - **Windows (SmartScreen):** Click **More info** → **Run anyway**.
 - **macOS (Gatekeeper):** Recent macOS (Sequoia / Sonoma) shows a warning dialog with only **Done** and **Move to Trash** — no **Open** button. The bypass:
@@ -245,6 +245,8 @@ pipx install git+https://github.com/exbuf/peekdocs.git    # recommended (isolate
 # — or —
 pip install git+https://github.com/exbuf/peekdocs.git     # if you prefer pip
 ```
+
+> **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
 
 These are the **first-time install** commands. To upgrade later, use `pipx upgrade peekdocs` (or `pip install --upgrade git+https://github.com/exbuf/peekdocs.git`). `pipx upgrade` is cleaner than `pipx install --force` — it replaces the package's contents in place instead of leaving stale `.dist-info` directories around (which can desync the reported version from the running code).
 
@@ -443,15 +445,15 @@ The combination of **local + privacy-first + grep-like power + OCR + regex workf
 
 peekdocs has three search modes, each with its own big button on the main page, color-coded so you can tell them apart in the clips below:
 
-- **Standard Search** *(the large blue **Run** button on the left; the smaller blue square next to it is the **Search Wizard** — a form-builder on-ramp with 20 pre-built search-type forms, not a fourth mode)* — the everyday keyword search: type terms, pick a folder, hit Run. Shown in the hero clip below.
+- **Standard Search** *(the large blue **Run** button on the left; the smaller blue square next to it is the **Search Wizard** — a form-builder on-ramp with 20 pre-built search-type forms, not a fourth mode)* — the everyday keyword search: type terms, pick a folder, hit Run. Shown in the hero clip at the top of this README.
 - **Search Suites** *(green button)* — a named group of saved standard searches that run together and produce one combined highlighted report. The recurring-workflow-in-one-click mode.
 - **Regex Search** *(orange button)* — a named collection of regex patterns run against a folder, with per-pattern match counts and per-pattern report sections. The evidentiary-pattern workbench.
 
-The hero clip below shows a Standard Search; the Suites and Regex Search clips follow, capped by a tour of the settings surface — every knob one click away.
+Below: the getting-started on-ramp, then Search Suites and Regex Search in action, capped by a tour of the settings surface — every knob one click away. (Standard Search's own walkthrough is the hero clip at the top of this README.)
 
 <img src="docs/images/getting-started.gif" width="720" alt="peekdocs first-time on-ramp — pointing at a folder, running a first search, opening the highlighted report, looping">
 
-*Getting started with peekdocs — the first-time on-ramp: point at a folder, run a first search, open the highlighted report. The clips that follow drill into the three search modes and the settings surface.*
+*Getting started with peekdocs — the first-time on-ramp: point at a folder, run a first search, open the highlighted report. The clips that follow drill into Search Suites, Regex Search, and the settings surface.*
 
 &nbsp;
 
@@ -540,22 +542,6 @@ See the worked example in [USER_GUIDE.md § A worked example: nightly source-tre
 
 &nbsp;
 
-**Quick install**
-
-1. **No Python?** [Download the standalone app](#1-option-a-standalone-download-no-python-needed) — the GUI and CLI binaries are separate downloads; pick what you need.
-
-2. **Have Python 3.10+?** A single command installs everything — the GUI, the CLI, and the Python API:
-
-   ```bash
-   pipx install git+https://github.com/exbuf/peekdocs.git
-   ```
-
-   *(Already installed? Upgrade with `pipx upgrade peekdocs`.)*
-
-See [Installation](#installation) below for per-platform notes, the `pip` alternative, upgrade, and uninstall.
-
-> **Windows tip:** if this fails with an SSL / SNI / certificate error in **Command Prompt**, try the same command in **PowerShell** instead. See [docs/INSTALLATION.md → Windows cmd.exe SSL / SNI / certificate errors](docs/INSTALLATION.md#windows-cmd-ssl) for the diagnosis and fix.
-
 **What running peekdocs looks like:**
 
 ```bash
@@ -627,7 +613,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 - **▶ Save / ▶ Reload** — save a configured search by name and reload it later with one click
 - **Recent searches** — your last 10 searches are remembered for re-use. Each entry captures the **FULL** search context (terms + folder + every Advanced Search Options setting), so selecting one from the **▼ Recent** popup restores all of those in one click. With the search bar focused, press **↑** / **↓** to walk through the same list — the arrow shortcut copies only the search-terms text into the bar (leaving your current Advanced options untouched), so use the arrows when you want to reuse the wording with the current settings, and the **Recent** popup when you want the whole configuration back. **▶ Save** is for keeping a configuration permanently under a name, beyond the 10-entry rolling Recent window
 - **Search index** — optional SQLite FTS5 index for faster repeated searches
-- **Works in any language** — Unicode-based text handling; searches documents in any language with exact character-sequence matching (no stemming or word segmentation). Documentation is English-only; the GUI ships partial UI translation in seven languages (English, Español, Français, Deutsch, 日本語, 简体中文, Português brasileiro) for the search workflow — see *UI translation* in the Feature Highlights above — but help popups, dialogs, the CLI banner, and reports remain English. The PDF report uses a Latin-1 font, so non-Latin text shows as `?` in `.pdf` only — use `.docx`, `.html`, `.txt`, `.json`, or `.csv` for non-Latin content.
+- **Works in any language** — Unicode-based text handling; searches documents in any language with exact character-sequence matching (no stemming or word segmentation). Documentation is English-only; the GUI ships partial UI translation in seven languages (English, Español, Français, Deutsch, 日本語, 简体中文, Português brasileiro) for the search workflow — see *Works in any language* in the Feature Highlights above — but help popups, dialogs, the CLI banner, and reports remain English. The PDF report uses a Latin-1 font, so non-Latin text shows as `?` in `.pdf` only — use `.docx`, `.html`, `.txt`, `.json`, or `.csv` for non-Latin content.
 
 #### Reporting
 
