@@ -130,6 +130,32 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 *A ~46-second walkthrough as a looping GIF: peekdocs searches for `budget` across a 10,411-file folder and reports back in 3.17 seconds\*, with matches highlighted in yellow in the preview pane. The clip then opens the **File Types** and **Categories** charts to show the breadth of what was searched in that single pass — PDFs, Word and Excel docs, slides, emails, e-books, OCR'd images, archives, source code, and plain text. \* MacBook M4 Pro*
 
 &nbsp;
+## Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Who Is It For?](#who-is-it-for)
+- [Watch peekdocs in action](#watch-peekdocs-in-action)
+- [Feature Highlights](#feature-highlights)
+- [How these compose](#how-these-compose)
+- [CLI at a Glance](#cli-at-a-glance)
+- [Features](#features)
+- [Supported File Types](#supported-file-types)
+- [Documentation](#documentation)
+- [Why peekdocs?](#why-peekdocs)
+- [What peekdocs Is Not](#what-peekdocs-is-not)
+- [Performance](#performance)
+- [Platform Notes](#platform-notes)
+- [Preparing Documents](#preparing-your-documents-for-searching)
+- [Questions and troubleshooting](#questions-and-troubleshooting)
+- [Glossary](#glossary)
+- [For IT and Security Teams](#for-it-and-security-teams)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [Author](#author)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+
 ## Installation
 
 1. [Option A: Standalone Download](#1-option-a-standalone-download-no-python-needed)
@@ -552,33 +578,6 @@ results = search(["budget"], directory=os.path.expanduser("~/Documents"))
 for match in results.matches:
     print(f"{match.filename}:{match.line_num} {match.text}")
 ```
-
-## Contents
-
-- [Who Is It For?](#who-is-it-for)
-- [Watch peekdocs in action](#watch-peekdocs-in-action)
-- [Feature Highlights](#feature-highlights)
-- [How these compose](#how-these-compose)
-- [CLI at a Glance](#cli-at-a-glance)
-- [Features](#features)
-- [Supported File Types](#supported-file-types)
-- [Installation](#installation)
-3. [Prerequisites](#3-prerequisites)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Why peekdocs?](#why-peekdocs)
-- [What peekdocs Is Not](#what-peekdocs-is-not)
-- [Performance](#performance)
-- [Platform Notes](#platform-notes)
-- [Preparing Documents](#preparing-your-documents-for-searching)
-- [Questions and troubleshooting](#questions-and-troubleshooting)
-- [Glossary](#glossary)
-- [For IT and Security Teams](#for-it-and-security-teams)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [Author](#author)
-- [Disclaimer](#disclaimer)
-- [License](#license)
 
 ## CLI at a Glance
 
