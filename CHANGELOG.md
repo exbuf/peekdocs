@@ -12,6 +12,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.84] — 2026-07-07
+
+### Changed
+- **License popup widened 560 → 700px.** The MIT text's
+  ~75-character lines soft-wrapped in Courier 10 at the old
+  width; 700px renders every line unwrapped. Height unchanged.
+- **New hero clip.** The top-of-README walkthrough replaced with
+  a re-recorded version (`hero2.gif`); caption updated to the new
+  run's stats (10,412 files in 2.98s) and retitled "A Standard
+  Search" to match the clip's name on the maintainer's site.
+
 ## [1.2.83] — 2026-07-06
 
 ### Changed
