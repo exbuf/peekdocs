@@ -127,9 +127,8 @@ command pulls the new version.
 ### Documentation
 
 - [ ] Screenshots in `docs/images/` reflect the release's GUI state.
-      The hero image in `README.md`, `screenshot-getting-started.png`,
-      and any walkthroughs in `docs/WALKTHROUGHS.md` should all show
-      the current layout.
+      The hero clip in `README.md` and any walkthroughs in
+      `docs/WALKTHROUGHS.md` should all show the current layout.
 - [ ] `README.md` Option B install command still points at the correct
       install path (usually `git+https://github.com/exbuf/peekdocs.git`,
       sometimes `@vX.Y.Z` for pinned releases).
