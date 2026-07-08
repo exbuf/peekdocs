@@ -18,6 +18,7 @@ from peekdocs.api import (
     list_suites, run_suite,
     PatternResult, CollectionResult,
     list_regex_collections, run_regex_collection,
+    FileInventoryItem, inventory_folder, list_supported_file_types,
 )
 from peekdocs.errors import (
     PeekdocsError, QueryError, RangeError, NameNotFoundError,

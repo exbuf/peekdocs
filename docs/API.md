@@ -17,6 +17,9 @@ Every search workflow available in the CLI and GUI is also available in the Pyth
 | Named regex collection | `run_regex_collection("name")` | `--regex-collection "name"` | Regex Search → Restore |
 | List suites | `list_suites(directory)` | — | Tools → Search Suites |
 | List regex collections | `list_regex_collections()` | `--regex-collection --list` | Regex Search → Restore |
+| Folder inventory | `inventory_folder(directory)` | — | Tools → File Inventory |
+| Supported file types | `list_supported_file_types()` | — | — |
+| AI assistant (MCP) | `peekdocs-mcp` server — see [MCP Server](#mcp-server) | — | — |
 | Public exceptions | `peekdocs.errors.*` (`QueryError`, `RangeError`, `NameNotFoundError`) — see [Error Handling](#error-handling) | — | — |
 
 ### Quick examples
@@ -61,6 +64,8 @@ See the sections below for full parameter details, return values, and error hand
 - [Return Value](#return-value)
 - [Search Suites](#search-suites)
 - [Regex Collections](#regex-collections)
+- [Folder Inventory](#folder-inventory)
+- [MCP Server](#mcp-server)
 - [Notes](#notes)
 - [Error Handling](#error-handling)
 - [Next Steps](#next-steps)
@@ -470,6 +475,58 @@ Each `PatternResult` has fields: `name`, `regex`, `matches` (list of `SearchMatc
 | `FileNotFoundError` | No collections file exists (`~/.peekdocs_regex_collections.json`) |
 | `NameNotFoundError` (also a `KeyError`) | Named collection not found (message lists available names) |
 | `QueryError` (also a `ValueError`) | Collection has no enabled patterns |
+
+## Folder Inventory
+
+Two read-only helpers describe a folder and the formats peekdocs can search, without reading file contents.
+
+### List the files in a folder
+
+`inventory_folder()` lists the searchable files under a directory — path, size, modified time, and extension — as a list of `FileInventoryItem`. It is a discovery pass only: it stats each file but never opens, writes, or indexes anything.
+
+```python
+from peekdocs import inventory_folder
+
+for item in inventory_folder("/path/to/docs", recursive=True):
+    print(f"{item.path}  {item.size_bytes} bytes  {item.extension}")
+```
+
+**`inventory_folder()` parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `directory` | `str \| None` | cwd | Folder to inventory. |
+| `recursive` | `bool` | `False` | Include subfolders. |
+| `use_ocr` | `bool` | `False` | Include OCR-only image types (`.png`, `.jpg`, …). |
+| `file_types` | `list[str] \| None` | `None` | Limit to these extensions, e.g. `[".pdf", ".docx"]`. |
+
+Each `FileInventoryItem` has `path` (absolute), `size_bytes` (int), `modified` (epoch seconds, float), and `extension` (lowercased, with the dot). Raises `FileNotFoundError` if the directory does not exist.
+
+### List supported file types
+
+`list_supported_file_types()` returns the sorted list of extensions peekdocs can search (each with the leading dot). Pass `include_ocr=True` to also list image types that are only searchable when OCR is enabled.
+
+```python
+from peekdocs import list_supported_file_types
+
+print(list_supported_file_types())               # [".asm", ".bat", ".c", ...]
+print(list_supported_file_types(include_ocr=True))  # also .png, .jpg, ...
+```
+
+## MCP Server
+
+peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other hosts) can search local documents through the same engine documented here. It is a thin adapter over this API — an assistant's `search_documents` call returns the same matches as `search()`.
+
+It is installed as an optional extra and run over stdio:
+
+```bash
+pip install "peekdocs[mcp]"        # or: pipx install "peekdocs[mcp]"
+peekdocs-mcp --root ~/Documents      # --root is required
+```
+
+The server is deliberately **read-only** — it exposes search, context, inventory, supported-types, and saved suite/collection runners, and imports none of peekdocs's write surfaces (no report generation, no file mutation). `--root` is **required** and confines every tool to the folders you name; out-of-root requests are rejected. Searches never write the on-disk index by default.
+
+For setup, client configuration (including the `claude mcp add` one-liner), and the full tool list, see the [User Guide → MCP server](USER_GUIDE.md#mcp-server-search-from-an-ai-assistant).
 
 ## Notes
 
