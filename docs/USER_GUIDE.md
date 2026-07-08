@@ -35,6 +35,7 @@ This is the complete reference guide for peekdocs — a privacy-first local docu
   - [Results Preview vs. Reports](#results-preview-vs-reports)
   - [Report Files](#report-files)
   - [Command Translation](#command-translation)
+- [MCP server: search from an AI assistant](#mcp-server-search-from-an-ai-assistant)
 - [Automation and IT Use](#automation-and-it-use)
   - [A worked example: nightly source-tree watch](#a-worked-example-nightly-source-tree-watch)
   - [A worked example: audit engagement provenance](#a-worked-example-audit-engagement-provenance)
@@ -1464,6 +1465,61 @@ Elapsed time: 0.45 seconds, Cores used: 4 of 8
   summary.docx: 1
 Results ==> /Users/yourname/Documents
 ```
+
+## MCP server: search from an AI assistant
+
+peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
+
+### Read-only by design
+
+The server exposes only search and listing capabilities. It has **no tool that writes, moves, renames, or deletes anything**, and it does not generate reports. Report-writing and file-mutation code is never even imported by the server. This mirrors peekdocs's read-only core: an AI assistant can *find* things in your documents, but cannot change your files.
+
+The one on-disk artifact peekdocs can normally create — the optional SQLite search index (`.peekdocs.db`) — is **off by default** in every MCP search, so a search never modifies the folder it reads. A per-call `allow_index_write` flag opts back in if you want the speed of an existing index.
+
+### Installing and running
+
+`mcp` is an optional dependency, so install the extra:
+
+```bash
+pipx install "peekdocs[mcp]"     # or: pip install "peekdocs[mcp]"
+```
+
+Run it over stdio — the transport every MCP client speaks — and confine it to the folders you're willing to expose:
+
+```bash
+peekdocs-mcp --root ~/Documents
+```
+
+- `--root DIR` is **required** and restricts every tool to that folder (repeatable for multiple roots). Requests for any path outside the allowlist are rejected. This is the safety fence: an AI assistant using the server can only search inside the folders you name — never your whole drive. The server refuses to start without at least one `--root`.
+- `--max-results N` caps how many matches or files a single tool call returns (default 200). When a result is truncated, the response says so with the true total, so the assistant can narrow the query.
+
+### Registering with an MCP client
+
+Add a stdio server entry to your client's MCP configuration (Claude Desktop, Claude Code, and other MCP hosts follow the same shape):
+
+```json
+{
+  "mcpServers": {
+    "peekdocs": {
+      "command": "peekdocs-mcp",
+      "args": ["--root", "/Users/you/Documents"]
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | What it does |
+|---|---|
+| `search_documents` | Search for terms, regex, fuzzy, whole-word, or a boolean expression across a folder; returns matching lines with file and line number. Supports context lines, type filters, and exclusions. |
+| `get_document_context` | Return the lines surrounding matches of a query within one named file. |
+| `inventory_folder` | List the searchable files in a folder (path, size, modified time, type) without reading their contents. |
+| `list_supported_file_types` | List the extensions peekdocs can search (optionally including OCR image types). |
+| `list_search_suites` / `run_search_suite` | List and run saved search suites (running only performs searches). |
+| `list_regex_collections` / `run_regex_collection` | List and run saved regex collections (running only performs searches). |
+
+OCR (`use_ocr`) and the index (`allow_index_write`) are opt-in per call. OCR requires Tesseract, the same as everywhere else in peekdocs.
 
 ## Automation and IT Use
 

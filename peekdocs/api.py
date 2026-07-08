@@ -22,7 +22,7 @@ if platform.system() == "Linux":
     except RuntimeError:
         pass  # Already set — ignore
 
-from peekdocs.constants import _default_cores
+from peekdocs.constants import _default_cores, SUPPORTED_TYPES, OCR_IMAGE_TYPES
 from peekdocs.errors import NameNotFoundError, QueryError
 from peekdocs.indexer import index_exists, refresh_index, search_with_index
 from peekdocs.scanner import _process_file, _ocr_image, discover_files
@@ -761,3 +761,89 @@ def run_regex_collection(
         elapsed=elapsed,
         skipped_patterns=skipped,
     )
+
+
+# ── Folder inventory + supported types ─────────────────────────────
+
+def list_supported_file_types(include_ocr: bool = False) -> list[str]:
+    """Return the sorted list of file extensions peekdocs can search.
+
+    Parameters
+    ----------
+    include_ocr : bool
+        If True, also include image types that are only searchable when
+        OCR is enabled (``.jpg``, ``.png``, etc.). Defaults to False.
+
+    Returns
+    -------
+    list[str]
+        Sorted extensions, each including the leading dot (e.g. ".pdf").
+    """
+    types = SUPPORTED_TYPES | (OCR_IMAGE_TYPES if include_ocr else set())
+    return sorted(types)
+
+
+@dataclass
+class FileInventoryItem:
+    """One file discovered by :func:`inventory_folder`."""
+
+    path: str            # absolute path
+    size_bytes: int      # file size in bytes
+    modified: float      # last-modified time (epoch seconds)
+    extension: str       # lowercased extension, including the dot (e.g. ".pdf")
+
+
+def inventory_folder(
+    directory: str | None = None,
+    *,
+    recursive: bool = False,
+    use_ocr: bool = False,
+    file_types: list[str] | None = None,
+) -> list[FileInventoryItem]:
+    """List the searchable files in a folder without reading their contents.
+
+    This is a read-only discovery pass — it stats each file for size and
+    modified time but never opens, writes, or indexes anything.
+
+    Parameters
+    ----------
+    directory : str, optional
+        Folder to inventory. Defaults to the current working directory.
+    recursive : bool
+        Include subfolders. Default False.
+    use_ocr : bool
+        Include OCR-only image types in the inventory. Default False.
+    file_types : list[str], optional
+        Limit to these extensions (e.g. [".pdf", ".docx"]).
+
+    Returns
+    -------
+    list[FileInventoryItem]
+        One item per discovered file, sorted by path.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the directory does not exist.
+    """
+    if directory is None:
+        directory = os.getcwd()
+
+    ft_set = set(file_types) if file_types else None
+    result = discover_files(directory, recursive, use_ocr, ft_set, None)
+    if isinstance(result, tuple):
+        raise FileNotFoundError(result[1])
+
+    items = []
+    for path in result:
+        try:
+            st = os.stat(path)
+        except OSError:
+            continue  # File vanished between discovery and stat — skip it.
+        items.append(FileInventoryItem(
+            path=path,
+            size_bytes=st.st_size,
+            modified=st.st_mtime,
+            extension=os.path.splitext(path)[1].lower(),
+        ))
+    return items

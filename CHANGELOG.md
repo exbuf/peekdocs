@@ -12,6 +12,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Optional read-only MCP server (`peekdocs-mcp`).** A [Model Context
+  Protocol](https://modelcontextprotocol.io) server that lets an
+  MCP-capable AI assistant search local documents over the same
+  `peekdocs.api` engine the CLI and GUI use. Install with
+  `pip install peekdocs[mcp]` and run over stdio. Exposes eight
+  read-only tools (`search_documents`, `get_document_context`,
+  `inventory_folder`, `list_supported_file_types`, and saved
+  suite/collection runners) — no write, move, rename, delete, or
+  report-generation surface. `--root DIR` is **required** and confines
+  every search to the folders you name; requests for paths outside the
+  allowlist are rejected. Searches never write the on-disk index by
+  default. New public API helpers `inventory_folder()` and
+  `list_supported_file_types()` back the folder-listing tools.
+
 ## [1.2.85] — 2026-07-07
 
 ### Changed

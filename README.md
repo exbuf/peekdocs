@@ -417,6 +417,36 @@ if __name__ == "__main__":
 ```
 
 The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multiprocessing` internally, and on macOS and Windows child processes re-import the calling script. Without the guard, the script will crash with `RuntimeError` on those platforms. See the [API Reference](docs/API.md) for all parameters and options.
+
+### MCP server (optional) — search from an AI assistant
+
+peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other MCP hosts) can search your local documents — over the same engine the CLI and GUI use. You ask the assistant a question about your files; it runs the search and answers.
+
+It is deliberately **read-only**: it exposes search, context, folder inventory, supported-types, and saved suite/collection runs, and **nothing that writes** — no delete, move, rename, or report-writing. And it is fenced: `--root` is **required**, so the assistant can only search inside the folders you name — never your whole drive.
+
+Install the extra and point it at a folder:
+
+```bash
+pipx install "peekdocs[mcp]"        # or: pip install "peekdocs[mcp]"
+peekdocs-mcp --root ~/Documents      # stdio server; --root is required
+```
+
+Register it with any MCP client using stdio — the transport every client speaks. For **Claude Code**:
+
+```bash
+claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents
+```
+
+For **Claude Desktop** (and other hosts that use a config file):
+
+```json
+{ "mcpServers": { "peekdocs": { "command": "peekdocs-mcp", "args": ["--root", "/Users/you/Documents"] } } }
+```
+
+Then ask the assistant something like *"search my Documents for the word invoice and tell me which files it's in."*
+
+**Tools:** `search_documents`, `get_document_context`, `inventory_folder`, `list_supported_file_types`, `list_search_suites`, `run_search_suite`, `list_regex_collections`, `run_regex_collection`. Searches never write to your folders by default (the on-disk index is opt-in via a per-call flag). See the [User Guide → MCP server](docs/USER_GUIDE.md#mcp-server-search-from-an-ai-assistant) for details.
+
 ## Who Is It For?
 
 peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.

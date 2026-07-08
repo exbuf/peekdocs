@@ -53,7 +53,8 @@ pytest tests/test_cli.py::test_query -v
     - `_mixin_suites.py` — Search Suites picker + execution
     - `_mixin_file_analysis.py` — Nine folder-scanning tools (File Inventory, Duplicate Finder, Large Files, etc.)
     - `_mixin_help_panels.py` — Eight "?"-help popups
-  - `api.py` — public Python API (`search()`, `SearchMatch`, `SearchResult`, plus `run_suite`, `run_regex_collection`, `list_*`)
+  - `api.py` — public Python API (`search()`, `SearchMatch`, `SearchResult`, plus `run_suite`, `run_regex_collection`, `list_*`, `inventory_folder`, `list_supported_file_types`)
+  - `mcp_server.py` — optional read-only MCP server (`peekdocs-mcp` console script, `pip install peekdocs[mcp]`). Thin adapter over `api.py` exposing search/context/inventory/list tools over stdio; no write/move/delete/report surfaces. Tool logic + guardrails (path-root allowlist, result cap) import without the `mcp` package; only `build_server()` imports it.
   - `errors.py` — public exception hierarchy (`PeekdocsError`, `QueryError`, `RangeError`, `NameNotFoundError`)
   - `paths.py` — shared path + platform helpers (`resource_path`, `find_tesseract`, `format_bytes`)
   - `scanner.py` — file processing and discovery (100+ file types)
@@ -61,5 +62,5 @@ pytest tests/test_cli.py::test_query -v
   - `reporter.py` — report generation (TXT, DOCX, CSV, JSON, PDF, HTML)
   - `indexer.py` — optional SQLite FTS5 search index
   - `range_query.py`, `expr_parser.py`, `diff.py`, `watcher.py`, `run_log.py`, `notifier.py`, `translator.py`, `collection.py`, `suite_index.py`, `i18n.py`, `regex_examples.py`, `wizard_patterns.py`, `constants.py` — engine + persistence + platform utilities
-- `tests/` — Pytest test suite (23 test files, 718 tests).
+- `tests/` — Pytest test suite (25 test files, 758 tests).
 - `pyproject.toml` — Project metadata, dependencies, console script configuration, and `[tool.mypy]` config (14 files in the typed public surface). Uses setuptools as build backend.

@@ -92,6 +92,7 @@ Changelog = "https://github.com/exbuf/peekdocs/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 pst = ["libpff-python"]
+mcp = ["mcp>=1.0"]
 
 [tool.setuptools.packages.find]
 include = ["peekdocs*"]
@@ -99,6 +100,7 @@ include = ["peekdocs*"]
 [project.scripts]
 peekdocs = "peekdocs.cli:main"
 peekdocs-gui = "peekdocs.gui:main"
+peekdocs-mcp = "peekdocs.mcp_server:main"
 
 # ── mypy — type-checker configuration ─────────────────────────
 #
