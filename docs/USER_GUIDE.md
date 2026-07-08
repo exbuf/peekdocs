@@ -1476,6 +1476,14 @@ The server exposes only search and listing capabilities. It has **no tool that w
 
 The one on-disk artifact peekdocs can normally create — the optional SQLite search index (`.peekdocs.db`) — is **off by default** in every MCP search, so a search never modifies the folder it reads. A per-call `allow_index_write` flag opts back in if you want the speed of an existing index.
 
+### One-way by design
+
+The exchange only ever goes one direction: the **assistant calls peekdocs**, peekdocs answers with search results, and that ends the exchange. peekdocs never calls the assistant, never asks it to summarize, and never initiates anything on its own — it is a server that responds to requests, nothing more. (The MCP protocol has an optional "sampling" feature that would let a server ask the host to run the model on its behalf; peekdocs does not implement it. If that ever changed, it would be a new, opt-in capability documented prominently.)
+
+So when you ask the assistant to "summarize what you found," peekdocs only supplies the raw matches — the summarizing is the assistant's own work, not a peekdocs feature.
+
+peekdocs itself makes no network calls and stays entirely local. The *assistant* you connect it to may not be, though: when it requests a search, the matching lines peekdocs returns become part of your conversation with that assistant — so if it is a cloud model, those snippets travel to it, the same as anything else you type into that chat. Point `--root` only at folders you are comfortable sharing with whatever assistant you have connected.
+
 ### Installing and running
 
 `mcp` is an optional dependency, so install the extra:
@@ -1520,6 +1528,38 @@ Add a stdio server entry to your client's MCP configuration (Claude Desktop, Cla
 | `list_regex_collections` / `run_regex_collection` | List and run saved regex collections (running only performs searches). |
 
 OCR (`use_ocr`) and the index (`allow_index_write`) are opt-in per call. OCR requires Tesseract, the same as everywhere else in peekdocs.
+
+### Example prompts
+
+Once the server is registered, you drive it in plain language — you talk to the assistant, and it picks the right tool. Assuming the server was started with `--root ~/Documents`, here are prompts you might type and the tool each one exercises:
+
+| You ask the assistant… | Tool it uses |
+|---|---|
+| "Search my Documents for **invoice** and tell me which files it's in." | `search_documents` |
+| "Find every phone number in my contracts — use the regex `\d{3}[-.]\d{3}[-.]\d{4}`." | `search_documents` (regex mode) |
+| "Search my notes for **budgt** with fuzzy matching — I'm not sure of the spelling." | `search_documents` (fuzzy mode) |
+| "In **lease.pdf**, show me the lines around where it mentions the security deposit." | `get_document_context` |
+| "List the PDFs in my Documents folder with their sizes and dates." | `inventory_folder` |
+| "What file types can you search?" | `list_supported_file_types` |
+| "Run my **Weekly Review** search suite and summarize what turned up." | `run_search_suite` |
+| "Which regex collections do I have? Run **Credentials** over the projects subfolder." | `list_regex_collections` + `run_regex_collection` |
+
+The last two are worth noting: peekdocs returns only the raw matches, and the assistant does any summarizing or explaining on top of them (see [One-way by design](#one-way-by-design) above).
+
+A full end-to-end example, from the terminal to a working chat, using **Claude Code**:
+
+```bash
+# 1. Install the server (once)
+pipx install "peekdocs[mcp]"
+
+# 2. Register it, fenced to one folder
+claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents
+
+# 3. Start a new Claude Code session, confirm the server is connected
+#    with the /mcp command, then just ask:
+#      "Use peekdocs to search my Documents for the word contract
+#       and tell me which files it's in."
+```
 
 ## Automation and IT Use
 
