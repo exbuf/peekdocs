@@ -424,12 +424,14 @@ peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol
 
 It is deliberately **read-only**: it exposes search, context, folder inventory, supported-types, and saved suite/collection runs, and **nothing that writes** — no delete, move, rename, or report-writing. And it is fenced: `--root` is **required**, so the assistant can only search inside the folders you name — never your whole drive.
 
-Install the extra and point it at a folder:
+Install with the optional `[mcp]` extra (which adds the `mcp` library the server needs) and point it at a folder:
 
 ```bash
-pipx install "peekdocs[mcp]"        # or: pip install "peekdocs[mcp]"
+pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"   # or: pip install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
 peekdocs-mcp --root ~/Documents      # stdio server; --root is required
 ```
+
+(Once peekdocs is published to PyPI, the short form `pipx install "peekdocs[mcp]"` will work too.)
 
 Register it with any MCP client using stdio — the transport every client speaks. For **Claude Code**:
 

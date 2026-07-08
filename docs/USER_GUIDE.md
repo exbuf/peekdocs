@@ -1478,19 +1478,27 @@ The one on-disk artifact peekdocs can normally create — the optional SQLite se
 
 ### One-way by design
 
-The exchange only ever goes one direction: the **assistant calls peekdocs**, peekdocs answers with search results, and that ends the exchange. peekdocs never calls the assistant, never asks it to summarize, and never initiates anything on its own — it is a server that responds to requests, nothing more. (The MCP protocol has an optional "sampling" feature that would let a server ask the host to run the model on its behalf; peekdocs does not implement it. If that ever changed, it would be a new, opt-in capability documented prominently.)
+The exchange only ever goes one direction: the **assistant calls peekdocs**, peekdocs answers with search results, and that ends the exchange. peekdocs never calls the assistant, never asks it to summarize, and never initiates anything on its own — it is a server that responds to requests, nothing more.
 
 So when you ask the assistant to "summarize what you found," peekdocs only supplies the raw matches — the summarizing is the assistant's own work, not a peekdocs feature.
+
+**A note on "sampling."** The MCP protocol does include one feature that runs the other direction, and it is worth understanding why peekdocs leaves it out. Normally the assistant calls a server's tools; *sampling* inverts that — it lets a **server ask the host to run a model completion on its behalf** (to summarize or classify some text, for example), borrowing the host's model without needing its own API key. The host is expected to keep a human in the loop: show you the request, let you approve or deny it, and run it on a model it controls (the server never sees the model or its credentials directly). **peekdocs does not implement sampling.** If it did, peekdocs could drive the assistant — pushing file contents to the model on its own initiative, turning a passive "answers queries" tool into one that orchestrates the AI. Leaving it out is what preserves the simple contract above: peekdocs can be *asked* things, and can only *answer*. If that ever changed, it would be a new, opt-in capability documented prominently.
 
 peekdocs itself makes no network calls and stays entirely local. The *assistant* you connect it to may not be, though: when it requests a search, the matching lines peekdocs returns become part of your conversation with that assistant — so if it is a cloud model, those snippets travel to it, the same as anything else you type into that chat. Point `--root` only at folders you are comfortable sharing with whatever assistant you have connected.
 
 ### Installing and running
 
-`mcp` is an optional dependency, so install the extra:
+The `mcp` library is an optional dependency, so install peekdocs with the `[mcp]` extra — that adds the one library the server needs on top of a normal peekdocs install. The MCP server code itself already ships inside peekdocs; the extra only pulls in the `mcp` runtime dependency (from PyPI). Because peekdocs installs from GitHub (it is not on PyPI yet), include the repository URL:
 
 ```bash
-pipx install "peekdocs[mcp]"     # or: pip install "peekdocs[mcp]"
+pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
+# or with pip:
+pip install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
 ```
+
+Once peekdocs is published to PyPI, the short form `pipx install "peekdocs[mcp]"` will work too. If pipx rejects the `@` syntax on your version, the equivalent is `pipx install "git+https://github.com/exbuf/peekdocs.git#egg=peekdocs[mcp]"`.
+
+If you already have peekdocs installed without the extra, running `peekdocs-mcp` will tell you exactly this — it exits with a message pointing you to the `[mcp]` install command.
 
 Run it over stdio — the transport every MCP client speaks — and confine it to the folders you're willing to expose:
 
@@ -1550,7 +1558,7 @@ A full end-to-end example, from the terminal to a working chat, using **Claude C
 
 ```bash
 # 1. Install the server (once)
-pipx install "peekdocs[mcp]"
+pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
 
 # 2. Register it, fenced to one folder
 claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents

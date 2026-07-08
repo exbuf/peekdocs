@@ -517,12 +517,14 @@ print(list_supported_file_types(include_ocr=True))  # also .png, .jpg, ...
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other hosts) can search local documents through the same engine documented here. It is a thin adapter over this API — an assistant's `search_documents` call returns the same matches as `search()`.
 
-It is installed as an optional extra and run over stdio:
+It is installed with the optional `[mcp]` extra (which pulls in the `mcp` library) and run over stdio:
 
 ```bash
-pip install "peekdocs[mcp]"        # or: pipx install "peekdocs[mcp]"
+pip install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"   # or pipx
 peekdocs-mcp --root ~/Documents      # --root is required
 ```
+
+(Once peekdocs is on PyPI, the short form `pip install "peekdocs[mcp]"` will work too.)
 
 The server is deliberately **read-only** — it exposes search, context, inventory, supported-types, and saved suite/collection runners, and imports none of peekdocs's write surfaces (no report generation, no file mutation). `--root` is **required** and confines every tool to the folders you name; out-of-root requests are rejected. Searches never write the on-disk index by default.
 
