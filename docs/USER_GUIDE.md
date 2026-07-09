@@ -1484,7 +1484,17 @@ So when you ask the assistant to "summarize what you found," peekdocs only suppl
 
 **A note on "sampling."** The MCP protocol does include one feature that runs the other direction, and it is worth understanding why peekdocs leaves it out. Normally the assistant calls a server's tools; *sampling* inverts that — it lets a **server ask the host to run a model completion on its behalf** (to summarize or classify some text, for example), borrowing the host's model without needing its own API key. The host is expected to keep a human in the loop: show you the request, let you approve or deny it, and run it on a model it controls (the server never sees the model or its credentials directly). **peekdocs does not implement sampling.** If it did, peekdocs could drive the assistant — pushing file contents to the model on its own initiative, turning a passive "answers queries" tool into one that orchestrates the AI. Leaving it out is what preserves the simple contract above: peekdocs can be *asked* things, and can only *answer*. If that ever changed, it would be a new, opt-in capability documented prominently.
 
-peekdocs itself makes no network calls and stays entirely local. The *assistant* you connect it to may not be, though: when it requests a search, the matching lines peekdocs returns become part of your conversation with that assistant — so if it is a cloud model, those snippets travel to it, the same as anything else you type into that chat. Point `--root` only at folders you are comfortable sharing with whatever assistant you have connected.
+### Does it keep everything on your machine?
+
+That depends on **which assistant you connect**, because MCP has a local part and a part that may not be local:
+
+- **peekdocs stays on your machine.** It makes no network calls of its own.
+- **The MCP connection is local too.** The assistant app talks to `peekdocs-mcp` over stdio — a pipe between two programs on your own computer — which never touches the internet.
+- **But the AI model may run in the cloud.** Popular assistants such as **Claude Desktop** and **Claude Code** do not contain the model themselves; they send your conversation to the vendor's servers, the model runs there, and the answer comes back. Because the matching lines peekdocs returns become part of that conversation, with a cloud assistant those snippets are transmitted off your machine — the same as anything else you type into the app. (Whether the vendor retains or trains on that data depends on the product and your plan, but either way it has left your computer.)
+
+So with **Claude Desktop or Claude Code the answer is no** — not everything stays local; the file snippets peekdocs surfaces are sent to the cloud to be answered. That is perfectly fine for folders you do not consider sensitive — just point `--root` only at folders you are comfortable sharing with whatever assistant you have connected.
+
+To keep **everything** on your machine — your questions and the file snippets alike — run the model locally instead of using a cloud assistant. See [Fully local and private](#fully-local-and-private-pairing-with-a-downloadable-model) below.
 
 ### Installing and running
 
