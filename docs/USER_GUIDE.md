@@ -1569,6 +1569,18 @@ claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents
 #       and tell me which files it's in."
 ```
 
+### Fully local and private: pairing with a downloadable model
+
+The example above uses a cloud assistant, so the matching lines peekdocs returns travel to that assistant's servers as part of the conversation (see [One-way by design](#one-way-by-design)). You can close that gap entirely by pairing peekdocs with a **local, downloadable model** instead of a cloud one. In that setup the model runs on your machine, peekdocs runs on your machine, and your file contents never leave it — the search-snippet exposure simply doesn't exist. This is peekdocs's privacy-first stance carried all the way through to the AI layer.
+
+It takes three pieces:
+
+1. **A model runner** that downloads and runs open-weight models locally — most commonly [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai). Pull a model that supports **tool (function) calling** — that ability is what lets the assistant actually invoke peekdocs's tools. As of this writing, models like Llama 3.3, Qwen3, Mistral, Gemma, and DeepSeek handle tool calling well; very small models tend to be unreliable at it.
+2. **An MCP host that can drive a local model.** Options in this space (a fast-moving ecosystem — check each project's current docs) include **LM Studio** (built-in MCP support; it can be both the model runner and the host in one app — the simplest route), **Open WebUI**, the **Cline** and **Continue** editor extensions, **Goose**, and terminal clients such as **ollmcp** ("MCP Client for Ollama") and **MCPHost**.
+3. **peekdocs-mcp**, registered with that host exactly as you would with any other — the server does not care which model is behind the host. Point it at `--root <folder>` as always.
+
+None of these require an internet connection once the model is downloaded, so the whole stack — model, MCP server, and your documents — stays offline. Note that peekdocs works with *any* MCP-capable host regardless of the model behind it; the choice between a cloud assistant (easiest to set up) and a local model (nothing leaves your machine) is yours.
+
 ## Automation and IT Use
 
 peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines.
