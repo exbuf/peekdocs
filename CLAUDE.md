@@ -24,12 +24,20 @@ peekdocs <query>
 # Run the GUI
 peekdocs-gui
 
+# Run the optional MCP server (needs the [mcp] extra: pip install -e ".[mcp]")
+peekdocs-mcp --root ~/Documents
+
 # Run all tests
 pytest tests/ -v
 
 # Run a single test
 pytest tests/test_cli.py::test_query -v
+
+# Verify all internal Markdown links resolve (run after editing docs)
+python scripts/check_doc_links.py
 ```
+
+CI (`.github/workflows/test.yml`) runs the pytest matrix, a headless-install job, `mypy` (typed public surface), an OCR-integration job, and a **doc-links** job that runs `scripts/check_doc_links.py` — so a broken internal doc link (missing file or renamed/missing `#anchor`) fails CI.
 
 ## Architecture
 
