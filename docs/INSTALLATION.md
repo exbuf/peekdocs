@@ -12,7 +12,7 @@ This document expands on the [Installation](../README.md#installation) section o
 
 ## Python prerequisites by platform
 
-peekdocs needs Python 3.10 or newer for the pipx / pip install paths (Option B). The [Standalone Download](../README.md#option-a-standalone-download-no-python-needed) bundles Python and needs none of this.
+peekdocs needs Python 3.10 or newer for the pipx / pip install paths (Option B). The [Standalone Download](../README.md#1-option-a-standalone-download-no-python-needed) bundles Python and needs none of this.
 
 **Note:** Python version numbers are not decimals — 3.13 is newer than 3.9 (it's the 13th release, not "three point one three").
 

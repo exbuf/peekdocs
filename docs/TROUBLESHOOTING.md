@@ -165,7 +165,7 @@ You can set `-c` to any value from 1 to your maximum core count. Using more core
 
 **Can I use multiple flags at the same time?**
 Yes — most flags can be mixed and matched. Flag order doesn't matter.<br>
-Example: `peekdocs -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Command Examples](USER_GUIDE.md#command-examples) table in the User Guide for many combinations.
+Example: `peekdocs -r -a -t pdf budget revenue` searches recursively, with AND logic, only in PDF files. See the [Complete CLI Reference](USER_GUIDE.md#complete-cli-reference) in the User Guide for many combinations.
 
 **Do I have to use the terminal, or is there a GUI?**
 Both. If you prefer a graphical interface, run `peekdocs-gui` for a point-and-click window with a search box, folder picker, and all the advanced options. If you're comfortable in the terminal, `peekdocs` gives you the same search power in a single command.

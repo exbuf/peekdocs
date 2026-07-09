@@ -1,6 +1,6 @@
 # peekdocs — Labeled Walkthroughs
 
-Annotated screenshots that pair with descriptions of the moment captured — useful for slowing down what the demo videos in the [README's Screenshots section](../README.md#screenshots) show in motion, or for readers who'd rather scan stills than watch a clip.
+Annotated screenshots that pair with descriptions of the moment captured — useful for slowing down what the demo videos in the [README's *Watch peekdocs in action* section](../README.md#watch-peekdocs-in-action) show in motion, or for readers who'd rather scan stills than watch a clip.
 
 #### 1. Same search, three interfaces — plus the report
 
