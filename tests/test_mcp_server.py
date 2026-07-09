@@ -135,6 +135,58 @@ class TestOtherTools:
         assert out["count"] == len(out["extensions"])
 
 
+# ── Tier-2 tools: suites + regex collections ───────────────────────
+
+class TestSuiteAndCollectionTools:
+    def test_list_and_run_search_suite(self, tmp_path):
+        from peekdocs.collection import add_saved_search, add_suite
+
+        (tmp_path / "a.txt").write_text("budget line here\nother stuff\n")
+        add_saved_search(
+            str(tmp_path), "find budget",
+            {"search_text": "budget", "recursive": True},
+        )
+        add_suite(str(tmp_path), "My Suite", ["find budget"])
+
+        listing = m.list_search_suites(directory=str(tmp_path))
+        assert "My Suite" in listing["suites"]
+
+        out = m.run_search_suite("My Suite", directory=str(tmp_path))
+        assert out["suite"] == "My Suite"
+        assert out["total_matches"] >= 1
+        assert out["searches"][0]["name"] == "find budget"
+        assert out["searches"][0]["match_count"] >= 1
+        assert any("budget" in x["text"] for x in out["matches"])
+
+    def test_list_and_run_regex_collection(self, tmp_path):
+        import json
+
+        (tmp_path / "a.txt").write_text("call 555-1234 today\n")
+        # ~/.peekdocs_regex_collections.json is redirected to tmp_path by the
+        # autouse isolate_home fixture in conftest.py, so write it there.
+        coll = {"Phones": [{"name": "US phone", "regex": r"\d{3}-\d{4}", "enabled": True}]}
+        (tmp_path / ".peekdocs_regex_collections.json").write_text(json.dumps(coll))
+
+        names = m.list_regex_collections()
+        assert "Phones" in names["collections"]
+
+        out = m.run_regex_collection("Phones", directory=str(tmp_path), recursive=True)
+        assert out["collection"] == "Phones"
+        assert out["total_matches"] >= 1
+        assert out["patterns"][0]["name"] == "US phone"
+        assert out["patterns"][0]["file_count"] >= 1
+        assert any("555-1234" in x["text"] for x in out["matches"])
+
+    def test_run_suite_path_guard(self, tmp_path):
+        allowed = tmp_path / "allowed"
+        allowed.mkdir()
+        other = tmp_path / "other"
+        other.mkdir()
+        m._CONFIG.roots = [os.path.realpath(str(allowed))]
+        with pytest.raises(m.PathNotAllowedError):
+            m.run_search_suite("Whatever", directory=str(other))
+
+
 # ── main() argument handling ───────────────────────────────────────
 
 class TestMain:

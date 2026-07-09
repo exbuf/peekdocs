@@ -1535,7 +1535,7 @@ Add a stdio server entry to your client's MCP configuration (Claude Desktop, Cla
 | `list_search_suites` / `run_search_suite` | List and run saved search suites (running only performs searches). |
 | `list_regex_collections` / `run_regex_collection` | List and run saved regex collections (running only performs searches). |
 
-OCR (`use_ocr`) and the index (`allow_index_write`) are opt-in per call. OCR requires Tesseract, the same as everywhere else in peekdocs.
+Both are off by default and opt-in per call: `use_ocr` (OCR for scanned PDFs and images) is available on the search and inventory tools, and `allow_index_write` (use/refresh the on-disk index) is available on `search_documents`. OCR requires Tesseract, the same as everywhere else in peekdocs.
 
 ### Example prompts
 
@@ -1546,9 +1546,11 @@ Once the server is registered, you drive it in plain language — you talk to th
 | "Search my Documents for **invoice** and tell me which files it's in." | `search_documents` |
 | "Find every phone number in my contracts — use the regex `\d{3}[-.]\d{3}[-.]\d{4}`." | `search_documents` (regex mode) |
 | "Search my notes for **budgt** with fuzzy matching — I'm not sure of the spelling." | `search_documents` (fuzzy mode) |
+| "Find files that mention **budget** and **Q3** but not **draft**." | `search_documents` (boolean expression) |
 | "In **lease.pdf**, show me the lines around where it mentions the security deposit." | `get_document_context` |
 | "List the PDFs in my Documents folder with their sizes and dates." | `inventory_folder` |
 | "What file types can you search?" | `list_supported_file_types` |
+| "What saved search suites do I have?" | `list_search_suites` |
 | "Run my **Weekly Review** search suite and summarize what turned up." | `run_search_suite` |
 | "Which regex collections do I have? Run **Credentials** over the projects subfolder." | `list_regex_collections` + `run_regex_collection` |
 

@@ -420,9 +420,11 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 ### MCP server (optional) — search from an AI assistant
 
-peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other MCP hosts) can search your local documents — over the same engine the CLI and GUI use. You ask the assistant a question about your files; it runs the search and answers.
+peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other MCP hosts) can search your local documents — over the same engine the CLI and GUI use. You ask the assistant about your files in plain, everyday language — for example, *"find the contract that mentions the roof warranty"* — and it does the searching for you and gathers the answer, so you never have to learn any search commands.
 
 It is deliberately **read-only**: it exposes search, context, folder inventory, supported-types, and saved suite/collection runs, and **nothing that writes** — no delete, move, rename, or report-writing. And it is fenced: `--root` is **required**, so the assistant can only search inside the folders you name — never your whole drive.
+
+**A note on privacy.** peekdocs itself never sends anything over the internet. But the matching lines it finds are shown to the assistant as part of your conversation — so if that assistant runs in the cloud (like the Claude apps), those snippets are sent to it over the internet, just like anything else you type into a chat. If you would rather nothing ever leaves your computer, you can run a free AI model directly on your own machine and connect peekdocs to that instead; see the [fully-local setup](docs/USER_GUIDE.md#fully-local-and-private-pairing-with-a-downloadable-model) in the User Guide.
 
 Install with the optional `[mcp]` extra (which adds the `mcp` library the server needs) and point it at a folder:
 
@@ -514,7 +516,7 @@ Below: the getting-started on-ramp, then Search Suites and Regex Search in actio
 
 ## Feature Highlights
 
-A workbench for document collections: search them, characterize them through built-in analysis tools, produce highlighted reports, monitor folders live via `--watch`, and drive it all through whichever interface fits — GUI, CLI, or Python API.
+A workbench for document collections: search them, characterize them through built-in analysis tools, produce highlighted reports, monitor folders live via `--watch`, and drive it all through whichever interface fits — GUI, CLI, Python API, or an AI assistant via MCP.
 
 - **100+ file types in one query** — Word, PDF, Excel, email, source code, archives, scanned PDFs (OCR), and more, searched simultaneously.
 - **Local-only by design** — no network calls, no telemetry, no account; runs with your normal user permissions on Windows, macOS, and Linux.
@@ -523,6 +525,7 @@ A workbench for document collections: search them, characterize them through bui
 - **Built-in analysis and reporting** — Duplicate Finder, File Inventory, Age Distribution, Change Tracking; highlighted reports in DOCX / HTML / PDF and machine-readable CSV / JSON / NDJSON.
 - **Repeatable workflows** — Saved Searches, Search Suites, Regex Collections, Schedule Search, Search History, and Diff Snapshots compose into one workflow system.
 - **Same engine across GUI, CLI, and Python API** — schemas are shared, so a search you build in the GUI today drives from a Python script or cron job tomorrow with identical results.
+- **AI assistant integration (MCP)** — an optional, read-only [Model Context Protocol](https://modelcontextprotocol.io) server (`peekdocs-mcp`) lets an MCP-capable AI assistant (Claude Desktop, Claude Code, and others) search your documents through the same engine. It exposes search and listing only — no write, move, rename, or delete — and a required `--root` fences it to the folders you name. Pair it with a local, downloadable model to keep everything on your machine.
 - **Polished GUI** — yellow-highlighted matches in the preview and the reports, tooltips on every control, dark/light/system theme, adjustable text size, and contextual `?` help popups throughout.
 - **Works in any language** — Like most modern search tools, peekdocs supports Unicode-based exact-character matching for searching documents in any language (no stemming or word segmentation; works equally for English prose, Chinese text, code identifiers, account numbers). The peekdocs GUI itself is also translated into 7 languages — uncommon for a search tool at this scale (partial, native-reviewed contributions welcome).
 
@@ -532,7 +535,7 @@ A workbench for document collections: search them, characterize them through bui
 
 ## How these compose
 
-The Feature Highlights above list the primitives individually. This section is about what happens when you combine them — three compositions that aren't obvious from the bullet list:
+The Feature Highlights above list the primitives individually. This section is about what happens when you combine them — four compositions that aren't obvious from the bullet list:
 
 **Live pattern sweep** — `--watch` + `--regex-collection`. Watch a folder and re-run a saved regex collection on every file create/modify, emitting one self-contained NDJSON record per match to stdout. Pipe stdout to `jq`, a log shipper, or a shell loop that fires a notification — a live pattern sentinel with no cron and no polling. (Note: `--on-match` fires on batch searches, not from `--watch` mode — for `--watch` the stdout NDJSON stream *is* the notification channel.)
 
@@ -557,6 +560,14 @@ See the worked example in [USER_GUIDE.md § A worked example: audit engagement p
 **Scheduled pattern scan** — cron / Task Scheduler + `--regex-collection`. The GUI's Schedule Search (Tools → Schedule Search) generates a copy-paste-ready cron (macOS/Linux) or Task Scheduler (Windows) command that invokes `peekdocs --regex-collection NAME --timestamp` — a dated report every N hours or days, no manual runs. Pair with `--on-match CMD` for notifications when patterns actually appear (email, Slack, PagerDuty — you write the script; peekdocs invokes it with match count and report paths as env vars).
 
 See the worked example in [USER_GUIDE.md § A worked example: nightly source-tree watch](docs/USER_GUIDE.md#a-worked-example-nightly-source-tree-watch), which layers this composition with the provenance-audit one to build a full "detect + notify + preserve evidence" workflow.
+
+**Private conversational search** — `peekdocs-mcp` + a local model. Run the read-only MCP server and register it with an MCP host driven by a downloadable open-weight model (Llama, Qwen, Mistral, via Ollama or LM Studio). Now you ask an assistant in plain language — *"which contracts mention the renewal clause?"* — and it runs peekdocs searches to answer, with the model, the server, and your files all staying on your machine. Nothing is uploaded, and peekdocs can only be *asked*, never made to write. (With a cloud assistant instead, the same setup works — the difference is that returned snippets travel to that assistant.)
+
+```bash
+peekdocs-mcp --root ~/Documents   # then register with any MCP host — see the User Guide
+```
+
+See [USER_GUIDE.md § MCP server](docs/USER_GUIDE.md#mcp-server-search-from-an-ai-assistant), including the fully-local setup that keeps everything offline.
 
 *For every flag and composition above as a copy-pasteable one-liner, see the [Complete CLI Reference](docs/USER_GUIDE.md#complete-cli-reference) in USER_GUIDE — 197+ commands, grouped by feature, searchable with `Cmd+F` / `Ctrl+F`.*
 
