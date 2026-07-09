@@ -40,7 +40,7 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Need full history so `git tag` sees existing tags and
           # `git push origin <tag>` works against the remote.
