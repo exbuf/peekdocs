@@ -160,3 +160,21 @@ jobs:
 
       - name: Run OCR integration test
         run: pytest tests/test_ocr_integration.py -v
+
+  # Verify every internal link in the project's Markdown resolves — both
+  # the target file and (for .md targets) the #anchor against the target's
+  # real heading slugs. Catches doc-rot from renamed / renumbered sections
+  # before it reaches a reader. Stdlib-only + fast: no install step needed.
+  doc-links:
+    name: Docs (internal link check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Check internal documentation links
+        run: python scripts/check_doc_links.py
