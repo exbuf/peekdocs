@@ -473,7 +473,7 @@ peekdocs is built for anyone who has files and needs to find something in them â
 
 ### What makes peekdocs distinctive
 
-The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool.
+The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation + optional AI-assistant access (MCP)** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool â€” and the MCP server lets an AI assistant drive that same engine in plain language, staying fully offline when paired with a local model.
 
 ## Watch peekdocs in action
 
