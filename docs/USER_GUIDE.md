@@ -1470,6 +1470,27 @@ Results ==> /Users/yourname/Documents
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
 
+### Who benefits, and why
+
+The MCP server is worth setting up when you'd rather *ask a question* than *build a search*. Its benefits:
+
+- **Plain language instead of syntax.** Ask in everyday words — no need to learn flags, regex, or Boolean operators. This is especially helpful for non-technical users.
+- **The assistant chains and synthesizes.** It can run several searches, refine them, cross-reference the results, and hand you a written answer — not just a list of raw matches.
+- **Grounded, not guessed.** Answers are backed by real peekdocs matches, with file paths and line numbers the assistant can cite, rather than the model inventing an answer from memory.
+- **Fits the AI tool you already use.** Drive peekdocs from your existing assistant — no separate app or terminal to switch to.
+- **Safe to point at real folders.** The server is read-only and fenced by `--root`, so the assistant can *find* things but never modify them, and only ever sees the folders you name.
+- **Your choice of privacy.** Use a cloud assistant for convenience, or a local model to keep everything on your machine (see [Fully local and private](#fully-local-and-private-pairing-with-a-downloadable-model)).
+- **Reuses your saved methodology.** The assistant can run your named Search Suites and Regex Collections on request.
+- **Answers "what do I have?", not just "where is it?"** Folder inventory and supported-types tools let the assistant characterize a folder conversationally.
+
+A few examples of how different people might use it (assuming `--root` points at the relevant folder):
+
+- **Developer** — "Which files still call the deprecated `authV1` function?" The assistant runs a search across the tree and summarizes what it finds.
+- **Sysadmin** — "Find request ID `abc-123` across these logs and give me the timeline." It searches the mixed log/archive files and orders the hits.
+- **Auditor / reviewer** — "Run my *Evidentiary Patterns* regex collection over this folder and group the hits by document." It runs the saved collection and organizes the results.
+- **Researcher** — "Which PDFs cite the Smith 2019 method?" It searches the corpus and lists the matching papers with locations.
+- **Small-business owner (non-technical)** — "Which contract mentions the roof warranty?" Plain English, no flags to learn.
+
 ### Read-only by design
 
 The server exposes only search and listing capabilities. It has **no tool that writes, moves, renames, or deletes anything**, and it does not generate reports. Report-writing and file-mutation code is never even imported by the server. This mirrors peekdocs's read-only core: an AI assistant can *find* things in your documents, but cannot change your files.
