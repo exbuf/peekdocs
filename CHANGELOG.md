@@ -14,18 +14,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Optional read-only MCP server (`peekdocs-mcp`).** A [Model Context
-  Protocol](https://modelcontextprotocol.io) server that lets an
-  MCP-capable AI assistant search local documents over the same
-  `peekdocs.api` engine the CLI and GUI use. Install with
-  `pip install peekdocs[mcp]` and run over stdio. Exposes eight
-  read-only tools (`search_documents`, `get_document_context`,
-  `inventory_folder`, `list_supported_file_types`, and saved
-  suite/collection runners) — no write, move, rename, delete, or
-  report-generation surface. `--root DIR` is **required** and confines
-  every search to the folders you name; requests for paths outside the
-  allowlist are rejected. Searches never write the on-disk index by
-  default. New public API helpers `inventory_folder()` and
-  `list_supported_file_types()` back the folder-listing tools.
+  Protocol](https://modelcontextprotocol.io) server that lets any
+  MCP-capable AI assistant — Claude Desktop, Claude Code, and
+  local-model hosts (LM Studio, Ollama-based clients) — search local
+  documents over the same `peekdocs.api` engine the CLI and GUI use. It
+  is a thin adapter, so an assistant's search returns the same matches
+  your own would. Install with the optional extra
+  (`pip install "peekdocs[mcp]"`) and run over stdio. Eight read-only
+  tools: `search_documents`, `get_document_context`, `inventory_folder`,
+  `list_supported_file_types`, `list_search_suites`, `run_search_suite`,
+  `list_regex_collections`, `run_regex_collection` — with **no** write,
+  move, rename, delete, or report-generation surface (those code paths
+  are never imported by the server).
+  - **Guardrails.** `--root DIR` is **required** and confines every
+    search to the folders you name; out-of-root and path-traversal
+    requests are rejected. `--max-results` caps results per call with a
+    truncation notice. Searches never write the on-disk index by
+    default; opt in per call with `allow_index_write`.
+  - **Privacy.** peekdocs stays local and initiates nothing (the
+    exchange is one-way — the assistant asks, peekdocs answers; the MCP
+    "sampling" capability is deliberately not implemented). A *cloud*
+    assistant still receives the returned snippets as part of the
+    conversation; pairing with a *local* downloadable model (Llama,
+    Qwen, Mistral) keeps everything on your machine.
+  - **New public API helpers** `inventory_folder()` (+ the
+    `FileInventoryItem` dataclass) and `list_supported_file_types()`,
+    re-exported at the top level
+    (`from peekdocs import inventory_folder, list_supported_file_types`),
+    back the folder-listing tools.
+  - Documented across the README (Feature Highlights, "How these
+    compose", "Why peekdocs?"), the User Guide (setup, "Who benefits"
+    with per-persona examples, one-way/sampling and data-locality notes,
+    and a fully-local downloadable-model setup), the API reference, and
+    the Glossary.
+- **Schedule Search dialog — `?` help panel and Close button (GUI).**
+  The Schedule Search dialog (Tools menu) gained a `?` help button, the
+  only Tools dialog that lacked one. Its panel explains what the feature
+  does and why peekdocs generates a scheduler command for you to paste
+  rather than registering the schedule itself (the OS scheduler owns the
+  job; peekdocs stays out of your system). The help popup also gained a
+  Close button, matching the other help panels.
+- **Internal documentation link check in CI.** New
+  `scripts/check_doc_links.py` (stdlib-only) plus a `doc-links` CI job
+  verify that every internal Markdown link resolves — the target file
+  and, for `.md` targets, the `#anchor` against the target's real
+  heading slugs / explicit HTML anchors. A broken internal link (missing
+  file or renamed/removed anchor) now fails CI.
+
+### Fixed
+- Fixed 5 broken internal documentation links (anchors left stale by
+  renamed / renumbered sections, plus a glossary term that needed an
+  explicit anchor).
+- CI `mypy` job no longer fails on recent numpy's PEP 695 `type`
+  statements in its bundled stubs — a numpy-scoped `follow_imports`
+  override skips the stub that mypy rejected under the
+  `python_version = "3.10"` target. (Pytest was never affected.)
 
 ## [1.2.85] — 2026-07-07
 
