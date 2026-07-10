@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.86] — 2026-07-10
+
 ### Added
 - **Optional read-only MCP server (`peekdocs-mcp`).** A [Model Context
   Protocol](https://modelcontextprotocol.io) server that lets any
