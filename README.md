@@ -104,11 +104,9 @@ Feito para quem prefere ferramentas locais, transparentes e determinísticas. Se
 
 ### You have files. You need to find something in them.
 
-peekdocs is a local search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, archives, source code, and scanned documents via OCR — through a single pipeline. Saved-search suites group recurring workflows into one combined report; a regex pattern workbench runs named collections across any folder; everything runs locally with no network. GUI, CLI, and Python API. Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
+peekdocs is a local search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, archives, source code, and scanned documents via OCR — through a single pipeline. Saved-search suites group recurring workflows into one combined report; a regex pattern workbench runs named collections across any folder; everything runs locally with no network. GUI, CLI, Python API, and an optional AI-assistant interface via [MCP](#mcp-server-optional--search-from-an-ai-assistant). Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
-
-**Optional — search by asking an AI.** Connect peekdocs to an AI assistant through its built-in [MCP server](#mcp-server-optional--search-from-an-ai-assistant) and find things in plain, everyday language instead of building a search — the assistant runs peekdocs for you and answers with file-and-line citations. Use a free model on your own machine to stay fully offline, or a cloud assistant like Claude for convenience; either way peekdocs stays read-only and makes no network calls of its own.
 
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a TXT report — plus optional JSON, CSV, or yellow-highlighted DOCX, PDF, or HTML → save the search → add it to a Search Suite → schedule it weekly.
 
