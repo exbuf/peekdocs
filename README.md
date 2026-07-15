@@ -422,6 +422,22 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server so an MCP-capable AI assistant (Claude Desktop, Claude Code, and other MCP hosts) can search your local documents — over the same engine the CLI and GUI use. You ask the assistant about your files in plain, everyday language — for example, *"find the contract that mentions the roof warranty"* — and it does the searching for you and gathers the answer, so you never have to learn any search commands.
 
+```
+You ─ ask in plain language ─▶ AI host (local or cloud MCP client)
+                                  │  calls a tool over stdio (a local pipe)
+                                  ▼
+                               peekdocs-mcp ─ read-only, --root-fenced
+                                  │  deterministic keyword/regex search,
+                                  ▼  the same engine the CLI and GUI use
+                               matches: file path + line number + text
+                                  │  returned to the host
+                                  ▼
+                               AI host summarizes & cites them ─▶ you
+                               (the summarizing is the host's job, not peekdocs)
+```
+
+The [annotated version](docs/USER_GUIDE.md#how-the-flow-works) is in the User Guide.
+
 It is deliberately **read-only**: it exposes search, context, folder inventory, supported-types, and saved suite/collection runs, and **nothing that writes** — no delete, move, rename, or report-writing. And it is fenced: `--root` is **required**, so the assistant can only search inside the folders you name — never your whole drive.
 
 **A note on privacy.** peekdocs itself never sends anything over the internet. But the matching lines it finds are shown to the assistant as part of your conversation — so if that assistant runs in the cloud (like the Claude apps), those snippets are sent to it over the internet, just like anything else you type into a chat. If you would rather nothing ever leaves your computer, you can run a free AI model directly on your own machine and connect peekdocs to that instead; see the [fully-local setup](docs/USER_GUIDE.md#fully-local-and-private-pairing-with-a-downloadable-model) in the User Guide.
