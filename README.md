@@ -134,7 +134,7 @@ Built for people who prefer private, transparent, deterministic tools. No cloud,
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Who Is It For?](#who-is-it-for)
+- [Who Is peekdocs For?](#who-is-peekdocs-for)
 - [Watch peekdocs in action](#watch-peekdocs-in-action)
 - [Feature Highlights](#feature-highlights)
 - [How these compose](#how-these-compose)
@@ -467,7 +467,7 @@ Then ask the assistant something like *"search my Documents for the word invoice
 
 **Tools:** `search_documents`, `get_document_context`, `inventory_folder`, `list_supported_file_types`, `list_search_suites`, `run_search_suite`, `list_regex_collections`, `run_regex_collection`. Searches never write to your folders by default (the on-disk index is opt-in via a per-call flag). See the [User Guide → MCP server](docs/USER_GUIDE.md#mcp-server-search-from-an-ai-assistant) for details.
 
-## Who Is It For?
+## Who Is peekdocs For?
 
 peekdocs is built for anyone who has files and needs to find something in them — across many kinds of files at once (Word, PDF, Excel, email, scanned documents, archives, and 100+ more), entirely on your own computer.
 

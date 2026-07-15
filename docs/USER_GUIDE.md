@@ -624,7 +624,7 @@ All of these use the GUI. Open `peekdocs-gui`, click **Browse** to select a fold
 
 ### Example 8: Real-world workflow — invoices over $10,000 from 2024
 
-**Goal:** Year-end review — find every invoice over $10,000 that came in during 2024. This is the "Office worker" task from the [Who Is It For?](../README.md#who-is-it-for) examples table, fully worked. Shows how to combine *two* range filters (amount + filedate) with file-type restriction and recursive search.
+**Goal:** Year-end review — find every invoice over $10,000 that came in during 2024. This is the "Office worker" task from the [Who Is peekdocs For?](../README.md#who-is-peekdocs-for) examples table, fully worked. Shows how to combine *two* range filters (amount + filedate) with file-type restriction and recursive search.
 
 **In the GUI:**
 
