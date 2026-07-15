@@ -108,6 +108,8 @@ peekdocs is a local search workbench that does exactly that across 100+ file typ
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
+**Optional — search by asking an AI.** Connect peekdocs to an AI assistant through its built-in [MCP server](#mcp-server-optional--search-from-an-ai-assistant) and find things in plain, everyday language instead of building a search — the assistant runs peekdocs for you and answers with file-and-line citations. Use a free model on your own machine to stay fully offline, or a cloud assistant like Claude for convenience; either way peekdocs stays read-only and makes no network calls of its own.
+
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a TXT report — plus optional JSON, CSV, or yellow-highlighted DOCX, PDF, or HTML → save the search → add it to a Search Suite → schedule it weekly.
 
 <!--
@@ -484,6 +486,7 @@ peekdocs is built for anyone who has files and needs to find something in them �
 - **Researcher** — Search 3,000 PDFs (journal articles, interview transcripts, survey responses, field notes, datasets) for a specific term, author, citation, or data point and export highlighted results. OCR reads scanned source materials and historical documents. The highlighted Word report doubles as an annotated bibliography.
 - **Small business owner** — Find vendor contracts expiring in the next 90 days. Save searches by name and reload them later; search across contracts, invoices, reports, and correspondence for terms, pricing, or expiration dates. Personal side: pull a tax document from any of the last seven years across mixed folders — tax returns, insurance policies, receipts, warranties, estate documents.
 - **Office worker** — Find all invoices over $10,000 from 2024. *(fully worked, GUI and CLI, in [User Guide → Example 8](docs/USER_GUIDE.md#example-8-real-world-workflow--invoices-over-10000-from-2024))*
+- **Anyone who'd rather *ask* than build a search (AI assistant — optional)** — Connect peekdocs to an MCP-capable AI assistant and search by asking in plain language; the assistant runs the searches and answers with file-and-line citations, grounded in your real documents rather than guessed. For example — a **small-business owner:** *"which contract mentions the roof warranty?"*; a **developer:** *"which files still call the deprecated `authV1` function?"*; an **auditor:** *"run my Evidentiary Patterns collection over this folder and group the hits by document"*; a **researcher:** *"which PDFs cite the Smith 2019 method?"* Pair it with a **free local model** (via Ollama or LM Studio) to keep everything on your machine, or use a cloud assistant (Claude Desktop / Code) for convenience. See [MCP server](#mcp-server-optional--search-from-an-ai-assistant).
 
 *The audiences and scenarios above describe possible uses of peekdocs. peekdocs is provided "as is" under the [MIT License](LICENSE), without warranty of any kind, express or implied.*
 
