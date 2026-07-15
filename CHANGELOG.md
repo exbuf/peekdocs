@@ -12,6 +12,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Docs
+- **MCP data-flow diagram** (e623640, f27550a, `README.md`,
+  `docs/USER_GUIDE.md`). Added a "How the flow works" diagram to the
+  User Guide's MCP section and a compact version to the README,
+  showing the round-trip request path (assistant → `peekdocs-mcp` →
+  deterministic search → matches carrying file + line → assistant)
+  and attributing the summarizing/citing step to the AI host, not
+  peekdocs.
+- **"AI-agnostic and stateless by design" subsection**
+  (e623640, daef946, `docs/USER_GUIDE.md`). Documents that the server
+  calls no model and works with any MCP host, and that each tool call
+  is self-contained with no cross-call state — the only persistence is
+  the fixed startup policy (`--root`, `--max-results`) and the opt-in,
+  off-by-default index. Verified against `mcp_server.py`; wording
+  tightened afterward for precision.
+- **README MCP intro reframed around local models**
+  (66eb0c4, ca9ab63, `README.md`). The MCP section now leads with
+  pairing a free local model (Llama/Qwen/Mistral via Ollama or
+  LM Studio) and peekdocs's data-stays-local promise; a cloud
+  assistant such as Claude Desktop or Claude Code is noted as an
+  option, with the caveat that only the local setup keeps your data
+  entirely on your machine.
+- **AI-assistant framing in the intro and audience list**
+  (a1fb998, bae2722, `README.md`). The intro flags the optional
+  AI-assistant interface (via MCP) as a single clause, and "Who Is
+  peekdocs For?" gained an AI-assistant bullet with per-persona
+  plain-language example queries.
+- **Heading rename** (c7c2ecb, `README.md`, `docs/USER_GUIDE.md`).
+  "Who Is It For?" → "Who Is peekdocs For?", with the two internal
+  links to its anchor updated.
+
 ## [1.2.86] — 2026-07-10
 
 ### Added
