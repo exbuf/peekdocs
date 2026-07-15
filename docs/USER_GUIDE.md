@@ -1470,6 +1470,38 @@ Results ==> /Users/yourname/Documents
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
 
+### How the flow works
+
+A request makes a round trip: the assistant calls peekdocs, peekdocs searches and answers, and the assistant does anything further with the results. peekdocs is only the *retrieval* step — it finds and returns matches; it never summarizes.
+
+```
+You
+ │  ask in plain language ("which contract mentions the roof warranty?")
+ ▼
+AI host  ── Claude Desktop / Claude Code, or a local model
+ │          (via LM Studio, Ollama, or another MCP-capable client)
+ │  1. picks the search terms and calls a tool, over stdio
+ │     (a local pipe between two programs — no internet)
+ ▼
+peekdocs-mcp  ── read-only server, fenced to your --root folder(s)
+ │  2. runs a deterministic keyword / regex / fuzzy search —
+ │     the same engine the CLI and GUI use. No embeddings, no
+ │     semantic ranking: the same query returns the same hits.
+ ▼
+Your local files  (only inside --root)
+ │  3. matching lines
+ ▼
+peekdocs returns the matches ── file path + line number + text
+ │  4. back up the same stdio pipe (capped by --max-results; read-only)
+ ▼
+AI host summarizes the matches and cites the file + line
+ │     (this step is the assistant's own work, not a peekdocs feature)
+ ▼
+You get a grounded, cited answer
+```
+
+peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. Everything above stays on your machine **except** the model step when you use a *cloud* assistant: the matches become part of the conversation the host sends to the vendor's servers. Pair peekdocs with a local model and nothing leaves your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine) and [Fully local and private](#fully-local-and-private-pairing-with-a-downloadable-model).
+
 ### Who benefits, and why
 
 The MCP server is worth setting up when you'd rather *ask a question* than *build a search*. Its benefits:
@@ -1504,6 +1536,16 @@ The exchange only ever goes one direction: the **assistant calls peekdocs**, pee
 So when you ask the assistant to "summarize what you found," peekdocs only supplies the raw matches — the summarizing is the assistant's own work, not a peekdocs feature.
 
 **A note on "sampling."** The MCP protocol does include one feature that runs the other direction, and it is worth understanding why peekdocs leaves it out. Normally the assistant calls a server's tools; *sampling* inverts that — it lets a **server ask the host to run a model completion on its behalf** (to summarize or classify some text, for example), borrowing the host's model without needing its own API key. The host is expected to keep a human in the loop: show you the request, let you approve or deny it, and run it on a model it controls (the server never sees the model or its credentials directly). **peekdocs does not implement sampling.** If it did, peekdocs could drive the assistant — pushing file contents to the model on its own initiative, turning a passive "answers queries" tool into one that orchestrates the AI. Leaving it out is what preserves the simple contract above: peekdocs can be *asked* things, and can only *answer*. If that ever changed, it would be a new, opt-in capability documented prominently.
+
+### AI-agnostic and stateless by design
+
+Two more properties fall out of the architecture, and both are safe to rely on.
+
+**AI-agnostic.** peekdocs implements the open MCP standard over stdio and *calls no model itself* — there is no vendor SDK, no API key, and no model client anywhere in the server. It neither knows nor cares which model is behind the host, so the same server works unchanged with Claude Desktop, Claude Code, or a local Llama/Qwen/Mistral via LM Studio or Ollama. Swap the assistant and nothing in peekdocs changes. The one requirement is that the host speaks MCP with tool-calling — a model with no MCP client can't drive it.
+
+**Stateless.** Every tool call is self-contained: its result is fully determined by its own arguments and the files on disk at that moment. The server keeps no conversation history, no session memory, and no cross-call cache — the same query returns the same matches. The only things that persist are the startup policy you set (`--root`, `--max-results`), which never changes while the server runs, and the optional on-disk index, which is off by default in every MCP search. Any statefulness lives in the *assistant*: when it chains and refines searches, that memory is the host's conversation, not peekdocs — the server just answers each independent call.
+
+Together these give **no lock-in** (change models or hosts freely), **reproducibility** (stateless plus deterministic search is auditable and repeatable), and **privacy** (the server accumulates no data across calls, so there is nothing to retain or leak). They are also why the server's guardrail logic is unit-testable without even importing the `mcp` package.
 
 ### Does it keep everything on your machine?
 
