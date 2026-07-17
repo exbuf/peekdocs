@@ -12,6 +12,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **MCP tool responses now report the folder searched.** Every
+  directory-scoped MCP tool (`search_documents`, `get_document_context`,
+  `inventory_folder`, `run_search_suite`, `run_regex_collection`) now
+  includes a `searched_directory` field — the exact resolved folder the
+  search ran in (the server's `--root` unless a `directory` argument is
+  passed). This gives an AI assistant the ground-truth scope so it can
+  state *what was searched* accurately instead of inferring it from its
+  working directory and overstating coverage. Additive and
+  backward-compatible; `search_documents`' description also tells the
+  model to describe scope from this value.
+
 ### Docs
 - **MCP data-flow diagram** (e623640, f27550a, `README.md`,
   `docs/USER_GUIDE.md`). Added a "How the flow works" diagram to the

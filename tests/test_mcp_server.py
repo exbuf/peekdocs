@@ -88,6 +88,11 @@ class TestSearchDocuments:
         assert {os.path.basename(x["file"]) for x in out["matches"]} == {"a.txt", "b.txt"}
         assert out["files_searched"] >= 2
 
+    def test_reports_searched_directory(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(["fox"], directory=str(tmp_path), recursive=True)
+        assert out["searched_directory"] == os.path.realpath(str(tmp_path))
+
     def test_read_only_no_index_written(self, tmp_path):
         _seed(tmp_path)
         m.search_documents(["fox"], directory=str(tmp_path), recursive=True)
@@ -117,12 +122,14 @@ class TestOtherTools:
         _seed(tmp_path)
         out = m.get_document_context("a.txt", ["fox"], directory=str(tmp_path))
         assert out["file"] == "a.txt"
+        assert out["searched_directory"] == os.path.realpath(str(tmp_path))
         assert any("fox" in x["text"] for x in out["matches"])
 
     def test_inventory_folder_tool(self, tmp_path):
         _seed(tmp_path)
         out = m.inventory_folder(directory=str(tmp_path))
         assert out["total"] == 2
+        assert out["searched_directory"] == os.path.realpath(str(tmp_path))
         assert all("size_human" in row for row in out["files"])
         # modified is a human-readable ISO-8601 string, not a raw epoch float
         for row in out["files"]:

@@ -122,7 +122,10 @@ def search_documents(
 
     Call this when the user wants to find a word, phrase, or pattern across
     their local files (Word, PDF, Excel, code, and 100+ other formats).
-    Returns each matching line with its file and line number.
+    Returns each matching line with its file and line number. The response's
+    ``searched_directory`` field reports the exact folder that was searched
+    (the server's ``--root`` unless you pass ``directory``); describe the
+    search scope from that value, not from any assumed or working directory.
 
     query: one or more search terms (OR by default; set match_all for AND).
     directory: folder to search (defaults to the server's root).
@@ -154,6 +157,7 @@ def search_documents(
     )
     matches, envelope = _cap(_match_dicts(result.matches))
     return {
+        "searched_directory": d,
         "matches": matches,
         "files_searched": len(result.files_searched),
         "skipped_files": [{"file": f, "error": e} for f, e in result.skipped_files],
@@ -190,7 +194,7 @@ def get_document_context(
         use_index=False,
     )
     matches, envelope = _cap(_match_dicts(result.matches))
-    return {"file": file, "matches": matches, **envelope}
+    return {"file": file, "searched_directory": d, "matches": matches, **envelope}
 
 
 def inventory_folder(
@@ -219,7 +223,7 @@ def inventory_folder(
         }
         for it in items
     ])
-    return {"files": rows, **envelope}
+    return {"searched_directory": d, "files": rows, **envelope}
 
 
 def list_supported_file_types(include_ocr: bool = False) -> dict[str, Any]:
@@ -256,6 +260,7 @@ def run_search_suite(name: str, directory: Optional[str] = None) -> dict[str, An
         for m in _match_dicts(sr.matches)
     ])
     return {
+        "searched_directory": d,
         "suite": result.suite,
         "total_matches": result.total_matches,
         "elapsed_seconds": round(result.elapsed, 3),
@@ -300,6 +305,7 @@ def run_regex_collection(
         for m in _match_dicts(pr.matches)
     ])
     return {
+        "searched_directory": d,
         "collection": result.collection,
         "total_matches": result.total_matches,
         "elapsed_seconds": round(result.elapsed, 3),
