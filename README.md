@@ -451,6 +451,8 @@ peekdocs-mcp --root ~/Documents      # stdio server; --root is required
 
 (Once peekdocs is published to PyPI, the short form `pipx install "peekdocs[mcp]"` will work too.)
 
+**Already have peekdocs installed?** A plain `pipx install` is a no-op when the package is already present — pipx skips it, so you won't get the `[mcp]` extra (and on a version older than 1.2.86 you'll see `command not found: peekdocs-mcp`). Force the reinstall to pick it up: `pipx install --force "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"`.
+
 Register it with any MCP client using stdio — the transport every client speaks. For **Claude Code**:
 
 ```bash

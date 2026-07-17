@@ -1571,7 +1571,9 @@ pip install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
 
 Once peekdocs is published to PyPI, the short form `pipx install "peekdocs[mcp]"` will work too. If pipx rejects the `@` syntax on your version, the equivalent is `pipx install "git+https://github.com/exbuf/peekdocs.git#egg=peekdocs[mcp]"`.
 
-If you already have peekdocs installed without the extra, running `peekdocs-mcp` will tell you exactly this — it exits with a message pointing you to the `[mcp]` install command.
+**Already have peekdocs installed?** A plain `pipx install` is a *no-op* when the package is already present — pipx skips it, so it neither adds the `[mcp]` extra nor upgrades the version. If your installed peekdocs is older than **1.2.86**, the `peekdocs-mcp` command doesn't exist yet, so you'll get `command not found: peekdocs-mcp`. Force the reinstall to upgrade *and* pick up the extra: `pipx install --force "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"` (or `pipx upgrade peekdocs` if you first installed with the `[mcp]` extra).
+
+If you already have peekdocs (1.2.86 or newer) installed *without* the extra, running `peekdocs-mcp` will tell you exactly this — it exits with a message pointing you to the `[mcp]` install command.
 
 Run it over stdio — the transport every MCP client speaks — and confine it to the folders you're willing to expose:
 
