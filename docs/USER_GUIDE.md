@@ -1575,18 +1575,63 @@ Once peekdocs is published to PyPI, the short form `pipx install "peekdocs[mcp]"
 
 If you already have peekdocs (1.2.86 or newer) installed *without* the extra, running `peekdocs-mcp` will tell you exactly this — it exits with a message pointing you to the `[mcp]` install command.
 
-Run it over stdio — the transport every MCP client speaks — and confine it to the folders you're willing to expose:
+The server speaks over **stdio**, the transport every MCP client uses, and `--root` confines it to the folders you're willing to expose. Your MCP client normally launches it for you (see the [Quickstart](#quickstart-claude-code-the-fastest-way-to-try-it) below) — the command it runs is:
 
 ```bash
 peekdocs-mcp --root ~/Documents
 ```
 
+*Run this by hand and it will start and then wait silently for a client to connect — that's expected, not a hang; press Ctrl-C to stop. You normally never run it yourself; your MCP client does.*
+
 - `--root DIR` is **required** and restricts every tool to that folder (repeatable for multiple roots). Requests for any path outside the allowlist are rejected. This is the safety fence: an AI assistant using the server can only search inside the folders you name — never your whole drive. The server refuses to start without at least one `--root`.
 - `--max-results N` caps how many matches or files a single tool call returns (default 200). When a result is truncated, the response says so with the true total, so the assistant can narrow the query.
 
+### Quickstart: Claude Code (the fastest way to try it)
+
+If you use **Claude Code** (Anthropic's terminal CLI), it is already an MCP host — so you can try peekdocs in a couple of minutes with no separate model or app to install. *(No Claude Code? Install it first, then come back.)*
+
+1. **Install the server** (once):
+
+   ```bash
+   pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
+   ```
+
+   Already have peekdocs installed? A plain `pipx install` is skipped (a no-op), so add `--force` to pull the `[mcp]` extra: `pipx install --force "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"`.
+
+2. **Register it, fenced to one folder:**
+
+   ```bash
+   claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents
+   ```
+
+   Point `--root` at the folder you want the assistant to be able to search — it can see *only* inside that folder. You'll get `Added stdio MCP server peekdocs …`.
+
+   > **Don't run `peekdocs-mcp --root …` directly to "test" it.** It's a server, so it just sits there silently waiting for a client — that's normal, not a hang. Press Ctrl-C and let Claude Code start it for you.
+
+3. **Open a *new* Claude Code session** — exit and run `claude` again, or open a new terminal window (MCP tools load when a session starts). Then confirm it connected:
+
+   ```
+   /mcp
+   ```
+
+   You should see **peekdocs** listed as connected.
+
+4. **Just ask, in plain language:**
+
+   > "Use peekdocs to search my Documents for the word *contract* and tell me which files it's in."
+
+   Claude runs the search and answers with file names and line numbers.
+
+**Good to know**
+
+- **Scope:** it searches your `--root` folder and its subfolders — *not* the directory you launched Claude Code from. Ask "what folder did you search?" and it will tell you.
+- **Point it elsewhere:** re-register with a different `--root` (run `claude mcp remove peekdocs` first if it says it already exists).
+- **Remove it:** `claude mcp remove peekdocs`.
+- **Privacy:** Claude Code runs the model in the cloud, so the snippets it reads leave your machine (see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine)). To keep everything local, pair peekdocs with a downloadable model instead — see [Fully local and private](#fully-local-and-private-pairing-with-a-downloadable-model) below.
+
 ### Registering with an MCP client
 
-Add a stdio server entry to your client's MCP configuration (Claude Desktop, Claude Code, and other MCP hosts follow the same shape):
+Other MCP hosts use a config file instead of a command. Add a stdio server entry to your client's MCP configuration (Claude Desktop and other MCP hosts follow the same shape):
 
 ```json
 {
@@ -1631,20 +1676,7 @@ Once the server is registered, you drive it in plain language — you talk to th
 
 The last two are worth noting: peekdocs returns only the raw matches, and the assistant does any summarizing or explaining on top of them (see [One-way by design](#one-way-by-design) above).
 
-A full end-to-end example, from the terminal to a working chat, using **Claude Code**:
-
-```bash
-# 1. Install the server (once)
-pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
-
-# 2. Register it, fenced to one folder
-claude mcp add peekdocs -- peekdocs-mcp --root ~/Documents
-
-# 3. Start a new Claude Code session, confirm the server is connected
-#    with the /mcp command, then just ask:
-#      "Use peekdocs to search my Documents for the word contract
-#       and tell me which files it's in."
-```
+The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the-fastest-way-to-try-it) above.
 
 ### Fully local and private: pairing with a downloadable model
 
