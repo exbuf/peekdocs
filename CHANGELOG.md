@@ -13,16 +13,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
-- **MCP tool responses now report the folder searched.** Every
-  directory-scoped MCP tool (`search_documents`, `get_document_context`,
-  `inventory_folder`, `run_search_suite`, `run_regex_collection`) now
-  includes a `searched_directory` field — the exact resolved folder the
-  search ran in (the server's `--root` unless a `directory` argument is
-  passed). This gives an AI assistant the ground-truth scope so it can
-  state *what was searched* accurately instead of inferring it from its
-  working directory and overstating coverage. Additive and
-  backward-compatible; `search_documents`' description also tells the
-  model to describe scope from this value.
+- **MCP tool responses now report the folder searched — so an AI assistant
+  can state its scope accurately.** *Found while testing the MCP server
+  through an AI assistant:* when the assistant summarized a search it could
+  describe its coverage as the whole working/launch directory (e.g. "I
+  searched all of your Documents folder") when it had in fact only searched
+  the fenced `--root`. peekdocs's results were correct and correctly scoped —
+  the overstatement was the *assistant's narration*, because the tool
+  responses never told it **where** the search actually ran, so it inferred
+  the location from its working directory. Fix: every directory-scoped tool
+  (`search_documents`, `get_document_context`, `inventory_folder`,
+  `run_search_suite`, `run_regex_collection`) now returns a
+  `searched_directory` field — the exact resolved folder searched (the
+  server's `--root` unless a `directory` argument is passed) — and
+  `search_documents`'s description tells the model to describe scope from that
+  value. With the ground truth in hand, an assistant reports the real root
+  (and distinguishes it from the working directory) instead of overstating
+  coverage. Additive and backward-compatible.
 
 ### Docs
 - **MCP data-flow diagram** (e623640, f27550a, `README.md`,
