@@ -104,7 +104,7 @@ Feito para quem prefere ferramentas locais, transparentes e determinísticas. Se
 
 ### You have files. You need to find something in them.
 
-peekdocs is a local search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, archives, source code, and scanned documents via OCR — through a single pipeline. Saved-search suites group recurring workflows into one combined report; a regex pattern workbench runs named collections across any folder; everything runs locally with no network. GUI, CLI, Python API, and an optional AI-assistant interface via [MCP](#mcp-server-optional--search-from-an-ai-assistant). Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
+peekdocs is a local search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, archives, source code, and scanned documents via OCR — through a single pipeline. Saved-search suites group recurring workflows into one combined report; a regex pattern workbench runs named collections across any folder; everything runs locally with no network. GUI, CLI, Python API, and an optional AI-assistant interface via MCP [for AI-era doc search capabilities](#mcp-server-optional--search-from-an-ai-assistant). Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
 
 Built for people who prefer private, transparent, deterministic tools. No cloud, no telemetry, no network calls.
 
