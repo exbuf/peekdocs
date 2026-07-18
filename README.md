@@ -422,6 +422,8 @@ The `if __name__ == "__main__":` guard is **required** — peekdocs uses `multip
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server so an MCP-capable AI assistant can search your local documents — over the same engine the CLI and GUI use. Pair it with a **free AI model that runs on your own computer** (Llama, Qwen, or Mistral, via [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)) and everything stays local — your questions, the file snippets, and the answer never leave your machine, keeping peekdocs's core privacy promise intact. It works with any MCP host, so a cloud assistant (such as Claude Desktop or Claude Code) is an option too, but only the local-model setup keeps your data entirely on your computer. You ask the assistant about your files in plain, everyday language — for example, *"find the contract that mentions the roof warranty"* — and it does the searching for you and gathers the answer, so you never have to learn any search commands.
 
+> 🆕 **New to running AI models locally?** The **[Local AI Assistant setup guide](docs/LOCAL_AI_SETUP.md)** walks you through the whole thing from scratch — installing a runtime, choosing a model, and connecting peekdocs — with **no prior experience assumed**.
+
 ```
 You ─ ask in plain language ─▶ AI host (local or cloud MCP client)
                                   │  calls a tool over stdio (a local pipe)
