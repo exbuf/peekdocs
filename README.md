@@ -469,7 +469,7 @@ For **Claude Desktop** (and other hosts that use a config file):
 { "mcpServers": { "peekdocs": { "command": "peekdocs-mcp", "args": ["--root", "/Users/you/Documents"] } } }
 ```
 
-Then ask the assistant something like *"search my Documents for the word invoice and tell me which files it's in."*
+Then ask the assistant something like *"search my Documents for the word invoice and tell me which files it's in."* It can also run your **saved Search Suites and Regex Collections** on request — so the reusable, deterministic methodology you've already built becomes something you (or a teammate) can drive in plain language.
 
 **Tools:** `search_documents`, `get_document_context`, `inventory_folder`, `list_supported_file_types`, `list_search_suites`, `run_search_suite`, `list_regex_collections`, `run_regex_collection`. Searches never write to your folders by default (the on-disk index is opt-in via a per-call flag). See the [User Guide → MCP server](docs/USER_GUIDE.md#mcp-server-search-from-an-ai-assistant) for details.
 
@@ -503,7 +503,7 @@ peekdocs is built for anyone who has files and needs to find something in them �
 **And it's what makes AI on your documents trustworthy.** peekdocs does the *searching*, not the guessing — it's the retrieval half, and the AI you choose (local or cloud) reasons on top:
 
 - **Use AI on documents you can't upload.** peekdocs makes no network calls; with a model on your own machine, your files never leave it — so *"I'd love to use AI, but I can't send our documents to the cloud"* stops being a blocker.
-- **Answers you can verify.** Every result carries an exact file path and line number, so the assistant cites real sources you can open — not invented ones.
+- **Answers you can verify.** Every result carries an exact file path and line number, so the assistant cites real sources you can open — not invented ones. Optional SHA-256 fingerprints let you confirm a cited file hasn't changed since.
 - **You always know *why* a document was selected.** Where embedding-based retrieval returns *approximately* relevant chunks with an opaque similarity score, peekdocs matches exactly — same query, same results, every hit auditable.
 
 The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation + optional AI-assistant access (MCP)** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool — and the MCP server lets an AI assistant drive that same engine in plain language, staying fully offline when paired with a local model.
