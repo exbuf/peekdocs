@@ -1680,6 +1680,8 @@ The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the
 
 ### Fully local and private: pairing with a downloadable model
 
+> **New to running AI models locally?** For a full, no-prior-experience walkthrough — installing a runtime, choosing a model, and connecting peekdocs step by step, with troubleshooting — see the [Private, Local AI Assistant beginner's guide](LOCAL_AI_SETUP.md). The rest of this section is the concise overview.
+
 The example above uses a cloud assistant, so the matching lines peekdocs returns travel to that assistant's servers as part of the conversation (see [One-way by design](#one-way-by-design)). You can close that gap entirely by pairing peekdocs with a **local, downloadable model** instead of a cloud one. In that setup the model runs on your machine, peekdocs runs on your machine, and your file contents never leave it — the search-snippet exposure simply doesn't exist. This is peekdocs's privacy-first stance carried all the way through to the AI layer.
 
 It takes three pieces:

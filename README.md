@@ -750,6 +750,7 @@ All three share the same engine, flags, and 100+ file-type support. The matching
 | Document | Description |
 |----------|-------------|
 | [User Guide](docs/USER_GUIDE.md) | Complete reference — GUI, CLI flags, search modes, indexing, file reference |
+| [Local AI Assistant setup](docs/LOCAL_AI_SETUP.md) | Beginner's guide to running peekdocs with a private, on-your-computer AI assistant — no prior experience with models, runtimes, or MCP assumed |
 | [Walkthroughs](docs/WALKTHROUGHS.md) | Seven annotated screenshot tours — same search across three interfaces, Advanced Search Options, Regex Search, Search Suites, Diff Snapshots, Schedule Search, and `peekdocs --check` |
 | [Installation](docs/INSTALLATION.md) | Per-platform Python prerequisites, optional tools (Tesseract, UnRAR, libpff-python), CLI-on-Windows footnotes, and less-common install paths |
 | [API Reference](docs/API.md) | Python library API — `search()`, suite/collection runners, folder inventory, the optional `peekdocs-mcp` MCP server for AI assistants, and the `peekdocs.errors` exception hierarchy (`QueryError`, `RangeError`, `NameNotFoundError` — each inheriting from a stdlib base for back-compat). Public surface ships type hints verified in CI by mypy across the public API + core engine modules (14 files, listed in `pyproject.toml`). |
