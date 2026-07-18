@@ -496,9 +496,13 @@ peekdocs is built for anyone who has files and needs to find something in them �
 
 ### What makes peekdocs distinctive
 
-**peekdocs is the local retrieval engine that gives an AI assistant read-only, deterministic access to your documents — 100+ file types, no cloud required.** It does the *searching*, not the guessing: peekdocs is the deterministic retrieval half, and the AI you choose (local or cloud) reasons on top. That unlocks the AI a lot of people can't otherwise touch:
+**peekdocs is deterministic document retrieval: the same query returns the same exact results every time, and every hit traces to a specific file and line.** Across 100+ formats, entirely on your machine, no cloud. That reproducibility is the whole point — and it pays off **with or without AI.**
 
-- **Use AI on documents you can't upload.** peekdocs makes no network calls; paired with a model on your own machine, your files never leave it — so *"I'd love to use AI, but I can't send our documents to the cloud"* stops being a blocker.
+**On its own,** it's search you can *trust and repeat*: audits, compliance sweeps, scheduled scans, regression checks — same inputs, same outputs, no black box.
+
+**And it's what makes AI on your documents trustworthy.** peekdocs does the *searching*, not the guessing — it's the retrieval half, and the AI you choose (local or cloud) reasons on top:
+
+- **Use AI on documents you can't upload.** peekdocs makes no network calls; with a model on your own machine, your files never leave it — so *"I'd love to use AI, but I can't send our documents to the cloud"* stops being a blocker.
 - **Answers you can verify.** Every result carries an exact file path and line number, so the assistant cites real sources you can open — not invented ones.
 - **You always know *why* a document was selected.** Where embedding-based retrieval returns *approximately* relevant chunks with an opaque similarity score, peekdocs matches exactly — same query, same results, every hit auditable.
 
