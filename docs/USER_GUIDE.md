@@ -1522,6 +1522,12 @@ A few examples of how different people might use it (assuming `--root` points at
 - **Auditor / reviewer** — "Run my *Evidentiary Patterns* regex collection over this folder and group the hits by document." It runs the saved collection and organizes the results.
 - **Researcher** — "Which PDFs cite the Smith 2019 method?" It searches the corpus and lists the matching papers with locations.
 - **Small-business owner (non-technical)** — "Which contract mentions the roof warranty?" Plain English, no flags to learn.
+- **AI/ML engineer** — "Which experiment logs mention checkpoint `run_2024_ckpt_9`?" It searches your scripts, configs, and notebooks and lists where it appears.
+- **IT consultant** — "Search this client folder for every place the old API-key format shows up." It sweeps the mixed files — no flags to learn on a client's machine.
+- **Data researcher** — "Which of these CSVs contain account number 88213?" It scans the spreadsheets and names the files (and rows) that match.
+- **Engineer** — "Which datasheets mention a tolerance of ±0.5%?" It searches the PDFs and drawings and points to each hit.
+- **Documentation team** — "Find every doc still using the old product name instead of the new one." It flags the inconsistencies across the doc set.
+- **Office worker** — "Which of my files mention Acme and a dollar amount?" It runs the search and lists the matching files in plain English.
 
 ### Read-only by design
 
