@@ -496,7 +496,11 @@ peekdocs is built for anyone who has files and needs to find something in them �
 
 ### What makes peekdocs distinctive
 
-**peekdocs is a document-search app built for the AI era — but it does the *searching*, not the guessing.** It finds exact text deterministically, and its optional MCP server lets an AI assistant (local or cloud) drive that search in plain language — so the assistant's answers are grounded in your real files with exact citations, and, paired with a local model, nothing ever leaves your machine. It's the trustworthy, private retrieval layer for the AI era, not another cloud black box.
+**peekdocs is the local retrieval engine that gives an AI assistant read-only, deterministic access to your documents — 100+ file types, no cloud required.** It does the *searching*, not the guessing: peekdocs is the deterministic retrieval half, and the AI you choose (local or cloud) reasons on top. That unlocks the AI a lot of people can't otherwise touch:
+
+- **Use AI on documents you can't upload.** peekdocs makes no network calls; paired with a model on your own machine, your files never leave it — so *"I'd love to use AI, but I can't send our documents to the cloud"* stops being a blocker.
+- **Answers you can verify.** Every result carries an exact file path and line number, so the assistant cites real sources you can open — not invented ones.
+- **You always know *why* a document was selected.** Where embedding-based retrieval returns *approximately* relevant chunks with an opaque similarity score, peekdocs matches exactly — same query, same results, every hit auditable.
 
 The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation + optional AI-assistant access (MCP)** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool — and the MCP server lets an AI assistant drive that same engine in plain language, staying fully offline when paired with a local model.
 
