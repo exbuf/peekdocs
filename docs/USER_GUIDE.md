@@ -1567,6 +1567,8 @@ To keep **everything** on your machine — your questions and the file snippets 
 
 ### Installing and running
 
+**The MCP server comes only with the pip/pipx install** — it is *not* included in the standalone binary download, and you do not need the GUI to use it (`peekdocs-mcp` is a headless server your MCP host launches). If you currently run peekdocs from a standalone binary and want the AI feature, install via pip/pipx as below.
+
 The `mcp` library is an optional dependency, so install peekdocs with the `[mcp]` extra — that adds the one library the server needs on top of a normal peekdocs install. The MCP server code itself already ships inside peekdocs; the extra only pulls in the `mcp` runtime dependency (from PyPI). Because peekdocs installs from GitHub (it is not on PyPI yet), include the repository URL:
 
 ```bash
