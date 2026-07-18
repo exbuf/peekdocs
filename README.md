@@ -498,7 +498,7 @@ peekdocs is built for anyone who has files and needs to find something in them �
 
 **peekdocs is deterministic document retrieval: the same query returns the same exact results every time, and every hit traces to a specific file and line.** Across 100+ formats, entirely on your machine, no cloud. That reproducibility is the whole point — and it pays off **with or without AI.**
 
-**On its own,** it's search you can *trust and repeat*: audits, compliance sweeps, scheduled scans, regression checks — same inputs, same outputs, no black box.
+**On its own,** it's search you can *trust and repeat*: pattern sweeps, scheduled scans, regression checks, and re-runnable investigations — same inputs, same outputs, no black box.
 
 **And it's what makes AI on your documents trustworthy.** peekdocs does the *searching*, not the guessing — it's the retrieval half, and the AI you choose (local or cloud) reasons on top:
 
