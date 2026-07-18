@@ -39,9 +39,9 @@ You don't need to *understand* these deeply — just recognize them:
 
 | Word | What it means, plainly |
 |---|---|
-| **Model** (or **LLM**) | The "AI brain" — a large file you download and run. |
-| **Runtime** / **model runner** | The app that runs the model on your computer. We'll use **LM Studio**. |
-| **MCP** | The standard way an AI assistant plugs into an outside tool (here, peekdocs). |
+| **Model** / **LLM** (short for *Large Language Model*) | The "AI brain" — a large file you download and run. It's what turns your plain-language question into a tool call and writes the reply. |
+| **Runtime** / **model runner** | The app that runs an AI model **on your own computer**. We use **LM Studio**; other local options include **Ollama**, **Jan**, and **GPT4All**. With a **cloud** assistant instead (e.g. **Claude Desktop** or **Claude Code**), the model runs on the provider's servers, so there's no local runner to install. |
+| **MCP** (short for *Model Context Protocol*) | The open standard that lets an AI assistant plug into an outside tool (here, peekdocs). |
 | **MCP host** | The app the assistant runs in that can connect to MCP tools. LM Studio is both the runner *and* the host. |
 | **Tool calling** | The model's ability to actually *use* a tool. **Essential** — some models can't, and then this won't work (see Troubleshooting). |
 | **`--root`** | The folder(s) you allow the assistant to search. Your safety fence. |
