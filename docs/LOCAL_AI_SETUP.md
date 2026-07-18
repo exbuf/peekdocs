@@ -103,7 +103,9 @@ downloaded shows nothing — that's expected, not a bug.)
 ## Step 3 — Add the peekdocs connector
 
 peekdocs can talk to AI assistants, but that ability ships as an optional add-on called the
-**`[mcp]` extra**. Install it once, in a terminal:
+**`[mcp]` extra**, and it comes **only with the pip/pipx install** — *not* with the standalone
+binary download. You don't need the GUI either: `peekdocs-mcp` is a headless server. Install it
+once, in a terminal:
 
 ```bash
 pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"

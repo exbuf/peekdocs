@@ -444,6 +444,8 @@ It is deliberately **read-only**: it exposes search, context, folder inventory, 
 
 **A note on privacy.** peekdocs itself never sends anything over the internet. But the matching lines it finds are shown to the assistant as part of your conversation — so if that assistant runs in the cloud (like the Claude apps), those snippets are sent to it over the internet, just like anything else you type into a chat. If you would rather nothing ever leaves your computer, you can run a free AI model directly on your own machine and connect peekdocs to that instead; see the [fully-local setup](docs/USER_GUIDE.md#fully-local-and-private-pairing-with-a-downloadable-model) in the User Guide.
 
+**The AI feature comes only with the pip/pipx install** (the `[mcp]` extra below) — it is *not* included in the [standalone binary download](#1-option-a-standalone-download-no-python-needed), and you don't need the GUI: `peekdocs-mcp` is a headless server your AI host launches for you.
+
 Install with the optional `[mcp]` extra (which adds the `mcp` library the server needs) and point it at a folder:
 
 ```bash
