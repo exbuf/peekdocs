@@ -128,8 +128,10 @@ Note that path — you'll need it in the next step.
 
 ## Step 4 — Connect peekdocs to LM Studio
 
-LM Studio reads a small settings file named **`mcp.json`** that tells it which tools to connect to.
-You'll add peekdocs to it.
+LM Studio reads a small settings file named **`mcp.json`** that lists the connectors — MCP
+**servers** — it should connect to. You'll add **peekdocs** (one server) to it; LM Studio then
+discovers peekdocs' individual tools (`search_documents`, `inventory_folder`, and the rest)
+**automatically** — you never list tools yourself.
 
 **Where the file is** (it's in a *hidden* folder, so it won't show in normal file browsers):
 
@@ -176,13 +178,26 @@ Save the file.
 
 ## Step 5 — Turn it on
 
-1. **Reload LM Studio** so it reads the new file: quit and reopen it (or, in the MCP/integrations
-   panel, toggle peekdocs off then on). It may ask you to **allow** the peekdocs server the first
-   time — say yes.
-2. **Load the model:** open the **Chat**, and in the model selector at the top, load your
-   **Qwen2.5-7B-Instruct**.
-3. **Turn on tools:** make sure tool use is enabled for the chat and **peekdocs** is switched on.
-   You should see peekdocs' tools available (`search_documents`, `inventory_folder`, and a few more).
+**1. Reload LM Studio so it sees peekdocs.** LM Studio reads `mcp.json` only at startup, so after
+editing the file, **quit LM Studio completely and reopen it** (or toggle peekdocs off then on in
+the integrations panel). The first time, it may ask you to **allow** the peekdocs server — say yes.
+
+**2. Confirm peekdocs is connected (this is "pointing to peekdocs").** Open the
+**integrations / plugins / "Program"** panel — look for a **puzzle-piece, plug, or tools icon** in
+LM Studio's sidebar. You should now see **peekdocs** listed, with its tools under it
+(`search_documents`, `inventory_folder`, and more). If there's an on/off switch next to peekdocs,
+make sure it's **on**. Seeing those tools means peekdocs is connected — you never add tools
+yourself; they appear automatically.
+
+**3. Select the AI model.** Open the **Chat** (speech-bubble icon). At the **top of the chat**
+there's a **model selector** — click it and choose your **Qwen2.5-7B-Instruct** from the list of
+downloaded models. *(Downloaded models appear here and under **My Models** — **not** in the
+Discover tab; Discover only searches for new models to download.)* Give it a few seconds to load
+into memory.
+
+**4. Make sure tools are on for the chat.** Near the message box there's usually a **tools / wrench
+icon** — make sure tool use is enabled and **peekdocs** is switched on for this conversation.
+That's what lets the model actually call peekdocs.
 
 ## Step 6 — Ask your first question
 
