@@ -55,6 +55,11 @@ You don't need to *understand* these deeply — just recognize them:
 - An internet connection **for the downloads only**. Once everything's installed, it all works
   offline.
 
+> **Known-good as of July 2026:** LM Studio 0.4.19 + Qwen2.5-7B-Instruct. The local-AI ecosystem
+> moves fast — app menus and model builds shift often. The **peekdocs** steps here are stable;
+> the host-app (LM Studio) UI details are illustrative, so if a menu has moved, check that app's
+> own current docs. The concepts don't change.
+
 ---
 
 ## Step 1 — Install a runtime (LM Studio)
