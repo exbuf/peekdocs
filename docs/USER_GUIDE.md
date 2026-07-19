@@ -1532,7 +1532,7 @@ A few examples of how different people might use it (assuming `--root` points at
 
 ### What to ask — and what to send straight to peekdocs
 
-The assistant adds value when it **reads and reasons over** what peekdocs found — not when it merely relays a hit list. For a bare keyword search ("show every line with *invoice*") the assistant adds little over peekdocs itself; peekdocs already does the finding, exactly and instantly. So phrase requests as *questions*, and know which kind you're asking:
+The assistant adds value when it **reads and reasons over** what peekdocs found — not when it merely relays a hit list. For a bare keyword search ("show every line with *invoice*") the assistant adds little over peekdocs itself; peekdocs already does the finding, exactly and deterministically. So phrase requests as *questions*, and know which kind you're asking:
 
 - **Needle questions — the assistant's sweet spot.** The answer lives in a *few* strong matches: a fact, a clause, a comparison, a summary. *"What's the warranty period in the roofing contract?"*, *"Do these two contracts differ on the cancellation clause?"*, *"Summarize what my notes say about the migration plan."* The assistant reads the handful of hits and answers.
 - **Census questions — send these to peekdocs directly.** The answer needs the *whole* result set: an exact count, an exhaustive list, an aggregate. *"How many documents mention 'invoice'?"*, *"List **every** client I've billed."* Because responses are capped (`--max-results`, kept low for local models so replies fit the model's context window), the assistant only sees the first slice and may answer confidently despite seeing just a partial picture. peekdocs' own counts and its CSV/JSON exports are complete and exact — use those.

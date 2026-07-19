@@ -266,7 +266,7 @@ and the answer never leave your machine.**
 
 A fair question after your first search: *"the assistant just listed the same hits peekdocs would
 have — what did the AI add?"* Often, for a bare keyword search, **nothing** — and that's expected.
-peekdocs already does the *finding* (exactly, instantly, deterministically). The assistant earns its
+peekdocs already does the *finding* (exactly and deterministically). The assistant earns its
 keep only when your question needs it to **read and reason over** what peekdocs found.
 
 So the trick is to ask *questions*, not keyword dumps:

@@ -512,7 +512,7 @@ peekdocs is built for anyone who has files and needs to find something in them �
 
 - **Use AI on documents you can't upload.** peekdocs makes no network calls; with a model on your own machine, your files never leave it — whether that's a client's files, your own financial paperwork, or documents your workplace won't allow in the cloud. *"I'd love to use AI, but I can't upload these"* stops being a blocker.
 - **Answers you can verify.** Every result carries an exact file path and line number, so the assistant cites real sources you can open — not invented ones. Optional SHA-256 fingerprints let you confirm a cited file hasn't changed since.
-- **You always know *why* a document was selected.** Where embedding-based retrieval returns *approximately* relevant chunks with an opaque similarity score, peekdocs matches exactly — same query, same results, every hit auditable.
+- **You always know *why* a document was selected.** Where embedding-based retrieval returns relevant chunks with an *approximate* similarity score, peekdocs matches exactly — same query, same results, every hit auditable.
 
 The combination of **local + privacy-first + grep-like power + OCR + regex workflows + reporting + automation + optional AI-assistant access (MCP)** across heterogeneous document collections is unusual. peekdocs delivers all of them in one tool — and the MCP server lets an AI assistant drive that same engine in plain language, staying fully offline when paired with a local model.
 
