@@ -1708,6 +1708,21 @@ Once the server is registered, you drive it in plain language — you talk to th
 
 The last two are worth noting: peekdocs returns only the raw matches, and the assistant does any summarizing or explaining on top of them (see [One-way by design](#one-way-by-design) above).
 
+**Prompts that lean on the assistant — not just retrieval.** The table above mostly mirrors what a plain peekdocs search already does well: *finding* things. The assistant earns its keep when your question needs it to **read, compare, and reason over** what peekdocs returns — so it hands you an *answer*, not a hit list. These are all "needle" questions (the answer lives in a few strong matches); each still runs a real peekdocs search underneath, but the value is in what the model does with the results:
+
+| You ask the assistant… | What it does that a plain search can't |
+|---|---|
+| "Find the renewal clauses across my contracts and summarize how the renewal terms differ." | **Synthesizes and compares** matches from several files into one answer. |
+| "In **lease.pdf** and **lease_v2.pdf**, what changed about the security deposit?" | Pulls the relevant lines from **both** files and describes the **difference** in plain language. |
+| "Find the roofing contract and tell me just the warranty period." | Locates the file, then **extracts the single fact** you asked for instead of dumping matches. |
+| "Which of my invoices read as past due? List them oldest first." | **Filters by meaning and orders** the results — judgment a keyword match can't make. |
+| "I wrote something last spring about a permit problem but don't recall the exact words — find it." | **Formulates the query for you** — picking terms and synonyms — from a vague description. |
+| "Look at my **Projects** folder and tell me what kinds of documents are in it and how it's organized." | Inventories the folder, then **characterizes and summarizes** it rather than listing files. |
+| "Find this error code in my logs, then explain what it likely means and where it first appears." | Finds the hits and **explains them in context**, ordering by first occurrence. |
+| "Find every file mentioning **Acme**, then of those, which also mention a dollar amount over $10k?" | **Chains searches and refines** — using earlier results to narrow the next step. |
+
+Keep these to **needle** questions. For **census** questions — exact counts or exhaustive lists ("how many documents mention X", "list *every* client") — the cap on returned results means the assistant sees only a slice and may answer from a partial picture; ask peekdocs directly for those, since its counts and CSV/JSON exports are complete and exact. The fuller guidance is in [What to ask — and what to send straight to peekdocs](#what-to-ask--and-what-to-send-straight-to-peekdocs).
+
 The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the-fastest-way-to-try-it) above.
 
 ### Fully local and private: pairing with a downloadable model
