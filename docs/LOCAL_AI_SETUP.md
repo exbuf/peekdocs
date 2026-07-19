@@ -140,6 +140,33 @@ LM Studio reads a small settings file named **`mcp.json`** that lists the connec
 discovers peekdocs' individual tools (`search_documents`, `inventory_folder`, and the rest)
 **automatically** — you never list tools yourself.
 
+### 🅰 The easy way — let peekdocs write the config
+
+You rarely need to touch that file by hand. Pick whichever fits:
+
+- **One command (interactive):**
+  ```bash
+  peekdocs-mcp --setup
+  ```
+  A folder picker opens — choose the folder the assistant may search, and peekdocs writes LM
+  Studio's config for you (backing up any existing one). Then **skip to Step 5.** *(No graphical
+  display? name the folder instead: `peekdocs-mcp --write-lmstudio-config --root ~/Documents`.)*
+- **From the peekdocs GUI:** **Tools → "AI Assistant Setup (MCP)…"** — the same thing with a
+  folder picker, subfolders/OCR/index/backup toggles, and **Write / Copy / Save** buttons.
+- **Print and paste (works for *any* MCP host, not just LM Studio):**
+  ```bash
+  peekdocs-mcp --print-config --root ~/Documents
+  ```
+  Copy the JSON it prints into your host's config. Add `--recursive` / `--ocr` and repeat
+  `--root <folder>` for more folders as you like.
+
+All of these fill in the **full path** to `peekdocs-mcp` for you, so you can't get the
+GUI-stripped-PATH gotcha (below) wrong.
+
+### 🅱 …or edit the file by hand
+
+If you'd rather do it manually (or your host isn't LM Studio):
+
 **Where the file is** (it's in a *hidden* folder, so it won't show in normal file browsers):
 
 - **macOS / Linux:** `~/.lmstudio/mcp.json`

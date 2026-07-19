@@ -1639,7 +1639,16 @@ If you use **Claude Code** (Anthropic's terminal CLI), it is already an MCP host
 
 ### Registering with an MCP client
 
-Other MCP hosts use a config file instead of a command. Add a stdio server entry to your client's MCP configuration (Claude Desktop and other MCP hosts follow the same shape):
+**peekdocs can generate or write this config for you**, so you don't have to hand-edit JSON or hunt down the full path:
+
+- **`peekdocs-mcp --setup`** — opens a native folder picker, then writes LM Studio's `mcp.json` (backing up any existing one). No display? use `peekdocs-mcp --write-lmstudio-config --root <folder>`.
+- **`peekdocs-mcp --print-config --root <folder>`** — prints the config block to paste into *any* host's config. Add `--recursive`/`--ocr` and repeat `--root` for more folders.
+- **`peekdocs-mcp --config-path <file>`** — write to a specific host's config file (with `--write-lmstudio-config`/`--setup`).
+- **GUI:** **Tools → "AI Assistant Setup (MCP)…"** — a folder list, editable config path, subfolders/OCR/index/backup toggles, and Write / Copy / Save buttons.
+
+Each fills in the absolute path to `peekdocs-mcp`, avoiding the [stripped-PATH launch failure](#fully-local-and-private-pairing-with-a-downloadable-model). If LM Studio isn't installed, the tools show the config rather than writing it.
+
+To do it by hand instead: other MCP hosts use a config file. Add a stdio server entry to your client's MCP configuration (Claude Desktop and other MCP hosts follow the same shape):
 
 ```json
 {
