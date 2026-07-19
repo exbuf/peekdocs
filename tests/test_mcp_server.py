@@ -78,13 +78,24 @@ class TestCap:
         m._CONFIG.max_results = 2
         rows, env = m._cap([1, 2, 3, 4, 5])
         assert rows == [1, 2]
-        assert env == {"truncated": True, "total": 5, "returned": 2}
+        assert env["truncated"] is True
+        assert env["total"] == 5
+        assert env["returned"] == 2
+
+    def test_truncation_note_states_real_reason(self):
+        # The note names the cap and the numbers so an assistant relays the
+        # real reason instead of inventing one ("time constraints", etc.).
+        m._CONFIG.max_results = 2
+        _, env = m._cap([1, 2, 3, 4, 5])
+        assert "max_results" in env["note"]
+        assert "2 of 5" in env["note"]
 
     def test_under_cap_untouched(self):
         m._CONFIG.max_results = 10
         rows, env = m._cap([1, 2])
         assert rows == [1, 2]
         assert env == {"truncated": False, "total": 2, "returned": 2}
+        assert "note" not in env  # no note when nothing was dropped
 
 
 # ── Tool logic ─────────────────────────────────────────────────────

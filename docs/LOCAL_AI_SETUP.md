@@ -297,6 +297,13 @@ reads the file at startup).
   back is `--max-results` in `mcp.json`, and the model's memory is **Context Length** in LM Studio
   (both above). A model that *suggests commands* instead of *showing tool calls* may also be the
   wrong model — see the first item in this list.
+- **The assistant *explains itself* in a way that sounds off** (e.g. "some results were truncated
+  due to time or file-size limits"). Take the model's **narration** with a grain of salt — a small
+  local model will confidently invent reasons it wasn't given. peekdocs' **tool output is the source
+  of truth**: it returns exact file names, line numbers, and — when a search is capped — a precise
+  note (*"Showing 25 of 47 results — capped by max_results"*). If the prose and the numbers disagree,
+  believe the numbers. (Truncation itself is normal on a low `--max-results` — narrow the search or
+  raise the cap to see the rest.)
 - **You ran `peekdocs-mcp` in a terminal and it just sits there doing nothing.** That's normal —
   it's a server waiting to be contacted, not a frozen program. Press **Ctrl-C** to stop it; you're
   not meant to run it by hand (LM Studio does).

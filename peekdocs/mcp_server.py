@@ -82,13 +82,25 @@ def _resolve_dir(directory: Optional[str]) -> str:
 
 
 def _cap(items: list) -> tuple[list, dict[str, Any]]:
-    """Truncate ``items`` to ``max_results`` and describe what was dropped."""
+    """Truncate ``items`` to ``max_results`` and describe what was dropped.
+
+    On truncation the envelope carries a plain-language ``note`` alongside the
+    machine fields, stating the real reason (the ``max_results`` cap). Assistants
+    reliably relay a ready-made sentence but tend to invent a cause when handed
+    only the numbers — the note keeps their narration honest.
+    """
     total = len(items)
-    if total > _CONFIG.max_results:
-        return items[: _CONFIG.max_results], {
+    cap = _CONFIG.max_results
+    if total > cap:
+        return items[:cap], {
             "truncated": True,
             "total": total,
-            "returned": _CONFIG.max_results,
+            "returned": cap,
+            "note": (
+                f"Showing {cap} of {total} results — capped by max_results "
+                f"({cap}). To see more, ask to narrow the request (e.g. a more "
+                "specific term or folder) or raise the max_results limit."
+            ),
         }
     return items, {"truncated": False, "total": total, "returned": total}
 
@@ -131,6 +143,8 @@ def search_documents(
     ``searched_directory`` field reports the exact folder that was searched
     (the server's ``--root`` unless you pass ``directory``); describe the
     search scope from that value, not from any assumed or working directory.
+    If ``truncated`` is true, relay the ``note`` verbatim — it gives the real
+    reason (the ``max_results`` cap) — rather than guessing why results were cut.
 
     query: one or more search terms (OR by default; set match_all for AND).
     directory: folder to search (defaults to the server's root).

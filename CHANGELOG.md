@@ -49,6 +49,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   value. With the ground truth in hand, an assistant reports the real root
   (and distinguishes it from the working directory) instead of overstating
   coverage. Additive and backward-compatible.
+- **Truncated MCP responses now carry a plain-language `note` explaining the
+  cut.** *Found while testing through a local model:* when results were capped,
+  the assistant told the user they were truncated "due to time constraints or
+  file size limits" — both invented; the real and only reason is the
+  `max_results` cap. peekdocs was already returning the machine fields
+  (`truncated`, `total`, `returned`), but the model reconstructed a cause from
+  the bare numbers and guessed wrong. Fix: on truncation the response envelope
+  now includes a ready-made sentence — e.g. *"Showing 25 of 47 results — capped
+  by max_results (25). To see more, ask to narrow the request … or raise the
+  max_results limit."* — and `search_documents`'s description tells the model to
+  relay the `note` verbatim rather than guess. Assistants reliably pass along a
+  supplied sentence but tend to confabulate from raw counts. Additive and
+  backward-compatible.
 
 ### Changed
 - **Generated MCP configs now suggest `--max-results 25` by default (down from
