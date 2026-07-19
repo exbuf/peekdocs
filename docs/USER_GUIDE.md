@@ -1473,7 +1473,7 @@ peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol
 
 ### How the flow works
 
-A request makes a round trip: the assistant calls peekdocs, peekdocs searches and answers, and the assistant does anything further with the results. peekdocs is only the *retrieval* step — it finds and returns matches; it never summarizes.
+A request makes a round trip: the assistant calls peekdocs, peekdocs searches and answers, and the assistant summarizes or reasons over the results. peekdocs is only the *retrieval* step — it finds and returns matches; it never summarizes.
 
 ```
 You
@@ -1691,7 +1691,7 @@ Two flags are off by default and opt-in per call: `use_ocr` (OCR for scanned PDF
 
 ### Example prompts
 
-Once the server is registered, you drive it in plain language — you talk to the assistant, and it picks the right tool. Assuming the server was started with `--root ~/Documents`, here are prompts you might type and the tool each one exercises:
+Once the server is registered, you drive it in plain language — you talk to the assistant, and it picks the right tool. Assuming the server was started with `--root ~/Documents`, here are prompts you might type and the tool each one exercises (a second table further down covers prompts that lean on the assistant's *reasoning* rather than plain retrieval):
 
 | You ask the assistant… | Tool it uses |
 |---|---|
@@ -1721,7 +1721,7 @@ The last two are worth noting: peekdocs returns only the raw matches, and the as
 | "Find this error code in my logs, then explain what it likely means and where it first appears." | Finds the hits and **explains them in context**, ordering by first occurrence. |
 | "Find every file mentioning **Acme**, then of those, which also mention a dollar amount over $10k?" | **Chains searches and refines** — using earlier results to narrow the next step. |
 
-Keep these to **needle** questions. For **census** questions — exact counts or exhaustive lists ("how many documents mention X", "list *every* client") — the cap on returned results means the assistant sees only a slice and may answer from a partial picture; ask peekdocs directly for those, since its counts and CSV/JSON exports are complete and exact. The fuller guidance is in [What to ask — and what to send straight to peekdocs](#what-to-ask--and-what-to-send-straight-to-peekdocs).
+Keep these to **needle** questions — for **census** questions (exact counts, exhaustive lists) the result cap means the assistant sees only a slice, so ask peekdocs directly. Full guidance: [What to ask — and what to send straight to peekdocs](#what-to-ask--and-what-to-send-straight-to-peekdocs).
 
 The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the-fastest-way-to-try-it) above.
 
