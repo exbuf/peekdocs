@@ -477,6 +477,8 @@ Then ask the assistant something like *"search my Documents for the word invoice
 
 **Tools:** `search_documents`, `get_document_context`, `inventory_folder`, `list_supported_file_types`, `list_search_suites`, `run_search_suite`, `list_regex_collections`, `run_regex_collection`. Searches never write to your folders by default (the on-disk index is opt-in via a per-call flag). See the [User Guide → MCP server](docs/USER_GUIDE.md#mcp-server-search-from-an-ai-assistant) for details.
 
+> **Getting value from it — ask questions, not keyword dumps.** peekdocs does the *finding* (deterministically); the assistant earns its keep when it *reads and reasons over* the matches. It shines on **needle** questions where the answer lives in a few hits — *"what's the warranty period in the roofing contract?"*, *"do these two contracts differ on the cancellation clause?"* For **census** questions — exact counts or exhaustive lists — go straight to peekdocs (its counts and CSV/JSON exports are complete and exact); an assistant only sees the capped result set and can answer from a partial picture. And treat its prose as a convenience, not the source of truth — the returned file names and line numbers are. More in [what to ask](docs/LOCAL_AI_SETUP.md#getting-the-most-out-of-it--what-to-ask).
+
 **Evaluating this for a team or organization?** peekdocs is free and MIT-licensed — **self-serve, with no support contract, SLA, or compliance-attestation artifacts** (that's deliberate, not an oversight). If your vendor-management process needs those, read [For IT and Security Teams](#for-it-and-security-teams) and weigh peekdocs against your own risk-acceptance first.
 
 ## Who Is peekdocs For?
