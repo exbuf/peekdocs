@@ -699,7 +699,7 @@ class ToolsMixin:
             mr_frame, text="Max results per call:",
             font=("TkDefaultFont", 11),
         ).pack(side="left", padx=(0, 6))
-        max_results_var = tk.StringVar(value="200")
+        max_results_var = tk.StringVar(value=str(mcp_setup.SUGGESTED_MAX_RESULTS))
         tk.Entry(
             mr_frame, textvariable=max_results_var, width=8,
             font=("TkDefaultFont", 11),
@@ -708,9 +708,12 @@ class ToolsMixin:
         # ── Helpers ──
         def _build_setup():
             try:
-                max_results = int(max_results_var.get().strip() or "200")
+                max_results = int(
+                    max_results_var.get().strip()
+                    or str(mcp_setup.SUGGESTED_MAX_RESULTS)
+                )
             except ValueError:
-                max_results = 200
+                max_results = mcp_setup.SUGGESTED_MAX_RESULTS
             return mcp_setup.McpSetup(
                 roots=list(folders),
                 max_results=max_results,

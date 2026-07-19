@@ -44,7 +44,9 @@ You don't need to *understand* these deeply — just recognize them:
 | **MCP** (short for *Model Context Protocol*) | The open standard that lets an AI assistant plug into an outside tool (here, peekdocs). |
 | **MCP host** | The app the assistant runs in that can connect to MCP tools. LM Studio is both the runner *and* the host. |
 | **Tool calling** | The model's ability to actually *use* a tool. **Essential** — some models can't, and then this won't work (see Troubleshooting). |
+| **Context window** | The model's short-term memory, measured in *tokens*. If a search hands back more text than fits, you get an *"exceeds context size"* error (see Troubleshooting). It's set in **LM Studio** and has nothing to do with peekdocs' `-B`/`-A` context *lines* — same word, different thing. |
 | **`--root`** | The folder(s) you allow the assistant to search. Your safety fence. |
+| **`--max-results`** | How many matches peekdocs sends back per search (default 200). On a local model, keep it **low** (~25) so replies fit the context window. |
 | **stdio** | The behind-the-scenes plumbing peekdocs and the app use to talk. You never touch it. |
 
 ## What you'll need
@@ -210,6 +212,14 @@ Two things here matter, and both are common beginner traps:
 
 Save the file.
 
+> **Tip for local models — cap the results.** A local model has a small **context window** (its
+> working memory, often ~8,000 tokens). A broad search that returns hundreds of matches can
+> overflow it, and the reply fails with *"exceeds the available context size."* Keep responses
+> small by adding `"--max-results", "25"` to the `args` — for example
+> `"args": ["--root", "/Users/you/Documents", "--max-results", "25"]`. (The easy-way commands in
+> 🅰 above already suggest **25** for you by default — this tip is only for hand-edited configs.)
+> See [Troubleshooting](#if-something-goes-wrong) if you hit this.
+
 ## Step 5 — Turn it on
 
 **1. Reload LM Studio so it sees peekdocs.** LM Studio reads `mcp.json` only at startup, so after
@@ -269,8 +279,24 @@ reads the file at startup).
   tools. **Fix:** load a proper `-Instruct` build (Step 2). *(Advanced check: LM Studio's logs
   under `~/.lmstudio/server-logs` will show many `ListToolsRequest` and zero `CallToolRequest` —
   that pattern means the model never called a tool.)*
-- **"command not found" / "failed to start server."** LM Studio can't find `peekdocs-mcp`. **Fix:**
-  put the **full path** in `mcp.json` (Step 4), and confirm the `[mcp]` extra installed (Step 3).
+- **"exceeds the available context size" / the reply fails with a token error.** Your search
+  returned more text than the model's **context window** (its working memory) can hold — common when
+  a word appears in many files. Two fixes, either works: **(a)** return fewer matches — add
+  `"--max-results", "25"` to the `args` in `mcp.json` (Step 4), then reload LM Studio; or **(b)**
+  give the model a bigger window — when you load the model, raise **Context Length** (a.k.a.
+  `n_ctx`) from its default (often 8192) to 16384 or more (this uses more memory). Lowering
+  `--max-results` is the simpler fix and usually the right one — feeding hundreds of matches into a
+  chat model is overkill anyway.
+- **The model tells you to *type a command*** (something like `peekdocs -q "…" --context-before 5`).
+  **Don't run it — it's invented.** When peekdocs is connected through MCP, the model **calls a
+  tool** (you'll see a tool-call appear before the answer); it does **not** drive peekdocs with
+  shell commands, and it does **not** actually know peekdocs' real flags — asked, it will
+  confidently make up plausible-looking ones (that example flag doesn't exist; and "context" there
+  means peekdocs' `-B`/`-A` display lines, *not* the model's context window — so it wouldn't even
+  fix the error above). The real controls live in the **config, not in chat**: how many matches come
+  back is `--max-results` in `mcp.json`, and the model's memory is **Context Length** in LM Studio
+  (both above). A model that *suggests commands* instead of *showing tool calls* may also be the
+  wrong model — see the first item in this list.
 - **You ran `peekdocs-mcp` in a terminal and it just sits there doing nothing.** That's normal —
   it's a server waiting to be contacted, not a frozen program. Press **Ctrl-C** to stop it; you're
   not meant to run it by hand (LM Studio does).

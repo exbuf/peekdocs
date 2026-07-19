@@ -39,7 +39,20 @@ class TestRender:
         assert "--ocr" not in args
         assert "--recursive" not in args
         assert "--allow-index" not in args
-        assert "--max-results" not in args  # 200 is the default → omitted
+
+    def test_max_results_defaults_low_for_local_models(self):
+        # The helper suggests a small cap by default so a local model's context
+        # window doesn't overflow on a broad search.
+        setup = s.McpSetup(roots=["/a"])
+        args = s.render_config(setup)["mcpServers"]["peekdocs"]["args"]
+        assert setup.max_results == s.SUGGESTED_MAX_RESULTS == 25
+        assert args[args.index("--max-results") + 1] == "25"
+
+    def test_max_results_omitted_when_equal_to_server_default(self):
+        # Asking for exactly the server's own default is redundant → flag omitted.
+        setup = s.McpSetup(roots=["/a"], max_results=s.SERVER_DEFAULT_MAX_RESULTS)
+        args = s.render_config(setup)["mcpServers"]["peekdocs"]["args"]
+        assert "--max-results" not in args
 
     def test_flags_present_when_set(self):
         setup = s.McpSetup(

@@ -50,6 +50,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   (and distinguishes it from the working directory) instead of overstating
   coverage. Additive and backward-compatible.
 
+### Changed
+- **Generated MCP configs now suggest `--max-results 25` by default (down from
+  the server's own 200).** *Found while testing through a local model:* a
+  broad search (a term appearing in many files) returned up to 200 matches,
+  and feeding all of them into a small local model's context window overflowed
+  it — LM Studio raised *"request exceeds the available context size."* Since
+  an AI assistant reads every returned match, 200 is tuned for scripts/CLI, not
+  for a chat context. The setup helper (`--print-config`, `--setup`,
+  `--write-lmstudio-config`, and the GUI dialog) now writes `--max-results 25`,
+  small enough to fit a typical local window; users can raise it. The **running
+  server's** own default is unchanged at 200 — only *generated configs* changed.
+
 ### Docs
 - **MCP data-flow diagram** (e623640, f27550a, `README.md`,
   `docs/USER_GUIDE.md`). Added a "How the flow works" diagram to the

@@ -391,9 +391,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument(
         "--max-results",
         type=int,
-        default=200,
+        default=None,
         metavar="N",
-        help="Maximum matches/files returned per tool call (default: 200).",
+        help="Maximum matches/files returned per tool call. The running server "
+             "defaults to 200; a generated config (--print-config / --setup) "
+             "suggests 25 — small enough to fit a local model's context window.",
     )
     parser.add_argument(
         "--recursive",
@@ -459,14 +461,25 @@ def main(argv: Optional[list[str]] = None) -> int:
         )
 
     _CONFIG.roots = roots
-    _CONFIG.max_results = args.max_results
+    # --max-results serves two masters with different sensible defaults: the
+    # running server caps at 200, but a generated config suggests the smaller,
+    # local-model-friendly 25. An explicit value wins for both.
+    _CONFIG.max_results = (
+        args.max_results
+        if args.max_results is not None
+        else mcp_setup.SERVER_DEFAULT_MAX_RESULTS
+    )
     _CONFIG.recursive_default = args.recursive
     _CONFIG.ocr_default = args.ocr
     _CONFIG.allow_index_default = args.allow_index
 
     setup = mcp_setup.McpSetup(
         roots=roots,
-        max_results=args.max_results,
+        max_results=(
+            args.max_results
+            if args.max_results is not None
+            else mcp_setup.SUGGESTED_MAX_RESULTS
+        ),
         recursive=args.recursive,
         ocr=args.ocr,
         allow_index=args.allow_index,

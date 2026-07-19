@@ -24,12 +24,24 @@ class SetupError(Exception):
     """Raised when a config file can't be read/merged (e.g. malformed JSON)."""
 
 
+#: The ``peekdocs-mcp`` server's own runtime default (``mcp_server.py`` ``_Config``).
+#: When a generated config asks for exactly this, we omit the flag as redundant.
+SERVER_DEFAULT_MAX_RESULTS = 200
+
+#: What the helper *suggests* by default. Deliberately small: an AI assistant
+#: driving peekdocs feeds every match into the model's context, and a local
+#: model's context window (often ~8k tokens) overflows on a broad search well
+#: before 200 matches. 25 keeps responses inside a small window; users who want
+#: more can raise it. See docs/LOCAL_AI_SETUP.md.
+SUGGESTED_MAX_RESULTS = 25
+
+
 @dataclass
 class McpSetup:
     """The knobs that shape a generated ``peekdocs-mcp`` invocation."""
 
     roots: list[str] = field(default_factory=list)  # absolute paths
-    max_results: int = 200
+    max_results: int = SUGGESTED_MAX_RESULTS
     recursive: bool = False
     ocr: bool = False
     allow_index: bool = False
@@ -69,7 +81,7 @@ def build_args(s: McpSetup) -> list[str]:
         args.append("--ocr")
     if s.allow_index:
         args.append("--allow-index")
-    if s.max_results != 200:
+    if s.max_results != SERVER_DEFAULT_MAX_RESULTS:
         args += ["--max-results", str(s.max_results)]
     return args
 
