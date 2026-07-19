@@ -294,7 +294,7 @@ Two habits that keep you out of trouble:
 
 1. **Let the model find and frame; trust the numbers as ground truth.** The assistant's prose is a
    convenience, not gospel — a small local model will sometimes mis-summarize or invent an
-   explanation. peekdocs' actual output (file names, line numbers, and the *"showing 25 of 47…"*
+   explanation. peekdocs' actual output (file names, line numbers, and the *"Showing 25 of 47…"*
    note when a result is capped) is the source of truth. If the prose and the numbers disagree,
    believe the numbers.
 2. **Match the cap to the question.** Keep `--max-results` low for needle questions (it keeps
