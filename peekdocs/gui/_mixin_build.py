@@ -1903,6 +1903,7 @@ class BuildMixin:
             menu.add_command(label="Unsearchable Files — files peekdocs cannot search and why", command=self._run_unsearchable_files)
             _dark_sep()
             # User tools (alphabetical)
+            menu.add_command(label="AI Assistant Setup (MCP)… — let an AI assistant search your folders (LM Studio)", command=self.open_mcp_setup)
             menu.add_command(label="Bookmarks — pinned files for quick access", command=self._show_bookmarks)
             menu.add_command(label="Diff Snapshots — compare two saved scans to see what changed", command=self._open_diff_snapshots)
             menu.add_command(label="Indexes — build, delete, and refresh search indexes", command=self._toggle_index_options)

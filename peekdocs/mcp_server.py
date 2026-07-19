@@ -22,8 +22,10 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from datetime import datetime
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Optional
 
 from peekdocs import api
@@ -38,6 +40,9 @@ class _Config:
 
     roots: list[str] = field(default_factory=list)  # canonical allowed roots; empty = unrestricted
     max_results: int = 200                           # cap on matches/files per response
+    recursive_default: bool = False                  # default for tools' `recursive` when unset
+    ocr_default: bool = False                        # default for tools' `use_ocr` when unset
+    allow_index_default: bool = False                # default for `allow_index_write` when unset
 
 
 _CONFIG = _Config()
@@ -105,7 +110,7 @@ def search_documents(
     query: list[str],
     directory: Optional[str] = None,
     match_all: bool = False,
-    recursive: bool = False,
+    recursive: Optional[bool] = None,
     use_regex: bool = False,
     use_fuzzy: bool = False,
     use_whole_word: bool = False,
@@ -115,8 +120,8 @@ def search_documents(
     context_after: int = 0,
     expression: Optional[str] = None,
     range_filters: Optional[list[str]] = None,
-    use_ocr: bool = False,
-    allow_index_write: bool = False,
+    use_ocr: Optional[bool] = None,
+    allow_index_write: Optional[bool] = None,
 ) -> dict[str, Any]:
     """Search local documents for text and return matching lines.
 
@@ -137,6 +142,11 @@ def search_documents(
     using/refreshing the on-disk search index (writes .peekdocs.db); off by
     default to keep the search purely read-only.
     """
+    recursive = _CONFIG.recursive_default if recursive is None else recursive
+    use_ocr = _CONFIG.ocr_default if use_ocr is None else use_ocr
+    allow_index_write = (
+        _CONFIG.allow_index_default if allow_index_write is None else allow_index_write
+    )
     d = _resolve_dir(directory)
     result = api.search(
         query,
@@ -173,7 +183,7 @@ def get_document_context(
     context_before: int = 3,
     context_after: int = 3,
     use_regex: bool = False,
-    use_ocr: bool = False,
+    use_ocr: Optional[bool] = None,
 ) -> dict[str, Any]:
     """Return the lines surrounding matches of a query within one file.
 
@@ -181,6 +191,7 @@ def get_document_context(
     inside a specific document. ``file`` is matched by filename; the search
     runs recursively under ``directory`` to locate it.
     """
+    use_ocr = _CONFIG.ocr_default if use_ocr is None else use_ocr
     d = _resolve_dir(directory)
     result = api.search(
         query,
@@ -199,8 +210,8 @@ def get_document_context(
 
 def inventory_folder(
     directory: Optional[str] = None,
-    recursive: bool = False,
-    use_ocr: bool = False,
+    recursive: Optional[bool] = None,
+    use_ocr: Optional[bool] = None,
     file_types: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     """List the searchable files in a folder without reading their contents.
@@ -209,6 +220,8 @@ def inventory_folder(
     size, last-modified time, and type. This is a read-only listing; it does
     not open, index, or modify any file.
     """
+    recursive = _CONFIG.recursive_default if recursive is None else recursive
+    use_ocr = _CONFIG.ocr_default if use_ocr is None else use_ocr
     d = _resolve_dir(directory)
     items = api.inventory_folder(
         d, recursive=recursive, use_ocr=use_ocr, file_types=file_types
@@ -289,7 +302,7 @@ def list_regex_collections() -> dict[str, Any]:
 def run_regex_collection(
     name: str,
     directory: Optional[str] = None,
-    recursive: bool = False,
+    recursive: Optional[bool] = None,
 ) -> dict[str, Any]:
     """Run a saved regex collection by name and return per-pattern match counts.
 
@@ -297,6 +310,7 @@ def run_regex_collection(
     Returns each pattern's match and file counts plus a capped flat list of
     matches.
     """
+    recursive = _CONFIG.recursive_default if recursive is None else recursive
     d = _resolve_dir(directory)
     result = api.run_regex_collection(name, directory=d, recursive=recursive)
     matches, envelope = _cap([
@@ -381,16 +395,112 @@ def main(argv: Optional[list[str]] = None) -> int:
         metavar="N",
         help="Maximum matches/files returned per tool call (default: 200).",
     )
+    parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="Make searches include subfolders by default (tools can still "
+             "override per call).",
+    )
+    parser.add_argument(
+        "--ocr",
+        action="store_true",
+        help="Read scanned PDFs and images with OCR by default (requires "
+             "Tesseract; slower). Tools can still override per call.",
+    )
+    parser.add_argument(
+        "--allow-index",
+        action="store_true",
+        help="Allow using/refreshing the on-disk search index by default "
+             "(writes a .peekdocs.db to searched folders). Off by default to "
+             "keep the server read-only.",
+    )
+    parser.add_argument(
+        "--print-config",
+        action="store_true",
+        help="Print the LM Studio mcp.json config for these settings and exit "
+             "(writes nothing).",
+    )
+    parser.add_argument(
+        "--write-lmstudio-config",
+        action="store_true",
+        help="Merge this server into LM Studio's mcp.json (~/.lmstudio/mcp.json) "
+             "and exit.",
+    )
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="Interactive setup: pick a folder (if none given) and write the "
+             "LM Studio config, printing it if LM Studio isn't installed.",
+    )
+    parser.add_argument(
+        "--config-path",
+        default=None,
+        metavar="FILE",
+        help="Write the config to this mcp.json path instead of LM Studio's "
+             "default (parent folders are created).",
+    )
     args = parser.parse_args(argv)
 
-    if not args.root:
+    from peekdocs import mcp_setup
+
+    roots = [os.path.realpath(os.path.expanduser(r)) for r in args.root]
+
+    is_setup_mode = args.print_config or args.write_lmstudio_config or args.setup
+
+    if args.setup and not roots:
+        picked = mcp_setup.pick_folder()
+        if picked:
+            roots = [picked]
+
+    if not roots and not is_setup_mode:
         parser.error(
             "--root is required. Name at least one folder the assistant may "
             "search, e.g.  peekdocs-mcp --root ~/Documents"
         )
 
-    _CONFIG.roots = [os.path.realpath(os.path.expanduser(r)) for r in args.root]
+    _CONFIG.roots = roots
     _CONFIG.max_results = args.max_results
+    _CONFIG.recursive_default = args.recursive
+    _CONFIG.ocr_default = args.ocr
+    _CONFIG.allow_index_default = args.allow_index
+
+    setup = mcp_setup.McpSetup(
+        roots=roots,
+        max_results=args.max_results,
+        recursive=args.recursive,
+        ocr=args.ocr,
+        allow_index=args.allow_index,
+    )
+
+    if args.print_config:
+        print(mcp_setup.render_json(setup))
+        return 0
+
+    if args.write_lmstudio_config or args.setup:
+        config_path = args.config_path
+        if config_path:
+            path = Path(config_path)
+        else:
+            path = mcp_setup.lmstudio_config_path()
+            if not mcp_setup.lmstudio_installed():
+                # Failsafe: don't create ~/.lmstudio behind the user's back.
+                print(mcp_setup.render_json(setup))
+                print(
+                    "\nLM Studio not found (no ~/.lmstudio). Config shown "
+                    "above; install LM Studio and re-run, or use "
+                    "--print-config / --config-path.",
+                    file=sys.stderr,
+                )
+                return 0 if args.setup else 2
+        try:
+            written = mcp_setup.write_config(
+                setup, path, backup=True, create_parent=bool(config_path)
+            )
+        except mcp_setup.SetupError as e:
+            print(str(e), file=sys.stderr)
+            return 2
+        print(f"Wrote {written}. Restart LM Studio to load it.")
+        return 0
 
     build_server().run()
     return 0

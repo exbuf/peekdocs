@@ -13,6 +13,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **MCP setup helper — generate and (optionally) write the LM Studio
+  `mcp.json` so an AI assistant can drive peekdocs.** Available three ways,
+  all sharing one core module (`peekdocs/mcp_setup.py`): (a) `peekdocs-mcp`
+  CLI flags — `--print-config` (prints the config, writes nothing),
+  `--write-lmstudio-config` (merges peekdocs into `~/.lmstudio/mcp.json`,
+  preserving any other servers and backing the file up first), `--setup`
+  (interactive: opens a native folder picker when no `--root` is given, then
+  writes the config), and `--config-path FILE` (write to a host's mcp.json
+  elsewhere); (b) the folder picker inside `--setup`; and (c) a new GUI
+  Tools-menu dialog, **"AI Assistant Setup (MCP)"**, with a folders list,
+  editable config-file path, OCR/subfolders/index/backup toggles, and
+  Write / Copy to clipboard / Save-to-file buttons. As a failsafe, the CLI
+  and GUI never create `~/.lmstudio` behind your back — if LM Studio isn't
+  installed they show the config instead of writing it.
+- **New `peekdocs-mcp` server defaults `--recursive`, `--ocr`, and
+  `--allow-index`.** These set the default behavior for tool calls that don't
+  specify the value (an assistant can still override per call). `--allow-index`
+  is the only one that writes anything — a `.peekdocs.db` in searched folders —
+  and is off by default, keeping the server read-only.
 - **MCP tool responses now report the folder searched — so an AI assistant
   can state its scope accurately.** *Found while testing the MCP server
   through an AI assistant:* when the assistant summarized a search it could

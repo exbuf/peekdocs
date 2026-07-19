@@ -549,6 +549,329 @@ class ToolsMixin:
             font=ctk.CTkFont(size=12),
         ).pack(pady=(5, 10))
 
+    def open_mcp_setup(self):
+        """Open the AI Assistant Setup (MCP) dialog.
+
+        Generates and optionally writes the LM Studio mcp.json config so an
+        MCP-capable AI assistant can drive peekdocs against chosen folders.
+        """
+        import tkinter as tk
+        from pathlib import Path
+        from peekdocs import mcp_setup
+
+        win, _dark = self._themed_toplevel()
+        win.withdraw()  # hidden during widget setup; centered + shown at end
+        win.title("AI Assistant Setup (MCP)")
+        win.resizable(True, True)
+        body = win
+
+        # Close button anchored at the bottom regardless of content height.
+        ctk.CTkButton(
+            win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=win.destroy, font=ctk.CTkFont(size=12),
+        ).pack(side="bottom", pady=(0, 10))
+
+        # ── Title & help button ──
+        header = tk.Frame(body)
+        header.pack(fill="x", padx=15, pady=(10, 0))
+        tk.Label(
+            header, text="AI Assistant Setup (MCP)",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(side="left")
+        ctk.CTkButton(
+            header, text="?", width=30, height=30,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            fg_color="#1565C0", text_color="white",
+            hover_color="#0D47A1",
+            corner_radius=15,
+            command=lambda: self._show_mcp_setup_help(win),
+        ).pack(side="right")
+        tk.Label(
+            body,
+            text="Set up the configuration so an AI assistant (via LM Studio) can "
+                 "search the folder(s) you choose below — read-only. This needs the "
+                 "peekdocs [mcp] extra installed (pip install \"peekdocs[mcp]\"). After "
+                 "writing the config, restart LM Studio so it loads.",
+            font=("TkDefaultFont", 10), fg="gray", wraplength=640, justify="left",
+        ).pack(fill="x", padx=15, pady=(2, 8))
+
+        # ── Folders list ──
+        tk.Label(
+            body, text="Folders the assistant may search:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(4, 2))
+        folders: list[str] = []
+        list_frame = tk.Frame(body)
+        list_frame.pack(fill="x", padx=15, pady=(0, 2))
+        folder_list = tk.Listbox(list_frame, height=4, font=("TkDefaultFont", 11))
+        folder_list.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+        def _refresh_folder_list():
+            folder_list.delete(0, "end")
+            for f in folders:
+                folder_list.insert("end", f)
+
+        def _add_folder():
+            initial = ""
+            if not folders:
+                initial = self.folder_entry.get().strip()
+            d = filedialog.askdirectory(parent=win, initialdir=initial or None)
+            if d and d not in folders:
+                folders.append(os.path.realpath(d))
+                _refresh_folder_list()
+
+        def _remove_folder():
+            sel = folder_list.curselection()
+            for i in reversed(sel):
+                del folders[i]
+            _refresh_folder_list()
+
+        list_btns = tk.Frame(list_frame)
+        list_btns.pack(side="left", fill="y")
+        ctk.CTkButton(
+            list_btns, text="Add folder…", width=110,
+            font=ctk.CTkFont(size=11), command=_add_folder,
+        ).pack(pady=(0, 4))
+        ctk.CTkButton(
+            list_btns, text="Remove selected", width=110,
+            font=ctk.CTkFont(size=11), command=_remove_folder,
+        ).pack()
+
+        # ── Config file path ──
+        tk.Label(
+            body, text="Config file (LM Studio mcp.json):",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(8, 2))
+        cfg_frame = tk.Frame(body)
+        cfg_frame.pack(fill="x", padx=15, pady=(0, 2))
+        config_var = tk.StringVar(value=str(mcp_setup.lmstudio_config_path()))
+        config_entry = tk.Entry(cfg_frame, textvariable=config_var, font=("TkDefaultFont", 11))
+        config_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+        def _browse_config():
+            p = filedialog.asksaveasfilename(
+                parent=win, title="Config file location",
+                initialfile="mcp.json",
+                defaultextension=".json",
+                filetypes=[("JSON", "*.json"), ("All files", "*.*")],
+            )
+            if p:
+                config_var.set(p)
+
+        ctk.CTkButton(
+            cfg_frame, text="Browse…", width=90,
+            font=ctk.CTkFont(size=11), command=_browse_config,
+        ).pack(side="left")
+
+        # ── Options ──
+        tk.Label(
+            body, text="Options:",
+            font=("TkDefaultFont", 11, "bold"),
+        ).pack(anchor="w", padx=15, pady=(8, 2))
+        recursive_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(
+            body, text="Search subfolders",
+            variable=recursive_var, font=("TkDefaultFont", 11),
+        ).pack(anchor="w", padx=15)
+        ocr_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            body, text="Read scanned docs (OCR — needs Tesseract, slower)",
+            variable=ocr_var, font=("TkDefaultFont", 11),
+        ).pack(anchor="w", padx=15)
+        index_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            body,
+            text="Use fast on-disk index (faster, but writes a .peekdocs.db to searched folders)",
+            variable=index_var, font=("TkDefaultFont", 11),
+        ).pack(anchor="w", padx=15)
+        backup_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(
+            body, text="Back up existing config first",
+            variable=backup_var, font=("TkDefaultFont", 11),
+        ).pack(anchor="w", padx=15)
+
+        # ── Max results ──
+        mr_frame = tk.Frame(body)
+        mr_frame.pack(fill="x", padx=15, pady=(6, 2))
+        tk.Label(
+            mr_frame, text="Max results per call:",
+            font=("TkDefaultFont", 11),
+        ).pack(side="left", padx=(0, 6))
+        max_results_var = tk.StringVar(value="200")
+        tk.Entry(
+            mr_frame, textvariable=max_results_var, width=8,
+            font=("TkDefaultFont", 11),
+        ).pack(side="left")
+
+        # ── Helpers ──
+        def _build_setup():
+            try:
+                max_results = int(max_results_var.get().strip() or "200")
+            except ValueError:
+                max_results = 200
+            return mcp_setup.McpSetup(
+                roots=list(folders),
+                max_results=max_results,
+                recursive=recursive_var.get(),
+                ocr=ocr_var.get(),
+                allow_index=index_var.get(),
+            )
+
+        def _write_config():
+            if not folders:
+                messagebox.showwarning(
+                    "No folders", "Add at least one folder the assistant may search.",
+                    parent=win,
+                )
+                return
+            setup = _build_setup()
+            path = Path(config_var.get().strip())
+            # Failsafe: don't silently create ~/.lmstudio if it isn't there.
+            if (
+                path == mcp_setup.lmstudio_config_path()
+                and not mcp_setup.lmstudio_installed()
+            ):
+                messagebox.showwarning(
+                    "LM Studio not found",
+                    "LM Studio doesn't appear to be installed (no ~/.lmstudio "
+                    "folder). Use Copy to clipboard or Save to file… instead, "
+                    "or point the Config file at your host's mcp.json.",
+                    parent=win,
+                )
+                return
+            try:
+                p = mcp_setup.write_config(
+                    setup, path, backup=backup_var.get(), create_parent=True
+                )
+            except mcp_setup.SetupError as e:
+                messagebox.showerror("Setup error", str(e), parent=win)
+                return
+            messagebox.showinfo(
+                "Done", f"Wrote {p}\n\nRestart LM Studio to load it.", parent=win,
+            )
+
+        def _copy_config():
+            if not folders:
+                messagebox.showwarning(
+                    "No folders", "Add at least one folder the assistant may search.",
+                    parent=win,
+                )
+                return
+            self.clipboard_clear()
+            self.clipboard_append(mcp_setup.render_json(_build_setup()))
+            messagebox.showinfo("Copied", "Config copied to clipboard.", parent=win)
+
+        def _save_config():
+            if not folders:
+                messagebox.showwarning(
+                    "No folders", "Add at least one folder the assistant may search.",
+                    parent=win,
+                )
+                return
+            p = filedialog.asksaveasfilename(
+                parent=win, title="Save config as",
+                initialfile="mcp.json",
+                defaultextension=".json",
+                filetypes=[("JSON", "*.json"), ("All files", "*.*")],
+            )
+            if not p:
+                return
+            try:
+                Path(p).write_text(mcp_setup.render_json(_build_setup()) + "\n")
+            except OSError as e:
+                messagebox.showerror("Save error", str(e), parent=win)
+                return
+            messagebox.showinfo("Saved", f"Wrote {p}", parent=win)
+
+        # ── Buttons ──
+        btn_frame = tk.Frame(body)
+        btn_frame.pack(fill="x", padx=15, pady=(10, 4))
+        ctk.CTkButton(
+            btn_frame, text="Write config", width=130,
+            font=ctk.CTkFont(size=11),
+            fg_color="#2E7D32", hover_color="#1B5E20",
+            command=_write_config,
+        ).pack(side="left", padx=(0, 6))
+        ctk.CTkButton(
+            btn_frame, text="Copy to clipboard", width=140,
+            font=ctk.CTkFont(size=11), command=_copy_config,
+        ).pack(side="left", padx=(0, 6))
+        ctk.CTkButton(
+            btn_frame, text="Save to file…", width=120,
+            font=ctk.CTkFont(size=11), command=_save_config,
+        ).pack(side="left")
+
+        self._center_popup_on_main(win, 700, 620)
+        win.deiconify()
+
+    def _show_mcp_setup_help(self, parent):
+        """Help popup for AI Assistant Setup (MCP)."""
+        import tkinter as tk
+        help_win, _dark = self._themed_toplevel(parent)
+        help_win.title("AI Assistant Setup (MCP) — Help")
+        help_win.geometry("680x600")
+        help_win.resizable(True, True)
+        help_win.transient(parent)
+
+        txt = tk.Text(help_win, wrap="word", font=("TkDefaultFont", 12),
+                      padx=18, pady=12, borderwidth=0, highlightthickness=0)
+        scroll = tk.Scrollbar(help_win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(fill="both", expand=True)
+
+        txt.tag_configure("h", font=("TkDefaultFont", 14, "bold"),
+                          spacing1=10, spacing3=4)
+        txt.tag_configure("b", font=("TkDefaultFont", 12), spacing1=2)
+
+        def h(t): txt.insert("end", t + "\n", "h")
+        def b(t): txt.insert("end", t + "\n", "b")
+        def blank(): txt.insert("end", "\n")
+
+        h("What does this do?")
+        b("It writes the small configuration file (mcp.json) that lets an AI")
+        b("assistant running in LM Studio search your local documents through")
+        b("peekdocs. You choose which folder(s) the assistant may search; it")
+        b("cannot see anything outside them.")
+        blank()
+        b("This needs the peekdocs [mcp] extra installed:")
+        b('    pip install "peekdocs[mcp]"')
+        blank()
+
+        h("Read-only by design")
+        b("The MCP server only searches and lists files. It never creates,")
+        b("moves, renames, or deletes files and never writes reports.")
+        blank()
+
+        h("The options")
+        b("• Search subfolders — include nested folders in searches.")
+        b("• Read scanned docs (OCR) — read text inside scanned PDFs and")
+        b("  images. Requires Tesseract and is noticeably slower.")
+        b("• Use fast on-disk index — the ONLY option that writes anything:")
+        b("  it creates a .peekdocs.db file inside searched folders to speed")
+        b("  up repeat searches. Off by default to keep everything read-only.")
+        b("• Back up existing config first — copies your current mcp.json to")
+        b("  mcp.json.bak before merging peekdocs into it.")
+        blank()
+
+        h("After writing the config")
+        b("Restart LM Studio so it picks up the new server. If LM Studio is")
+        b("installed somewhere else, point the Config file field at its")
+        b("mcp.json, or use Copy to clipboard / Save to file to place it")
+        b("yourself.")
+
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            help_win, text="Close", width=80,
+            fg_color="transparent", text_color=("gray30", "gray70"),
+            hover_color=("gray90", "gray25"),
+            command=help_win.destroy,
+            font=ctk.CTkFont(size=12),
+        ).pack(pady=(5, 10))
+
     def _open_schedule_search(self):
         """Open the Schedule Search dialog — generates cron or schtasks commands."""
         import tkinter as tk

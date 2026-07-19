@@ -17,11 +17,20 @@ def _reset_config():
     """Restore server config after each test (it is module-global state)."""
     saved_roots = list(m._CONFIG.roots)
     saved_max = m._CONFIG.max_results
+    saved_rec = m._CONFIG.recursive_default
+    saved_ocr = m._CONFIG.ocr_default
+    saved_idx = m._CONFIG.allow_index_default
     m._CONFIG.roots = []
     m._CONFIG.max_results = 200
+    m._CONFIG.recursive_default = False
+    m._CONFIG.ocr_default = False
+    m._CONFIG.allow_index_default = False
     yield
     m._CONFIG.roots = saved_roots
     m._CONFIG.max_results = saved_max
+    m._CONFIG.recursive_default = saved_rec
+    m._CONFIG.ocr_default = saved_ocr
+    m._CONFIG.allow_index_default = saved_idx
 
 
 def _seed(root):
@@ -217,3 +226,55 @@ class TestBuildServer:
         names = {t.name for t in tools}
         expected = {fn.__name__ for fn in m._TOOLS}
         assert expected <= names
+
+
+# ── Server-level defaults resolution (None means "use the default") ─
+
+class TestServerDefaults:
+    def test_ocr_default_applies_when_none(self, tmp_path, monkeypatch):
+        captured = {}
+
+        def fake_search(query, **kwargs):
+            captured.update(kwargs)
+            raise _Stop()
+
+        class _Stop(Exception):
+            pass
+
+        m._CONFIG.ocr_default = True
+        monkeypatch.setattr(m.api, "search", fake_search)
+        with pytest.raises(_Stop):
+            m.search_documents(["fox"], directory=str(tmp_path), use_ocr=None)
+        assert captured["use_ocr"] is True
+
+    def test_explicit_ocr_false_overrides_default(self, tmp_path, monkeypatch):
+        captured = {}
+
+        class _Stop(Exception):
+            pass
+
+        def fake_search(query, **kwargs):
+            captured.update(kwargs)
+            raise _Stop()
+
+        m._CONFIG.ocr_default = True
+        monkeypatch.setattr(m.api, "search", fake_search)
+        with pytest.raises(_Stop):
+            m.search_documents(["fox"], directory=str(tmp_path), use_ocr=False)
+        assert captured["use_ocr"] is False
+
+    def test_recursive_default_applies_when_none(self, tmp_path, monkeypatch):
+        captured = {}
+
+        class _Stop(Exception):
+            pass
+
+        def fake_search(query, **kwargs):
+            captured.update(kwargs)
+            raise _Stop()
+
+        m._CONFIG.recursive_default = True
+        monkeypatch.setattr(m.api, "search", fake_search)
+        with pytest.raises(_Stop):
+            m.search_documents(["fox"], directory=str(tmp_path), recursive=None)
+        assert captured["recursive"] is True
