@@ -239,7 +239,24 @@ downloaded models. *(Downloaded models appear here and under **My Models** — *
 Discover tab; Discover only searches for new models to download.)* Give it a few seconds to load
 into memory.
 
-**4. Make sure tools are on for the chat.** Near the message box there's usually a **tools / wrench
+**4. Set how much the model can hold at once (context length).** A model's **context window** is
+its short-term memory, measured in *tokens* (see the glossary). If a search hands back more text
+than fits, the reply fails with *"exceeds the available context size."* When you load a model, LM
+Studio shows its **load settings** — look for **Context Length** (sometimes labelled `n_ctx`),
+usually on the model's load screen or in a **gear / settings** panel next to the loaded model.
+
+- **8192 is a good starting point.** Because peekdocs writes `--max-results 25` into your config
+  (Step 4), replies stay small and 8192 is usually plenty.
+- **Raise it to 16384 or more if** you ask broad questions, increase `--max-results`, or hit the
+  "exceeds context size" error. Qwen2.5-7B handles up to ~32768.
+- **The trade-off:** a bigger window uses **more memory (RAM, or VRAM on a GPU)** and is a little
+  slower. If LM Studio warns it won't fit, or the model fails to load, lower it again.
+
+After changing any load setting, **reload the model** so it takes effect. *(Have a GPU? The
+**GPU Offload** setting moves model layers onto it for speed — raise it if things feel slow, lower
+it if the model crashes or won't load.)*
+
+**5. Make sure tools are on for the chat.** Near the message box there's usually a **tools / wrench
 icon** — make sure tool use is enabled and **peekdocs** is switched on for this conversation.
 That's what lets the model actually call peekdocs.
 
