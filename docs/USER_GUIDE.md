@@ -1501,7 +1501,7 @@ AI host summarizes the matches and cites the file + line
 You get a grounded, cited answer
 ```
 
-peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. Everything above stays on your machine **except** the model step when you use a *cloud* assistant: the matches become part of the conversation the host sends to the vendor's servers. Pair peekdocs with a local model and nothing leaves your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine) and [Fully local and private](#fully-local-and-private-pairing-with-a-downloadable-model).
+peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. The one thing that may leave your machine is the model step with a *cloud* assistant; a local model keeps everything on your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine).
 
 ### Who benefits, and why
 
@@ -1552,9 +1552,7 @@ The one on-disk artifact peekdocs can normally create — the optional SQLite se
 
 ### One-way by design
 
-The exchange only ever goes one direction: the **assistant calls peekdocs**, peekdocs answers with search results, and that ends the exchange. peekdocs never calls the assistant, never asks it to summarize, and never initiates anything on its own — it is a server that responds to requests, nothing more.
-
-So when you ask the assistant to "summarize what you found," peekdocs only supplies the raw matches — the summarizing is the assistant's own work, not a peekdocs feature.
+The exchange only ever goes one direction: the **assistant calls peekdocs**, peekdocs answers with search results, and that ends the exchange. peekdocs never calls the assistant, never asks it to summarize, and never initiates anything on its own — it is a server that responds to requests, nothing more. (So when you ask the assistant to "summarize what you found," peekdocs only supplies the raw matches; the summarizing is the assistant's work.)
 
 **A note on "sampling."** The MCP protocol does include one feature that runs the other direction, and it is worth understanding why peekdocs leaves it out. Normally the assistant calls a server's tools; *sampling* inverts that — it lets a **server ask the host to run a model completion on its behalf** (to summarize or classify some text, for example), borrowing the host's model without needing its own API key. The host is expected to keep a human in the loop: show you the request, let you approve or deny it, and run it on a model it controls (the server never sees the model or its credentials directly). **peekdocs does not implement sampling.** If it did, peekdocs could drive the assistant — pushing file contents to the model on its own initiative, turning a passive "answers queries" tool into one that orchestrates the AI. Leaving it out is what preserves the simple contract above: peekdocs can be *asked* things, and can only *answer*. If that ever changed, it would be a new, opt-in capability documented prominently.
 
@@ -1566,7 +1564,7 @@ Two more properties fall out of the architecture, and both are safe to rely on.
 
 **Stateless.** Every tool call is self-contained: its result is fully determined by its own arguments, the fixed startup policy (`--root`, `--max-results`), and the files on disk at that moment. The server holds no conversation history and no memory of previous calls — the same query returns the same matches. The only things that persist between calls are that startup policy, which never changes while the server runs, and the optional on-disk index (a content cache), which is off by default in every MCP search. Any statefulness lives in the *assistant*: when it chains and refines searches, that memory is the host's conversation, not peekdocs — the server just answers each independent call.
 
-Together these give **no lock-in** (change models or hosts freely), **reproducibility** (stateless plus deterministic search is auditable and repeatable), and **privacy** (the server retains nothing about your queries between calls, so there is no history to leak). They are also why the server's guardrail logic is unit-testable without even importing the `mcp` package.
+Together these give **no lock-in** (change models or hosts freely), **reproducibility** (stateless plus deterministic search is auditable and repeatable), and **privacy** (the server retains nothing about your queries between calls, so there is no history to leak).
 
 ### Does it keep everything on your machine?
 
