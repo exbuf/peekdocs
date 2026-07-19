@@ -262,6 +262,51 @@ Two good things to try next:
 And the payoff: because the model is running on your computer, **your question, the file snippets,
 and the answer never leave your machine.**
 
+## Getting the most out of it — what to ask
+
+A fair question after your first search: *"the assistant just listed the same hits peekdocs would
+have — what did the AI add?"* Often, for a bare keyword search, **nothing** — and that's expected.
+peekdocs already does the *finding* (exactly, instantly, deterministically). The assistant earns its
+keep only when your question needs it to **read and reason over** what peekdocs found.
+
+So the trick is to ask *questions*, not keyword dumps:
+
+| Ask the assistant (it adds value) | Send straight to peekdocs instead |
+|---|---|
+| "What's the warranty period in the roofing contract?" | "List every file containing 'warranty'." |
+| "Summarize what my notes say about the Henderson project." | "Show every line that mentions 'Henderson'." |
+| "Do contracts A and B differ on the cancellation clause?" | "How many documents mention 'invoice'?" |
+| "Of the files that mention 'invoice', which read as overdue?" | "List **every** client I've billed." |
+| "Find where I wrote about that permit problem." | (a plain search — peekdocs is faster and complete) |
+
+The pattern behind the two columns is **needle vs. census**:
+
+- **Needle questions** — the answer lives in *a few* strong matches (a fact, a clause, a passage).
+  The assistant is great here: it reads those few and answers.
+- **Census questions** — the answer needs the *whole* result set (a total, an exhaustive list, a
+  count). The assistant is **risky** here, because peekdocs caps how many matches it returns (the
+  `--max-results` limit, low by default for local models — see [Step 4](#step-4--connect-peekdocs-to-lm-studio)).
+  The model only sees the first slice and may answer confidently from a partial picture. For these,
+  ask **peekdocs directly** — its counts and its CSV/JSON exports are complete and exact — or raise
+  the cap.
+
+Two habits that keep you out of trouble:
+
+1. **Let the model find and frame; trust the numbers as ground truth.** The assistant's prose is a
+   convenience, not gospel — a small local model will sometimes mis-summarize or invent an
+   explanation. peekdocs' actual output (file names, line numbers, and the *"showing 25 of 47…"*
+   note when a result is capped) is the source of truth. If the prose and the numbers disagree,
+   believe the numbers.
+2. **Match the cap to the question.** Keep `--max-results` low for needle questions (it keeps
+   replies inside the model's context window); raise it — or drop to plain peekdocs — the moment the
+   question becomes a census.
+
+One honest trade-off worth naming: a **bigger** local model (or a cloud assistant) reasons better,
+but the bigger local model needs more memory and the cloud one sends your snippets off the machine.
+The small local model here wins on **privacy and cost** — so it's best matched to *private, targeted
+questions about your own documents where you can glance at the matches to confirm*, not to
+exhaustive analytics across everything.
+
 ## Changing which folders it can search
 
 The searchable folders are set by `--root` in `mcp.json` (Step 4), *not* in the chat. You rarely
