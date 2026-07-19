@@ -22,6 +22,31 @@ class TestResolveSelfCommand:
         monkeypatch.setattr(sys, "argv", [str(bindir / "peekdocs-gui")])
         assert s.resolve_self_command() == str(mcp.resolve())
 
+    def test_find_mcp_server_returns_path_when_present(self, tmp_path, monkeypatch):
+        bindir = tmp_path / "bin"
+        bindir.mkdir()
+        (bindir / "peekdocs-gui").write_text("")
+        mcp = bindir / "peekdocs-mcp"
+        mcp.write_text("")
+        monkeypatch.setattr(sys, "argv", [str(bindir / "peekdocs-gui")])
+        assert s.find_mcp_server() == str(mcp.resolve())
+
+    def test_find_mcp_server_none_when_absent(self, tmp_path, monkeypatch):
+        # No sibling peekdocs-mcp and nothing on PATH → None (drives the GUI's
+        # "install the [mcp] extra" banner). resolve_self_command still degrades
+        # to the bare name for a still-well-shaped config.
+        bindir = tmp_path / "bin"
+        bindir.mkdir()
+        (bindir / "peekdocs-gui").write_text("")
+        monkeypatch.setattr(sys, "argv", [str(bindir / "peekdocs-gui")])
+        monkeypatch.setattr(s.shutil, "which", lambda name: None)
+        assert s.find_mcp_server() is None
+        assert s.resolve_self_command() == "peekdocs-mcp"
+
+    def test_install_command_targets_mcp_extra(self):
+        assert "peekdocs[mcp]" in s.INSTALL_COMMAND
+        assert s.INSTALL_COMMAND.startswith("pipx install")
+
 
 # ── render_config / render_json ────────────────────────────────────
 

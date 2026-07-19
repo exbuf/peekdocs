@@ -48,14 +48,25 @@ class McpSetup:
     server_name: str = "peekdocs"
 
 
-def resolve_self_command() -> str:
-    """Return an absolute path to the ``peekdocs-mcp`` executable to launch.
+#: One-line command that installs the ``[mcp]`` extra (which provides the
+#: ``peekdocs-mcp`` server). Uses ``--force`` because anyone running the GUI
+#: already has peekdocs — a plain ``pipx install`` would be a no-op and skip the
+#: extra. Surfaced by the GUI when the server isn't detected.
+INSTALL_COMMAND = (
+    'pipx install --force '
+    '"peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"'
+)
+
+
+def find_mcp_server() -> str | None:
+    """Return the absolute path to the ``peekdocs-mcp`` executable, or None.
 
     Resolves ``peekdocs-mcp`` *specifically* — not whichever peekdocs entry
-    point happens to be running — so the generated config is correct even when
-    produced from the GUI (``peekdocs-gui``) or via ``python -m``. Looks in the
-    running executable's own bin directory first (the console scripts are
-    installed side by side), then on PATH, then falls back to the bare name.
+    point happens to be running — so callers get the right answer even from the
+    GUI (``peekdocs-gui``) or via ``python -m``. Looks in the running
+    executable's own bin directory first (the console scripts are installed side
+    by side), then on PATH. Returns None when the server isn't installed (the
+    ``[mcp]`` extra is missing), which the GUI uses to offer the install command.
     """
     names = ("peekdocs-mcp", "peekdocs-mcp.exe")
     here = Path(sys.argv[0]).resolve().parent
@@ -67,7 +78,17 @@ def resolve_self_command() -> str:
         found = shutil.which(name)
         if found:
             return str(Path(found).resolve())
-    return "peekdocs-mcp"
+    return None
+
+
+def resolve_self_command() -> str:
+    """Return the ``peekdocs-mcp`` command to write into a generated config.
+
+    The resolved absolute path when the server is found (see
+    :func:`find_mcp_server`), else the bare name as a best-effort fallback so a
+    generated config is still shaped correctly.
+    """
+    return find_mcp_server() or "peekdocs-mcp"
 
 
 def build_args(s: McpSetup) -> list[str]:

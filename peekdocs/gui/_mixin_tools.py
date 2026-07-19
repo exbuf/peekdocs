@@ -597,6 +597,45 @@ class ToolsMixin:
             font=("TkDefaultFont", 10), fg="gray", wraplength=640, justify="left",
         ).pack(fill="x", padx=15, pady=(2, 8))
 
+        # ── Server-detection banner ──
+        # If peekdocs-mcp isn't installed (the [mcp] extra is missing), the
+        # config we generate can't actually run yet. Point that out and offer
+        # the install command via clipboard — we never auto-run it.
+        if mcp_setup.find_mcp_server() is None:
+            warn = tk.Frame(body, bg="#FFF3E0", highlightbackground="#E65100",
+                            highlightthickness=1)
+            warn.pack(fill="x", padx=15, pady=(0, 8))
+            tk.Label(
+                warn, bg="#FFF3E0", fg="#7A3E00", justify="left",
+                wraplength=620, font=("TkDefaultFont", 10),
+                text=("The peekdocs-mcp server isn't installed yet, so this "
+                      "config won't run until you add the [mcp] extra. You can "
+                      "still build and save the config below. To install, run "
+                      "this in a terminal, then restart peekdocs:"),
+            ).pack(anchor="w", padx=10, pady=(8, 4))
+            cmd_row = tk.Frame(warn, bg="#FFF3E0")
+            cmd_row.pack(fill="x", padx=10, pady=(0, 8))
+            tk.Label(
+                cmd_row, bg="#FFECB3", fg="#3E2723", justify="left",
+                font=("TkFixedFont", 9), wraplength=470,
+                text=mcp_setup.INSTALL_COMMAND, padx=6, pady=4,
+            ).pack(side="left", fill="x", expand=True, padx=(0, 6))
+
+            def _copy_install_cmd():
+                self.clipboard_clear()
+                self.clipboard_append(mcp_setup.INSTALL_COMMAND)
+                messagebox.showinfo(
+                    "Copied",
+                    "Install command copied to the clipboard.\n\nPaste it into a "
+                    "terminal, let it finish, then restart peekdocs.",
+                    parent=win,
+                )
+
+            ctk.CTkButton(
+                cmd_row, text="Copy install command", width=170,
+                font=ctk.CTkFont(size=11), command=_copy_install_cmd,
+            ).pack(side="left")
+
         # ── Folders list ──
         tk.Label(
             body, text="Folders the assistant may search:",
@@ -841,6 +880,9 @@ class ToolsMixin:
         blank()
         b("This needs the peekdocs [mcp] extra installed:")
         b('    pip install "peekdocs[mcp]"')
+        b("If it isn't installed, this dialog shows a banner with a one-click")
+        b("Copy install command button — paste it into a terminal, let it")
+        b("finish, then restart peekdocs. (It never runs the install for you.)")
         blank()
 
         h("Read-only by design")

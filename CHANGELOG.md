@@ -26,7 +26,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   editable config-file path, OCR/subfolders/index/backup toggles, and
   Write / Copy to clipboard / Save-to-file buttons. As a failsafe, the CLI
   and GUI never create `~/.lmstudio` behind your back — if LM Studio isn't
-  installed they show the config instead of writing it.
+  installed they show the config instead of writing it. If the `peekdocs-mcp`
+  server itself isn't installed (the `[mcp]` extra is missing), the GUI dialog
+  now shows a banner with the exact install command and a **Copy install
+  command** button — it never runs the install for you (a GUI can't pip-install
+  into a standalone binary, and shouldn't reinstall the running app), so you
+  paste it into a terminal and restart peekdocs.
 - **New `peekdocs-mcp` server defaults `--recursive`, `--ocr`, and
   `--allow-index`.** These set the default behavior for tool calls that don't
   specify the value (an assistant can still override per call). `--allow-index`
