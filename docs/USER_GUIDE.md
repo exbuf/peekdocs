@@ -1723,6 +1723,53 @@ Keep these to **needle** questions — for **census** questions (exact counts, e
 
 The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the-fastest-way-to-try-it) above.
 
+### What a real session looks like
+
+Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio), lightly trimmed and with paths genericized. They show the payoff of the "prompts that lean on the assistant" table above — synthesis, single-file extraction, and the model reasoning about scope. As you read, keep the [needle-vs-census habit](#what-to-ask--and-what-to-send-straight-to-peekdocs) in mind: **the file paths and line numbers are peekdocs's real output** (open them to verify), while the prose summaries and any quoted snippets are the *model's* rendering of what it found.
+
+**1 — Synthesis across a folder, with citations.**
+
+> **You:** From peekdocs, summarize what's known about BDNF.
+>
+> **Qwen2.5-7B-Instruct:** Based on the documents searched, here is a summary:
+> - **Exercise and fasting** both raise BDNF — exercise can boost it 50–400% depending on the brain region.
+> - **Role:** BDNF builds and maintains neurons and neuron networks; it's central to learning and long-term memory, and also influences mood.
+> - **Mechanism:** high-intensity exercise and prolonged fasting raise β-hydroxybutyrate, which further boosts BDNF.
+> - **Cognition:** regular aerobic exercise improves cognitive function through BDNF release.
+>
+> *…followed by supporting references, each a real file + line:*
+> - `~/Documents/Health/Factoids-Health.docx` — lines 4279, 4280 and 4987, 4988
+> - `~/Documents/Health/Factoids-Health12.docx` — line 1376
+> - `~/Documents/Health/Factoids-Health20.docx` — lines 3845, 3848
+> - …and several more files.
+
+The flagship benefit: the assistant ran a `search_documents` sweep, then **synthesized matches from a dozen files into one answer** — while every point traces back to a file and line you can open and check.
+
+**2 — Scoping to one file, with structured output.**
+
+> **You:** From this file, tell me what's known about BDNF: `~/Documents/Health/Factoids-Health19.docx`
+>
+> **Qwen2.5-7B-Instruct:** Summary of BDNF from that document —
+> - **Prolonged fasting** can boost BDNF, linked to improved cognitive function (lines 585–587).
+> - **Mechanism:** fasting → ketosis → the ketone body β-hydroxybutyrate, which raises BDNF (lines 586, 3846).
+> - **Benefit:** BDNF protects neurons and promotes new-neuron growth; higher levels aid learning and memory (lines 587, 3849).
+>
+> *It also offered a machine-readable version:*
+> ```json
+> { "file": "~/Documents/Health/Factoids-Health19.docx",
+>   "lines": [ {"line": 585, "content": "…"}, {"line": 3846, "content": "…"} ] }
+> ```
+
+Here the assistant confined the search to **one file** and returned both prose and JSON. A reminder that fits our guidance: those `content` strings are the model's paraphrase — open the cited line to see peekdocs's exact text.
+
+**3 — The assistant reasoning about scope.**
+
+> **You:** It looks like I can limit searches to any subfolder of Documents — correct?
+>
+> **Qwen2.5-7B-Instruct:** Yes. `search_documents` takes a `directory` parameter — point it at a subfolder (e.g. `~/Documents/research`) and set `recursive: true` to include everything under it. You can also narrow by `file_types` such as `[".docx", ".pdf", ".txt"]`.
+
+A handy property this surfaces: within the server's `--root` fence, any single search can be scoped to a subfolder — so one broad `--root ~/Documents` covers many narrower questions without ever editing `mcp.json`.
+
 ### Fully local and private: pairing with a downloadable model
 
 > **New to running AI models locally?** For a full, no-prior-experience walkthrough — installing a runtime, choosing a model, and connecting peekdocs step by step, with troubleshooting — see the [Private, Local AI Assistant beginner's guide](LOCAL_AI_SETUP.md). The rest of this section is the concise overview.
