@@ -1731,44 +1731,104 @@ Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio),
 
 **1 — Synthesis across a folder, with citations.**
 
-> **You:** From peekdocs, summarize what's known about BDNF.
+> **You:** From peekdocs summarize what's known about BDNF
 >
-> **Qwen2.5-7B-Instruct:** Based on the documents searched, here is a summary:
-> - **Exercise and fasting** both raise BDNF — exercise can boost it 50–400% depending on the brain region.
-> - **Role:** BDNF builds and maintains neurons and neuron networks; it's central to learning and long-term memory, and also influences mood.
-> - **Mechanism:** high-intensity exercise and prolonged fasting raise β-hydroxybutyrate, which further boosts BDNF.
-> - **Cognition:** regular aerobic exercise improves cognitive function through BDNF release.
+> **Qwen2.5-7B-Instruct:** Based on the documents searched, here is a summary of what is known about BDNF:
 >
-> *…followed by supporting references, each a real file + line:*
-> - `~/Documents/Health/Factoids-Health.docx` — lines 4279, 4280 and 4987, 4988
-> - `~/Documents/Health/Factoids-Health12.docx` — line 1376
-> - `~/Documents/Health/Factoids-Health20.docx` — lines 3845, 3848
-> - …and several more files.
+> **Key Points About BDNF:**
+>
+> *Exercise and Fasting:*
+> - Both exercise (especially high-intensity interval training) and fasting increase levels of BDNF in the brain.
+> - Exercise can boost BDNF production by 50 to 400 percent depending on the brain region.
+>
+> *Role of BDNF:*
+> - BDNF is crucial for learning and memory, as it builds and maintains neurons and neuron networks.
+> - It facilitates the learning process and is important for long-term memories.
+> - BDNF also plays a role in energy metabolism and can ramp up serotonin levels that help with mood, depression, and anxiety.
+>
+> *Exercise-Induced BDNF Production:*
+> - High-intensity exercise (HIIT) increases the release of β-hydroxybutyrate, which further boosts BDNF production.
+> - Prolonged fasting also increases BDNF levels, offering cognitive benefits.
+>
+> *Benefits for Brain Health and Mood Disorders:*
+> - Exercise-induced increases in BDNF may help manage conditions such as depression, anxiety, and schizophrenia by enhancing learning processes.
+> - BDNF is associated with alleviating symptoms of mood disorders like depression.
+> - Physical exercise can reduce anticipatory fear responses in trauma-related conditions, suggesting a role in therapy for anxiety disorders.
+>
+> *General Health and Cognitive Function:*
+> - Regular aerobic exercise not only improves physical health but also boosts cognitive function through the release of BDNF.
+> - Avoiding polluted environments is recommended as it can decrease production of BDNF.
+>
+> *Other Factors Affecting BDNF:*
+> - Intermittent fasting and noopept (a synthetic nootropic) are shown to boost BDNF levels, potentially improving memory formation.
+>
+> **Supporting References:**
+> - *Exercise and Fasting:* `~/Documents/Health/Factoids-Health.docx` — Lines: 4279, 4280
+> - *Role of BDNF:* `~/Documents/Health/Factoids-Health.docx` — Lines: 4987, 4988
+> - *Exercise-Induced BDNF Production:* `~/Documents/Health/Factoids-Health12.docx` — Line: 1376; `~/Documents/Health/Factoids-Health13.docx` — Line: 310; `~/Documents/Health/Factoids-Health20.docx` — Lines: 3845, 3848
+> - *Benefits for Brain Health and Mood Disorders:* `~/Documents/Health/Factoids-Health19.docx` — Line: 585
+> - *General Health and Cognitive Function:* `~/Documents/Health/Factoids-Health2.docx` — Line: 171
+> - *Other Factors Affecting BDNF:* `~/Documents/Health/Factoids-Health13.docx` — Line: 310
+>
+> These findings highlight the significant role of BDNF in various aspects of brain health, including learning, memory, mood regulation, and overall cognitive function. Regular exercise, particularly HIIT, and intermittent fasting are key strategies for boosting BDNF levels.
 
-The flagship benefit: the assistant ran a `search_documents` sweep, then **synthesized matches from a dozen files into one answer** — while every point traces back to a file and line you can open and check.
+The flagship benefit: the assistant ran a `search_documents` sweep, then **synthesized matches from several files into one answer** — while every point traces back to a file and line you can open and check.
 
 **2 — Scoping to one file, with structured output.**
 
-> **You:** From this file, tell me what's known about BDNF: `~/Documents/Health/Factoids-Health19.docx`
+> **You:** From this file tell what's known about BDNF: `~/Documents/Health/Factoids-Health19.docx`
 >
-> **Qwen2.5-7B-Instruct:** Summary of BDNF from that document —
-> - **Prolonged fasting** can boost BDNF, linked to improved cognitive function (lines 585–587).
-> - **Mechanism:** fasting → ketosis → the ketone body β-hydroxybutyrate, which raises BDNF (lines 586, 3846).
-> - **Benefit:** BDNF protects neurons and promotes new-neuron growth; higher levels aid learning and memory (lines 587, 3849).
+> **Qwen2.5-7B-Instruct:** Sure, let's extract and summarize what is known about BDNF from the document located at `~/Documents/Health/Factoids-Health19.docx`.
 >
-> *It also offered a machine-readable version:*
+> **Summary of BDNF from ~/Documents/Health/Factoids-Health19.docx**
+>
+> *BDNF and Prolonged Fasting:*
+> - Line 585: "Prolonged fasting can boost BDNF levels, which are associated with improved cognitive function."
+> - Line 586: "Studies in animals have demonstrated that prolonged fasting can enhance BDNF levels."
+>
+> *Mechanisms of BDNF Production During Fasting:*
+> - Line 586: "Prolonged fasting can lead to ketosis, a metabolic state in which your liver converts stored fats into fatty acids and ketone bodies."
+> - Line 3846: "Ketone body β-hydroxybutyrate (BHB) increases BDNF production, which is important for learning and memory."
+>
+> *Cognitive Benefits of Increased BDNF:*
+> - Line 587: "BDNF helps in protecting neurons and promoting the growth of new neurons."
+> - Line 3849: "Increased BDNF levels can improve learning and memory."
+>
+> **Detailed Annotations:**
 > ```json
-> { "file": "~/Documents/Health/Factoids-Health19.docx",
->   "lines": [ {"line": 585, "content": "…"}, {"line": 3846, "content": "…"} ] }
+> { "bdnf_knowledge": [ { "file": "~/Documents/Health/Factoids-Health19.docx", "lines": [ {"line": 585, "content": "Prolonged fasting can boost BDNF levels, which are associated with improved cognitive function."}, {"line": 586, "content": "Studies in animals have demonstrated that prolonged fasting can enhance BDNF levels."}, {"line": 3846, "content": "Ketone body β-hydroxybutyrate (BHB) increases BDNF production, which is important for learning and memory."}, {"line": 587, "content": "BDNF helps in protecting neurons and promoting the growth of new neurons."}, {"line": 3849, "content": "Increased BDNF levels can improve learning and memory."} ] } ] }
 > ```
+>
+> This summary provides a clear overview of what is known about BDNF from the specified document. The lines highlighted offer insights into how prolonged fasting affects BDNF production and its cognitive benefits.
 
 Here the assistant confined the search to **one file** and returned both prose and JSON. A reminder that fits our guidance: those `content` strings are the model's paraphrase — open the cited line to see peekdocs's exact text.
 
 **3 — The assistant reasoning about scope.**
 
-> **You:** It looks like I can limit searches to any subfolder of Documents — correct?
+> **You:** It appears that I can select specify and limit searches to any subfolder of /documents, correct
 >
-> **Qwen2.5-7B-Instruct:** Yes. `search_documents` takes a `directory` parameter — point it at a subfolder (e.g. `~/Documents/research`) and set `recursive: true` to include everything under it. You can also narrow by `file_types` such as `[".docx", ".pdf", ".txt"]`.
+> **Qwen2.5-7B-Instruct:** Yes, you can search within specific subfolders of /documents. To do this using search_documents, you need to specify the directory parameter with the path to the subfolder you want to search.
+>
+> Here's an example of how you might set up a search for BDNF in a subfolder like /documents/research.
+>
+> **Example Search Query**
+>
+> Let's say you want to search for information about BDNF specifically within the /documents/research folder. Here is how you would structure your request:
+> ```json
+> { "name": "search_documents", "arguments": { "query": ["BDNF"], "directory": "/documents/research", "recursive": true, "use_regex": false, "use_fuzzy": false, "use_whole_word": false, "file_types": [".docx", ".pdf", ".txt"], // Limit to specific file types if needed "context_before": 3, "context_after": 3, "expression": null, "range_filters": null, "use_ocr": false, "allow_index_write": false } }
+> ```
+>
+> **Explanation:**
+> - **query:** The terms you are searching for, in this case, ["BDNF"].
+> - **directory:** The specific subfolder within /documents to search, which is /documents/research.
+> - **recursive:** Set to true if you want to include all subfolders under the specified directory.
+> - **use_regex, use_fuzzy, and use_whole_word:** These can be adjusted based on your specific needs. In this case, they are set to false.
+> - **file_types:** You can limit the file types if needed (e.g., .docx, .pdf, .txt).
+> - **context_before and context_after:** Number of lines before and after each match.
+> - **expression:** A boolean query if you need more complex logic (not used here).
+> - **use_ocr:** Set to false as the files are likely text-based.
+>
+> You can modify these parameters based on your specific requirements. If you have any other questions or need further assistance, feel free to ask!
 
 A handy property this surfaces: within the server's `--root` fence, any single search can be scoped to a subfolder — so one broad `--root ~/Documents` covers many narrower questions without ever editing `mcp.json`.
 
