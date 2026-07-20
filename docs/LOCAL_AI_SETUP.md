@@ -267,6 +267,12 @@ load setting changes under a loaded model); then glance at the model's load info
 size. *(Have a GPU? The **GPU Offload** setting moves model layers onto it for speed — raise it if
 things feel slow, lower it if the model crashes or won't load.)*
 
+**The quickest path in current LM Studio:** the loaded model's name sits at the **bottom of the
+window**, with a **gear** and an **eject** button beside it. Click the **gear** to open that model's
+settings — including a **Context Length slider** you can drag up (to 16384, or higher). Click
+**eject** to unload the model; the selector then reads **"Pick a model"** and lists your downloads —
+choose yours to load it again, now with the new context length in effect.
+
 **5. Make sure tools are on for the chat.** Near the message box there's usually a **tools / wrench
 icon** — make sure tool use is enabled and **peekdocs** is switched on for this conversation.
 That's what lets the model actually call peekdocs.
