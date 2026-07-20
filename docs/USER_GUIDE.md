@@ -1479,7 +1479,7 @@ A request makes a round trip: the assistant calls peekdocs, peekdocs searches an
 You
  │  ask in plain language ("which contract mentions the roof warranty?")
  ▼
-AI assistant ── Claude Desktop / Claude Code, or a local model
+AI assistant ── cloud model (Claude Desktop / Claude Code), or a local model
  │          (via LM Studio, Ollama, or another MCP-capable client)
  │  1. picks the search terms and calls a tool, over stdio
  │     (a local pipe between two programs — no internet)
