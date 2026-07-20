@@ -1807,7 +1807,7 @@ The flagship benefit: the assistant ran a `search_documents` sweep, then **synth
 >
 > This summary provides a clear overview of what is known about BDNF from the specified document. The lines highlighted offer insights into how prolonged fasting affects BDNF production and its cognitive benefits.
 
-Here the assistant confined the search to **one file** and returned both prose and JSON. **Why the JSON matters:** prose is for *reading*, but a structured block like this is for *using* — you (or a script) can parse it, filter and sort it, drop it into a spreadsheet or database, or pipe it into another tool, turning a one-off answer into data you can automate over. (The `content` strings here are still the model's paraphrase — for a guaranteed-exact machine format, use peekdocs's own JSON output, `-o json` or `--stdout`, and open the cited line to see the real text.)
+Here the assistant confined the search to **one file** and returned both prose and JSON. **Why the JSON matters:** prose is for *reading*, but a structured block like this is for *using* — you (or a script) can parse it, filter and sort it, drop it into a spreadsheet or database, or pipe it into another tool, turning a one-off answer into data you can automate over. (The `content` strings here are still the model's paraphrase — for a guaranteed-exact machine format, use peekdocs's own JSON output: tick the **JSON** checkbox in the GUI's Advanced Search Options (output formats), or use `-o json` / `--stdout` on the CLI. And open the cited line to see the real text.)
 
 **3 — The assistant reasoning about scope.**
 
