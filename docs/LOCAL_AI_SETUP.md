@@ -259,6 +259,15 @@ spare (below).
 - **The trade-off:** a bigger window uses **more memory (RAM, or VRAM on a GPU)** and is a little
   slower. If LM Studio warns it won't fit, or the model fails to load, lower it again.
 
+**Why not just pick the maximum?** A bigger window **reserves that memory up front** — the model
+claims it the moment it loads, whether your chats are long or short — so on a tight machine "Model
+maximum" (32768) can fail to load or bog down the whole computer. The two failure modes also point
+opposite ways: **too small** gives a clean, specific error (*"exceeds context size"*) that tells you
+exactly what to do — raise it; **too large** gives murkier symptoms — slow to load, sluggish replies,
+the whole machine lagging (memory swapping to disk), or, on a GPU, fewer layers offloaded and a drop
+toward CPU speed. Because a clear error is easier to act on than vague slowness, **start at 16384 and
+raise only if you actually hit overflow**, rather than maxing it out and scaling back later.
+
 **A change only takes effect on the next load.** A model's context length is locked in when the
 model is read into memory, so a model that's **already loaded keeps its old window** — flipping to
 *Model maximum* or typing a new *Custom value* changes the *setting*, not the running model. To apply
