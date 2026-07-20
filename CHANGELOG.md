@@ -13,6 +13,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **MCP `search_documents` gains a `detail` output mode — `full` (default) or
+  `locations`.** `locations` returns only each match's file and line, dropping
+  the (often paragraph-sized) matched text — far more token-efficient, so a
+  small local model can fit many more results in its context window, and a
+  natural first pass for "which files mention X?" before reading specific ones
+  with `get_document_context`. `full` is unchanged and remains the default, so
+  the model only sees less when a request explicitly asks for it (and the tool
+  description tells it to say so when it does). When a `full` search truncates,
+  the response `note` now also points at `detail=locations` as a way to fit
+  more — surfaced only on the tool that accepts the parameter, never on the
+  others.
 - **MCP setup helper — generate and (optionally) write the LM Studio
   `mcp.json` so an AI assistant can drive peekdocs.** Available three ways,
   all sharing one core module (`peekdocs/mcp_setup.py`): (a) `peekdocs-mcp`

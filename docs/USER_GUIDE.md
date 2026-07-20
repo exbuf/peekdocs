@@ -1691,7 +1691,7 @@ These files are often in hidden folders; the [beginner guide](LOCAL_AI_SETUP.md#
 
 | Tool | What it does |
 |---|---|
-| `search_documents` | Search for terms, regex, fuzzy, whole-word, or a boolean expression across a folder; returns matching lines with file and line number. Supports context lines, type filters, and exclusions. |
+| `search_documents` | Search for terms, regex, fuzzy, whole-word, or a boolean expression across a folder; returns matching lines with file and line number. Supports context lines, type filters, and exclusions. A `detail` mode chooses how much comes back per match: `full` (default) includes the matched text; `locations` returns just file + line (no text) — far more token-efficient for a broad "which files?" pass or when results are being truncated, then read the ones you want with `get_document_context`. |
 | `get_document_context` | Return the lines surrounding matches of a query within one named file. |
 | `inventory_folder` | List the searchable files in a folder (path, size, modified time, type) without reading their contents. |
 | `list_supported_file_types` | List the extensions peekdocs can search (optionally including OCR image types). |
@@ -1851,6 +1851,8 @@ A handy property this surfaces: within the server's `--root` fence, any single s
 - **Give the model room to hold them.** Raise the model's **context length** (Context Length / `n_ctx`) in LM Studio — **16384** is a comfortable default — so the larger response still fits its memory. Note that 8192 is tight: the window also has to hold peekdocs's tool definitions (~1–2k tokens on every request) and the chat so far, so you can hit *"exceeds context size"* even at `--max-results 25` — especially on folders with long documents. A bigger window uses more RAM (or VRAM on a GPU) and is a little slower; if the model won't load, lower it again. Step-by-step: the beginner guide's [context-length setup](LOCAL_AI_SETUP.md#step-5--turn-it-on).
 
 They're a **pair**: raising `--max-results` without enough context risks the *"exceeds the available context size"* error, and a bigger context does nothing if the cap still stops results at 25. And neither helps a **census** question (an exact count or an exhaustive list) — for those, ask peekdocs directly rather than chasing ever-higher limits (see [What to ask](#what-to-ask--and-what-to-send-straight-to-peekdocs)).
+
+A third lever attacks the problem from peekdocs's side: ask for **less per match**. If your question only needs to know *which* files match — not their exact wording — tell the assistant to return **locations only** (it passes `detail=locations` to `search_documents`, dropping the matched text). That fits far more matches in the same window; the assistant can then read the few that matter with `get_document_context`. When a search is truncated, the response note points this out too.
 
 **Or run the model in the cloud (e.g. Claude) instead.** Two of the constraints above came from the *local* model: 8192 tokens of memory forced the low cap, and a 7B model is a modest reasoner. A **cloud** assistant such as Claude Desktop or Claude Code sidesteps both — same peekdocs server, same tools, just a more capable model behind the host — at the cost of the matched snippets leaving your machine. In this example the trade looks like:
 

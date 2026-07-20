@@ -376,7 +376,9 @@ reads the file at startup).
   reload the model (see [Step 5](#step-5--turn-it-on)); or **(b)** return fewer/shorter matches —
   lower `--max-results`, scope the search to a subfolder or single file, or start a **fresh chat** to
   clear history. If you're already at a low `--max-results` and still overflowing, **(a) is the real
-  fix** — raise the window rather than starving the answer.
+  fix** — raise the window rather than starving the answer. **(c)** if your question only needs to
+  know *which* files match, ask the assistant to **return locations only** (no matched text) — that
+  fits far more results in the window, and it can read the ones that matter afterward.
 - **The model tells you to *type a command*** (something like `peekdocs -q "…" --context-before 5`).
   **Don't run it — it's invented.** When peekdocs is connected through MCP, the model **calls a
   tool** (you'll see a tool-call appear before the answer); it does **not** drive peekdocs with

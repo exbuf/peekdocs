@@ -90,6 +90,15 @@ class TestCap:
         assert "max_results" in env["note"]
         assert "2 of 5" in env["note"]
 
+    def test_detail_hint_only_when_requested(self):
+        # The detail=locations pointer must appear ONLY for tools that accept
+        # the detail param — never on the shared default note.
+        m._CONFIG.max_results = 2
+        _, plain = m._cap([1, 2, 3, 4, 5])
+        _, hinted = m._cap([1, 2, 3, 4, 5], detail_hint=True)
+        assert "detail=locations" not in plain["note"]
+        assert "detail=locations" in hinted["note"]
+
     def test_under_cap_untouched(self):
         m._CONFIG.max_results = 10
         rows, env = m._cap([1, 2])
@@ -135,6 +144,35 @@ class TestSearchDocuments:
         assert out["truncated"] is True
         assert out["total"] == 2
         assert len(out["matches"]) == 1
+
+
+class TestDetailModes:
+    def test_full_includes_text_by_default(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(["fox"], directory=str(tmp_path), recursive=True)
+        assert all("text" in x for x in out["matches"])
+
+    def test_locations_omits_text(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(
+            ["fox"], directory=str(tmp_path), recursive=True, detail="locations"
+        )
+        assert out["matches"]  # still returns the matches
+        assert all("text" not in x for x in out["matches"])
+        assert all({"file", "line"} <= x.keys() for x in out["matches"])
+
+    def test_unknown_detail_falls_back_to_full(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(
+            ["fox"], directory=str(tmp_path), recursive=True, detail="bogus"
+        )
+        assert all("text" in x for x in out["matches"])
+
+    def test_locations_search_still_truncation_hints_detail(self, tmp_path):
+        _seed(tmp_path)
+        m._CONFIG.max_results = 1
+        out = m.search_documents(["fox"], directory=str(tmp_path), recursive=True)
+        assert "detail=locations" in out["note"]
 
 
 class TestOtherTools:

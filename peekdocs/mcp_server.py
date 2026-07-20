@@ -81,39 +81,66 @@ def _resolve_dir(directory: Optional[str]) -> str:
     return _resolve_within_roots(directory)
 
 
-def _cap(items: list) -> tuple[list, dict[str, Any]]:
+def _cap(items: list, *, detail_hint: bool = False) -> tuple[list, dict[str, Any]]:
     """Truncate ``items`` to ``max_results`` and describe what was dropped.
 
     On truncation the envelope carries a plain-language ``note`` alongside the
     machine fields, stating the real reason (the ``max_results`` cap). Assistants
     reliably relay a ready-made sentence but tend to invent a cause when handed
     only the numbers — the note keeps their narration honest.
+
+    ``detail_hint`` adds a pointer to the ``detail=locations`` output mode — set
+    it only for tools that actually accept ``detail`` (currently
+    ``search_documents``), so the note never suggests a parameter the calling
+    tool doesn't support.
     """
     total = len(items)
     cap = _CONFIG.max_results
     if total > cap:
+        note = (
+            f"Showing {cap} of {total} results — capped by max_results "
+            f"({cap}). To see more, ask to narrow the request (e.g. a more "
+            "specific term or folder) or raise the max_results limit."
+        )
+        if detail_hint:
+            note += (
+                " Or, if you only need to know which files match, re-run with "
+                "detail=locations to fit many more."
+            )
         return items[:cap], {
             "truncated": True,
             "total": total,
             "returned": cap,
-            "note": (
-                f"Showing {cap} of {total} results — capped by max_results "
-                f"({cap}). To see more, ask to narrow the request (e.g. a more "
-                "specific term or folder) or raise the max_results limit."
-            ),
+            "note": note,
         }
     return items, {"truncated": False, "total": total, "returned": total}
 
 
-def _match_dicts(matches) -> list[dict[str, Any]]:
-    return [
-        {
+#: Valid values for the ``detail`` output mode.
+_DETAIL_MODES = ("full", "locations")
+
+
+def _match_dicts(matches, detail: str = "full") -> list[dict[str, Any]]:
+    """Serialize matches to dicts at the requested ``detail`` level.
+
+    ``full`` (default) includes each match's text; ``locations`` returns only
+    ``file`` + ``line`` (no text), which is far more token-efficient — useful
+    when a small local model's context window can't hold many full matches, or
+    for a broad "which files mention X?" pass before drilling in with
+    :func:`get_document_context`. Unknown values fall back to ``full``.
+    """
+    if detail not in _DETAIL_MODES:
+        detail = "full"
+    out: list[dict[str, Any]] = []
+    for m in matches:
+        d: dict[str, Any] = {
             "file": os.path.join(m.file_dir, m.filename),
             "line": m.line_num,
-            "text": m.text,
         }
-        for m in matches
-    ]
+        if detail == "full":
+            d["text"] = m.text
+        out.append(d)
+    return out
 
 
 # ── Tool implementations (plain functions — no MCP dependency) ──────
@@ -134,6 +161,7 @@ def search_documents(
     range_filters: Optional[list[str]] = None,
     use_ocr: Optional[bool] = None,
     allow_index_write: Optional[bool] = None,
+    detail: str = "full",
 ) -> dict[str, Any]:
     """Search local documents for text and return matching lines.
 
@@ -155,6 +183,13 @@ def search_documents(
     scanned PDFs and images (requires Tesseract). allow_index_write: opt in to
     using/refreshing the on-disk search index (writes .peekdocs.db); off by
     default to keep the search purely read-only.
+    detail: how much to return per match. "full" (default) includes each
+    match's text. "locations" returns only file + line, no text — far more
+    token-efficient; use it for a broad "which files mention X?" pass, or when
+    results are being truncated and you want to fit more, then call
+    get_document_context on the files you care about to read their text. Only
+    request "locations" when the user's question doesn't need the matched text
+    itself; if you use it, say so — you have not seen the surrounding wording.
     """
     recursive = _CONFIG.recursive_default if recursive is None else recursive
     use_ocr = _CONFIG.ocr_default if use_ocr is None else use_ocr
@@ -179,7 +214,7 @@ def search_documents(
         use_ocr=use_ocr,
         use_index=None if allow_index_write else False,
     )
-    matches, envelope = _cap(_match_dicts(result.matches))
+    matches, envelope = _cap(_match_dicts(result.matches, detail), detail_hint=True)
     return {
         "searched_directory": d,
         "matches": matches,
