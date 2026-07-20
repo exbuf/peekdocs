@@ -1479,7 +1479,7 @@ A request makes a round trip: the assistant calls peekdocs, peekdocs searches an
 You
  │  ask in plain language ("which contract mentions the roof warranty?")
  ▼
-AI host  ── Claude Desktop / Claude Code, or a local model
+AI assistant ── Claude Desktop / Claude Code, or a local model
  │          (via LM Studio, Ollama, or another MCP-capable client)
  │  1. picks the search terms and calls a tool, over stdio
  │     (a local pipe between two programs — no internet)
@@ -1495,13 +1495,13 @@ Your local files  (only inside --root)
 peekdocs returns the matches ── file path + line number + text
  │  4. back up the same stdio pipe (capped by --max-results; read-only)
  ▼
-AI host summarizes the matches and cites the file + line
+AI assistant summarizes the matches and cites the file + line
  │     (this step is the assistant's own work, not a peekdocs feature)
  ▼
 You get a grounded, cited answer
 ```
 
-peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. The one thing that may leave your machine is the model step with a *cloud* assistant; a local model keeps everything on your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine).
+peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. The one thing that may leave your machine is the matches themselves: with a *cloud* assistant, the lines peekdocs returns are sent to the vendor's servers for the model to read and summarize. A local model keeps everything on your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine).
 
 ### Who benefits, and why
 
