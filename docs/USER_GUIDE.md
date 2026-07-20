@@ -1661,7 +1661,13 @@ If you use **Claude Code** (Anthropic's terminal CLI), it is already an MCP host
 
 Each fills in the absolute path to `peekdocs-mcp`, avoiding the [stripped-PATH launch failure](#fully-local-and-private-pairing-with-a-downloadable-model). If LM Studio isn't installed, the tools show the config rather than writing it.
 
-To do it by hand instead: other MCP hosts use a config file. Add a stdio server entry to your client's MCP configuration (Claude Desktop and other MCP hosts follow the same shape):
+To do it by hand instead: most MCP hosts read a JSON config file. Where it lives depends on the host:
+
+- **LM Studio** — `~/.lmstudio/mcp.json`
+- **Claude Desktop** — `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+- **Other hosts** — check the host's own docs, or its **Settings** (often an "Edit config" button next to its MCP/integrations panel)
+
+These files are often in hidden folders; the [beginner guide](LOCAL_AI_SETUP.md#step-4--connect-peekdocs-to-lm-studio) shows how to open one. Add a stdio server entry to the file (Claude Desktop and other MCP hosts follow the same shape):
 
 ```json
 {
