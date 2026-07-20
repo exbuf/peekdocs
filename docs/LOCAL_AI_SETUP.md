@@ -241,9 +241,12 @@ into memory.
 
 **4. Set how much the model can hold at once (context length).** A model's **context window** is
 its short-term memory, measured in *tokens* (see the glossary). If a search hands back more text
-than fits, the reply fails with *"exceeds the available context size."* When you load a model, LM
-Studio shows its **load settings** — look for **Context Length** (sometimes labelled `n_ctx`),
-usually on the model's load screen or in a **gear / settings** panel next to the loaded model.
+than fits, the reply fails with *"exceeds the available context size."* Look in the model's **load
+settings** for **Context Length** (LM Studio also labels it **Default Context Length** or `n_ctx`) —
+on the model's load screen, or via the **gear / settings** panel next to the model. You'll usually
+get two choices: **Custom value** — type a number, e.g. `16384` — or **Model maximum**, which uses
+the model's built-in ceiling (32768 for Qwen2.5-7B). Either is fine; pick by the memory you can
+spare (below).
 
 - **Set it to 16384 if your computer can spare the memory** — a comfortable default. The window
   holds much more than your question: peekdocs sends the model a description of all its tools on
@@ -256,9 +259,13 @@ usually on the model's load screen or in a **gear / settings** panel next to the
 - **The trade-off:** a bigger window uses **more memory (RAM, or VRAM on a GPU)** and is a little
   slower. If LM Studio warns it won't fit, or the model fails to load, lower it again.
 
-After changing any load setting, **reload the model** so it takes effect. *(Have a GPU? The
-**GPU Offload** setting moves model layers onto it for speed — raise it if things feel slow, lower
-it if the model crashes or won't load.)*
+**A change only takes effect on the next load.** A model's context length is locked in when the
+model is read into memory, so a model that's **already loaded keeps its old window** — flipping to
+*Model maximum* or typing a new *Custom value* changes the *setting*, not the running model. To apply
+it, **eject the model and load it again** (LM Studio usually shows a *reload to apply* hint when a
+load setting changes under a loaded model); then glance at the model's load info to confirm the new
+size. *(Have a GPU? The **GPU Offload** setting moves model layers onto it for speed — raise it if
+things feel slow, lower it if the model crashes or won't load.)*
 
 **5. Make sure tools are on for the chat.** Near the message box there's usually a **tools / wrench
 icon** — make sure tool use is enabled and **peekdocs** is switched on for this conversation.
