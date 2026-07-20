@@ -1727,6 +1727,8 @@ The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the
 
 Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio), lightly trimmed and with paths genericized. They show the payoff of the "prompts that lean on the assistant" table above — synthesis, single-file extraction, and the model reasoning about scope. As you read, keep the [needle-vs-census habit](#what-to-ask--and-what-to-send-straight-to-peekdocs) in mind: **the file paths and line numbers are peekdocs's real output** (open them to verify), while the prose summaries and any quoted snippets are the *model's* rendering of what it found.
 
+**The setup for these:** Qwen2.5-7B-Instruct running in LM Studio at an **8192-token context window**, with peekdocs capping each response at **`--max-results 25`**. So every answer below reflects at most the top 25 matches — the BDNF searches actually found *more*, which simply weren't returned. That cap is the deliberate trade that keeps replies inside a small local model's memory; how to lift it (and let the model hold more) is covered right after the examples.
+
 **1 — Synthesis across a folder, with citations.**
 
 > **You:** From peekdocs, summarize what's known about BDNF.
@@ -1769,6 +1771,13 @@ Here the assistant confined the search to **one file** and returned both prose a
 > **Qwen2.5-7B-Instruct:** Yes. `search_documents` takes a `directory` parameter — point it at a subfolder (e.g. `~/Documents/research`) and set `recursive: true` to include everything under it. You can also narrow by `file_types` such as `[".docx", ".pdf", ".txt"]`.
 
 A handy property this surfaces: within the server's `--root` fence, any single search can be scoped to a subfolder — so one broad `--root ~/Documents` covers many narrower questions without ever editing `mcp.json`.
+
+**Want the assistant to see more per question?** The 25-match cap above is a starting point, not a ceiling. Two knobs control how much a single answer can draw on, and it's usually worth nudging **both together**:
+
+- **Raise the result cap.** Increase `--max-results` in your `mcp.json` — say from 25 to 50 — so more matches come back per call.
+- **Give the model room to hold them.** Raise the model's **context length** (Context Length / `n_ctx`) in LM Studio — for example from 8192 to 16384 — so the larger response still fits its memory. A bigger window uses more RAM (or VRAM on a GPU) and is a little slower; if the model won't load, lower it again. Step-by-step: the beginner guide's [context-length setup](LOCAL_AI_SETUP.md#step-5--turn-it-on).
+
+They're a **pair**: raising `--max-results` without enough context risks the *"exceeds the available context size"* error, and a bigger context does nothing if the cap still stops results at 25. And they don't turn a **census** question into a good fit — for an exact count or an exhaustive list, don't chase it with ever-higher limits; ask peekdocs directly, where the counts and CSV/JSON exports are complete (see [What to ask](#what-to-ask--and-what-to-send-straight-to-peekdocs)).
 
 ### Fully local and private: pairing with a downloadable model
 
