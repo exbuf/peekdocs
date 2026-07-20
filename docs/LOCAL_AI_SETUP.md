@@ -245,10 +245,14 @@ than fits, the reply fails with *"exceeds the available context size."* When you
 Studio shows its **load settings** — look for **Context Length** (sometimes labelled `n_ctx`),
 usually on the model's load screen or in a **gear / settings** panel next to the loaded model.
 
-- **8192 is a good starting point.** Because peekdocs writes `--max-results 25` into your config
-  (Step 4), replies stay small and 8192 is usually plenty.
-- **Raise it to 16384 or more if** you ask broad questions, increase `--max-results`, or hit the
-  "exceeds context size" error. Qwen2.5-7B handles up to ~32768.
+- **Set it to 16384 if your computer can spare the memory** — a comfortable default. The window
+  holds much more than your question: peekdocs sends the model a description of all its tools on
+  *every* request (~1–2k tokens), plus the matches it returns (which can be large — a single Word
+  paragraph counts as one match "line"), plus everything already said in the chat. **8192 is a tight
+  minimum** — fine for one simple question, but it can overflow (*"exceeds context size"*) even with
+  `--max-results 25`, especially on folders full of long documents.
+- **Raise it further** (32768 is Qwen2.5-7B's ceiling) if you ask broad questions, search
+  long-document folders, or keep a long back-and-forth going.
 - **The trade-off:** a bigger window uses **more memory (RAM, or VRAM on a GPU)** and is a little
   slower. If LM Studio warns it won't fit, or the model fails to load, lower it again.
 
@@ -341,14 +345,16 @@ reads the file at startup).
   tools. **Fix:** load a proper `-Instruct` build (Step 2). *(Advanced check: LM Studio's logs
   under `~/.lmstudio/server-logs` will show many `ListToolsRequest` and zero `CallToolRequest` —
   that pattern means the model never called a tool.)*
-- **"exceeds the available context size" / the reply fails with a token error.** Your search
-  returned more text than the model's **context window** (its working memory) can hold — common when
-  a word appears in many files. Two fixes, either works: **(a)** return fewer matches — add
-  `"--max-results", "25"` to the `args` in `mcp.json` (Step 4), then reload LM Studio; or **(b)**
-  give the model a bigger window — when you load the model, raise **Context Length** (a.k.a.
-  `n_ctx`) from its default (often 8192) to 16384 or more (this uses more memory). Lowering
-  `--max-results` is the simpler fix and usually the right one — feeding hundreds of matches into a
-  chat model is overkill anyway.
+- **"exceeds the available context size" / the reply fails with a token error.** The request was
+  bigger than the model's **context window** (its working memory). It's not only the search results:
+  the tool descriptions peekdocs sends on *every* request (~1–2k tokens) and the running conversation
+  count too — so you can hit this **even with `--max-results 25`**, especially on folders whose
+  documents have long paragraphs (a Word paragraph is one match "line"). Two fixes: **(a)** give the
+  model a bigger window — raise **Context Length** (`n_ctx`) in LM Studio from 8192 to **16384** and
+  reload the model (see [Step 5](#step-5--turn-it-on)); or **(b)** return fewer/shorter matches —
+  lower `--max-results`, scope the search to a subfolder or single file, or start a **fresh chat** to
+  clear history. If you're already at a low `--max-results` and still overflowing, **(a) is the real
+  fix** — raise the window rather than starving the answer.
 - **The model tells you to *type a command*** (something like `peekdocs -q "…" --context-before 5`).
   **Don't run it — it's invented.** When peekdocs is connected through MCP, the model **calls a
   tool** (you'll see a tool-call appear before the answer); it does **not** drive peekdocs with
