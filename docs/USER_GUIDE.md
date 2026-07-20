@@ -1503,6 +1503,20 @@ You get a grounded, cited answer
 
 peekdocs supplies the provenance — every match carries its file path and line number — so the assistant can cite real sources instead of inventing them. The one thing that may leave your machine is the matches themselves: with a *cloud* assistant, the lines peekdocs returns are sent to the vendor's servers for the model to read and summarize. A local model keeps everything on your computer — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine).
 
+### What to ask — and what to send straight to peekdocs
+
+The assistant adds value when it **reads and reasons over** what peekdocs found — not when it merely relays a hit list. For a bare keyword search ("show every line with *invoice*") the assistant adds little over peekdocs itself; peekdocs already does the finding, exactly and deterministically. So phrase requests as *questions*, and know which kind you're asking:
+
+- **Needle questions — the assistant's sweet spot.** The answer lives in a *few* strong matches: a fact, a clause, a comparison, a summary. *"What's the warranty period in the roofing contract?"*, *"Do these two contracts differ on the cancellation clause?"*, *"Summarize what my notes say about the migration plan."* The assistant reads the handful of hits and answers.
+- **Census questions — send these to peekdocs directly.** The answer needs the *whole* result set: an exact count, an exhaustive list, an aggregate. *"How many documents mention 'invoice'?"*, *"List **every** client I've billed."* Because responses are capped (`--max-results`, kept low for local models so replies fit the model's context window), the assistant only sees the first slice and may answer confidently despite seeing just a partial picture. peekdocs' own counts and its CSV/JSON exports are complete and exact — use those.
+
+Two habits keep the answers trustworthy:
+
+1. **Trust the numbers over the prose.** The assistant's write-up is a convenience; peekdocs' returned file names, line numbers, and — when a result is capped — its truncation note (*"Showing 25 of 47 results…"*) are the source of truth. A small local model in particular may mis-summarize or invent an explanation; if the prose and the numbers disagree, believe the numbers.
+2. **Match the cap to the question.** Keep `--max-results` low for needle questions; raise it — or drop to plain peekdocs — the moment the question becomes a census.
+
+The beginner-friendly version of this, with a side-by-side table, is in the [Local AI Assistant setup guide](LOCAL_AI_SETUP.md#getting-the-most-out-of-it--what-to-ask).
+
 ### Who benefits, and why
 
 The MCP server is worth setting up when you'd rather *ask a question* than *build a search*. Its benefits:
@@ -1529,20 +1543,6 @@ A few examples of how different people might use it (assuming `--root` points at
 - **Engineer** — "Which datasheets mention a tolerance of ±0.5%?" It searches the PDFs and drawings and points to each hit.
 - **Documentation team** — "Find every doc still using the old product name instead of the new one." It flags the inconsistencies across the doc set.
 - **Office worker** — "Which of my files mention Acme and a dollar amount?" It runs the search and lists the matching files in plain English.
-
-### What to ask — and what to send straight to peekdocs
-
-The assistant adds value when it **reads and reasons over** what peekdocs found — not when it merely relays a hit list. For a bare keyword search ("show every line with *invoice*") the assistant adds little over peekdocs itself; peekdocs already does the finding, exactly and deterministically. So phrase requests as *questions*, and know which kind you're asking:
-
-- **Needle questions — the assistant's sweet spot.** The answer lives in a *few* strong matches: a fact, a clause, a comparison, a summary. *"What's the warranty period in the roofing contract?"*, *"Do these two contracts differ on the cancellation clause?"*, *"Summarize what my notes say about the migration plan."* The assistant reads the handful of hits and answers.
-- **Census questions — send these to peekdocs directly.** The answer needs the *whole* result set: an exact count, an exhaustive list, an aggregate. *"How many documents mention 'invoice'?"*, *"List **every** client I've billed."* Because responses are capped (`--max-results`, kept low for local models so replies fit the model's context window), the assistant only sees the first slice and may answer confidently despite seeing just a partial picture. peekdocs' own counts and its CSV/JSON exports are complete and exact — use those.
-
-Two habits keep the answers trustworthy:
-
-1. **Trust the numbers over the prose.** The assistant's write-up is a convenience; peekdocs' returned file names, line numbers, and — when a result is capped — its truncation note (*"Showing 25 of 47 results…"*) are the source of truth. A small local model in particular may mis-summarize or invent an explanation; if the prose and the numbers disagree, believe the numbers.
-2. **Match the cap to the question.** Keep `--max-results` low for needle questions; raise it — or drop to plain peekdocs — the moment the question becomes a census.
-
-The beginner-friendly version of this, with a side-by-side table, is in the [Local AI Assistant setup guide](LOCAL_AI_SETUP.md#getting-the-most-out-of-it--what-to-ask).
 
 ### Read-only by design
 
