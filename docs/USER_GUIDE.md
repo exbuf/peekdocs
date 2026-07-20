@@ -1652,7 +1652,7 @@ If you use **Claude Code** (Anthropic's terminal CLI), it is already an MCP host
 
 ### Registering with an MCP client
 
-**peekdocs can generate or write this config for you**, so you don't have to hand-edit JSON or hunt down the full path:
+**peekdocs can generate or write this config for you**, so you don't have to hand-edit JSON or hunt down the full path. Run one of these `peekdocs-mcp` commands in a **terminal** (or use the GUI option at the end):
 
 - **`peekdocs-mcp --setup`** — opens a native folder picker, then writes LM Studio's `mcp.json` (backing up any existing one). No display? use `peekdocs-mcp --write-lmstudio-config --root <folder>`.
 - **`peekdocs-mcp --print-config --root <folder>`** — prints the config block to paste into *any* host's config. Add `--recursive`/`--ocr` and repeat `--root` for more folders.
