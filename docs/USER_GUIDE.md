@@ -1471,7 +1471,7 @@ Results ==> /Users/yourname/Documents
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
 
-**Why do this?** In short: you **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding; the assistant reasons on top — all with your **choice of privacy** (a cloud assistant for convenience, or a fully local model so nothing leaves your machine). [Who benefits, and why](#who-benefits-and-why) expands on this below.
+**Why do this?** You **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding, and the assistant reasons on top. You also keep your **choice of privacy**: a cloud assistant for convenience, or a fully local model so nothing leaves your machine. [Who benefits, and why](#who-benefits-and-why) expands on this below.
 
 ### How the flow works
 
@@ -1537,14 +1537,9 @@ A few examples of how different people might use it (assuming `--root` points at
 - **Developer** — "Which files still call the deprecated `authV1` function?" The assistant runs a search across the tree and summarizes what it finds.
 - **Sysadmin** — "Find request ID `abc-123` across these logs and give me the timeline." It searches the mixed log/archive files and orders the hits.
 - **Auditor / reviewer** — "Run my *Evidentiary Patterns* regex collection over this folder and group the hits by document." It runs the saved collection and organizes the results.
-- **Researcher** — "Which PDFs cite the Smith 2019 method?" It searches the corpus and lists the matching papers with locations.
 - **Small-business owner (non-technical)** — "Which contract mentions the roof warranty?" Plain English, no flags to learn.
-- **AI/ML engineer** — "Which experiment logs mention checkpoint `run_2024_ckpt_9`?" It searches your scripts, configs, and notebooks and lists where it appears.
-- **IT consultant** — "Search this client folder for every place the old API-key format shows up." It sweeps the mixed files — no flags to learn on a client's machine.
-- **Data researcher** — "Which of these CSVs contain account number 88213?" It scans the spreadsheets and names the files (and rows) that match.
-- **Engineer** — "Which datasheets mention a tolerance of ±0.5%?" It searches the PDFs and drawings and points to each hit.
-- **Documentation team** — "Find every doc still using the old product name instead of the new one." It flags the inconsistencies across the doc set.
-- **Office worker** — "Which of my files mention Acme and a dollar amount?" It runs the search and lists the matching files in plain English.
+
+The same shape fits a researcher's PDF corpus, an engineer's datasheets, an analyst's spreadsheets, or a docs team's terminology sweep — any folder of files, asked in plain language.
 
 ### Read-only by design
 
@@ -1845,7 +1840,7 @@ A handy property this surfaces: within the server's `--root` fence, any single s
 - **Raise the result cap.** Increase `--max-results` in your `mcp.json` — say from 25 to 50 — so more matches come back per call.
 - **Give the model room to hold them.** Raise the model's **context length** (Context Length / `n_ctx`) in LM Studio — **16384** is a comfortable default — so the larger response still fits its memory. Note that 8192 is tight: the window also has to hold peekdocs's tool definitions (~1–2k tokens on every request) and the chat so far, so you can hit *"exceeds context size"* even at `--max-results 25` — especially on folders with long documents. A bigger window uses more RAM (or VRAM on a GPU) and is a little slower; if the model won't load, lower it again. Step-by-step: the beginner guide's [context-length setup](LOCAL_AI_SETUP.md#step-5--turn-it-on).
 
-They're a **pair**: raising `--max-results` without enough context risks the *"exceeds the available context size"* error, and a bigger context does nothing if the cap still stops results at 25. And they don't turn a **census** question into a good fit — for an exact count or an exhaustive list, don't chase it with ever-higher limits; ask peekdocs directly, where the counts and CSV/JSON exports are complete (see [What to ask](#what-to-ask--and-what-to-send-straight-to-peekdocs)).
+They're a **pair**: raising `--max-results` without enough context risks the *"exceeds the available context size"* error, and a bigger context does nothing if the cap still stops results at 25. And neither helps a **census** question (an exact count or an exhaustive list) — for those, ask peekdocs directly rather than chasing ever-higher limits (see [What to ask](#what-to-ask--and-what-to-send-straight-to-peekdocs)).
 
 **Or run the model in the cloud (e.g. Claude) instead.** Two of the constraints above came from the *local* model: 8192 tokens of memory forced the low cap, and a 7B model is a modest reasoner. A **cloud** assistant such as Claude Desktop or Claude Code sidesteps both — same peekdocs server, same tools, just a more capable model behind the host — at the cost of the matched snippets leaving your machine. In this example the trade looks like:
 
