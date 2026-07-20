@@ -1473,7 +1473,7 @@ peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol
 
 **At a glance, here's what setup takes** (the fully-local route; a cloud assistant like Claude Code skips steps 2–3, since the model already runs in the cloud):
 
-1. **Install the `peekdocs-mcp` server** — peekdocs's optional `[mcp]` extra (see [Installing and running](#installing-and-running)).
+1. **Install the `peekdocs-mcp` server** — peekdocs's optional `[mcp]` extra, and the one step **every** setup needs, cloud or local: it's the piece the assistant talks to (see [Installing and running](#installing-and-running)).
 2. **Install a runner** — [LM Studio](https://lmstudio.ai), which both runs an AI model on your computer and connects it to peekdocs.
 3. **Download and select a model** in LM Studio — an instruct model that supports tool calling, e.g. Qwen2.5-7B-Instruct.
 4. **Point the model at peekdocs** — add peekdocs to the host's config (peekdocs can [write it for you](#registering-with-an-mcp-client)), then reload.
