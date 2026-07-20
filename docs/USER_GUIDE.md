@@ -1725,7 +1725,7 @@ The full Claude Code walkthrough is the [Quickstart](#quickstart-claude-code-the
 
 ### What a real session looks like
 
-Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio), lightly trimmed and with paths genericized. They show the payoff of the "prompts that lean on the assistant" table above — synthesis, single-file extraction, and the model reasoning about scope. As you read, keep the [needle-vs-census habit](#what-to-ask--and-what-to-send-straight-to-peekdocs) in mind: **the file paths and line numbers are peekdocs's real output** (open them to verify), while the prose summaries and any quoted snippets are the *model's* rendering of what it found.
+Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio), reproduced in full with only the file paths genericized. They show the payoff of the "prompts that lean on the assistant" table above — synthesis, single-file extraction, and the model reasoning about scope. As you read, keep the [needle-vs-census habit](#what-to-ask--and-what-to-send-straight-to-peekdocs) in mind: **the file paths and line numbers are peekdocs's real output** (open them to verify), while the prose summaries and any quoted snippets are the *model's* rendering of what it found.
 
 **The setup for these:** Qwen2.5-7B-Instruct running in LM Studio at an **8192-token context window**, with peekdocs capping each response at **`--max-results 25`**. So every answer below reflects at most the top 25 matches — the BDNF searches actually found *more*, which simply weren't returned. That cap is the deliberate trade that keeps replies inside a small local model's memory; how to lift it (and let the model hold more) is covered right after the examples.
 
