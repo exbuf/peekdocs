@@ -1531,7 +1531,7 @@ The beginner-friendly version of this, with a side-by-side table, is in the [Loc
 
 ### Who benefits, and why
 
-The MCP server is worth setting up when you'd rather *ask a question* than *build a search*. Its benefits:
+In more detail, here's what it buys you:
 
 - **Plain language instead of syntax.** Ask in everyday words — no need to learn flags, regex, or Boolean operators. This is especially helpful for non-technical users.
 - **The assistant chains and synthesizes.** It can run several searches, refine them, cross-reference the results, and hand you a written answer — not just a list of raw matches.
