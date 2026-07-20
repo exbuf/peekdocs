@@ -1779,6 +1779,17 @@ A handy property this surfaces: within the server's `--root` fence, any single s
 
 They're a **pair**: raising `--max-results` without enough context risks the *"exceeds the available context size"* error, and a bigger context does nothing if the cap still stops results at 25. And they don't turn a **census** question into a good fit — for an exact count or an exhaustive list, don't chase it with ever-higher limits; ask peekdocs directly, where the counts and CSV/JSON exports are complete (see [What to ask](#what-to-ask--and-what-to-send-straight-to-peekdocs)).
 
+**Or run the model in the cloud (e.g. Claude) instead.** Two of the constraints above came from the *local* model: 8192 tokens of memory forced the low cap, and a 7B model is a modest reasoner. A **cloud** assistant such as Claude Desktop or Claude Code sidesteps both — same peekdocs server, same tools, just a more capable model behind the host — at the cost of the matched snippets leaving your machine. In this example the trade looks like:
+
+| | Local model (as above) | Cloud assistant (e.g. Claude) |
+|---|---|---|
+| **Privacy** | Nothing leaves your machine — questions, snippets, and answer all stay local | The matched snippets travel to the vendor to be answered — see [Does it keep everything on your machine?](#does-it-keep-everything-on-your-machine) |
+| **Capacity** | Small context (8192 here) forces a low `--max-results`; broad questions truncate at 25 | Large context — raise `--max-results` well past 25 and it can reason over far more matches at once |
+| **Quality** | Synthesizes well for a 7B model, but paraphrases more loosely — lean harder on the file+line citations | A larger model tends to synthesize and cite more reliably, with less need to double-check the prose |
+| **Setup & cost** | Free and offline, but you install a runtime, download a model, and tune context/RAM | No download or tuning, but needs internet and an account/subscription |
+
+**Rule of thumb:** for **sensitive** folders — anything you wouldn't paste into a chat — keep it **local**. For everyday, non-sensitive folders where you want the strongest answer with the least fuss, a **cloud** assistant is the easier, more capable route. Either way peekdocs is identical underneath — it finds and returns the same matches; only the model, and whether the snippets leave your machine, changes.
+
 ### Fully local and private: pairing with a downloadable model
 
 > **New to running AI models locally?** For a full, no-prior-experience walkthrough — installing a runtime, choosing a model, and connecting peekdocs step by step, with troubleshooting — see the [Private, Local AI Assistant beginner's guide](LOCAL_AI_SETUP.md). The rest of this section is the concise overview.
