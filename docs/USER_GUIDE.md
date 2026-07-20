@@ -1854,6 +1854,15 @@ They're a **pair**: raising `--max-results` without enough context risks the *"e
 
 A third lever attacks the problem from peekdocs's side: ask for **less per match**. If your question only needs to know *which* files match — not their exact wording — tell the assistant to return **locations only** (it passes `detail=locations` to `search_documents`, dropping the matched text). That fits far more matches in the same window; the assistant can then read the few that matter with `get_document_context`. When a search is truncated, the response note points this out too.
 
+You trigger it in plain language — you never type `detail=locations` yourself; the assistant maps your intent to it. For example:
+
+- *"Just list which files mention BDNF — I don't need the quotes."*
+- *"Give me a quick file-level scan for the old API-key format across the whole tree."*
+- *"Which documents reference the Henderson project? Filenames only, then open the two most relevant."*
+- *(after an "exceeds context size" error)* *"That was too much — just return the file names this time."*
+
+The last one is the natural recovery: the truncation note nudges toward it, so when a full search doesn't fit, you (or the assistant) can fall back to locations and still see the full spread of matches.
+
 **Or run the model in the cloud (e.g. Claude) instead.** Two of the constraints above came from the *local* model: 8192 tokens of memory forced the low cap, and a 7B model is a modest reasoner. A **cloud** assistant such as Claude Desktop or Claude Code sidesteps both — same peekdocs server, same tools, just a more capable model behind the host — at the cost of the matched snippets leaving your machine. In this example the trade looks like:
 
 | | Local model (as above) | Cloud assistant (e.g. Claude) |
