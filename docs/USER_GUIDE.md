@@ -1471,6 +1471,16 @@ Results ==> /Users/yourname/Documents
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
 
+**At a glance, here's what setup takes** (the fully-local route; a cloud assistant like Claude Code skips steps 2–3, since the model already runs in the cloud):
+
+1. **Install the `peekdocs-mcp` server** — peekdocs's optional `[mcp]` extra (see [Installing and running](#installing-and-running)).
+2. **Install a runner** — [LM Studio](https://lmstudio.ai), which both runs an AI model on your computer and connects it to peekdocs.
+3. **Download and select a model** in LM Studio — an instruct model that supports tool calling, e.g. Qwen2.5-7B-Instruct.
+4. **Point the model at peekdocs** — add peekdocs to the host's config (peekdocs can [write it for you](#registering-with-an-mcp-client)), then reload.
+5. **Turn it on and ask** in plain language.
+
+The [beginner's guide](LOCAL_AI_SETUP.md) walks through all of this from scratch, with no prior experience assumed; the rest of this section is the reference.
+
 **Why do this?** You **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding, and the assistant reasons on top. You also keep your **choice of privacy**: a cloud assistant for convenience, or a fully local model so nothing leaves your machine. [Who benefits, and why](#who-benefits-and-why) expands on this below.
 
 ### How the flow works
