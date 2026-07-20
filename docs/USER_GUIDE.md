@@ -1481,7 +1481,7 @@ peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol
 
 The [beginner's guide](LOCAL_AI_SETUP.md) walks through all of this from scratch, with no prior experience assumed; the rest of this section is the reference.
 
-**Why do this?** You **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding, and the assistant reasons on top. You also keep your **choice of privacy**: a cloud assistant for convenience, or a fully local model so nothing leaves your machine. [Who benefits, and why](#who-benefits-and-why) expands on this below.
+**Why do this?** You **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding, and the assistant reasons on top. You also keep your **choice of privacy**: a cloud assistant for convenience, or a fully local model so nothing leaves your machine. **It's an optional layer, though — and not for everyone.** peekdocs is fully capable on its own, so if you're comfortable building searches in the GUI or CLI, you may not need the AI at all; it adds a model to run and a bit of setup, and it earns its keep mainly when you'd rather *ask a question* than build a search. [Who benefits, and why](#who-benefits-and-why) expands on this below.
 
 ### How the flow works
 
