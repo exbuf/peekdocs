@@ -1471,6 +1471,8 @@ Results ==> /Users/yourname/Documents
 
 peekdocs ships an optional [Model Context Protocol](https://modelcontextprotocol.io) server, `peekdocs-mcp`, that lets an MCP-capable AI assistant search your local documents. It is a thin adapter over the same `peekdocs.api` engine the CLI and GUI use — an assistant's search returns the same matches your own search would.
 
+**Why do this?** In short: you **ask in plain language** and get back an answer the assistant has synthesized from real matches and **cited to file and line** — peekdocs does the exact, deterministic finding; the assistant reasons on top — all with your **choice of privacy** (a cloud assistant for convenience, or a fully local model so nothing leaves your machine). [Who benefits, and why](#who-benefits-and-why) expands on this below.
+
 ### How the flow works
 
 A request makes a round trip: the assistant calls peekdocs, peekdocs searches and answers, and the assistant summarizes or reasons over the results. peekdocs is only the *retrieval* step — it finds and returns matches; it never summarizes.
