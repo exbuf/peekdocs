@@ -64,6 +64,7 @@ class DataMixin:
         settings["inverse"] = (self.inverse_var.get() == "on")
         settings["expression"] = (self.expression_var.get() == "on")
         settings["whole_word"] = (self.whole_word_var.get() == "on")
+        settings["rank"] = (self.rank_var.get() == "on")
         settings["timestamp"] = (self.timestamp_var.get() == "on")
         # Integer settings
         cores_val = self.cores_entry.get().strip()
@@ -194,6 +195,7 @@ class DataMixin:
         self.inverse_var.set("on" if config.get("inverse") else "off")
         self.expression_var.set("on" if config.get("expression") else "off")
         self.whole_word_var.set("on" if config.get("whole_word", _whole_word_default) else "off")
+        self.rank_var.set("on" if config.get("rank", False) else "off")
         self.timestamp_var.set("on" if config.get("timestamp", False) else "off")
         self.delete_reports_var.set("on" if config.get("delete_reports_on_close", False) else "off")
         self.clear_history_var.set("on" if config.get("clear_history_on_close", False) else "off")
@@ -1054,6 +1056,7 @@ class DataMixin:
             "inverse": self.inverse_var.get() == "on",
             "expression": self.expression_var.get() == "on",
             "whole_word": self.whole_word_var.get() == "on",
+            "rank": self.rank_var.get() == "on",
             "output_docx": self.output_docx_var.get() == "on",
             "output_csv": self.output_csv_var.get() == "on",
             "output_json": self.output_json_var.get() == "on",
@@ -1101,6 +1104,7 @@ class DataMixin:
         self.inverse_var.set("on" if params.get("inverse") else "off")
         self.expression_var.set("on" if params.get("expression") else "off")
         self.whole_word_var.set("on" if params.get("whole_word") else "off")
+        self.rank_var.set("on" if params.get("rank") else "off")
         if params.get("expression"):
             self.search_entry.configure(placeholder_text='e.g. (budget OR revenue) AND NOT draft')
         else:

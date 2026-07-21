@@ -334,6 +334,7 @@ class BuildMixin:
         self.and_mode_var = ctk.StringVar(value="off")
         self.whole_word_var = ctk.StringVar(value="on")
         self.index_search_var = ctk.StringVar(value="off")
+        self.rank_var = ctk.StringVar(value="off")
 
         import tkinter as _tk_step2
         from peekdocs.i18n import t as _t
@@ -745,6 +746,15 @@ class BuildMixin:
         )
         self._adv_cb_whole_word.grid(row=2, column=2, padx=(0, 15), pady=(5, 0), sticky="w")
         Tooltip(self._adv_cb_whole_word, "Matches complete words only. 'bob' matches 'bob' but not 'bobcat'.")
+
+        self._adv_cb_rank = ctk.CTkCheckBox(
+            cb_frame, text="Sort by relevance", variable=self.rank_var,
+            onvalue="on", offvalue="off",
+            command=lambda: self._save_ui_preference("rank", self.rank_var.get() == "on"),
+        )
+        self._adv_cb_rank.grid(row=3, column=0, padx=(0, 15), pady=(5, 0), sticky="w")
+        Tooltip(self._adv_cb_rank, "Order matches by relevance (most relevant first) instead of file order. "
+                                   "Needs the search index (turn on Use Index); otherwise results stay in file order.")
 
         # Use Index used to sit at row 1 / col 4 of this grid. It now
         # lives below the Output Dir entry — see the cb_index_search

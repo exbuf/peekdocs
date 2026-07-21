@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **GUI: a "Sort by relevance" checkbox in Advanced Search Options** — the
+  desktop equivalent of `--rank`. Orders Standard Search matches by relevance;
+  needs the index (a tooltip says so). Persists with your other saved settings.
+  Ranking is now available in all four surfaces: CLI, Python API, MCP, and GUI.
 - **MCP `search_documents` gains a `rank` option — relevance-order the matches
   the assistant sees.** When results are capped, ranking makes the returned
   window the *most relevant* matches rather than just the first ones. Opt-in
