@@ -1951,6 +1951,10 @@ def _main_inner(argv: list[str] | None = None) -> int:
         return 0 if total_matches > 0 else 1
 
     want_rank = "--rank" in args
+    if want_rank:
+        # Strip it so it isn't swallowed as a positional search term
+        # (which would corrupt the query, e.g. AND-mode → zero matches).
+        args.remove("--rank")
     no_index = "--no-index" in args
     if no_index:
         args.remove("--no-index")
