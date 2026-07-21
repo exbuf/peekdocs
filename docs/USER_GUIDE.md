@@ -1909,14 +1909,16 @@ None of these require an internet connection once the model is downloaded, so th
    ```bash
    pipx install ollmcp
    ```
-3. **Point the client at peekdocs.** ollmcp reads the same `mcpServers` config shape shown under [Registering with an MCP client](#registering-with-an-mcp-client) — declare the `peekdocs-mcp` command (use the **full path**, per the snag below) fenced to your folder:
-   ```json
-   { "mcpServers": { "peekdocs": {
-       "command": "/Users/you/.local/bin/peekdocs-mcp",
-       "args": ["--root", "/Users/you/Documents", "--recursive"] } } }
+3. **Generate peekdocs's server config** (the same `mcpServers` shape from [Registering with an MCP client](#registering-with-an-mcp-client) — it fills in the full path automatically):
+   ```bash
+   peekdocs-mcp --print-config --root ~/Documents --recursive > peekdocs.json
    ```
-   then start ollmcp with your model and that config. *ollmcp's exact flags are its own and change often — check its current README; what stays constant is the `peekdocs-mcp --root <folder>` command and the config shape above.*
-4. **Ask in plain language** — *"search my Documents for the roof warranty and tell me which files it's in."* You'll see the model call peekdocs's `search_documents` tool, then answer — entirely offline, nothing leaving your machine.
+4. **Start ollmcp with your model and that config** — ollmcp reads it via `--servers-json`:
+   ```bash
+   ollmcp --servers-json peekdocs.json --model qwen2.5:7b-instruct
+   ```
+   *(Flags current as of ollmcp 0.33; if one has moved, `ollmcp --help` shows the current set — what stays constant is the `peekdocs.json` config and the `peekdocs-mcp --root <folder>` command inside it.)*
+5. **Ask in plain language** — *"search my Documents for the roof warranty and tell me which files it's in."* You'll see the model call peekdocs's `search_documents` tool, then answer — entirely offline, nothing leaving your machine.
 
 Any other local host (Open WebUI, Cline, Continue, Goose, MCPHost) follows the same three moves: run a tool-calling model, and hand the host that same `peekdocs-mcp --root` server entry.
 
