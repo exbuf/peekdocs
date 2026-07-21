@@ -1927,6 +1927,38 @@ Any other local host (Open WebUI, Cline, Continue, Goose, MCPHost) follows the s
 - **The model must actually support tool calling.** Even a large model is useless here if it doesn't — and many **vision-language** (often marked `VL`) and **base** (non-instruct) builds either don't support it or the host won't enable tools for them, so the assistant answers from its own memory and never runs a search. Use an **instruct** build known for tool use (e.g. Qwen2.5-7B-Instruct, Llama 3.1 8B+). The tell-tale sign of the wrong model is an assistant that "answers" without ever showing a tool call.
 - **Use the full path to `peekdocs-mcp` in the host's config.** GUI hosts (LM Studio, Claude Desktop, …) often launch with a stripped `PATH` that omits the directory pipx installs into, so a bare `peekdocs-mcp` command fails to start even though it runs fine in your terminal. Put the **absolute path** in the config — find it with `which peekdocs-mcp` (macOS/Linux) or `where peekdocs-mcp` (Windows).
 
+### Without MCP: a scripted retrieval → local-model pipeline
+
+The MCP path above is *conversational* — the assistant decides when to search, mid-chat. There's a second way to pair peekdocs with a local model that needs **no MCP host at all**: use peekdocs's JSON output as the deterministic *retrieval* step, then hand the matches to a model yourself. It's scriptable (cron, CI), fully offline, and grounds the model in a small, exact set instead of a whole corpus. This is the "retrieval half" of a private, RAG-style workflow — minus the embeddings: exact matches the model can cite, not approximate similarity.
+
+The four steps (verified with Ollama + `qwen2.5:7b-instruct`; use plain `peekdocs` for the current folder or add `-r <folder>`):
+
+1. **peekdocs retrieves — exactly.** `--stdout` prints matches as JSON; each carries `filename`, `line_number`, and `matched_text`:
+   ```bash
+   peekdocs --stdout renew
+   ```
+2. **Shape the matches into context** (here with `jq`):
+   ```bash
+   peekdocs --stdout renew | jq -r '.matches[] | "- \(.filename) (line \(.line_number)): \(.matched_text)"'
+   ```
+3. **Build a grounded prompt** — tell the model to answer *only* from those matches and cite the file.
+4. **Hand it to a local model.** For scripting, the Ollama **API** returns clean text:
+   ```bash
+   Q="Which agreements auto-renew, and how much notice to cancel? Cite the file."
+   CTX=$(peekdocs --stdout renew | jq -r '.matches[] | "- \(.filename) (line \(.line_number)): \(.matched_text)"')
+   PROMPT="Answer using ONLY these peekdocs results; cite the filename; if they don't say, say so.
+
+   Question: $Q
+
+   Results:
+   $CTX"
+   jq -n --arg m qwen2.5:7b-instruct --arg p "$PROMPT" '{model:$m, prompt:$p, stream:false}' \
+     | curl -s http://localhost:11434/api/generate -d @- | jq -r '.response'
+   ```
+   *(For a quick interactive try, `echo "$PROMPT" | ollama run qwen2.5:7b-instruct` also works — but `ollama run` is built for a terminal and leaks cursor codes into piped output, so use the API in scripts.)*
+
+**Why this shape.** peekdocs narrows a 10,000-file corpus to the handful that actually match — exactly and deterministically — so the model reasons over a small, grounded set *with file + line citations* instead of the whole pile, and nothing leaves your machine. In testing, the model correctly answered from the matched lines *and* said when a detail "is not mentioned in the provided search results" rather than inventing one. Compared with MCP: **MCP is conversational** (ask mid-chat, the assistant searches for you); **this pipeline is scripted** (narrow → summarize → report, on a schedule). Same deterministic engine underneath; you choose who drives it.
+
 ## Automation and IT Use
 
 peekdocs is designed for interactive use, but every interactive flow has a matching CLI surface that you can drive from cron, Task Scheduler, a CI job, or a wrapper script. This section is the operational reference: exit codes, JSON output schemas, scheduling defaults, where things live on disk, and how to ship a reusable workflow to other machines.
