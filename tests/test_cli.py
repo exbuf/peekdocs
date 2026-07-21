@@ -78,6 +78,34 @@ def test_search_finds_matches(tmp_path, monkeypatch, capsys):
     assert highlighted_runs[1].text == "Hello"
 
 
+def test_rank_flag_not_swallowed_as_search_term(tmp_path, monkeypatch, capsys):
+    # Regression: --rank must be stripped from args, not consumed as a
+    # positional search term. It once leaked into the query, so an AND search
+    # "term --rank" matched nothing (real report: 351 matches -> 0 with rank on).
+    # Ranking reorders results; it must never change the match COUNT.
+    (tmp_path / "a.txt").write_text("bowling night was great\n")
+    (tmp_path / "b.txt").write_text("more bowling night here\n")
+    monkeypatch.chdir(tmp_path)
+    main(["--index"])
+    capsys.readouterr()
+
+    # OR mode: --rank must not change the match count (2 files, both match).
+    assert main(["bowling"]) == 0
+    plain = capsys.readouterr().out
+    assert main(["bowling", "--rank"]) == 0
+    ranked = capsys.readouterr().out
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in plain
+    assert f"{HIGHLIGHT}2{RESET} match(es)" in ranked   # NOT 0 — query wasn't polluted
+    # The actual query echo (not the command echo) must be just the term.
+    assert "on [bowling --rank]" not in ranked.replace(HIGHLIGHT, "").replace(RESET, "")
+
+    # AND mode — the exact case reported (351 -> 0). Return code 0 = matches
+    # found; before the fix "bowling AND night AND --rank" matched nothing (1).
+    assert main(["bowling", "night", "-a"]) == 0
+    capsys.readouterr()
+    assert main(["bowling", "night", "-a", "--rank"]) == 0
+
+
 def test_search_no_matches(tmp_path, monkeypatch, capsys):
     doc = Document()
     doc.add_paragraph("Nothing here")
