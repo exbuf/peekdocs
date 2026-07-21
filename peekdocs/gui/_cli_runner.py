@@ -232,6 +232,7 @@ def _build_command_from_values(
     inverse=False,
     expression=False,
     whole_word=False,
+    rank=False,
     max_matches="",
     max_file_size_mb="",
     timestamp_suffix="",
@@ -281,6 +282,8 @@ def _build_command_from_values(
         cmd.append("-x")
     if whole_word:
         cmd.append("-W")
+    if rank:
+        cmd.append("--rank")
     if inverse:
         cmd.append("--inverse")
 

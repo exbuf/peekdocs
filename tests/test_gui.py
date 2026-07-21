@@ -21,6 +21,25 @@ def test_build_command_basic(tmp_path):
     assert "-r" not in cmd
 
 
+def test_build_command_rank(tmp_path):
+    on = _build_command_from_values(
+        search_text="budget", folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="", index_search=True, rank=True,
+    )
+    assert "--rank" in on
+    off = _build_command_from_values(
+        search_text="budget", folder=str(tmp_path),
+        and_mode=False, recursive=False, fuzzy=False,
+        wildcard=False, ocr=False, regex=False,
+        exclude="", file_types="", proximity="",
+        context_before="", context_after="", index_search=True, rank=False,
+    )
+    assert "--rank" not in off
+
+
 def test_build_command_all_flags(tmp_path):
     cmd = _build_command_from_values(
         search_text="hello world",
