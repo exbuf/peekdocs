@@ -768,7 +768,7 @@ peekdocs has twenty-nine flags that can be mixed and matched:
 | `--index-status` (index-status) | Show index info — file count, line count, database size, creation date, and settings |
 | `--inverse` (inverse) | Inverse search — list files that do NOT contain the search terms. See [Inverse Search](#inverse-search) |
 | `--open FMT` (open) | Automatically open the report when the search finishes. Specify the format: `docx`, `txt`, `csv`, `json`, `pdf`, or `html`. For csv/json/pdf/html, the output format is auto-generated if not already enabled — no need to also specify `-o`. Opens in whatever app you've set as your OS default for that file type |
-| `--rank` (rank) | Order matches by **relevance (BM25)** instead of the default file-then-line order — a short, on-point passage floats above a file that merely repeats a common word. Opt-in; it changes only the *order*, never *which* matches are returned, and it's deterministic (same query → same order). Requires the [search index](#search-index-optional) (prints a note if none exists) and applies to non-context searches; regex and fuzzy searches are unaffected. |
+| `--rank` (rank) | Order matches by **relevance (BM25)** instead of the default file-then-line order — a short, on-point passage floats above a file that merely repeats a common word. Opt-in; it changes only the *order*, never *which* matches are returned, and it's deterministic (same query → same order). Requires the [search index](#search-index-optional) (prints a note if none exists) and applies to non-context searches; regex and fuzzy searches are unaffected. See [How relevance ranking works](#how-relevance-ranking-works---rank--sort-by-relevance) for the algorithm. |
 | `--output-dir PATH` (output-dir) | Write all output files (reports, error log, CSV, JSON, PDF) to the specified directory instead of the search folder |
 | `-A N` (after) | Show N lines after each match. What counts as a "line" matches the unit peekdocs indexes per format: a literal line for plain text and source code, a paragraph for Word (.docx) and PDF, a row for Excel. On paragraph-heavy formats, `-A 3` can include several sentences or even pages of surrounding text. |
 | `-B N` (before) | Show N lines before each match. Same per-format meaning as `-A N` — see above. |
@@ -2741,6 +2741,36 @@ When this happens, the CLI prints `Note: index bypassed — fuzzy search uses di
 **Subfolders:** One index in your top folder covers everything underneath. You can build separate indexes in subfolders too — they're independent and don't interfere with each other.
 
 **Concurrent access:** The index uses SQLite WAL mode with atomic transactions, busy timeouts, and graceful lock handling. Multiple searches, auto-refresh, and external tools can access the same index without blocking each other. If the process crashes mid-refresh, uncommitted changes are rolled back automatically.
+
+### How relevance ranking works (`--rank` / "Sort by relevance")
+
+Turn on **Sort by relevance** (GUI) or add `--rank` (CLI) and matches come back best-first instead of in file order. It **reorders the results — it never changes which matches are found** — and it's **deterministic**: the same query against the same index gives the same order every time. It's a transparent formula called **BM25**, *not* machine learning and *not* embeddings — there's no model, no training, and nothing approximate. Requires the index (it's a no-op on a direct/no-index search); regex and fuzzy searches aren't ranked.
+
+**What "relevant" means — three factors.** BM25 scores each matched passage against your query terms by weighing:
+
+1. **Term rarity (IDF, *inverse document frequency*).** A rare term counts for more than a common one — a hit on *"BDNF"* is worth far more than a hit on *"the"*, because the rare word is what makes a passage distinctive.
+2. **Term frequency, with saturation (TF).** More occurrences help — but with **diminishing returns**. The 2nd and 3rd occurrence add real weight; the 20th adds almost nothing. This is what stops a file that merely repeats a word from dominating.
+3. **Length normalization.** A term in a short, focused passage outranks the same term buried in a long one — density beats sheer size.
+
+**The formula.** For a passage *D* and query *Q*, BM25 sums a per-term score over each query term *t*:
+
+```
+score(D, Q) = Σ  IDF(t) ·      f(t,D) · (k1 + 1)
+             t∈Q         ───────────────────────────────
+                         f(t,D) + k1 · (1 − b + b · |D|/avgdl)
+```
+
+where `f(t,D)` is how many times *t* appears in *D*, `|D|` is the passage length, `avgdl` is the average passage length, and `IDF(t)` grows as *t* gets rarer. The constants `k1` (frequency saturation) and `b` (length-normalization strength) are the standard BM25 defaults. The `f(t,D) · (k1+1) / (f(t,D) + k1·…)` shape is the saturation curve from factor 2; the `|D|/avgdl` term is factor 3; `IDF(t)` is factor 1.
+
+**Worked example.** Search `roof warranty` across three files:
+
+| File | Content | Why it ranks where it does |
+|---|---|---|
+| **A** (top) | "the roof warranty period is ten years" | Short, contains *both* rare-ish terms, high density → highest score |
+| **B** (middle) | "warranty warranty warranty warranty … boilerplate" | Lots of *warranty*, but saturation caps the repetition and it's missing *roof* → middle |
+| **C** (bottom) | "…the roof over the building…" (one hit in a long paragraph) | Only one term, buried in length → length-normalized down → lowest |
+
+Raw match-count would wrongly float **B** to the top; BM25 puts **A** first — the passage a person would actually want to read. (Note: peekdocs applies this scoring over the matched results in-process, which is why it works on the exact-substring search path — it isn't limited to the index's own token matching. See **BM25** in the [Glossary](GLOSSARY.md) for the short version.)
 
 ## Advanced search modes
 
