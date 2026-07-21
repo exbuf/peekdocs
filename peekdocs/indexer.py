@@ -1,6 +1,7 @@
 """SQLite FTS5 index for peekdocs."""
 from __future__ import annotations
 
+import math
 import os
 import re
 import sqlite3
@@ -621,8 +622,60 @@ def search_with_index(
         matches = [(fd, fn, ln, tx) for fd, fn, ln, tx in matches
                    if file_matches_filename_ranges(fn, filename_ranges)]
 
+    # Optional relevance ranking (opt-in via config["rank"]). Applied last, to
+    # the fully-filtered flat match list, so it reorders exactly what's returned.
+    # Skipped when context lines are requested — those results are grouped by
+    # file (context windows), which ranking would scramble.
+    if config.get("rank") and not config.get("use_context"):
+        matches = _rank_matches(matches, config.get("search_terms", []))
+
     conn.close()
     return matches, skipped, all_indexed_files
+
+
+def _rank_matches(
+    matches: list[tuple[str, str, int, str]], search_terms: list[str]
+) -> list[tuple[str, str, int, str]]:
+    """Reorder already-matched rows by BM25 relevance (most relevant first).
+
+    A Python scorer applied *after* matching, so it changes only the order —
+    never which matches are returned — and preserves peekdocs's exact substring
+    semantics (the literal-search path scans substrings, not FTS5 tokens, so the
+    index's own ``bm25()`` isn't reachable there; this gives uniform ranking on
+    both the substring and whole-word paths).
+
+    Classic BM25 per matched paragraph: term frequency with saturation (``k1``),
+    rarity/IDF computed over the matched set, and length normalization (``b``).
+    Deterministic — same inputs give the same order (ties keep original order).
+    """
+    if not matches or not search_terms:
+        return matches
+    terms = [t.lower() for t in search_terms if t]
+    if not terms:
+        return matches
+
+    texts = [m[3].lower() for m in matches]
+    lengths = [max(1, len(t.split())) for t in texts]
+    avgdl = sum(lengths) / len(lengths)
+    n = len(matches)
+    df = {t: sum(1 for txt in texts if t in txt) for t in terms}
+
+    k1, b = 1.5, 0.75
+    scored = []
+    for i, m in enumerate(matches):
+        txt, dl = texts[i], lengths[i]
+        score = 0.0
+        for t in terms:
+            n_t = df[t]
+            f = txt.count(t)
+            if n_t == 0 or f == 0:
+                continue
+            idf = math.log(1 + (n - n_t + 0.5) / (n_t + 0.5))
+            score += idf * (f * (k1 + 1)) / (f + k1 * (1 - b + b * dl / avgdl))
+        scored.append((score, i, m))
+
+    scored.sort(key=lambda s: (-s[0], s[1]))  # score desc; stable by orig index
+    return [m for _, _, m in scored]
 
 
 def _can_use_direct_scan(config: dict[str, Any]) -> bool:

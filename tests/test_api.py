@@ -460,3 +460,62 @@ class TestFilenameRangeSearch:
         result = search(["budget"], directory=str(tmp_path),
                          range_filters=["fn:date:2024-01-01..2024-12-31"])
         assert len(result.matches) == 0
+
+
+# ── Relevance ranking (BM25) ─────────────────────────────────────
+
+class TestRanking:
+    def test_rank_matches_unit_orders_by_relevance(self):
+        # dense on-point paragraph beats repetitive-common-word beats buried.
+        from peekdocs.indexer import _rank_matches
+        matches = [
+            ("/d", "buried.txt", 1, "the roof over the whole building is grey and large " * 4),
+            ("/d", "dense.txt", 1, "the roof warranty period is ten years"),
+            ("/d", "repetitive.txt", 1, "warranty warranty warranty warranty boilerplate terms"),
+        ]
+        ranked = _rank_matches(matches, ["roof", "warranty"])
+        names = [m[1] for m in ranked]
+        assert names[0] == "dense.txt"      # short + both terms = most relevant
+        assert names[-1] == "buried.txt"    # term buried in long text = least
+        # only reordered, never dropped
+        assert sorted(m[1] for m in ranked) == sorted(m[1] for m in matches)
+
+    def test_rank_matches_is_deterministic(self):
+        from peekdocs.indexer import _rank_matches
+        matches = [("/d", f"f{i}.txt", 1, "budget line and revenue detail") for i in range(5)]
+        a = _rank_matches(list(matches), ["budget"])
+        b = _rank_matches(list(matches), ["budget"])
+        assert [m[1] for m in a] == [m[1] for m in b]
+
+    def test_rank_matches_empty_and_no_terms(self):
+        from peekdocs.indexer import _rank_matches
+        assert _rank_matches([], ["x"]) == []
+        one = [("/d", "f.txt", 1, "text")]
+        assert _rank_matches(one, []) == one  # no terms → unchanged
+
+    def test_search_rank_reorders_same_matches(self, tmp_path, monkeypatch):
+        from peekdocs.indexer import build_index
+        (tmp_path / "buried.txt").write_text(
+            "the roof over the whole building is grey and large and old " * 4 + "\n")
+        (tmp_path / "dense.txt").write_text("the roof warranty period is ten years\n")
+        (tmp_path / "repetitive.txt").write_text(
+            "warranty warranty warranty warranty boilerplate terms apply\n")
+        monkeypatch.chdir(tmp_path)
+        build_index(str(tmp_path), recursive=True)
+
+        base = search(["roof", "warranty"], directory=str(tmp_path), use_index=True)
+        ranked = search(["roof", "warranty"], directory=str(tmp_path), use_index=True, rank=True)
+
+        base_names = [m.filename for m in base.matches]
+        ranked_names = [m.filename for m in ranked.matches]
+        # same matches, only the order changes
+        assert sorted(base_names) == sorted(ranked_names)
+        assert ranked_names[0] == "dense.txt"
+        assert ranked_names != base_names  # ranking actually did something here
+
+    def test_rank_without_index_is_safe_noop(self, tmp_path, monkeypatch):
+        _make_docx(tmp_path / "doc.docx", ["budget report", "budget summary"])
+        monkeypatch.chdir(tmp_path)
+        # No index built + rank=True must not error; results just come back unranked.
+        result = search(["budget"], directory=str(tmp_path), use_index=False, rank=True)
+        assert len(result.matches) == 2

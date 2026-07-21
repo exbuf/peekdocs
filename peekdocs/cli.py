@@ -123,6 +123,8 @@ BANNER_BOTTOM = (
     '  --index-status     Show index file count, size, last updated\n'
     '  --index-clear      Delete the search index\n'
     '  --no-index         Skip the index for this search (direct scan)\n'
+    '  --rank             Order matches by relevance (BM25) instead of file order;\n'
+    '                     needs the search index\n'
     '\n'
     '── Settings & Info ──────────────────────────────────────────────\n'
     '  --suite NAME       Run a search suite (group of saved searches) by name.\n'
@@ -1948,6 +1950,7 @@ def _main_inner(argv: list[str] | None = None) -> int:
             _set_paths_rc(**_rc_path_args)
         return 0 if total_matches > 0 else 1
 
+    want_rank = "--rank" in args
     no_index = "--no-index" in args
     if no_index:
         args.remove("--no-index")
@@ -2070,6 +2073,14 @@ def _main_inner(argv: list[str] | None = None) -> int:
 
     # Determine index mode for display
     _will_use_index = index_exists(cwd) and not no_index
+    # --rank needs the index (BM25-style relevance is applied on the indexed
+    # path). If ranking was requested but the index won't be used, say so rather
+    # than silently returning file-order results.
+    if want_rank and not _will_use_index and not (stdout_json or minimal or quiet):
+        reason = "no index in this folder — run `peekdocs --index`" if not no_index \
+            else "--no-index was set"
+        print(f"Note: --rank needs the search index ({reason}); results are in file order.",
+              file=sys.stderr)
     display_label = expression if expression else ' '.join(search_terms)
     if not display_label and range_specs_raw:
         display_label = " ".join(range_specs_raw)
@@ -2193,6 +2204,7 @@ def _main_inner(argv: list[str] | None = None) -> int:
             expression=expression,
             range_filters=range_specs_raw or None,
             max_file_size_mb=parsed.get("max_file_size_mb", 100),
+            rank=want_rank,
         )
     except KeyboardInterrupt:
         spinner_stop.set()
