@@ -1899,6 +1899,27 @@ It takes three pieces:
 
 None of these require an internet connection once the model is downloaded, so the whole stack — model, MCP server, and your documents — stays offline. Note that peekdocs works with *any* MCP-capable host regardless of the model behind it; the choice between a cloud assistant (easiest to set up) and a local model (nothing leaves your machine) is yours.
 
+**Example — a fully-local stack without LM Studio (Ollama + ollmcp).** If you'd rather use [Ollama](https://ollama.com) with a terminal client instead of LM Studio's all-in-one app, the shape is the same — a model runner plus an MCP client:
+
+1. **Pull a tool-calling model** in Ollama (it runs its own server in the background):
+   ```bash
+   ollama pull qwen2.5:7b-instruct      # or llama3.1:8b — any instruct build with tool calling
+   ```
+2. **Install an MCP client for Ollama** — for example [ollmcp](https://github.com/jonigl/mcp-client-for-ollama):
+   ```bash
+   pipx install ollmcp
+   ```
+3. **Point the client at peekdocs.** ollmcp reads the same `mcpServers` config shape shown under [Registering with an MCP client](#registering-with-an-mcp-client) — declare the `peekdocs-mcp` command (use the **full path**, per the snag below) fenced to your folder:
+   ```json
+   { "mcpServers": { "peekdocs": {
+       "command": "/Users/you/.local/bin/peekdocs-mcp",
+       "args": ["--root", "/Users/you/Documents", "--recursive"] } } }
+   ```
+   then start ollmcp with your model and that config. *ollmcp's exact flags are its own and change often — check its current README; what stays constant is the `peekdocs-mcp --root <folder>` command and the config shape above.*
+4. **Ask in plain language** — *"search my Documents for the roof warranty and tell me which files it's in."* You'll see the model call peekdocs's `search_documents` tool, then answer — entirely offline, nothing leaving your machine.
+
+Any other local host (Open WebUI, Cline, Continue, Goose, MCPHost) follows the same three moves: run a tool-calling model, and hand the host that same `peekdocs-mcp --root` server entry.
+
 **Two common snags with a local model** — both are host/model issues, not peekdocs:
 
 - **The model must actually support tool calling.** Even a large model is useless here if it doesn't — and many **vision-language** (often marked `VL`) and **base** (non-instruct) builds either don't support it or the host won't enable tools for them, so the assistant answers from its own memory and never runs a search. Use an **instruct** build known for tool use (e.g. Qwen2.5-7B-Instruct, Llama 3.1 8B+). The tell-tale sign of the wrong model is an assistant that "answers" without ever showing a tool call.
