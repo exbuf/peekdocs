@@ -104,13 +104,13 @@ Feito para quem prefere ferramentas locais, transparentes e determinísticas. Se
 
 ### You have files. You need to find something in them.
 
-peekdocs is a local, deterministic search workbench that does exactly that across 100+ file types — Word, PDF, Excel, email, archives, source code, and scanned documents via OCR — through a single pipeline. The same query returns the same results every time, each traceable to a file and line.
+peekdocs is a local, deterministic document search workbench that searches 100+ file types — Word, PDF, Excel, PowerPoint, email, archives, source code, and scanned documents via OCR — in a single search. Everything runs locally on your computer, with no cloud services, no telemetry, and no network calls. Available as a GUI, CLI, Python API, and an optional [MCP](#mcp-server-optional--search-from-an-ai-assistant) interface that lets AI assistants search your documents while they stay on your machine. Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
 
-Saved-search suites group recurring workflows into one combined report, and a regex pattern workbench runs named collections across any folder — all locally, with no network. Drive it from a GUI, CLI, Python API, or an optional AI-assistant interface via [MCP](#mcp-server-optional--search-from-an-ai-assistant). Runs on Windows, macOS, and Linux. Free and open-source under the MIT License.
-
-Built for people who prefer private, transparent, repeatable tools. No cloud, no telemetry, no network calls.
+Built for people who value privacy, transparency, and deterministic results. The same search produces the same results — each hit traceable to a file and line — making peekdocs well suited for research, QA, automation, and AI workflows.
 
 **Typical workflow:** Search a folder of mixed-format documents → inspect matches in the Results Preview → generate a TXT report — plus optional JSON, CSV, or yellow-highlighted DOCX, PDF, or HTML → save the search → add it to a Search Suite → schedule it weekly.
+
+Beyond ad hoc searches, peekdocs includes saved Search Suites for recurring workflows, a regex pattern workbench for running named collections of patterns across any folder, and a consistent search engine shared by the GUI, CLI, Python API, and AI integrations.
 
 <!--
   TO UPDATE THIS DEMO GIF:
