@@ -1550,7 +1550,15 @@ A few examples of how different people might use it (assuming `--root` points at
 - **Auditor / reviewer** — "Run my *Evidentiary Patterns* regex collection over this folder and group the hits by document." It runs the saved collection and organizes the results.
 - **Small-business owner (non-technical)** — "Which contract mentions the roof warranty?" Plain English, no flags to learn.
 
-The same shape fits a researcher's PDF corpus, an engineer's datasheets, an analyst's spreadsheets, or a docs team's terminology sweep — any folder of files, asked in plain language.
+The same pattern shows up across many fields — any folder of documents, questioned in plain language:
+
+- **Manufacturing** — a technician asks *"what torque spec applies to the model X gearbox?"* and the assistant searches the manuals, SOPs, inspection reports, and maintenance logs to answer with the figure and where it came from.
+- **Engineering** — an engineer half-remembers *"there was a report about vibration around 2019"*; the assistant formulates the search across PDFs, Word reports, emails, and spreadsheets and surfaces it.
+- **Small business** — an owner asks *"what agreements do we have with Acme?"* and the assistant finds them and summarizes the key terms.
+- **Legal** — a reviewer asks *"which of these vendor contracts auto-renew, and what are their cancellation terms?"* and the assistant reads the relevant clauses and summarizes each.
+- **Insurance** — an adjuster asks *"summarize the hail-damage claims over $20,000"*; the dollar threshold is a peekdocs range filter, and the assistant reads the matches and lays them out.
+
+Together, peekdocs and the assistant become a **private research assistant** — you ask in plain language, and the answers stay grounded in your own documents (and, with a local model, never leave your machine).
 
 ### Read-only by design
 
