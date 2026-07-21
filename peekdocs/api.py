@@ -85,6 +85,7 @@ def search(
     expression: str | None = None,
     range_filters: list[str] | None = None,
     max_file_size_mb: int = 100,
+    rank: bool = False,
 ) -> SearchResult:
     """Search documents and return structured results.
 
@@ -135,6 +136,12 @@ def search(
     range_filters : list[str], optional
         Range filter specs (e.g. ["amount:1000..5000", "date:2024-01-01..2024-12-31"]).
         Content ranges filter matched lines; metadata ranges filter files.
+    rank : bool, optional
+        Order matches by BM25 relevance (most relevant first) instead of the
+        default file-then-line order. Opt-in; changes only the order, never which
+        matches are returned. Requires the FTS5 index (no effect on direct-scan,
+        regex, or fuzzy searches). Applies to non-context searches; when context
+        lines are requested, matches regroup by file and rank order is not kept.
 
     Returns
     -------
@@ -231,6 +238,7 @@ def search(
         "metadata_ranges": metadata_ranges,
         "filename_ranges": filename_ranges,
         "max_file_size_mb": max_file_size_mb,
+        "rank": rank,
     }
 
     # ── Determine search path ───────────────────────────────────

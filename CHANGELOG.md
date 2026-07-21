@@ -13,6 +13,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **Optional relevance ranking (`--rank`) — order matches by BM25 instead of
+  file order.** Opt-in; **changes only the order, never which matches are
+  returned**, and preserves peekdocs's exact substring matching. Ranks by term
+  rarity, term frequency (with saturation, so repetition can't dominate), and
+  match density — so a short on-point paragraph outranks a file that merely
+  repeats a common word. Deterministic (same query → same order). Available in
+  the CLI (`peekdocs --rank <terms>`) and the Python API (`search(..., rank=True)`);
+  requires the search index (a note is printed if it's missing) and applies to
+  non-context searches. Regex/fuzzy searches are unaffected. *(Implemented as a
+  Python scorer over the matched set — the literal-search path scans substrings
+  rather than FTS5 tokens, so the index's own `bm25()` isn't reachable there;
+  the Python scorer gives uniform ranking on both paths while keeping substring
+  semantics.)*
 - **MCP `search_documents` gains a `detail` output mode — `full` (default) or
   `locations`.** `locations` returns only each match's file and line, dropping
   the (often paragraph-sized) matched text — far more token-efficient, so a
