@@ -912,14 +912,14 @@ class BuildMixin:
         def _save_output_format(key, var):
             self._save_ui_preference(key, var.get() == "on")
 
-        # Format checkboxes live in their own sub-frame on row 3 of
-        # cb_frame, packed side="left" so they sit flush regardless of
-        # the surrounding column widths. (Earlier they shared cb_frame's
-        # 3-column grid, but col 2's width is sized by 'OCR (images +
-        # scanned PDFs)' above — leaving a big visual gap after JSON
-        # and PDF/HTML looking detached.)
+        # Format checkboxes live in their own sub-frame on row 4 of
+        # cb_frame (row 3 holds the "Sort by relevance" checkbox), packed
+        # side="left" so they sit flush regardless of the surrounding column
+        # widths. (Earlier they shared cb_frame's 3-column grid, but col 2's
+        # width is sized by 'OCR (images + scanned PDFs)' above — leaving a big
+        # visual gap after JSON and PDF/HTML looking detached.)
         formats_row = ctk.CTkFrame(cb_frame, fg_color="transparent")
-        formats_row.grid(row=3, column=0, columnspan=3, pady=(8, 0), sticky="w")
+        formats_row.grid(row=4, column=0, columnspan=3, pady=(8, 0), sticky="w")
         cb_docx = ctk.CTkCheckBox(
             formats_row, text="DOCX", variable=self.output_docx_var,
             onvalue="on", offvalue="off",
