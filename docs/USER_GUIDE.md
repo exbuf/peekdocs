@@ -1633,7 +1633,7 @@ If you use **Claude Code** (Anthropic's terminal CLI), it is already an MCP host
    pipx install "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"
    ```
 
-   Already have peekdocs installed? A plain `pipx install` is skipped (a no-op), so add `--force` to pull the `[mcp]` extra: `pipx install --force "peekdocs[mcp] @ git+https://github.com/exbuf/peekdocs.git"`.
+   *(Already have peekdocs? A plain `pipx install` is a no-op — see [Installing and running](#installing-and-running) for the `--force` reinstall that adds the `[mcp]` extra.)*
 
 2. **Register it, fenced to one folder:**
 
@@ -1796,63 +1796,9 @@ Three real exchanges with a **local** model (Qwen2.5-7B-Instruct via LM Studio),
 
 The flagship benefit: the assistant ran a `search_documents` sweep, then **synthesized matches from several files into one answer** — while every point traces back to a file and line you can open and check.
 
-**2 — Scoping to one file, with structured output.**
+**2 — Scoping to one file, with structured output.** Asked *"from this file, tell me what's known about BDNF"* pointed at a single `.docx`, the assistant confined the search to that one file and returned **both** a line-cited prose summary **and** a machine-readable JSON block. **Why the JSON matters:** prose is for *reading*; a structured block is for *using* — you or a script can parse it, filter and sort it, or pipe it onward. (Those `content` strings are the model's paraphrase, though — for a guaranteed-exact machine format use peekdocs's own JSON: the **JSON** checkbox in Advanced Search Options, or `-o json` / `--stdout` on the CLI.)
 
-> **You:** From this file tell what's known about BDNF: `~/Documents/Health/Factoids-Health19.docx`
->
-> **Qwen2.5-7B-Instruct:** Sure, let's extract and summarize what is known about BDNF from the document located at `~/Documents/Health/Factoids-Health19.docx`.
->
-> **Summary of BDNF from ~/Documents/Health/Factoids-Health19.docx**
->
-> *BDNF and Prolonged Fasting:*
-> - Line 585: "Prolonged fasting can boost BDNF levels, which are associated with improved cognitive function."
-> - Line 586: "Studies in animals have demonstrated that prolonged fasting can enhance BDNF levels."
->
-> *Mechanisms of BDNF Production During Fasting:*
-> - Line 586: "Prolonged fasting can lead to ketosis, a metabolic state in which your liver converts stored fats into fatty acids and ketone bodies."
-> - Line 3846: "Ketone body β-hydroxybutyrate (BHB) increases BDNF production, which is important for learning and memory."
->
-> *Cognitive Benefits of Increased BDNF:*
-> - Line 587: "BDNF helps in protecting neurons and promoting the growth of new neurons."
-> - Line 3849: "Increased BDNF levels can improve learning and memory."
->
-> **Detailed Annotations:**
-> ```json
-> { "bdnf_knowledge": [ { "file": "~/Documents/Health/Factoids-Health19.docx", "lines": [ {"line": 585, "content": "Prolonged fasting can boost BDNF levels, which are associated with improved cognitive function."}, {"line": 586, "content": "Studies in animals have demonstrated that prolonged fasting can enhance BDNF levels."}, {"line": 3846, "content": "Ketone body β-hydroxybutyrate (BHB) increases BDNF production, which is important for learning and memory."}, {"line": 587, "content": "BDNF helps in protecting neurons and promoting the growth of new neurons."}, {"line": 3849, "content": "Increased BDNF levels can improve learning and memory."} ] } ] }
-> ```
->
-> This summary provides a clear overview of what is known about BDNF from the specified document. The lines highlighted offer insights into how prolonged fasting affects BDNF production and its cognitive benefits.
-
-Here the assistant confined the search to **one file** and returned both prose and JSON. **Why the JSON matters:** prose is for *reading*, but a structured block like this is for *using* — you (or a script) can parse it, filter and sort it, drop it into a spreadsheet or database, or pipe it into another tool, turning a one-off answer into data you can automate over. (The `content` strings here are still the model's paraphrase — for a guaranteed-exact machine format, use peekdocs's own JSON output: tick the **JSON** checkbox in the GUI's Advanced Search Options (output formats), or use `-o json` / `--stdout` on the CLI. And open the cited line to see the real text.)
-
-**3 — The assistant reasoning about scope.**
-
-> **You:** It appears that I can select specify and limit searches to any subfolder of /documents, correct
->
-> **Qwen2.5-7B-Instruct:** Yes, you can search within specific subfolders of /documents. To do this using search_documents, you need to specify the directory parameter with the path to the subfolder you want to search.
->
-> Here's an example of how you might set up a search for BDNF in a subfolder like /documents/research.
->
-> **Example Search Query**
->
-> Let's say you want to search for information about BDNF specifically within the /documents/research folder. Here is how you would structure your request:
-> ```json
-> { "name": "search_documents", "arguments": { "query": ["BDNF"], "directory": "/documents/research", "recursive": true, "use_regex": false, "use_fuzzy": false, "use_whole_word": false, "file_types": [".docx", ".pdf", ".txt"], // Limit to specific file types if needed "context_before": 3, "context_after": 3, "expression": null, "range_filters": null, "use_ocr": false, "allow_index_write": false } }
-> ```
->
-> **Explanation:**
-> - **query:** The terms you are searching for, in this case, ["BDNF"].
-> - **directory:** The specific subfolder within /documents to search, which is /documents/research.
-> - **recursive:** Set to true if you want to include all subfolders under the specified directory.
-> - **use_regex, use_fuzzy, and use_whole_word:** These can be adjusted based on your specific needs. In this case, they are set to false.
-> - **file_types:** You can limit the file types if needed (e.g., .docx, .pdf, .txt).
-> - **context_before and context_after:** Number of lines before and after each match.
-> - **expression:** A boolean query if you need more complex logic (not used here).
-> - **use_ocr:** Set to false as the files are likely text-based.
->
-> You can modify these parameters based on your specific requirements. If you have any other questions or need further assistance, feel free to ask!
-
-A handy property this surfaces: within the server's `--root` fence, any single search can be scoped to a subfolder — so one broad `--root ~/Documents` covers many narrower questions without ever editing `mcp.json`.
+**3 — The assistant reasoning about scope.** Asked whether searches could be limited to a subfolder, the assistant correctly explained that `search_documents` takes a `directory` parameter and can be pointed at any subfolder under the server's `--root`. The handy property it surfaces: one broad `--root ~/Documents` covers many narrower questions — you just name the subfolder in plain language, no `mcp.json` editing.
 
 **Want the assistant to see more per question?** The 25-match cap above is a starting point, not a ceiling. Two knobs control how much a single answer can draw on, and it's usually worth nudging **both together**:
 
@@ -1924,7 +1870,7 @@ Any other local host (Open WebUI, Cline, Continue, Goose, MCPHost) follows the s
 
 **Two common snags with a local model** — both are host/model issues, not peekdocs:
 
-- **The model must actually support tool calling.** Even a large model is useless here if it doesn't — and many **vision-language** (often marked `VL`) and **base** (non-instruct) builds either don't support it or the host won't enable tools for them, so the assistant answers from its own memory and never runs a search. Use an **instruct** build known for tool use (e.g. Qwen2.5-7B-Instruct, Llama 3.1 8B+). The tell-tale sign of the wrong model is an assistant that "answers" without ever showing a tool call.
+- **The model must actually support tool calling** — an **instruct** build, not a vision (`VL`) or base one (see the model-runner note above). The tell-tale sign of the wrong model is an assistant that "answers" without ever showing a tool call.
 - **Use the full path to `peekdocs-mcp` in the host's config.** GUI hosts (LM Studio, Claude Desktop, …) often launch with a stripped `PATH` that omits the directory pipx installs into, so a bare `peekdocs-mcp` command fails to start even though it runs fine in your terminal. Put the **absolute path** in the config — find it with `which peekdocs-mcp` (macOS/Linux) or `where peekdocs-mcp` (Windows).
 
 ### Without MCP: a scripted retrieval → local-model pipeline
