@@ -116,6 +116,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   small enough to fit a typical local window; users can raise it. The **running
   server's** own default is unchanged at 200 — only *generated configs* changed.
 
+### Fixed
+- **Relevance ranking — two pre-release fixes** (the `--rank` feature above is
+  new this cycle; these were caught in testing before it shipped):
+  - **`--rank` was swallowed as a search term.** The CLI detected the flag but
+    never removed it from the argument list, so it leaked into the query — e.g.
+    `bowling AND "--rank"`, which in AND mode matched nothing (a real report of
+    351 matches dropping to 0 with ranking on). The flag is now stripped from
+    the query; ranking only reorders, it never changes which matches are found.
+  - **GUI: the "Sort by relevance" checkbox overlapped the output-format row.**
+    It was placed on the same grid row as the DOCX/CSV/JSON/PDF/HTML checkboxes;
+    it now sits on its own line above them.
+
 ### Docs
 - **MCP data-flow diagram** (e623640, f27550a, `README.md`,
   `docs/USER_GUIDE.md`). Added a "How the flow works" diagram to the
