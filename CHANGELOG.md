@@ -13,6 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **MCP `search_documents` gains a `rank` option — relevance-order the matches
+  the assistant sees.** When results are capped, ranking makes the returned
+  window the *most relevant* matches rather than just the first ones. Opt-in
+  (default off). Index-gated like the CLI `--rank`: if the on-disk index isn't
+  enabled the search still succeeds but comes back in file order and the
+  response carries a `rank_note` saying so — so the assistant won't present
+  file-order results as "most relevant." (Wires the ranking feature below into
+  the AI path.)
 - **Optional relevance ranking (`--rank`) — order matches by BM25 instead of
   file order.** Opt-in; **changes only the order, never which matches are
   returned**, and preserves peekdocs's exact substring matching. Ranks by term

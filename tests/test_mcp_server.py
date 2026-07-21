@@ -327,3 +327,36 @@ class TestServerDefaults:
         with pytest.raises(_Stop):
             m.search_documents(["fox"], directory=str(tmp_path), recursive=None)
         assert captured["recursive"] is True
+
+
+class TestRankParam:
+    def test_rank_without_index_adds_note_and_stays_file_order(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(
+            ["fox"], directory=str(tmp_path), recursive=True, rank=True
+        )
+        # No index enabled → ranking can't apply; the note must say so.
+        assert "rank_note" in out
+        assert "index" in out["rank_note"].lower()
+        assert len(out["matches"]) == 2  # still returns the matches
+
+    def test_rank_with_index_reorders_and_no_note(self, tmp_path):
+        from peekdocs.indexer import build_index
+        (tmp_path / "dense.txt").write_text("the roof warranty period is ten years\n")
+        (tmp_path / "repetitive.txt").write_text(
+            "warranty warranty warranty warranty boilerplate terms apply\n")
+        (tmp_path / "buried.txt").write_text(
+            "the roof over the whole building is grey and large and old " * 4 + "\n")
+        build_index(str(tmp_path), recursive=True)
+        out = m.search_documents(
+            ["roof", "warranty"], directory=str(tmp_path), recursive=True,
+            rank=True, allow_index_write=True,
+        )
+        assert "rank_note" not in out
+        names = [os.path.basename(x["file"]) for x in out["matches"]]
+        assert names[0] == "dense.txt"  # most relevant first
+
+    def test_default_no_rank_note(self, tmp_path):
+        _seed(tmp_path)
+        out = m.search_documents(["fox"], directory=str(tmp_path), recursive=True)
+        assert "rank_note" not in out

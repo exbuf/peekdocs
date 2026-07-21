@@ -162,6 +162,7 @@ def search_documents(
     use_ocr: Optional[bool] = None,
     allow_index_write: Optional[bool] = None,
     detail: str = "full",
+    rank: bool = False,
 ) -> dict[str, Any]:
     """Search local documents for text and return matching lines.
 
@@ -190,6 +191,12 @@ def search_documents(
     get_document_context on the files you care about to read their text. Only
     request "locations" when the user's question doesn't need the matched text
     itself; if you use it, say so — you have not seen the surrounding wording.
+    rank: order matches by relevance (most relevant first) instead of file
+    order. Useful when results are capped — the returned window becomes the
+    best matches, not just the first ones. Best for "find the most relevant..."
+    style questions. Requires the on-disk index; if it isn't enabled the search
+    still succeeds but comes back in file order and the response carries a
+    "rank_note" saying so (relay it — don't imply the results were ranked).
     """
     recursive = _CONFIG.recursive_default if recursive is None else recursive
     use_ocr = _CONFIG.ocr_default if use_ocr is None else use_ocr
@@ -213,9 +220,10 @@ def search_documents(
         range_filters=range_filters,
         use_ocr=use_ocr,
         use_index=None if allow_index_write else False,
+        rank=rank,
     )
     matches, envelope = _cap(_match_dicts(result.matches, detail), detail_hint=True)
-    return {
+    out: dict[str, Any] = {
         "searched_directory": d,
         "matches": matches,
         "files_searched": len(result.files_searched),
@@ -223,6 +231,17 @@ def search_documents(
         "elapsed_seconds": round(result.elapsed, 3),
         **envelope,
     }
+    # Ranking is index-gated. If it was requested but the search didn't use the
+    # index (the server's default is read-only / no index), say so plainly —
+    # otherwise the model may present file-order results as "most relevant".
+    if rank and not result.used_index:
+        out["rank_note"] = (
+            "Ranking was requested but needs the on-disk index, which is not "
+            "enabled here — these results are in file order, not ranked by "
+            "relevance. (Enable the index with allow_index_write, or on the "
+            "server with --allow-index, to rank.)"
+        )
+    return out
 
 
 def get_document_context(

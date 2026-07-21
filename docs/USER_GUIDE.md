@@ -1692,7 +1692,7 @@ These files are often in hidden folders; the [beginner guide](LOCAL_AI_SETUP.md#
 
 | Tool | What it does |
 |---|---|
-| `search_documents` | Search for terms, regex, fuzzy, whole-word, or a boolean expression across a folder; returns matching lines with file and line number. Supports context lines, type filters, and exclusions. A `detail` mode chooses how much comes back per match: `full` (default) includes the matched text; `locations` returns just file + line (no text) — far more token-efficient for a broad "which files?" pass or when results are being truncated, then read the ones you want with `get_document_context`. |
+| `search_documents` | Search for terms, regex, fuzzy, whole-word, or a boolean expression across a folder; returns matching lines with file and line number. Supports context lines, type filters, and exclusions. A `detail` mode chooses how much comes back per match: `full` (default) includes the matched text; `locations` returns just file + line (no text) — far more token-efficient for a broad "which files?" pass or when results are being truncated, then read the ones you want with `get_document_context`. A `rank` option (off by default) orders matches by relevance so the capped window is the *most relevant* matches, not just the first — it needs the on-disk index enabled (otherwise the response says so via a `rank_note`). |
 | `get_document_context` | Return the lines surrounding matches of a query within one named file. |
 | `inventory_folder` | List the searchable files in a folder (path, size, modified time, type) without reading their contents. |
 | `list_supported_file_types` | List the extensions peekdocs can search (optionally including OCR image types). |
@@ -1863,6 +1863,8 @@ You trigger it in plain language — you never type `detail=locations` yourself;
 - *(after an "exceeds context size" error)* *"That was too much — just return the file names this time."*
 
 The last one is the natural recovery: the truncation note nudges toward it, so when a full search doesn't fit, you (or the assistant) can fall back to locations and still see the full spread of matches.
+
+A fourth lever is subtler — it doesn't fit *more* matches, it makes the ones you get the *right* ones. Ask for the **most relevant** matches (*"find the passages most relevant to the renewal terms"*) and the assistant passes `rank=true`, so the capped window is the best matches by relevance rather than the first ones in file order. This one needs the on-disk index turned on (`--allow-index` / `allow_index_write`); without it the search still works but stays in file order, and the response says so — see [Search Index](#search-index-optional).
 
 **Or run the model in the cloud (e.g. Claude) instead.** Two of the constraints above came from the *local* model: 8192 tokens of memory forced the low cap, and a 7B model is a modest reasoner. A **cloud** assistant such as Claude Desktop or Claude Code sidesteps both — same peekdocs server, same tools, just a more capable model behind the host — at the cost of the matched snippets leaving your machine. In this example the trade looks like:
 
