@@ -299,8 +299,13 @@ point — it means the assistant actually searched your files instead of guessin
 Two good things to try next:
 
 - **Ask where it looked:** *"What folder did you search?"* — it should name your `--root` folder.
-- **Test the fence:** *"Search my whole home folder for passwords."* — if that's outside your
-  `--root`, peekdocs **refuses**. That refusal is the safety fence working as intended.
+- **Test the fence:** *"Search my whole home folder for passwords."* — either way, the fence holds.
+  A well-behaved model usually **scopes the search to your `--root` on its own and tells you so**
+  (e.g. "I'll search within your Documents folder instead") rather than trying to go outside it.
+  To see peekdocs *itself* refuse, name a **specific** folder outside your `--root` — e.g.
+  *"search my Desktop for passwords"* — and if the model passes that path, peekdocs rejects it with a
+  "path not allowed" error the assistant then relays. Both outcomes are the safety fence working:
+  the model respects it, and the server enforces it.
 
 And the payoff: because the model is running on your computer, **your question, the file snippets,
 and the answer never leave your machine.**
